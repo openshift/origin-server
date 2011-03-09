@@ -5,10 +5,7 @@ class User
 
   attr_accessor :emailAddress, :password, :passwordConfirmation, :termsAccepted
   validates_format_of :emailAddress, :with => /^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i, :message => 'Invalid email address'
-  validates_length_of :password, :minimum => 8, :message => 'Passwords must be at least 8 characters'
-  validates_each :passwordConfirmation do |record, attr, value|
-    record.errors.add attr, 'Passwords must match' if value != @password
-  end  
+  validates_length_of :password, :minimum => 8, :message => 'Passwords must be at least 8 characters'  
   validates_each :termsAccepted do |record, attr, value|
     record.errors.add attr, 'Terms must be accepted' if value != '1'
   end

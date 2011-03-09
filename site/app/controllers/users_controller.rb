@@ -1,4 +1,6 @@
 require 'pp'
+require 'net/http'
+require 'net/https'
 
 class UsersController < ApplicationController
   def new
@@ -17,28 +19,30 @@ class UsersController < ApplicationController
     begin
       url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
       req = Net::HTTP::Post.new(url.path)
+      
       req.set_form_data({ 'emailAddress' => @user.emailAddress,  
                           'password' => @user.password, 
                           'passwordConfirmation' => @user.passwordConfirmation,
                           'secretKey' => 'c0ldW1n3',
-                          'termsAccepted' => 'true'})
-      response = Net::HTTP.new(url.host, url.port).start {|http| http.request(req) }
+                          'termsAccepted' => 'true'
+                          })
+      http = Net::HTTP.new(url.host, url.port)
+      if url.scheme == "https"
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      response = http.start {|http| http.request(req)}
       case response
       when Net::HTTPSuccess, Net::HTTPRedirection
-        if debug
-          puts "HTTP response from server is:"
-          json_resp.each do |k,v|
-              puts "#{k.to_s}: #{v.to_s}"
-          end
+        puts "HTTP response from server is:"
+        response.each do |k,v|
+            puts "#{k.to_s}: #{v.to_s}"
         end
-        puts "Creation successful"
+        puts response.body
       else
-        response.error!
         puts "Problem with server. Response code was #{response.code}"
         puts "HTTP response from server is #{response.body}"
-        json_resp.each do |k,v|
-          puts "#{k.to_s}: #{v.to_s}"
-        end
+        response.error!
       end
 
     rescue Net::HTTPBadResponse => e
