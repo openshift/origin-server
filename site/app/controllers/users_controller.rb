@@ -24,7 +24,7 @@ class UsersController < ApplicationController
                             'passwordConfirmation' => @user.passwordConfirmation,
                             'secretKey' => 'c0ldW1n3',
                             'termsAccepted' => 'true',
-                            'redirectUrl' => 'http://mcpherson.redhat.com:9292'
+                            'redirectUrl' => 'http://li.rhbeta.demo.rhcloud.com/'
                             })
         http = Net::HTTP.new(url.host, url.port)
         if url.scheme == "https"
