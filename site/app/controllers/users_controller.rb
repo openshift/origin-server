@@ -1,9 +1,10 @@
 require 'pp'
 require 'net/http'
 require 'net/https'
+require 'recaptcha'
 
 class UsersController < ApplicationController
-  def new
+  def index
     @user = User.new
   end
 
@@ -14,45 +15,54 @@ class UsersController < ApplicationController
     # Only applicable for the beta registration process
     @user.termsAccepted = '1'
 
-    if !@user.valid?
-      render :new
-    else
-      # Otherwise call out to IT's service to register
-      # Map any errors into the user.errors object
-      begin
-        url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
-        req = Net::HTTP::Post.new(url.path)
+    # Run validations
+    valid = @user.valid?
 
-        req.set_form_data({ 'emailAddress' => @user.emailAddress,
-                            'password' => @user.password,
-                            'passwordConfirmation' => @user.passwordConfirmation,
-                            'secretKey' => 'c0ldW1n3',
-                            'termsAccepted' => 'true',
-                            'redirectUrl' => "https://#{request.domain}/registered"
-                            })
-        http = Net::HTTP.new(url.host, url.port)
-        if url.scheme == "https"
-          http.use_ssl = true
-          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end
-        response = http.start {|http| http.request(req)}
-        case response
-        when Net::HTTPSuccess
-          puts "HTTP response from server is:"
-          response.each do |k,v|
-              puts "#{k.to_s}: #{v.to_s}"
-          end
-          puts response.body
-        else
-          puts "Problem with server. Response code was #{response.code}"
-          puts "HTTP response from server is #{response.body}"
-          response.error!
-        end
+    # Verify the captcha
+    unless verify_recaptcha
+      valid = false
+      @user.errors[:captcha] = "Captcha text didn't match"
+      pp @user.errors
+    end
 
-      rescue Net::HTTPBadResponse => e
-        puts e
-        raise
+    # Stop if you have a validation error
+    render :index and return unless valid
+
+    # Otherwise call out to IT's service to register
+    # Map any errors into the user.errors object
+    begin
+      url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
+      req = Net::HTTP::Post.new(url.path)
+
+      req.set_form_data({ 'emailAddress' => @user.emailAddress,
+                          'password' => @user.password,
+                          'passwordConfirmation' => @user.passwordConfirmation,
+                          'secretKey' => 'c0ldW1n3',
+                          'termsAccepted' => 'true',
+                          'redirectUrl' => "https://#{request.domain}/getting_started.html"
+                          })
+      http = Net::HTTP.new(url.host, url.port)
+      if url.scheme == "https"
+        http.use_ssl = true
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
+      response = http.start {|http| http.request(req)}
+      case response
+      when Net::HTTPSuccess
+        puts "HTTP response from server is:"
+        response.each do |k,v|
+            puts "#{k.to_s}: #{v.to_s}"
+        end
+        puts response.body
+      else
+        puts "Problem with server. Response code was #{response.code}"
+        puts "HTTP response from server is #{response.body}"
+        response.error!
+      end
+
+    rescue Net::HTTPBadResponse => e
+      puts e
+      raise
     end
   end
 end
