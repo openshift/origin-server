@@ -8,23 +8,27 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new(params[:user])    
+    @user = User.new(params[:user])
+
+    # TODO - Remove
+    # Only applicable for the beta registration process
+    @user.termsAccepted = '1'
+
     if !@user.valid?
       render :new
     else
       # Otherwise call out to IT's service to register
       # Map any errors into the user.errors object
-  
       begin
         url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
         req = Net::HTTP::Post.new(url.path)
-        
-        req.set_form_data({ 'emailAddress' => @user.emailAddress,  
-                            'password' => @user.password, 
+
+        req.set_form_data({ 'emailAddress' => @user.emailAddress,
+                            'password' => @user.password,
                             'passwordConfirmation' => @user.passwordConfirmation,
                             'secretKey' => 'c0ldW1n3',
                             'termsAccepted' => 'true',
-                            'redirectUrl' => 'http://li.rhbeta.demo.rhcloud.com/'
+                            'redirectUrl' => "https://#{request.domain}/registered"
                             })
         http = Net::HTTP.new(url.host, url.port)
         if url.scheme == "https"
@@ -44,7 +48,7 @@ class UsersController < ApplicationController
           puts "HTTP response from server is #{response.body}"
           response.error!
         end
-  
+
       rescue Net::HTTPBadResponse => e
         puts e
         raise
