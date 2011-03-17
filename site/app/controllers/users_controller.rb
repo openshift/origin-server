@@ -56,11 +56,11 @@ class UsersController < ApplicationController
       response = http.start {|http| http.request(req)}
       case response
       when Net::HTTPSuccess
-        puts "HTTP response from server is:"
+        logger.debug "HTTP response from server is:"
         response.each do |k,v|
-            puts "#{k.to_s}: #{v.to_s}"
+            logger.debug "#{k.to_s}: #{v.to_s}"
         end
-        puts response.body
+        logger.debug "Response body: #{response.body}"
       else
         puts "Problem with server. Response code was #{response.code}"
         puts "HTTP response from server is #{response.body}"
