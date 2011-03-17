@@ -57,7 +57,7 @@ class UsersController < ApplicationController
                           'passwordConfirmation' => @user.passwordConfirmation,
                           'secretKey' => 'c0ldW1n3',
                           'termsAccepted' => 'true',
-                          'redirectUrl' => "http://li.beta.rhcloud.com/getting_started.html"
+                          'redirectUrl' => "http://li.beta.rhcloud.com/app/getting_started.html"
                           })
       http = Net::HTTP.new(url.host, url.port)
       if url.scheme == "https"
