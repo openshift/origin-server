@@ -2,8 +2,19 @@ require 'pp'
 require 'net/http'
 require 'net/https'
 require 'recaptcha'
+require 'json'
 
 class UsersController < ApplicationController
+  
+  ERRORS = {'user_already_registered' => 'A user with the same email is already registered',
+            'contact_customer_service' => 'Please contact customer service.  This login has attempted to register more than five times without verifying his or her email address.',            
+            'email_required' => 'Email address is required',
+            'email_invalid' => 'The given email address is not a valid email format',            
+            'password_required' => 'Password is required',
+            'password_match_failure' => 'Passwords must match',
+            'terms_not_accepted' => 'Terms must be accepted'
+  }
+  
   def index
     @user = User.new
   end
@@ -62,9 +73,19 @@ class UsersController < ApplicationController
         end
         logger.debug "Response body: #{response.body}"
       else
-        puts "Problem with server. Response code was #{response.code}"
-        puts "HTTP response from server is #{response.body}"
-        response.error!
+        logger.debug "Problem with server. Response code was #{response.code}"
+        logger.debug "HTTP response from server is #{response.body}"
+        #reponse.body isn't really ideal yet just using assumed error for now
+        errors = JSON.parse('["user_already_registered"]')
+        #errors = JSON.parse(response.body)
+        errors.each { |error|
+          if (ERRORS[error])
+            @user.errors[error] = ERRORS[error]
+          else
+            @user.errors[:unknown] = 'An unknown error has occurred' 
+          end
+          render :index and return
+        }
       end
 
     rescue Net::HTTPBadResponse => e
