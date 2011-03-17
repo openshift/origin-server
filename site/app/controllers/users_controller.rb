@@ -23,13 +23,20 @@ class UsersController < ApplicationController
       valid = false
       @user.errors[:captcha] = "Captcha text didn't match"
       pp @user.errors
-    end
+    end unless Rails.env == "development"
 
     # Stop if you have a validation error
     render :index and return unless valid
 
-    # Otherwise call out to IT's service to register
-    # Map any errors into the user.errors object
+    # Only register the user if in a non-development environment
+    full_register unless Rails.env == "development"
+  end
+
+  # Call out to corporate service to register user
+  # Map any errors into the user.errors object
+  def full_register
+    logger.debug 'Performing full registration'
+
     begin
       url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
       req = Net::HTTP::Post.new(url.path)
