@@ -90,7 +90,7 @@ class UsersController < ApplicationController
               @user.errors[:unknown] = ERRORS[:unknown]
             end
           }
-        rescue Exception => e   
+        rescue Exception => e
           logger.error e
           @user.errors[:unknown] = ERRORS[:unknown]
         ensure
