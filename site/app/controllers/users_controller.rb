@@ -72,36 +72,41 @@ class UsersController < ApplicationController
       case response
       when Net::HTTPSuccess
         logger.debug "HTTP response from server is:"
-        response.each do |k,v|
-            logger.debug "#{k.to_s}: #{v.to_s}"
-        end
         logger.debug "Response body: #{response.body}"
-      else
-        logger.debug "Problem with server. Response code was #{response.code}"
-        logger.debug "HTTP response from server is #{response.body}"
+        
         begin
-          #reponse.body isn't really ideal yet just using assumed error for now
-          errors = JSON.parse('["user_already_registered"]')
-          #errors = JSON.parse(response.body)
-          errors.each { |error|
-            if (ERRORS[error])
-              @user.errors[error] = ERRORS[error]
-            else
-              @user.errors[:unknown] = ERRORS[:unknown]
-            end
-          }
+          result = JSON.parse(response.body)
+          if (result['errors'])
+            errors = result['errors']
+            errors.each { |error|
+              if (ERRORS[error])                
+                @user.errors[error] = ERRORS[error]
+              else
+                @user.errors[:unknown] = ERRORS[:unknown]
+              end
+            }
+          elsif result['emailAddress']
+            #success
+          else
+            @user.errors[:unknown] = ERRORS[:unknown]
+          end
         rescue Exception => e
           logger.error e
           @user.errors[:unknown] = ERRORS[:unknown]
-        ensure
-          render :index and return
-        end
+        end        
+      else
+        logger.error "Problem with server. Response code was #{response.code}"
+        logger.error "HTTP response from server is #{response.body}"
+        @user.errors[:unknown] = ERRORS[:unknown]
       end
 
     rescue Net::HTTPBadResponse => e
       logger.error e
-      @user.errors[:unknown] = ERRORS[:unknown]
-      render :index and return
+      @user.errors[:unknown] = ERRORS[:unknown]      
+    ensure
+      if (@user.errors.length > 0)
+        render :index and return
+      end
     end
   end
 end
