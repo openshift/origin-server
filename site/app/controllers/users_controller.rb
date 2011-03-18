@@ -12,7 +12,8 @@ class UsersController < ApplicationController
             'email_invalid' => 'The given email address is not a valid email format',
             'password_required' => 'Password is required',
             'password_match_failure' => 'Passwords must match',
-            'terms_not_accepted' => 'Terms must be accepted'
+            'terms_not_accepted' => 'Terms must be accepted',
+            :unknown => 'An unknown error has occurred'
   }
 
   def index
@@ -78,22 +79,29 @@ class UsersController < ApplicationController
       else
         logger.debug "Problem with server. Response code was #{response.code}"
         logger.debug "HTTP response from server is #{response.body}"
-        #reponse.body isn't really ideal yet just using assumed error for now
-        errors = JSON.parse('["user_already_registered"]')
-        #errors = JSON.parse(response.body)
-        errors.each { |error|
-          if (ERRORS[error])
-            @user.errors[error] = ERRORS[error]
-          else
-            @user.errors[:unknown] = 'An unknown error has occurred'
-          end
+        begin
+          #reponse.body isn't really ideal yet just using assumed error for now
+          errors = JSON.parse('["user_already_registered"]')
+          #errors = JSON.parse(response.body)
+          errors.each { |error|
+            if (ERRORS[error])
+              @user.errors[error] = ERRORS[error]
+            else
+              @user.errors[:unknown] = ERRORS[:unknown]
+            end
+          }
+        rescue Exception => e   
+          logger.error e
+          @user.errors[:unknown] = ERRORS[:unknown]
+        ensure
           render :index and return
-        }
+        end
       end
 
     rescue Net::HTTPBadResponse => e
-      puts e
-      raise
+      logger.error e
+      @user.errors[:unknown] = ERRORS[:unknown]
+      render :index and return
     end
   end
 end
