@@ -5,16 +5,16 @@ require 'recaptcha'
 require 'json'
 
 class UsersController < ApplicationController
-  
+
   ERRORS = {'user_already_registered' => 'A user with the same email is already registered',
-            'contact_customer_service' => 'Please contact customer service.  This login has attempted to register more than five times without verifying his or her email address.',            
+            'contact_customer_service' => 'Please contact customer service.  This login has attempted to register more than five times without verifying his or her email address.',
             'email_required' => 'Email address is required',
-            'email_invalid' => 'The given email address is not a valid email format',            
+            'email_invalid' => 'The given email address is not a valid email format',
             'password_required' => 'Password is required',
             'password_match_failure' => 'Passwords must match',
             'terms_not_accepted' => 'Terms must be accepted'
   }
-  
+
   def index
     @user = User.new
   end
@@ -49,7 +49,7 @@ class UsersController < ApplicationController
     logger.debug 'Performing full registration'
 
     begin
-      url = URI.parse('https://streamline.devlab.phx1.redhat.com/wapps/streamline/registration.html')
+      url = URI.parse(Rails.configuration.corp_server + '/registration.html')
       req = Net::HTTP::Post.new(url.path)
 
       req.set_form_data({ 'emailAddress' => @user.emailAddress,
@@ -57,7 +57,10 @@ class UsersController < ApplicationController
                           'passwordConfirmation' => @user.passwordConfirmation,
                           'secretKey' => 'c0ldW1n3',
                           'termsAccepted' => 'true',
-                          'redirectUrl' => "http://li.beta.rhcloud.com/app/getting_started.html"
+                          'redirectUrl' => url_for(:action => 'getting_started',
+                                                   :controller => 'home',
+                                                   :only_path => false,
+                                                   :protocol => 'http')
                           })
       http = Net::HTTP.new(url.host, url.port)
       if url.scheme == "https"
@@ -82,7 +85,7 @@ class UsersController < ApplicationController
           if (ERRORS[error])
             @user.errors[error] = ERRORS[error]
           else
-            @user.errors[:unknown] = 'An unknown error has occurred' 
+            @user.errors[:unknown] = 'An unknown error has occurred'
           end
           render :index and return
         }
