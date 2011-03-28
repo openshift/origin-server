@@ -58,10 +58,10 @@ class UsersController < ApplicationController
                           'passwordConfirmation' => @user.passwordConfirmation,
                           'secretKey' => 'c0ldW1n3',
                           'termsAccepted' => 'true',
-                          'redirectUrl' => url_for(:action => 'getting_started',
-                                                   :controller => 'home',
+                          'confirmationUrl' => url_for(:action => 'confirm',
+                                                   :controller => 'email_confirm',
                                                    :only_path => false,
-                                                   :protocol => 'http')
+                                                   :protocol => 'https')
                           })
       http = Net::HTTP.new(url.host, url.port)
       if url.scheme == "https"
