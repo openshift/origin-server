@@ -100,7 +100,7 @@ class UsersController < ApplicationController
         @user.errors[:unknown] = ERRORS[:unknown]
       end
 
-    rescue Net::HTTPBadResponse => e
+    rescue Exception => e
       logger.error e
       @user.errors[:unknown] = ERRORS[:unknown]      
     ensure
