@@ -17,11 +17,11 @@ class UsersController < ApplicationController
   }
 
   def index
-    @user = ::User.new
+    @user = WebUser.new
   end
 
   def create
-    @user = ::User.new(params[:user])
+    @user = WebUser.new(params[:web_user])
 
     # TODO - Remove
     # Only applicable for the beta registration process
