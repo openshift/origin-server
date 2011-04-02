@@ -17,11 +17,11 @@ class UsersController < ApplicationController
   }
 
   def index
-    @user = User.new
+    @user = RedHatCloud::User.new
   end
 
   def create
-    @user = User.new(params[:user])
+    @user = RedHatCloud::User.new(params[:user])
 
     # TODO - Remove
     # Only applicable for the beta registration process
@@ -73,13 +73,13 @@ class UsersController < ApplicationController
       when Net::HTTPSuccess
         logger.debug "HTTP response from server is:"
         logger.debug "Response body: #{response.body}"
-        
+
         begin
           result = JSON.parse(response.body)
           if (result['errors'])
             errors = result['errors']
             errors.each { |error|
-              if (ERRORS[error])                
+              if (ERRORS[error])
                 @user.errors[error] = ERRORS[error]
               else
                 @user.errors[:unknown] = ERRORS[:unknown]
@@ -93,7 +93,7 @@ class UsersController < ApplicationController
         rescue Exception => e
           logger.error e
           @user.errors[:unknown] = ERRORS[:unknown]
-        end        
+        end
       else
         logger.error "Problem with server. Response code was #{response.code}"
         logger.error "HTTP response from server is #{response.body}"
@@ -102,7 +102,7 @@ class UsersController < ApplicationController
 
     rescue Exception => e
       logger.error e
-      @user.errors[:unknown] = ERRORS[:unknown]      
+      @user.errors[:unknown] = ERRORS[:unknown]
     ensure
       if (@user.errors.length > 0)
         render :index and return
