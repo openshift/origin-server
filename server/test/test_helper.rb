@@ -23,10 +23,10 @@ class ActiveSupport::TestCase
       chars = ("1".."9").to_a
       namespace = "unit" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
       login = "libra-test+#{namespace}@redhat.com"
-      records = Libra::Server.get_dns_txt(namespace)
+      has_txt = Libra::Server.has_dns_txt?(namespace)
       user = Libra::User.find(login)
 
-      unless user or !records.empty? or reserved_usernames.index(login)
+      unless user or has_txt or reserved_usernames.index(login)
         result[:login] = login
         result[:namespace] = namespace
         break
