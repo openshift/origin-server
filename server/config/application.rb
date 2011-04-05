@@ -41,11 +41,5 @@ module RedHatCloud
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
-  end  
-end
-# TODO Can we do better?  http://stackoverflow.com/questions/4583924/string-force-encoding-in-ruby-1-8-7-or-rails-2-x
-class String
-  def force_encoding(enc)
-    self
   end
 end

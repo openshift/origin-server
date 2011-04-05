@@ -50,7 +50,7 @@ class UsersController < ApplicationController
     logger.debug 'Performing full registration'
 
     begin
-      url = URI.parse(Rails.configuration.corp_server + '/registration.html')
+      url = URI.parse(Rails.configuration.streamline + '/registration.html')
       req = Net::HTTP::Post.new(url.path)
 
       req.set_form_data({ 'emailAddress' => @user.emailAddress,

@@ -33,5 +33,8 @@ RedHatCloud::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  config.corp_server = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+  # Integration environment constraints
+  config.integrated = false
+  config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+  config.streamline_secret = 'c0ldW1n3'
 end
