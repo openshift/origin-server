@@ -33,8 +33,13 @@ RedHatCloud::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  # Integration environment constraints
-  config.integrated = false
-  config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
-  config.streamline_secret = 'c0ldW1n3'
+  # Integration environment constraints - uncommenting these will
+  #   registrations, logins, and authorizations to hit the IT service
+  # config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+  # config.streamline_secret = 'c0ldW1n3'
+
+  # Determines whether HTTPS constraints should be enforced for this
+  # environment - i.e. whether to enforce HTTPS for login, etc.
+  config.secure_protocol = "https"
+  config.app_scope = "app"
 end
