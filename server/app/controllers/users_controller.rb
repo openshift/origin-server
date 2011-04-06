@@ -42,6 +42,9 @@ class UsersController < ApplicationController
 
     # Only register the user if in a non-development environment
     full_register unless Rails.env == "development"
+
+    # Redirect to a running workflow if it exists
+    redirect_to session[:workflow] if session[:workflow]
   end
 
   # Call out to corporate service to register user
