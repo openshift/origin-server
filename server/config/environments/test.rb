@@ -38,7 +38,11 @@ RedHatCloud::Application.configure do
   config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
 
   # Note - this is using the reverse proxy in the shared development account
-  config.streamline = "https://50.17.199.173/wapps/streamline"
+  #config.streamline = "https://10.196.215.67/wapps/streamline"
+
+  # For testing locally, use the following value
+  config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+
   config.streamline_secret = 'c0ldW1n3'
 
   # Determines whether HTTPS constraints should be enforced for this
