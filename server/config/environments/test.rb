@@ -33,15 +33,30 @@ RedHatCloud::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  # Integration environment constraints - uncommenting these will
-  #   registrations, logins, and authorizations to hit the IT service
+  ########################################################
+  # Integration Section - you can only select one
+  #
+
+  #############################################
+  # Integrated Streamline, on VPN Setup values
+  #############################################
+  #config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
+  #config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+
+  #############################################
+  # Integrated Streamline, in AWS Setup values
+  #############################################
   config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
+  config.streamline = "https://10.196.215.67/wapps/streamline"
 
-  # Note - this is using the reverse proxy in the shared development account
-  #config.streamline = "https://10.196.215.67/wapps/streamline"
+  ########################
+  # NON INTEGRATED VALUES
+  ########################
+  #config.login = "/app/login"
 
-  # For testing locally, use the following value
-  config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+  #
+  # End Integration Section
+  #########################################################
 
   config.streamline_secret = 'c0ldW1n3'
 
