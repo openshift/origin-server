@@ -35,7 +35,10 @@ RedHatCloud::Application.configure do
 
   # Integration environment constraints - uncommenting these will
   #   registrations, logins, and authorizations to hit the IT service
-  config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
+  config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
+
+  # Note - this is using the reverse proxy in the shared development account
+  config.streamline = "https://50.17.199.173/wapps/streamline"
   config.streamline_secret = 'c0ldW1n3'
 
   # Determines whether HTTPS constraints should be enforced for this
