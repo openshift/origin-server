@@ -33,35 +33,12 @@ RedHatCloud::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  ########################################################
-  # Integration Section - you can only select one
-  #
-
-  #############################################
-  # Integrated Streamline, on VPN Setup values
-  #############################################
-  #config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
-  #config.streamline = "https://streamline.devlab.phx1.redhat.com/wapps/streamline"
-
-  #############################################
-  # Integrated Streamline, in AWS Setup values
-  #############################################
-  config.login = "https://streamline.devlab.phx1.redhat.com/wapps/streamline/login.html"
-  config.streamline = "https://10.196.215.67/wapps/streamline"
-
-  ########################
-  # NON INTEGRATED VALUES
-  ########################
-  #config.login = "/app/login"
-
-  #
-  # End Integration Section
-  #########################################################
-
-  config.streamline_secret = 'c0ldW1n3'
-
-  # Determines whether HTTPS constraints should be enforced for this
-  # environment - i.e. whether to enforce HTTPS for login, etc.
-  config.secure_protocol = "https"
+  ############################################
+  # OpenShift Configuration Below this point #
+  ############################################
   config.app_scope = "app"
+  config.integrated = false
+  config.login = "/app/login"
+  config.streamline = "http://localhost" # Not used
+  config.streamline_secret = ''
 end
