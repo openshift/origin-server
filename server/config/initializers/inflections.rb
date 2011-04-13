@@ -3,6 +3,5 @@
 # Add new inflection rules using the following format
 # (all these examples are active by default):
 ActiveSupport::Inflector.inflections do |inflect|
-  inflect.plural "express", "express"
-  inflect.singular "express", "express"
+
 end

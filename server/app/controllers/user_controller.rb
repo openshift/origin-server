@@ -4,10 +4,19 @@ require 'net/https'
 require 'recaptcha'
 require 'json'
 
-class UsersController < ApplicationController
+class UserController < ApplicationController
 
-  def index
-    @user = WebUser.new
+  def new(cloud_access_choice=nil)
+    @user = WebUser.new({:cloud_access_choice => cloud_access_choice})
+    render :new and return
+  end
+  
+  def new_flex
+    new(CloudAccess::FLEX)
+  end
+  
+  def new_express
+    new(CloudAccess::EXPRESS)
   end
 
   def create
@@ -28,9 +37,19 @@ class UsersController < ApplicationController
     end unless Rails.env == "development"
 
     # Stop if you have a validation error
-    render :index and return unless valid
+    render :new and return unless valid
 
-    confirmationUrl = url_for(:action => 'confirm',
+    action = 'confirm'
+    if @user.cloud_access_choice
+      case @user.cloud_access_choice.to_i
+      when CloudAccess::EXPRESS
+        action = 'confirm_express'
+      when CloudAccess::FLEX
+        action = 'confirm_flex'
+      end
+    end
+
+    confirmationUrl = url_for(:action => action,
                               :controller => 'email_confirm',
                               :only_path => false,
                               :protocol => 'https')
