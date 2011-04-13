@@ -36,6 +36,7 @@ RedHatCloud::Application.configure do
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
+  config.site_domain = "openshift.redhat.com"
   config.app_scope = "app"
   config.integrated = false
   config.login = "/app/login"
