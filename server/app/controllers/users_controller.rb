@@ -15,7 +15,7 @@ class UsersController < ApplicationController
 
     # TODO - Remove
     # Only applicable for the beta registration process
-    @user.termsAccepted = '1'
+    @user.terms_accepted = '1'
 
     # Run validations
     valid = @user.valid?
