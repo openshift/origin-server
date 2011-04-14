@@ -33,7 +33,6 @@ class UserController < ApplicationController
     unless verify_recaptcha
       valid = false
       @user.errors[:captcha] = "Captcha text didn't match"
-      pp @user.errors
     end unless Rails.env == "development"
 
     # Stop if you have a validation error
@@ -55,6 +54,8 @@ class UserController < ApplicationController
                               :protocol => 'https')
 
     @user.register(confirmationUrl)
+    
+    render :new and return unless @user.errors.length == 0
 
     # Redirect to a running workflow if it exists
     redirect_to session[:workflow] if session[:workflow]
