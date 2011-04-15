@@ -7,15 +7,18 @@ require 'json'
 class UserController < ApplicationController
 
   def new(cloud_access_choice=nil)
+    @product = 'openshift' unless defined? @product 
     @user = WebUser.new({:cloud_access_choice => cloud_access_choice})
     render :new and return
   end
   
   def new_flex
+    @product = 'flex'
     new(CloudAccess::FLEX)
   end
   
   def new_express
+    @product = 'express'
     new(CloudAccess::EXPRESS)
   end
 
