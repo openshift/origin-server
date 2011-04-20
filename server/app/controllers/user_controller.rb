@@ -7,22 +7,24 @@ require 'json'
 class UserController < ApplicationController
 
   def new(cloud_access_choice=nil)
-    @product = 'openshift' unless defined? @product 
+    @product = 'openshift' unless defined? @product
     @user = WebUser.new({:cloud_access_choice => cloud_access_choice})
     render :new and return
   end
-  
+
   def new_flex
     @product = 'flex'
     new(CloudAccess::FLEX)
   end
-  
+
   def new_express
     @product = 'express'
     new(CloudAccess::EXPRESS)
   end
 
   def create
+    Rails.logger.debug "Registration request"
+
     @user = WebUser.new(params[:web_user])
 
     # TODO - Remove
@@ -32,12 +34,23 @@ class UserController < ApplicationController
     # Run validations
     valid = @user.valid?
 
-    # Verify the captcha
-    unless verify_recaptcha
-      valid = false
-      @user.errors[:captcha] = "Captcha text didn't match"
-    end unless Rails.env == "development"
-    
+    # See if the captcha secret was provided
+    if Rails.configuration.integrated
+      if params[:captcha_secret] == Rails.configuration.captcha_secret
+        Rails.logger.warn "Captcha secret provided - ignoring captcha"
+      else
+        Rails.logger.debug "Checking captcha"
+        # Verify the captcha
+        unless verify_recaptcha
+          Rails.logger.debug "Captcha check failed"
+          valid = false
+          @user.errors[:captcha] = "Captcha text didn't match"
+        end
+      end
+    else
+      Rails.logger.warn "Non-integrated environment - ignoring captcha"
+    end
+
     # Verify product choice if any
     @product = 'openshift'
     action = 'confirm'
@@ -51,7 +64,7 @@ class UserController < ApplicationController
         @product = 'flex'
       end
     end
-    
+
     # Stop if you have a validation error
     render :new and return unless valid
 
@@ -61,7 +74,7 @@ class UserController < ApplicationController
                               :protocol => 'https')
 
     @user.register(confirmationUrl)
-    
+
     render :new and return unless @user.errors.length == 0
 
     # Redirect to a running workflow if it exists
