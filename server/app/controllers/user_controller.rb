@@ -27,10 +27,6 @@ class UserController < ApplicationController
 
     @user = WebUser.new(params[:web_user])
 
-    # TODO - Remove
-    # Only applicable for the beta registration process
-    @user.terms_accepted = '1'
-
     # Run validations
     valid = @user.valid?
 
