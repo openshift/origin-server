@@ -41,11 +41,7 @@ class ActiveSupport::TestCase
     session[:login] = 'tester'
     session[:user] = WebUser.new
     session[:ticket] = '123'
-    @request.cookies['rh_sso'] = CGI::Cookie.new({'name'  => 'rh_sso',
-                                                  'value' => '123',
-                                                  'path'  => '/',
-                                                  'domain'=> '.redhat.com',
-                                                  'secure'=> 'true'})
+    @request.cookies['rh_sso'] = '123'
   end
 end
 
