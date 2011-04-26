@@ -52,12 +52,12 @@ class UserController < ApplicationController
     action = 'confirm'
     if @user.cloud_access_choice
       case @user.cloud_access_choice.to_i
-      when CloudAccess::EXPRESS
-        action = 'confirm_express'
-        @product = 'express'
       when CloudAccess::FLEX
         action = 'confirm_flex'
         @product = 'flex'
+      else CloudAccess::EXPRESS # default to express
+        action = 'confirm_express'
+        @product = 'express'
       end
     end
 
