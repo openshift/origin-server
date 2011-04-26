@@ -46,7 +46,7 @@ class UserController < ApplicationController
     else
       Rails.logger.warn "Non-integrated environment - ignoring captcha"
     end
-
+    
     # Verify product choice if any
     @product = 'openshift'
     action = 'confirm'
