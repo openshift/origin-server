@@ -74,6 +74,6 @@ class UserController < ApplicationController
     render :new and return unless @user.errors.length == 0
 
     # Redirect to a running workflow if it exists
-    redirect_to session[:workflow] if session[:workflow]
+    workflow_redirect    
   end
 end
