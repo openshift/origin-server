@@ -55,7 +55,7 @@ class UserController < ApplicationController
       when CloudAccess::FLEX
         action = 'confirm_flex'
         @product = 'flex'
-      else CloudAccess::EXPRESS # default to express
+      when CloudAccess::EXPRESS
         action = 'confirm_express'
         @product = 'express'
       end
