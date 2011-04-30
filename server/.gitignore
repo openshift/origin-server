@@ -3,3 +3,4 @@ vendor/*
 .bundle
 log/*
 tmp/*
+public/stylesheets/.sass-cache/
