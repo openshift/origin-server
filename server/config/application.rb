@@ -43,3 +43,5 @@ module RedHatCloud
     config.filter_parameters += [:password]
   end
 end
+
+class AccessDeniedException < StandardError; end
