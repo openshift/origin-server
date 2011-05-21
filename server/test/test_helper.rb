@@ -42,6 +42,7 @@ class ActiveSupport::TestCase
     session[:user] = WebUser.new
     session[:ticket] = '123'
     @request.cookies['rh_sso'] = '123'
+    @request.env['HTTPS'] = 'on'
   end
 end
 
