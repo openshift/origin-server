@@ -1,7 +1,9 @@
 ENV["RAILS_ENV"] = "test"
+$:.unshift(File.dirname(__FILE__) + '/../../server-common')
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
 require 'mocha'
+require 'openshift'
 
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
@@ -42,6 +44,7 @@ class ActiveSupport::TestCase
     session[:user] = WebUser.new
     session[:ticket] = '123'
     @request.cookies['rh_sso'] = '123'
+    @request.env['HTTPS'] = 'on'
   end
 end
 
