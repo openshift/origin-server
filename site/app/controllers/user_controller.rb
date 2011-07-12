@@ -7,20 +7,17 @@ require 'json'
 class UserController < ApplicationController
 
   def new(cloud_access_choice=nil)
-    @event = event_id(:register) unless defined? @event
     @product = 'openshift' unless defined? @product
     @user = WebUser.new({:cloud_access_choice => cloud_access_choice})
     render :new and return
   end
 
   def new_flex
-    @event = event_id(:tryit)
     @product = 'flex'
     new(CloudAccess::FLEX)
   end
 
   def new_express
-    @event = event_id(:tryit)
     @product = 'express'
     new(CloudAccess::EXPRESS)
   end
