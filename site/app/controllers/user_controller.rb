@@ -72,7 +72,10 @@ class UserController < ApplicationController
     @user.register(confirmationUrl)
 
     render :new and return unless @user.errors.length == 0
-
+    
+    # Successful user registration event for analytics
+    @event = 'event29'
+    
     # Redirect to a running workflow if it exists
     workflow_redirect    
   end
