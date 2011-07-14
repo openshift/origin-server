@@ -39,12 +39,13 @@ class ActiveSupport::TestCase
     return result
   end
   
-  def setup_session
+  def setup_session(role='')
     session[:login] = 'tester'
     session[:user] = WebUser.new
     session[:ticket] = '123'
     @request.cookies['rh_sso'] = '123'
     @request.env['HTTPS'] = 'on'
+    session[:user].roles.push(role) unless role.empty?
   end
 end
 
