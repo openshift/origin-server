@@ -1,0 +1,4 @@
+#!/bin/bash
+# This is a simple build script, place your post-deploy but pre-start commands
+# in this script.  This script gets executed directly, so it could be python,
+# php, ruby, etc.
