@@ -115,7 +115,6 @@ class UserController < ApplicationController
                                 :only_path => false,
                                 :registration_referrer => registration_referrer,
                                 :protocol => 'https')
-      Rails.logger.debug confirmationUrl
       @user.register(confirmationUrl)
     rescue Exception => e
       json = JSON.generate({:errors => {:base => [e.message]}})
