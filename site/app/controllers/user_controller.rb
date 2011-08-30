@@ -98,6 +98,10 @@ class UserController < ApplicationController
     @user = WebUser.new(data)
       
     registration_referrer = params[:registration_referrer]
+    if !registration_referrer
+      json = JSON.generate({:errors => {:registration_referrer => ['registration_referrer not provided']}})
+      render :json => json, :status => :bad_request and return
+    end
 
     # Run validations
     if !@user.valid?
