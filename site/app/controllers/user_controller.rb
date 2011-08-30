@@ -125,7 +125,7 @@ class UserController < ApplicationController
       json = JSON.generate({:result => "Check your inbox for an email with a validation link. Click on the link to complete the registration process."})
       render :json => json and return
     else
-      json = JSON.generate({:errors => @user.errors})
+      json = JSON.generate({:errors => create_json_error_hash(@user.errors)})
       render :json => json, :status => :internal_server_error and return
     end
   end
