@@ -3,6 +3,7 @@ require 'net/http'
 require 'net/https'
 require 'recaptcha'
 require 'json'
+require 'yaml'
 
 class UserController < ApplicationController
   
@@ -64,7 +65,12 @@ class UserController < ApplicationController
     end
 
     # Stop if you have a validation error
-    render :new and return unless valid
+    unless valid
+      respond_to do |format|
+        format.js { render :json => @user.errors and return }
+        format.html { render :new and return }
+      end
+    end
 
     confirmationUrl = url_for(:action => action,
                               :controller => 'email_confirm',
@@ -73,13 +79,25 @@ class UserController < ApplicationController
 
     @user.register(confirmationUrl)
 
-    render :new and return unless @user.errors.length == 0
+    unless @user.errors.length == 0
+      respond_to do |format|
+        format.js { render :json => @user.errors and return }
+        format.html { render :new and return }
+      end
+    end
     
     # Successful user registration event for analytics
     @event = 'event29'
     
     # Redirect to a running workflow if it exists
-    workflow_redirect
+    respond_to do |format|
+      format.js { render :json => {:redirectUrl => user_complete_path } }
+      format.html { workflow_redirect }
+    end
+  end
+
+  def complete
+    render :create
   end
   
   def create_json_error_hash(user_errors)
