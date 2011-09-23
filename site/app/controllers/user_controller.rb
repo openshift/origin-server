@@ -150,4 +150,67 @@ class UserController < ApplicationController
       render :json => json, :status => :internal_server_error and return
     end
   end
+
+  def reset_password
+    Rails.logger.debug params.to_yaml
+
+    # Keep track of response information
+    responseText = {
+      :status => 'success',
+      :message => "The information you have requested has been emailed to you at #{params[:email]}."
+    }
+
+    # Test the email against the WebUser validations
+    user = WebUser.new({:email_address => params[:email]})
+    user.valid?
+    errors =  user.errors[:email_address]
+
+    # Return if there is a problem with the email address
+    unless errors.empty?
+      responseText[:status] = 'error'
+      responseText[:message] = 'The email supplied is invalid'
+
+      respond_to do |format|
+        format.js { render :json => responseText and return }
+      end
+    end
+
+
+    unless Rails.configuration.integrated
+      Rails.logger.warn "Non integrated environment - faking password reset"
+    else
+      uri = URI.join( Rails.configuration.streamline[:host], Rails.configuration.streamline[:lost_password_url])
+      
+      # Create the HTTPS object
+      https = Net::HTTP.new( uri.host, uri.port )
+      Rails.logger.debug "Integrated login, use SSL"
+      if uri.scheme == 'https'
+        https.use_ssl = true
+        # TODO: Need to figure out where CAs are so we can do something like:
+        #   http://goo.gl/QLFFC
+        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+          
+      # Make the request
+      req = Net::HTTP::Post.new( uri.path )
+      req.set_form_data({ :login => params[:email] })
+  
+      # Create the request
+      res = https.start{ |http| http.request(req) }
+      Rails.logger.debug res.code
+      Rails.logger.debug "#{res.body.to_yaml}"
+
+      case res
+      when Net::HTTPSuccess
+        # Assume any successful POST is valid to prevent against username enumeration
+      else
+        responseText[:status] = 'error'
+        responseText[:message] = 'An unknown error occurred, please try again'
+      end
+    end
+
+    respond_to do |format|
+      format.js { render :json => responseText }
+    end
+  end
 end
