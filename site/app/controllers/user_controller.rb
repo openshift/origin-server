@@ -11,7 +11,6 @@ class UserController < ApplicationController
 
   def new(cloud_access_choice=nil)
     @product = 'openshift' unless defined? @product
-    @user = WebUser.new({:cloud_access_choice => cloud_access_choice})
     render :new and return
   end
 
