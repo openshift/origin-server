@@ -1,4 +1,14 @@
-= javascript_include_tag '/app/javascripts/jquery.min.js', '/app/javascripts/rails', '/app/javascripts/plugins'
+:ruby
+  scripts = [
+    'jquery.min.js',
+    'rails',
+    'plugins',
+    'jquery.validate.min.js',
+    'form'
+  ]
+
+- scripts.each do |script|
+  = javascript_include_tag "/app/javascripts/#{script}"
     
 -#  Append your own using content_for :javascripts
 = yield :javascripts
