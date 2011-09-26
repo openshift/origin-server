@@ -53,6 +53,8 @@ $ ->
   signin = $ '#signin'
   # Password reset dialog
   reset  = $ '#reset_password'
+  # Change password dialog
+  change = $ '#change_password'
 
   ($ 'a.sign_up').click (event) ->
     event.preventDefault()
@@ -70,6 +72,10 @@ $ ->
   ($ 'a.password_reset').click (event) ->
     event.preventDefault()
     open_dialog reset
+
+  ($ 'a.change_password').click (event) ->
+    event.preventDefault()
+    open_dialog change
     
   close_btn.click (event) ->
     close_dialog ($ this).parent()
@@ -145,6 +151,16 @@ $ ->
       "web_user[password_confirmation]":
         required: true
         equalTo: "#web_user_password"
+
+  change.find('form').bind('ajax:complete', reset_password_complete).validate rules:
+    "old_password":
+      required: true
+    "password":
+      required: true
+      minlength: 6
+    "password_confirmation":
+      required: true
+      minlength: 6
 
   reset.find('form').bind('ajax:complete', reset_password_complete).validate rules:
     "email":

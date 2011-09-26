@@ -213,4 +213,39 @@ class UserController < ApplicationController
       format.js { render :json => responseText }
     end
   end
+
+  def change_password
+    user = session_user
+
+    responseText = {
+      :status => 'success',
+      :message => "Your password has been successfully changed"
+    }
+
+    json = user.change_password({
+      'oldPassword' => params['old_password'],
+      'newPassword' => params['password'],
+      'newPasswordConfirmation' => params['password_confirmation']
+    })
+
+    Rails.logger.debug "---------------"
+    Rails.logger.debug "  change_pass  "
+    Rails.logger.debug "---------------"
+    Rails.logger.debug json.to_yaml
+    Rails.logger.debug "---------------"
+
+    if json['errors']
+      responseText[:status] = 'error'
+      Rails.logger.debug "Errors"
+      if json['errors'].include? 'password_invalid'
+        responseText[:message] = "Please choose a valid new password"
+      elsif json['errors'].include? 'password_incorrect'
+        responseText[:message] = "Your old password was incorrect"
+      end
+    end
+
+    respond_to do |format|
+      format.js { render :json => responseText }
+    end
+  end
 end
