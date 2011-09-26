@@ -62,6 +62,7 @@ $ ->
     event.preventDefault()
     userbox = $ '#user_box #login-form'
     if userbox.length > 0
+      dialogs.hide()
       userbox.find('#login_input').focus()
     else
       open_dialog signin
