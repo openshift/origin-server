@@ -46,10 +46,16 @@ $ ->
     dialogs.hide()
     # Show given dialog
     dialog.show()
+    # Put focus in the first visible box
+    dialog.find("input:visible:first").focus()
     # scroll to top
     ($ window, 'html', 'body').scrollTop 0
 
   close_dialog = (dialog) ->
+    dialog.find('div.message').remove()
+    dialog.find('input:visible:not(.button)').val('')
+    dialog.find('label.error').remove()
+    dialog.find('input').removeClass('error')
     dialog.hide()
     
   # Close buttons
@@ -69,10 +75,11 @@ $ ->
 
   ($ 'a.sign_in').click (event) ->
     event.preventDefault()
+    login = $ 'div.content #login-form'
     userbox = $ '#user_box #login-form'
-    if userbox.length > 0
+    if login.length > 0 || userbox.length > 0
       dialogs.hide()
-      userbox.find('#login_input').focus()
+      $('#login_input').focus()
     else
       open_dialog signin
 
