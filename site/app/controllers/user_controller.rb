@@ -179,7 +179,7 @@ class UserController < ApplicationController
     unless Rails.configuration.integrated
       Rails.logger.warn "Non integrated environment - faking password reset"
     else
-      uri = URI.parse( Rails.configuration.streamline[:lost_password_url] )
+      uri = URI.join( Rails.configuration.streamline[:host], Rails.configuration.streamline[:lost_password_url])
       
       # Create the HTTPS object
       https = Net::HTTP.new( uri.host, uri.port )
