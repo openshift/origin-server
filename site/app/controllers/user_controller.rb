@@ -196,7 +196,12 @@ class UserController < ApplicationController
       req.set_form_data({ :login => params[:email] })
   
       # Create the request
+      # Add timing code
+      start_time = Time.now
       res = https.start{ |http| http.request(req) }
+      end_time = Time.now
+      Rails.logger.debug "Response from Streamline took (#{uri.path}): #{(end_time - start_time)*1000} ms"
+  
       Rails.logger.debug res.code
       Rails.logger.debug "#{res.body.to_yaml}"
 
