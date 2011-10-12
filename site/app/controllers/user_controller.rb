@@ -62,6 +62,7 @@ class UserController < ApplicationController
         @product = 'express'
       end
     end
+    flash[:product] = @product
 
     # Stop if you have a validation error
     unless valid
@@ -96,6 +97,8 @@ class UserController < ApplicationController
   end
 
   def complete
+    @event = 'event29' # set omniture 'simple registration' event
+    @product = flash[:product] #set product for 'simple registration' event
     render :create
   end
   
