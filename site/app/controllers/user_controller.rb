@@ -36,6 +36,8 @@ class UserController < ApplicationController
     if Rails.configuration.integrated
       if params[:captcha_secret] == Rails.configuration.captcha_secret
         Rails.logger.warn "Captcha secret provided - ignoring captcha"
+      elsif sauce_testing? #Checks for sauce_testing cookie and development Rails
+        Rails.logger.warn "Sauce testing cookie provided - ignoring captcha"
       else
         Rails.logger.debug "Checking captcha"
         # Verify the captcha
