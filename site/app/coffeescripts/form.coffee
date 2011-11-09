@@ -99,7 +99,6 @@ $ ->
     ($ this).spin(false)
 
     json = $.parseJSON( status.responseText )
-    console.log json
     # Clear out error messages
     $(this).parent().find('div.message.error').remove()
     $err_div = $('<div>').addClass('message error').hide().insertBefore(this)
@@ -113,14 +112,12 @@ $ ->
           break
         else
           $err_div.html(json.error || "Some unknown error occured,<br/> please try again.").show()
-          console.log 'Some unknown AJAX error with the login', status.status
 
   registration_complete = (xhr,status) ->
     ($ this).spin(false)
 
     form = $(this)
     json = $.parseJSON( status.responseText )
-    console.log "Reg complete, got JSON", json
 
     # Clear out error messages
     $(this).parent().find('div.message.error').remove()
@@ -146,7 +143,6 @@ $ ->
 
     form = $(this)
     json = $.parseJSON( status.responseText )
-    console.log "Reset password complete, got JSON", json
 
     $(this).parent().find('div.message').remove()
     $div = $('<div>').addClass("message #{json.status}").text(json.message).insertBefore(this)
