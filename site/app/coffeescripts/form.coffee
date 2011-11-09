@@ -96,6 +96,8 @@ $ ->
 
   # Function based on definitions in rails.js:
   login_complete = (xhr,status) ->
+    ($ this).spin(false)
+
     json = $.parseJSON( status.responseText )
     console.log json
     # Clear out error messages
@@ -114,6 +116,8 @@ $ ->
           console.log 'Some unknown AJAX error with the login', status.status
 
   registration_complete = (xhr,status) ->
+    ($ this).spin(false)
+
     form = $(this)
     json = $.parseJSON( status.responseText )
     console.log "Reg complete, got JSON", json
@@ -138,6 +142,8 @@ $ ->
       window.location.replace json['redirectUrl']
 
   reset_password_complete = (xhr,status) ->
+    ($ this).spin(false)
+
     form = $(this)
     json = $.parseJSON( status.responseText )
     console.log "Reset password complete, got JSON", json
@@ -145,37 +151,53 @@ $ ->
     $(this).parent().find('div.message').remove()
     $div = $('<div>').addClass("message #{json.status}").text(json.message).insertBefore(this)
 
+  start_spinner = (form) ->
+    ($ form).spin()
+    $(form).ajaxSubmit()
+
   # Bind the forms
   $.each [signin, ($ '#login-form')], (index,element) ->
-    element.find('form').bind('ajax:complete', login_complete ).validate rules:
-      "login":
+    element.find('form').bind('ajax:complete', login_complete ).validate 
+      submitHandler: 
+        start_spinner
+      rules:
+        "login":
+          required: true
+        "password":
+          required: true
+
+  $.each [signup, $( '#new-user')], (index, element) ->
+    element.find('form').bind('ajax:complete', registration_complete).validate 
+      submitHandler: 
+        start_spinner
+      rules:
+        "web_user[email_address]":
+          required: true
+          email: true
+        "web_user[password]":
+          required: true
+          minlength: 6
+        "web_user[password_confirmation]":
+          required: true
+          equalTo: "#web_user_password"
+
+  change.find('form').bind('ajax:complete', reset_password_complete).validate 
+    submitHandler: 
+      start_spinner
+    rules:
+      "old_password":
         required: true
       "password":
         required: true
+        minlength: 6
+      "password_confirmation":
+        required: true
+        equalTo: '#password'
 
-  $.each [signup, $( '#new-user')], (index, element) ->
-    element.find('form').bind('ajax:complete', registration_complete).validate rules:
-      "web_user[email_address]":
+  reset.find('form').bind('ajax:complete', reset_password_complete).validate 
+    submitHandler: 
+      start_spinner
+    rules:
+      "email":
         required: true
         email: true
-      "web_user[password]":
-        required: true
-        minlength: 6
-      "web_user[password_confirmation]":
-        required: true
-        equalTo: "#web_user_password"
-
-  change.find('form').bind('ajax:complete', reset_password_complete).validate rules:
-    "old_password":
-      required: true
-    "password":
-      required: true
-      minlength: 6
-    "password_confirmation":
-      required: true
-      equalTo: '#password'
-
-  reset.find('form').bind('ajax:complete', reset_password_complete).validate rules:
-    "email":
-      required: true
-      email: true
