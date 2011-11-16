@@ -87,10 +87,18 @@ class UserController < ApplicationController
         format.html { render :new and return }
       end
     end
-    
+
     # Successful user registration event for analytics
     @event = 'event29'
-    
+
+    #Process promo code
+    if @user.promo_code
+      PromoCodeMailer.promo_code_email(@user).deliver
+      
+      #Save promo code so that omniture tag can be updated in UserController::complete
+      session[:promo_code] = @user.promo_code
+    end
+
     # Redirect to a running workflow if it exists
     respond_to do |format|
       format.js { render :json => {:redirectUrl => user_complete_path } }
@@ -100,6 +108,13 @@ class UserController < ApplicationController
 
   def complete
     @event = 'event29' # set omniture 'simple registration' event
+    
+    if session[:promo_code]
+      @event += ",event8"
+      @evar8 = session[:promo_code]
+      session.delete(:promo_code)
+    end
+    
     @product = flash[:product] #set product for 'simple registration' event
     render :create
   end
