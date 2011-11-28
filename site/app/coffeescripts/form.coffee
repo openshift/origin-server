@@ -147,15 +147,12 @@ $ ->
     $(this).parent().find('div.message').remove()
     $div = $('<div>').addClass("message #{json.status}").text(json.message).insertBefore(this)
 
-  start_spinner = (form) ->
-    ($ form).spin()
-    $(form).ajaxSubmit()
+  start_spinner = (e) ->
+    ($ e.target).spin()
 
   # Bind the forms
   $.each [signin, ($ '#login-form')], (index,element) ->
-    element.find('form').bind('ajax:complete', login_complete ).validate 
-      submitHandler: 
-        start_spinner
+    element.find('form').bind('ajax:complete', login_complete ).bind('ajax:beforeSend', start_spinner).validate 
       rules:
         "login":
           required: true
@@ -163,9 +160,7 @@ $ ->
           required: true
 
   $.each [signup, $( '#new-user')], (index, element) ->
-    element.find('form').bind('ajax:complete', registration_complete).validate 
-      submitHandler: 
-        start_spinner
+    element.find('form').bind('ajax:complete', registration_complete).bind('ajax:beforeSend', start_spinner).validate 
       rules:
         "web_user[email_address]":
           required: true
@@ -177,9 +172,7 @@ $ ->
           required: true
           equalTo: "#web_user_password"
 
-  change.find('form').bind('ajax:complete', reset_password_complete).validate 
-    submitHandler: 
-      start_spinner
+  change.find('form').bind('ajax:complete', reset_password_complete).bind('ajax:beforeSend', start_spinner).validate 
     rules:
       "old_password":
         required: true
@@ -190,9 +183,7 @@ $ ->
         required: true
         equalTo: '#password'
 
-  reset.find('form').bind('ajax:complete', reset_password_complete).validate 
-    submitHandler: 
-      start_spinner
+  reset.find('form').bind('ajax:complete', reset_password_complete).bind('ajax:beforeSend', start_spinner).validate 
     rules:
       "email":
         required: true
