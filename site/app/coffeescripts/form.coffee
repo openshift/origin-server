@@ -43,6 +43,9 @@ $ ->
 
   open_dialog = (dialog) ->
     # Close any other open dialogs
+    $.each $('div.dialog:visible'), (index,dialog) ->
+      close_dialog $(dialog)
+
     dialogs.hide()
     # Show given dialog
     dialog.show()
@@ -52,6 +55,8 @@ $ ->
     ($ window, 'html', 'body').scrollTop 0
 
   close_dialog = (dialog) ->
+    console.log("Closed",dialog)
+    dialog.find(':hidden').show()
     dialog.find('div.message').remove()
     dialog.find('input:visible:not(.button)').val('')
     dialog.find('label.error').remove()
@@ -144,8 +149,13 @@ $ ->
     form = $(this)
     json = $.parseJSON( status.responseText )
 
-    $(this).parent().find('div.message').remove()
+    $parent = $(this).parent()
+
+    $parent.find('div.message').remove()
     $div = $('<div>').addClass("message #{json.status}").text(json.message).insertBefore(this)
+
+    if($parent.is('div#password-reset-form'))
+      $parent.find('form,div#extra_options').hide()
 
   start_spinner = (e) ->
     ($ e.target).spin()
