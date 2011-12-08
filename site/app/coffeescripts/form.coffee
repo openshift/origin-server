@@ -55,7 +55,6 @@ $ ->
     ($ window, 'html', 'body').scrollTop 0
 
   close_dialog = (dialog) ->
-    console.log("Closed",dialog)
     dialog.find(':hidden').show()
     dialog.find('div.message').remove()
     dialog.find('input:visible:not(.button)').val('')
