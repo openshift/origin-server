@@ -99,77 +99,92 @@ $ ->
     close_dialog ($ this).parent()
 
   # Function based on definitions in rails.js:
-  login_complete = (xhr,status) ->
-    ($ this).spin(false)
-
-    json = $.parseJSON( status.responseText )
-    # Clear out error messages
-    $(this).parent().find('div.message.error').remove()
-    $err_div = $('<div>').addClass('message error').hide().insertBefore(this)
-
-    switch status.status
+  login_complete = ($form,$msg,$json,status) ->
+    switch status
         when 200 #everything ok
-          window.location.replace json.redirectUrl
+          window.location.replace $json.redirectUrl
           break
         when 401 #Unauthorized
-          $err_div.text(json.error).show()
+          $msg.addClass('error').text($json.error).show()
           break
         else
-          $err_div.html(json.error || "Some unknown error occured,<br/> please try again.").show()
+          $msg.addClass('error').html($json.error || "Some unknown error occured,<br/> please try again.").show()
 
-  registration_complete = (xhr,status) ->
-    ($ this).spin(false)
-
-    form = $(this)
-    json = $.parseJSON( status.responseText )
-
-    # Clear out error messages
-    $(this).parent().find('div.message.error').remove()
-    $err_div = $('<div>').addClass('message error').hide().insertBefore(this)
-
+  registration_complete = ($form,$msg,$json,status) ->
     # Save all errors
     messages = $.map(json, (k,v) -> return k)
 
-    if( json['redirectUrl'] == undefined || json['redirectUrl'] == null )
-
+    if( $json['redirectUrl'] == undefined || $json['redirectUrl'] == null )
       $.each(messages, (i,val)->
-        $err_div.addClass('error').append($('<div>').html(val))
+        $msg.addClass('error').append($('<div>').html(val))
       )
-      $err_div.show()
+      $msg.show()
 
       if typeof Recaptcha != 'undefined'
         Recaptcha.reload()
     else
-      window.location.replace json['redirectUrl']
+      window.location.replace $json['redirectUrl']
 
-  reset_password_complete = (xhr,status) ->
-    ($ this).spin(false)
+  reset_password_complete = ($form,$msg,$json,hide) ->
+    $msg.addClass($json.status).text($json.message).show()
 
-    form = $(this)
-    json = $.parseJSON( status.responseText )
-
-    $parent = $(this).parent()
-
-    $parent.find('div.message').remove()
-    $div = $('<div>').addClass("message #{json.status}").text(json.message).insertBefore(this)
-
-    if($parent.is('div#password-reset-form'))
-      $parent.find('form,div#extra_options').hide()
+    if hide
+      $form.parent().find('form,div#extra_options').hide()
 
   start_spinner = (e) ->
-    ($ e.target).spin()
+    $form = $( e.target)
+    $form.find('input[type=submit]').attr('disabled', 'disabled')
+    $form.spin()
 
-  # Bind the forms
-  $.each [signin, ($ '#login-form')], (index,element) ->
-    element.find('form').bind('ajax:complete', login_complete ).bind('ajax:beforeSend', start_spinner).validate 
+  stop_spinner = ($form) ->
+    $form.find('input[type=submit]').removeAttr('disabled')
+    $form.spin(false)
+
+  form_complete = (xhr, status) ->
+    $form = $(this)
+    stop_spinner($form)
+
+    # Get the json from the response
+    $json = $.parseJSON( status.responseText )
+
+    # Clear all messages and create a new div
+    $parent = $form.parent()
+    $parent.find('div.message').remove()
+    $msg = $('<div>').addClass('message').hide().insertBefore($form)
+
+    type = $form.closest('.dialog').attr('id')
+    switch(type)
+      when 'signup'
+        registration_complete($form, $msg, $json, status.status)
+        break
+      when 'signin'
+        login_complete($form, $msg, $json, status.status)
+        break
+      when 'reset_password'
+        reset_password_complete($form,$msg,$json,true)
+        break
+      when 'change_password'
+        reset_password_complete($form,$msg,$json,false)
+        break
+
+  # The rulesets for form validation
+  rulesets =
+    reset:
       rules:
-        "login":
+        "email":
+          required: true
+          email: true
+    change:
+      rules:
+        "old_password":
           required: true
         "password":
           required: true
-
-  $.each [signup, $( '#new-user')], (index, element) ->
-    element.find('form').bind('ajax:complete', registration_complete).bind('ajax:beforeSend', start_spinner).validate 
+          minlength: 6
+        "password_confirmation":
+          required: true
+          equalTo: '#password'
+    signup:
       rules:
         "web_user[email_address]":
           required: true
@@ -180,20 +195,34 @@ $ ->
         "web_user[password_confirmation]":
           required: true
           equalTo: "#web_user_password"
+    signin:
+      rules:
+        "login":
+          required: true
+        "password":
+          required: true
 
-  change.find('form').bind('ajax:complete', reset_password_complete).bind('ajax:beforeSend', start_spinner).validate 
-    rules:
-      "old_password":
-        required: true
-      "password":
-        required: true
-        minlength: 6
-      "password_confirmation":
-        required: true
-        equalTo: '#password'
+  # These correspond to the above rulesets
+  form_type = 
+    signin: [
+      signin
+      ($ '#login-form')
+    ]
+    signup: [
+      signup
+      ($ '#new-user')
+    ]
+    change: [
+      change
+    ]
+    reset: [
+      reset
+    ]
 
-  reset.find('form').bind('ajax:complete', reset_password_complete).bind('ajax:beforeSend', start_spinner).validate 
-    rules:
-      "email":
-        required: true
-        email: true
+  # Go through each form, bind the ajax functions and apply rulesets
+  $.each form_type, (name,forms) ->
+    $.each forms, (index,form) ->
+      form.find('form')
+        .bind('ajax:complete', form_complete )
+        .bind('ajax:beforeSend', start_spinner)
+        .validate rulesets[name]
