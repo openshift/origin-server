@@ -92,7 +92,7 @@ class UserController < ApplicationController
     @event = 'event29'
 
     #Process promo code
-    if @user.promo_code and not @user.promo_code.empty?
+    if @user.promo_code and not @user.promo_code.blank?
       PromoCodeMailer.promo_code_email(@user).deliver
       
       #Save promo code so that omniture tag can be updated in UserController::complete
