@@ -112,7 +112,7 @@ $ ->
 
   registration_complete = ($form,$msg,$json,status) ->
     # Save all errors
-    messages = $.map(json, (k,v) -> return k)
+    messages = $.map($json, (k,v) -> return k)
 
     if( $json['redirectUrl'] == undefined || $json['redirectUrl'] == null )
       $.each(messages, (i,val)->
