@@ -167,6 +167,8 @@ $ ->
         reset_password_complete($form,$msg,$json,false)
         break
 
+    $msg.truncate()
+
   # The rulesets for form validation
   rulesets =
     reset:
