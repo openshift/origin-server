@@ -152,18 +152,19 @@ $ ->
     $parent.find('div.message').remove()
     $msg = $('<div>').addClass('message').hide().insertBefore($form)
 
-    type = $form.closest('.dialog').attr('id')
+    type = $parent.attr('id')
+
     switch(type)
-      when 'signup'
+      when 'new-user'
         registration_complete($form, $msg, $json, status.status)
         break
-      when 'signin'
+      when 'login-form'
         login_complete($form, $msg, $json, status.status)
         break
-      when 'reset_password'
+      when 'password-reset-form'
         reset_password_complete($form,$msg,$json,true)
         break
-      when 'change_password'
+      when 'change-password-form'
         reset_password_complete($form,$msg,$json,false)
         break
 
