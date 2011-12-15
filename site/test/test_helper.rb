@@ -26,8 +26,8 @@ class ActiveSupport::TestCase
       chars = ("1".."9").to_a
       namespace = "unit" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
       login = "libra-test+#{namespace}@redhat.com"
-      has_txt = Libra::Server.has_dns_txt?(namespace)
-      user = Libra::User.find(login)
+      has_txt = OpenShift::Server.has_dns_txt?(namespace)
+      user = OpenShift::User.find(login)
 
       unless user or has_txt or reserved_usernames.index(login)
         result[:login] = login
