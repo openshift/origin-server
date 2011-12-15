@@ -150,7 +150,7 @@ $ ->
     # Clear all messages and create a new div
     $parent = $form.parent()
     $parent.find('div.message').remove()
-    $msg = $('<div>').addClass('message').hide().insertBefore($form)
+    $msg = $('<div>').addClass('message word_wrap').hide().insertBefore($form)
 
     type = $parent.attr('id')
 
@@ -167,8 +167,6 @@ $ ->
       when 'change-password-form'
         reset_password_complete($form,$msg,$json,false)
         break
-
-    $msg.truncate()
 
   # The rulesets for form validation
   rulesets =
