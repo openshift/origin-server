@@ -75,7 +75,12 @@ $ ->
 
   ($ 'a.sign_up').click (event) ->
     event.preventDefault()
-    open_dialog signup
+    content_signup = $ 'div.content #new-user'
+    if content_signup.length > 0
+      dialogs.hide()
+      $('#web_user_email_address').focus()
+    else
+      open_dialog signup
 
   ($ 'a.sign_in').click (event) ->
     event.preventDefault()
