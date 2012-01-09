@@ -171,7 +171,8 @@ class UserController < ApplicationController
     end
   end
 
-  def reset_password
+  # This function makes the first request to send an email with a token
+  def request_password_reset
     Rails.logger.debug params.to_yaml
 
     # Keep track of response information
@@ -183,59 +184,67 @@ class UserController < ApplicationController
     # Test the email against the WebUser validations
     user = WebUser.new({:email_address => params[:email]})
     user.valid?
-    errors =  user.errors[:email_address]
 
     # Return if there is a problem with the email address
-    unless errors.empty?
+    if !user.errors[:email_address].empty?
       responseText[:status] = 'error'
       responseText[:message] = 'The email supplied is invalid'
-
-      respond_to do |format|
-        format.js { render :json => responseText and return }
-      end
-    end
-
-
-    unless Rails.configuration.integrated
+    elsif !Rails.configuration.integrated
       Rails.logger.warn "Non integrated environment - faking password reset"
     else
-      uri = URI.join( Rails.configuration.streamline[:host], Rails.configuration.streamline[:lost_password_url])
-      
-      # Create the HTTPS object
-      https = Net::HTTP.new( uri.host, uri.port )
-      Rails.logger.debug "Integrated login, use SSL"
-      if uri.scheme == 'https'
-        https.use_ssl = true
-        # TODO: Need to figure out where CAs are so we can do something like:
-        #   http://goo.gl/QLFFC
-        https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
-          
-      # Make the request
-      req = Net::HTTP::Post.new( uri.path )
-      req.set_form_data({ :login => params[:email] })
-  
-      # Create the request
-      # Add timing code
-      start_time = Time.now
-      res = https.start{ |http| http.request(req) }
-      end_time = Time.now
-      Rails.logger.debug "Response from Streamline took (#{uri.path}): #{(end_time - start_time)*1000} ms"
-  
-      Rails.logger.debug res.code
-      Rails.logger.debug "#{res.body.to_yaml}"
-
-      case res
-      when Net::HTTPSuccess
-        # Assume any successful POST is valid to prevent against username enumeration
-      else
-        responseText[:status] = 'error'
-        responseText[:message] = 'An unknown error occurred, please try again'
-      end
+      user.request_password_reset({ 
+        :login => params[:email],
+        :url   => user_reset_password_url
+      })
     end
 
     respond_to do |format|
       format.js { render :json => responseText }
+    end
+  end
+
+  # This function actually checks the token against streamline
+  def reset_password
+    Rails.logger.debug params.to_yaml
+
+    # Keep track of response information
+    @responseText = {
+      :status => 'success',
+      :message => "Your password has been successfully reset! Please check your email for your new password. After you log in, don't forget to reset it using the control panel."
+    }
+
+    # Test the email against the WebUser validations
+    user = WebUser.new({:email_address => params[:email]})
+    user.valid?
+
+    # Return if there is a problem with the email address
+    if !user.errors[:email_address].empty?
+      @responseText[:status] = 'error'
+      @responseText[:message] = 'The email supplied is invalid'
+    elsif !Rails.configuration.integrated
+      Rails.logger.warn "Non integrated environment - faking password reset"
+    else
+      begin
+        json = user.reset_password({ 
+          :login => params[:email],
+          :token => params[:token]
+        })
+        errors = json['errors']
+        Rails.logger.debug "Data returned"
+        if errors && !errors.empty?
+          @responseText[:status] = 'error'
+          case errors.first.to_sym
+          when :token_is_invalid
+            @responseText[:message] = "This password reset request is no longer valid. This could be caused by the link being more than 24 hours old or it's already been used. Please try to reset your password again using the 'Sign in' form."
+          when :email_service_error
+            @responseText[:message] = "An unknown error has occurred, please try again"
+          end
+        end
+        Rails.logger.debug "Data returned"
+      rescue Exception => e 
+        @responseText[:status] = 'error'
+        @responseText[:message] = 'An unknown error occurred, please try again'
+      end
     end
   end
 
