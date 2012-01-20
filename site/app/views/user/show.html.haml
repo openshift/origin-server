@@ -1,0 +1,44 @@
+- content_for :page_title do
+  OpenShift Account
+
+%section.main
+  %header
+    %h1 My Account
+
+    = div_for @userinfo do
+      %h2 Personal Information
+      %p 
+        Important emails relating to your OpenShift account will be sent to
+        %strong
+          = @userinfo.rhlogin
+        
+      %ul.actions
+        %li
+          = link_to "Change password", edit_password_path
+        %li
+          = link_to "Reset password", new_password_path
+        %li
+          = link_to "Close account and remove all data from OpenShift", '#' #delete_account_path
+
+    %div
+      %h2 Namespace
+      -if @domain.namespace
+        %p 
+          Your applications will be located at 
+          %strong
+            http://&lt;app name&gt;-#{@domain.namespace}.rhcloud.com
+        %ul.actions
+          %li
+            -# FIXME
+            = link_to "Change namespace", express_domains_path
+        %p
+          You can also link domain names you own to any of your applications. See #{link_to 'this help topic on domain name aliases', '/doc/path'}.
+
+      -else
+        %p You have not yet created a namespace. Your namespace is part of the URL that your OpenShift applications will be available under.
+        = render :partial => 'shared/domain', :locals => { :express_domain => @domain }
+
+    %div
+      %h2 Public Keys
+      %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+
