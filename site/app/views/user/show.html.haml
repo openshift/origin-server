@@ -41,4 +41,13 @@
     %div
       %h2 Public Keys
       %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+      %div{ :style => "float: right; width: 300px;"}
+        %h3 Need Help Creating Keys?
+        %p Generating keys the first time can be confusing.  The steps below will help you get started
+        %p{ :style => "display: none;" }
+          On Fedora or RHEL
+      %div{ :style => "margin-right: 310px;" }
+        = render :partial => 'shared/ssh_key', :locals => { :sshkey => {} }
+      %div{ :style => "clear: both;" }
+        
 
