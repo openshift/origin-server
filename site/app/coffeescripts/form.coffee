@@ -32,7 +32,7 @@ $ ->
     "express_app[app_name]":
       required: true
       alpha_numeric: true,
-      maxlength: 16
+      maxlength: 32
     "express_app[cartridge]":
       required: true
       
