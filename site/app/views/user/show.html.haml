@@ -37,24 +37,7 @@
     %div
       %h2 Public Keys
       %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
-      %div{ :style => "float: right; width: 300px;"}
-        -#%style
-          .scripted { display: none; }
-        %noscript
-          .scripted { display: block; }
-        %h3 Need Help Creating Keys?
-        %p The steps below will walk you through creating a key.
-        .scripted.only-linux
-          %h4 Linux
-          %p Run the following command to generate a new key:
-          %code~ "ssh-keygen"
-          %p When prompted, enter a location to save a key. If this is your first key, you can accept the default.
-          %code~ "[user@home1 myapp]$ ssh-keygen  \nGenerating public/private rsa key pair. \nEnter file in which to save the key (/home/user/.ssh/id_rsa):"
-          %p If you accepted the defaults, the newly created public key will be located at /home/user/.ssh/id_rsa.pub. Open this file with a text editor and copy the contents into the text area for the key. You can now access all of your OpenShift git repositories from the command line.
-          -#:javascript
-            if (/linux/i.exec(window.navigator.platform))
-              jQuery('.only-linux').each(function(el) {el.style.display = 'block'});
-        %p See <a href='http://docs.redhat.com/docs/en-US/OpenShift_Express/2.0/html/User_Guide/sect-User_Guide-SSH_Key_Management.html'>the user guide</a> for more information on keys.
+      = render :partial => 'shared/ssh_key_help.html'
       %div{ :style => "margin-right: 310px;" }
         = render :partial => 'shared/ssh_key', :locals => { :sshkey => {} }
       %div{ :style => "clear: both;" }
