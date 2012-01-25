@@ -21,5 +21,9 @@ class ActiveSupport::TestCase
     @request.env['HTTPS'] = 'on'
     session[:user].roles.push(role) unless role.empty?
   end
+
+  def expects_integrated
+    flunk 'Test requires integrated Streamline authentication' unless Rails.configuration.integrated
+  end
 end
 
