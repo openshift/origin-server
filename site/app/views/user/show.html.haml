@@ -19,14 +19,14 @@
         -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
     %div
-      %h2 Namespace
+      %h2 Domain
       -if @domain.namespace
         %p 
           Your applications will be located at 
           %strong
             http://&lt;app name&gt;-#{@domain.namespace}.rhcloud.com
         %ul.actions
-          %li= link_to "Change namespace", "#" #edit_express_domains_path
+          %li= link_to "Change domain", "#" #edit_express_domains_path
 
         %p You can also link domain names you own to any of your applications. See #{link_to 'this help topic on domain name aliases', '/doc/path'}.
 
