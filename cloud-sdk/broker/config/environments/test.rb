@@ -49,7 +49,7 @@ Broker::Application.configure do
       :user => "libra",
       :password => "momo",
       :db => "openshift_broker_dev",
-      :collections => {:user => "user"}
+      :collections => {:user => "user_test"}
     }
   }
 
