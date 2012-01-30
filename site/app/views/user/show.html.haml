@@ -31,7 +31,7 @@
 
       -else
         %p You have not yet created a domain. Your domain's name is part of the URL that your OpenShift applications will be available under.
-        = render :partial => 'shared/domain', :locals => { :express_domain => @domain }
+        = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
 
     %div
       %h2 Public Keys
