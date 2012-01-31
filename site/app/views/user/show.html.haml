@@ -25,7 +25,7 @@
           %strong
             http://&lt;app name&gt;-#{@domain.namespace}.rhcloud.com
         %ul.actions
-          %li= link_to "Change domain", "#" #edit_express_domains_path
+          %li= link_to "Change domain", edit_namespace_express_domains_path
 
         %p You can also link domain names you own to any of your applications. See #{link_to 'this help topic on domain name aliases', '/doc/path'}.
 
@@ -35,10 +35,12 @@
 
     %div
       %h2 Public Keys
-      %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
-      = render :partial => 'shared/ssh_key_help.html'
-      %div{ :style => "margin-right: 310px;" }
-        = render :partial => 'shared/ssh_key', :locals => { :sshkey => {} }
-      %div{ :style => "clear: both;" }
-        
+      -if @domain.namespace
+        %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+        = render :partial => 'shared/ssh_key_help.html'
+        %div{ :style => "margin-right: 310px;" }
+          = render :partial => 'shared/ssh_key', :locals => { :sshkey => {} }
+        %div{ :style => "clear: both;" }
+      -else
+        %p Create a namespace first, you will then be able to add your ssh key.
 
