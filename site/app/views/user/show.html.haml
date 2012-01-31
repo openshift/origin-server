@@ -39,7 +39,7 @@
         %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
         = render :partial => 'shared/ssh_key_help.html'
         %div{ :style => "margin-right: 310px;" }
-          = render :partial => 'shared/ssh_key', :locals => { :sshkey => {} }
+          = render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
         %div{ :style => "clear: both;" }
       -else
         %p Create a namespace first, you will then be able to add your ssh key.
