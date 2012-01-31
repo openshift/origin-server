@@ -44,8 +44,10 @@ Broker::Application.configure do
     :default_max_gears => 5,
 
     :datastore_mongo => {
-      :host => "localhost",
-      :port => 27017,
+      :replica_set => true,
+      # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
+      :host_port => [["localhost", 27017]],
+
       :user => "libra",
       :password => "momo",
       :db => "openshift_broker_dev",
