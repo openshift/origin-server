@@ -38,15 +38,15 @@
       -if @domain.namespace
         %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
 
-        -if @userinfo.ssh_key.nil? || @userinfo.ssh_key['key'] == 'nossh'
+        -if @userinfo.default_ssh_key.key_string.blank?
           = render :partial => 'shared/ssh_key_help.html'
           %div{ :style => "margin-right: 310px;" }
             = render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
-        - else
+        -else
           %p
             Your ssh key is
             %strong
-              #{@userinfo.readable_ssh_key.slice(0, 20)+ '...'}
+              #{@userinfo.default_ssh_key.key_string.slice(0, 20)+ '...'}
           %ul.actions
             %li= link_to "Change ssh key", edit_sshkey_express_domains_path
         %div{ :style => "clear: both;" }
