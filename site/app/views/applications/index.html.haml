@@ -6,6 +6,6 @@
       Applications
   .content
     - unless @userinfo.app_info.blank?
-      = render 'applications/app_info', :apps => @userinfo.app_info
+      = render 'applications/app_list', :apps => @userinfo.app_info
   %div.notifications
     <!-- tbd -->
