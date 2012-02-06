@@ -2,7 +2,7 @@ require 'net/http'
 require 'uri'
 require 'cgi'
 
-class ExpressAppController < ApplicationController
+class ApplicationsController < ApplicationController
   before_filter :require_login
 
   @@max_tries = 5000
