@@ -1,0 +1,11 @@
+-# file: Applications index
+
+%section.main
+  %header
+    %h1
+      Applications
+  .content
+    - unless @userinfo.app_info.blank?
+      = render 'express_app/app_table', :apps => @userinfo.app_info
+  %div.notifications
+    <!-- tbd -->
