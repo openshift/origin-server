@@ -6,7 +6,8 @@ require 'json'
 require 'yaml'
 
 class UserController < ApplicationController
-  
+  layout 'console'
+
   before_filter :require_login, :only => :show
   before_filter :require_user, :only => :show
   protect_from_forgery :except => :create_external
@@ -72,7 +73,7 @@ class UserController < ApplicationController
     unless valid
       respond_to do |format|
         format.js { render :json => @user.errors and return }
-        format.html { render :new and return }
+        format.html { render :new, :layout => 'simple' and return }
       end
     end
 
