@@ -6,7 +6,10 @@
       Applications
   .content
     - unless @userinfo.app_info.blank?
-      = render 'applications/app_list_filter', name_filter: => @name_filter,
+      = render 'applications/app_list_filter',
+        :name_filter_value => @name_filter_value,
+        :app_type_filter_value => @app_type_filter_value,
+        :app_types_options => @app_types
       = render 'applications/app_list', :apps => @filtered_apps
   %div.notifications
     <!-- tbd -->

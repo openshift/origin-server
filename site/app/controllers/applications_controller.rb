@@ -15,15 +15,15 @@ class ApplicationsController < ApplicationController
     @app = ExpressApp.new
 
     app_params = params[:app_filter_params]
-    @selected_app_type_filter = app_params[:app_type]
-    @name_filter = app_params[:name]
+    @app_type_filter_value = app_params[:app_type_filter]
+    @name_filter_value = app_params[:name_filter]
 
     @app_types = Set.new
     @filtered_app_info = {}
 
     @userinfo.app_info.each do |app_name, app|
       app_type = app['framework'].split('-')[0]
-      @app_types << app_type
+      @app_types << [app_type, app_type]
       if @selected_app_type_filter != ""
         @filtered_app_info[app_name] = app
       elsif @selected_app_type_filter == app_type
