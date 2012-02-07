@@ -15,22 +15,28 @@ class ApplicationsController < ApplicationController
     @app = ExpressApp.new
 
     app_params = params[:app_filter_params]
-    @app_type_filter_value = app_params[:app_type_filter]
-    @name_filter_value = app_params[:name_filter]
+    @app_type_filter_value = ""
+    @name_filter_value = ""
+
+    if !app_params.nil?
+      @app_type_filter_value = app_params[:app_type_filter]
+      @name_filter_value = app_params[:name_filter]
+    end
 
     @app_types = Set.new
     @filtered_app_info = {}
 
-    @userinfo.app_info.each do |app_name, app|
-      app_type = app['framework'].split('-')[0]
-      @app_types << [app_type, app_type]
-      if @selected_app_type_filter != ""
-        @filtered_app_info[app_name] = app
-      elsif @selected_app_type_filter == app_type
-        @filtered_app_info[app_name] = app
+    if !@userinfo.app_info.nil?
+      @userinfo.app_info.each do |app_name, app|
+        app_type = app['framework'].split('-')[0]
+        @app_types << [app_type, app_type]
+        if @selected_app_type_filter != ""
+          @filtered_app_info[app_name] = app
+        elsif @selected_app_type_filter == app_type
+          @filtered_app_info[app_name] = app
+        end
       end
     end
-
     render
   end
 end
