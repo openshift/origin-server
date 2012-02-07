@@ -1,6 +1,7 @@
 require 'net/http'
 require 'uri'
 require 'cgi'
+require 'set'
 
 class ApplicationsController < ApplicationController
   before_filter :require_login
@@ -12,6 +13,23 @@ class ApplicationsController < ApplicationController
                                     :ticket => session[:ticket]
     @userinfo.establish
     @app = ExpressApp.new
+
+    app_params = params[:app_filter_params]
+    @selected_app_type_filter = app_params[:app_type]
+    @name_filter = app_params[:name]
+
+    @app_types = Set.new
+    @filtered_app_info = {}
+
+    @userinfo.app_info.each do |app_name, app|
+      app_type = app['framework'].split('-')[0]
+      @app_types << app_type
+      if @selected_app_type_filter != ""
+        @filtered_app_info[app_name] = app
+      elsif @selected_app_type_filter == app_type
+        @filtered_app_info[app_name] = app
+      end
+    end
 
     render
   end
