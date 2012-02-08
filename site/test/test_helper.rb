@@ -25,5 +25,10 @@ class ActiveSupport::TestCase
   def expects_integrated
     flunk 'Test requires integrated Streamline authentication' unless Rails.configuration.integrated
   end
+
+  def gen_small_uuid()
+    %x[/usr/bin/uuidgen].gsub('-', '').strip
+  end
+
 end
 
