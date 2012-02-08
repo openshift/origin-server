@@ -9,7 +9,8 @@
       = render 'applications/app_list_filter',
         :name_filter_value => @name_filter_value,
         :app_type_filter_value => @app_type_filter_value,
-        :app_types_options => @app_types
-      = render 'applications/app_list', :apps => @filtered_apps
+        :app_types_options => @app_type_options
+      = render 'applications/app_list', :apps => @filtered_app_info
+
   %div.notifications
     <!-- tbd -->
