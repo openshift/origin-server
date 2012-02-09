@@ -12,6 +12,8 @@
         :app_type_filter_value => @app_type_filter_value,
         :app_types_options => @app_type_options
       = render 'applications/app_list', :apps => @filtered_app_info
+    %div
+      = link_to 'Add an application...', add_applications_path
 
   %div.notifications
     <!-- tbd -->
