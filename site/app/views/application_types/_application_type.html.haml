@@ -1,0 +1,22 @@
+= div_for application_type do
+
+  %h3= application_type.name
+
+  %aside
+    .version
+      %label Version:
+      %span= application_type.version
+
+    .license
+      %label License:
+      %span= application_type.license
+
+    - if application_type.website
+      .website
+        %label Website:
+        = link_to application_type.website, application_type.website
+
+  %p= application_type.description
+
+  - if defined? create_link
+    = link_to "Select »", application_type_path(application_type)

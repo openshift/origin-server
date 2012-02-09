@@ -1,0 +1,9 @@
+%section.main
+  .content
+    %h1 Configure New Application
+    = render @application_type
+    = semantic_form_for @application do |f|
+      = f.input :name, :required => true
+      = f.input :domain_id
+      = f.buttons do
+        = f.submit
