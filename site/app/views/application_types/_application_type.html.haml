@@ -18,5 +18,5 @@
 
   %p= application_type.description
 
-  - if defined? create_link
+  - unless defined? create_link
     = link_to "Select »", application_type_path(application_type)
