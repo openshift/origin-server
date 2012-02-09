@@ -85,6 +85,48 @@ class ApplicationsController < ApplicationController
     render
   end
 
+  def delete
+    commit = params[:commit]
+    app_params = params[:express_app]
+    app_name = app_params[:app_name]
+    cartridge = app_params[:cartridge]
+ 
+    if commit == 'Delete'
+      app_params[:rhlogin] = session[:login]
+      app_params[:ticket] = cookies[:rh_sso]
+      app_params[:password] = ''
+      @app = ExpressApp.new app_params
+      @app.ticket = session[:ticket]
+      if @app.valid?
+        @app.deconfigure
+        if @app.errors[:base].blank?
+          @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
+                                          :ticket => session[:ticket]
+          @userinfo.establish
+          # get message from the JSON
+          @message = @app.message || I18n.t('express_api.messages.app_deleted')
+          @message_type = :success
+        else
+          @message = @app.errors.full_messages.join("; ")
+          @message_type = :error
+        end
+      else
+        @message = @app.errors.full_messages.join("; ")
+        @message_type = :error
+      end
+
+    else
+      @message = "Deletion of application canceled"
+      @message_type = :notice
+    end
+
+    respond_to do |format|
+        flash[@message_type] = @message
+        format.html { redirect_to applications_path }
+        format.js { render :json => response }
+    end
+  end
+
   def confirm_delete
     @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
                                     :ticket => session[:ticket]
@@ -95,7 +137,13 @@ class ApplicationsController < ApplicationController
       @message_type = :error
       @message = "No application specified"
     else
-      @app = @userinfo.app_info[@app_name]
+      app_info = @userinfo.app_info[@app_name]
+      #raise app_info.inspect
+      @app = ExpressApp.new :app_name => app_info['name'],
+                            :cartridge => app_info['framework'],
+                            :rhlogin => session[:login],
+                            :ticket => session[:ticket]
+
       if @app.nil?
         @message_type = :error
         @message = "Application " + @app_name + " does not exist"
@@ -108,7 +156,7 @@ class ApplicationsController < ApplicationController
         format.html { redirect_to applications_path }
         format.js { render :json => response }
       else
-        render
+        return render 'applications/confirm_delete'
       end
     end
   end
