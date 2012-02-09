@@ -11,13 +11,19 @@
   %body{ :class => "#{controller.controller_name} #{controller.action_name}" }
     = outage_notification
 
-    %header.universal
-      = render 'layouts/console_header'
+    %header
+      = render 'layouts/console/header'
 
-    = content_for?(:sub_layout) ? yield(:sub_layout) : yield
+    = flashes
 
-    %footer.universal
-      = render 'layouts/console_footer'
+    - if content_for?(:sub_layout) 
+      = yield :sub_layout
+    - else
+      .container
+        = yield
+
+    %footer
+      = render 'layouts/console/footer'
 
     = render 'layouts/javascripts'
 
