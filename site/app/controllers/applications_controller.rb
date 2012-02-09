@@ -84,4 +84,32 @@ class ApplicationsController < ApplicationController
     end
     render
   end
+
+  def confirm_delete
+    @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
+                                    :ticket => session[:ticket]
+    @userinfo.establish
+
+    @app_name = params['app_name']
+    if @app_name.nil?
+      @message_type = :error
+      @message = "No application specified"
+    else
+      @app = @userinfo.app_info[@app_name]
+      if @app.nil?
+        @message_type = :error
+        @message = "Application " + @app_name + " does not exist"
+      end
+    end
+
+    respond_to do |format|
+      if @message_type == :error
+        flash[@message_type] = @message
+        format.html { redirect_to applications_path }
+        format.js { render :json => response }
+      else
+        render
+      end
+    end
+  end
 end
