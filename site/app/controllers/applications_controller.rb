@@ -7,6 +7,7 @@ class ApplicationsController < ApplicationController
   before_filter :require_login
 
   @@max_tries = 5000
+  @@exclude_carts = ['raw-0.1', 'jenkins-1.4']
 
   def wildcard_match?(search_str, value)
     if search_str.nil?
@@ -144,9 +145,9 @@ class ApplicationsController < ApplicationController
                             :rhlogin => session[:login],
                             :ticket => session[:ticket]
 
-      if @app.nil?
+      if !@app.valid?
+        @message = @app.errors.full_messages.join("; ")
         @message_type = :error
-        @message = "Application " + @app_name + " does not exist"
       end
     end
 
@@ -157,6 +158,73 @@ class ApplicationsController < ApplicationController
         format.js { render :json => response }
       else
         return render 'applications/confirm_delete'
+      end
+    end
+  end
+
+  def add
+    app_params = params[:express_app] # Get the params we're interested in
+    app_params[:rhlogin] = session[:login]
+    app_params[:ticket] = cookies[:rh_sso]
+    app_params[:password] = ''
+    @app = ExpressApp.new app_params
+    @app.ticket = session[:ticket]
+    if @app.valid?
+      @app.configure
+      if @app.errors[:base].blank?
+        # Get updated userinfo
+        @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
+                                        :ticket => session[:ticket]
+        @userinfo.establish
+        @message = I18n.t('express_api.messages.app_created')
+        @message_type = :success
+      else
+        @message = @app.errors.full_messages.join("; ")
+        @message_type = :error
+      end
+    else
+      @message = @app.errors.full_messages.join("; ")
+      @message_type = :error
+    end
+
+    # Respond based on requested format
+    Rails.logger.debug "Responding to app creation"
+    @max_apps = Rails.configuration.express_max_apps
+
+    respond_to do |format|
+      format.html {flash[@message_type] = @message; redirect_to applications_path }
+      format.js
+    end
+  end
+
+  def show_add
+    @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
+                                    :ticket => session[:ticket]
+    @userinfo.establish
+    if @userinfo.namespace.nil?
+      @message_type = :error
+      # TODO: link to accounts page
+      @message = "You need to setup your namespace before adding applications"
+    else
+      @namespace = @userinfo.namespace
+    end
+
+    @max_applications = Rails.configuration.express_max_apps
+    if !@userinfo.app_info.nil? && @userinfo.app_info.length >= @max_applications
+      @message_type = :error
+      @message = "You have reached the maximum amount of applications you are allowed."
+    else
+      @app = ExpressApp.new
+      @cartlist = @app.get_cartlist
+      @cartlist -= @@exclude_carts
+    end
+    respond_to do |format|
+      if @message_type == :error
+        flash[@message_type] = @message
+        format.html { redirect_to applications_path }
+        format.js { render :json => response }
+      else
+        format.html { render }
       end
     end
   end
