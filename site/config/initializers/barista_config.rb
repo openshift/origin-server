@@ -8,7 +8,7 @@ Barista.configure do |c|
   # c.output_root = Rails.root.join("public", "coffeescripts")
   #
   # Disable auto compile, use generated file directly:
-  # c.auto_compile = false
+  c.auto_compile = false # There is a prebuild step to generate coffee
 
   # Add a new framework:
 
