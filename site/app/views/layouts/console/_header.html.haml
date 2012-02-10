@@ -1,0 +1,23 @@
+.navbar
+  .navbar-inner
+    .container
+
+      = link_to root_path, :class => 'brand' do
+        Open
+        %strong> Shift
+        %span.trademark> &trade;
+        &nbsp;
+        Management Console
+
+      .nav-collapse
+        = navigation_tabs do
+          = navigation_tab :applications, :action => :index, :name => "My Applications"
+          = navigation_tab :applications, :action => :show_add, :name => "Create a New Application"
+          -#= navigation_tab :help, :show
+          -#= navigation_tab :user, :action => :show
+
+        %ul.navbar-text.pull-right#utility-nav
+          %li= link_to "Community", community_url
+          %li= link_to "My Account", account_path
+          %li= link_to "Sign Out", logout_path
+

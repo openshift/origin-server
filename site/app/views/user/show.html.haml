@@ -4,14 +4,14 @@
 %section.main
   %header
     %h1 My Account
-    = render 'layouts/flashes'
+    = flashes
     = div_for @userinfo do
       %h2 Personal Information
       %p 
         Important emails relating to your OpenShift account will be sent to
         %strong
           = @userinfo.rhlogin
-        
+
       %ul.actions
         %li= link_to "Change password", edit_password_path
         -#%li= link_to "Terms of Use", legal_site_terms_path
@@ -38,10 +38,11 @@
       -if @domain.namespace
         %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
 
-        -if @userinfo.default_ssh_key.to_s.blank?
-          = render :partial => 'shared/ssh_key_help.html'
-          %div{ :style => "margin-right: 310px;" }
-            = render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
+        -if @userinfo.default_ssh_key.blank?
+          .row
+            .span7= render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
+            .span5= render :partial => 'shared/ssh_key_help.html'
+
         -else
           %p
             Your ssh key is
@@ -49,7 +50,7 @@
               #{@userinfo.default_ssh_key.to_s.slice(0, 20)+ '...'}
           %ul.actions
             %li= link_to "Change ssh key", edit_sshkey_express_domains_path
-        %div{ :style => "clear: both;" }
+
       -else
         %p Create a namespace first, you will then be able to add your ssh key.
 
