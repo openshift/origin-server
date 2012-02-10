@@ -1,3 +1,5 @@
+require 'rest_api'
+
 class ApplicationsController < ConsoleController
 
   @@max_tries = 5000
@@ -42,11 +44,11 @@ class ApplicationsController < ConsoleController
   end
 
   def index
-    @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
-                                    :ticket => session[:ticket]
-    @userinfo.establish
-    @app = ExpressApp.new
-
+    # new restful stuff
+    # replace domains with Applications.find :all, :as => session_user
+    # in the future
+    @domain = Domain.first :as => session_user
+    @applications = @domain.applications
     @app_type_filter_value = ""
     @name_filter_value = ""
 
@@ -59,20 +61,20 @@ class ApplicationsController < ConsoleController
     seen_app_types = {}
     @filtered_app_info = {}
 
-    if !@userinfo.app_info.nil?
-      @userinfo.app_info.each do |app_name, app|
-        app_type = app['framework'].split('-')[0]
+    if !@applications.nil?
+      @applications.each do |app|
+        app_type = app.framework.split('-')[0]
         if !seen_app_types.has_key? app_type
           @app_type_options << app_type
         end
         seen_app_types[app_type] = true
 
         # filter
-        if wildcard_match? @name_filter_value, app_name
+        if wildcard_match? @name_filter_value, app.name
           if @app_type_filter_value.nil? || @app_type_filter_value == ""
-            @filtered_app_info[app_name] = app
-          elsif @app_type_filter_value == app_type 
-            @filtered_app_info[app_name] = app
+            @filtered_app_info[app.name] = app
+          elsif @app_type_filter_value == app_type
+            @filtered_app_info[app.name] = app
           end
         end
       end
