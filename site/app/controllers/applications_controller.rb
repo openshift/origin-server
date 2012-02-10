@@ -1,9 +1,4 @@
-class ApplicationsController < ApplicationController
-
-  layout 'console'
-
-  before_filter :require_login
-  before_filter :new_forms
+class ApplicationsController < ConsoleController
 
   @@max_tries = 5000
   @@exclude_carts = ['raw-0.1', 'jenkins-1.4']
