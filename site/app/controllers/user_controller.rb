@@ -10,6 +10,7 @@ class UserController < ApplicationController
 
   before_filter :require_login, :only => :show
   before_filter :require_user, :only => :show
+  before_filter :new_forms, :only => :show
   protect_from_forgery :except => :create_external
 
   def new(cloud_access_choice=nil)

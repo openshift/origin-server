@@ -81,8 +81,15 @@ Formtastic::SemanticFormBuilder.i18n_lookups_by_default = true
 
 class BootstrapFormBuilder < Formtastic::SemanticFormBuilder
 
+  # remove once all forms converted
+  def new_forms_enabled?
+    template.instance_variable_get('@new_forms_enabled')
+  end
+
   # set the default css class
   def buttons(*args)
+    return super unless new_forms_enabled?
+
     options = args.extract_options!
     options[:class] ||= 'form-actions'
     super *(args << options)
@@ -90,6 +97,8 @@ class BootstrapFormBuilder < Formtastic::SemanticFormBuilder
 
   # override tag creation
   def field_set_and_list_wrapping(*args, &block) #:nodoc:
+    return super unless new_forms_enabled?
+
     contents = args.last.is_a?(::Hash) ? '' : args.pop.flatten
     html_options = args.extract_options!
 
@@ -117,6 +126,8 @@ class BootstrapFormBuilder < Formtastic::SemanticFormBuilder
 
   # change from li to div.control-group, move hints/errors into the input block
   def input(method, options = {})
+    return super unless new_forms_enabled?
+
     options = options.dup # Allow options to be shared without being tainted by Formtastic
 
     options[:required] = method_required?(method) unless options.key?(:required)
@@ -136,11 +147,13 @@ class BootstrapFormBuilder < Formtastic::SemanticFormBuilder
 
     # moved hint/error output inside basic_input_helper
 
-    return template.content_tag(:div, Formtastic::Util.html_safe(inline_input_for(method, options)), wrapper_html) #changed to move to basic_input_helper
+    template.content_tag(:div, Formtastic::Util.html_safe(inline_input_for(method, options)), wrapper_html) #changed to move to basic_input_helper
   end
 
   # wrap contents in div.controls
   def basic_input_helper(form_helper_method, type, method, options) #:nodoc:
+    return super unless new_forms_enabled?
+
     html_options = options.delete(:input_html) || {}
     html_options = default_string_options(method, type).merge(html_options) if [:numeric, :string, :password, :text, :phone, :search, :url, :email].include?(type)
     field_id = generate_html_id(method, "")
@@ -168,6 +181,8 @@ class BootstrapFormBuilder < Formtastic::SemanticFormBuilder
 
   # remove the button wrapper
   def commit_button(*args)
+    return super unless new_forms_enabled?
+
     options = args.extract_options!
     text = options.delete(:label) || args.shift
 
