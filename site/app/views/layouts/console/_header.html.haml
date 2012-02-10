@@ -11,8 +11,8 @@
 
       .nav-collapse
         = navigation_tabs do
-          = navigation_tab :control_panel, :action => :index
-          -#= navigation_tab :control_panel, :new
+          = navigation_tab :applications, :action => :index, :name => "My Applications"
+          = navigation_tab :applications, :action => :show_add, :name => "Create a New Application"
           -#= navigation_tab :help, :show
           -#= navigation_tab :user, :action => :show
 
