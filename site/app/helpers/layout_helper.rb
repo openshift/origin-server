@@ -30,13 +30,16 @@ module LayoutHelper
 
   def alert_class_for(key)
     case key
-    when :notice
+    when :success
       'alert alert-success'
+    when :notice
+      'alert alert-info'
     when :error
       'alert alert-error'
     when :info
       'alert alert-info'
     else
+      Rails.logger.debug "Handling alert key #{key.inspect}"
       'alert'
     end
   end

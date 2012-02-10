@@ -14,12 +14,11 @@
     %header
       = render 'layouts/console/header'
 
-    = flashes
-
     - if content_for?(:sub_layout) 
       = yield :sub_layout
     - else
       .container
+        = flashes
         = yield
 
     %footer
