@@ -80,33 +80,41 @@ class ApplicationsController < ConsoleController
     render
   end
 
+  # FIXME: remove once Application.find works
+  def find_application(app_name)
+    @domain = Domain.first :as => session_user
+    @domain.applications.each do |app|
+      if app.name == app_name
+        return app
+      end
+    end
+    return nil
+  end
+
   def delete
     commit = params[:commit]
-    app_params = params[:express_app]
-    app_name = app_params[:app_name]
+    app_params = params[:application]
+    app_name = params[:application_id]
     cartridge = app_params[:cartridge]
- 
+
     if commit == 'Delete'
-      app_params[:rhlogin] = session[:login]
-      app_params[:ticket] = cookies[:rh_sso]
-      app_params[:password] = ''
-      @app = ExpressApp.new app_params
-      @app.ticket = session[:ticket]
-      if @app.valid?
-        @app.deconfigure
-        if @app.errors[:base].blank?
-          @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
-                                          :ticket => session[:ticket]
-          @userinfo.establish
+      @application = find_application app_name
+
+      if @application.nil?
+        @message = "Application #{app_name} not found"
+        @message_type = :error
+      elsif @application.valid?
+        @application.delete
+        if @application.errors[:base].blank?
           # get message from the JSON
-          @message = @app.message || I18n.t('express_api.messages.app_deleted')
+          @message = @application.message || I18n.t('express_api.messages.app_deleted')
           @message_type = :success
         else
-          @message = @app.errors.full_messages.join("; ")
+          @message = @application.errors.full_messages.join("; ")
           @message_type = :error
         end
       else
-        @message = @app.errors.full_messages.join("; ")
+        @message = @application.errors.full_messages.join("; ")
         @message_type = :error
       end
 
@@ -123,24 +131,19 @@ class ApplicationsController < ConsoleController
   end
 
   def confirm_delete
-    @userinfo = ExpressUserinfo.new :rhlogin => session[:login],
-                                    :ticket => session[:ticket]
-    @userinfo.establish
+    @app_name = params[:application_id]
 
-    @app_name = params['app_name']
     if @app_name.nil?
       @message_type = :error
       @message = "No application specified"
     else
-      app_info = @userinfo.app_info[@app_name]
-      #raise app_info.inspect
-      @app = ExpressApp.new :app_name => app_info['name'],
-                            :cartridge => app_info['framework'],
-                            :rhlogin => session[:login],
-                            :ticket => session[:ticket]
+      @application = find_application @app_name
 
-      if !@app.valid?
-        @message = @app.errors.full_messages.join("; ")
+      if @application.nil?
+        @message = "Application #{app_name} not found"
+        @message_type = :error
+      elsif !@application.valid?
+        @message = @application.errors.full_messages.join("; ")
         @message_type = :error
       end
     end

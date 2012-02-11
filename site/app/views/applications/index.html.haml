@@ -4,7 +4,6 @@
   %header
     %h1
       Applications
-    = render 'layouts/flashes'
   .content
     - unless @applications.blank?
       = render 'applications/app_list_filter',
