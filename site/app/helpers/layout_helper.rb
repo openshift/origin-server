@@ -43,4 +43,11 @@ module LayoutHelper
       'alert'
     end
   end
+
+  def render_thumbnails( collection, options )
+    unless collection.empty?
+      contents = collection.collect { |o| render options.merge(:object => o) }.join("</li><li class='span3'>")
+      "<ul class='thumbnails'><li>#{contents}</li></ul>"
+    end
+  end
 end

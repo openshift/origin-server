@@ -158,6 +158,7 @@ class ApplicationsController < ConsoleController
 
   def new
     types = ApplicationType.find :all
-    @framework_types, @application_types = types.partition { |t| t.categories.include?(:framework) }
+    @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
+    @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
   end
 end

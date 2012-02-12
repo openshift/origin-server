@@ -1,7 +1,7 @@
 %section.main
   .content
     %h1 Configure New Application
-    = render @application_type
+    = render :partial => @application_type, :locals => {:hide_link => true}
     = semantic_form_for @application do |f|
       = f.inputs do
         = f.input :name, :required => true

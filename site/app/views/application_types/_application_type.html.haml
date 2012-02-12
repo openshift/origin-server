@@ -1,15 +1,20 @@
-= div_for application_type do
+= div_for application_type, :class => 'thumbnail' do
 
   %h3= application_type.name
 
   %aside
-    .version
-      %label Version:
-      %span= application_type.version
+    - if application_type.version
+      .version
+        %label Full version:
+        %span= application_type.version
 
-    .license
-      %label License:
-      %span= application_type.license
+    -# if application_type.license
+      .license
+        %label License:
+        - if application_type.respond_to? :license_url
+          = link_to application_type.license, application_type.license_url
+        - else
+          %span= application_type.license
 
     - if application_type.website
       .website
@@ -18,5 +23,8 @@
 
   %p= application_type.description
 
-  - unless defined? create_link
+  - if application_type.learn_more_url
+    = link_to "Learn more", application_type.learn_more_url
+
+  - unless defined? hide_link
     = link_to "Select »", application_type_path(application_type)
