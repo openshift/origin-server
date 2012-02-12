@@ -82,17 +82,6 @@ class ApplicationsController < ConsoleController
     render
   end
 
-  # FIXME: remove once Application.find works
-  def find_application(app_name)
-    @domain = Domain.first :as => session_user
-    @domain.applications.each do |app|
-      if app.name == app_name
-        return app
-      end
-    end
-    return nil
-  end
-
   def delete
     commit = params[:commit]
     app_params = params[:application]
@@ -100,8 +89,8 @@ class ApplicationsController < ConsoleController
     cartridge = app_params[:cartridge]
 
     if commit == 'Delete'
-      @application = find_application app_name
-
+      @domain = Domain.first :as => session_user
+      @application = @domain.get_application app_name
       if @application.nil?
         @message = "Application #{app_name} not found"
         @message_type = :error
@@ -139,7 +128,8 @@ class ApplicationsController < ConsoleController
       @message_type = :error
       @message = "No application specified"
     else
-      @application = find_application @app_name
+      @domain = Domain.first :as => session_user
+      @application = @domain.get_application @app_name
 
       if @application.nil?
         @message = "Application #{app_name} not found"
