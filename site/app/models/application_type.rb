@@ -3,6 +3,7 @@ class ApplicationType
   extend ActiveModel::Naming
 
   attr_accessor :id, :name, :version, :description
+  attr_accessor :provides
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
 
@@ -18,12 +19,22 @@ class ApplicationType
 
   @default_types = [
     {
+      :id => 'empty',
+      :name => 'Simple Application',
+      :categories => [:empty],
+      :description => 'This application is created without cartridges.  The application cannot be deployed until you add a cartridge.'
+    },
+    {
       :id => 'php5.3',
       :name => 'PHP 5.3',
       :version => '5.3.2',
       :categories => [:framework],
       :description => 'PHP is a widely-used general-purpose scripting language that is especially suited for Web development and can be embedded into HTML.',
-      :website => 'http://www.php.net'
+      :website => 'http://www.php.net',
+      :provides => [
+        'Apache configured with mod_php',
+        'PHP script directory for you to check PHP files into'
+      ]
     },
     {
       :id => 'rails32',
@@ -77,6 +88,10 @@ class ApplicationType
   ].map { |t| ApplicationType.new t }
 
   class << self
+    def find_empty
+      @default_types.find { |type| type.id == 'empty' }
+    end
+
     def find(*arguments)
       option = arguments.slice(0)
       case option

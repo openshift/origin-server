@@ -1,3 +1,5 @@
+require 'rest_api'
+
 class ApplicationsController < ConsoleController
 
   @@max_tries = 5000
@@ -157,8 +159,32 @@ class ApplicationsController < ConsoleController
   end
 
   def new
-    types = ApplicationType.find :all
-    @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
-    @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
+    redirect_to application_type_path(ApplicationType.find_empty)
+  end
+
+  def create
+    app_params = params[:application]
+
+    @application_type = ApplicationType.find app_params[:application_type]
+    @application = Application.new app_params
+    @application.as = session_user
+
+    # opened bug 789763 to track simplifying this block - with domain_name submission we would
+    # only need to check that domain_name is set (which it should be by the show form)
+    @domain = Domain.find :first, :as => session_user
+    unless @domain
+      @domain = Domain.create :name => @application.domain_name, :as => session_user
+      unless @domain.persisted?
+        @application.valid? # set any errors on the application object
+        render 'application_types/show'
+      end
+    end
+    @application.domain = @domain
+
+    if @application.save
+      redirect_to application_path(@application)
+    else
+      render 'application_types/show'
+    end
   end
 end

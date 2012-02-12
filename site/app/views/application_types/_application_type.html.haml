@@ -1,15 +1,15 @@
-= div_for application_type, :class => 'thumbnail' do
+= div_for application_type do
 
   %h3= application_type.name
 
-  %aside
+  %ul.unstyled.meta
     - if application_type.version
-      .version
+      %li.version
         %label Full version:
         %span= application_type.version
 
     -# if application_type.license
-      .license
+      %li.license
         %label License:
         - if application_type.respond_to? :license_url
           = link_to application_type.license, application_type.license_url
@@ -17,7 +17,7 @@
           %span= application_type.license
 
     - if application_type.website
-      .website
+      %li.website
         %label Website:
         = link_to application_type.website, application_type.website
 
@@ -26,5 +26,13 @@
   - if application_type.learn_more_url
     = link_to "Learn more", application_type.learn_more_url
 
+  - if defined? extra_info and application_type.provides
+    %div
+      %h4 What you get:
+      %ul
+        - application_type.provides.each do |provided|
+          %li= provided
+
   - unless defined? hide_link
-    = link_to "Select »", application_type_path(application_type)
+    = link_to "Select »", application_type_path(application_type), :class => 'btn'
+

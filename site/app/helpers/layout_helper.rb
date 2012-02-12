@@ -1,3 +1,5 @@
+require 'enumerator'
+
 module LayoutHelper
   def navigation_tabs(options={}, &block)
     content = capture &block
@@ -46,8 +48,60 @@ module LayoutHelper
 
   def render_thumbnails( collection, options )
     unless collection.empty?
-      contents = collection.collect { |o| render options.merge(:object => o) }.join("</li><li class='span3'>")
-      "<ul class='thumbnails'><li>#{contents}</li></ul>"
+      content_tag(
+        :ul,
+        collection.collect { |o| 
+          content_tag(
+            :li,
+            render(options.merge(:object => o)).html_safe,
+            :class => options[:grid] || 'span3'
+          ) 
+        }.join.html_safe,
+        :class => 'thumbnails'
+      )
     end
+  end
+
+  BreadcrumbCreate = [
+    {
+      :name => 'Choose a type of application',
+      :link => 'application_types_path'
+    },
+    {
+      :name => 'Configure and deploy the application'
+    },
+    {
+      :name => 'Next steps'
+    }
+  ]
+
+  def breadcrumb_create(active, options={})
+    breadcrumb(BreadcrumbCreate, active, options)
+  end
+  def breadcrumb_divider
+    content_tag(:span, '/', :class => 'divider')
+  end
+  def breadcrumb(items, active, options={})
+    content_tag(
+      :ul,
+      items.each_with_index.map do |item, index|
+        name = item[:name]
+        content = if index < active and item[:link]
+          link_to(name, send("#{item[:link]}")).html_safe
+        else
+          name
+        end
+        if index < items.length-1
+          content = [content, breadcrumb_divider].join.html_safe
+        end
+        classes = if index < active
+          'completed'
+        elsif index == active
+          'active'
+        end
+        content_tag(:li, content, :class => classes)
+      end.join.html_safe,
+      :class => "breadcrumb breadcrumb-wizard"
+    )
   end
 end
