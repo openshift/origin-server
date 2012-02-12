@@ -1,5 +1,3 @@
-require 'rest_api'
-
 class ApplicationsController < ConsoleController
 
   @@max_tries = 5000
