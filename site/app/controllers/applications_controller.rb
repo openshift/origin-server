@@ -45,39 +45,36 @@ class ApplicationsController < ConsoleController
     # new restful stuff
     # replace domains with Applications.find :all, :as => session_user
     # in the future
-    @domain = Domain.first :as => session_user
-    @applications = @domain.applications
-    @app_type_filter_value = ""
-    @name_filter_value = ""
-
-    if !params.nil?
-      @app_type_filter_value = params[:app_type_filter]
-      @name_filter_value = params[:name_filter]
+    domain = Domain.first :as => session_user
+    @applications = if domain
+      domain.applications
+    else
+      []
     end
+
+    @app_type_filter_value = params[:app_type_filter]
+    @name_filter_value = params[:name_filter]
 
     @app_type_options = [["All", ""]]
     seen_app_types = {}
     @filtered_app_info = {}
 
-    if !@applications.nil?
-      @applications.each do |app|
-        app_type = app.framework.split('-')[0]
-        if !seen_app_types.has_key? app_type
-          @app_type_options << app_type
-        end
-        seen_app_types[app_type] = true
+    @applications.each do |app|
+      app_type = app.framework.split('-')[0]
+      if !seen_app_types.has_key? app_type
+        @app_type_options << app_type
+      end
+      seen_app_types[app_type] = true
 
-        # filter
-        if wildcard_match? @name_filter_value, app.name
-          if @app_type_filter_value.nil? || @app_type_filter_value == ""
-            @filtered_app_info[app.name] = app
-          elsif @app_type_filter_value == app_type
-            @filtered_app_info[app.name] = app
-          end
+      # filter
+      if wildcard_match? @name_filter_value, app.name
+        if @app_type_filter_value.nil? || @app_type_filter_value == ""
+          @filtered_app_info[app.name] = app
+        elsif @app_type_filter_value == app_type
+          @filtered_app_info[app.name] = app
         end
       end
     end
-    render
   end
 
   def delete
@@ -176,7 +173,7 @@ class ApplicationsController < ConsoleController
     @application.cartridge = @application_type.cartridge || @application_type.id
 
     if @application.save
-      redirect_to application_path(@application)
+      redirect_to applications_path
     else
       render 'application_types/show'
     end
