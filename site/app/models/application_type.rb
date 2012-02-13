@@ -2,6 +2,9 @@ class ApplicationType
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
+  class NotFound < StandardError
+  end
+
   attr_accessor :id, :name, :version, :description
   attr_accessor :provides
   attr_accessor :cartridge
@@ -90,14 +93,14 @@ class ApplicationType
 
   class << self
     def find_empty
-      @default_types.find { |type| type.id == 'empty' }
+      @default_types.find { |type| type.id == 'empty' } or raise NotFound
     end
 
     def find(*arguments)
       option = arguments.slice(0)
       case option
       when String
-        @default_types.find { |type| type.id == option }
+        @default_types.find { |type| type.id == option } or raise NotFound
       when :all
         Array.new(@default_types)
       when Symbol

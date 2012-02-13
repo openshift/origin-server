@@ -36,7 +36,7 @@ class Application < RestApi::Base
   end
 
   def framework_name
-    ApplicationType.find(framework).name #FIXME replace with better translations
+    ApplicationType.find(framework).name rescue framework
   end
 
   protected
