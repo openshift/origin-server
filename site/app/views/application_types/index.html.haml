@@ -10,11 +10,11 @@
     :css
       .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px; cursor: pointer;}
       .application_type:hover {background-color: #e0e0e0;}
-      .application_type > ul.meta > li {display: inline;}
+      /*.application_type > ul.meta > li {display: inline;}*/
       .application_type > ul.meta > li > label {display: inline;}
 
     %h1 Create a New Application
-    = breadcrumb_create 0
+    = wizard_steps_create 0
     -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
     %p
       Choose a web programming framework for your application. After you create the application you can add
@@ -40,5 +40,5 @@
 - content_for :javascripts do
   :javascript
     jQuery('.application_type').click(function() {
-      $('a.btn', this)[0].click();
+      window.location = $('a.btn', this)[0].href
     });
