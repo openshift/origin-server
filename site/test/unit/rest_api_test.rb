@@ -164,20 +164,21 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_domain_delete
+    # we can only have one domain so delete it and restore it
     items = Domain.find :all, :as => @user
+    domain = items[0]
+    name = domain.name
 
     orig_num_domains = items.length
 
-    domain = Domain.new :name => "deleteme", :as => @user
+    assert domain.destroy
+
+    items = Domain.find :all, :as => @user
+    assert_equal orig_num_domains - 1, items.length
+
+    # restore domain just in case we get run before other tests
+    domain = Domain.new :name => name, :as = @user
     assert domain.save
-
-    items = Domain.find :all, :as => @user
-    assert_equal orig_num_domains + 1, items.length
-
-    assert items[items.length-1].destroy
-
-    items = Domain.find :all, :as => @user
-    assert_equal orig_num_keys, items.length
   end
 
   def test_domain_assignment_to_application
