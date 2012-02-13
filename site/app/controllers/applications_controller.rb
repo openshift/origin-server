@@ -57,7 +57,7 @@ class ApplicationsController < ConsoleController
 
     @app_type_options = [["All", ""]]
     seen_app_types = {}
-    @filtered_app_info = {}
+    @filtered_app_info = []
 
     @applications.each do |app|
       app_type = app.framework.split('-')[0]
@@ -69,9 +69,9 @@ class ApplicationsController < ConsoleController
       # filter
       if wildcard_match? @name_filter_value, app.name
         if @app_type_filter_value.nil? || @app_type_filter_value == ""
-          @filtered_app_info[app.name] = app
+          @filtered_app_info << app
         elsif @app_type_filter_value == app_type
-          @filtered_app_info[app.name] = app
+          @filtered_app_info << app
         end
       end
     end
@@ -173,7 +173,7 @@ class ApplicationsController < ConsoleController
     @application.cartridge = @application_type.cartridge || @application_type.id
 
     if @application.save
-      redirect_to applications_path
+      redirect_to application_path(@application)
     else
       render 'application_types/show'
     end
@@ -183,7 +183,7 @@ class ApplicationsController < ConsoleController
     @application.errors.add(:base, "Unable to create application")
     render 'application_types/show'
   end
-  
+
   def show
     app_name = params[:id]
 
@@ -196,7 +196,7 @@ class ApplicationsController < ConsoleController
       if @application.nil?
         @message = "Application #{app_name} not found"
         @message_type = :error
-      end 
+      end
     end
 
     respond_to do |format|
@@ -209,6 +209,6 @@ class ApplicationsController < ConsoleController
       end
     end
   end
-  
+
 
 end
