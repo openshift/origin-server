@@ -4,6 +4,7 @@ class ApplicationType
 
   attr_accessor :id, :name, :version, :description
   attr_accessor :provides
+  attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
 
@@ -25,7 +26,7 @@ class ApplicationType
       :description => 'This application is created without cartridges.  The application cannot be deployed until you add a cartridge.'
     },
     {
-      :id => 'php5.3',
+      :id => 'php-5.3',
       :name => 'PHP 5.3',
       :version => '5.3.2',
       :categories => [:framework],
@@ -44,7 +45,7 @@ class ApplicationType
       :website => 'http://www.rubyonrails.org'
     },
     {
-      :id => 'wsgi-3.2',
+      :id => 'python-2.6',
       :name => 'Python 2.6 with WSGI',
       :version => 'Python 2.6.6 / WSGI 3.2',
       :categories => [:framework],
@@ -60,7 +61,7 @@ class ApplicationType
       :website => 'http://perl.apache.org/start/index.html'
     },
     {
-      :id => 'rack1.1',
+      :id => 'ruby-1.8',
       :name => 'Ruby 1.8.7 with Rack',
       :version => 'Ruby 1.8.7 / Rack 1.1',
       :categories => [:framework],

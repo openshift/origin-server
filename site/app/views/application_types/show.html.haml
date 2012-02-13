@@ -3,7 +3,6 @@
 
     :css
       .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px; cursor: pointer;}
-      .application_type:hover {background-color: #e0e0e0;}
       .application_type > ul.meta > li {display: inline;}
       .application_type > ul.meta > li > label {display: inline;}
 
@@ -12,7 +11,7 @@
 
     = render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true}
 
-    = semantic_form_for @application, :url => applications_path do |f|
+    = semantic_form_for @application do |f|
       = f.hidden_field :application_type, :value => @application_type.id
 
       = f.inputs do
@@ -24,17 +23,17 @@
 
             = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name'
 
-            %span -
+            %span> -
 
             -# If the user has a domain, use it, otherwise prompt them for that field
-            - if @application.domain_name
-              %span= @application.domain_name
+            - if @domain
+              %span= @domain.name
             - else
               = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Domain name'
 
-            %span .rhcloud.com
+            %span> .rhcloud.com
 
-            - unless @application.domain_name
+            - unless @domain
               .help-block
                 Because this is your first application, you need to set a domain name that all your applications will share. You can map your own DNS domain names to your application once you have created the application.
 

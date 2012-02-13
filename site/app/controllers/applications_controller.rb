@@ -164,6 +164,7 @@ class ApplicationsController < ConsoleController
     app_params = params[:application]
 
     @application_type = ApplicationType.find app_params[:application_type]
+
     @application = Application.new app_params
     @application.as = session_user
 
@@ -177,12 +178,19 @@ class ApplicationsController < ConsoleController
         render 'application_types/show'
       end
     end
+
     @application.domain = @domain
+    @application.cartridge = @application_type.cartridge || @application_type.id
 
     if @application.save
       redirect_to application_path(@application)
     else
       render 'application_types/show'
     end
+  rescue ActiveResource::ServerError => e
+    Rails.logger.debug "Unable to create application, #{e.response.inspect}" if defined? e.response
+    Rails.logger.debug "Unable to create application, #{e.response.body.inspect}" if defined? e.response.body
+    @application.errors.add(:base, "Unable to create application")
+    render 'application_types/show'
   end
 end
