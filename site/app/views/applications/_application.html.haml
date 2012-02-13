@@ -1,0 +1,21 @@
+%header
+  %h2
+    = application.name
+%dl.app_info
+  %dt
+    Public url
+  %dd.app_url
+    = link_to application.web_url, application.web_url
+
+  %dt
+    Repository
+  %dd.app_git
+    = application.git_url
+
+  %dt
+    Type
+  %dd.app_type
+    = application.framework_name
+%div
+  = link_to("Details...", application_path(application))
+  = link_to("Delete", application_delete_path(:application_id => application.name))

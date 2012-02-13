@@ -2,6 +2,9 @@ class ApplicationType
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
+  class NotFound < StandardError
+  end
+
   attr_accessor :id, :name, :version, :description
   attr_accessor :provides
   attr_accessor :cartridge
@@ -55,7 +58,7 @@ class ApplicationType
     {
       :id => 'perl-5.10',
       :name => 'Perl 5.10 with mod_perl',
-      :version => 'Ruby 5.10 / mod_perl 2.0.4',
+      :version => 'Perl 5.10 / mod_perl 2.0.4',
       :categories => [:framework],
       :description => 'mod_perl brings together the full power of the Perl programming language and the Apache HTTP server. You can use Perl to manage Apache, respond to requests for web pages and much more.',
       :website => 'http://perl.apache.org/start/index.html'
@@ -71,7 +74,7 @@ class ApplicationType
     {
       :id => 'jbossas-7.0',
       :name => 'JBoss Application Server 7.0',
-      :version => '7.0.2.Final',
+      :version => 'JBoss AS 7.0.2.Final',
       :license => 'GNU LPGL 2.1',
       :license_url => 'http://www.gnu.org/licenses/lgpl-2.1-standalone.html',
       :categories => [:framework],
@@ -80,24 +83,24 @@ class ApplicationType
     },
     {
       :id => 'raw-0.1',
-      :name => 'Experimental - Basic Computing',
-      :version => '1.0',
+      :name => 'Do-It-Yourself',
+#      :version => '1.0',
       :categories => [:framework, :experimental],
-      :description => 'The Experimental application type is a container for loading in unsupported languages, frameworks, and middleware to OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
+      :description => 'The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
       #:website => 'http://perl.apache.org/start/index.html'
     }
   ].map { |t| ApplicationType.new t }
 
   class << self
     def find_empty
-      @default_types.find { |type| type.id == 'empty' }
+      @default_types.find { |type| type.id == 'empty' } or raise NotFound
     end
 
     def find(*arguments)
       option = arguments.slice(0)
       case option
       when String
-        @default_types.find { |type| type.id == option }
+        @default_types.find { |type| type.id == option } or raise NotFound
       when :all
         Array.new(@default_types)
       when Symbol

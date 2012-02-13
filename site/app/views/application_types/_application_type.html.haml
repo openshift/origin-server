@@ -3,10 +3,6 @@
   %h3= application_type.name
 
   %ul.unstyled.meta
-    - if application_type.version
-      %li.version
-        %label Full version:
-        %span= application_type.version
 
     -# if application_type.license
       %li.license
@@ -20,6 +16,11 @@
       %li.website
         %label Website:
         = link_to application_type.website, application_type.website
+
+    - if application_type.version
+      %li.version
+        %label Version:
+        %span= application_type.version
 
   %p= application_type.description
 

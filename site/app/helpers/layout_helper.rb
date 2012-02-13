@@ -62,7 +62,11 @@ module LayoutHelper
     end
   end
 
-  BreadcrumbCreate = [
+  def breadcrumb_divider
+    content_tag(:span, '/', :class => 'divider')
+  end
+
+  WizardStepsCreate = [
     {
       :name => 'Choose a type of application',
       :link => 'application_types_path'
@@ -75,24 +79,18 @@ module LayoutHelper
     }
   ]
 
-  def breadcrumb_create(active, options={})
-    breadcrumb(BreadcrumbCreate, active, options)
+  def wizard_steps_create(active, options={})
+    wizard_steps(WizardStepsCreate, active, options)
   end
-  def breadcrumb_divider
-    content_tag(:span, '/', :class => 'divider')
-  end
-  def breadcrumb(items, active, options={})
+  def wizard_steps(items, active, options={})
     content_tag(
-      :ul,
+      :ol,
       items.each_with_index.map do |item, index|
         name = item[:name]
         content = if index < active and item[:link]
           link_to(name, send("#{item[:link]}")).html_safe
         else
           name
-        end
-        if index < items.length-1
-          content = [content, breadcrumb_divider].join.html_safe
         end
         classes = if index < active
           'completed'
@@ -101,7 +99,7 @@ module LayoutHelper
         end
         content_tag(:li, content, :class => classes)
       end.join.html_safe,
-      :class => "breadcrumb breadcrumb-wizard"
+      :class => 'wizard-steps'
     )
   end
 end
