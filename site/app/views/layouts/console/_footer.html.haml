@@ -1,4 +1,4 @@
-.container
+.container#footer
   .row
     .span3
       %header
@@ -11,7 +11,7 @@
     .span3
       %header
         %h2 Community
-      %ul
+      %ul.unstyled
         %li= link_to 'Forum', 'https://www.redhat.com/openshift/forums/'
         %li= link_to 'Partner Program', partners_path
         %li= link_to 'IRC Channel', 'http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4'
@@ -20,7 +20,7 @@
     .span3
       %header
         %h2 Legal
-      %ul
+      %ul.unstyled
         %li= link_to 'Legal', legal_path
         %li= link_to 'Privacy Policy', legal_openshift_privacy_path
         %li= link_to 'Security', 'https://access.redhat.com/security/team/contact/'
@@ -28,7 +28,7 @@
     .span3
       %header
         %h2 Help
-      %ul
+      %ul.unstyled
         %li= link_to 'FAQ', 'http://www.redhat.com/openshift/faq'
         %li= link_to 'Contact', 'mailto:openshift@redhat.com'
 

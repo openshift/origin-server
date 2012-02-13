@@ -88,7 +88,7 @@ class ApplicationsController < ConsoleController
 
     if commit == 'Delete'
       @domain = Domain.first :as => session_user
-      @application = @domain.get_application app_name
+      @application = @domain.find_application app_name
       if @application.nil?
         @message = "Application #{app_name} not found"
         @message_type = :error
@@ -127,7 +127,7 @@ class ApplicationsController < ConsoleController
       @message = "No application specified"
     else
       @domain = Domain.first :as => session_user
-      @application = @domain.get_application @app_name
+      @application = @domain.find_application @app_name
 
       if @application.nil?
         @message = "Application #{app_name} not found"
@@ -150,7 +150,40 @@ class ApplicationsController < ConsoleController
   end
 
   def new
-    types = ApplicationType.find :all
-    @framework_types, @application_types = types.partition { |t| t.categories.include?(:framework) }
+    redirect_to application_type_path(ApplicationType.find_empty)
+  end
+
+  def create
+    app_params = params[:application]
+
+    @application_type = ApplicationType.find app_params[:application_type]
+
+    @application = Application.new app_params
+    @application.as = session_user
+
+    # opened bug 789763 to track simplifying this block - with domain_name submission we would
+    # only need to check that domain_name is set (which it should be by the show form)
+    @domain = Domain.find :first, :as => session_user
+    unless @domain
+      @domain = Domain.create :name => @application.domain_name, :as => session_user
+      unless @domain.persisted?
+        @application.valid? # set any errors on the application object
+        return render 'application_types/show'
+      end
+    end
+
+    @application.domain = @domain
+    @application.cartridge = @application_type.cartridge || @application_type.id
+
+    if @application.save
+      redirect_to application_path(@application)
+    else
+      render 'application_types/show'
+    end
+  rescue ActiveResource::ServerError => e
+    Rails.logger.debug "Unable to create application, #{e.response.inspect}" if defined? e.response
+    Rails.logger.debug "Unable to create application, #{e.response.body.inspect}" if defined? e.response.body
+    @application.errors.add(:base, "Unable to create application")
+    render 'application_types/show'
   end
 end

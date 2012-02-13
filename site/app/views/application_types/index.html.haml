@@ -1,0 +1,44 @@
+-# content_for :frameworks do
+  %h2 Frameworks
+  %p These are the core frameworks that all OpenShift applications are built on.  If you've got your own application ready to check in these are the way to go.
+  -#= render :collection => @framework_types, :layout => 'thumbnail', :partial => 'application_types/application_type'
+  = render :collection => @framework_types, :partial => 'application_types/application_type'
+
+%section.main
+  .content
+
+    :css
+      .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px; cursor: pointer;}
+      .application_type:hover {background-color: #e0e0e0;}
+      .application_type > ul.meta > li {display: inline;}
+      .application_type > ul.meta > li > label {display: inline;}
+
+    %h1 Create a New Application
+    = breadcrumb_create 0
+    -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
+    %p
+      Choose a web programming framework for your application. After you create the application you can add
+      %strong cartridges
+      to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
+
+    .row
+      - @framework_types.each_slice((@framework_types.length/2).round).each do |types|
+        .span6
+          = render :collection => types, :partial => 'application_types/application_type'
+
+    -# unless @popular_types.empty?
+      .row
+        .span7
+          %h2 Popular Types
+          %p These applications have been selected by the OpenShift team to get you started in a hurry. These are good choices when you want to learn more about how OpenShift works.
+          = render @popular_types
+        .span5
+          = yield :frameworks
+    -# else
+      = yield :frameworks
+
+- content_for :javascripts do
+  :javascript
+    jQuery('.application_type').click(function() {
+      $('a.btn', this)[0].click();
+    });

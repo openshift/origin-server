@@ -12,7 +12,7 @@
         :app_types_options => @app_type_options
       = render 'applications/app_list', :apps => @filtered_app_info
     %div
-      = link_to 'Add an application...', new_application_path
+      = link_to 'Add an application...', application_types_path
 
   %div.notifications
     <!-- tbd -->
