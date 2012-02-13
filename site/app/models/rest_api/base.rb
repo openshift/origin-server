@@ -3,11 +3,48 @@ require 'active_resource'
 require 'active_resource/associations'
 require 'active_resource/reflection'
 
+module ActiveResource
+  module Formats
+    #
+    # The OpenShift REST API wraps the root resource element whi
+    # to be unwrapped.
+    #
+    module OpenshiftJsonFormat
+      extend ActiveResource::Formats::JsonFormat
+      extend self
+
+      def decode(json)
+        decoded = super
+        #puts "decoded #{decoded.inspect}"
+        if decoded.is_a?(Hash) and decoded.has_key?('data')
+          decoded = decoded['data']
+        end
+        if decoded.is_a?(Array)
+          decoded.each { |i| i.delete 'links' }
+        else
+          decoded.delete 'links'
+        end
+        decoded
+      end
+    end
+  end
+end
+
 module RestApi
   class Base < ActiveResource::Base
     # ActiveResource association support
     extend ActiveResource::Associations
     include ActiveResource::Reflection
+
+    def self.debug
+      @debug = true
+      yield
+    ensure
+      @debug = false
+    end
+    def self.debug?
+      @debug
+    end
 
     # Don't include the root in JSON when creating/updating records
     def encode(options={})
@@ -31,7 +68,34 @@ module RestApi
       'http://localhost/broker/rest'
     end
 
-    # 
+    #
+    # ActiveResource doesn't fully support alias_attribute
+    #
+    class << self
+      def alias_attribute(from, to)
+        @aliases ||= {}
+        @aliases[from] = to
+        super
+      end
+      def aliased_attributes
+        @aliases
+      end
+    end
+
+    def load(attributes)
+      if self.class.aliased_attributes
+        attributes = attributes.dup
+        self.class.aliased_attributes.each do |from,to|
+          value = attributes.delete(from)
+          attributes[to] = value if value
+        end
+        super attributes
+      else
+        super
+      end
+    end
+
+    #
     # Track persistence state, merged from 
     # https://github.com/railsjedi/rails/commit/9333e0de7d1b8f63b19c99d21f5f65fef0ce38c3
     #
@@ -61,6 +125,7 @@ module RestApi
     end
 
     class << self
+
       def custom_id(name, mutable=false)
         @primary_key = name
         if mutable
@@ -241,7 +306,7 @@ module RestApi
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
-          instantiate_record(format.decode(connection.get(path, headers).body), options[:as], prefix_options) #changed
+          instantiate_record(format.decode(connection(options).get(path, headers).body), options[:as], prefix_options) #changed
         end
 
         def find_every(options)
@@ -340,12 +405,13 @@ module RestApi
       headers
     end
 
-    #def request(*arguments)
-      #puts "request\n#{arguments.inspect}"
-      #resp = super
-      #puts "response\n#{resp.inspect}"
-      #resp
-    #end
+    def new_http
+      http = super
+      if RestApi::Base.debug?
+        http.set_debug_output $stderr
+      end
+      http
+    end
 
     #
     # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
