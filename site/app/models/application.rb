@@ -35,6 +35,10 @@ class Application < RestApi::Base
     "ssh://#{uuid}@#{url_authority}/~/git/#{name}.git/"
   end
 
+  def framework_name
+    ApplicationType.find(framework).name #FIXME replace with better translations
+  end
+
   protected
     def url_authority
       "#{name}-#{domain_name}.#{Rails.configuration.base_domain}"

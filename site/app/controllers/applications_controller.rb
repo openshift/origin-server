@@ -1,17 +1,44 @@
-class ApplicationsController < ConsoleController
+class ApplicationsFilter
+  extend ActiveModel::Naming
+  include ActiveModel::Serialization
+  include ActiveModel::Conversion
 
-  @@max_tries = 5000
-  @@exclude_carts = ['raw-0.1', 'jenkins-1.4']
+  attr_accessor :name, 'type', :type_options
+  def initialize(attributes={})
+    attributes.each { |key,value| send("#{key}=", value) } unless attributes.nil?
+  end
 
-  def wildcard_match?(search_str, value)
-    if search_str.nil?
-      return true
+  def persisted?
+    false
+  end
+
+  def active?
+    @filtered
+  end
+
+  def present?
+    !(name.nil? or name.blank?) or !(type.nil? or type.blank?)
+  end
+
+  def apply(applications)
+    @filtered = !applications.empty?
+    @type_options = [['All','']]
+
+    types = {}
+    applications.select do |application|
+      type = application.framework
+      unless types.has_key? type
+        @type_options << [application.framework_name, type]
+        types[type] = true
+      end
+
+      ApplicationsFilter.wildcard_match?(@name, application.name) &&
+        (@type.nil? or @type.blank? or @type == type)
     end
+  end
 
-    search_str.strip!
-    if search_str == ""
-      return true
-    end
+  def self.wildcard_match?(search_str, value)
+    return true if search_str.nil? || search_str.blank?
 
     if !(search_str =~ /\*/)
       search_str = "*" + search_str + "*"
@@ -34,47 +61,29 @@ class ApplicationsController < ConsoleController
     end
 
     wildcard_re = "^" + wildcard_re + "$"
-    if /#{wildcard_re}/.match(value)
-      return true
-    else
-      return false
-    end
+    /#{wildcard_re}/.match(value)
   end
+
+end
+
+class ApplicationsController < ConsoleController
+
+  @@max_tries = 5000
+  @@exclude_carts = ['raw-0.1', 'jenkins-1.4']
 
   def index
     # new restful stuff
     # replace domains with Applications.find :all, :as => session_user
     # in the future
     domain = Domain.first :as => session_user
-    @applications = if domain
-      domain.applications
-    else
+    applications = if domain.nil?
       []
+    else
+      domain.applications
     end
 
-    @app_type_filter_value = params[:app_type_filter]
-    @name_filter_value = params[:name_filter]
-
-    @app_type_options = [["All", ""]]
-    seen_app_types = {}
-    @filtered_app_info = {}
-
-    @applications.each do |app|
-      app_type = app.framework.split('-')[0]
-      if !seen_app_types.has_key? app_type
-        @app_type_options << app_type
-      end
-      seen_app_types[app_type] = true
-
-      # filter
-      if wildcard_match? @name_filter_value, app.name
-        if @app_type_filter_value.nil? || @app_type_filter_value == ""
-          @filtered_app_info[app.name] = app
-        elsif @app_type_filter_value == app_type
-          @filtered_app_info[app.name] = app
-        end
-      end
-    end
+    @applications_filter = ApplicationsFilter.new params[:applications_filter]
+    @applications = @applications_filter.apply(applications)
   end
 
   def delete
