@@ -134,7 +134,11 @@ module RestApi
             @attributes[name] = val
           end
           define_method :id do
-            @old_id || super
+            @old_id || @attributes[name]
+          end
+        else
+          define_method :id do
+            @attributes[name]
           end
         end
       end

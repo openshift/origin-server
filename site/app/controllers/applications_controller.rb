@@ -90,10 +90,10 @@ class ApplicationsController < ConsoleController
         @message = "Application #{app_name} not found"
         @message_type = :error
       elsif @application.valid?
-        @application.delete
+        @application.destroy
         if @application.errors[:base].blank?
           # get message from the JSON
-          @message = @application.message || I18n.t('express_api.messages.app_deleted')
+          @message = I18n.t('express_api.messages.app_deleted')
           @message_type = :success
         else
           @message = @application.errors.full_messages.join("; ")
