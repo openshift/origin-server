@@ -10,6 +10,7 @@
     :css
       .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px; cursor: pointer;}
       .application_type:hover {background-color: #e0e0e0;}
+      .application_type:active {background-color: #ffe0e0;}
       /*.application_type > ul.meta > li {display: inline;}*/
       .application_type > ul.meta > li > label {display: inline;}
 
@@ -40,5 +41,6 @@
 - content_for :javascripts do
   :javascript
     jQuery('.application_type').click(function() {
-      window.location = $('a.btn', this)[0].href
+      a = $('a.btn', this)[0];
+      window.location = a.href
     });
