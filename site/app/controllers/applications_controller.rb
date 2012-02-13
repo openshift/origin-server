@@ -175,7 +175,7 @@ class ApplicationsController < ConsoleController
       @domain = Domain.create :name => @application.domain_name, :as => session_user
       unless @domain.persisted?
         @application.valid? # set any errors on the application object
-        render 'application_types/show'
+        return render 'application_types/show'
       end
     end
 
