@@ -8,6 +8,7 @@ class ApplicationTypesController < ConsoleController
 
   def show
     @application_type = ApplicationType.find params[:id]
-    @application = RestApi::Application.new
+    @application = Application.new :as => session_user
+    Rails.logger.debug "#{@application.inspect} instance?=#{@application.domain_name}"
   end
 end
