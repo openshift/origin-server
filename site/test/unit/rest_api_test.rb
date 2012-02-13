@@ -163,6 +163,23 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal "#{@ts.reverse}", domains[0].namespace
   end
 
+  def test_domain_delete
+    items = Domain.find :all, :as => @user
+
+    orig_num_domains = items.length
+
+    domain = Domain.new :name => "deleteme", :as => @user
+    assert domain.save
+
+    items = Domain.find :all, :as => @user
+    assert_equal orig_num_domains + 1, items.length
+
+    assert items[items.length-1].destroy
+
+    items = Domain.find :all, :as => @user
+    assert_equal orig_num_keys, items.length
+  end
+
   def test_domain_assignment_to_application
     app = Application.new :domain_name => '1'
     assert_equal '1', app.domain_id, app.domain_name
@@ -212,5 +229,26 @@ class RestApiTest < ActiveSupport::TestCase
     app2 = domain.find_application('app2')
     assert_equal apps[0], app1
     assert_equal apps[1], app2
+  end
+
+  def test_domains_applications_delete
+    domain = Domain.first(:as => @user)
+
+    items = domain.applications
+    orig_num_apps = items.length
+
+    app_delete = Application.new :name => 'deleteme', :cartridge => 'php-5.3', :as => @user
+    app_delete.domain = domain
+
+    assert app_delete.save
+
+    items = domain.applications
+    assert_equal orig_num_apps + 1, items.length
+
+    app_delete = domain.find_application('deleteme')
+    assert app_delete.destroy
+
+    items = domain.applications
+    assert_equal orig_num_apps, items.length
   end
 end
