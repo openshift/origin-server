@@ -13,7 +13,12 @@ class Domain < RestApi::Base
 
   has_many :applications
   def applications
-    Application.find :all, { :params => { :domain_name => self.name }, :as => as }
+    @applications ||= Application.find :all, { :params => { :domain_name => self.name }, :as => as }
+  end
+  #FIXME should have an observer pattern that clears cached associations on reload
+  def reload
+    @applications = nil
+    super
   end
 
   belongs_to :user

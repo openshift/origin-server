@@ -267,6 +267,10 @@ module RestApi
     # Override methods from ActiveResource to make them contextual connection
     # aware
     #
+    def reload
+      self.load(self.class.find(to_param, :params => @prefix_options, :as => as).attributes)
+    end
+
     class << self
       def delete(id, options = {})
         connection(options).delete(element_path(id, options)) #changed

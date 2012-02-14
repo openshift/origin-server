@@ -68,91 +68,29 @@ end
 
 class ApplicationsController < ConsoleController
 
-  @@max_tries = 5000
-  @@exclude_carts = ['raw-0.1', 'jenkins-1.4']
-
   def index
-    # new restful stuff
     # replace domains with Applications.find :all, :as => session_user
     # in the future
     domain = Domain.first :as => session_user
-    applications = if domain.nil?
-      []
-    else
-      domain.applications
-    end
+    return redirect_to application_types_path, :notice => 'Create your first application now!' if domain.nil? || domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @applications_filter.apply(applications)
+    @applications = @applications_filter.apply(domain.applications)
+  end
+
+  def destroy
+    @domain = Domain.first :as => session_user
+    @application = @domain.find_application params[:id]
+    if @application.destroy
+      redirect_to applications_path, :flash => {:success => "The application '#{@application.name}' has been deleted"}
+    else
+      render :delete
+    end
   end
 
   def delete
-    commit = params[:commit]
-    app_params = params[:application]
-    app_name = params[:application_id]
-    cartridge = app_params[:cartridge]
-
-    if commit == 'Delete'
-      @domain = Domain.first :as => session_user
-      @application = @domain.find_application app_name
-      if @application.nil?
-        @message = "Application #{app_name} not found"
-        @message_type = :error
-      elsif @application.valid?
-        @application.destroy
-        if @application.errors[:base].blank?
-          # get message from the JSON
-          @message = I18n.t('express_api.messages.app_deleted')
-          @message_type = :success
-        else
-          @message = @application.errors.full_messages.join("; ")
-          @message_type = :error
-        end
-      else
-        @message = @application.errors.full_messages.join("; ")
-        @message_type = :error
-      end
-
-    else
-      @message = "Deletion of application canceled"
-      @message_type = :notice
-    end
-
-    respond_to do |format|
-        flash[@message_type] = @message
-        format.html { redirect_to applications_path }
-        format.js { render :json => response }
-    end
-  end
-
-  def confirm_delete
-    @app_name = params[:application_id]
-
-    if @app_name.nil?
-      @message_type = :error
-      @message = "No application specified"
-    else
-      @domain = Domain.first :as => session_user
-      @application = @domain.find_application @app_name
-
-      if @application.nil?
-        @message = "Application #{app_name} not found"
-        @message_type = :error
-      elsif !@application.valid?
-        @message = @application.errors.full_messages.join("; ")
-        @message_type = :error
-      end
-    end
-
-    respond_to do |format|
-      if @message_type == :error
-        flash[@message_type] = @message
-        format.html { redirect_to applications_path }
-        format.js { render :json => response }
-      else
-        return render 'applications/confirm_delete'
-      end
-    end
+    @domain = Domain.first :as => session_user
+    @application = @domain.find_application params[:id]
   end
 
   def new
@@ -187,6 +125,7 @@ class ApplicationsController < ConsoleController
       render 'application_types/show'
     end
   rescue ActiveResource::ServerError => e
+    #FIXME when submitting a form, expect all errors to be converted to application.errors[:base], not thrown
     Rails.logger.debug "Unable to create application, #{e.response.inspect}" if defined? e.response
     Rails.logger.debug "Unable to create application, #{e.response.body.inspect}" if defined? e.response.body
     @application.errors.add(:base, "Unable to create application")
@@ -194,30 +133,12 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    app_name = params[:id]
-
-    if app_name.nil?
-      @message_type = :error
-      @message = "No application specified"
-    else
-      @domain = Domain.first :as => session_user
-      @application = @domain.find_application app_name
-      if @application.nil?
-        @message = "Application #{app_name} not found"
-        @message_type = :error
-      end
-    end
-
-    respond_to do |format|
-      if @message_type == :error
-        flash[@message_type] = @message
-        format.html { redirect_to applications_path }
-        format.js { render :json => response }
-      else
-        return render 'applications/show'
-      end
-    end
+    @domain = Domain.first :as => session_user
+    @application = @domain.find_application params[:id]
   end
 
-
+  def get_started
+    @domain = Domain.first :as => session_user
+    @application = @domain.find_application params[:id]
+  end
 end

@@ -1,18 +1,23 @@
-- application_partial = @applications.length < 10 ? 'applications/application' : 'applications/application_compact'
+- lots_of_applications = @applications.length > 10
+- application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application'
 
-%section.main
-  %header
-    %h1
-      Applications
-  .content
-    - unless @applications.empty? and !@applications_filter.active?
-      = render :partial => 'applications/applications_filter', :object => @applications_filter
-      %ul
-        - @applications.each do |application|
-          %li
-            = render :partial => application_partial, :locals => { :application => application }
-    %div
-      = link_to 'Add an Application', application_types_path
+%h1 Applications
+.content
+
+  - if @applications_filter.present? or lots_of_applications
+    = render :partial => 'applications/applications_filter', :object => @applications_filter
+
+  - unless @applications.empty?
+    %ul
+      - @applications.each do |application|
+        %li
+          = render :partial => application_partial, :locals => { :application => application }
+
+  - if @applications.empty? and @applications_filter.present?
+    .alert.alert-info No applications match your filter
+
+  %div
+    = link_to 'Add an Application', application_types_path
 
   %div.notifications
     <!-- tbd -->

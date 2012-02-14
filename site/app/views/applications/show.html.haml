@@ -13,18 +13,17 @@
         Repository
       %dd.app_git
         = @application.git_url
-    
+
       %dt
         Type
       %dd.app_type
         = @application.framework_name
 
       %dt
-        Creation time
+        Created
       %dd.app_creation_time
-        = @application.creation_time.strftime("%b %m %Y, %I:%M%p")
+        = "#{time_ago_in_words(@application.creation_time)} ago"
 
-      
       - if not @application.aliases.empty?
         %dt
           Aliases
@@ -34,4 +33,4 @@
 
 %div
   = link_to "back to applications list...", applications_path
-  = link_to("delete...", application_delete_path(:application_id => @application.name))
+  = link_to("Delete", delete_application_path(@application))

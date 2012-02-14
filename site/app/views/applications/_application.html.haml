@@ -16,6 +16,12 @@
     Type
   %dd.app_type
     = application.framework_name
+
+  %dt
+    Created
+  %dd.app_creation_time
+    = "#{time_ago_in_words(application.creation_time)} ago"
+
 %div
   = link_to("Details...", application_path(application))
-  = link_to("Delete", application_delete_path(:application_id => application.name))
+  = link_to("Delete", delete_application_path(application))
