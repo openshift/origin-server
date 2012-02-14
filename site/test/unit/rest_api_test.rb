@@ -125,10 +125,18 @@ class RestApiTest < ActiveSupport::TestCase
   def test_domain_namespaces
     domain = Domain.new
     assert_nil domain.name, domain.namespace
+    assert !domain.changed?
     domain.name = '1'
+    assert domain.changed?
+    assert domain.namespace_changed?
+    assert_equal '1', domain.id
     assert_equal '1', domain.name, domain.namespace
     domain.namespace = '2'
+    # id should only change on either first update  or save
+    assert_equal '1', domain.id
     assert_equal '2', domain.name, domain.namespace
+    domain.namespace = '3'
+    assert_equal '1', domain.id
 
     domain = Domain.new :name => 'hello'
     assert_equal 'hello', domain.name, domain.namespace
@@ -154,9 +162,20 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal "#{@ts}", domains[0].namespace
 
     d = domains[0]
+    assert !d.changed?
+    assert_equal "#{@ts}", d.id
+
+    # change name twice to make sure id doesn't change
+    d.namespace = "notsaved"
+    assert d.changed?
+    assert_equal "#{@ts}", d.id
     d.namespace = "#{@ts.reverse}"
+    assert_equal "#{@ts}", d.id
 
     assert d.save
+    assert !d.changed?
+    # make sure id == the current name
+    assert_equal "#{@ts.reverse}", d.id
 
     domains = Domain.find :all, :as => @user
     assert_equal 1, domains.length
@@ -178,6 +197,7 @@ class RestApiTest < ActiveSupport::TestCase
 
     # restore domain just in case we get run before other tests
     domain = Domain.new :name => name, :as => @user
+
     assert domain.save
   end
 

@@ -8,6 +8,7 @@ class Domain < RestApi::Base
   end
 
   custom_id :namespace, true
+  mutable_attribute :ssh
   # TODO: Bug 789752: Make namespace consistent with other usages
   alias_attribute :name, :namespace
 

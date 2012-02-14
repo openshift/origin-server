@@ -2,6 +2,8 @@ require 'active_support/core_ext/hash/conversions'
 require 'active_resource'
 require 'active_resource/associations'
 require 'active_resource/reflection'
+require 'active_support/concern'
+require 'active_model/dirty'
 
 module ActiveResource
   module Formats
@@ -35,6 +37,7 @@ module RestApi
     # ActiveResource association support
     extend ActiveResource::Associations
     include ActiveResource::Reflection
+    include ActiveModel::Dirty
 
     def self.debug
       @debug = true
@@ -55,6 +58,13 @@ module RestApi
       resp
     end
 
+    def save
+      @previously_changed = changes
+      @changed_attributes.clear
+      resp = super
+      remove_instance_variable(:@update_id) if @update_id
+      resp
+    end
 
     #
     # Connection properties
@@ -76,7 +86,17 @@ module RestApi
       def alias_attribute(from, to)
         @aliases ||= {}
         @aliases[from] = to
-        super
+
+        define_method :"#{from}" do
+          self.send :"#{to}"
+        end
+        define_method :"#{from}?" do
+          self.send :"#{to}?"
+        end
+        define_method :"#{from}=" do |val|
+          m = method :"#{to}="
+          m.call val
+        end
       end
       def aliased_attributes
         @aliases
@@ -121,21 +141,37 @@ module RestApi
       if response['Content-Length'] != "0" && response.body.strip.size > 0
         load(self.class.format.decode(response.body))
         @persisted = true
-        remove_instance_variable(:@old_id) if @old_id
+        remove_instance_variable(:@update_id) if @update_id
       end
     end
 
     class << self
 
+      # ActiveResources doesn't completely support ActiveModel::Dirty
+      # so implement it for mutable attributes
+      def mutable_attribute(name)
+        define_attribute_methods [:"#{name}"]
+        define_method :"#{name}=" do |val|
+          m = method "#{name}_will_change!"
+          m.call unless val == @attributes[name]
+
+          @attributes[name] = val
+        end
+      end
+
       def custom_id(name, mutable=false)
         @primary_key = name
+        @update_id = nil
         if mutable
-          define_method "#{name}=" do |val|
-            @old_id = @attributes[name]
+          define_attribute_methods [:"#{name}"]
+          define_method :"#{name}=" do |val|
+            m = method "#{name}_will_change!"
+            m.call unless val == @attributes[name]
+            @update_id = @attributes[name] if @update_id.nil?
             @attributes[name] = val
           end
           define_method :id do
-            @old_id || @attributes[name]
+            @update_id || @attributes[name]
           end
         else
           define_method :id do
@@ -159,7 +195,6 @@ module RestApi
           super
         end
     end
-
 
     #
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
