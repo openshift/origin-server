@@ -17,20 +17,20 @@
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
     .control-group
       %label.control-label Application name
-      .controls
-        %span http://
+      .controls.input-prepend-append
+        %span.add-on-first http://
 
         = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name'
 
-        %span> -
+        %span.add-on-middle> -
 
         -# If the user has a domain, use it, otherwise prompt them for that field
         - if @domain
-          %span= @domain.name
+          %span.add-on-middle= @domain.name
         - else
           = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Domain name'
 
-        %span> .rhcloud.com
+        %span.add-on-last> .rhcloud.com
 
         - if @domain
           .help-block

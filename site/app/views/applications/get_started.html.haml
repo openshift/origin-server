@@ -7,25 +7,22 @@
   %h1 Get Started
   %p Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
 
--# application name
-%h2 Accessing your application
-%p 
-  The 
-  = link_to "application overview", application_path(@application)
-  will give you a summary of your application and its cartridges. You can also get to this page from the 
-  %strong My Applications
-  tab.
-
 -# application url
+%h2 Accessing your application
 %p
   - if true #FIXME Need to come up with a better way to control this in the model.  Requires info about carts.
     Your application has one or more cartridges that expose a public URL to the Internet.  Click the link below
-    to see your application now!
+    to see your application:
   - else
     If your application exposes services to the Internet they will be available at
 
   .well.application-url
     = link_to @application.web_url, @application.web_url
+
+%p 
+  The 
+  = link_to "application overview page", application_path(@application)
+  provides a summary of your application and its cartridges.
 
 -# git/setup
 - if true #FIXME has at least one cartridge with source code
@@ -75,7 +72,7 @@
       %p 
         When you push changes the OpenShift server will report back its status on deploying your code. 
         The server will run any of your configured
-        = link_to "deploy hooks"
+        = link_to "deploy hooks", user_guide_topic_url('sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift_Express.html')
         and then restart the application.
 
     - else
@@ -84,7 +81,42 @@
   %p Your applica
 
 -# client
-%h2 Client Tools
+%h2 Managing your application
+%p 
+  Most of the capabilities of OpenShift are exposed through our command line tool, 
+  %strong rhc.
+  Whether it's adding cartridges, checking uptime, or pulling log files from
+  the server, you can quickly put a finger on the pulse of your application.
+  = link_to "Follow these steps to install the client"
+  on Linux, Mac OS X, or Windows.
+%p
+  After installing the command line tool follow our User Guide
+  = link_to "on how to manage your application from the command line", user_guide_topic_url('chap-User_Guide-Application_Development.html')
 
 -# cartridges
+%h2 Adding capabilities
+%p
+  Cartridges are the components of an OpenShift application, and include databases, build systems,
+  and management capabilities. Adding a cartridge to an application provides the desired capability
+  without forcing you to administrate or update that feature. 
+%p
+  To run a PHP application with MySQL (the M and P in LAMP) you 
+  %strong embed
+  the MySQL cartridge into your application. OpenShift gives your PHP code access to your new MySQL database, but
+  manages the database server for you.
+%p
+  You can see the 
+  = link_to "list of available cartridges online"
+  or from the command line with
+%pre
+  = preserve do
+    :escaped
+      rhc app cartridge list
+%p
+  To add a cartridge to your application, run
+%pre
+  = preserve do
+    :escaped
+      rhc app cartridge add -a #{@application.name} -c <cart_id>
+
 -# tech specific
