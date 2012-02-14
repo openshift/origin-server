@@ -2,23 +2,25 @@
   .content
 
     :css
-      .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px; cursor: pointer;}
+      .application_type {background-color: #efefef; padding: 10px; margin-bottom: 20px;}
       .application_type > ul.meta > li {display: inline;}
       .application_type > ul.meta > li > label {display: inline;}
 
     %h1 Configure New Application
-    = breadcrumb_create 1
+    = wizard_steps_create 1
 
     = render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true}
 
-    = semantic_form_for @application do |f|
+    = semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|
       = f.hidden_field :application_type, :value => @application_type.id
+
+      = f.semantic_errors
 
       = f.inputs do
         -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
         .control-group
           %label.control-label Application name
-          .controls.form-inline
+          .controls
             %span http://
 
             = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name'

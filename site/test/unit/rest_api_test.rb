@@ -177,7 +177,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal orig_num_domains - 1, items.length
 
     # restore domain just in case we get run before other tests
-    domain = Domain.new :name => name, :as = @user
+    domain = Domain.new :name => name, :as => @user
     assert domain.save
   end
 
