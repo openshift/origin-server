@@ -263,7 +263,7 @@ class RestApiTest < ActiveSupport::TestCase
 
     assert app_delete.save
 
-    items.reload
+    domain.reload
 
     items = domain.applications
     assert_equal orig_num_apps + 1, items.length
@@ -271,7 +271,7 @@ class RestApiTest < ActiveSupport::TestCase
     app_delete = domain.find_application('deleteme')
     assert app_delete.destroy
 
-    items.reload
+    domain.reload
 
     items = domain.applications
     assert_equal orig_num_apps, items.length
