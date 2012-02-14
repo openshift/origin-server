@@ -5,4 +5,8 @@ module HelpHelper
     locale = 'en-US'
     "http://docs.redhat.com/docs/#{locale}/OpenShift_Express/2.0/html/User_Guide/#{topic}"
   end
+
+  def git_homepage_url
+    "http://git-scm.com/"
+  end
 end

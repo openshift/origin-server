@@ -1,0 +1,90 @@
+- if @wizard
+  = wizard_steps_create 2, :completed => true
+  %h1.invisible Get Started
+  %p Your application has been created. If you're new to OpenShift check out these tips for where to go next.
+
+- else
+  %h1 Get Started
+  %p Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
+
+-# application name
+%h2 Accessing your application
+%p 
+  The 
+  = link_to "application overview", application_path(@application)
+  will give you a summary of your application and its cartridges. You can also get to this page from the 
+  %strong My Applications
+  tab.
+
+-# application url
+%p
+  - if true #FIXME Need to come up with a better way to control this in the model.  Requires info about carts.
+    Your application has one or more cartridges that expose a public URL to the Internet.  Click the link below
+    to see your application now!
+  - else
+    If your application exposes services to the Internet they will be available at
+
+  .well.application-url
+    = link_to @application.web_url, @application.web_url
+
+-# git/setup
+- if true #FIXME has at least one cartridge with source code
+  %h2 Making code changes
+  %p 
+    OpenShift uses the
+    = link_to "Git version control system", git_homepage_url
+    to manage the code of your application. Each cartridge has a single Git 
+    %strong repository
+    that you'll use to check in changes to your application. When you
+    %strong push
+    a change to your Git repository we'll automatically deploy your code and restart your application if necessary.
+    = link_to "Learn more about uploading code"
+
+  - if false #FIXME user has no keys
+    %div.alert.alert-info
+      %h4 Set your Public Key
+      %p
+        Before you can upload code, you need to provide us with a 
+        %strong public key
+        to identify you to our servers. If this is your first time creating a public key
+        = link_to "read our user guide topic on keys.", user_guide_topic_url('sect-User_Guide-SSH_Key_Management.html')
+        Use the form below to upload your first key.
+      %p Inline form
+  - else
+    - if true #FIXME has a single cartridge with source code
+      %p Install the Git client for your operating system, and from your command line run
+      %pre.command-line
+        = preserve do
+          :escaped
+            git clone #{@application.git_url}
+            cd #{@application.name}/
+      %p 
+        This will create a folder with the source code of your application. After making a change,
+        %strong add,
+        %strong commit,
+        and
+        %strong push
+        your changes.
+      %pre.command-line
+        = preserve do
+          :escaped
+            git add .
+            git commit -m 'My changes'
+            git push
+
+      %p 
+        When you push changes the OpenShift server will report back its status on deploying your code. 
+        The server will run any of your configured
+        = link_to "deploy hooks"
+        and then restart the application.
+
+    - else
+
+-# else #FIXME has no source code
+  %p Your applica
+
+-# client
+%h2 Client Tools
+
+-# cartridges
+-# tech specific

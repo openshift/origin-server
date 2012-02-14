@@ -14,7 +14,7 @@
           = render :partial => application_partial, :locals => { :application => application }
 
   - if @applications.empty? and @applications_filter.present?
-    .alert.alert-info No applications match your filter
+    %p.alert.alert-info No applications match your filter
 
   %div
     = link_to 'Add an Application', application_types_path

@@ -120,7 +120,7 @@ class ApplicationsController < ConsoleController
     @application.cartridge = @application_type.cartridge || @application_type.id
 
     if @application.save
-      redirect_to application_path(@application)
+      redirect_to get_started_application_path(@application, :params => {:wizard => true})
     else
       render 'application_types/show'
     end
@@ -140,5 +140,7 @@ class ApplicationsController < ConsoleController
   def get_started
     @domain = Domain.first :as => session_user
     @application = @domain.find_application params[:id]
+
+    @wizard = !params[:wizard].nil?
   end
 end

@@ -87,7 +87,7 @@ module LayoutHelper
       :ol,
       items.each_with_index.map do |item, index|
         name = item[:name]
-        content = if index < active and item[:link]
+        content = if index < active and item[:link] and !options[:completed]
           link_to(name, send("#{item[:link]}")).html_safe
         else
           name
