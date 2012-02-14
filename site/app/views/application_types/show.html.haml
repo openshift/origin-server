@@ -35,9 +35,11 @@
 
             %span> .rhcloud.com
 
+            .help-block
+              Your application name uniquely identifies the application and becomes part of your initial public URL. You can add other your own domain names later.
             - unless @domain
               .help-block
-                Because this is your first application, you need to set a domain name that all your applications will share. You can map your own DNS domain names to your application once you have created the application.
+                Because this is your first application, you need to set a domain name that your applications will share.
 
       = f.buttons do
         = f.commit_button
