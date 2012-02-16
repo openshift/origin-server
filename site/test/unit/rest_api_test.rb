@@ -17,12 +17,20 @@ class RestApiTest < ActiveSupport::TestCase
 
     @ts = "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
 
-    @user = RestApi::Authorization.new "test1+#{@ts}@test1.com", @ts
+    @user = RestApi::Authorization.new "test1@test1.com"
 
     auth_headers = {'Authorization' => "Basic #{Base64.encode64("#{@user.login}:#{@user.password}").strip}"}
 
     domain = Domain.new :namespace => "#{@ts}", :as => @user
-    assert domain.save
+    unless domain.save
+      puts domain.errors.inspect
+      fail 'Unable to create the initial domain, test cannot be run'
+    end
+  end
+
+  def teardown
+    domain = Domain.first :as => @user
+    domain.destroy_recursive if domain
   end
 
   # TODO fix
@@ -46,6 +54,21 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/domains.json', {'Accept' => 'application/json'}.merge!(auth_headers), [{ :namespace => 'adomain' }].to_json()
       mock.get '/domains/adomain/applications.json', {'Accept' => 'application/json'}.merge!(auth_headers), [{ :name => 'app1' }, { :name => 'app2' }].to_json()
     end
+  end
+
+  def test_base_connection
+    base = RestApi::Base.new :as => @user
+    connection = base.send('connection')
+    assert connection
+    assert_equal connection, base.send('connection') #second request preserves connection
+    assert_not_equal connection, base.send('connection', true) #forced refresh creates new connection
+  end
+
+  def test_agnostic_connection
+    assert_raise RestApi::MissingAuthorizationError do
+      RestApi::Base.connection
+    end
+    assert RestApi::Base.connection({:as => {}}).is_a? RestApi::UserAwareConnection
   end
 
   def test_key_get_all
@@ -83,6 +106,16 @@ class RestApiTest < ActiveSupport::TestCase
     assert key.errors.empty?
   end
 
+  def test_key_server_validation
+    key = Key.new :as => @user
+    assert_raise ActiveResource::BadRequest do #FIXME US1895, when correct uncomment
+      key.save_without_validation
+    end
+    #assert_equal 2, key.errors.length
+    #assert_equal ['Name can't be blank'], key.errors[:name]
+    #assert_equal ['Content can't be blank'], key.errors[:content]
+  end
+
   def test_key_delete
     items = Key.find :all, :as => @user
 
@@ -102,14 +135,7 @@ class RestApiTest < ActiveSupport::TestCase
       assert_equal orig_num_keys, items.length
     end
   end
-
-  def test_agnostic_connection
-    assert_raise RestApi::MissingAuthorizationError do
-      RestApi::Base.connection.is_a? ActiveResource::Connection
-    end
-    assert RestApi::Base.connection({:as => {}}).is_a? RestApi::UserAwareConnection
-  end
-
+  
   def test_create_cookie
     connection = RestApi::UserAwareConnection.new 'http://localhost', :xml, RestApi::Authorization.new('test1', '1234')
     headers = connection.authorization_header(:post, '/something')
@@ -122,9 +148,76 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal @user.login, user.login
   end
 
+  def test_key_attributes
+    key = Key.new
+    assert_nil key.name
+    assert_nil key.content
+    assert_nil key.raw_content
+    assert_nil key.type
+
+    key.name = 'a'
+    assert_equal key.id, key.name
+
+    key.raw_content = 'ssh-rsa key'
+    assert_equal 'ssh-rsa', key.type
+    assert_equal 'key', key.content
+
+    key = Key.new :raw_content => 'ssh-rsa key'
+    assert_equal 'ssh-rsa', key.type
+    assert_equal 'key', key.content
+
+    key = Key.new :raw_content => 'ssh-rsa key', :type => 'fish'
+    assert_equal 'ssh-rsa', key.type
+    assert_equal 'key', key.content
+
+    key = Key.new :raw_content => 'ssh-rsa key test'
+    assert_equal 'ssh-rsa', key.type
+    assert_equal 'key', key.content
+
+    key = Key.new :raw_content => 'ssh-dss key test'
+    assert_equal 'ssh-dss', key.type
+    assert_equal 'key', key.content
+
+    key = Key.new :raw_content => 'ssh-rs key'
+    assert_nil key.type
+    assert_equal 'ssh-rs', key.content
+  end
+
+  def test_key_create
+    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
+    assert key.save
+    assert key.errors.empty?
+
+    assert_raise ActiveResource::ServerError do #FIXME bug 789786
+      key.destroy
+    end
+    assert_nothing_raised do #FIXME bug 789786
+      Key.find 'default', :as => @user
+    end
+  end
+
+  def test_key_list
+    keys = Key.find :all, :as => @user
+    assert_equal [], keys
+
+    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
+    assert key.save
+    assert key.errors.empty?
+
+    keys = Key.find :all, :as => @user
+    assert_equal 'ssh-rsa', keys[0].type
+    assert_equal 'key', keys[0].content
+    assert_equal 'default', keys[0].name
+    assert_equal [key], keys
+
+    key_new = Key.find 'default', :as => @user
+    assert_equal key, key_new
+  end
+
   def test_domain_namespaces
     domain = Domain.new
-    assert_nil domain.name, domain.namespace
+    assert_nil domain.name
+    assert_nil domain.namespace
     assert !domain.changed?
     domain.name = '1'
     assert domain.changed?
@@ -275,5 +368,20 @@ class RestApiTest < ActiveSupport::TestCase
 
     items = domain.applications
     assert_equal orig_num_apps, items.length
+  end
+
+  def test_domain_reload
+    domain = Domain.first :as => @user
+    oldname = domain.name
+    domain.name = 'foo'
+    assert_equal 'foo', domain.name
+    domain.reload
+    assert_equal oldname, domain.name
+  end
+
+  def test_domain_find_throws
+    assert_raise ActiveResource::ResourceNotFound do
+      Domain.find 'invalid_name', :as => @user
+    end
   end
 end

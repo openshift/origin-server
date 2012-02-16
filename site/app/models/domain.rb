@@ -4,11 +4,11 @@
 class Domain < RestApi::Base
   schema do
     string :namespace
-    string :ssh
+    string :ssh #deprecated, remove
   end
 
   custom_id :namespace, true
-  mutable_attribute :ssh
+  mutable_attribute :ssh #deprecated, remove
   # TODO: Bug 789752: Make namespace consistent with other usages
   alias_attribute :name, :namespace
 

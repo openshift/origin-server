@@ -84,8 +84,8 @@ module RestApi
     #
     class << self
       def alias_attribute(from, to)
-        @aliases ||= {}
-        @aliases[from] = to
+        @aliased_attributes ||= {}
+        @aliased_attributes[from] = to
 
         define_method :"#{from}" do
           self.send :"#{to}"
@@ -99,7 +99,13 @@ module RestApi
         end
       end
       def aliased_attributes
-        @aliases
+        @aliased_attributes
+      end
+      def attr_set_on_load(*args)
+        (@calculated_attributes ||= []).concat(args)
+      end
+      def calculated_attributes
+        @calculated_attributes
       end
     end
 
@@ -114,6 +120,7 @@ module RestApi
       else
         super
       end
+      self.class.calculated_attributes.each { |attr| send("#{attr}=", attributes[attr]) } if self.class.calculated_attributes
     end
 
     #
@@ -402,7 +409,8 @@ module RestApi
 
       def connection(refresh = false)
         raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as
-        @connection = self.class.connection({:as => as}) if refresh || @connection.nil?
+        @connection = nil if refresh
+        @connection ||= self.class.connection({:as => as})
       end
   end
   

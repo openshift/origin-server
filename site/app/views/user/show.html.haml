@@ -30,7 +30,7 @@
         %p You can also link domain names you own to any of your applications. See #{link_to 'this help topic on domain name aliases', '/doc/path'}.
 
       -else
-        %p You have not yet created a domain. Your domain's name is part of the URL that your OpenShift applications will be available under.
+        %p You have not yet set a domain name. Your domain name is part of the URL that your OpenShift applications will be available under.
         = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
 
     %div

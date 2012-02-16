@@ -1,0 +1,14 @@
+-# when no key exists, handle name submission automatically.  Only set when the user has no keys
+- simplified = defined? first
+- input_html = { :class => input_class } if defined? input_class
+= semantic_form_for key, :url => keys_path do |f|
+  = f.semantic_errors :base, :type
+  = f.inputs do
+    - if simplified
+      = f.hidden_field :name, :value => 'default'
+      = f.hidden_field :first, :value => true
+    - else
+      = f.input :name, :label => 'Key name'
+    = f.input :raw_content, { :as => :text, :label => 'Paste your public key', :input_html => input_html }
+  = f.buttons :simple => simplified do
+    = f.commit_button :button_html => { :class => 'btn btn-primary', :value => 'Save' }

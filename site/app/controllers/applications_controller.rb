@@ -142,5 +142,6 @@ class ApplicationsController < ConsoleController
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
+    @has_keys = true if Key.first :as => session_user
   end
 end
