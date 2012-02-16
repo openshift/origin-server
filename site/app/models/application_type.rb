@@ -67,20 +67,28 @@ class ApplicationType
       :website => 'http://rack.rubyforge.org/'
     },
     {
-      :id => 'ruby-1.8',
-      :name => 'Ruby 1.8.7 with Rack',
-      :version => 'Ruby 1.8.7 / Rack 1.1',
-      :categories => [:framework],
-      :description => 'Supports Rack applications with Phusion Passenger. Use this application to create Sinatra, Ruby on Rails, or other Rack-compatible Ruby web application frameworks.',
-      :website => 'http://rack.rubyforge.org/'
-    },
-    {
       :id => 'perl-5.10',
       :name => 'Perl 5.10 with mod_perl',
       :version => 'Perl 5.10 / mod_perl 2.0.4',
       :categories => [:framework],
       :description => 'mod_perl brings together the full power of the Perl programming language and the Apache HTTP server. You can use Perl to manage Apache, respond to requests for web pages and much more.',
       :website => 'http://perl.apache.org/start/index.html'
+    },
+    {
+      :id => 'nodejs-0.6',
+      :name => 'Node.js 0.6',
+      :version => 'Node.js 0.6.10',
+      :categories => [:framework, :new],
+      :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
+      :website => 'http://rack.rubyforge.org/'
+    },
+    {
+      :id => 'ruby-1.8',
+      :name => 'Ruby 1.8.7 with Rack',
+      :version => 'Ruby 1.8.7 / Rack 1.1',
+      :categories => [:framework],
+      :description => 'Supports Rack applications with Phusion Passenger. Use this application to create Sinatra, Ruby on Rails, or other Rack-compatible Ruby web application frameworks.',
+      :website => 'http://rack.rubyforge.org/'
     },
     {
       :id => 'raw-0.1',

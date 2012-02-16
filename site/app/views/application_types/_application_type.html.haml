@@ -1,26 +1,30 @@
 = div_for application_type do
 
+  - if application_type.categories.include? :new
+    %span.label.label-important.pull-right Recently Added
+
   %h3= application_type.name
 
-  %ul.unstyled.meta
+  - if defined? extra_info
+    %ul.unstyled.meta
 
-    -# if application_type.license
-      %li.license
-        %label License:
-        - if application_type.respond_to? :license_url
-          = link_to application_type.license, application_type.license_url
-        - else
-          %span= application_type.license
+      -# if application_type.license
+        %li.license
+          %label License:
+          - if application_type.respond_to? :license_url
+            = link_to application_type.license, application_type.license_url
+          - else
+            %span= application_type.license
 
-    - if application_type.website
-      %li.website
-        %label Website:
-        = link_to application_type.website, application_type.website
+      - if application_type.website
+        %li.website
+          %label Website:
+          = link_to application_type.website, application_type.website
 
-    - if application_type.version
-      %li.version
-        %label Version:
-        %span= application_type.version
+      - if application_type.version
+        %li.version
+          %label Version:
+          %span= application_type.version
 
   %p= application_type.description
 
