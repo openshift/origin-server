@@ -183,6 +183,16 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rs', key.content
   end
 
+  def test_key_create_without_domain 
+    Domain.first(:as => @user).destroy_recursive
+
+    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
+    assert_raise ActiveResource::ResourceNotFound do #FIXME US1876
+      assert key.save
+      assert key.errors.empty?
+    end
+  end
+
   def test_key_create
     key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
     assert key.save
@@ -199,6 +209,7 @@ class RestApiTest < ActiveSupport::TestCase
   def test_key_list
     keys = Key.find :all, :as => @user
     assert_equal [], keys
+    assert_nil Key.first :as => @user
 
     key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
     assert key.save

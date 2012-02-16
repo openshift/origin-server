@@ -27,7 +27,7 @@
         %ul.actions
           %li= link_to "Change domain", edit_namespace_express_domains_path
 
-        %p You can also link domain names you own to any of your applications. See #{link_to 'this help topic on domain name aliases', '/doc/path'}.
+        %p You can also link domain names you own to any of your applications. See #{link_to 'the User Guide topic on arbitrary domain names', user_guide_topic_url('sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html')}.
 
       -else
         %p You have not yet set a domain name. Your domain name is part of the URL that your OpenShift applications will be available under.
