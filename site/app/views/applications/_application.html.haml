@@ -1,27 +1,39 @@
-%header
-  %h2
-    = application.name
-%dl.app_info
-  %dt
-    Public url
-  %dd.app_url
-    = link_to application.web_url, application.web_url
+.row.application
+  .span8
+    .row
+      .span3
+        .row
+          .span2
+            %h2
+              = application.name
+          .span1.app_type
+            = application.framework_name
+      .span1
+        Status:
+        %img{:src => '/app/images/icons/success.png'}
+      .span4
+        Gears:
+    .row
+      .span8
+        .row
+          .span7.app_url
+            = link_to application.web_url, application.web_url
+          .span1.web_icon
+            &nbsp;
+    .row
+      .span8
+        .row
+          .span7.git_url
+            = application.git_url
+          .span1.git_icon
+            &nbsp;
 
-  %dt
-    Repository
-  %dd.app_git
-    = application.git_url
-
-  %dt
-    Type
-  %dd.app_type
-    = application.framework_name
-
-  %dt
-    Created
-  %dd.app_creation_time
-    = "#{time_ago_in_words(application.creation_time)} ago"
-
-%div
-  = link_to("Details...", application_path(application))
-  = link_to("Delete", delete_application_path(application))
+    .row
+      .span8
+        .row
+          .span3
+            Created
+            = "#{time_ago_in_words(application.creation_time)} ago"
+          .span2.offset3
+            = link_to("Delete", delete_application_path(application), :class => ['btn', 'btn-danger'])
+            = link_to("Details >", application_path(application), :class => ['btn', 'btn-info'])
