@@ -84,10 +84,10 @@ class ApplicationType
     },
     {
       :id => 'ruby-1.8',
-      :name => 'Ruby 1.8.7 with Rack',
+      :name => 'Ruby 1.8.7',
       :version => 'Ruby 1.8.7 / Rack 1.1',
       :categories => [:framework],
-      :description => 'Supports Rack applications with Phusion Passenger. Use this application to create Sinatra, Ruby on Rails, or other Rack-compatible Ruby web application frameworks.',
+      :description => 'Provides Ruby web applications through Apache, Phusion Passenger, and Rack. Use this application to create Sinatra, Ruby on Rails, or other Rack-compatible Ruby web application frameworks.',
       :website => 'http://rack.rubyforge.org/'
     },
     {
