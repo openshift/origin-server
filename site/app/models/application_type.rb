@@ -10,6 +10,7 @@ class ApplicationType
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
+  attr_accessor :help_topics
 
   def initialize(attributes={})
     attributes.each do |name,value|
@@ -36,7 +37,11 @@ class ApplicationType
       :license_url => 'http://www.gnu.org/licenses/lgpl-2.1-standalone.html',
       :categories => [:framework],
       :description => 'JBoss Application Server 7.0 is the open solution for enterprise Java.',
-      :website => 'http://www.jboss.org/jbossas'
+      :website => 'http://www.jboss.org/jbossas',
+      :help_topics => {
+        'How to add JBoss modules to an Express app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
+        'How to solve java.net.BindException to 8080' => 'https://www.redhat.com/openshift/community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting'
+      }
     },
     {
       :id => 'php-5.3',
@@ -64,7 +69,10 @@ class ApplicationType
       :version => 'Python 2.6.6 / WSGI 3.2',
       :categories => [:framework],
       :description => 'WSGI is the common interface between Python and web servers.  This can be used to create web applications with TurboGears, Django, and other WSGI-compatible frameworks.',
-      :website => 'http://rack.rubyforge.org/'
+      :website => 'http://rack.rubyforge.org/',
+      :help_topics => {
+        'Getting Django up and running in 5 minutes' => 'https://www.redhat.com/openshift/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
+      }
     },
     {
       :id => 'ruby-1.8',
@@ -80,7 +88,11 @@ class ApplicationType
       :version => 'Perl 5.10 / mod_perl 2.0.4',
       :categories => [:framework],
       :description => 'mod_perl brings together the full power of the Perl programming language and the Apache HTTP server. You can use Perl to manage Apache, respond to requests for web pages and much more.',
-      :website => 'http://perl.apache.org/start/index.html'
+      :website => 'http://perl.apache.org/start/index.html',
+      :help_topics => {
+        'How to onboard a Perl application' => 'https://www.redhat.com/openshift/community/kb/kb-e1013-how-to-onboard-a-perl-application',
+        'How to deploy the Perl Dancer framework' => 'https://www.redhat.com/openshift/community/kb/kb-e1014-how-to-deploy-the-perl-dancer-framework-on-openshift-express'
+      }
     },
     {
       :id => 'raw-0.1',
