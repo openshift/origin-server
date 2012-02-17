@@ -157,6 +157,9 @@ module RestApi
       # ActiveResources doesn't completely support ActiveModel::Dirty
       # so implement it for mutable attributes
       def mutable_attribute(name)
+        # we need to unset this so that define_attribute_methods
+        # doesn't just return
+        @attribute_methods_generated = false
         define_attribute_methods [:"#{name}"]
         define_method :"#{name}=" do |val|
           m = method "#{name}_will_change!"
@@ -170,6 +173,9 @@ module RestApi
         @primary_key = name
         @update_id = nil
         if mutable
+          # we need to unset this so that define_attribute_methods
+          # doesn't just return
+          @attribute_methods_generated = false
           define_attribute_methods [:"#{name}"]
           define_method :"#{name}=" do |val|
             m = method "#{name}_will_change!"

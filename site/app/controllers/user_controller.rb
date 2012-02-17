@@ -6,7 +6,6 @@ require 'json'
 require 'yaml'
 
 class UserController < ApplicationController
-  layout 'console'
 
   before_filter :require_login, :only => :show
   before_filter :require_user, :only => :show

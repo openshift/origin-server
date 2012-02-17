@@ -38,6 +38,10 @@ class Application < RestApi::Base
   def framework_name
     ApplicationType.find(framework).name rescue framework
   end
+  
+  def application_type
+    ApplicationType.find(framework)
+  end
 
   protected
     def url_authority
