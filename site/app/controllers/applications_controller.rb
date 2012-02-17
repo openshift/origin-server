@@ -135,6 +135,7 @@ class ApplicationsController < ConsoleController
   def show
     @domain = Domain.first :as => session_user
     @application = @domain.find_application params[:id]
+    @application_type = ApplicationType.find @application.framework
   end
 
   def get_started

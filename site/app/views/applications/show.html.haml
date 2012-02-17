@@ -11,8 +11,8 @@
       %dt
         Type
       %dd.app_type
-        %strong= @application.framework_name + ": "
-        = @application.application_type.description
+        %strong= @application.framework_name + ": " 
+        = @application_type.description
     
       %dt
         Created
@@ -41,10 +41,10 @@
         %ul
           %li= link_to "OpenShift Express User Guide", "https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf" 
           %li= link_to "Sync your OpenShift repo with an existing Git repo", "https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf"
-        - if @application.application_type.help_topics and not @application.application_type.help_topics.empty?
+        - if @application_type.help_topics and not @application_type.help_topics.empty?
           %h4= @application.framework_name
           %ul
-            - @application.application_type.help_topics.each do |key, value|
+            - @application_type.help_topics.each do |key, value|
               %li= link_to key, value
         %h4 MySQL
         %ul
