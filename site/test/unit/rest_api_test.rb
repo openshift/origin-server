@@ -73,8 +73,8 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_serialization
     app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'raw-0.1', :as => @user
-    puts app.class.send('known_attributes').inspect
-    puts app.serializable_hash.inspect
+    #puts app.class.send('known_attributes').inspect
+    app.serializable_hash
   end
 
   def test_key_get_all
