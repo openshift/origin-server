@@ -111,6 +111,7 @@ class UserController < ApplicationController
 
   def show
     @domain ||= ExpressDomain.new :rhlogin => @userinfo.rhlogin, :namespace => @userinfo.namespace
+    render :layout => 'console'
   end
 
   def complete
