@@ -49,22 +49,8 @@ module RestApi
       @debug
     end
 
-    # Don't include the root in JSON when creating/updating records
-    def encode(options={})
-      tmp = ActiveResource::Base.include_root_in_json
-      ActiveResource::Base.include_root_in_json = false
-      resp = send("to_#{self.class.format.extension}", options)
-      ActiveResource::Base.include_root_in_json = tmp
-      resp
-    end
-
-    def save
-      @previously_changed = changes
-      @changed_attributes.clear
-      resp = super
-      remove_instance_variable(:@update_id) if @update_id
-      resp
-    end
+    # Exclude the root from JSON
+    self.include_root_in_json = false
 
     #
     # Connection properties
@@ -150,6 +136,14 @@ module RestApi
         @persisted = true
         remove_instance_variable(:@update_id) if @update_id
       end
+    end
+
+    def save
+      @previously_changed = changes
+      @changed_attributes.clear
+      resp = super
+      remove_instance_variable(:@update_id) if @update_id
+      resp
     end
 
     class << self
@@ -284,19 +278,6 @@ module RestApi
     #  end
     #end
 
-
-    #
-    # Experimentation with form conversion, likely to be unnecessary
-    #
-    def to_json(*opt)
-      respond_to?(:serialize) ? serialize.to_json(*opt) : super(*opt)
-    end
-    def to_xml(*opt)
-      respond_to?(:serialize) ? serialize.to_xml(*opt) : super(*opt)
-    end
-    def to_form(*opt)
-      (respond_to?(:serialize) ? serialize(*opt) : @attributes).to_param
-    end
 
     #
     # Must provide OpenShift compatible error decoding

@@ -71,6 +71,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert RestApi::Base.connection({:as => {}}).is_a? RestApi::UserAwareConnection
   end
 
+  def test_serialization
+    app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'raw-0.1', :as => @user
+    puts app.class.send('known_attributes').inspect
+    puts app.serializable_hash.inspect
+  end
+
   def test_key_get_all
     items = Key.find :all, :as => @user
     assert_equal 0, items.length

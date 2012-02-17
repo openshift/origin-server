@@ -38,10 +38,14 @@ class Application < RestApi::Base
   def framework_name
     ApplicationType.find(framework).name rescue framework
   end
-  
-  def application_type
-    ApplicationType.find(framework)
-  end
+
+  # Causes a problem during serialization, application_type is set during create 
+  # as a dynamic attribute for form simplicity, but once that happens serialization
+  # invokes this getter and fails because framework is only set after the app has been
+  # loaded from the server
+  #def application_type
+  #  ApplicationType.find(framework)
+  #end
 
   protected
     def url_authority
