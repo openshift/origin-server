@@ -7,50 +7,49 @@
     = flashes
     = div_for @userinfo do
       %h2 Personal Information
-      %p 
-        Important emails relating to your OpenShift account will be sent to
-        %strong
-          = @userinfo.rhlogin
 
-      %ul.actions
-        %li= link_to "Change password", edit_password_path
+      %h3 Email
+      %ul
+        %p 
+          We will only use your email account for information about your account. We do not share it with third parties.
+        %p 
+          = @userinfo.rhlogin
+          
+      %h3 Password
+      %ul
+        = link_to "Edit...", edit_password_path
         -#%li= link_to "Terms of Use", legal_site_terms_path
         -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
     %div
-      %h2 Domain
-      -if @domain.namespace
+      %h2 Namespace
+
+      %ul
         %p 
-          Your applications will be located at 
-          %strong
-            http://&lt;app name&gt;-#{@domain.namespace}.rhcloud.com
-        %ul.actions
-          %li= link_to "Change domain", edit_namespace_express_domains_path
-
-        %p You can also link domain names you own to any of your applications. See #{link_to 'the User Guide topic on arbitrary domain names', user_guide_topic_url('sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html')}.
-
-      -else
-        %p You have not yet set a domain name. Your domain name is part of the URL that your OpenShift applications will be available under.
-        = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
+          Your namespace is unique to you and makes up part of the default urls we assign to your applications. You can also assign custom urls to any of your applications.
+        %p See #{link_to 'this help topic', '/doc/path'} for more information.
+  
+        -if @domain.namespace
+          %strong #{@domain.namespace}.rhcloud.com
+          %p
+            %ul
+              = link_to "Edit...", edit_namespace_express_domains_path
+  
+        -else
+          = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
 
     %div
       %h2 Public Keys
       -if @domain.namespace
         %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
 
-        -if @userinfo.default_ssh_key.blank?
+        -if @userinfo.default_ssh_key.to_s.blank?
           .row
             .span7= render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
             .span5= render :partial => 'shared/ssh_key_help.html'
-
         -else
-          %p
-            Your ssh key is
-            %strong
-              #{@userinfo.default_ssh_key.to_s.slice(0, 20)+ '...'}
-          %ul.actions
-            %li= link_to "Change ssh key", edit_sshkey_express_domains_path
-
+          %ul
+            %p
+              = render :partial => 'express_ssh_keys/ssh_key_list', :locals => { :keys => @userinfo.ssh_keys }
       -else
         %p Create a namespace first, you will then be able to add your ssh key.
-
