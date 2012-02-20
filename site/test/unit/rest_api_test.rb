@@ -87,6 +87,11 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'rh_sso=1234', headers['Cookie']
   end
 
+  def test_load_returns_self
+    key = Key.new
+    assert_equals key, key.load({})
+  end
+
   def test_user_get
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/user.json', json_header, { :login => 'test1' }.to_json()
@@ -95,6 +100,34 @@ class RestApiTest < ActiveSupport::TestCase
     user = User.find :one, :as => @user
     assert user
     assert_equal @user.login, user.login
+  end
+
+  def test_key_make_unique_noop
+    key = Key.new :name => 'key'
+    key.instance_variable_set :@persisted, true
+    key.instance_variable_set :@update_id, key.name
+    key.expects(:connection).never.expects(:as).never
+    assert_equal 'key', key.make_unique!.name
+  end
+
+  def test_key_make_unique
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/user/keys.json', json_header, [].to_json
+    end
+    assert_equal 'key', Key.new(:name => 'key', :as => @user).make_unique!.name
+    assert_equal 'key', Key.new(:name => 'key', :as => @user).make_unique!('key %s').name
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/user/keys.json', json_header, [{:name => 'key'}].to_json
+    end
+    assert_equal 'key 2', Key.new(:name => 'key', :as => @user).make_unique!.name
+    assert_equal 'new key 2', Key.new(:name => 'key', :as => @user).make_unique!('new key %s').name
+    
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/user/keys.json', json_header, [{:name => 'key'}, {:name => 'key 2'}].to_json
+    end
+    assert_equal 'key 3', Key.new(:name => 'key', :as => @user).make_unique!.name
+    assert_equal 'new key 2', Key.new(:name => 'key', :as => @user).make_unique!('new key %s').name
   end
 
   def test_key_attributes

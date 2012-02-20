@@ -78,7 +78,7 @@
             %strong public key
             to identify you to our servers. If this is your first time creating a public key
             = link_to "read our User Guide topic on keys.", ssh_key_user_guide_topic_url
-          = render :partial => 'keys/form', :locals => { :key => Key.new, :first => true, :input_class => 'span6' }
+          = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
 
   .span5
 

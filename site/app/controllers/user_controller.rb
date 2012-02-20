@@ -8,7 +8,6 @@ require 'yaml'
 class UserController < ApplicationController
 
   before_filter :require_login, :only => :show
-  before_filter :require_user, :only => :show
   before_filter :new_forms, :only => :show
   protect_from_forgery :except => :create_external
 
@@ -110,7 +109,9 @@ class UserController < ApplicationController
   end
 
   def show
-    @domain ||= ExpressDomain.new :rhlogin => @userinfo.rhlogin, :namespace => @userinfo.namespace
+    @user = session_user
+    @domain = Domain.find :first, :as => session_user
+    @keys = @domain ? Key.find(:all, :as => session_user) : []
     render :layout => 'console'
   end
 

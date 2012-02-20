@@ -1,9 +1,10 @@
 - input_html = { :class => input_class } if defined? input_class
 
-= semantic_form_for key, :html => {:class => 'form-horizontal'} do |f|
+= semantic_form_for key do |f|
   = f.semantic_errors :base, :type
   = f.inputs do
-    = f.input :name, :label => 'Key name'
+    = f.hidden_field :name, :value => 'default'
+    = f.hidden_field :first, :name => 'first', :value => true
     = f.input :raw_content, { :as => :text, :label => 'Paste your public key', :input_html => input_html }
-  = f.buttons do
+  = f.buttons :simple => true do
     = f.commit_button :button_html => { :class => 'btn btn-primary', :value => 'Save' }

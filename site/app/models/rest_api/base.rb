@@ -107,6 +107,7 @@ module RestApi
         super
       end
       self.class.calculated_attributes.each { |attr| send("#{attr}=", attributes[attr]) } if self.class.calculated_attributes
+      self
     end
 
     #
@@ -138,12 +139,15 @@ module RestApi
       end
     end
 
-    def save
+    def save#FIXME: should be _without_validation?, need unit tests
       @previously_changed = changes
       @changed_attributes.clear
       resp = super
       remove_instance_variable(:@update_id) if @update_id
       resp
+    rescue Exception => error
+      raise error unless rescue_save_failure(error)
+      false
     end
 
     class << self
@@ -278,7 +282,6 @@ module RestApi
     #  end
     #end
 
-
     #
     # Must provide OpenShift compatible error decoding
     #
@@ -385,7 +388,7 @@ module RestApi
       @connection = nil
       @as = as
     end
-
+    
     protected
       #
       # The user under whose context we will be accessing the remote server
@@ -398,6 +401,24 @@ module RestApi
         raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
+      end
+
+      #
+      # Return true if the exception has been handled by this method.  Return false
+      # to raise.  If returning true, it is expected that errors is populated.
+      #
+      def rescue_save_failure(error)
+        Rails.logger.debug "Unable to handle save error, throwing #{error.inspect}"
+        if defined? error.response and defined? error.response.body
+          Rails.logger.debug error.response.body
+        end
+        false
+      end
+
+      # Helper to avoid subclasses forgetting to set @remote_errors
+      def set_remote_errors(error)
+        @remote_errors = error
+        load_remote_errors(@remote_errors, true)
       end
   end
   
@@ -464,4 +485,6 @@ module RestApi
   # Raised when the authorization context is missing
   class MissingAuthorizationError < StandardError ; end
 
+  # Raised when a newly created resource exists with the same unique primary key
+  class ResourceExistsError < StandardError ; end
 end
