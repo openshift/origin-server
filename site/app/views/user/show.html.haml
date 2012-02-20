@@ -8,35 +8,34 @@
     = div_for @userinfo do
       %h2 Personal Information
 
-      %h3 Email
-      %ul
-        %p 
-          We will only use your email account for information about your account. We do not share it with third parties.
-        %p 
-          = @userinfo.rhlogin
-          
-      %h3 Password
-      %ul
-        = link_to "Edit...", edit_password_path
+      %p
+        We will only use your email account for information about your account. We do not share it with third parties.
+      %p
+        = @userinfo.rhlogin
+
+      %ul.unstyled
+        %li
+          = link_to "Change password...", edit_password_path
         -#%li= link_to "Terms of Use", legal_site_terms_path
         -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
     %div
       %h2 Namespace
 
-      %ul
-        %p 
-          Your namespace is unique to you and makes up part of the default urls we assign to your applications. You can also assign custom urls to any of your applications.
-        %p See #{link_to 'this help topic', '/doc/path'} for more information.
-  
-        -if @domain.namespace
-          %strong #{@domain.namespace}.rhcloud.com
-          %p
-            %ul
-              = link_to "Edit...", edit_namespace_express_domains_path
-  
-        -else
-          = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
+      %p 
+        Your namespace is unique to you and makes up part of the default URL we assign to your applications.
+        See 
+        = link_to 'the User Guide', user_guide_topic_url('sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html')
+        for information about adding your own domain names to an application.
+
+      -if @domain.namespace
+        %strong #{@domain.namespace}.rhcloud.com
+        %ul.unstyled
+          %li
+            = link_to "Change your namespace...", edit_namespace_express_domains_path
+
+      -else
+        = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
 
     %div
       %h2 Public Keys
