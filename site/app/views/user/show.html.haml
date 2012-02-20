@@ -1,5 +1,5 @@
 - content_for :page_title do
-  OpenShift Account
+  My Account
 
 %h1 My Account
 = flashes
@@ -8,8 +8,6 @@
 
   %p
     We will only use your email account for information about your account. We do not share it with third parties.
-  %p
-    = @user.login
 
   %ul.unstyled
     %li
@@ -26,7 +24,10 @@
     for information about adding your own domain names to an application.
 
   - if @domain
-    %strong #{@domain.name}.rhcloud.com
+    .well
+      http://applicationname-
+      %strong>= @domain.name
+      = ".rhcloud.com"
     %ul.unstyled
       %li
         = link_to "Change your namespace...", edit_namespace_express_domains_path
