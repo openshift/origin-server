@@ -89,7 +89,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_load_returns_self
     key = Key.new
-    assert_equals key, key.load({})
+    assert_equal key, key.load({})
   end
 
   def test_user_get
