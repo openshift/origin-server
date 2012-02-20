@@ -64,7 +64,7 @@
           %p 
             When you push changes the OpenShift server will report back its status on deploying your code. 
             The server will run any of your configured
-            = link_to "deploy hooks", user_guide_topic_url('sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift_Express.html')
+            = link_to "deploy hooks", deploy_hook_user_guide_topic_url
             and then restart the application.
 
         - else
@@ -77,7 +77,7 @@
             Before you can upload code, you need to provide us with a 
             %strong public key
             to identify you to our servers. If this is your first time creating a public key
-            = link_to "read our user guide topic on keys.", user_guide_topic_url('sect-User_Guide-SSH_Key_Management.html')
+            = link_to "read our User Guide topic on keys.", ssh_key_user_guide_topic_url
           = render :partial => 'keys/form', :locals => { :key => Key.new, :first => true, :input_class => 'span6' }
 
   .span5
@@ -93,7 +93,7 @@
       on Linux, Mac OS X, or Windows.
     %p
       After installing the command line tool follow our User Guide
-      = link_to "on how to manage your application from the command line", user_guide_topic_url('chap-User_Guide-Application_Development.html')
+      = link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url 
 
     -# cartridges
     %h2 Adding capabilities

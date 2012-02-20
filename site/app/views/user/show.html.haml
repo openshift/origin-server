@@ -25,7 +25,7 @@
       %p 
         Your namespace is unique to you and makes up part of the default URL we assign to your applications.
         See 
-        = link_to 'the User Guide', user_guide_topic_url('sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html')
+        = link_to 'the User Guide', add_domains_user_guide_topic_url
         for information about adding your own domain names to an application.
 
       -if @domain.namespace
@@ -40,12 +40,14 @@
     %div
       %h2 Public Keys
       -if @domain.namespace
-        %p OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+        %p 
+          OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+          = link_to "Read our User Guide topic on keys.", ssh_key_user_guide_topic_url
 
         -if @userinfo.default_ssh_key.to_s.blank?
           .row
-            .span7= render :partial => 'shared/ssh_key', :locals => { :express_domain => @domain }
-            .span5= render :partial => 'shared/ssh_key_help.html'
+            .span7
+              = render :partial => 'keys/form', :locals => { :key => Key.new, :first => true, :input_class => 'span6' }
         -else
           %ul
             %p
