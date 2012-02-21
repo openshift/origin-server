@@ -33,7 +33,7 @@
         = link_to "Change your namespace...", edit_namespace_express_domains_path
 
   - else
-    = render :partial => 'shared/domain', :locals => { :express_domain => @domain, :dom_action => 'create' }
+    = render :partial => 'shared/domain', :locals => { :express_domain => ExpressDomain.new, :dom_action => 'create' }
 
 %div
   %h2 Public Keys
