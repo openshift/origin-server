@@ -47,6 +47,6 @@
           %tr
             %td= key.name
             %td.code= key.display_content
-            %td= link_to 'Delete', key_path(key), :class => 'btn btn-small btn-danger', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
+            %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
       .btn-toolbar
         = link_to "Add a new key...", new_key_path, :class => 'btn'
