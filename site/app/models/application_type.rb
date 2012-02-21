@@ -31,12 +31,12 @@ class ApplicationType
     },
     {
       :id => 'jbossas-7.0',
-      :name => 'JBoss Application Server 7.1',
-      :version => 'JBoss AS 7.1.0.Final',
+      :name => 'JBoss Application Server 7.0',
+      :version => 'JBoss AS 7.0.2.Final',
       :license => 'GNU LPGL 2.1',
       :license_url => 'http://www.gnu.org/licenses/lgpl-2.1-standalone.html',
       :categories => [:framework],
-      :description => 'JBoss Application Server 7.1 is the open solution for enterprise Java.',
+      :description => 'JBoss Application Server 7.0 is the open solution for enterprise Java.',
       :website => 'http://www.jboss.org/jbossas',
       :help_topics => {
         'How to add JBoss modules to an Express app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
