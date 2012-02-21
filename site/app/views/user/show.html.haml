@@ -30,10 +30,10 @@
       = ".rhcloud.com"
     %ul.unstyled
       %li
-        = link_to "Change your namespace...", edit_namespace_express_domains_path
+        = link_to "Change your namespace...", edit_domain_path
 
   - else
-    = render :partial => 'shared/domain', :locals => { :express_domain => ExpressDomain.new, :dom_action => 'create' }
+    = render Domain.new
 
 %div
   %h2 Public Keys

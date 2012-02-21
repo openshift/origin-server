@@ -1,0 +1,11 @@
+= semantic_form_for domain, :url => domain_path do |f|
+  = f.semantic_errors
+  .control-group{:class => domain.errors.has_key?(:name) ? 'error' : ''}
+    .controls
+      .input-prepend-append
+        %span.add-on-first> http://applicationname-
+        = f.text_field :name, :autofocus => true
+        %span.add-on-last> .rhcloud.com
+      = f.inline_errors_for :name
+  = f.buttons do
+    = f.commit_button :label => 'Save'
