@@ -100,7 +100,7 @@ module RestApi
         attributes = attributes.dup
         self.class.aliased_attributes.each do |from,to|
           value = attributes.delete(from)
-          attributes[to] = value if value
+          send("#{to}=", value) if value
         end
         super attributes
       else
@@ -139,11 +139,11 @@ module RestApi
       end
     end
 
-    def save#FIXME: should be _without_validation?, need unit tests
+    def save
       @previously_changed = changes
       @changed_attributes.clear
       resp = super
-      remove_instance_variable(:@update_id) if @update_id
+      remove_instance_variable(:@update_id) if @update_id && resp
       resp
     rescue Exception => error
       raise error unless rescue_save_failure(error)

@@ -102,6 +102,58 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal @user.login, user.login
   end
 
+  def test_custom_id_rename
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:namespace => 'a'}].to_json
+      mock.put '/broker/rest/domains/a.json', json_header(true), {:namespace => 'b'}.to_json
+    end
+
+    domain = Domain.first :as => @user
+    assert_equal 'a', domain.name
+    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+
+    domain.name = 'b'
+
+    assert_equal 'a', domain.instance_variable_get(:@update_id)
+    assert_equal 'a', domain.id
+    assert_equal 'b', domain.namespace
+    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+    #domain.send(:connection).expects(:put).once
+    assert domain.save
+
+    domain = Domain.first :as => @user
+    domain.load({:name => 'b'})
+
+    assert_equal 'a', domain.instance_variable_get(:@update_id)
+    assert_equal 'a', domain.id
+    assert_equal 'b', domain.namespace
+    assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
+  end
+
+  class DomainWithValidation < Domain
+    self.element_name = 'domain'
+    validates :name, :length => {:maximum => 1},
+              :presence => true,
+              :allow_blank => false
+  end
+
+  def test_custom_id_rename_with_validation
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:namespace => 'a'}].to_json
+      mock.put '/broker/rest/domains/a.json', json_header(true), {:namespace => 'b'}.to_json
+    end
+    t = DomainWithValidation.first :as => @user
+    assert_nil t.instance_variable_get(:@update_id)
+
+    t.name = 'ab'
+    assert !t.save
+    assert_equal 'a', t.instance_variable_get(:@update_id)
+
+    t.name = 'b'
+    assert t.save
+    assert_nil t.instance_variable_get(:@update_id)
+  end
+
   def test_key_make_unique_noop
     key = Key.new :name => 'key'
     key.instance_variable_set :@persisted, true
