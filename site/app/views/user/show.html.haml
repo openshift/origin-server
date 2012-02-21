@@ -3,48 +3,50 @@
 
 %h1 My Account
 = flashes
-= div_for @user do
-  %h2 Personal Information
+.row
+  .span7
+    = div_for @user do
+      %h2 Personal Information
 
-  %p
-    We will only use your email account for information about your account. We do not share it with third parties.
+      %p
+        We will only use your email account for information about your account. We do not share it with third parties.
 
-  %ul.unstyled
-    %li
-      = link_to "Change password...", edit_password_path
-    -#%li= link_to "Terms of Use", legal_site_terms_path
-    -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
+      .btn-toolbar
+        = link_to "Change password...", edit_password_path, :class => 'btn'
+        -#%li= link_to "Terms of Use", legal_site_terms_path
+        -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
-%div
-  %h2 Namespace
+    %h2 Namespace
+    %p 
+      Your namespace is unique to you and makes up part of the default URL we assign to your applications.
+      See #{link_to 'the User Guide', add_domains_user_guide_topic_url}
+      for information about adding your own domain names to an application.
 
-  %p 
-    Your namespace is unique to you and makes up part of the default URL we assign to your applications.
-    See #{link_to 'the User Guide', add_domains_user_guide_topic_url}
-    for information about adding your own domain names to an application.
+    - if @domain
+      .well
+        http://applicationname-
+        %strong>= @domain.name
+        = ".rhcloud.com"
+      .btn-toolbar
+        = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
 
-  - if @domain
-    .well
-      http://applicationname-
-      %strong>= @domain.name
-      = ".rhcloud.com"
-    %ul.unstyled
-      %li
-        = link_to "Change your namespace...", edit_domain_path
+    - else
+      = render Domain.new
 
-  - else
-    = render Domain.new
+  .span5
+    %h2 Public Keys
+    %p 
+      OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
+      = link_to "Read our User Guide topic on keys.", ssh_key_user_guide_topic_url
 
-%div
-  %h2 Public Keys
-  %p 
-    OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
-    = link_to "Read our User Guide topic on keys.", ssh_key_user_guide_topic_url
-
-  -if @keys.empty?
-    .row
-      .span7
-        = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
-  -else
-    = render @keys
-    %p= link_to "Add a new key...", new_key_path
+    -if @keys.empty?
+      = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span4' }
+    -else
+      %table.table.table-condensed.table-striped
+        - @keys.each do |key|
+          %tr
+            %td= key.name
+            %td.code= key.display_content
+            %td= link_to 'Delete', key_path(key), :class => 'btn btn-small btn-danger', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
+      .btn-toolbar
+        = link_to "Add a new key...", new_key_path, :class => 'btn'

@@ -62,6 +62,58 @@ class RestApiTest < ActiveSupport::TestCase
     app.serializable_hash
   end
 
+  class Calculated < RestApi::Base
+    schema do
+      string :first, :last
+    end
+    attr_alters :together, [:first, :last]
+    def together=(together)
+      self.first, self.last = together.split if together
+      super
+    end
+
+    validates :first, :length => {:maximum => 1},
+              :presence => true,
+              :allow_blank => false
+    validates :last, :length => {:minimum => 2},
+              :presence => true,
+              :allow_blank => false
+  end
+
+  def test_calculated_attr
+    c = Calculated.new
+    assert_equal 'a b', c.together = 'a b'
+    assert_equal 'a b', c.attributes[:together]
+    assert_equal 'a', c.first
+    assert_equal 'b', c.last
+
+    c = Calculated.new :together => 'a b'
+    assert_equal 'a b', c.together
+    assert_equal 'a b', c.attributes[:together]
+    assert_equal 'a', c.first
+    assert_equal 'b', c.last
+
+    c = Calculated.new.load(:together => 'a b')
+    assert_equal 'a b', c.together
+    assert_equal 'a', c.first
+    assert_equal 'b', c.last
+
+    c = Calculated.new :first => 'c', :last => 'd'
+    assert_equal 'a b', c.together = 'a b'
+    assert_equal 'a', c.first
+    assert_equal 'b', c.last
+  end
+
+  def test_calculated_errors
+    c = Calculated.new :first => 'ab', :last => 'c'
+    assert !c.valid?
+    assert c.errors[:first].length == 1
+    assert c.errors[:last].length == 1
+    assert_equal 2, c.errors[:together].length
+    assert c.errors[:together].include? c.errors[:first][0]
+    assert c.errors[:together].include? c.errors[:last][0]
+  end
+
   def test_client_key_validation
     key = Key.new :type => 'ssh-rsa', :name => 'test2', :as => @user
     assert !key.save
@@ -118,7 +170,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'a', domain.id
     assert_equal 'b', domain.namespace
     assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
-    #domain.send(:connection).expects(:put).once
     assert domain.save
 
     domain = Domain.first :as => @user

@@ -9,7 +9,8 @@ class Key < RestApi::Base
     string :name, 'type', :content, :raw_content
   end
   custom_id :name, true
-  # type is a method on Object in 1.8.7 and must be overriden
+  # type is a method on Object in 1.8.7 and must be overriden so that the attribute 
+  # will be read (method_missing is how ActiveResource attributes are looked up)
   def type
     @attributes[:type]
   end
@@ -17,24 +18,24 @@ class Key < RestApi::Base
   belongs_to :user
   self.prefix = "#{RestApi::Base.site.path}/user/"
 
-  attr_set_on_load :raw_content
+  attr_alters :raw_content, [:content, :type]
   # Raw content is decomposed into content and type
   def raw_content=(contents)
     if contents
       parts = contents.split
       case parts.length
       when 1
+        self.type = nil
         self.content = parts[0]
       when 2
         if /^ssh-(rsa|dss)$/.match(parts[0])
-          self.type = parts[0]
-          self.content = parts[1]
+          self.type, self.content = parts
         else
+          self.type = nil
           self.content = parts[0]
         end
       when 3
-        self.type = parts[0]
-        self.content = parts[1]
+        self.type, self.content = parts
       end
     end
     super
@@ -63,7 +64,7 @@ class Key < RestApi::Base
     self
   end
 
-  def display_name
+  def display_content
     if content.length > 20
       "#{content[1..8]}..#{content[-8..-1]}"
     else

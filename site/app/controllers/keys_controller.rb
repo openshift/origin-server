@@ -10,7 +10,7 @@ class KeysController < ConsoleController
     @key.as = session_user
 
     if @key.save
-      redirect_to :back, :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
+      redirect_to (@first ? :back : account_path), :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
     else
       render :new
     end
