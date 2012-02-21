@@ -31,7 +31,7 @@
           - else
 
             %span.add-on-middle> -
-            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Domain name'
+            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace'
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
 
         - if @domain
