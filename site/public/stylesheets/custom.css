@@ -48,9 +48,6 @@ a {
 a:hover {
   color: #00438a;
 }
-section {
-	margin-bottom: 60px;
-}
 p {
 	margin: 5px 0 13px;
 }
@@ -80,6 +77,10 @@ h5 {
 }
 h6 {
 	font-size: 11px;
+}
+figure {
+	margin: 0;
+	padding: 0;
 }
 .page-header {
 	padding-bottom: 0;
@@ -184,6 +185,11 @@ input:focus, textarea:focus {
   color: #95a321;
   background-color: #dff0d8;
   border-color: #95a321;
+}
+.control-group input.error, .control-group textarea.error, .control-group select.error {
+	color: #cc0000;
+	background-color: #f2dede;
+  border-color: #cc0000;
 }
 .form-actions {
 	background-color: none;
@@ -305,7 +311,7 @@ input:focus, textarea:focus {
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
-  color: #8f8f8f;
+  color: #444;
   text-align: center;
   background-color: #fafafa;
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), color-stop(25%, #ffffff), to(#e6e6e6));
@@ -384,6 +390,11 @@ input:focus, textarea:focus {
 }
 .btn-small .icon {
   margin-top: -1px;
+}
+.btn-mini {
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 14px;
 }
 .btn-primary,
 .btn-primary:hover,
@@ -621,7 +632,7 @@ input:focus, textarea:focus {
   color: #8F8F8F;
 }
 .hero-unit {
-  padding: 20px 25px;
+  padding: 20px 0 20px 25px;
   margin-bottom: 25px;
   background-color: #f2f2f2;
   -webkit-border-radius: 6px;
@@ -658,6 +669,11 @@ input:focus, textarea:focus {
 .wizard-steps li.active {
   color: #000;
   background-color: #d8d8d8;
+}
+.thumbnail {
+	border: none;
+	box-shadow: none;
+	padding: 0;
 }
 .clearfix:before, .clearfix:after { content: ""; display: table; }
 .clearfix:after { clear: both; }
