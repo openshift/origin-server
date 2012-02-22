@@ -896,10 +896,13 @@ footer {
 	background-color: #574D4F;
   }
 .console-transition .navbar .headline { 
-  color: white; 
-  font-size: 30px;
-  line-height: 75px;
-  margin-left: 11px;
+  color: #eee;
+  font-size: 24px;
+  line-height: 63px;
+  margin-left: 12px;
+  }
+.console-transition .navbar #utility-nav {
+  margin: -43px -5px 0 0;
   }
 .console-transition .navbar-inner {
   background-image: none;

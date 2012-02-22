@@ -3,7 +3,7 @@
     .container
 
       = link_to root_path, :class => 'brand' do
-        %img{:src => image_path('logo.png')}
+        %img{:src => image_path('openshift-logo-white.png')}
 
       %span.navbar-text.headline Management Console
 
@@ -21,8 +21,8 @@
           -#= navigation_tab :help, :show
           -#= navigation_tab :user, :action => :show
 
-        %ul.navbar-text.pull-right#utility-nav
-          %li= link_to "Community", community_url
-          %li= link_to "My Account", account_path
-          %li= link_to "Sign Out", logout_path
+      %ul.navbar-text.pull-right#utility-nav
+        %li= link_to "Community", community_url
+        %li= link_to "My Account", account_path
+        %li= link_to "Sign Out", logout_path
 

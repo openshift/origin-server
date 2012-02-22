@@ -16,6 +16,7 @@ class DomainsController < ConsoleController
 
   def edit
     @domain = Domain.first(:as => session_user)
+    redirect_to new_domain_path unless @domain
   end
 
   def update
