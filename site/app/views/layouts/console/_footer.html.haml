@@ -1,33 +1,33 @@
-.container#footer
+.container#footer-nav
   .row
-    .span3
+    .span3.link-column
       %header
-        %h2 News
+        %h3 News
       %ul.unstyled
         %li= link_to 'Announcements', 'https://www.redhat.com/openshift/forums/news-and-announcements'
         %li= link_to 'Blog', 'https://www.redhat.com/openshift/blogs'
         %li= link_to 'Twitter', 'http://www.twitter.com/#!/openshift'
 
-    .span3
+    .span3.link-column
       %header
-        %h2 Community
+        %h3 Community
       %ul.unstyled
         %li= link_to 'Forum', 'https://www.redhat.com/openshift/forums/'
         %li= link_to 'Partner Program', partners_path
         %li= link_to 'IRC Channel', 'http://webchat.freenode.net/?randomnick=1&channels=openshift&uio=d4'
         %li= link_to 'Feedback', 'mailto:openshift@redhat.com'
 
-    .span3
+    .span3.link-column
       %header
-        %h2 Legal
+        %h3 Legal
       %ul.unstyled
         %li= link_to 'Legal', legal_path
         %li= link_to 'Privacy Policy', legal_openshift_privacy_path
         %li= link_to 'Security', 'https://access.redhat.com/security/team/contact/'
 
-    .span3
+    .span3.link-column
       %header
-        %h2 Help
+        %h3 Help
       %ul.unstyled
         %li= link_to 'FAQ', 'http://www.redhat.com/openshift/faq'
         %li= link_to 'Contact', 'mailto:openshift@redhat.com'
