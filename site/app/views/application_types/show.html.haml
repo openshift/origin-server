@@ -11,7 +11,7 @@
 = semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|
   = f.hidden_field :application_type, :value => @application_type.id
 
-  = f.semantic_errors
+  = f.semantic_errors :base, :name, :domain_name
 
   = f.inputs do
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
@@ -21,17 +21,17 @@
         .input-prepend-append
           %span.add-on-first http://
 
-          = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name'
+          = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name', :class => @application.errors.has_key?(:name) ? 'error' : ''
 
           -# If the user has a domain, use it, otherwise prompt them for that field
-          - if @domain
+          - if @domain and @domain.persisted?
 
             %span.add-on-last>= "-#{@domain.name}.#{Rails.configuration.base_domain}"
 
           - else
 
             %span.add-on-middle> -
-            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace'
+            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :class => @application.errors.has_key?(:domain_name) ? 'error' : ''
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
 
         - if @domain

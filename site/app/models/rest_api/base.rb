@@ -303,9 +303,19 @@ module RestApi
     def load_remote_errors(remote_errors, save_cache=false)
       case self.class.format
       when ActiveResource::Formats[:openshift_json]
-        ActiveSupport::JSON.decode(remote_errors.response.body)['messages'].each do |m|
-          errors.add( (m['attribute'] || 'base').to_sym, m['text'].to_s) if m['text']
+        response = remote_errors.response
+        begin
+          ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
+            errors.add( (m['attribute'] || 'base').to_sym, m['text'].to_s) if m['text']
+          end
+        rescue
+          if defined? response
+            Rails.logger.warn "Unable to read server response, #{response.inspect}"
+            Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
+          end
+          raise RestApi::BadServerResponseError
         end
+        errors
       else
         super
       end
@@ -502,4 +512,7 @@ module RestApi
 
   # Raised when a newly created resource exists with the same unique primary key
   class ResourceExistsError < StandardError ; end
+
+  # The server did not return the response we were expecting, possibly a server bug
+  class BadServerResponseError < StandardError ; end
 end

@@ -110,8 +110,11 @@ class ApplicationsController < ConsoleController
     @domain = Domain.find :first, :as => session_user
     unless @domain
       @domain = Domain.create :name => @application.domain_name, :as => session_user
+      Rails.logger.debug "Unable to create domain, #{@domain.errors.inspect}"
       unless @domain.persisted?
         @application.valid? # set any errors on the application object
+        #FIXME: Ideally this should be inferred via associations between @domain and @application
+        @application.errors.set(:domain_name, @domain.errors.values)
         return render 'application_types/show'
       end
     end
