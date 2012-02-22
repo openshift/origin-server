@@ -69,7 +69,15 @@ ABB64C -> green -> success
 /*FIXME: Can be handled via LESS on the core bootstrap template? */
 body, p, button, select, textarea, .navbar-search .search-query {
 	font-family: "Liberation Sans", Helvetica, Arial, sans-serif;
+<<<<<<< HEAD
 	}
+=======
+}
+h1, h2, h3, h4 { 
+  font-weight: normal; 
+}
+
+>>>>>>> e64f1a1... Updates to forms to have better layout
 a {
 	color: #0069d6; 
 	}
@@ -219,7 +227,14 @@ input:focus, textarea:focus {
 	color: #cc0000;
 	background-color: #f2dede;
   border-color: #cc0000;
-	}
+
+.control-group input.error:focus, .control-group select.error:focus, .control-group textarea.error:focus {
+  border-color: #953b39;
+  -webkit-box-shadow: 0 0 6px #CD1E25;
+  -moz-box-shadow: 0 0 6px #CD1E25;
+  box-shadow: 0 0 6px #CD1E25;
+  }
+
 .form-actions {
 	background-color: none;
 	}

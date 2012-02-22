@@ -1,7 +1,7 @@
 - input_html = { :class => input_class } if defined? input_class
 
 = semantic_form_for key do |f|
-  = f.semantic_errors :base
+  = f.semantic_errors
   = f.inputs do
     = f.hidden_field :name, :value => 'default'
     = f.hidden_field :first, :name => 'first', :value => true
