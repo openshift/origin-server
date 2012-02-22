@@ -84,7 +84,29 @@ class ApplicationsControllerTest < ActionController::TestCase
       # so we call index here to make sure the app is deleted
       get :index
     end
+  end
 
+  test "should retrieve application details" do
+    post(:create, {:application => get_post_form})
+    app = assigns(:application)
+    assert app
+    assert app.errors.empty?
+
+    get :show, :id => 'test1'
+    assert_response :success
+    app = assigns(:application)
+    app_framework = assigns(:application_type)
+    assert app
+    assert app_framework
+    assert_equal 'test1', app.name
+    assert_equal 'raw-0.1', app_framework.id
+  end
+
+  test "should result in a not found error when retrieving and application that does not exist" do
+    # FIXME: This should be an 404 error page, not an exception
+    assert_raise ActiveResource::ResourceNotFound do
+      get :show, :id => 'idontexist'
+    end
   end
 
 #  test "should check for empty name" do
