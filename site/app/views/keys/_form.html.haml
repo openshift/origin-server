@@ -7,3 +7,4 @@
     = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html, :placeholder => 'Public key contents'
   = f.buttons do
     = f.commit_button :button_html => { :class => 'btn btn-primary', :value => 'Save' }
+    = link_to "Cancel", account_path, :class => 'btn'
