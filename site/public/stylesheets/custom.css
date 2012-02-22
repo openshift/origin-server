@@ -1,3 +1,61 @@
+<<<<<<< HEAD
+=======
+/* Fonts
+-------------------------------------------------- */
+@font-face {
+  font-family: 'OverpassBold';
+  src:url('fonts/overpass-bold-wf.eot');
+  src:url('fonts/overpass-bold-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-bold-wf.woff') format('woff'),
+      url('fonts/overpass-bold-wf.ttf') format('truetype'),
+      url('fonts/overpass-bold-wf.svg#webfontzRhIMntw') format('svg');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Overpass';
+  src:url('fonts/overpass-wf.eot');
+  src:url('fonts/overpass-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-wf.woff') format('woff'),
+      url('fonts/overpass-wf.ttf') format('truetype'),
+      url('fonts/overpass-wf.svg#webfontiqWxLEM5') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Not intended for final style set
+-------------------------------------------------- */
+.show-grid {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.show-grid [class*="span"] {
+  background-color: #eee;
+  text-align: center;
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+          border-radius: 3px;
+  min-height: 30px;
+  line-height: 30px;
+}
+.show-grid .show-grid {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.show-grid .show-grid [class*="span"] {
+  background-color: #ccc;
+}
+.show-grid [class*="span"] {
+    margin-bottom: 5px;
+}
+.docs-input-sizes select, .docs-input-sizes input[type="text"] {
+    display: block;
+    margin-bottom: 9px;
+}
+
+
+>>>>>>> 6f5f36f... Preparation for transitional styles, integrate fonts, fix weight to be normal
 /* Twitter Bootstrap Customizations
 ------------------------------------------------ 
 Colors
@@ -8,7 +66,8 @@ ABB64C -> green -> success
 93D8E2 -> lite blue -> info
 ------------------------------------------------ */
 
-body {
+/*FIXME: Can be handled via LESS on the core bootstrap template? */
+body, p, button, select, textarea, .navbar-search .search-query {
 	font-family: "Liberation Sans", Helvetica, Arial, sans-serif;
 	}
 a {
