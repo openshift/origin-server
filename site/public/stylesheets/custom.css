@@ -730,25 +730,17 @@ input:focus, textarea:focus {
 	}
 
 footer {
-	background-color: #574D4F;
-	border-bottom: 87px solid #000000;
-	padding-top: 35px;
   margin-top: 35px;
-	position: relative;
-	color: #fff;
 	}
 #footer-nav {
-	margin-bottom: 26px;
+  padding-top: 35px;
+  padding-bottom: 26px;
 	}
-	#footer-nav a, #footer-nav h3 {
-		color: #fff;
-		}
 #copyright {
-	position: absolute;
-  bottom: -70px;
-  width: inherit;
+  padding-top: 20px;
+  padding-bottom: 20px;
   }
-  #copyright > div {
+  #copyright > .container > div {
     margin-top: 15px;
     }
 
@@ -828,12 +820,14 @@ footer {
 		font-size: 26px;
 		}
 
+  /*FIXME revisit with better names*/
   .link-column > header { display: inline; }
   .link-column ul { margin-bottom: 5px; }
   .link-column h3 { display: inline; font-size: 14px; }
   .link-column ul { margin: 0; padding: 0; display: inline; }
   .link-column li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
   .link-column a { margin-left: 5px; text-decoration: underline; }
+
 }
 
 @media (min-width: 768px) and (max-width: 980px) {
@@ -892,8 +886,17 @@ footer {
 @media (min-width: 1200px) {
 }
 
-.console-transition footer {
+.console-transition #footer-nav {
 	background-color: #574D4F;
+  color: #eee;
+  }
+.console-transition #copyright {
+  color: #eee;
+	background-color: black;
+  }
+.console-transition #footer-nav a,
+.console-transition #footer-nav h3 {
+  color: #eee;
   }
 .console-transition .navbar .headline { 
   color: #eee;
