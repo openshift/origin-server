@@ -1,25 +1,25 @@
 /* Fonts
------------------------------------------------- */
+-------------------------------------------------- */
 @font-face {
-    font-family: 'OverpassRegular';
-    src: url('/public/stylesheets/fonts/overpass-wf.eot');
-    src: url('/public/stylesheets/fonts/overpass-wf.eot?#iefix') format('embedded-opentype'),
-         url('/public/stylesheets/fonts/overpass-wf.woff') format('woff'),
-         url('/public/stylesheets/fonts/overpass-wf.ttf') format('truetype'),
-         url('/public/stylesheets/fonts/overpass-wf.svg#OverpassRegular') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'OverpassBold';
+  src:url('fonts/overpass-bold-wf.eot');
+  src:url('fonts/overpass-bold-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-bold-wf.woff') format('woff'),
+      url('fonts/overpass-bold-wf.ttf') format('truetype'),
+      url('fonts/overpass-bold-wf.svg#webfontzRhIMntw') format('svg');
+  font-weight: bold;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'OverpassBold';
-    src: url('/public/stylesheets/fonts/overpass-bold-wf.eot');
-    src: url('/public/stylesheets/fonts/overpass-bold-wf.eot?#iefix') format('embedded-opentype'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.woff') format('woff'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.ttf') format('truetype'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.svg#OverpassBold') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'Overpass';
+  src:url('fonts/overpass-wf.eot');
+  src:url('fonts/overpass-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-wf.woff') format('woff'),
+      url('fonts/overpass-wf.ttf') format('truetype'),
+      url('fonts/overpass-wf.svg#webfontiqWxLEM5') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
 /** Twitter Bootstrap Customizations
@@ -198,6 +198,12 @@ input:focus, textarea:focus {
 .form-actions {
 	background-color: none;
 	}
+.help-block-multiple {
+	background-color: #FFFCE4;
+ 	border: 4px solid #ddd;
+  border: 4px solid rgba(88, 88, 88, 0.05);
+ 	padding: 14px;
+	}
 .side-block {
 	margin-top: 5px;
   margin-bottom: 0;
@@ -291,6 +297,7 @@ input:focus, textarea:focus {
   padding: 4px 5px;
   text-align: center;
   background-color: #fff;
+  color: #999;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
@@ -309,6 +316,15 @@ input:focus, textarea:focus {
 .form-inline .input-prepend-append .add-on-last {
   vertical-align: middle;
 	}
+.text-important .input-prepend-append .add-on-first, .text-important .input-prepend-append .add-on-last, .text-important .input-prepend-append .add-on-middle,
+.text-important .input-prepend-append input, .text-important .input-prepend-append input {
+  font-size: 15px;
+  padding: 8px 10px;
+  max-width: 716px;
+  }
+  .text-important label {
+  	font-size: 15px;
+  	}
 .btn {
   display: inline-block;
   padding: 5px 10px;
@@ -701,23 +717,19 @@ input:focus, textarea:focus {
 	}
 
 footer {
-	background-color: #574D4F;
-	border-bottom: 125px solid #000000;
-	padding-top: 35px;
-	position: relative;
-	color: #fff;
-	}
-#footer-nav {
-	margin-bottom: 26px;
-	}
-	#footer-nav a, #footer-nav h3 {
-		color: #fff;
-		}
-#copyright {
-	position: absolute;
-  bottom: -50px;
-  width: inherit;
+  margin-top: 35px;
   }
+#footer-nav {
+  padding-top: 35px;
+  padding-bottom: 26px;
+  }
+#copyright {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  }
+  #copyright > .container > div {
+    margin-top: 15px;
+    }
 
 
 /* Print styles */
