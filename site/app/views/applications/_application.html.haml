@@ -1,12 +1,15 @@
+:css
+  .subtitle  { margin-top: 0.8em; margin-left: 0.5em;}
+
 .row.application.hero-unit
   .span8
     .row
       .span8
         .row
-          .span8
+          .span8.title
             %h2.pull-left
               = application.name
-            .clear-both
+            .pull-left.subtitle
               = application.framework_name
       -# Status and gears not supported yet
       -#.span1
