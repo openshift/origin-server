@@ -316,21 +316,29 @@ input:focus, textarea:focus {
 .form-inline .input-prepend-append .add-on-last {
   vertical-align: middle;
 	}
-.text-important .input-prepend-append .add-on-first, .text-important .input-prepend-append .add-on-last, .text-important .input-prepend-append .add-on-middle,
-.text-important .input-prepend-append input, .text-important .input-prepend-append input {
+
+.control-group-important .input-prepend-append .add-on-first,
+.control-group-important .input-prepend-append .add-on-last,
+.control-group-important .input-prepend-append .add-on-middle,
+.control-group-important .input-prepend-append input,
+.control-group-important .input-prepend-append input {
   font-size: 15px;
   padding: 8px 10px;
   max-width: 716px;
   }
-  .text-important label {
+  .control-group-important label {
   	font-size: 15px;
   	}
+  .form-horizontal .control-group-important > label {
+    padding-top: 10px;
+    }
+
 .btn {
   display: inline-block;
   padding: 5px 10px;
   font-size: 13px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 17px;
   color: #444;
   text-align: center;
   background-color: #fafafa;
@@ -512,6 +520,11 @@ input:focus, textarea:focus {
 .btn-info:active, .btn-info.active {
   background-color: #78cfdb \9;
 	}
+.form-actions > img,
+.btn-toolbar > img {
+  vertical-align: middle;
+  }
+
 .alert {
   padding: 9px 35px 10px 21px;
   margin-bottom: 18px;

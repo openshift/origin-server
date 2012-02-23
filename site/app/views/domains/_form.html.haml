@@ -1,8 +1,8 @@
 = semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
   = f.semantic_errors
-  .control-group{:class => domain.errors[:name].present? ? 'error' : ''}
+  .control-group.control-group-important{:class => domain.errors[:name].present? ? 'error' : ''}
     .controls
-      .input-prepend-append.text-important
+      .input-prepend-append
         %span.add-on-first> http://applicationname&ndash;
         = f.text_field :name, :autofocus => true, :placeholder => 'Namespace'
         %span.add-on-last> .rhcloud.com

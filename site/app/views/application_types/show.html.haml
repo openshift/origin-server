@@ -15,10 +15,10 @@
 
   = f.inputs do
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group
-      %label.control-label.text-important Public URL
+    .control-group.control-group-important
+      %label.control-label Public URL
       .controls
-        .input-prepend-append.text-important
+        .input-prepend-append
           %span.add-on-first http://
 
           = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :placeholder => 'Application name', :class => @application.errors[:name].present? ? 'error' : ''
