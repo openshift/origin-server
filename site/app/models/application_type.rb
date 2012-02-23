@@ -132,4 +132,3 @@ class ApplicationType
     end
   end
 end
-
