@@ -1,25 +1,25 @@
 /* Fonts
------------------------------------------------- */
+-------------------------------------------------- */
 @font-face {
-    font-family: 'OverpassRegular';
-    src: url('/public/stylesheets/fonts/overpass-wf.eot');
-    src: url('/public/stylesheets/fonts/overpass-wf.eot?#iefix') format('embedded-opentype'),
-         url('/public/stylesheets/fonts/overpass-wf.woff') format('woff'),
-         url('/public/stylesheets/fonts/overpass-wf.ttf') format('truetype'),
-         url('/public/stylesheets/fonts/overpass-wf.svg#OverpassRegular') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'OverpassBold';
+  src:url('fonts/overpass-bold-wf.eot');
+  src:url('fonts/overpass-bold-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-bold-wf.woff') format('woff'),
+      url('fonts/overpass-bold-wf.ttf') format('truetype'),
+      url('fonts/overpass-bold-wf.svg#webfontzRhIMntw') format('svg');
+  font-weight: bold;
+  font-style: normal;
 }
 
 @font-face {
-    font-family: 'OverpassBold';
-    src: url('/public/stylesheets/fonts/overpass-bold-wf.eot');
-    src: url('/public/stylesheets/fonts/overpass-bold-wf.eot?#iefix') format('embedded-opentype'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.woff') format('woff'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.ttf') format('truetype'),
-         url('/public/stylesheets/fonts/overpass-bold-wf.svg#OverpassBold') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'Overpass';
+  src:url('fonts/overpass-wf.eot');
+  src:url('fonts/overpass-wf.eot?#iefix') format('eot'),
+      url('fonts/overpass-wf.woff') format('woff'),
+      url('fonts/overpass-wf.ttf') format('truetype'),
+      url('fonts/overpass-wf.svg#webfontiqWxLEM5') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
 /** Twitter Bootstrap Customizations
@@ -701,23 +701,19 @@ input:focus, textarea:focus {
 	}
 
 footer {
-	background-color: #574D4F;
-	border-bottom: 125px solid #000000;
-	padding-top: 35px;
-	position: relative;
-	color: #fff;
-	}
-#footer-nav {
-	margin-bottom: 26px;
-	}
-	#footer-nav a, #footer-nav h3 {
-		color: #fff;
-		}
-#copyright {
-	position: absolute;
-  bottom: -50px;
-  width: inherit;
+  margin-top: 35px;
   }
+#footer-nav {
+  padding-top: 35px;
+  padding-bottom: 26px;
+  }
+#copyright {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  }
+  #copyright > .container > div {
+    margin-top: 15px;
+    }
 
 
 /* Print styles */
