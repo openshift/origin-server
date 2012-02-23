@@ -1,39 +1,26 @@
-%h1 Applications
 .content
-
+  .row
+    .span12
+      .hero-unit
+        .row
+          .span11
+            %p.pull-left
+              NAME
+            %a.btn.btn-primary.pull-right{:href => @application.web_url} Access application »
+        .row
+          .span11
+            %h1
+              = @application.name
   .row
     .span8
-      .hero-unit
-        %h1.pull-left= @application.name
-        %a.btn.btn-primary.pull-right{:href => @application.web_url} Access application »
-        .app_url.clear-both
-          %strong= link_to @application.web_url, @application.web_url
-      %dt
-        Type
-      %dd.app_type
-        %strong= @application.framework_name + ": " 
-        = @application_type.description
-    
-      %dt
-        Created
-      %dd.app_creation_time
-        = "#{time_ago_in_words(@application.creation_time)} ago"
-    
-      - if not @application.aliases.empty?
-        %dt
-          Aliases
-        %dd.app_aliases
-          - @application.aliases.each do |i|
-            = i
-    
-      %dt
-        Repository
-      %dd
-        %pre.command-line= @application.git_url
-    
-      %div
-        = link_to "back to applications list...", applications_path
-        = link_to("Delete", delete_application_path(@application))
+      .row
+        .span8
+          %h2
+            CARTRIDGES
+            %ul.unstyled
+              %li
+                .row.span8
+                  = render :partial => 'applications/application_cartridge', :locals => {:application => @application}
     .span4
       %aside.postit
         .tape &nbsp;
@@ -50,4 +37,7 @@
         %ul
           %li= link_to "Check the MySQL 5.1 Documentation", "#" 
           %li= link_to "Solve connectivity issues", "#" 
-    
+  .row
+    .span8
+      = link_to("Delete Application", delete_application_path(@application.name), :class => ['btn', 'btn-danger', 'btn-large'])
+      = link_to("Back to Application List...", applications_path, :class => ['btn', 'btn-large', 'btn-primary'])
