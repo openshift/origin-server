@@ -15,8 +15,8 @@
 
   = f.inputs do
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group
-      %label.control-label Application name
+    .control-group.control-group-important
+      %label.control-label Public URL
       .controls
         .input-prepend-append
           %span.add-on-first http://
@@ -26,25 +26,30 @@
           -# If the user has a domain, use it, otherwise prompt them for that field
           - if @domain and @domain.persisted?
 
-            %span.add-on-last>= "-#{@domain.name}.#{Rails.configuration.base_domain}"
+            %span.add-on-last> -#{@domain.name}.#{Rails.configuration.base_domain}
 
           - else
 
-            %span.add-on-middle> -
+            %span.add-on-middle> &ndash;
             = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :class => @application.errors[:domain_name].present? ? 'error' : ''
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
 
-        - if @domain
-          .help-block
-            Your application name uniquely identifies the application and becomes part of your public 
-            URL. You can add your own domain names to the application later.
-        - else
-          .row
-            .help-block.span3
+        .row
+          - if @domain
+            .help-block.span6
               Your application name uniquely identifies the application and becomes part of your public 
               URL. You can add your own domain names to the application later.
-            .help-block.span3
-              Because this is your first application, you need to set a name under which your applications will be grouped.
+          - else
+            .help-block-multiple.span6
+              %strong Application name
+              %p
+                Your application name uniquely identifies the application and becomes part of your public 
+                URL. You can add your own domain names to the application later.
+              %strong Namespace
+              %p
+                Because this is your first application, you need to set a name under which your applications will be grouped.
 
   = f.buttons do
     = f.commit_button
+    = link_to "Back", application_types_path, :class => 'btn'
+    = f.loading

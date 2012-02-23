@@ -1,12 +1,14 @@
 -# file: Applications confirm delete
 
-%h1= "Are you sure you want to delete the application '#{@application.name}'?"
+%h1 Delete Application
 
-- semantic_form_for @application, :html => { :method => :delete } do |f|
+- semantic_form_for @application, :simple => true, :html => {:method => :delete, :class => 'form-inline'} do |f|
+  %p Are you sure you want to delete the application '#{@application.name}'?
   %p This will delete all the code and data associated with the app, and cannot be undone. Make sure this is something you really want to do!
   = f.semantic_errors
   -#= f.inputs do
     -#= f.input :cartridge, :as => :hidden, :value => @application.framework
   = f.buttons do
-    = f.commit_button :label => "Delete"
+    = f.commit_button :label => "Delete", :button_html => {:class => 'btn-danger'}
     = link_to 'Cancel', @referer || application_path(@application), :class => 'btn'
+    = f.loading

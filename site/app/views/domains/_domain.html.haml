@@ -1,8 +1,9 @@
-= semantic_form_for :domain, :url => domain_path, :html => {:class => 'form-inline' } do |f|
+= semantic_form_for :domain, :url => domain_path, :html => {:class => 'form-inline control-group-important' } do |f|
   .input-prepend-append
-    %span.add-on-first> http://applicationname-
+    %span.add-on-first> http://applicationname&ndash;
     = f.text_field :name, :autofocus => true, :placeholder => 'Namespace'
     %span.add-on-last> .rhcloud.com
   .help-block Your namespace must be letters or numbers with no spaces or symbols.
   .btn-toolbar
     = f.submit "Save", :class => 'btn btn-primary'
+    = f.loading
