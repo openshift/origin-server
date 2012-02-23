@@ -1,3 +1,5 @@
+require 'uri'
+
 class ApplicationsFilter
   extend ActiveModel::Naming
   include ActiveModel::Serialization
@@ -91,6 +93,17 @@ class ApplicationsController < ConsoleController
   def delete
     @domain = Domain.first :as => session_user
     @application = @domain.find_application params[:id]
+
+    # we get here from the details page or applications list page
+    # be safe by redirecting the cancel button to the referer
+    # only if it comes from the same domain (defaults to
+    # application_details_path if referer isn't set)
+    server_name = request.env['SERVER_NAME']
+    http_referer = request.env['HTTP_REFERER']
+    if !http_referer.nil?
+      http_referer = URI(http_referer)
+      @referer = http_referer.path if http_referer.host == server_name
+    end
   end
 
   def new
