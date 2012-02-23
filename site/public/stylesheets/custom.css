@@ -198,6 +198,12 @@ input:focus, textarea:focus {
 .form-actions {
 	background-color: none;
 	}
+.help-block-multiple {
+	background-color: #FFFCE4;
+ 	border: 4px solid #ddd;
+  border: 4px solid rgba(88, 88, 88, 0.05);
+ 	padding: 14px;
+	}
 .side-block {
 	margin-top: 5px;
   margin-bottom: 0;
@@ -291,6 +297,7 @@ input:focus, textarea:focus {
   padding: 4px 5px;
   text-align: center;
   background-color: #fff;
+  color: #999;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
@@ -309,6 +316,15 @@ input:focus, textarea:focus {
 .form-inline .input-prepend-append .add-on-last {
   vertical-align: middle;
 	}
+.text-important .input-prepend-append .add-on-first, .text-important .input-prepend-append .add-on-last, .text-important .input-prepend-append .add-on-middle,
+.text-important .input-prepend-append input, .text-important .input-prepend-append input {
+  font-size: 15px;
+  padding: 8px 10px;
+  max-width: 716px;
+  }
+  .text-important label {
+  	font-size: 15px;
+  	}
 .btn {
   display: inline-block;
   padding: 5px 10px;
