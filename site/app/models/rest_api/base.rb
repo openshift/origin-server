@@ -97,6 +97,7 @@ module RestApi
     end
 
     def load(attributes)
+
       if self.class.aliased_attributes
         attributes = attributes.dup
         self.class.aliased_attributes.each do |from,to|
@@ -111,7 +112,6 @@ module RestApi
       self
     end
 
-    #
     # Track persistence state, merged from 
     # https://github.com/railsjedi/rails/commit/9333e0de7d1b8f63b19c99d21f5f65fef0ce38c3
     #
@@ -254,6 +254,7 @@ module RestApi
       end
 
       def find(*arguments)
+
         scope   = arguments.slice!(0)
         options = arguments.slice!(0) || {}
 
