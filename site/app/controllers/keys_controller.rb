@@ -26,6 +26,8 @@ class KeysController < ConsoleController
       else
         @key.make_unique! "#{@key.name}%s"
       end
+      raise if @retried
+      @retried = true
       retry
     end
     @key.errors.add(:name, 'You have already created a key with that name')
