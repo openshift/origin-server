@@ -10,10 +10,6 @@ class Embedded < RestApi::Base
   end
 
   def initialize(attributes={}, persisted=false)
-    puts 'EMBEDDED GOT THE HELL CREATED!!!'
-    attributes.each do |attribute|
-      puts attribute
-    end
     @persisted = persisted
     @as = attributes[:as]
     attributes.delete :as
