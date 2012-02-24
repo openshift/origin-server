@@ -3,7 +3,7 @@
   #usage-overview { background-color: #eee; padding: 10px; min-height: 168px; margin: 0 0 20px; } 
 
 - lots_of_applications = @applications.length > 10
-- application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application'
+- application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application_overview'
 
 %section#attention
   %p.hero-unit ATTENTION MESSAGES HERE
@@ -18,7 +18,7 @@
       - unless @applications.empty?
         - @applications.each do |application|
           %a{:href => 'app-details.html'}
-          = render :partial => application_overview_partial, :locals => { :application => application }
+          = render :partial => application_partial, :locals => { :application => application }
           
       - if @applications.empty? and @applications_filter.present?
         %p.alert.alert-info No applications match your filter
