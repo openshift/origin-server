@@ -306,18 +306,25 @@ module RestApi
         response = remote_errors.response
         begin
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
-            errors.add( (m['attribute'] || 'base').to_sym, m['text'].to_s) if m['text']
+            self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
         rescue
           if defined? response
             Rails.logger.warn "Unable to read server response, #{response.inspect}"
             Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
           end
-          raise RestApi::BadServerResponseError
+          raise RestApi::BadServerResponseError.new(defined? response.body ? response.body : nil)
         end
         errors
       else
         super
+      end
+    end
+
+    class << self
+      def translate_api_error(errors, code, field, text)
+        message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
+        errors.add( (field || 'base').to_sym, message) unless message.blank?
       end
     end
 
