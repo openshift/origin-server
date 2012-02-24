@@ -30,7 +30,7 @@ class ApplicationType
       :description => 'This application is created without cartridges.  The application cannot be deployed until you add a cartridge.'
     },
     {
-      :id => 'jbossas-7.1',
+      :id => 'jbossas-7',
       :name => 'JBoss Application Server 7.1',
       :version => 'JBoss AS 7.1.0.Final',
       :license => 'GNU LPGL 2.1',
