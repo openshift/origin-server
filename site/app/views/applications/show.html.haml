@@ -20,6 +20,19 @@
                 .row
                   .span8
                     = render :partial => 'applications/application_cartridge', :locals => {:application => @application}
+              - @application.cartridges.each do |cartridge|
+                %ul.unstyled
+                  %li
+                    .row
+                      .span8
+                        .hero-unit
+                          .row-fluid
+                            .span12
+                              .row-fluid
+                                .span6
+                                  CARTRIDGE NAME
+                                .span6
+                                  = cartridge.name
     .span4
       %aside.postit
         .tape &nbsp;

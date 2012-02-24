@@ -1,42 +1,84 @@
 :css
   .application  {background-color: #efefef; padding: 9px 35px 10px 21px; margin-bottom: 20px; cursor: pointer;}
+  #usage-overview { background-color: #eee; padding: 10px; min-height: 168px; margin: 0 0 20px; } 
 
 - lots_of_applications = @applications.length > 10
 - application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application'
 
-%h1 My Applications
-.content
+%section#attention
+  %p.hero-unit ATTENTION MESSAGES HERE
 
-  - if @applications_filter.present? or lots_of_applications
-    = render :partial => 'applications/applications_filter', :object => @applications_filter
+.row
+  %section#my-apps.span8
+    %header.invisible My list of applications
+    %ul.unstyled
+      - if @applications_filter.present? or lots_of_applications
+        = render :partial => 'applications/applications_filter', :object => @applications_filter
 
-  - unless @applications.empty?
-    .row
-      .span8
-        %ul.unstyled.meta
-          - @applications.each do |application|
-            %li
-              = render :partial => application_partial, :locals => { :application => application }
-      .span4
-        %aside.postit
-          .tape &nbsp;
-          %h4 MySQL
-          %ul
-            %li= link_to "Check the MySQL 5.1 Documentation", "#"
-            %li= link_to "Solve connectivity issues", "#"
-          %h4 JBoss AS 7
-          %ul
-            %li= link_to "How to add JBoss modules to an Express app", "#"
-          %h4 Client tools
-          %ul
-            %li= link_to "How to install OpenShift client tools on Linux", "#"
-            %li= link_to "Sync your OpenShift repo with an existing Git repo", "#"
+      - unless @applications.empty?
+        - @applications.each do |application|
+          %a{:href => 'app-details.html'}
+          = render :partial => application_overview_partial, :locals => { :application => application }
+          
+      - if @applications.empty? and @applications_filter.present?
+        %p.alert.alert-info No applications match your filter
 
-  - if @applications.empty? and @applications_filter.present?
-    %p.alert.alert-info No applications match your filter
+    %div
+      = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-primary', 'btn-large']
 
-  %div
-    = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-primary', 'btn-large']
+    %article#bulletins
+      %h6 What's New
+      %h3 New OpenShift release!
+      %p
+        The latest OpenShift release features and overall improvements in security and performance.
+        %a{:href => '#'} Read
 
-  %div.notifications
-    <!-- tbd -->
+  %section#digest.span4
+    %header.invisible Billing, usage and charts
+    #usage-overview
+      %h5
+        Current Invoice /
+        %time{:datetime => "2012-02-25"} February 25, 2012
+      .totals
+        %img{:alt => "gear usage", :src => 'http://placehold.it/100&text=img'}
+        %span.amount $0.00
+      %a.btn{:href => '#'} Billing Information
+    %ul.thumbnails
+      %li.span4
+        %a.thumbnail{:href => '#'}
+          %figure
+            %img{:alt => "", :src => 'http://placehold.it/370x168&text=Chart+A'}
+      %li.span2
+        %a.thumbnail{:href => '#'}
+          %figure
+            %img{:alt => "", :src => 'http://placehold.it/160x120x168&text=Chart+C'}
+      %li.span2
+        %a.thumbnail{:href => '#'}
+          %figure
+            %img{:alt => "", :src => 'http://placehold.it/160x120x168&text=Chart+D'}
+
+    %aside.postit
+      .tape &nbsp;
+      %h4 MySQL
+      %ul
+        %li= link_to "Check the MySQL 5.1 Documentation", "#"
+        %li= link_to "Solve connectivity issues", "#"
+      %h4 JBoss AS 7
+      %ul
+        %li= link_to "How to add JBoss modules to an Express app", "#"
+      %h4 Client tools
+      %ul
+        %li= link_to "How to install OpenShift client tools on Linux", "#"
+        %li= link_to "Sync your OpenShift repo with an existing Git repo", "#"
+
+
+%section.row#help-panel
+  #capsule.span3
+    %h4 Need Help?
+    %a{:href => '#'} Check out the forum
+    %p Post a question, Get the answers
+
+  #capsule.span3
+    %h4 Found a bug
+    %a{:href => '#'} Report a bug
+    %p The OpenShift bug tracker is now public
