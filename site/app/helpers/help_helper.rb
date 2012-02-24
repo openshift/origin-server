@@ -22,6 +22,10 @@ module HelpHelper
     user_guide_topic_url 'sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html'
   end
 
+  def post_to_forum_url
+    'https://www.redhat.com/openshift/community/forums/express'
+  end
+
   def git_homepage_url
     "http://git-scm.com/"
   end
