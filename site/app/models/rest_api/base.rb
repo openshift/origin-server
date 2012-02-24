@@ -140,7 +140,7 @@ module RestApi
       end
     end
 
-    def save
+    def save(*args)
       @previously_changed = changes # track changes
       @changed_attributes.clear
       valid = super
@@ -307,18 +307,28 @@ module RestApi
         response = remote_errors.response
         begin
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
-            errors.add( (m['attribute'] || 'base').to_sym, m['text'].to_s) if m['text']
+            self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
         rescue
-          if defined? response
+          msg = if defined? response
             Rails.logger.warn "Unable to read server response, #{response.inspect}"
             Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
+            defined?(response.body) ? response.body.to_s : 'No response body from server'
+          else
+            'No response object'
           end
-          raise RestApi::BadServerResponseError
+          raise RestApi::BadServerResponseError, msg, $@
         end
         errors
       else
         super
+      end
+    end
+
+    class << self
+      def translate_api_error(errors, code, field, text)
+        message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
+        errors.add( (field || 'base').to_sym, message) unless message.blank?
       end
     end
 
@@ -515,5 +525,6 @@ module RestApi
   class ResourceExistsError < StandardError ; end
 
   # The server did not return the response we were expecting, possibly a server bug
-  class BadServerResponseError < StandardError ; end
+  class BadServerResponseError < StandardError
+  end
 end

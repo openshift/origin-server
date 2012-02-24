@@ -56,15 +56,46 @@ class RestApiTest < ActiveSupport::TestCase
     assert RestApi::Base.connection({:as => {}}).is_a? RestApi::UserAwareConnection
   end
 
+  def test_translate_api_error
+    (errors = mock).expects(:add).once.with(:base, 'test')
+    RestApi::Base.translate_api_error(errors, nil, nil, 'test')
+    (errors = mock).expects(:add).once.with(:test, 'test')
+    RestApi::Base.translate_api_error(errors, nil, :test, 'test')
+    (errors = mock).expects(:add).once.with(:test, 'test')
+    RestApi::Base.translate_api_error(errors, nil, 'test', 'test')
+    (errors = mock).expects(:add).once.with(:test, 'Type is required and cannot be blank.')
+    RestApi::Base.translate_api_error(errors, '116', 'test', 'test')
+    (errors = mock).expects(:add).once.with(:base, 'Type is required and cannot be blank.')
+    RestApi::Base.translate_api_error(errors, '116', nil, nil)
+  end
+
+  def response(contents)
+    object = mock
+    body = mock
+    body.stubs(:body => contents)
+    object.stubs(:response => body)
+    object
+  end
+
   def test_load_remote_errors
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
+    begin 
+      RestApi::Base.new.load_remote_errors(response(''))
+    rescue RestApi::BadServerResponseError => e
+      assert_equal '', e.to_s
+    end
+    begin 
+      RestApi::Base.new.load_remote_errors(response('{mal'))
+    rescue RestApi::BadServerResponseError => e
+      assert_equal '{mal', e.to_s
+    end
     assert RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => []})))).empty?
     assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:text => 'hello'}]}))))[:base]
-    assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:attribute => 'test', :text => 'hello'}]}))))[:test]
+    assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello'}]}))))[:test]
   end
 
   def test_serialization
