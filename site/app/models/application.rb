@@ -13,6 +13,8 @@ class Application < RestApi::Base
   alias_attribute :domain_name, :domain_id
 
   has_many :aliases
+  has_many :embedded
+  
   belongs_to :domain
   self.prefix = "#{RestApi::Base.site.path}/domains/:domain_name/"
 
@@ -20,12 +22,22 @@ class Application < RestApi::Base
     self.prefix_options[:domain_name] = id
     super
   end
-
+  
   def domain
     Domain.find domain_name, :as => as
   end
+  
   def domain=(domain)
     self.domain_id = domain.is_a?(String) ? domain : domain.namespace
+  end
+  
+  has_many :cartridges 
+  def cartridges
+    @cartridges ||= Cartridge.find :all, { :params => { :application_name => self.name }, :as => as }
+  end
+  
+  def find_cartridge(name)
+    Cartridge.find name, { :params => { :application_name => self.name }, :as => as}
   end
 
   def web_url
@@ -38,7 +50,7 @@ class Application < RestApi::Base
   def framework_name
     ApplicationType.find(framework).name rescue framework
   end
-
+  
   # Causes a problem during serialization, application_type is set during create 
   # as a dynamic attribute for form simplicity, but once that happens serialization
   # invokes this getter and fails because framework is only set after the app has been

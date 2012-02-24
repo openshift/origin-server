@@ -1,16 +1,14 @@
 .content
-  .row
-    .span12
-      .hero-unit
-        .row
-          .span11
-            %p.pull-left
-              NAME
+  .hero-unit
+    .row-fluid
+      .span12
+        .row-fluid
+          .span6
+            %p.pull-left NAME
+          .span6
             %a.btn.btn-primary.pull-right{:href => @application.web_url} Access application »
-        .row
-          .span11
-            %h1
-              = @application.name
+        %h1
+          = @application.name
   .row
     .span8
       .row
@@ -19,8 +17,9 @@
             CARTRIDGES
             %ul.unstyled
               %li
-                .row.span8
-                  = render :partial => 'applications/application_cartridge', :locals => {:application => @application}
+                .row
+                  .span8
+                    = render :partial => 'applications/application_cartridge', :locals => {:application => @application}
     .span4
       %aside.postit
         .tape &nbsp;
