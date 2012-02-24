@@ -41,15 +41,11 @@ class Key < RestApi::Base
     super
   end
 
-  #validates :name, :length => {:maximum => 50},
-  #                 :presence => true,
-  #                 :allow_blank => false
+  validates :name, :presence => true, :allow_blank => false
   #validates_format_of 'type',
   #                    :with => /^ssh-(rsa|dss)$/,
   #                    :message => "is not ssh-rsa or ssh-dss"
-  #validates :content, :length => {:maximum => 2048},
-  #                  :presence => true,
-  #                  :allow_blank => false
+  validates :content, :presence => true, :allow_blank => false
 
   Inf = 1.0/0.0 # Replace with Float::INFINITY in 1.9 ruby
   def make_unique!(format='key %s')

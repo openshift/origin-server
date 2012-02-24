@@ -309,11 +309,14 @@ module RestApi
             self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
         rescue
-          if defined? response
+          msg = if defined? response
             Rails.logger.warn "Unable to read server response, #{response.inspect}"
             Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
+            defined?(response.body) ? response.body.to_s : 'No response body from server'
+          else
+            'No response object'
           end
-          raise RestApi::BadServerResponseError.new(defined? response.body ? response.body : nil)
+          raise RestApi::BadServerResponseError, msg, $@
         end
         errors
       else
@@ -521,5 +524,6 @@ module RestApi
   class ResourceExistsError < StandardError ; end
 
   # The server did not return the response we were expecting, possibly a server bug
-  class BadServerResponseError < StandardError ; end
+  class BadServerResponseError < StandardError
+  end
 end

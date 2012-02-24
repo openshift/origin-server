@@ -69,12 +69,30 @@ class RestApiTest < ActiveSupport::TestCase
     RestApi::Base.translate_api_error(errors, '116', nil, nil)
   end
 
+  def response(contents)
+    object = mock
+    body = mock
+    body.stubs(:body => contents)
+    object.stubs(:response => body)
+    object
+  end
+
   def test_load_remote_errors
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
+    begin 
+      RestApi::Base.new.load_remote_errors(response(''))
+    rescue RestApi::BadServerResponseError => e
+      assert_equal '', e.to_s
+    end
+    begin 
+      RestApi::Base.new.load_remote_errors(response('{mal'))
+    rescue RestApi::BadServerResponseError => e
+      assert_equal '{mal', e.to_s
+    end
     assert RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => []})))).empty?
     assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:text => 'hello'}]}))))[:base]
     assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello'}]}))))[:test]
