@@ -9,41 +9,51 @@ class ApplicationsControllerTest < ActionController::TestCase
   def setup
     setup_integrated
   end
-
-  def setup_integrated
-    host = ENV['LIBRA_HOST'] || 'localhost'
-    RestApi::Base.site = "https://#{host}/broker/rest"
-    RestApi::Base.prefix='/broker/rest/'
-
-    @ts = "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
-
-    @user = WebUser.new :email_address=>"app_test1@test1.com", :rhlogin=>"app_test1@test1.com"
-    auth_headers = {'Authorization' => "Basic #{Base64.encode64("#{@user.login}:#{@user.password}").strip}"}
-
-    domain = Domain.new :namespace => "#{@ts}", :as => @user
-    unless domain.save
-      puts domain.errors.inspect
-      fail 'Unable to create the initial domain, test cannot be run'
-    end
-    setup_session
-  end
-
-  def setup_session
-    session[:login] = @user.login
-    session[:user] = @user
-    session[:ticket] = '123'
-    @request.cookies['rh_sso'] = '123'
-    @request.env['HTTPS'] = 'on'
-  end
-
+  
   test "should create and delete app" do
     post(:create, {:application => get_post_form})
-    app = assigns(:application)
-    assert app
+
+    assert app = assigns(:application)
     assert app.errors.empty?
 
     delete :destroy, :id => app.id
     assert_redirected_to applications_path
+  end
+
+  test "should assign errors on empty name" do
+    app_params = get_post_form
+    app_params[:name] = ''
+    post(:create, {:application => app_params})
+
+    assert app = assigns(:application)
+    assert !app.errors.empty?
+    assert app.errors[:name].present?, app.errors.inspect
+    assert_equal 1, app.errors[:name].length
+    assert_template 'application_types#show'
+  end
+
+  test "should assign errors on long name" do
+    app_params = get_post_form
+    app_params[:name] = 'aoeu'*30
+    post(:create, {:application => app_params})
+
+    assert app = assigns(:application)
+    assert !app.errors.empty?
+    assert app.errors[:name].present?, app.errors.inspect
+    assert_equal 1, app.errors[:name].length
+    assert_template 'application_types#show'
+  end
+
+  test "should assign errors on invalid characters" do
+    app_params = get_post_form
+    app_params[:name] = '@@ @@'
+    post(:create, {:application => app_params})
+
+    assert app = assigns(:application)
+    assert !app.errors.empty?
+    assert app.errors[:name].present?, app.errors.inspect
+    assert_equal 1, app.errors[:name].length
+    assert_template 'application_types#show'
   end
 
   test "should retrieve application list" do
