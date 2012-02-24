@@ -34,14 +34,4 @@ class Domain < RestApi::Base
   def destroy_recursive
     connection.delete(element_path({:force => true}.merge(prefix_options)), self.class.headers)
   end
-
-  def rescue_save_failure(error)
-    case error
-    when ActiveResource::ResourceConflict
-      errors.add(:name, 'That name is taken, choose another.')
-      true
-    else
-      false
-    end
-  end
 end

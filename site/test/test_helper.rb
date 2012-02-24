@@ -91,11 +91,10 @@ class ActiveSupport::TestCase
     setup_api
     setup_user
     once :domain do
-      puts 'setting up'
       domain = Domain.first :as => @user
       domain.destroy_recursive if domain
       @@domain = setup_domain
-      lambda { puts 'tearing down'; @@domain.destroy_recursive }
+      lambda { @@domain.destroy_recursive }
     end
     @domain = @@domain
   end

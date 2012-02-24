@@ -5,6 +5,9 @@ class Key < RestApi::Base
   #self.element_name = 'key'
   #self.primary_key = 'name'
 
+  class DuplicateName < ActiveResource::ResourceConflict ; end
+  on_exit_code 120, DuplicateName
+
   schema do
     string :name, 'type', :content, :raw_content
   end

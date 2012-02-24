@@ -98,6 +98,37 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal ['hello'], RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello'}]}))))[:test]
   end
 
+  class TestExitCodeException < ActiveResource::ConnectionError ; end
+  class ExitCode < RestApi::Base
+    on_exit_code 124, TestExitCodeException
+    on_exit_code 125 do |errors, code, field, text|
+      errors.add(:base, "Something awful")
+    end
+  end
+
+  def test_exit_code_raises
+    response = stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 124}]})))
+    assert_raise TestExitCodeException do ExitCode.new.load_remote_errors(response, true, true) end
+    assert RestApi::Base.new.load_remote_errors(response, true, true)
+
+    response = stub(:response => stub(:code => 500, :body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 124}]})))
+    assert_raise TestExitCodeException do ExitCode.new.load_remote_errors(response, true, true) end
+
+    response = stub(:response => stub(:code => 409, :body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 124}]})))
+    assert_raise TestExitCodeException do ExitCode.new.load_remote_errors(response, true, true) end
+
+    response = stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 123}]})))
+    assert RestApi::Base.new.load_remote_errors(response, true, true)
+  end
+
+  def test_exit_code_modifies_errors
+    response = stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]})))
+    assert (obj = ExitCode.new).load_remote_errors(response, true, true)
+    assert_equal obj.errors[:base], ["Something awful"]
+    assert (obj = RestApi::Base.new).load_remote_errors(response, true, true)
+    assert_equal obj.errors[:test], ["hello"]
+  end
+
   def test_serialization
     app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'raw-0.1', :as => @user
     #puts app.class.send('known_attributes').inspect
