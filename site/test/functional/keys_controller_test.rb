@@ -5,23 +5,11 @@ class KeysControllerTest < ActionController::TestCase
   @@setup = false
 
   def setup
-    setup_integrated(false)
-    unless @@setup
-      @@setup = true
-      domain = Domain.first :as => @user
-      domain.destroy_recursive if domain
-      setup_domain
-    end
-  end
-  def teardown
+    with_domain
   end
 
-  @name = 0
-  def unique_name
-    "#{self.class.next}key"
-  end
-  def self.next
-    @name += 1
+  def unique_name_format
+    'key%i'
   end
 
   test "should create key" do
@@ -77,10 +65,11 @@ class KeysControllerTest < ActionController::TestCase
 
     post :create, {:key => {:name => 'test', :raw_content => 'ssh-rsa abc2'}, :first => true}
 
+    assert assigns(:first)
     assert key = assigns(:key)
     assert_equal 'test2', key.name
-    assert_equal 'abc2', key.content
-    assert key.errors.empty?, keys.errors.inspect
+    assert_not_equal 'abc2', key.content, "Bug 797270 has been fixed, invert me"
+    assert key.errors.empty?, key.errors.inspect
     assert_redirected_to account_path
     assert flash[:success]
 
