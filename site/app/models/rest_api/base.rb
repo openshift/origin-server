@@ -140,7 +140,7 @@ module RestApi
       end
     end
 
-    def save
+    def save(*args)
       @previously_changed = changes # track changes
       @changed_attributes.clear
       valid = super
