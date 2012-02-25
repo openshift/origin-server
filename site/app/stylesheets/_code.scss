@@ -1,0 +1,11 @@
+pre {
+	-webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+	}
+
+pre.cli {
+	color: $cliText;
+	background-color: $cliBackground;
+	border: none;
+	}
