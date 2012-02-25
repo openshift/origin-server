@@ -14,7 +14,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form})
 
     assert app = assigns(:application)
-    assert app.errors.empty?
+    assert app.errors.empty?, app.errors.inspect
 
     delete :destroy, :id => app.id
     assert_redirected_to applications_path
