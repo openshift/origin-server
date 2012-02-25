@@ -53,7 +53,7 @@ class KeysControllerTest < ActionController::TestCase
 
     assert_redirected_to account_path
     assert key = assigns(:key)
-    assert_not_equal 'defaultkey2', key.content, "Bug 797270 has been fixed, invert me"
+    assert_equal 'defaultkey2', key.content
     assert key.errors.empty?, key.errors.inspect
     assert flash[:success]
 
@@ -69,7 +69,7 @@ class KeysControllerTest < ActionController::TestCase
     assert assigns(:first)
     assert key = assigns(:key)
     assert_equal 'test2', key.name
-    assert_not_equal 'nameuniquekey2', key.content, "Bug 797270 has been fixed, invert me"
+    assert_equal 'nameuniquekey2', key.content
     assert key.errors.empty?, key.errors.inspect
     assert flash[:success]
 
