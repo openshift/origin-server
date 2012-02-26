@@ -1,0 +1,24 @@
+.ribbon { position: relative; /* margin-left: -Xpx; */ }
+.ribbon > .ribbon-content { z-index: 1; position: relative; /* padding-left: Xpx; */ }
+.ribbon > .ribbon-left {
+  content: " ";
+  position: absolute;
+  left: 0;
+  /* border-top: Ypx solid color;
+     bottom: -Ypx;
+     border-left: Xpx solid transparent;
+     */
+}
+
+// Create a ribbon style for an element. Will 
+// -------------------------
+// Requires that the child .ribbon-content be styled
+@mixin ribbon($negativeMargin, $contentMargin, $color, $foldHeight: $negativeMargin) {
+  margin-left: -$negativeMargin - $contentMargin;
+
+  > .ribbon-left {
+    border-top: $foldHeight solid $color;
+    bottom: -$foldHeight;
+    border-left: $negativeMargin solid transparent;
+  }
+}
