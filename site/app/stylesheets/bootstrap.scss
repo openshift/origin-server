@@ -70,6 +70,7 @@
 // Utility classes
 @import "bootstrap/utilities"; // Has to be last to override when necessary
 
-@import "bootstrap/responsive";
+//@import "bootstrap/responsive";
+@import "responsive";
 
 @import "custom"
