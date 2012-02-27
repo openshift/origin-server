@@ -2,7 +2,6 @@ h1, h2, h3, h4, h5, .headline {
 	font-family: $headerFontFamily;
 	font-weight: normal;
 	}
-
 p {
 	margin: 5px 0 13px;
 	}
@@ -10,12 +9,12 @@ h1 {
   font-size: 30px;
   line-height: 36px;
   margin-bottom: 10px;
-}
+	}
 h2 {
   font-size: 22px;
   line-height: 36px;
   margin-bottom: 8px;
-}
+	}
 h3 {
   line-height: 27px;
   font-size: 18px;
@@ -29,12 +28,4 @@ h5 {
 	}
 h6 {
 	font-size: 11px;
-	}
-figure {
-	margin: 0;
-	padding: 0;
-	}
-ol.unstyled {
-  margin-left: 0;
-  list-style: none;
 	}
