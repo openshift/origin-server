@@ -336,7 +336,7 @@ module RestApi
     end
 
     class << self
-      def on_exit_code(code, handles, &block)
+      def on_exit_code(code, handles=nil, &block)
         (@exit_code_conditions ||= {})[code] = handles || block
       end
       def translate_api_error(errors, code, field, text)
