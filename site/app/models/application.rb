@@ -5,7 +5,7 @@ class Application < RestApi::Base
   schema do
     string :name, :creation_time
     string :uuid, :domain_id
-    string :cartridge, :server_identity
+    string :server_identity
   end
 
   custom_id :name
@@ -37,7 +37,7 @@ class Application < RestApi::Base
   end
   
   def cartridges
-    @cartridges ||= Cartridge.find :all, { :params => { :domain_name => domain_name, :application_name => self.name }, :as => as }
+    @cartridges ||= Cartridge.find :all, { :params => { :application_name => self.name }, :as => as }
   end
 
   def web_url
