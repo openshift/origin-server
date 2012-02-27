@@ -17,6 +17,18 @@ a:hover {
 #content {
 	min-height: 550px;
 	}
+figure {
+	margin: 0;
+	padding: 0;
+	}
+ul, ol {
+  margin: 0; /* Set at 0, otherwise default margin causes havoc when assigning grid system classes to list elements. Use <ul class="regular"> for traditional lists */
+  padding: 0;
+	}
+ul.regular, ol.regular {margin: 0 0 9px 30px;padding: 0;}
+ul.unstyled-flat {list-style: none;}
+ul.unstyled-flat li {list-style: none;margin: 0;}
+ol.unstyled {margin-left: 0;list-style: none;}
 .page-header {
 	padding-bottom: 0;
 	}

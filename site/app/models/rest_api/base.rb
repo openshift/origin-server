@@ -157,15 +157,16 @@ module RestApi
 
     # Copy calculated attribute errors
     def valid?
-      if super
-        true
-      else
-        self.class.calculated_attributes.each_pair do |from, attrs|
-          attrs.each do |to|
-            (errors[from] ||= []).concat(errors[to])
+      super.tap { |valid| duplicate_errors unless valid }
+    end
+
+    def duplicate_errors
+      self.class.calculated_attributes.each_pair do |from, attrs|
+        attrs.each do |to|
+          (errors[to] || []).each do |error|
+            errors.add(from, error) unless errors.has_key?(from) && errors[:from].include?(error)
           end
         end
-        false
       end
     end
 
@@ -313,9 +314,12 @@ module RestApi
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
             self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
+          duplicate_errors
         rescue ActiveResource::ConnectionError
           raise
-        rescue
+        rescue Exception => e
+          Rails.logger.warn e
+          Rails.logger.warn e.backtrace
           msg = if defined? response
             Rails.logger.warn "Unable to read server response, #{response.inspect}"
             Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
@@ -332,10 +336,11 @@ module RestApi
     end
 
     class << self
-      def on_exit_code(code, exception=nil, &block)
-        (@exit_code_conditions ||= {})[code] = exception || block
+      def on_exit_code(code, handles=nil, &block)
+        (@exit_code_conditions ||= {})[code] = handles || block
       end
       def translate_api_error(errors, code, field, text)
+        Rails.logger.debug "Server error: :#{field} \##{code}: #{text}"
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
           case handler
