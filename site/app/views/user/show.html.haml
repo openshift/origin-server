@@ -27,7 +27,7 @@
       - if @domain
         .well
           http://applicationname&ndash;
-          %strong>= @domain.name
+          %strong.namespace>= @domain.name
           = ".rhcloud.com"
         .btn-toolbar
           = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
