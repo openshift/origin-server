@@ -128,7 +128,7 @@ class KeysControllerTest < ActionController::TestCase
   test "should assign errors on duplicate content" do
     (key = Key.new get_post_form.merge(:as => @user)).save!
 
-    post :create, {:key => get_post_form.merge(:name => unique_name, :raw_content => key.raw_content)}
+    post :create, {:key => get_post_form.merge(:name => unique_name, :raw_content => "#{key.type} #{key.content}")}
 
     assert_template :new
     assert key = assigns(:key)
