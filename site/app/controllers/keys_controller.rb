@@ -12,6 +12,7 @@ class KeysController < ConsoleController
     if @key.save
       redirect_to (@first ? :back : account_path), :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
     else
+      Rails.logger.debug @key.errors.inspect
       render :new
     end
 
