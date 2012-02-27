@@ -40,8 +40,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_template 'application_types/show'
     assert app = assigns(:application)
     assert !app.errors.empty?
-    assert !app.errors[:name].present?, "Bug 797307 is fixed, invert me and uncomment next line"
-    #assert_equal 1, app.errors[:name].length
+    assert app.errors[:name].present?
+    assert_equal 1, app.errors[:name].length
   end
 
   test "should assign errors on invalid characters" do
