@@ -1,3 +1,11 @@
+%nav
+  %ul.breadcrumb
+    %li
+      = link_to 'My applications', :applications, :action => :index
+      %span.divider /
+    %li.active
+      Application one
+
 %section#app-mast
   .row
     .span9
@@ -23,7 +31,7 @@
     .cartridge-block
       .row
         %ul.unstyled-flat.cartridge-block-overview.offset1
-          %li.span4.offset1
+          %li.span4
             %h6 Cartridge Name
             %h2= @application.framework_name
           %li.span3= "Created #{time_ago_in_words(@application.creation_time)} ago"
@@ -37,7 +45,7 @@
       .cartridge-block
         .row
           %ul.unstyled-flat.cartridge-block-overview.offset1
-            %li.span4.offset1
+            %li.span4
               %h6 Cartridge Name
               %h2= cartridge.name
             %li.span3 Status / Gear Image
@@ -68,9 +76,9 @@
           %ul.unstyled
           - @application_type.help_topics.each do |key, value|
             %li= link_to key, value
-#help
+%section#help
   .row
-    %ul.unstyled-flat.span12
+    %ul.unstyled-flat
       %li.span4
         %h4 Updates
         %a{:href => '#'} Latest Releases

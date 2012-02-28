@@ -1,86 +1,88 @@
-:css
-  .application  {background-color: #efefef; padding: 9px 35px 10px 21px; margin-bottom: 20px; cursor: pointer;}
-  #usage-overview { background-color: #eee; padding: 10px; min-height: 168px; margin: 0 0 20px; } 
-
 - lots_of_applications = @applications.length > 10
 - application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application_overview'
 
-%section#attention
-  %p.hero-unit 
-    ATTENTION MESSAGES HERE
-    %a.pull-right{:href => '#'} View details
+%section#console-mast
+  .row
+    %ul.unstyled-flat
+      %li.span5
+        %h1 All Applications
+      %li.span5
+        %img{:src => 'http://placehold.it/60&text=img'}
+        %img{:src => 'http://placehold.it/60&text=img'}
+        %img{:src => 'http://placehold.it/60&text=img'}
+        %img{:src => 'http://placehold.it/60&text=img'}
+      %li.span2
+        .account-total $0.00
 
 .row
-  %section#my-apps.span8
-    %header.invisible My list of applications
-    %ul.unstyled
-      - if @applications_filter.present? or lots_of_applications
-        = render :partial => 'applications/applications_filter', :object => @applications_filter
-
-      - unless @applications.empty?
-        - @applications.each do |application|
-          %a{:href => 'app-details.html'}
-          = render :partial => application_partial, :locals => { :application => application }
-          
-      - if @applications.empty? and @applications_filter.present?
-        %p.alert.alert-info No applications match your filter
-
-    %div
-      = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-primary', 'btn-large']
-
-    %article#bulletins
-      %h6 What's New
-      %h3 New OpenShift release!
-      %p
-        The latest OpenShift release features and overall improvements in security and performance.
-        %a{:href => '#'} Read
-
-  %section#digest.span4
+  %section#app-list.span7
+    %header
+      %h3.invisible 
+        Application list
+    .app-block
+      - @applications.each do |application|
+        .row
+          %a{:href => "#{application_path(application)}"}
+            %ul.unstyled-flat
+              %li.span1.wordpress
+                %img{:src => 'http://placehold.it/60&text=img', :alt => 'wordpress logo'}
+              %li.span5
+                %h2= application.name
+                = application.web_url
+              %li.span1
+                %img{:src => 'http://placehold.it/60&text=img'}
+  %section#account-digest.span5
     %header.invisible Billing, usage and charts
-    #usage-overview
-      %h5
-        Current Invoice /
-        %time{:datetime => "2012-02-25"} February 25, 2012
-      .totals
-        %img{:alt => "gear usage", :src => 'http://placehold.it/100&text=img'}
-        %span.amount $0.00
-      %a.btn{:href => '#'} Billing Information
+    %table.table.table-striped.table-condensed
+      %thead.invisible
+        %tr
+          %th column heading                
+          %th column heading                
+          %th column heading                
+          %th column heading                
+          %th column heading       
+      %tbody
+        %tr
+          %td 1
+          %td App name
+          %td 4/10
+          %td 40%
+          %td $0.00
+        %tr
+          %td 2
+          %td App name
+          %td 4/10
+          %td 40%
+          %td $0.00
+        %tr
+          %td 3
+          %td App name
+          %td 4/10
+          %td 40%
+          %td $0.00
     %ul.thumbnails
+      %li.span5
+        %a.thumbnail{:href => '#'}
+          %figure
+            %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
+            
+%div
+  = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-primary', 'btn-large']
+
+%section#help
+  .row
+    %ul.unstyled-flat
       %li.span4
-        %a.thumbnail{:href => '#'}
-          %figure
-            %img{:alt => "", :src => 'http://placehold.it/370x168&text=Chart+A'}
-      %li.span2
-        %a.thumbnail{:href => '#'}
-          %figure
-            %img{:alt => "", :src => 'http://placehold.it/160x120x168&text=Chart+C'}
-      %li.span2
-        %a.thumbnail{:href => '#'}
-          %figure
-            %img{:alt => "", :src => 'http://placehold.it/160x120x168&text=Chart+D'}
-
-    %aside.postit
-      .tape &nbsp;
-      %h4 MySQL
-      %ul
-        %li= link_to "Check the MySQL 5.1 Documentation", "#"
-        %li= link_to "Solve connectivity issues", "#"
-      %h4 JBoss AS 7
-      %ul
-        %li= link_to "How to add JBoss modules to an Express app", "#"
-      %h4 Client tools
-      %ul
-        %li= link_to "How to install OpenShift client tools on Linux", "#"
-        %li= link_to "Sync your OpenShift repo with an existing Git repo", "#"
+        %h4 Updates
+        %a{:href => '#'} Latest Releases
+        %p Check out what new features are available
+      %li.span4
+        %h4 Need Help?
+        %a{:href => '#'} Check out the forum
+        %p Post a question, Get the answers
+      %li.span4
+        %h4 Found a Bug?
+        %a{:href => '#'} Report a Bug
+        %p The OpenShift bug tracker is now public
 
 
-%section.row#help-panel
-  #capsule.span3
-    %h4 Need Help?
-    %a{:href => '#'} Check out the forum
-    %p Post a question, Get the answers
-
-  #capsule.span3
-    %h4 Found a bug
-    %a{:href => '#'} Report a bug
-    %p The OpenShift bug tracker is now public
