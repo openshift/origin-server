@@ -3,7 +3,7 @@
 #
 class Cartridge < RestApi::Base
   schema do
-    string :name, :type, :application_id
+    string :name, :type
   end
 
   custom_id :name
