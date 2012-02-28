@@ -30,7 +30,7 @@
                 %h2= application.name
                 = application.web_url
               %li.span1
-                %img{:src => 'http://placehold.it/60&text=img'}
+                %a.btn{:href => "#{application_path(application)}"} Details
   %section#account-digest.span5
     %header.invisible Billing, usage and charts
     %table.table.table-striped.table-condensed

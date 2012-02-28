@@ -49,10 +49,10 @@
         - else
           %table.table.table-condensed.table-striped
             - @keys.each do |key|
-              %tr
+              %tr{:id => "#{key.name}_sshkey"}
                 %td= key.name
-                %td.code= key.display_content
-                %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
+                %td.code.sshkey= key.display_content
+                %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger delete_button', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
           .btn-toolbar
             = link_to "Add a new key...", new_key_path, :class => 'btn'
       - else
