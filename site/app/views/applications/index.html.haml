@@ -1,18 +1,26 @@
 - lots_of_applications = @applications.length > 10
 - application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application_overview'
 
+%nav
+  %ul.breadcrumb
+    %li
+      = link_to 'My applications', :applications, :action => :index
+
 %section#console-mast
   .row
     %ul.unstyled-flat
       %li.span5
         %h1 All Applications
-      %li.span5
-        %img{:src => 'http://placehold.it/60&text=img'}
-        %img{:src => 'http://placehold.it/60&text=img'}
-        %img{:src => 'http://placehold.it/60&text=img'}
-        %img{:src => 'http://placehold.it/60&text=img'}
-      %li.span2
-        .account-total $0.00
+      -#
+        %li.span5
+          %img{:src => 'http://placehold.it/60&text=img'}
+          %img{:src => 'http://placehold.it/60&text=img'}
+          %img{:src => 'http://placehold.it/60&text=img'}
+          %img{:src => 'http://placehold.it/60&text=img'}
+        %li.span2
+          .account-total $0.00
+      %li.span7.right
+        = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-large'], :style => 'margin-right:10px'
 
 .row
   %section#app-list.span7
@@ -32,6 +40,31 @@
               %li.span1
                 %a.btn{:href => "#{application_path(application)}"} Details
   %section#account-digest.span5
+    #assistance{:style => 'padding-left: 50px'}
+      %h5 OpenShift Express Help
+      %ul.unstyled
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf', :target => '_blank'} OpenShift Express User Guide
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems', :target => '_blank'} Installing OpenShift Express client tools on Mac OSX, Linux, and Windows
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1005-ruby-on-rails-express-quickstart-guide', :target => '_blank'} Ruby on Rails Express Quickstart Guide
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app', :target => '_blank'} How can I add JBoss modules to an Express App
+        %li 
+          %a{:href => '#', :target => '_blank'} Sync your OpenShift repo with an existing Git repo
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/', :target => '_blank'} More help »
+          
+      %h5 Popular FAQs
+      %ul.unstyled
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/faq/how-do-i-start-a-new-forum-discussion', :target => '_blank'} How do I start a new Forum discussion?
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/faq/how-do-i-install-the-rhc-client-tools-on-windows', :target => '_blank'} How do I install the rhc client tools on Windows?
+        %li 
+          %a{:href => 'https://www.redhat.com/openshift/community/faq', :target => '_blank'} More FAQs »
+  -#
     %header.invisible Billing, usage and charts
     %table.table.table-striped.table-condensed
       %thead.invisible
@@ -66,23 +99,4 @@
           %figure
             %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
             
-%div
-  = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-primary', 'btn-large']
-
-%section#help
-  .row
-    %ul.unstyled-flat
-      %li.span4
-        %h4 Updates
-        %a{:href => '#'} Latest Releases
-        %p Check out what new features are available
-      %li.span4
-        %h4 Need Help?
-        %a{:href => '#'} Check out the forum
-        %p Post a question, Get the answers
-      %li.span4
-        %h4 Found a Bug?
-        %a{:href => '#'} Report a Bug
-        %p The OpenShift bug tracker is now public
-
-
+= render :partial => 'applications/section_help'

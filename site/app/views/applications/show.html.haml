@@ -3,31 +3,30 @@
     %li
       = link_to 'My applications', :applications, :action => :index
       %span.divider /
-    %li.active
-      Application one
+    %li.active= @application.name
 
 %section#app-mast
   .row
     .span9
       %ul.unstyled-flat
         %li.app-title
-          %h6 Name
+          %h6 Application Name
           %h1= @application.name
         %li.app-status
-          %h6 Status
-          %span Attention
-    .span3.app-settings
-      %img{:src => 'http://placehold.it/60&text=img'}
-      %a{:href => '#'} Settings
-      %a{:href => delete_application_path(@application.name)} Delete
+          -# %h6 Status
+          -# %span Attention
+    .span3.app-settings.right
+      -# %img{:src => 'http://placehold.it/60&text=img'}
+      -# %a{:href => '#'} Settings
+      %a.btn{:href => delete_application_path(@application.name), :style => 'margin-right:10px'} Delete
 
 .row
   %section#app-cartridges.span8
     %header
       %h3.pull-left Cartridges
       .btn-group.pull-right
-        %a.btn{:href => '#'} Add
-        %a.btn{:href => '#'} Remove
+        -# %a.btn{:href => '#'} Add
+        -# %a.btn{:href => '#'} Remove
     .cartridge-block
       .row
         %ul.unstyled-flat.cartridge-block-overview.offset1
@@ -48,7 +47,8 @@
             %li.span4
               %h6 Cartridge Name
               %h2= cartridge.name
-            %li.span3 Status / Gear Image
+            %li.span3 
+              -# Status / Gear Image
   %aside#secondary.span4
     #app-unique-info
       %h5 Visibility
@@ -76,19 +76,5 @@
           %ul.unstyled
           - @application_type.help_topics.each do |key, value|
             %li= link_to key, value
-%section#help
-  .row
-    %ul.unstyled-flat
-      %li.span4
-        %h4 Updates
-        %a{:href => '#'} Latest Releases
-        %p Check out what new features are available
-      %li.span4
-        %h4 Need Help?
-        %a{:href => '#'} Check out the forum
-        %p Post a question, Get the answers
-      %li.span4
-        %h4 Found a Bug?
-        %a{:href => '#'} Report a Bug
-        %p The OpenShift bug tracker is now public
-      
+
+= render :partial => 'applications/section_help'
