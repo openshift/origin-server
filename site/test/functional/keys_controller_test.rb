@@ -95,12 +95,12 @@ class KeysControllerTest < ActionController::TestCase
 
   test "should assign errors on long name" do
     post :create, {:key => get_post_form.merge(:name => 'aoeu'*2000)}
-    assert_redirected_to account_path, "Bug 797296 has been fixed, remove me and uncomment below"
-    #assert_template :new
-    #assert key = assigns(:key)
-    #assert !key.errors.empty?
-    #assert key.errors[:name].present?, key.errors.inspect
-    #assert_equal 1, key.errors[:name].length
+    assert_redirected_to account_path, 
+    assert_template :new
+    assert key = assigns(:key)
+    assert !key.errors.empty?
+    assert key.errors[:name].present?, key.errors.inspect
+    assert_equal 1, key.errors[:name].length
   end
 
   test "should assign errors on invalid name" do
