@@ -15,6 +15,31 @@
 	}
 
 
+/*	Console overview
+	----------------------------------------------------- */	
+		
+#app-list, #account-digest {
+	margin-top: 20px;
+	}
+#console-mast {
+	background: #f0f0f0;
+	}
+	#console-mast h1 {
+		margin: 15px 0 10px 20px;
+		}
+	#console-mast ul li {
+		padding: 10px 0;
+		}
+.account-total {
+	font-size: 250%;
+	margin-top: 20px;
+	}
+.app-block > .row {
+	padding: 15px 0;
+	}
+
+
+
 /*	App details
 	----------------------------------------------------- */
 
