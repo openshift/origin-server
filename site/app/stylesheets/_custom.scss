@@ -21,6 +21,8 @@ figure {
 	margin: 0;
 	padding: 0;
 	}
+body {word-wrap: break-word;}
+table {table-layout:fixed;}
 ul, ol {
   margin: 0; /* Set at 0, otherwise default margin causes havoc when assigning grid system classes to list elements. Use <ul class="regular"> for traditional lists */
   padding: 0;
