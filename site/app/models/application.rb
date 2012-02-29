@@ -37,7 +37,7 @@ class Application < RestApi::Base
   end
   
   def cartridges
-    @cartridges ||= Cartridge.find :all, { :params => { :application_name => self.name }, :as => as }
+    Cartridge.find :all, { :params => { :domain_name => domain_name, :application_name => self.name }, :as => as }
   end
 
   def web_url

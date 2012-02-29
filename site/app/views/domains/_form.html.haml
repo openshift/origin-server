@@ -1,6 +1,6 @@
 = semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
   = f.semantic_errors
-  .control-group.control-group-important{:class => domain.errors[:namespace].present? ? 'error' : ''}
+  .control-group.control-group-important{:class => domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group"}
     .controls
       .input-prepend-append
         %span.add-on-first> http://applicationname&ndash;
