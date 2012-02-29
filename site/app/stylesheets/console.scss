@@ -78,6 +78,9 @@
 	#app-unique-info h5 {
 		border-bottom: 1px solid #eee;
 		}
+  #app-unique-info a {
+    word-wrap: break-word;
+    }
 section#app-cartridges .cartridge-block {
 	background: #f0f0f0 url("http://placehold.it/60&text=img") 15px 15px no-repeat;
 	margin-bottom: 15px;

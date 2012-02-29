@@ -21,9 +21,6 @@
 // -------------------------
 // Required since we compile the responsive stuff separately
 
-@import "variables"; // Modify this for custom colors, font-sizes, etc
-@import "mixins";
-
 .clearfix {
   @include clearfix();
 }
