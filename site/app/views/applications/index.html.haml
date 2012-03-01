@@ -23,24 +23,24 @@
         = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-large'], :style => 'margin-right:10px'
 
 .row
-  %section#app-list.span7
+  %section#app-list.span8
     %header
       %h3.invisible 
         Application list
-    .app-block
-      - @applications.each do |application|
+    - @applications.each do |application|
+      .app-block
         .row
-          %a{:href => "#{application_path(application)}"}
-            %ul.unstyled-flat
+          %ul.unstyled-flat
+            -#
               %li.span1.wordpress
                 %img{:src => 'http://placehold.it/60&text=img', :alt => 'wordpress logo'}
-              %li.span5
-                %h2= application.name
-                = application.web_url
-              %li.span1
-                %a.btn{:href => "#{application_path(application)}"} Details
-  %section#account-digest.span5
-    #assistance{:style => 'padding-left: 50px'}
+            %li.span6
+              %h2= application.name
+              = link_to application.web_url, application.web_url
+            %li.span2
+              %a.pull-right.btn{:href => "#{application_path(application)}"} Details
+  %section#account-digest.span4
+    #assistance
       %h5 OpenShift Express Help
       %ul.unstyled
         %li 

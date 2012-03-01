@@ -34,15 +34,24 @@
 	font-size: 250%;
 	margin-top: 20px;
 	}
-.app-block > .row {
-	padding: 15px 0;
+.app-block {
+   background: #f0f0f0;
+   margin-bottom: 15px;
+   }
+.app-block > .row > ul > li {
+  margin-top: 15px;
+  margin-bottom: 15px;
 	}
-	.app-block > .row > a {
-		display: inline-table;
-		}
-  .app-block h2 {
-    word-wrap: break-word;
-    }
+.app-block > .row > ul > li:first-child {
+  margin-left: 45px;
+  margin-right: -15px;
+  }
+.app-block > .row > ul > li:last-child > a {
+  margin-right: 15px;
+  }
+.app-block h2 {
+  word-wrap: break-word;
+  }
 
 
 /*	App details
