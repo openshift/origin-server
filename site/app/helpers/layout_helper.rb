@@ -1,10 +1,12 @@
 require 'enumerator'
 
 module LayoutHelper
+  
   def navigation_tabs(options={}, &block)
     content = capture &block
     content_tag(:ul, content, :class => 'nav')
   end
+  
   def navigation_tab(name, options={})
     action = options[:action]
     active = (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
