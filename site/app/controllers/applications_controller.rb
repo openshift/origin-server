@@ -138,6 +138,7 @@ class ApplicationsController < ConsoleController
     if @application.save
       redirect_to get_started_application_path(@application, :wizard => true)
     else
+      Rails.logger.debug @application.errors.inspect
       render 'application_types/show'
     end
   rescue ActiveResource::ServerError => e
