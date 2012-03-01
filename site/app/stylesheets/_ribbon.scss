@@ -13,12 +13,18 @@
 // Create a ribbon style for an element. Will 
 // -------------------------
 // Requires that the child .ribbon-content be styled
-@mixin ribbon($negativeMargin, $contentMargin, $color, $foldHeight: $negativeMargin) {
-  margin-left: -$negativeMargin - $contentMargin;
+@mixin ribbon($color, $foldHeight: 10px, $negativeMargin: 10px) {
+  @include ribbon_gutters($gridGutterWidth, $negativeMargin);
 
   > .ribbon-left {
     border-top: $foldHeight solid $color;
     bottom: -$foldHeight;
     border-left: $negativeMargin solid transparent;
+  }
+}
+@mixin ribbon_gutters($marginWidth, $ribbonOffset: 5px) {
+  margin-left: -($ribbonOffset + $marginWidth);
+  > .ribbon-content {
+    padding-left: $ribbonOffset + $marginWidth;
   }
 }
