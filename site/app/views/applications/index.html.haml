@@ -23,36 +23,36 @@
         = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-large'], :style => 'margin-right:10px'
 
 .row
-  %section#app-list.span7
+  %section#app-list.span8
     %header
       %h3.invisible 
         Application list
-    .app-block
-      - @applications.each do |application|
+    - @applications.each do |application|
+      .app-block
         .row
-          %a{:href => "#{application_path(application)}"}
-            %ul.unstyled-flat
+          %ul.unstyled-flat
+            -#
               %li.span1.wordpress
                 %img{:src => 'http://placehold.it/60&text=img', :alt => 'wordpress logo'}
-              %li.span5
-                %h2= application.name
-                = application.web_url
-              %li.span1
-                %a.btn{:href => "#{application_path(application)}"} Details
-  %section#account-digest.span5
-    #assistance{:style => 'padding-left: 50px'}
+            %li.span6
+              %h2= application.name
+              = link_to application.web_url, application.web_url
+            %li.span2
+              %a.pull-right.btn{:href => "#{application_path(application)}"} Details
+  %section#account-digest.span4
+    #assistance
       %h5 OpenShift Express Help
       %ul.unstyled
         %li 
-          %a{:href => 'https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf', :target => '_blank'} OpenShift Express User Guide
+          %a{:href => user_guide, :target => '_blank'} OpenShift Express User Guide
         %li 
-          %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems', :target => '_blank'} Installing OpenShift Express client tools on Mac OSX, Linux, and Windows
+          %a{:href => install_cli_knowledge_base_url, :target => '_blank'} Installing OpenShift Express client tools on Mac OSX, Linux, and Windows
         %li 
-          %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1005-ruby-on-rails-express-quickstart-guide', :target => '_blank'} Ruby on Rails Express Quickstart Guide
+          %a{:href => rails_quickstart_guide, :target => '_blank'} Ruby on Rails Express Quickstart Guide
         %li 
           %a{:href => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app', :target => '_blank'} How can I add JBoss modules to an Express App
         %li 
-          %a{:href => '#', :target => '_blank'} Sync your OpenShift repo with an existing Git repo
+          %a{:href => sync_git_with_remote_repo_knowledge_base_url, :target => '_blank'} Sync your OpenShift repo with an existing Git repo
         %li 
           %a{:href => 'https://www.redhat.com/openshift/community/', :target => '_blank'} More help »
           

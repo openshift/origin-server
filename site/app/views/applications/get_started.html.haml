@@ -37,7 +37,7 @@
         that you'll use to check in changes to your application. When you
         %strong push
         a change to your Git repository we'll automatically deploy your code and restart your application if necessary.
-        = link_to "Learn more about uploading code"
+        = link_to "Learn more about uploading code", git_user_guide_topic_url
 
       - if @has_keys
         - if true #FIXME has a single cartridge with source code
@@ -89,7 +89,7 @@
       %strong rhc.
       Whether it's adding cartridges, checking uptime, or pulling log files from
       the server, you can quickly put a finger on the pulse of your application.
-      = link_to "Follow these steps to install the client"
+      = link_to "Follow these steps to install the client", install_cli_knowledge_base_url
       on Linux, Mac OS X, or Windows.
     %p
       After installing the command line tool follow our User Guide
@@ -108,7 +108,7 @@
       manages the database server for you.
     %p
       You can see the 
-      = link_to "list of available cartridges online"
+      = link_to "list of available cartridges online", manage_cartridges_user_guide_topic_url
       or from the command line with
     %pre.cli
       = preserve do

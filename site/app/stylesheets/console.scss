@@ -11,7 +11,7 @@
 	------------------------------------------------------ */
 
 #help {
-	margin-top: 40px;
+	margin-top: 60px;
 	}
 
 
@@ -34,15 +34,24 @@
 	font-size: 250%;
 	margin-top: 20px;
 	}
-.app-block > .row {
-	padding: 15px 0;
+.app-block {
+   background: #f0f0f0;
+   margin-bottom: 15px;
+   }
+.app-block > .row > ul > li {
+  margin-top: 10px;
+  margin-bottom: 10px;
 	}
-	.app-block > .row > a {
-		display: inline-table;
-		}
-  .app-block h2 {
-    word-wrap: break-word;
-    }
+.app-block > .row > ul > li:first-child {
+  margin-left: 40px;
+  margin-right: -10px;
+  }
+.app-block > .row > ul > li:last-child > a {
+  margin-right: 10px;
+  }
+.app-block h2 {
+  word-wrap: break-word;
+  }
 
 
 /*	App details
@@ -118,6 +127,7 @@ section#app-cartridges .cartridge-block {
 	#my-apps li h2 {
 		float: right;
 		}
+	section#console-mast .row ul.unstyled-flat li.span7.right { text-align: left; } 
 }
 @media (min-width: 768px) and (max-width: 980px) {
 	#my-apps li h2 {

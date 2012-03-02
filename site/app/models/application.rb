@@ -13,6 +13,7 @@ class Application < RestApi::Base
   alias_attribute :domain_name, :domain_id
 
   has_many :aliases
+  # Deprecated on server side, so we will not use it (use /cartridges instead)
   has_many :embedded
   has_many :cartridges
   
