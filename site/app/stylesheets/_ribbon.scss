@@ -22,7 +22,7 @@
     border-left: $negativeMargin solid transparent;
   }
 }
-@mixin ribbon_gutters($marginWidth, $ribbonOffset: 5px) {
+@mixin ribbon_gutters($marginWidth, $ribbonOffset: 10px) {
   margin-left: -($ribbonOffset + $marginWidth);
   > .ribbon-content {
     padding-left: $ribbonOffset + $marginWidth;

@@ -145,11 +145,21 @@
   }
   // Make all columns even
   .row > [class*="span"],
+  .row > .span-wrapper > [class*="span"],
   .row-fluid > [class*="span"] {
     float: none;
     display: block;
     width: auto;
     margin: 0;
+  }
+
+  // Custom: adjust a span to adjust to the right of a box
+  .row-flush-right {
+    margin-right: 0;
+
+    .span-flush-right {
+      padding-right: 0;
+    }
   }
 }
 
@@ -169,6 +179,14 @@
   // Input grid
   @include inputGridSystem-generate(12, $gridColumnWidthTablet, $gridGutterWidthTablet);
 
+  // Custom: adjust a span to adjust to the right of a box
+  .row-flush-right { 
+    margin-right: -$gridGutterWidthTablet;
+
+    .span-flush-right { 
+      padding-right: $gridGutterWidthTablet;
+    }
+  }
 }
 
 
@@ -330,4 +348,12 @@
     margin-left: $gridGutterWidthLarge;
   }
 
+  // Custom: adjust a span to adjust to the right of a box
+  .row-flush-right { 
+    margin-right: -$gridGutterWidthLarge;
+
+    .span-flush-right { 
+      padding-right: $gridGutterWidthLarge;
+    }
+  }
 }
