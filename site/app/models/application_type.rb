@@ -36,7 +36,7 @@ class ApplicationType
       :license => 'GNU LPGL 2.1',
       :license_url => 'http://www.gnu.org/licenses/lgpl-2.1-standalone.html',
       :categories => [:framework],
-      :description => 'JBoss Application Server 7.1 is the open solution for enterprise Java.',
+      :description => 'The leading open source Java EE6 application server for enterprise Java applications.  Popular development frameworks include Seam, CDI, Weld, and Spring.',
       :website => 'http://www.jboss.org/jbossas',
       :help_topics => {
         'How to add JBoss modules to an Express app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
@@ -48,13 +48,13 @@ class ApplicationType
       :name => 'PHP 5.3',
       :version => '5.3.2',
       :categories => [:framework],
-      :description => 'PHP is a widely-used general-purpose scripting language that is especially suited for Web development and can be embedded into HTML.',
+      :description => 'PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages.  The mod_php Apache module is used to execute PHP applications.  Popular development frameworks include: CakePHP, Symfony, and Code Igniter.  Popular applications include: Drupal, Wordpress, and Mediawiki.',
       :website => 'http://www.php.net',
-      :provides => [
-        'Apache configured with mod_php',
-        'PHP script directory for you to check PHP files',
-        'A Git repository you can checkout locally'
-      ]
+#      :provides => [
+#        'Apache configured with mod_php',
+#        'PHP script directory for you to check PHP files',
+#        'A Git repository you can checkout locally'
+#      ]
     },
     {
       :id => 'rails32',
@@ -65,10 +65,10 @@ class ApplicationType
     },
     {
       :id => 'python-2.6',
-      :name => 'Python 2.6 with WSGI',
+      :name => 'Python 2.6',
       :version => 'Python 2.6.6 / WSGI 3.2',
       :categories => [:framework],
-      :description => 'WSGI is the common interface between Python and web servers.  This can be used to create web applications with TurboGears, Django, and other WSGI-compatible frameworks.',
+      :description => 'Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. The Web Server Gateway Interface (WSGI) defines a simple and universal interface between web servers and web applications or frameworks for the Python programming language. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears.',
       :website => 'http://rack.rubyforge.org/',
       :help_topics => {
         'Getting Django up and running in 5 minutes' => 'https://www.redhat.com/openshift/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
@@ -76,10 +76,10 @@ class ApplicationType
     },
     {
       :id => 'perl-5.10',
-      :name => 'Perl 5.10 with mod_perl',
+      :name => 'Perl 5.10',
       :version => 'Perl 5.10 / mod_perl 2.0.4',
       :categories => [:framework],
-      :description => 'mod_perl brings together the full power of the Perl programming language and the Apache HTTP server. You can use Perl to manage Apache, respond to requests for web pages and much more.',
+      :description => 'Perl is a high-level, general-purpose, interpreted, dynamic programming language. mod_perl is an optional module for the Apache HTTP server. It embeds a Perl interpreter into the Apache server, so that dynamic content produced by Perl scripts can be served in response to incoming requests, without the significant overhead of re-launching the Perl interpreter for each request. ',
       :website => 'http://perl.apache.org/start/index.html',
       :help_topics => {
         'How to onboard a Perl application' => 'https://www.redhat.com/openshift/community/kb/kb-e1013-how-to-onboard-a-perl-application',
@@ -99,7 +99,7 @@ class ApplicationType
       :name => 'Ruby 1.8.7',
       :version => 'Ruby 1.8.7 / Rack 1.1',
       :categories => [:framework],
-      :description => 'Provides Ruby web applications through Apache, Phusion Passenger, and Rack. Use this application to create Sinatra, Ruby on Rails, or other Rack-compatible Ruby web application frameworks.',
+      :description => 'Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. Popular development frameworks include: Ruby on Rails and Sinatra.',
       :website => 'http://rack.rubyforge.org/'
     },
     {
