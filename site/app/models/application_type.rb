@@ -95,7 +95,7 @@ class ApplicationType
       :website => 'http://rack.rubyforge.org/'
     },
     {
-      :id => 'raw-0.1',
+      :id => 'diy-0.1',
       :name => 'Do-It-Yourself',
 #      :version => '1.0',
       :categories => [:framework, :experimental],
