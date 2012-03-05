@@ -6,7 +6,7 @@
 -ie_html :class => 'no-js', :lang => 'en' do
   %head
     = render "layouts/head"
-    = render "layouts/new_stylesheets"
+    = render "layouts/console/stylesheets"
 
   %body{ :class => "console console-transition #{controller.controller_name} #{controller.action_name}" }
     = outage_notification
