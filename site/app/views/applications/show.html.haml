@@ -25,7 +25,8 @@
     %header
       %h3.pull-left Cartridges
       .btn-group.pull-right
-        -# %a.btn{:href => '#'} Add
+        = link_to('Add +', application_cartridge_types_path(@application.name),
+                           :class => ['btn', 'pull-right'])
         -# %a.btn{:href => '#'} Remove
     .cartridge-block
       .row
