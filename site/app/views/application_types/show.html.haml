@@ -4,7 +4,7 @@
   .application_type > ul.meta > li > label {display: inline;}
 
 %h1.invisible Configure New Application
-= wizard_steps_create 1
+= app_wizard_steps_create 1
 
 = render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true}
 
