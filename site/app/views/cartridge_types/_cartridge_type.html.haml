@@ -1,0 +1,43 @@
+= div_for cartridge_type do
+
+  - if cartridge_type.categories.include? :new
+    %span.label.label-important.pull-right Recently Added
+
+  %h3= cartridge_type.name
+
+  - if defined? extra_info
+    %ul.unstyled.meta
+
+      -# if cartridge_type.license
+        %li.license
+          %label License:
+          - if cartridge_type.respond_to? :license_url
+            = link_to cartridge_type.license, cartridge_type.license_url
+          - else
+            %span= cartridge_type.license
+
+      - if cartridge_type.website
+        %li.website
+          %label Website:
+          = link_to cartridge_type.website, cartridge_type.website
+
+      - if cartridge_type.version
+        %li.version
+          %label Version:
+          %span= cartridge_type.version
+
+  %p= cartridge_type.description
+
+  - if cartridge_type.learn_more_url
+    = link_to "Learn more", cartridge_type.learn_more_url
+
+  - if defined? extra_info and cartridge_type.provides
+    %div
+      %h4 What you get:
+      %ul
+        - cartridge_type.provides.each do |provided|
+          %li= provided
+
+  - unless defined? hide_link
+    -# = link_to "Select »", cartridge_type_path(cartridge_type), :class => 'btn'
+

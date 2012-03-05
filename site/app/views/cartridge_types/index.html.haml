@@ -1,0 +1,33 @@
+:css
+  .cartridge_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px; cursor: pointer;}
+  .cartridge_type:hover {background-color: #e0e0e0;}
+  .cartridge_type:active {background-color: #CC0000; color: white}
+  .cartridge_type > ul.meta > li > label {display: inline;}
+
+%h1.invisible Add a New Cartidge
+= cartridge_wizard_steps_create 0
+%p
+  Choose a cartridge to add to your application.
+
+.row
+  - @cart_types.each_slice((@cart_types.length/2.0).ceil).each do |types|
+    .span6
+      = render :collection => types, :partial => 'cartridge_types/cartridge_type'
+
+-# unless @popular_types.empty
+  .row
+    .span7
+      %h2 Popular Types
+      %p These cartidges have been selected by the OpenShift team to get you started in a hurry. These are good choices when you want to learn more about how OpenShift works.
+      = render @popular_types
+    .span5
+      = yield :cartridges
+-# else
+  = yield :cartridges
+
+- content_for :javascripts do
+  :javascript
+    jQuery('.application_type').click(function() {
+      a = $('a.btn', this)[0];
+      window.location = a.href
+    });
