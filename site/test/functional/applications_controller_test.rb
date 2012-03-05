@@ -9,7 +9,7 @@ class ApplicationsControllerTest < ActionController::TestCase
   def setup
     setup_integrated
   end
-  
+
   test "should create and delete app" do
     post(:create, {:application => get_post_form})
 
@@ -109,7 +109,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app
     assert app_framework
     assert_equal 'test1', app.name
-    assert_equal 'raw-0.1', app_framework.id
+    assert_equal 'diy-0.1', app_framework.id
   end
 
   test "should result in a not found error when retrieving and application that does not exist" do
@@ -137,7 +137,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 #  end
 
   def get_post_form
-    {:name => 'test1', :application_type => 'raw-0.1'}
+    {:name => 'test1', :application_type => 'diy-0.1'}
   end
 
   def get_filter_form

@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'active_resource/http_mock'
 
-# 
+#
 # Mock tests only - should verify functionality of ActiveResource extensions
 # and simple server/client interactions via HttpMock
 #
@@ -83,12 +83,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
     assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
-    begin 
+    begin
       RestApi::Base.new.load_remote_errors(response(''))
     rescue RestApi::BadServerResponseError => e
       assert_equal '', e.to_s
     end
-    begin 
+    begin
       RestApi::Base.new.load_remote_errors(response('{mal'))
     rescue RestApi::BadServerResponseError => e
       assert_equal '{mal', e.to_s
@@ -130,7 +130,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_serialization
-    app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'raw-0.1', :as => @user
+    app = Application.new :name => 'test1', :cartridge => 'cool', :application_type => 'diy-0.1', :as => @user
     #puts app.class.send('known_attributes').inspect
     app.serializable_hash
   end
@@ -298,7 +298,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     assert_equal 'key 2', Key.new(:name => 'key', :as => @user).make_unique!.name
     assert_equal 'new key 2', Key.new(:name => 'key', :as => @user).make_unique!('new key %s').name
-    
+
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/user/keys.json', json_header, [{:name => 'key'}, {:name => 'key 2'}].to_json
     end
