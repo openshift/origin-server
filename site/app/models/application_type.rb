@@ -22,7 +22,7 @@ class ApplicationType
     true
   end
 
-  @default_types = [
+  default_types_array = [
     {
       :id => 'empty',
       :name => 'Simple Application',
@@ -87,14 +87,6 @@ class ApplicationType
       }
     },
     {
-      :id => 'nodejs-0.6',
-      :name => 'Node.js 0.6',
-      :version => 'Node.js 0.6.10',
-      :categories => [:framework, :new], # removed :framework tag
-      :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
-      :website => 'http://rack.rubyforge.org/'
-    },
-    {
       :id => 'ruby-1.8',
       :name => 'Ruby 1.8.7',
       :version => 'Ruby 1.8.7 / Rack 1.1',
@@ -110,7 +102,19 @@ class ApplicationType
       :description => 'The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
       #:website => 'http://perl.apache.org/start/index.html'
     }
-  ].map { |t| ApplicationType.new t }
+  ]
+  
+  if Rails.configuration.node_js_enabled then 
+    default_types_array << {
+      :id => 'nodejs-0.6',
+      :name => 'Node.js 0.6',
+      :version => 'Node.js 0.6.10',
+      :categories => [:framework, :new], # removed :framework tag
+      :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
+      :website => 'http://rack.rubyforge.org/'
+    } 
+  end
+  @default_types = default_types_array.map { |t| ApplicationType.new t }
 
   class << self
     def find_empty
