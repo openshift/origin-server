@@ -8,4 +8,8 @@ class ConsoleController < ApplicationController
   def index
     redirect_to applications_path
   end
+
+  private
+    def help
+    end
 end

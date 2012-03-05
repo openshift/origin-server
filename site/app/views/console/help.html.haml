@@ -1,0 +1,39 @@
+%section.row
+  .span3
+    %h2 Create
+    %p Just starting with OpenShift?
+    %p Get your first application up off the ground through the #{link_to 'app creation wizard'}.
+    %p If you prefer the command line, #{link_to 'our Quickstart page'} will help you install the client tools, create your application, and make your first change.
+    %p Our #{link_to 'GitHub page has tutorials', 'https://github.com/openshift'} for creating apps based many different technologies like Drupal, Ruby on Rails, and Wordpress.
+
+  .span3
+    %h2 Learn
+    %p Want to explore our platform?
+    %p #{link_to 'The User Guide'} is the first destination for new developers and is our most-accessible reference.
+    %p Our technology highlight pages bring together what you need to know - #{link_to 'JBoss'} and #{link_to 'MongoDB'} are up now, with more to come.
+    %p For some great technology dives #{link_to 'see our Videos page'}. Some of our favorites are below.
+
+  .span3
+    %h2 Troubleshoot
+    %p When you hit a bump in the road
+    %p Our #{link_to 'community forums'} are watched round the clock by an army of developers, evangelists, and OpenShift devotees.
+    %form.form-search
+      %input.input-small.search-query
+      %input.btn{:type => 'submit', :value => 'Search'}
+    %p Check out the #{link_to 'Knowledge Base'} for known headaches and #{link_to 'FAQ'} for more general questions
+    %p Talk directly to the team on IRC - #{link_to 'freenode.net on channel #openshift', irc_web_url}.
+
+  .span3
+    %h2 Engage
+    %p The OpenShift newsletter is a great way to track the latest news. #{link_to 'Subscribe today.', 'a', :class => 'btn'}
+
+%section.row
+  .span12
+    %h2 Videos
+    %ul.thumbnails
+      %li.span3
+        .thumbnail
+          %h5 Product Tour
+          = link_to 'video1' do
+            %img{:src => '/app/images/video_stills/OpenShift-Express-demo.png'}
+          %p This video walks you through the high level functionality of OpenShift Express, from installing the client tools, creating a subdomain to deploying your app onto the cloud.
