@@ -26,7 +26,8 @@
           %label Version:
           %span= cartridge_type.version
 
-  %p= cartridge_type.description
+  - if cartridge_type.description
+    %p= cartridge_type.description
 
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
