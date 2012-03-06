@@ -88,7 +88,7 @@ module LayoutHelper
   CartridgeWizardStepsCreate = [
     {
       :name => 'Choose a cartridge type',
-      :link => 'cartridge_types_path'
+      :link => 'application_cartridge_types_path'
     },
     {
       :name => 'Configure and deploy the cartridge'

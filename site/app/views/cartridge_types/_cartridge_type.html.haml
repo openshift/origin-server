@@ -40,5 +40,5 @@
           %li= provided
 
   - unless defined? hide_link
-    -# = link_to "Select »", cartridge_type_path(cartridge_type), :class => 'btn'
+    = link_to "Select »", application_cartridge_type_path(@application_id, cartridge_type), :class => 'btn'
 

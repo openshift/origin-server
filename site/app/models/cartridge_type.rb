@@ -65,24 +65,27 @@ class CartridgeType < RestApi::Base
     def find(*arguments)
       scope   = arguments.slice!(0)
       options = arguments.slice!(0) || {}
+
+      path = "#{prefix}.json"
+      rest_types = format.decode(connection(options).get(path, headers).body)
+
+      default_types = rest_types.map do |t|
+        name = t['name']
+
+        if !@type_map[name].nil?
+          CartridgeType.new(@type_map[name])
+        else
+          CartridgeType.new({:id => name, :name => name, :categories => [t['type']]})
+        end
+      end
+
       case scope
       when String
-        @default_types.find { |type| type.id == option } or raise NotFound
+        default_types.find { |type| type.id == scope } or raise NotFound
       when :all
-        path = "#{prefix}.json"
-        rest_types = format.decode(connection(options).get(path, headers).body)
-
-        default_types = rest_types.map do |t|
-          name = t['name']
-
-          if !@type_map[name].nil?
-            CartridgeType.new(@type_map[name])
-          else
-            CartridgeType.new({:id => name, :name => name, :categories => [t['type']]})
-          end
-        end
+        default_types
       when Symbol
-        @default_types.find { |type| type.categories.include? option }
+        default_types.find { |type| type.categories.include? scope }
       else
         raise "Unsupported scope"
       end
