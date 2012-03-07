@@ -135,6 +135,12 @@
     width: auto;
     padding: 0 20px;
   }
+
+  // ADDED: containers which don't need gutters in small layouts
+  .container-inset {
+    padding: 0;
+  }
+
   // Fluid rows
   .row-fluid {
     width: 100%;
@@ -161,6 +167,19 @@
       padding-right: 0;
     }
   }
+  
+  // For use in inlined elements in combination with existing padding
+  .gutter { 
+    margin-left: $gridGutterWidthPhone;
+  }
+  .gutter-right {
+    margin-right: 0;
+  }
+
+  // Put content into a box with gutters compatible with the grid
+  .box-content {
+    padding: $gridGutterWidthPhone/2 $gridGutterWidthPhone;
+  }
 }
 
 
@@ -186,6 +205,18 @@
     .span-flush-right { 
       padding-right: $gridGutterWidthTablet;
     }
+  }
+  // For use in inlined elements in combination with existing padding
+  .gutter { 
+    margin-left: $gridGutterWidthTablet;
+  }
+  .gutter-right {
+    margin-right: $gridGutterWidthTablet/2;
+  }
+
+  // Put content into a box with gutters compatible with the grid
+  .box-content {
+    padding: $gridGutterWidthTablet;
   }
 }
 
@@ -355,5 +386,17 @@
     .span-flush-right { 
       padding-right: $gridGutterWidthLarge;
     }
+  }
+  // For use in inlined elements in combination with existing padding
+  .gutter { 
+    margin-left: $gridGutterWidthLarge;
+  }
+  .gutter-right {
+    margin-right: $gridGutterWidthLarge/2;
+  }
+
+  // Put content into a box with gutters compatible with the grid
+  .box-content {
+    padding: $gridGutterWidthLarge;
   }
 }
