@@ -3,15 +3,22 @@
 #
 class Cartridge < RestApi::Base
   schema do
-    string :name, :type
+    string :name, 'type'
   end
 
   custom_id :name
-  attr_accessor :type
 
   belongs_to :application
 
   self.prefix = "#{RestApi::Base.site.path}domains/:domain_name/applications/:application_name/"
+
+  def type
+    @attributes[:type]
+  end
+
+  def type=(type)
+    @attributes[:type]=type
+  end
 
   def application_name=(id)
     self.prefix_options[:application_name] = id

@@ -9,7 +9,7 @@ class CartridgeType < RestApi::Base
     string :name, :type
   end
 
-  attr_accessor :name, :id, :type, :version, :description
+  attr_accessor :name, :id, :version, :description
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
@@ -18,7 +18,16 @@ class CartridgeType < RestApi::Base
 
   self.prefix = "#{RestApi::Base.site.path}/cartridges/embedded"
 
+  def type
+    @attributes[:type]
+  end
+
+  def type=(type)
+    @attributes[:type]=type
+  end
+
   def initialize(attributes={})
+    @attributes={}
     attributes.each do |name,value|
       send("#{name}=", value)
     end
@@ -77,7 +86,7 @@ class CartridgeType < RestApi::Base
         if !@type_map[name].nil?
           CartridgeType.new(@type_map[name])
         else
-          CartridgeType.new({:id => name, :name => name, :categories => [t['type']]})
+          CartridgeType.new({:id => name, :name => name, :type => t['type'], :categories => [t['type']]})
         end
       end
 

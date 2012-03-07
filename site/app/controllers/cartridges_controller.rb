@@ -20,7 +20,7 @@ class CartridgesController < ConsoleController
     # TODO: check for app errors and redirect to app list if error
 
     @cartridge = Cartridge.new cart_params
-    
+
     @cartridge.application = @application
     @cartridge.as = session_user
 
