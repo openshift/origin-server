@@ -7,6 +7,7 @@ class Cartridge < RestApi::Base
   end
 
   custom_id :name
+  attr_accessor :type
 
   belongs_to :application
 
