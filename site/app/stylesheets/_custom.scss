@@ -28,7 +28,7 @@ ul, ol {
 	}
 ul.regular, ol.regular {margin: 0 0 9px 30px;padding: 0;}
 ul.unstyled-flat {list-style: none;}
-ul.unstyled-flat li {list-style: none;}
+ul.unstyled-flat li {list-style: none;float:left;}
 ol.unstyled {margin-left: 0;list-style: none;}
 .page-header {
 	padding-bottom: 0;
