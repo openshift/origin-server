@@ -1,3 +1,4 @@
+-# Javascript at the bottom for fast page loading
 :ruby
   scripts = [
     'jquery.min.js',
@@ -10,6 +11,7 @@
 
 - scripts.each do |script|
   = javascript_include_tag "/app/javascripts/#{script}"
-    
+
 -#  Append your own using content_for :javascripts
 = yield :javascripts
+

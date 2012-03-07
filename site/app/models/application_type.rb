@@ -104,6 +104,7 @@ class ApplicationType
     }
   ]
   
+  # TODO: remove this and load cart list from broker
   if Rails.configuration.node_js_enabled then 
     default_types_array << {
       :id => 'nodejs-0.6',
