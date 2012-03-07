@@ -25,12 +25,12 @@ class CartridgesController < ConsoleController
     @cartridge.as = session_user
 
     if @cartridge.save
-
+      # redirect to a getting started page
+      redirect_to application_path(params['application_id'])
     else
       Rails.logger.debug @cartridge.errors.inspect
       @cartridge_type = CartridgeType.find cart_params[:name], :as => session_user
       @application_id = @application.id
-      throw @cartridge.errors.inspect
       render 'cartridge_types/show'
     end
   end
