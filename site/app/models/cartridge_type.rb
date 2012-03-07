@@ -9,7 +9,7 @@ class CartridgeType < RestApi::Base
     string :name, :type
   end
 
-  attr_accessor :name, :id, :version, :description
+  attr_accessor :name, :id, :type, :version, :description
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
@@ -37,6 +37,7 @@ class CartridgeType < RestApi::Base
     {
       :id => 'mongodb-2.0',
       :name => 'MongoDB NoSQL Database 2.0',
+      :type => 'embedded',
       :version => 'MongoDB 2.0',
       :license => 'ASL 2.0 and AGPLv3',
       :license_url => 'http://www.mongodb.org/display/DOCS/Licensing',
@@ -50,6 +51,7 @@ class CartridgeType < RestApi::Base
     {
       :id => 'mysql-5.1',
       :name => 'MySQL Database 5.1',
+      :type => 'embedded',
       :version => 'MySQL 5.1',
       :license => 'GPLv2 with exceptions',
       :license_url => 'http://www.mysql.com/about/legal/licensing/index.html',
