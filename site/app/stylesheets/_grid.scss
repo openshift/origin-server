@@ -17,6 +17,9 @@
 .gutter { 
   margin-left: $gridGutterWidth;
 }
+.gutter-right {
+  margin-right: $gridGutterWidth/2;
+}
 
 // Put content into a box with gutters compatible with the grid
 .box-content {
