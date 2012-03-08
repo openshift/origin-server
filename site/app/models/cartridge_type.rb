@@ -69,6 +69,118 @@ class CartridgeType < RestApi::Base
       :website => 'http://www.mysql.com/',
       :help_topics => {
       }
+    },
+    "cron-1.4" =>
+    {
+      :id => 'cron-1.4',
+      :name => 'Cron 1.4',
+      :type => 'embedded',
+      :version => 'Cron 1.4',
+      :license => 'MIT and BSD and ISC and GPLv2',
+      :license_url => nil,
+      :categories => [:embedded],
+      :description => 'Cron is a daemon that runs specified programs at scheduled times',
+      :website => 'https://fedorahosted.org/cronie/',
+      :help_topics => {
+      }
+    },
+    "postgresql-8.4" =>
+    {
+      :id => 'postgresql-8.4',
+      :name => 'PostgreSQL Database 8.4',
+      :type => 'embedded',
+      :version => 'PostgreSQL 8.4',
+      :license => 'PostgreSQL',
+      :license_url => "http://www.postgresql.org/about/licence/",
+      :categories => [:embedded],
+      :description => 'PostgreSQL is an advanced Object-Relational database management system',
+      :website => 'http://www.postgresql.org/',
+      :help_topics => {
+      }
+    },
+    "10gen-mms-agent-0.1" =>
+    {
+      :id => '10gen-mms-agent-0.1',
+      :name => '10gen - MongoDB Monitoring Service Agent',
+      :type => 'embedded',
+      :version => '10gen MMS Agent 0.1',
+      :license => nil,
+      :license_url => nil,
+      :categories => [:embedded],
+      :description => 'This cartridge provides the agent for connecting to 10gen\'s MongoDB Monitoring Service.  MongoDB Monitoring Service is a publicly available SaaS solution for proactive monitoring of your MongoDB cluster.  You must install the MongoDB cartridge before installing 10gen MMS Agent.',
+      :website => 'http://www.10gen.com/mongodb-monitoring-service',
+      :help_topics => {
+      }
+    },
+    "phpmyadmin-3.4" =>
+    {
+      :id => 'cron-1.4',
+      :name => 'Cron 1.4',
+      :type => 'embedded',
+      :version => 'Cron 1.4',
+      :license => 'MIT and BSD and ISC and GPLv2',
+      :license_url => nil,
+      :categories => [:embedded],
+      :description => 'Cron is a daemon that runs specified programs at scheduled times',
+      :website => 'https://fedorahosted.org/cronie/',
+      :help_topics => {
+      }
+    },
+    "metrics-0.1" =>
+    {
+      :id => 'metrics-0.1',
+      :name => 'OpenShift Metrics 0.1',
+      :type => 'embedded',
+      :version => 'Metrics 0.1',
+      :license => nil,
+      :license_url => nil,
+      :categories => [:embedded],
+      :description => 'The OpenShift Metrics cartridge',
+      :website => nil,
+      :help_topics => {
+      }
+    },
+    "phpmoadmin-1.0" =>
+    {
+      :id => 'phpmoadmin-1.0',
+      :name => 'phpMoAdmin 1.0',
+      :type => 'embedded',
+      :version => 'phpMoAdmin 1.0',
+      :license => 'GPL v3',
+      :license_url => 'http://www.gnu.org/licenses/gpl-3.0.html',
+      :categories => [:embedded],
+      :description => 'Web based MongoDB administration tool',
+      :website => 'http://www.phpmoadmin.com/',
+      :help_topics => {
+      }
+    },
+    "rockmongo-1.1" =>
+    {
+      :id => 'rockmongo-1.1',
+      :name => 'RockMongo 1.1',
+      :type => 'embedded',
+      :version => 'RockMongo 1.1',
+      :license => 'BSD',
+      :license_url => 'http://www.opensource.org/licenses/bsd-license.php',
+      :categories => [:embedded],
+      :description => 'Web based MongoDB administration tool',
+      :website => 'http://code.google.com/p/rock-php/wiki/rock_mongo',
+      :help_topics => {
+      }
+    },
+    "jenkins-client-1.4" =>
+    {
+      :id => 'jenkins-client-1.4',
+      :name => 'Jenkins Client 1.4',
+      :type => 'embedded',
+      :version => 'Jenkins Client 1.4',
+      :license => 'MIT',
+      :license_url => 'http://www.opensource.org/licenses/mit-license.php',
+      :categories => [:embedded],
+      :description => 'Tool for running and monitoring jobs such as continuous building and testing of your OpenShift applications',
+      :website => 'https://jenkins-ci.org/',
+      :help_topics => {
+      }
     }
   }
 
