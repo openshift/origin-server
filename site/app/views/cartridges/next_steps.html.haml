@@ -1,0 +1,74 @@
+- if @wizard
+  = cartridge_wizard_steps_create 2, :completed => true
+  %h1.invisible Next Steps
+  %p
+    The
+    %strong
+      #{@cartidge_type.name}
+    cartridge is now ready to be used in your
+    %strong
+      #{@application.name}
+    application
+
+- else
+  %h1 Next Steps
+  %p
+    The
+    %strong
+      #{@cartidge_type.name}
+    cartridge is now ready to be used in your
+    %strong
+      #{@application.name}
+    application
+
+.row
+  .span7
+    %h2 Accessing your application
+    %p 
+      The 
+      = link_to "application overview page", application_path(@application)
+      provides a summary of your application and its cartridges.
+
+  .span5
+
+    -# client
+    %h2 Managing your cartridge
+    %p 
+      Most of the capabilities of OpenShift are exposed through our command line tool, 
+      %strong rhc.
+      Whether it's adding cartridges, checking uptime, or pulling log files from
+      the server, you can quickly put a finger on the pulse of your application.
+      = link_to "Follow these steps to install the client", install_cli_knowledge_base_url
+      on Linux, Mac OS X, or Windows.
+    %p
+      After installing the command line tool follow our User Guide
+      = link_to "on how to manage your cartridges from the command line", manage_cartridges_user_guide_topic_url
+
+    %p
+      You can get a list of cartridges by running
+
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge list
+    %p
+      You can manage the cartridge by running one of these commands
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge start -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge stop -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge restart -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge reload -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge status -a #{@application.name} -c #{@cartridge.name}
+
+    %p
+      You can remove the cartridge by running the following command.
+      .warning
+        Warning: make sure you've backed up any data you wish to keep before running this command
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge remove -a #{@application.name} -c #{@cartridge.name}
+
+    -# tech specific
