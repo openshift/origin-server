@@ -1,7 +1,7 @@
-= div_for cartridge_type do
+= div_for cartridge_type, :class => cartridge_type.categories.join(" ") do
 
-  - if cartridge_type.categories.include? :new
-    %span.label.label-important.pull-right Recently Added
+  - if cartridge_type.categories.include? :installed
+    %span.label.pull-right Installed
 
   %h3= cartridge_type.name
 
