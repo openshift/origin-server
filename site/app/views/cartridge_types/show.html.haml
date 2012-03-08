@@ -12,13 +12,12 @@
   = f.hidden_field :type, :value => @cartridge_type.type
   = f.hidden_field :name, :value => @cartridge_type.id
   = f.semantic_errors :name
-  .div
+  %div
     Do you want to add the
     %strong
       #{@cartridge_type.name}
     cartridge to your application?
   = f.buttons do
-    .pull-right
-      = link_to "Back", application_cartridge_types_path(@application_id), :class => 'btn'
-      = f.commit_button("Add Cartridge")
-      = f.loading
+    = link_to "Back", application_cartridge_types_path(@application_id), :class => 'btn'
+    = f.commit_button("Add Cartridge")
+    = f.loading

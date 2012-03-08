@@ -4,7 +4,7 @@
   %p
     The
     %strong
-      #{@cartidge_type.name}
+      #{@cartridge_type.name}
     cartridge is now ready to be used in your
     %strong
       #{@application.name}
@@ -15,7 +15,7 @@
   %p
     The
     %strong
-      #{@cartidge_type.name}
+      #{@cartridge_type.name}
     cartridge is now ready to be used in your
     %strong
       #{@application.name}
@@ -23,18 +23,10 @@
 
 .row
   .span7
-    %h2 Accessing your application
-    %p 
-      The 
-      = link_to "application overview page", application_path(@application)
-      provides a summary of your application and its cartridges.
-
-  .span5
-
     -# client
     %h2 Managing your cartridge
-    %p 
-      Most of the capabilities of OpenShift are exposed through our command line tool, 
+    %p
+      Most of the capabilities of OpenShift are exposed through our command line tool,
       %strong rhc.
       Whether it's adding cartridges, checking uptime, or pulling log files from
       the server, you can quickly put a finger on the pulse of your application.
@@ -71,4 +63,12 @@
         :escaped
           rhc app cartridge remove -a #{@application.name} -c #{@cartridge.name}
 
-    -# tech specific
+  .span5
+    %h2 Cartridge info
+    %p
+      = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+    %h2 Accessing your application
+    %p 
+      The 
+      = link_to "application overview page", application_path(@application)
+      provides a summary of your application and its cartridges.
