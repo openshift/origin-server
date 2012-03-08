@@ -41,6 +41,7 @@
 // ---------------------
 
 @media (max-width: 480px) {
+  .is-under-481 { content: 'true'; }
 
   // Smooth out the collapsing/expanding nav
   .nav-collapse {
@@ -128,6 +129,7 @@
 // --------------------------------------------------
 
 @media (max-width: 767px) {
+  .is-under-767 { content: 'true'; }
   // GRID & CONTAINERS
   // -----------------
   // Remove width from containers
@@ -188,6 +190,7 @@
 // ----------------------------------
 
 @media (min-width: 768px) and (max-width: 979px) {
+  .is-in-portrait { content: 'true'; }
 
   // Fixed grid
   @include gridSystem-generate(12, $gridColumnWidthTablet, $gridGutterWidthTablet);
@@ -225,6 +228,7 @@
 // TABLETS AND BELOW
 // -----------------
 @media (max-width: 979px) {
+  .is-under-979 { content: 'true'; }
 
   // UNFIX THE TOPBAR
   // ----------------
@@ -350,6 +354,7 @@
 // ---------------
 
 @media (min-width: 980px) {
+  .is-above-980 { content: 'true'; }
   .nav-collapse.collapse {
     height: auto !important;
   }
@@ -361,6 +366,7 @@
 // ------------------
 
 @media (min-width: 1200px) {
+  .is-above-1200 { content: 'true'; }
 
   // Fixed grid
   @include gridSystem-generate(12, $gridColumnWidthLarge, $gridGutterWidthLarge);
