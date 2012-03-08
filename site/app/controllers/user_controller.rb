@@ -7,15 +7,19 @@ require 'yaml'
 
 class UserController < ApplicationController
 
-  layout "site", :only => [:signup]
+  layout "site", :only => [:signup, :signin]
 
   private
 
   before_filter :require_login, :only => :show
-  before_filter :new_forms, :only => [ :show, :signup ]
+  before_filter :new_forms, :only => [:show, :signup, :signin]
   protect_from_forgery :except => :create_external
   
   def signup
+    
+  end
+
+  def signin
     
   end
 
