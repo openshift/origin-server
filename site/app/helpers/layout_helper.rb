@@ -125,7 +125,7 @@ module LayoutHelper
 
   def take_action(link, text, *args)
     options = args.extract_options!
-    link_to link, {:class => (['take-action'] << options[:class]).join(' ')}.reverse_merge!(options) do
+    link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do
       ([content_tag(:div, text.html_safe)] << 
         args.collect { |text| content_tag(:div, text, :class => 'highlight') } << 
         content_tag(:div, '>', :class => 'highlight-arrow')).join.html_safe
