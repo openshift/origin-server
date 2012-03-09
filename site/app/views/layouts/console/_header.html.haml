@@ -2,8 +2,12 @@
   .navbar-inner
     .container
 
-      = link_to root_path, :class => 'brand' do
-        %img{:src => image_path('/app/images/openshift-logo-white.png')}
+      .brand
+        = link_to root_path do
+          %img.brand-image{:src => image_path('/app/images/logo-64.png')}
+          .brand-text 
+            %strong> Open
+            Shift
 
       %span.navbar-text.headline 
         Management Console
