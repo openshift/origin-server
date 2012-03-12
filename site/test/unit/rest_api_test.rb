@@ -398,4 +398,19 @@ class RestApiTest < ActiveSupport::TestCase
     app.domain = domain
     assert_equal domain.namespace, app.domain_id, app.domain_name
   end
+
+  def test_cartridges
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges/embedded', json_header
+    end
+
+    app = Application.new :name => 'testapp1', :as => @user
+    domain = Domain.new :name => 'test3'
+    app.domain = domain
+
+    cart = Cartridge.new
+    cart.application = app
+
+    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+  end
 end
