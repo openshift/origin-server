@@ -10,7 +10,7 @@ class Cartridge < RestApi::Base
 
   belongs_to :application
 
-  self.prefix = "#{RestApi::Base.site.path}domains/:domain_name/applications/:application_name/"
+  self.prefix = "#{RestApi::Base.site.path}/domains/:domain_name/applications/:application_name/"
 
   def type
     @attributes[:type]
