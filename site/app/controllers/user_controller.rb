@@ -107,10 +107,14 @@ class UserController < ApplicationController
       session[:promo_code] = @user.promo_code
     end
 
+
     # Redirect to a running workflow if it exists
     respond_to do |format|
-      format.js { render :json => {:redirectUrl => user_complete_path } }
-      format.html { workflow_redirect }
+      format.js { render :json => {:redirectUrl => session[:workflow]} }
+      format.html { 
+        session[:workflow] = params[:redirectUrl]
+        workflow_redirect 
+      }
     end
   end
 
