@@ -11,7 +11,7 @@ module HelpHelper
   end
   
   def manage_app_cli_user_guide_topic_url
-    user_guide_topic_url 'chap-User_Guide-Application_Development.html'
+    user_guide_topic_url 'chap-User_Guide-OpenShift_Express_Command_Line_Interface.html'
   end
 
   def deploy_hook_user_guide_topic_url
