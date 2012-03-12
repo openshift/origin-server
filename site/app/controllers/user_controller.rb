@@ -4,6 +4,7 @@ require 'net/https'
 require 'recaptcha'
 require 'json'
 require 'yaml'
+include ActionView::Helpers::UrlHelper
 
 class UserController < ApplicationController
 
@@ -194,6 +195,22 @@ class UserController < ApplicationController
     end
   end
 
+  def request_password_reset_form
+    render :layout => 'box'
+  end
+  
+  def request_password_reset_success
+    message 'Password Reset Email Sent', "
+      <p>
+      An e-mail has been sent to you containing instructions on how to reset your password. 
+      The link in the e-mail will allow you to change your password.
+      </p>
+      <p>
+        #{link_to 'Return to the main page', '/app'}
+      </p>
+    "
+  end
+  
   # This function makes the first request to send an email with a token
   def request_password_reset
     Rails.logger.debug params.to_yaml
