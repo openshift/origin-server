@@ -213,6 +213,7 @@ class UserController < ApplicationController
 
     respond_to do |format|
       format.js { render :json => responseText }
+      format.html { redirect_to params['redirectUrl'] } if params.key? 'redirectUrl'
     end
   end
 
