@@ -111,7 +111,7 @@ class UserController < ApplicationController
 
     # Redirect to a running workflow if it exists
     respond_to do |format|
-      format.js { render :json => {:redirectUrl => session[:workflow]} }
+      format.js { render :json => {:redirectUrl => params[:redirectUrl]} }
       format.html { 
         session[:workflow] = params[:redirectUrl]
         workflow_redirect 
@@ -142,7 +142,7 @@ class UserController < ApplicationController
         Click on the link to complete the registration process.
       </p>
       <p>
-        #{link_to 'Return to the main page', '/app/new'}
+        #{link_to 'Return to the main page', '/app'}
       </p>
     "
   end
