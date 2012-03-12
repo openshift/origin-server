@@ -7,8 +7,10 @@ require 'yaml'
 
 class UserController < ApplicationController
 
+  layout 'site'
+
   before_filter :require_login, :only => :show
-  before_filter :new_forms, :only => :show
+  before_filter :new_forms, :only => [:show, :new, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
   
   def signup
@@ -17,7 +19,7 @@ class UserController < ApplicationController
 
   def new(cloud_access_choice=nil)
     @product = 'openshift' unless defined? @product
-    render :new and return
+    render :new, :layout => 'box' and return
   end
 
   def new_flex
@@ -129,7 +131,15 @@ class UserController < ApplicationController
     end
     
     @product = flash[:product] #set product for 'simple registration' event
-    render :create
+    message 'What\'s next?', "
+      <p>
+        Check your inbox for an email with a validation link. 
+        Click on the link to complete the registration process.
+      </p>
+      <p>
+        #{link_to 'Return to the main page', '/app/new'}
+      </p>
+    "
   end
   
   def create_json_error_hash(user_errors)
@@ -296,4 +306,11 @@ class UserController < ApplicationController
       format.js { render :json => responseText }
     end
   end
+
+  def message(title, content)
+    @title = title
+    @content = content
+    render :success, :layout => 'box'
+  end
+
 end
