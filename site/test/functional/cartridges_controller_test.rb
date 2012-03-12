@@ -1,0 +1,60 @@
+require 'test_helper'
+
+class CartridgesControllerTest < ActionController::TestCase
+#  test "should get new unauthorized" do
+#    get :new
+#    assert_response :success
+#  end
+
+  def setup
+    setup_integrated
+    @application_type = ApplicationType.find 'ruby-1.8'
+    @app = Application.new :name => 'test1', :as => @user
+    @app.cartridge = @application_type.cartridge || @application_type.id
+    @app.domain = @domain
+    @app.save
+
+    assert @app.errors.empty?, @app.errors.inspect
+  end
+
+  test "should create one cartridge" do
+    post(:create, get_post_form)
+    assert cart = assigns(:cartridge)
+    assert cart.errors.empty?, cart.errors.inspect
+  end
+
+  test "should create two cartridges" do
+    post(:create, get_post_form)
+    assert cart = assigns(:cartridge)
+    assert cart.errors.empty?, cart.errors.inspect
+
+    post_form = get_post_form
+    post_form[:cartridge][:name] = 'cron-1.4'
+    post(:create, post_form)
+    assert cart = assigns(:cartridge)
+    assert cart.errors.empty?, cart.errors.inspect
+  end
+
+  test "should error out if cartridge is installed" do
+    post(:create, get_post_form)
+    assert cart = assigns(:cartridge)
+    assert cart.errors.empty?, cart.errors.inspect
+
+    post(:create, get_post_form)
+    assert cart = assigns(:cartridge)
+    assert !cart.errors.empty?
+    assert cart.errors[:base].present?
+    assert_equal 1, cart.errors[:base].length
+  end
+
+  def get_post_form
+    {:cartridge => {:name => 'mysql-5.1', :type => 'embedded'},
+     :application_id => @app.id,
+     :domain_id => @domain.id}
+  end
+
+  def teardown
+    domain = Domain.first :as => @user
+    domain.destroy_recursive if domain
+  end
+end
