@@ -9,6 +9,10 @@ class ConsoleController < ApplicationController
     redirect_to applications_path
   end
 
+  def active_tab
+    nil
+  end
+
   private
     def help
     end
