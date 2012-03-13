@@ -66,7 +66,7 @@ input:focus, textarea:focus {
   -moz-box-shadow: 0;
   box-shadow: 0;
 	}
-.control-group.warning > label, .control-group.warning .help-block, .control-group.warning .help-inline {
+.control-group.warning > label, .control-group.warning .help-inline {
   color: #FF9F00;
 	}
 .control-group.warning input, .control-group.warning select, .control-group.warning textarea {
@@ -84,7 +84,7 @@ input:focus, textarea:focus {
   background-color: #fcf8e3;
   border-color: #FF9F00;
 	}
-.control-group.error > label, .control-group.error .help-block, .control-group.error .help-inline {
+.control-group.error > label, .control-group.error .help-inline {
   color: #cc0000;
 	}	
 .control-group.error input, .control-group.error select, .control-group.error textarea {
@@ -102,7 +102,7 @@ input:focus, textarea:focus {
   background-color: #f2dede;
   border-color: #cc0000;
 	}
-.control-group.success > label, .control-group.success .help-block, .control-group.success .help-inline {
+.control-group.success > label, .control-group.success .help-inline {
   color: #95a321;
 	}
 .control-group.success input, .control-group.success select, .control-group.success textarea {
