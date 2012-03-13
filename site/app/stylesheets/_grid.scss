@@ -1,6 +1,6 @@
 // Allow a span to be implicitly wrapped to set grid backgrounds, while allowing 
 // a responsive stylesheet to know about the wrapper.
-.row > .span-wrapper {
+.span-wrapper {
   margin-left: 0; // overrides the corresponding style from 'span'
 }
 

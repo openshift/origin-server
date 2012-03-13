@@ -38,6 +38,10 @@ module HelpHelper
     community_base_url 'forums/express'
   end
 
+  def events_url
+    community_base_url 'events/'
+  end
+
   def forums_url
     community_base_url 'forums/'
   end
