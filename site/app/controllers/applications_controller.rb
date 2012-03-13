@@ -127,7 +127,8 @@ class ApplicationsController < ConsoleController
       unless @domain.persisted?
         @application.valid? # set any errors on the application object
         #FIXME: Ideally this should be inferred via associations between @domain and @application
-        @application.errors.set(:domain_name, @domain.errors.values)
+        @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
+        Rails.logger.debug "Found errors during domain creation #{@application.errors.inspect}"
         return render 'application_types/show'
       end
     end

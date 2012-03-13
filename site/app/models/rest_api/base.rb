@@ -323,9 +323,8 @@ module RestApi
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
             self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
-          puts "Errors 1: #{errors.inspect}"
+          Rails.logger.debug "Found errors on the response object: #{errors.inspect}"
           duplicate_errors
-          puts "Errors 2: #{errors.inspect}"
         rescue ActiveResource::ConnectionError
           raise
         rescue Exception => e
