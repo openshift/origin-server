@@ -11,7 +11,7 @@ class UserController < ApplicationController
   layout 'site'
 
   before_filter :require_login, :only => :show
-  before_filter :new_forms, :only => [:show, :new, :new_flex, :new_express]
+  before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
   
   def signup
@@ -41,6 +41,8 @@ class UserController < ApplicationController
     # Run validations
     valid = @user.valid?
 
+    Rails.logger.warn "Starting user creation: #{@user.email_address}"
+    
     # See if the captcha secret was provided
     if Rails.configuration.integrated
       if params[:captcha_secret] == Rails.configuration.captcha_secret
@@ -73,13 +75,14 @@ class UserController < ApplicationController
         @product = 'express'
       end
     end
-    flash[:product] = @product
+    
+    # flash[:product] = @product
 
     # Stop if you have a validation error
     unless valid
       respond_to do |format|
         format.js { render :json => @user.errors and return }
-        format.html { render :new, :layout => 'simple' and return }
+        format.html { render 'new', :layout => 'box' and return }
       end
     end
 
@@ -89,11 +92,13 @@ class UserController < ApplicationController
                               :protocol => 'https')
 
     @user.register(confirmationUrl)
+    
+    Rails.logger.debug "Confirmation URL: #{confirmationUrl}"
 
     unless @user.errors.length == 0
       respond_to do |format|
         format.js { render :json => @user.errors and return }
-        format.html { render :new and return }
+        format.html { render :new, :layout => 'box' and return }
       end
     end
 
@@ -135,7 +140,8 @@ class UserController < ApplicationController
       session.delete(:promo_code)
     end
     
-    @product = flash[:product] #set product for 'simple registration' event
+    # @product = flash[:product] #set product for 'simple registration' event
+    
     message 'What\'s next?', "
       <p>
         Check your inbox for an email with a validation link. 
