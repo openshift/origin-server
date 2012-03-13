@@ -9,6 +9,6 @@
   -#= f.inputs do
     -#= f.input :cartridge, :as => :hidden, :value => @application.framework
   = f.buttons do
-    = f.commit_button :label => "Delete", :button_html => {:class => 'btn-danger'}
     = link_to 'Cancel', @referer || application_path(@application), :class => 'btn'
+    = f.commit_button :label => "Delete", :button_html => {:class => 'btn-danger'}
     = f.loading
