@@ -70,8 +70,7 @@ module RestApi
     #
     class << self
       def alias_attribute(from, to)
-        @aliased_attributes ||= {}
-        @aliased_attributes[from] = to
+        aliased_attributes[from] = to
 
         define_method :"#{from}" do
           self.send :"#{to}"
@@ -85,10 +84,11 @@ module RestApi
         end
       end
       def aliased_attributes
-        @aliased_attributes
+        @aliased_attributes ||= {}
       end
       def attr_alters(from, *args)
-        (@calculated_attributes ||= {})[from] = args.flatten.uniq
+        targets = (calculated_attributes[from] ||= [])
+        targets.concat(args.flatten.uniq)
         define_attribute_methods [from]
       end
       def calculated_attributes
@@ -108,7 +108,11 @@ module RestApi
       else
         super
       end
-      self.class.calculated_attributes.each_key { |attr| send("#{attr}=", attributes[attr]) }
+      self.class.calculated_attributes.each_key do |attr| 
+        if  attributes.has_key?(attr) 
+          send("#{attr}=", attributes[attr])
+        end
+      end
       self
     end
 
@@ -166,6 +170,11 @@ module RestApi
           (errors[to] || []).each do |error|
             errors.add(from, error) unless errors.has_key?(from) && errors[:from].include?(error)
           end
+        end
+      end
+      self.class.aliased_attributes.each_pair do |from, to|
+        (errors[to] || []).each do |error|
+          errors.add(from, error) unless errors.has_key?(from) && errors[:from].include?(error)
         end
       end
     end
@@ -314,7 +323,9 @@ module RestApi
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
             self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
           end
+          puts "Errors 1: #{errors.inspect}"
           duplicate_errors
+          puts "Errors 2: #{errors.inspect}"
         rescue ActiveResource::ConnectionError
           raise
         rescue Exception => e
