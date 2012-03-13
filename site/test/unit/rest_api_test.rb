@@ -140,10 +140,22 @@ class RestApiTest < ActiveSupport::TestCase
       string :first, :last
     end
     attr_alters :together, [:first, :last]
+    attr_alters :together_nil, [:first, :last]
     def together=(together)
       self.first, self.last = together.split if together
       super
     end
+    def together_nil=(together)
+      if together
+        self.first, self.last = together.split
+      else
+        self.first = nil
+        self.last = nil
+      end
+      super
+    end
+
+    alias_attribute :start, :first
 
     validates :first, :length => {:maximum => 1},
               :presence => true,
@@ -151,6 +163,27 @@ class RestApiTest < ActiveSupport::TestCase
     validates :last, :length => {:minimum => 2},
               :presence => true,
               :allow_blank => false
+  end
+
+  def test_alias_assign
+    c = Calculated.new :start => 'a'
+    assert_equal 'a', c.start
+
+    c = Calculated.new :start => 'a', :first => nil
+    assert_equal nil, c.start
+
+    c = Calculated.new :start => 'a', :first => 'b'
+    assert_equal 'b', c.start
+
+    c = Calculated.new :start => nil, :first => 'b'
+    assert_equal 'b', c.start
+  end
+
+  def test_alias_error
+    c = Calculated.new
+    c.valid?
+    assert_equal ["can't be blank"], c.errors[:first]
+    assert_equal ["can't be blank"], c.errors[:start]
   end
 
   def test_calculated_attr
@@ -175,6 +208,18 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'a b', c.together = 'a b'
     assert_equal 'a', c.first
     assert_equal 'b', c.last
+
+    c = Calculated.new :together => 'a b', :first => 'c', :last => 'd'
+    assert_equal 'a', c.first
+    assert_equal 'b', c.last
+
+    c = Calculated.new :together => nil, :first => 'c', :last => 'd'
+    assert_equal 'c', c.first
+    assert_equal 'd', c.last
+
+    c = Calculated.new :together_nil => nil, :first => 'c', :last => 'd'
+    assert_nil c.first
+    assert_nil c.last
   end
 
   def test_calculated_errors
