@@ -1,7 +1,8 @@
 // Allow a span to be implicitly wrapped to set grid backgrounds, while allowing 
 // a responsive stylesheet to know about the wrapper.
-.span-wrapper {
+.grid-wrapper {
   margin-left: 0; // overrides the corresponding style from 'span'
+  float: left;
 }
 
 // Allow a row to have an right gutter equal to a left gutter 

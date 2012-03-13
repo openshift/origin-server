@@ -153,7 +153,8 @@
   }
   // Make all columns even
   .row > [class*="span"],
-  .row > .span-wrapper > [class*="span"],
+  .row > .grid-wrapper,
+  .row > .grid-wrapper > [class*="span"],
   .row-fluid > [class*="span"] {
     float: none;
     display: block;
