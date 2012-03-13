@@ -6,21 +6,18 @@ require 'json'
 require 'yaml'
 include ActionView::Helpers::UrlHelper
 
-class UserController < ApplicationController
-
-  layout 'site'
+class UserController < SiteController
 
   before_filter :require_login, :only => :show
   before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
-  
+
   def signup
-    
   end
 
   def new(cloud_access_choice=nil)
     @product = 'openshift' unless defined? @product
-    render :new, :layout => 'box' and return
+    render :new, :layout => 'simple' and return
   end
 
   def new_flex
@@ -206,7 +203,7 @@ class UserController < ApplicationController
   end
 
   def request_password_reset_form
-    render :layout => 'box'
+    render :layout => 'simple'
   end
   
   def request_password_reset_success
@@ -337,7 +334,7 @@ class UserController < ApplicationController
   def message(title, content)
     @title = title
     @content = content
-    render :success, :layout => 'box'
+    render :success, :layout => 'simple'
   end
 
 end
