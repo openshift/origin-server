@@ -10,5 +10,8 @@ class ApplicationTypesController < ConsoleController
     @application_type = ApplicationType.find params[:id]
     @domain = Domain.find :first, :as => session_user
     @application = Application.new :as => session_user
+
+    # hard code for now but we want to get this from the server eventually
+    @gear_sizes = ["small", "medium"]
   end
 end
