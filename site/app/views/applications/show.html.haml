@@ -63,8 +63,9 @@
         - if @application.aliases.empty?
           %li No alias set
         - else
+          - alias_scheme = @application.web_url.split(':').first
           - @application.aliases.each do |a|
-            %li= link_to a, a
+            %li= link_to a, "#{alias_scheme}://#{a}"
     #assistance
       %h5 Client Tools Help
       %ul.unstyled
