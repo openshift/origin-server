@@ -30,12 +30,13 @@
         -# %a.btn{:href => '#'} Remove
     .cartridge-block
       .row
-        %ul.unstyled-flat.cartridge-block-overview.offset1
+        -# Need to add offset1 to both ul when we add icons
+        %ul.unstyled-flat.cartridge-block-overview.span7
           %li.span4
             %h6 Cartridge Name
             %h2= @application.framework_name
           %li.span3= "Created #{time_ago_in_words(@application.creation_time)} ago"
-        %ul.unstyled-flat.embedded-cartridge-block.span7.offset1
+        %ul.unstyled-flat.embedded-cartridge-block.span7
           %li.span6
             %h6 Git Repository
           %li.span6
