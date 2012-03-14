@@ -6,11 +6,13 @@ class Application < RestApi::Base
     string :name, :creation_time
     string :uuid, :domain_id
     string :server_identity
+    string :node_profile
   end
 
   custom_id :name
   # TODO: Bug 789752: Rename server attribute to domain_name and replace domain_id with domain_name everywhere
   alias_attribute :domain_name, :domain_id
+  alias_attribute :gear_size_profile, :node_profile
 
   has_many :aliases
   # Deprecated on server side, so we will not use it (use /cartridges instead)

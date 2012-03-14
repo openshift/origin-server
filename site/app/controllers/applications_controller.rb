@@ -118,6 +118,7 @@ class ApplicationsController < ConsoleController
     @application = Application.new app_params
     @application.as = session_user
 
+    @gear_sizes = ["small", "medium"]
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
     @domain = Domain.find :first, :as => session_user
