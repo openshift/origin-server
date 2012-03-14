@@ -104,6 +104,15 @@ class ApplicationType
     }
   ]
   
+  # These should not be directly creatable
+  default_types_array <<
+    {
+      :id   => 'haproxy-1.4',
+      :name => "Scaled application",
+      :version => '1.4',
+      :categories => []
+    }
+
   # TODO: remove this and load cart list from broker
   if Rails.configuration.node_js_enabled then 
     default_types_array << {
