@@ -61,6 +61,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     app = assigns(:application)
     assert app
     assert app.errors.empty?
+    app.errors.inspect unless app.errors.empty?
 
     form = get_post_form
     form[:name] = "test2"
