@@ -52,7 +52,7 @@ class UserController < SiteController
         unless verify_recaptcha
           Rails.logger.debug "Captcha check failed"
           valid = false
-          @user.errors[:captcha] = "Captcha text didn't match"
+          flash[:recaptcha_error] = @user.errors[:captcha] = "Captcha text didn't match"
         end
       end
     else
