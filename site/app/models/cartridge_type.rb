@@ -114,14 +114,14 @@ class CartridgeType < RestApi::Base
     },
     "phpmyadmin-3.4" =>
     {
-      :id => 'cron-1.4',
-      :name => 'Cron 1.4',
+      :id => 'phpmyadmin-3.4',
+      :name => 'phpMyAdmin 3.4',
       :type => 'embedded',
-      :version => 'Cron 1.4',
-      :license => 'MIT and BSD and ISC and GPLv2',
-      :license_url => nil,
+      :version => 'phpMyAdmin 3.4',
+      :license => 'GPLv2',
+      :license_url => 'http://www.phpmyadmin.net/home_page/license.php',
       :categories => [:embedded],
-      :description => 'Cron is a daemon that runs specified programs at scheduled times',
+      :description => 'Web based MySQL admin tool.  Requires the MySQL cartridge to be installed first.',
       :website => 'https://fedorahosted.org/cronie/',
       :help_topics => {
       }
@@ -149,7 +149,7 @@ class CartridgeType < RestApi::Base
       :license => 'GPL v3',
       :license_url => 'http://www.gnu.org/licenses/gpl-3.0.html',
       :categories => [:embedded],
-      :description => 'Web based MongoDB administration tool',
+      :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
       :website => 'http://www.phpmoadmin.com/',
       :help_topics => {
       }
@@ -163,7 +163,7 @@ class CartridgeType < RestApi::Base
       :license => 'BSD',
       :license_url => 'http://www.opensource.org/licenses/bsd-license.php',
       :categories => [:embedded],
-      :description => 'Web based MongoDB administration tool',
+      :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
       :website => 'http://code.google.com/p/rock-php/wiki/rock_mongo',
       :help_topics => {
       }
@@ -177,7 +177,7 @@ class CartridgeType < RestApi::Base
       :license => 'MIT',
       :license_url => 'http://www.opensource.org/licenses/mit-license.php',
       :categories => [:embedded],
-      :description => 'Tool for running and monitoring jobs such as continuous building and testing of your OpenShift applications',
+      :description => 'Tool for running and monitoring jobs such as continuous building and testing of your OpenShift applications.  Requires the Jenkins Server Application to be created first.',
       :website => 'https://jenkins-ci.org/',
       :help_topics => {
       }
