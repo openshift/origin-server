@@ -79,7 +79,7 @@ class UserController < SiteController
     unless valid
       respond_to do |format|
         format.js { render :json => @user.errors and return }
-        format.html { render 'new', :layout => 'box' and return }
+        format.html { render 'new', :layout => 'simple' and return }
       end
     end
 
@@ -95,7 +95,7 @@ class UserController < SiteController
     unless @user.errors.length == 0
       respond_to do |format|
         format.js { render :json => @user.errors and return }
-        format.html { render :new, :layout => 'box' and return }
+        format.html { render :new, :layout => 'simple' and return }
       end
     end
 
