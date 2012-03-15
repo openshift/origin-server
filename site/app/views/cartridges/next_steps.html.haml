@@ -2,24 +2,12 @@
   = cartridge_wizard_steps_create 2, :completed => true
   %h1.invisible Next Steps
   %p
-    The
-    %strong
-      #{@cartridge_type.name}
-    cartridge is now ready to be used in your
-    %strong
-      #{@application.name}
-    application
+    #{@cartridge_message}
 
 - else
   %h1 Next Steps
   %p
-    The
-    %strong
-      #{@cartridge_type.name}
-    cartridge is now ready to be used in your
-    %strong
-      #{@application.name}
-    application
+    #{@cartridge_message}
 
 .row
   .span7

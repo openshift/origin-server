@@ -25,8 +25,11 @@ class CartridgesController < ConsoleController
     @cartridge.as = session_user
 
     @cartridge_type = CartridgeType.find cart_params[:name], :as => session_user
+
     if @cartridge.save
       @wizard = true
+      result = @cartridge.attributes[:messages].find { |m| m[:field] == "result" }
+      @cartridge_message = result[:text]
       render 'cartridges/next_steps'
     else
       Rails.logger.debug @cartridge.errors.inspect

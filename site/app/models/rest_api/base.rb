@@ -139,6 +139,7 @@ module RestApi
     def load_attributes_from_response(response)
       if response['Content-Length'] != "0" && response.body.strip.size > 0
         load(self.class.format.decode(response.body))
+        @attributes[:messages] = ActiveSupport::JSON.decode(response.body)['messages']
         @persisted = true
         remove_instance_variable(:@update_id) if @update_id
       end
