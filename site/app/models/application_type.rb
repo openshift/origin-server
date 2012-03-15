@@ -69,7 +69,7 @@ class ApplicationType
       :version => 'Python 2.6.6 / WSGI 3.2',
       :categories => [:framework],
       :description => 'Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. The Web Server Gateway Interface (WSGI) defines a simple and universal interface between web servers and web applications or frameworks for the Python programming language. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears.',
-      :website => 'http://rack.rubyforge.org/',
+      :website => 'http://www.wsgi.org/',
       :help_topics => {
         'Getting Django up and running in 5 minutes' => 'https://www.redhat.com/openshift/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
       }
@@ -121,7 +121,7 @@ class ApplicationType
       :version => 'Node.js 0.6.10',
       :categories => [:framework, :new], # removed :framework tag
       :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
-      :website => 'http://rack.rubyforge.org/'
+      :website => 'http://nodejs.org/'
     } 
   end
   @default_types = default_types_array.map { |t| ApplicationType.new t }
