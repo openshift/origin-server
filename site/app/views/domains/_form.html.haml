@@ -5,9 +5,11 @@
       .controls
         .input-prepend-append
           %span.add-on-first> http://applicationname&ndash;
-          = f.text_field :name, :autofocus => true, :placeholder => 'Namespace'
+          = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
           %span.add-on-last> .rhcloud.com
         = f.inline_errors_for :namespace
+        .row
+          #app-errors.span4.offset2
         .help-block Your namespace must be letters or numbers with no spaces or symbols.
     = f.buttons do
       = link_to "Cancel", account_path, :class => 'btn'
