@@ -2,6 +2,8 @@
 
   - if cartridge_type.categories.include? :installed
     %span.label.pull-right Installed
+  - if cartridge_type.categories.include? :experimental
+    %span.label.pull-right Experimental
 
   - if defined? reason
     - if reason == :requires
