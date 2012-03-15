@@ -37,6 +37,11 @@
       .span4
         = render :collection => types, :partial => 'cartridge_types/cartridge_type',
                  :locals => {:hide_link => true, :reason => :conflicts}
+  - unless @blocked_cart_types.empty?
+    - @blocked_cart_types.each_slice((@blocked_cart_types.length/3.0).ceil).each do |types|
+      .span4
+        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
+                 :locals => {:hide_link => true, :reason => :blocked}
 
 - content_for :javascripts do
   :javascript

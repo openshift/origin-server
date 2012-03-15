@@ -11,6 +11,7 @@ class ApplicationType
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
   attr_accessor :help_topics
+  attr_accessor :blocks
 
   def initialize(attributes={})
     attributes.each do |name,value|
@@ -110,7 +111,8 @@ class ApplicationType
       :id   => 'haproxy-1.4',
       :name => "Scaled application",
       :version => '1.4',
-      :categories => []
+      :categories => [],
+      :blocks => ['mysql-5.1']
     }
 
   # TODO: remove this and load cart list from broker

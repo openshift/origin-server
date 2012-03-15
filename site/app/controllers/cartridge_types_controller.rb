@@ -21,6 +21,13 @@ class CartridgeTypesController < ConsoleController
     @installed_cart_types, types = types.partition { |t| t.categories.include?(:installed) }
     @blacklist_cart_types, types = types.partition { |t| t.categories.include?(:blacklist) }
 
+    framework = ApplicationType.find(@application.framework)
+    if framework.blocks
+      @blocked_cart_types, types = types.partition { |t| framework.blocks.include?(t.id)}
+    else
+      @blocked_cart_types = []
+    end
+
     @conflicts_cart_types, types = types.partition do |t|
       conflicts = conflicts? t
       t.categories.push('inactive') if conflicts
