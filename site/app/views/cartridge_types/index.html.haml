@@ -23,31 +23,19 @@
   %p
     Choose a cartridge to add to your application.
 
-.row
-  - unless @cart_types.empty?
-    - @cart_types.each_slice((@cart_types.length/3.0).ceil).each do |types|
-      .span4
-        = render :collection => types, :partial => 'cartridge_types/cartridge_type'
-  - unless @installed_cart_types.empty?
-    - @installed_cart_types.each_slice((@installed_cart_types.length/3.0).ceil).each do |types|
-      .span4
-        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
-                 :locals => {:hide_link => true}
-  - unless @requires_cart_types.empty?
-    - @requires_cart_types.each_slice((@requires_cart_types.length/3.0).ceil).each do |types|
-      .span4
-        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
-                 :locals => {:hide_link => true, :reason => :requires}
-  - unless @conflicts_cart_types.empty?
-    - @conflicts_cart_types.each_slice((@conflicts_cart_types.length/3.0).ceil).each do |types|
-      .span4
-        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
-                 :locals => {:hide_link => true, :reason => :conflicts}
-  - unless @blocked_cart_types.empty?
-    - @blocked_cart_types.each_slice((@blocked_cart_types.length/3.0).ceil).each do |types|
-      .span4
-        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
-                 :locals => {:hide_link => true, :reason => :blocked}
+%ul.thumbnails
+  - [ { :collection => @cart_types},
+      { :collection => @installed_cart_types,
+        :locals => {:hide_link => true}},
+      { :collection => @requires_cart_types, 
+        :locals => {:hide_link => true, :reason => :requires}},
+      { :collection => @conflicts_cart_types,
+        :locals => {:hide_link => true, :reason => :conflicts}},
+      { :collection => @blocked_cart_types, 
+        :locals => {:hide_link => true, :reason => :blocked}},
+  ].each do |info|
+    - info[:partial] = 'cartridge_types/cartridge_type'
+    = render info
 
 - content_for :javascripts do
   :javascript
