@@ -6,10 +6,13 @@
     %span.label.pull-right Experimental
 
   - if defined? reason
-    - if reason == :requires
+    - case reason
+    - when :requires
       %span.label.pull-right Requires #{cartridge_type.requires.join(',')}
-    - if reason == :conflicts
+    - when :conflicts
       %span.label.pull-right Conflicts with #{cartridge_type.conflicts.join(',')}
+    - when :blocked
+      %span.label.pull-right Cannot be added to #{@application.framework_name}
 
   %h3= cartridge_type.name
 

@@ -14,8 +14,14 @@
 
 %h1.invisible Add a New Cartidge
 = cartridge_wizard_steps_create 0
-%p
-  Choose a cartridge to add to your application.
+- if @framework.id == 'haproxy-1.4'
+  .alert 
+    Cartridges are currently unable to be embedded in a scaled application. 
+    We will be adding support shortly!
+    In the mean time, some are available as standalone applications.
+-else
+  %p
+    Choose a cartridge to add to your application.
 
 .row
   - unless @cart_types.empty?
@@ -37,6 +43,11 @@
       .span4
         = render :collection => types, :partial => 'cartridge_types/cartridge_type',
                  :locals => {:hide_link => true, :reason => :conflicts}
+  - unless @blocked_cart_types.empty?
+    - @blocked_cart_types.each_slice((@blocked_cart_types.length/3.0).ceil).each do |types|
+      .span4
+        = render :collection => types, :partial => 'cartridge_types/cartridge_type',
+                 :locals => {:hide_link => true, :reason => :blocked}
 
 - content_for :javascripts do
   :javascript

@@ -18,6 +18,13 @@ class CartridgeTypesController < ConsoleController
     end
 
     # TODO: further categorization
+    @framework = ApplicationType.find(@application.framework)
+    if @framework.blocks
+      @blocked_cart_types, types = types.partition { |t| @framework.blocks.include?(t.id)}
+    else
+      @blocked_cart_types = []
+    end
+
     @installed_cart_types, types = types.partition { |t| t.categories.include?(:installed) }
     @blacklist_cart_types, types = types.partition { |t| t.categories.include?(:blacklist) }
 

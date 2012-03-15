@@ -11,6 +11,7 @@ class ApplicationType
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
   attr_accessor :help_topics
+  attr_accessor :blocks
 
   def initialize(attributes={})
     attributes.each do |name,value|
@@ -110,7 +111,20 @@ class ApplicationType
       :id   => 'haproxy-1.4',
       :name => "Scaled application",
       :version => '1.4',
-      :categories => []
+      :categories => [],
+      # Right now, nothing should be able to be embedded in a scaling app
+      :blocks => [
+        'mysql-5.1',
+        "mongodb-2.0" ,
+        "cron-1.4" ,
+        "postgresql-8.4" ,
+        "10gen-mms-agent-0.1" ,
+        "phpmyadmin-3.4" ,
+        "metrics-0.1" ,
+        "phpmoadmin-1.0" ,
+        "rockmongo-1.1" ,
+        "jenkins-client-1.4" ,
+      ]
     }
 
   # TODO: remove this and load cart list from broker
