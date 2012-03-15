@@ -3,7 +3,7 @@ module HelpHelper
   # Given a relative path within the user guide, display the topic
   def user_guide_topic_url(topic)
     locale = 'en-US'
-    "http://docs.redhat.com/docs/#{locale}/OpenShift_Express/2.0/html/User_Guide/#{topic}"
+    "https://docs.redhat.com/docs/#{locale}/OpenShift_Express/2.0/html/User_Guide/#{topic}"
   end
 
   def ssh_key_user_guide_topic_url
@@ -27,7 +27,7 @@ module HelpHelper
   end
   
   def git_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Application_Development-Deploying_Applications.html'
+    user_guide_topic_url 'sect-User_Guide-OpenShift_Express_Web_Interface-Editing_and_Deploying_Applications.html'
   end
   
   def install_cli_knowledge_base_url
