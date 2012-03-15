@@ -7,6 +7,10 @@
   .cartridge_type.installed:active {background-color: #F5F5F5;}
   .cartridge_type.installed{color:#959595; cursor: auto;}
   .cartridge_type.installed > h3 {color:#959595 !important;}
+  .cartridge_type.inactive:hover {background-color: #F5F5F5;}
+  .cartridge_type.inactive:active {background-color: #F5F5F5;}
+  .cartridge_type.inactive{color:#959595; cursor: auto;}
+  .cartridge_type.inactive > h3 {color:#959595 !important;}
 
 %h1.invisible Add a New Cartidge
 = cartridge_wizard_steps_create 0
@@ -21,6 +25,14 @@
     .span4
       = render :collection => types, :partial => 'cartridge_types/cartridge_type',
                :locals => {:hide_link => true}
+  - @requires_cart_types.each_slice((@cart_types.length/3.0).ceil).each do |types|
+    .span4
+      = render :collection => types, :partial => 'cartridge_types/cartridge_type',
+               :locals => {:hide_link => true, :reason => :requires}
+  - @conflicts_cart_types.each_slice((@cart_types.length/3.0).ceil).each do |types|
+    .span4
+      = render :collection => types, :partial => 'cartridge_types/cartridge_type',
+               :locals => {:hide_link => true, :reason => :conflicts}
 
 - content_for :javascripts do
   :javascript

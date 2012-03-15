@@ -3,6 +3,12 @@
   - if cartridge_type.categories.include? :installed
     %span.label.pull-right Installed
 
+  - if defined? reason
+    - if reason == :requires
+      %span.label.pull-right Requires #{cartridge_type.requires.join(',')}
+    - if reason == :conflicts
+      %span.label.pull-right Conflicts with #{cartridge_type.conflicts.join(',')}
+
   %h3= cartridge_type.name
 
   - if defined? extra_info
