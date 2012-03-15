@@ -12,11 +12,9 @@ $ ->
   $.validator.addClassRules
     domain_name:
       required: true
-      minlength: 10
       alpha_numeric: true
     application_name:
       required: true
-      minlength: 10
       alpha_numeric: true
 
   $('#new_web_user').validate
