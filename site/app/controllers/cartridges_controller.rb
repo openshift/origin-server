@@ -28,8 +28,14 @@ class CartridgesController < ConsoleController
 
     if @cartridge.save
       @wizard = true
-      result = @cartridge.attributes[:messages].find { |m| m[:field] == "result" }
-      @cartridge_message = result[:text]
+      messages = @cartridge.attributes[:messages]
+      @cartridge_message = ""
+
+      unless messages.nil?
+        result = messages.find { |m| m[:field] == "result" }
+        @cartridge_message = result[:text] if result.respond_to?(:has_key?) && result.has_key?(:text)
+      end
+
       render 'cartridges/next_steps'
     else
       Rails.logger.debug @cartridge.errors.inspect
