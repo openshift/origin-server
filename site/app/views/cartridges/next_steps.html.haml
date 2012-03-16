@@ -1,13 +1,11 @@
 - if @wizard
   = cartridge_wizard_steps_create 2, :completed => true
   %h1.invisible Next Steps
-  %p
-    #{@cartridge_message}
-
 - else
   %h1 Next Steps
-  %p
-    #{@cartridge_message}
+
+- if @cartridge_message
+  %p #{@cartridge_message}
 
 .row
   .span7
@@ -53,8 +51,8 @@
 
   .span5
     %h2 Cartridge info
-    %p
-      = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+    = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+
     %h2 Accessing your application
     %p 
       The 

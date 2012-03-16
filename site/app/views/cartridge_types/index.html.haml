@@ -23,19 +23,25 @@
   %p
     Choose a cartridge to add to your application.
 
-%ul.thumbnails
-  - [ { :collection => @cart_types},
-      { :collection => @installed_cart_types,
-        :locals => {:hide_link => true}},
-      { :collection => @requires_cart_types, 
-        :locals => {:hide_link => true, :reason => :requires}},
-      { :collection => @conflicts_cart_types,
-        :locals => {:hide_link => true, :reason => :conflicts}},
-      { :collection => @blocked_cart_types, 
-        :locals => {:hide_link => true, :reason => :blocked}},
-  ].each do |info|
-    - info[:partial] = 'cartridge_types/cartridge_type'
-    = render info
+%section.row
+  - @cart_types.in_groups(3, false).each do |types|
+    .span4
+      = render :collection => types, :partial => 'cartridge_types/cartridge_type'
+  - if @cart_types.empty?
+    .alert.alert-info There are no cartridges that can be installed
+
+%section.row
+  - unless @installed_cart_types.empty?
+    .span6
+      %h2 Installed cartridges
+      = render :collection => @installed_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true}
+
+  - unless @requires_cart_types.empty? and @conflicts_cart_types.empty? and @blocked_cart_types.empty?
+    .span6
+      %h2 Cartridges that cannot be installed
+      = render :collection => @requires_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :requires}
+      = render :collection => @conflicts_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :conflicts}
+      = render :collection => @blocked_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :blocked}
 
 - content_for :javascripts do
   :javascript

@@ -6,10 +6,9 @@
 %h1.invisible Configure New Application
 = cartridge_wizard_steps_create 1
 
-%ul.thumbnails
-  = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+= render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
 
-= semantic_form_for @cartridge, :url => application_cartridges_path(@application_id), :html => {:class => 'form-horizontal'} do |f|
+= semantic_form_for @cartridge, :url => application_cartridges_path(@application_id), :html => {:class => 'form'} do |f|
   = f.hidden_field :type, :value => @cartridge_type.type
   = f.hidden_field :name, :value => @cartridge_type.id
   = f.semantic_errors :name

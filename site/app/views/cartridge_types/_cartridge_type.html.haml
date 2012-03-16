@@ -1,56 +1,55 @@
-%li.span4
-  = div_for cartridge_type, :class => cartridge_type.categories.join(" ") do
+= div_for cartridge_type, :class => cartridge_type.categories.join(" ") do
 
-    - if cartridge_type.categories.include? :installed
-      %span.label.pull-right Installed
-    - if cartridge_type.categories.include? :experimental
-      %span.label.pull-right Experimental
+  - if cartridge_type.categories.include? :installed
+    %span.label.pull-right Installed
+  - if cartridge_type.categories.include? :experimental
+    %span.label.pull-right Experimental
 
-    - if defined? reason
-      - case reason
-      - when :requires
-        %span.label.pull-right Requires #{cartridge_type.requires.join(',')}
-      - when :conflicts
-        %span.label.pull-right Conflicts with #{cartridge_type.conflicts.join(',')}
-      - when :blocked
-        %span.label.pull-right Cannot be added to #{@application.framework_name}
+  %h3= cartridge_type.name
 
-    %h3= cartridge_type.name
+  - if defined? extra_info
+    %ul.unstyled.meta
 
-    - if defined? extra_info
-      %ul.unstyled.meta
+      -# if cartridge_type.license
+        %li.license
+          %label License:
+          - if cartridge_type.respond_to? :license_url
+            = link_to cartridge_type.license, cartridge_type.license_url
+          - else
+            %span= cartridge_type.license
 
-        -# if cartridge_type.license
-          %li.license
-            %label License:
-            - if cartridge_type.respond_to? :license_url
-              = link_to cartridge_type.license, cartridge_type.license_url
-            - else
-              %span= cartridge_type.license
+      - if cartridge_type.website
+        %li.website
+          %label Website:
+          = link_to cartridge_type.website, cartridge_type.website
 
-        - if cartridge_type.website
-          %li.website
-            %label Website:
-            = link_to cartridge_type.website, cartridge_type.website
+      - if cartridge_type.version
+        %li.version
+          %label Version:
+          %span= cartridge_type.version
 
-        - if cartridge_type.version
-          %li.version
-            %label Version:
-            %span= cartridge_type.version
+  - if cartridge_type.description
+    %p= cartridge_type.description
 
-    - if cartridge_type.description
-      %p= cartridge_type.description
+  - if cartridge_type.learn_more_url
+    = link_to "Learn more", cartridge_type.learn_more_url
 
-    - if cartridge_type.learn_more_url
-      = link_to "Learn more", cartridge_type.learn_more_url
+  - if defined? extra_info and cartridge_type.provides
+    %div
+      %h4 What you get:
+      %ul
+        - cartridge_type.provides.each do |provided|
+          %li= provided
 
-    - if defined? extra_info and cartridge_type.provides
-      %div
-        %h4 What you get:
-        %ul
-          - cartridge_type.provides.each do |provided|
-            %li= provided
+  - if defined? reason
+    - case reason
+    - when :requires
+      .alert Requires #{cartridge_type.requires.join(',')}
+    - when :conflicts
+      .alert Conflicts with #{cartridge_type.conflicts.join(',')}
+    - when :blocked
+      .alert Cannot be added to #{@application.framework_name}
 
-    - unless defined? hide_link
-      = link_to "Select »", application_cartridge_type_path(@application_id, cartridge_type), :class => 'btn'
+  - unless defined? hide_link
+    = link_to "Select »", application_cartridge_type_path(@application_id, cartridge_type), :class => 'btn'
 
