@@ -132,7 +132,7 @@ class CartridgeType < RestApi::Base
       :license_url => 'http://www.phpmyadmin.net/home_page/license.php',
       :categories => [:embedded],
       :description => 'Web based MySQL admin tool.  Requires the MySQL cartridge to be installed first.',
-      :website => 'https://www.phpmyadmin.net/',
+      :website => 'http://www.phpmyadmin.net/',
       :requires => ['mysql-5.1'],
       :conflicts => [],
       :help_topics => {

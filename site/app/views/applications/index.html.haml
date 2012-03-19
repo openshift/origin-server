@@ -37,8 +37,10 @@
             %li.span6
               %h2= application.name
               = link_to application.web_url, application.web_url
-            %li.span2
-              %a.pull-right.btn{:href => "#{application_path(application)}"} Details
+            - # hardcode this for now until we can deal with edge cases better
+            - if application.framework != 'jenkins-1.4'
+              %li.span2
+                %a.pull-right.btn{:href => "#{application_path(application)}"} Details
 
   %section#account-digest.span4
     #assistance
