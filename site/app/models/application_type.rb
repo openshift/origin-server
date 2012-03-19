@@ -127,6 +127,27 @@ class ApplicationType
       ]
     }
 
+  default_types_array <<
+    {
+      :id   => 'jenkins-1.4',
+      :name => "Jenkins Server",
+      :version => '1.4',
+      :categories => [],
+      # nothing should be able to be embedded in a Jenkins app
+      :blocks => [
+        'mysql-5.1',
+        "mongodb-2.0",
+        "cron-1.4",
+        "postgresql-8.4",
+        "10gen-mms-agent-0.1",
+        "phpmyadmin-3.4",
+        "metrics-0.1",
+        "phpmoadmin-1.0",
+        "rockmongo-1.1",
+        "jenkins-client-1.4",
+      ]
+    }
+
   # TODO: remove this and load cart list from broker
   if Rails.configuration.node_js_enabled then 
     default_types_array << {
