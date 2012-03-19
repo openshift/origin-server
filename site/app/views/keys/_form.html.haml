@@ -4,7 +4,7 @@
   = f.semantic_errors
   = f.inputs do
     = f.input :name, :label => 'Key name', :placeholder => 'A name for your key'
-    = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html, :placeholder => 'Public key contents'
+    = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html.merge(:placeholder => 'Public key contents')
   = f.buttons do
     = link_to "Cancel", account_path, :class => 'btn'
     = f.commit_button :label => 'Create'
