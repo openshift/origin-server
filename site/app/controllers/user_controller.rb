@@ -8,6 +8,8 @@ include ActionView::Helpers::UrlHelper
 
 class UserController < SiteController
 
+  layout 'simple'
+
   before_filter :require_login, :only => :show
   before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
@@ -15,7 +17,6 @@ class UserController < SiteController
   def new(cloud_access_choice=nil)
     @product = 'openshift' unless defined? @product
     @user = WebUser.new
-    render :layout => 'simple'
   end
 
   def new_flex
@@ -93,9 +94,10 @@ class UserController < SiteController
 
     unless @user.errors.length == 0
       respond_to do |format|
-        format.js { render :json => @user.errors and return }
-        format.html { render :new, :layout => 'simple' and return }
+        format.js { render :json => @user.errors }
+        format.html { render :new }
       end
+      return
     end
 
     # Successful user registration event for analytics
@@ -108,7 +110,6 @@ class UserController < SiteController
       #Save promo code so that omniture tag can be updated in UserController::complete
       session[:promo_code] = @user.promo_code
     end
-
 
     # Redirect to a running workflow if it exists
     respond_to do |format|
@@ -136,7 +137,7 @@ class UserController < SiteController
       session.delete(:promo_code)
     end
 
-    render :layout => 'simple'
+    render :create
   end
   
   def create_json_error_hash(user_errors)
