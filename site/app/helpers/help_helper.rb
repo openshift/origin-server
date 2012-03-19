@@ -19,7 +19,7 @@ module HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Creating_Applications-Creating_Applications_with_the_Command_Line_Interface.html'
+    user_guide_topic_url 'sect-User_Guide-Working_With_Domains.html'
   end
   
   def manage_cartridges_user_guide_topic_url
