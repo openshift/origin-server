@@ -15,7 +15,7 @@ class UserController < SiteController
   def new(cloud_access_choice=nil)
     @product = 'openshift' unless defined? @product
     @user = WebUser.new
-    render :new, :layout => 'simple' and return
+    render :layout => 'simple'
   end
 
   def new_flex
@@ -135,18 +135,8 @@ class UserController < SiteController
       @evar8 = session[:promo_code]
       session.delete(:promo_code)
     end
-    
-    # @product = flash[:product] #set product for 'simple registration' event
-    
-    message 'What\'s next?', "
-      <p>
-        Check your inbox for an email with a validation link. 
-        Click on the link to complete the registration process.
-      </p>
-      <p>
-        #{link_to 'Return to the main page', '/app'}
-      </p>
-    "
+
+    render :layout => 'simple'
   end
   
   def create_json_error_hash(user_errors)
@@ -206,15 +196,7 @@ class UserController < SiteController
   end
   
   def request_password_reset_success
-    message 'Password Reset Email Sent', "
-      <p>
-      An e-mail has been sent to you containing instructions on how to reset your password. 
-      The link in the e-mail will allow you to change your password.
-      </p>
-      <p>
-        #{link_to 'Return to the main page', '/app'}
-      </p>
-    "
+    render :layout => 'simple'
   end
   
   # This function makes the first request to send an email with a token
@@ -293,6 +275,8 @@ class UserController < SiteController
         @responseText[:message] = 'An unknown error occurred, please try again'
       end
     end
+
+    render :layout => 'simple'
   end
 
   def change_password
@@ -329,11 +313,4 @@ class UserController < SiteController
       format.js { render :json => responseText }
     end
   end
-
-  def message(title, content)
-    @title = title
-    @content = content
-    render :success, :layout => 'simple'
-  end
-
 end
