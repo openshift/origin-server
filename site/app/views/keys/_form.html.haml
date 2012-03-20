@@ -1,9 +1,9 @@
-- input_html = { :class => input_class } if defined? input_class
+- input_html = defined?(input_class) ? { :class => input_class } : {}
 
 = semantic_form_for key, :html => {:class => 'form-horizontal'} do |f|
   = f.semantic_errors
   = f.inputs do
-    = f.input :name, :label => 'Key name', :placeholder => 'A name for your key'
+    = f.input :name, :label => 'Key name', :input_html => {:placeholder => 'A name for your key'}
     = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html.merge(:placeholder => 'Public key contents')
   = f.buttons do
     = link_to "Cancel", account_path, :class => 'btn'
