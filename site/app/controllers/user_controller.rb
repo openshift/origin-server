@@ -8,24 +8,15 @@ include ActionView::Helpers::UrlHelper
 
 class UserController < SiteController
 
+  layout 'simple'
+
   before_filter :require_login, :only => :show
   before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
 
-  def new(cloud_access_choice=nil)
+  def new
     @product = 'openshift' unless defined? @product
     @user = WebUser.new
-    render :new, :layout => 'simple' and return
-  end
-
-  def new_flex
-    @product = 'flex'
-    new(CloudAccess::FLEX)
-  end
-
-  def new_express
-    @product = 'express'
-    new(CloudAccess::EXPRESS)
   end
 
   def create
@@ -64,10 +55,8 @@ class UserController < SiteController
     if @user.cloud_access_choice
       case @user.cloud_access_choice.to_i
       when CloudAccess::FLEX
-        action = 'confirm_flex'
         @product = 'flex'
       when CloudAccess::EXPRESS
-        action = 'confirm_express'
         @product = 'express'
       end
     end
@@ -82,7 +71,7 @@ class UserController < SiteController
       end
     end
 
-    confirmationUrl = url_for(:action => action,
+    confirmationUrl = url_for(:action => 'confirm',
                               :controller => 'email_confirm',
                               :only_path => false,
                               :protocol => 'https')
@@ -93,9 +82,10 @@ class UserController < SiteController
 
     unless @user.errors.length == 0
       respond_to do |format|
-        format.js { render :json => @user.errors and return }
-        format.html { render :new, :layout => 'simple' and return }
+        format.js { render :json => @user.errors }
+        format.html { render :new }
       end
+      return
     end
 
     # Successful user registration event for analytics
@@ -108,7 +98,6 @@ class UserController < SiteController
       #Save promo code so that omniture tag can be updated in UserController::complete
       session[:promo_code] = @user.promo_code
     end
-
 
     # Redirect to a running workflow if it exists
     respond_to do |format|
@@ -135,18 +124,8 @@ class UserController < SiteController
       @evar8 = session[:promo_code]
       session.delete(:promo_code)
     end
-    
-    # @product = flash[:product] #set product for 'simple registration' event
-    
-    message 'What\'s next?', "
-      <p>
-        Check your inbox for an email with a validation link. 
-        Click on the link to complete the registration process.
-      </p>
-      <p>
-        #{link_to 'Return to the main page', '/app'}
-      </p>
-    "
+
+    render :create
   end
   
   def create_json_error_hash(user_errors)
@@ -200,140 +179,4 @@ class UserController < SiteController
       render :json => json, :status => :internal_server_error and return
     end
   end
-
-  def request_password_reset_form
-    render :layout => 'simple'
-  end
-  
-  def request_password_reset_success
-    message 'Password Reset Email Sent', "
-      <p>
-      An e-mail has been sent to you containing instructions on how to reset your password. 
-      The link in the e-mail will allow you to change your password.
-      </p>
-      <p>
-        #{link_to 'Return to the main page', '/app'}
-      </p>
-    "
-  end
-  
-  # This function makes the first request to send an email with a token
-  def request_password_reset
-    Rails.logger.debug params.to_yaml
-
-    # Keep track of response information
-    responseText = {
-      :status => 'success',
-      :message => "The information you have requested has been emailed to you at #{params[:email]}."
-    }
-
-    # Test the email against the WebUser validations
-    user = WebUser.new({:email_address => params[:email]})
-    user.valid?
-
-    # Return if there is a problem with the email address
-    if !user.errors[:email_address].empty?
-      responseText[:status] = 'error'
-      responseText[:message] = 'The email supplied is invalid'
-    elsif !Rails.configuration.integrated
-      Rails.logger.warn "Non integrated environment - faking password reset"
-    else
-      user.request_password_reset({ 
-        :login => params[:email],
-        :url   => user_reset_password_url
-      })
-    end
-
-    respond_to do |format|
-      format.js { render :json => responseText }
-      format.html { redirect_to params['redirectUrl'] } if params.key? 'redirectUrl'
-    end
-  end
-
-  # This function actually checks the token against streamline
-  def reset_password
-    Rails.logger.debug params.to_yaml
-
-    # Keep track of response information
-    @responseText = {
-      :status => 'success',
-      :message => "Your password has been successfully reset! Please check your email for your new password. After you log in, don't forget to reset it using the control panel."
-    }
-
-    # Test the email against the WebUser validations
-    user = WebUser.new({:email_address => params[:email]})
-    user.valid?
-
-    # Return if there is a problem with the email address
-    if !user.errors[:email_address].empty?
-      @responseText[:status] = 'error'
-      @responseText[:message] = 'The email supplied is invalid'
-    elsif !Rails.configuration.integrated
-      Rails.logger.warn "Non integrated environment - faking password reset"
-    else
-      begin
-        json = user.reset_password({ 
-          :login => params[:email],
-          :token => params[:token]
-        })
-        errors = json['errors']
-        Rails.logger.debug "Data returned"
-        if errors && !errors.empty?
-          @responseText[:status] = 'error'
-          case errors.first.to_sym
-          when :token_is_invalid
-            @responseText[:message] = "This password reset request is no longer valid. This could be caused by the link being more than 24 hours old or it's already been used. Please try to reset your password again using the 'Sign in' form."
-          when :email_service_error
-            @responseText[:message] = "An unknown error has occurred, please try again"
-          end
-        end
-        Rails.logger.debug "Data returned"
-      rescue Exception => e 
-        @responseText[:status] = 'error'
-        @responseText[:message] = 'An unknown error occurred, please try again'
-      end
-    end
-  end
-
-  def change_password
-    user = session_user
-
-    responseText = {
-      :status => 'success',
-      :message => "Your password has been successfully changed"
-    }
-
-    json = user.change_password({
-      'oldPassword' => params['old_password'],
-      'newPassword' => params['password'],
-      'newPasswordConfirmation' => params['password_confirmation']
-    })
-
-    Rails.logger.debug "---------------"
-    Rails.logger.debug "  change_pass  "
-    Rails.logger.debug "---------------"
-    Rails.logger.debug json.to_yaml
-    Rails.logger.debug "---------------"
-
-    if json['errors']
-      responseText[:status] = 'error'
-      Rails.logger.debug "Errors"
-      if json['errors'].include? 'password_invalid'
-        responseText[:message] = "Please choose a valid new password"
-      elsif json['errors'].include? 'password_incorrect'
-        responseText[:message] = "Your old password was incorrect"
-      end
-    end
-
-    respond_to do |format|
-      format.js { render :json => responseText }
-    end
-  end
-
-  def message(title, content)
-    @title = title
-    @content = content
-    render :success, :layout => 'simple'
-  end
-
 end
