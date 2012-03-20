@@ -1,5 +1,16 @@
 class CartridgeTypesController < ConsoleController
 
+  def conflicts?(cart_type)
+    t = cart_type
+
+    return false if @installed_cart_types.nil? || t.conflicts.empty?
+
+    # if this cart can conflict and a conflicting cart is installed
+    # add this cart to the conflicted list
+    @installed_cart_types.each { |c| return true if t.conflicts.include? c.id }
+    return false
+  end
+
   def index
     @application_id = params[:application_id]
 
@@ -49,17 +60,6 @@ class CartridgeTypesController < ConsoleController
     @cartridge_type = CartridgeType.find params[:id], :as => session_user
     @application_id = params[:application_id]
     @cartridge = Cartridge.new :as => session_user
-  end
-
-  def conflicts?(cart_type)
-    t = cart_type
-
-    return false if @installed_cart_types.nil? || t.conflicts.empty?
-
-    # if this cart can conflict and a conflicting cart is installed
-    # add this cart to the conflicted list
-    @installed_cart_types.each { |c| return true if t.conflicts.include? c.id }
-    return false
   end
 
   def requires?(cart_type)
