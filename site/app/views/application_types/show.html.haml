@@ -34,7 +34,7 @@
             = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :class => @application.errors[:domain_name].present? ? 'error' : '', :class => 'domain_name'
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
         .row
-          #app-errors.span4.offset1
+          #app-errors.span
 
         .row
           - if @domain
