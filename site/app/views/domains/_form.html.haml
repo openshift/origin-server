@@ -7,7 +7,7 @@
           %span.add-on-first> http://applicationname&ndash;
           = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
           %span.add-on-last> .rhcloud.com
-        = f.inline_errors_for :namespace
+          = f.inline_errors_for :namespace
         .row
           #app-errors.span
         .help-block Your namespace must be letters or numbers with no spaces or symbols.
