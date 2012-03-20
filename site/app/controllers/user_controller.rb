@@ -55,10 +55,8 @@ class UserController < SiteController
     if @user.cloud_access_choice
       case @user.cloud_access_choice.to_i
       when CloudAccess::FLEX
-        action = 'confirm_flex'
         @product = 'flex'
       when CloudAccess::EXPRESS
-        action = 'confirm_express'
         @product = 'express'
       end
     end
@@ -73,7 +71,7 @@ class UserController < SiteController
       end
     end
 
-    confirmationUrl = url_for(:action => action,
+    confirmationUrl = url_for(:action => 'confirm',
                               :controller => 'email_confirm',
                               :only_path => false,
                               :protocol => 'https')
