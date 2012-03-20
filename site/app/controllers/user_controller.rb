@@ -14,19 +14,9 @@ class UserController < SiteController
   before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
   protect_from_forgery :except => :create_external
 
-  def new(cloud_access_choice=nil)
+  def new
     @product = 'openshift' unless defined? @product
     @user = WebUser.new
-  end
-
-  def new_flex
-    @product = 'flex'
-    new(CloudAccess::FLEX)
-  end
-
-  def new_express
-    @product = 'express'
-    new(CloudAccess::EXPRESS)
   end
 
   def create
