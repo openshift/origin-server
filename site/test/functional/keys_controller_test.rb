@@ -59,7 +59,7 @@ class KeysControllerTest < ActionController::TestCase
     assert key.errors.empty?, key.errors.inspect
     assert flash[:success]
 
-    assert_raise ActiveResource::ServerError, "Bug 789786 has been fixed, expose me" do key.destroy; end
+    key.destroy
   end
 
   test "should give key new name" do
@@ -127,18 +127,6 @@ class KeysControllerTest < ActionController::TestCase
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect
     assert_equal 1, key.errors[:name].length
-  end
-
-  test "should assign errors on duplicate content" do
-    (key = Key.new get_post_form.merge(:as => @user)).save!
-
-    post :create, {:key => get_post_form.merge(:name => unique_name, :raw_content => "#{key.type} #{key.content}")}
-
-    assert_template :new
-    assert key = assigns(:key)
-    assert !key.errors.empty?
-    assert key.errors[:raw_content].present?, key.errors.inspect
-    assert_equal 1, key.errors[:raw_content].length
   end
 
   def get_post_form

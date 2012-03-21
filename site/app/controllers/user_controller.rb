@@ -11,7 +11,7 @@ class UserController < SiteController
   layout 'simple'
 
   before_filter :require_login, :only => :show
-  before_filter :new_forms, :only => [:show, :new, :create, :new_flex, :new_express]
+  before_filter :new_forms, :only => [:show, :new, :create]
   protect_from_forgery :except => :create_external
 
   def new
@@ -54,8 +54,6 @@ class UserController < SiteController
     action = 'confirm'
     if @user.cloud_access_choice
       case @user.cloud_access_choice.to_i
-      when CloudAccess::FLEX
-        @product = 'flex'
       when CloudAccess::EXPRESS
         @product = 'express'
       end
