@@ -2,7 +2,7 @@ require 'test_helper'
 
 class CartridgeTypesControllerTest < ActionController::TestCase
   def setup
-    setup_integrated
+    with_domain
     @application_type = ApplicationType.find 'ruby-1.8'
     @app = Application.new :name => 'test1', :as => @user
     @app.cartridge = @application_type.cartridge || @application_type.id
@@ -49,10 +49,5 @@ class CartridgeTypesControllerTest < ActionController::TestCase
 
   def get_cart_params
     {:name => 'cron-1.4', :type => 'embedded'}
-  end
-
-  def teardown
-    domain = Domain.first :as => @user
-    domain.destroy_recursive if domain
   end
 end
