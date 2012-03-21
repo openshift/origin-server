@@ -5,7 +5,7 @@
   = f.inputs do
     = f.hidden_field :name, :value => 'default'
     = f.hidden_field :first, :name => 'first', :value => true
-    = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html, :placeholder => 'Public key contents'
+    = f.input :raw_content, :as => :text, :label => 'Paste the contents of your public key file', :input_html => input_html.merge(:placeholder => 'Public key contents')
   = f.buttons do
     = f.commit_button :label => 'Save', :button_html => { :class => 'btn btn-primary' }
     = f.loading

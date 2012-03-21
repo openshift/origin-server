@@ -33,7 +33,7 @@
             %span.add-on-middle> &ndash;
             = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :class => @application.errors[:domain_name].present? ? 'error' : '', :class => 'domain_name'
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
-        .row
+        .row.control-group.error
           #app-errors.span
 
         .row

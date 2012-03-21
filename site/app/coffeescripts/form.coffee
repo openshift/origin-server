@@ -13,10 +13,12 @@ $ ->
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
-      $(element).closest('.control-group').addClass('error').removeClass(validClass)
+      $(element).addClass('error').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
-      $(element).closest('.control-group').addClass(validClass).removeClass('error')
+      $(element).addClass(validClass).removeClass('error')
 
+  # /app/account/new
+  # /app/account
   $('#new_web_user').validate
     rules:
       # Require email for new users
@@ -33,6 +35,7 @@ $ ->
         required:   true
         equalTo:    "#web_user_password"
 
+  # /app/login 
   $('#login-form form').validate
     rules:
       "login":
@@ -40,6 +43,7 @@ $ ->
       "password":
         required: true
 
+  # /app/user/request_password_reset_form
   $('#password-reset-form form').validate
     rules:
       "email":
@@ -56,14 +60,13 @@ $ ->
       alpha_numeric: true
 
   # These forms are inline, so we need to handle them differently
+  # /app/console/application_types/*
   $('#new_application').validate
     errorLabelContainer: '#app-errors'
     errorContainer: '#app-errors'
 
+  # /app/account
+  # /app/account/domain/edit
   $("#new_domain form").validate
-    errorLabelContainer: '#app-errors'
-    errorContainer: '#app-errors'
-
-  $('#domain_name_group').closest('form').validate
     errorLabelContainer: '#app-errors'
     errorContainer: '#app-errors'
