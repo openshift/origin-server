@@ -5,7 +5,7 @@ class KeysControllerTest < ActionController::TestCase
   @@setup = false
 
   def setup
-    with_domain
+    without_domain
   end
 
   def unique_name_format
@@ -18,8 +18,8 @@ class KeysControllerTest < ActionController::TestCase
     assert key = assigns(:key)
     assert key.errors.empty?, key.errors.inspect
     assert_redirected_to account_path
-
-    assert key.destroy
+    #since this is only key the user has then it cannot be deleted (because of the old client tools)
+    #assert key.destroy
   end
 
   test "should create key and redirect back" do
@@ -32,7 +32,8 @@ class KeysControllerTest < ActionController::TestCase
     assert_redirected_to 'http://arbitrary/back'
     assert flash[:success]
 
-    assert key.destroy
+    #since this is only key the user has then it cannot be deleted (because of the old client tools)
+    #assert key.destroy
   end
 
   test "should create key and redirect back without referrer" do
@@ -43,7 +44,8 @@ class KeysControllerTest < ActionController::TestCase
     assert_redirected_to account_path
     assert flash[:success]
 
-    assert key.destroy
+    #since this is only key the user has then it cannot be deleted (because of the old client tools)
+    #assert key.destroy
   end
 
   test "should overwrite default key" do
@@ -73,12 +75,14 @@ class KeysControllerTest < ActionController::TestCase
     assert key.errors.empty?, key.errors.inspect
     assert flash[:success]
 
-    assert key.destroy
+    #since this is only key the user has then it cannot be deleted (because of the old client tools)
+    #assert key.destroy
   end
 
   test "should destroy key" do
     (key = Key.new(get_post_form.merge(:as => @user))).save!
-
+    #creating a 2nd key since if it is the only key the server will not allow it to be deleted (because of the old client tools)
+    (key = Key.new(get_post_form.merge(:as => @user))).save!
     delete :destroy, :id => key.id
     assert_redirected_to account_path
   end

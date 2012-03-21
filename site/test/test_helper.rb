@@ -59,7 +59,7 @@ class ActiveSupport::TestCase
     RestApi::Base.prefix='/broker/rest/'
   end
   def setup_user
-    @user = WebUser.new :email_address=>"app_test1@test1.com", :rhlogin=>"app_test1@test1.com"
+    @user = WebUser.new :email_address=>"app_test_#{uuid}@test1.com", :rhlogin=>"app_test_#{uuid}@test1.com"
 
     session[:login] = @user.login
     session[:user] = @user
@@ -71,11 +71,11 @@ class ActiveSupport::TestCase
     @ts ||= "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
   end
 
-  def setup_integrated
+  def setup_integrated(create_domain=true)
     setup_api
     setup_user
     uuid
-    setup_domain
+    setup_domain if create_domain
   end
 
   def setup_domain
@@ -97,6 +97,10 @@ class ActiveSupport::TestCase
       lambda { @@domain.destroy_recursive }
     end
     @domain = @@domain
+  end
+  def without_domain
+    setup_api
+    setup_user
   end
 end
 
