@@ -20,7 +20,7 @@
 %link{ :rel => "shortcut icon", :type => "image/png", :href => image_path('/app/images/favicon-32.png') }
 
 -# Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons
-= stylesheet_link_tag '/app/stylesheets/overpass.css', :media => 'all'
+= stylesheet_link_tag 'overpass.css', :media => 'all'
 
 -# Pass in a stylesheet_partial to render inside your head
 - if local_assigns[:stylesheet_partial]
@@ -28,6 +28,6 @@
 
 -# All JavaScript at the bottom, except for Modernizr and Respond.
 -# Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
-= javascript_include_tag '/app/javascripts/modernizr.min.js'
+= javascript_include_tag 'modernizr.min.js'
 
 = csrf_meta_tag
