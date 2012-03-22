@@ -1,14 +1,17 @@
-# Configure barista.
+# 
+# Configure barista.to generate to tmp/javascripts, and configure Rack
+# to attempt to serve JS out of tmp/javascripts for the /app/javascripts path
+#
 Barista.configure do |c|
 
   # Change the root to use app/scripts
   # c.root = Rails.root.join("app", "scripts")
 
-  # Change the output root, causing Barista to compile into public/coffeescripts
-  # c.output_root = Rails.root.join("public", "coffeescripts")
+  # Change the output root, causing Barista to compile into tmp/javascripts
+  c.output_root = Rails.root.join("tmp", "javascripts")
   #
   # Disable auto compile, use generated file directly:
-  c.auto_compile = false # There is a prebuild step to generate coffee
+  c.auto_compile = Rails.env.development?
 
   # Add a new framework:
 
@@ -39,10 +42,10 @@ Barista.configure do |c|
 
   # or, hook into the compilation:
 
-  c.before_compilation   { |path|         puts "Barista: Compiling #{path}" }
-  c.on_compilation       { |path|         puts "Barista: Successfully compiled #{path}" }
-  c.on_compilation_error { |path, output| puts "Barista: Compilation of #{path} failed with:\n#{output}" }
-  c.on_compilation_with_warning { |path, output| puts "Barista: Compilation of #{path} had a warning:\n#{output}" }
+  # c.before_compilation   { |path|         puts "Barista: Compiling #{path}" }
+  # c.on_compilation       { |path|         puts "Barista: Successfully compiled #{path}" }
+  # c.on_compilation_error { |path, output| puts "Barista: Compilation of #{path} failed with:\n#{output}" }
+  # c.on_compilation_with_warning { |path, output| puts "Barista: Compilation of #{path} had a warning:\n#{output}" }
 
   # Turn off preambles and exceptions on failure:
 
@@ -60,3 +63,20 @@ Barista.configure do |c|
   # c.embedded_interpreter = true
 
 end
+
+#
+# Javascript is assumed to be generated into Rails tmp/javascripts,
+# either dynamically in development, or by the RPM build in production
+#
+options = {
+  :urls => ['/javascripts'],
+  :root => "#{Rails.root}/tmp"
+}
+
+#
+# All production environments pregenerate JS using the RPM build, development
+# environments use autogeneration
+#
+Rails.configuration.middleware.delete('Barista::Filter')
+Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Barista::Filter')
+Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Rack::Static', options)

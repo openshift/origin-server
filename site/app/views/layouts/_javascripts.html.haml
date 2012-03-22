@@ -10,7 +10,7 @@
   ]
 
 - scripts.each do |script|
-  = javascript_include_tag "/app/javascripts/#{script}"
+  = javascript_include_tag script
 
 -#  Append your own using content_for :javascripts
 = yield :javascripts
