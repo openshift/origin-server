@@ -58,6 +58,7 @@ class ActiveSupport::TestCase
     RestApi::Base.site = "https://#{host}/broker/rest"
     RestApi::Base.prefix='/broker/rest/'
   end
+  
   def setup_user
     @user = WebUser.new :email_address=>"app_test1@test1.com", :rhlogin=>"app_test1@test1.com"
 
@@ -67,6 +68,7 @@ class ActiveSupport::TestCase
     @request.cookies['rh_sso'] = '123'
     @request.env['HTTPS'] = 'on'
   end
+  
   def uuid
     @ts ||= "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
   end
