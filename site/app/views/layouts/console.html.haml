@@ -14,22 +14,10 @@
     %header
       = render 'layouts/console/header'
 
-    - if content_for?(:sub_layout) 
+    - if content_for? :sub_layout
       = yield :sub_layout
     - else
       .container#content
-        
-        %section#attention
-          %p.hero-unit 
-            %strong Preview:
-            This is a preview of the new OpenShift Management Console. There may be a few 
-            minor glitches as we straighten things up &ndash; if you hit a problem or want to 
-            let us know how you feel about the new console,
-            #{link_to "post in the Express forum", post_to_forum_url} or
-            #{link_to "file a bug", 'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Express'}.
-            %br
-            #{link_to "« Back to the Control Panel", control_panel_path}
-
         = flashes
         = yield
 
