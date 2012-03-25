@@ -88,6 +88,14 @@ class ApplicationType
       }
     },
     {
+      :id => 'nodejs-0.6',
+      :name => 'Node.js 0.6',
+      :version => 'Node.js 0.6.10',
+      :categories => [:framework, :new],
+      :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
+      :website => 'http://nodejs.org/'
+    },
+    {
       :id => 'ruby-1.8',
       :name => 'Ruby 1.8.7',
       :version => 'Ruby 1.8.7 / Rack 1.1',
@@ -148,17 +156,6 @@ class ApplicationType
       ]
     }
 
-  # TODO: remove this and load cart list from broker
-  if Rails.configuration.node_js_enabled then 
-    default_types_array << {
-      :id => 'nodejs-0.6',
-      :name => 'Node.js 0.6',
-      :version => 'Node.js 0.6.10',
-      :categories => [:framework, :new], # removed :framework tag
-      :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
-      :website => 'http://nodejs.org/'
-    } 
-  end
   @default_types = default_types_array.map { |t| ApplicationType.new t }
 
   class << self
