@@ -7,9 +7,12 @@ class CartridgesControllerTest < ActionController::TestCase
 #  end
 
   def setup
-    setup_integrated
+    with_domain
+
+    @domain.applications.each {|app| app.destroy}
+    
     @application_type = ApplicationType.find 'ruby-1.8'
-    @app = Application.new :name => 'test1', :as => @user
+    @app = Application.new :name => "cart_#{uuid}", :as => @user
     @app.cartridge = @application_type.cartridge || @application_type.id
     @app.domain = @domain
     @app.save
@@ -51,10 +54,5 @@ class CartridgesControllerTest < ActionController::TestCase
     {:cartridge => {:name => 'mysql-5.1', :type => 'embedded'},
      :application_id => @app.id,
      :domain_id => @domain.id}
-  end
-
-  def teardown
-    domain = Domain.first :as => @user
-    domain.destroy_recursive if domain
   end
 end

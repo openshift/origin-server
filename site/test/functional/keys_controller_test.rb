@@ -5,7 +5,7 @@ class KeysControllerTest < ActionController::TestCase
   @@setup = false
 
   def setup
-    without_domain
+    with_unique_user
   end
 
   def unique_name_format

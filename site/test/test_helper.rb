@@ -58,9 +58,8 @@ class ActiveSupport::TestCase
     RestApi::Base.site = "https://#{host}/broker/rest"
     RestApi::Base.prefix='/broker/rest/'
   end
-  
-  def setup_user
-    @user = WebUser.new :email_address=>"app_test_#{uuid}@test1.com", :rhlogin=>"app_test_#{uuid}@test1.com"
+  def setup_user(unique=false)
+    @user = WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
 
     session[:login] = @user.login
     session[:user] = @user
@@ -68,16 +67,8 @@ class ActiveSupport::TestCase
     @request.cookies['rh_sso'] = '123'
     @request.env['HTTPS'] = 'on'
   end
-  
   def uuid
     @ts ||= "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
-  end
-
-  def setup_integrated(create_domain=true)
-    setup_api
-    setup_user
-    uuid
-    setup_domain if create_domain
   end
 
   def setup_domain
@@ -89,6 +80,30 @@ class ActiveSupport::TestCase
     @domain
   end
 
+  #
+  # Create and authenticate a user that is unique per test case
+  #
+  def with_unique_user
+    setup_api
+    uuid
+    setup_user(true)
+  end
+
+  #
+  # Create and authenticate a user that is unique per test case and
+  # create an initial domain for that user.
+  #
+  def with_unique_domain
+    with_unique_user
+    setup_domain
+  end
+
+  #
+  # Create a domain and user that are shared by all tests in the test suite, 
+  # and is only destroyed at the very end of the suite.  If you do not clean
+  # up after creating applications you will hit the application limit for
+  # this user.
+  #
   def with_domain
     setup_api
     setup_user
@@ -96,13 +111,14 @@ class ActiveSupport::TestCase
       domain = Domain.first :as => @user
       domain.destroy_recursive if domain
       @@domain = setup_domain
-      lambda { @@domain.destroy_recursive }
+      lambda do
+        begin
+          @@domain.destroy_recursive
+        rescue ActiveResource::ResourceNotFound
+        end
+      end
     end
     @domain = @@domain
-  end
-  def without_domain
-    setup_api
-    setup_user
   end
 end
 

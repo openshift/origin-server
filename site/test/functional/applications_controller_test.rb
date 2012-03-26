@@ -7,7 +7,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 #  end
 
   def setup
-    setup_integrated
+    with_domain
   end
 
   test "should create and delete app" do
@@ -40,7 +40,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_template 'application_types/show'
     assert app = assigns(:application)
     assert !app.errors.empty?
-    assert app.errors[:name].present?
+    assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length
   end
 
@@ -60,7 +60,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form})
     app = assigns(:application)
     assert app
-    assert app.errors.empty?
+    assert app.errors.empty?, app.errors.inspect
     puts app.errors.inspect unless app.errors.empty?
 
     form = get_post_form
@@ -68,7 +68,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => form})
     app = assigns(:application)
     assert app
-    assert app.errors.empty?
+    assert app.errors.empty?, app.errors.inspect
 
     # get a filtered version of the list
     post(:index, :applications_filter => get_filter_form)
@@ -111,6 +111,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app_framework
     assert_equal 'test1', app.name
     assert_equal 'diy-0.1', app_framework.id
+
+    app.destroy
   end
 
   test "should result in a not found error when retrieving and application that does not exist" do
@@ -143,10 +145,5 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   def get_filter_form
     {:name => 'test2'}
-  end
-
-  def teardown
-    domain = Domain.first :as => @user
-    domain.destroy_recursive if domain
   end
 end
