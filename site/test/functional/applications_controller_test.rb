@@ -8,6 +8,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   def setup
     with_domain
+    @domain.applications.each {|app| app.destroy}
   end
 
   test "should create and delete app" do
