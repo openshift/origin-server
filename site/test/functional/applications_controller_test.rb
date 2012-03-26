@@ -1,14 +1,9 @@
 require 'test_helper'
 
 class ApplicationsControllerTest < ActionController::TestCase
-#  test "should get new unauthorized" do
-#    get :new
-#    assert_response :success
-#  end
-
   def setup
     with_domain
-    @domain.applications.each {|app| app.destroy}
+    @domain.reload.applications.each {|app| app.destroy}
   end
 
   test "should create and delete app" do
