@@ -201,6 +201,21 @@ class CartridgeType < RestApi::Base
       :conflicts => [],
       :help_topics => {
       }
+    },
+    "haproxy-1.4" =>
+    {
+      :id => 'haproxy-1.4',
+      :name => 'High Availability Proxy',
+      :type => 'embedded',
+      :version => '1.4',
+      :license => '',
+      :license_url => '',
+      :categories => [:embedded, :blacklist],
+      :description => '',
+      :requires => [],
+      :conflicts => [],
+      :help_topics => {
+      }
     }
   }
 
