@@ -32,7 +32,7 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
       end
       assert 200, res.code
     rescue Exception => e
-      raise e, "Could not retrieve #{name}(#{url}): #{e.message}"
+      raise e, "Could not retrieve #{name}(#{uri}): #{e.message}"
     end
   end
 
