@@ -19,7 +19,7 @@ $ ->
 
   # /app/account/new
   # /app/account
-  $('#new_web_user').validate
+  $('#new-user form').validate
     rules:
       # Require email for new users
       "web_user[email_address]":
@@ -38,9 +38,9 @@ $ ->
   # /app/login 
   $('#login-form form').validate
     rules:
-      "login":
+      "web_user[rhlogin]":
         required: true
-      "password":
+      "web_user[password]":
         required: true
 
   # /app/user/request_password_reset_form
