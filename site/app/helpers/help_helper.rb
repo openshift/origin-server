@@ -19,7 +19,7 @@ module HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Working_With_Domains.html'
+    user_guide_topic_url 'chap-User_Guide-OpenShift_Express_Command_Line_Interface.html#sect-User_Guide-Working_With_Domains'
   end
   
   def manage_cartridges_user_guide_topic_url
