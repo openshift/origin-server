@@ -89,13 +89,13 @@ module HelpHelper
   def console_help_links
     [
       {:href => user_guide_url,
-       :name => 'OpenShift Express User Guide'},
+       :name => 'OpenShift User Guide'},
       {:href => install_cli_knowledge_base_url,
-       :name => 'Installing OpenShift Express client tools on Mac OSX, Linux, and Windows'},
+       :name => 'Installing OpenShift client tools on Mac OSX, Linux, and Windows'},
       {:href => rails_quickstart_guide_url,
-       :name => 'Ruby on Rails Express Quickstart Guide'},
+       :name => 'Ruby on Rails Quickstart Guide'},
       {:href => community_base_url('kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app'),
-       :name => 'How can I add JBoss modules to an Express App'},
+       :name => 'How can I add JBoss modules to an OpenShift App'},
       {:href => sync_git_with_remote_repo_knowledge_base_url,
        :name => 'Sync your OpenShift repo with an existing Git repo'}
     ]
