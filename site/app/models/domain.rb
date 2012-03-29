@@ -34,4 +34,20 @@ class Domain < RestApi::Base
   def destroy_recursive
     connection.delete(element_path({:force => true}.merge(prefix_options)), self.class.headers)
   end
+
+  def save(*args)
+    # FIXME: We do this since we do not yet handle multiple domains in the
+    #        UI.  This mitigates a race condition where multiple domains
+    #        can be created if there is no domains registered yet but does
+    #        not fix it.
+    first_domain = Domain.first(:as => @as)
+    unless first_domain.nil?
+      if first_domain != self
+        @errors={:namespace => "User already has a domain associated. Go back to accounts to modify."}
+        return false
+      end
+    end
+
+    super
+  end
 end
