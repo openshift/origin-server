@@ -40,7 +40,7 @@ class ApplicationType
       :description => 'The leading open source Java EE6 application server for enterprise Java applications.  Popular development frameworks include Seam, CDI, Weld, and Spring.',
       :website => 'http://www.jboss.org/jbossas',
       :help_topics => {
-        'How to add JBoss modules to an Express app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
+        'How to add JBoss modules to an OpenShift app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
         'How to solve java.net.BindException to 8080' => 'https://www.redhat.com/openshift/community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting'
       }
     },
