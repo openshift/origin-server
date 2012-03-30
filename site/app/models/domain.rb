@@ -42,7 +42,7 @@ class Domain < RestApi::Base
     #        not fix it.
     first_domain = Domain.first(:as => @as)
     unless first_domain.nil?
-      if first_domain != self
+      if first_domain != self && @update_id.nil?
         @errors={:namespace => "User already has a domain associated. Go back to accounts to modify."}
         return false
       end
