@@ -12,7 +12,7 @@ module HelpHelper
   end
   
   def manage_app_cli_user_guide_topic_url
-    user_guide_topic_url 'chap-User_Guide-OpenShift_Express_Command_Line_Interface.html'
+    user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html'
   end
 
   def deploy_hook_user_guide_topic_url
@@ -20,7 +20,7 @@ module HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'chap-User_Guide-OpenShift_Express_Command_Line_Interface.html#sect-User_Guide-Working_With_Domains'
+    user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html#sect-User_Guide-Working_With_Domains'
   end
   
   def manage_cartridges_user_guide_topic_url
@@ -28,7 +28,7 @@ module HelpHelper
   end
   
   def git_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-OpenShift_Express_Web_Interface-Editing_and_Deploying_Applications.html'
+    user_guide_topic_url 'sect-User_Guide-OpenShift_Web_Interface-Editing_and_Deploying_Applications.html'
   end
   
   def install_cli_knowledge_base_url
