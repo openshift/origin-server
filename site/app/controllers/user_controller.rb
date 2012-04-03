@@ -1,9 +1,5 @@
-require 'pp'
-require 'net/http'
-require 'net/https'
 require 'recaptcha'
 require 'json'
-require 'yaml'
 include ActionView::Helpers::UrlHelper
 
 class UserController < SiteController
@@ -11,7 +7,6 @@ class UserController < SiteController
   layout 'simple'
 
   before_filter :require_login, :only => :show
-  before_filter :new_forms, :only => [:show, :new, :create]
   protect_from_forgery :except => :create_external
 
   def new
