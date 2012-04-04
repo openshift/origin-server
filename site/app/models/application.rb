@@ -15,8 +15,6 @@ class Application < RestApi::Base
   alias_attribute :gear_size_profile, :node_profile
 
   has_many :aliases
-  # Deprecated on server side, so we will not use it (use /cartridges instead)
-  has_many :embedded
   has_many :cartridges
   
   belongs_to :domain

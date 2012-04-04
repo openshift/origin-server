@@ -251,6 +251,16 @@ class RestApiTest < ActiveSupport::TestCase
     assert key.errors.empty?
   end
 
+  class ReflectedTest < ActiveResource::Base
+    self.site = "http://localhost"
+  end
+
+  def test_create_safe_reflected_name
+    base = ReflectedTest.new
+    r = base.send("find_or_create_resource_for", 'mysql-5.1')
+    assert_equal 'RestApiTest::ReflectedTest::Mysql51', r.name, r.pretty_inspect
+  end
+
   def test_create_cookie
     connection = RestApi::UserAwareConnection.new 'http://localhost', :xml, RestApi::Authorization.new('test1', '1234')
     headers = connection.authorization_header(:post, '/something')

@@ -32,11 +32,30 @@ module ActiveResource
   end
 end
 
+#
+# ActiveResource association support
+#
+class ActiveResource::Base
+  extend ActiveResource::Associations
+  include ActiveResource::Reflection
+
+  private
+    def find_or_create_resource_for_collection(name)
+      return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
+      find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
+    end
+
+    def find_or_create_resource_for_with_reflections(name)
+      return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
+      # also sanitize names with dashes
+      find_or_create_resource_for_without_reflections name.to_s.gsub(/[^\w\:]/, '_')
+    end
+
+  alias_method_chain :find_or_create_resource_for, :reflections
+end
+
 module RestApi
   class Base < ActiveResource::Base
-    # ActiveResource association support
-    extend ActiveResource::Associations
-    include ActiveResource::Reflection
     include ActiveModel::Dirty
 
     def self.debug
@@ -220,21 +239,6 @@ module RestApi
           end
         end
       end
-    end
-
-    #
-    # ActiveResource association support
-    #
-    class << self
-      def find_or_create_resource_for_collection(name)
-        return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
-        find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
-      end
-      private
-        def find_or_create_resource_for(name)
-          return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
-          super
-        end
     end
 
     #
