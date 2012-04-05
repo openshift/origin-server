@@ -10,37 +10,38 @@ class Application < RestApi::Base
   end
 
   custom_id :name
-  # TODO: Bug 789752: Rename server attribute to domain_name and replace domain_id with domain_name everywhere
+  def id #FIXME provided as legacy support for accessing .name via .id
+    name
+  end
   alias_attribute :domain_name, :domain_id
   alias_attribute :gear_size_profile, :node_profile
 
   has_many :aliases
-  # Deprecated on server side, so we will not use it (use /cartridges instead)
-  has_many :embedded
   has_many :cartridges
-  
+
   belongs_to :domain
   self.prefix = "#{RestApi::Base.site.path}/domains/:domain_name/"
 
+  # domain_id overlaps with the attribute returned by the server
   def domain_id=(id)
     self.prefix_options[:domain_name] = id
     super
   end
-  
+
   def domain
     Domain.find domain_name, :as => as
   end
-  
+
   def domain=(domain)
-    self.domain_id = domain.is_a?(String) ? domain : domain.namespace
+    self.domain_id = domain.is_a?(String) ? domain : domain.id
   end
   
   def find_cartridge(name)
-    Cartridge.find name, { :params => { :domain_name => domain_name, :application_name => self.name }, :as => as}
+    Cartridge.find name, { :params => { :domain_name => domain_id, :application_name => self.name }, :as => as}
   end
   
   def cartridges
-    Cartridge.find :all, { :params => { :domain_name => domain_name, :application_name => self.name }, :as => as }
+    Cartridge.find :all, { :params => { :domain_name => domain_id, :application_name => self.name }, :as => as }
   end
 
   def web_url
@@ -64,6 +65,6 @@ class Application < RestApi::Base
 
   protected
     def url_authority
-      "#{name}-#{domain_name}.#{Rails.configuration.base_domain}"
+      "#{name}-#{domain_id}.#{Rails.configuration.base_domain}"
     end
 end

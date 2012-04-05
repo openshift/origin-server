@@ -29,7 +29,7 @@ class Cartridge < RestApi::Base
   end
 
   def application=(application)
-    self.application_name = application.id
-    self.domain_name = application.domain_name
+    self.application_name = application.name
+    self.domain_name = application.domain_id
   end
 end

@@ -72,7 +72,7 @@ class ActiveSupport::TestCase
   end
 
   def setup_domain
-    @domain = Domain.new :namespace => "#{uuid}", :as => @user
+    @domain = Domain.new :name => "#{uuid}", :as => @user
     unless @domain.save
       puts @domain.errors.inspect
       fail 'Unable to create the initial domain, test cannot be run'
