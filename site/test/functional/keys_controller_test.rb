@@ -75,13 +75,10 @@ class KeysControllerTest < ActionController::TestCase
     assert key.errors.empty?, key.errors.inspect
     assert flash[:success]
 
-    #since this is only key the user has then it cannot be deleted (because of the old client tools)
-    #assert key.destroy
+    assert key.destroy
   end
 
   test "should destroy key" do
-    (key = Key.new(get_post_form.merge(:as => @user))).save!
-    #creating a 2nd key since if it is the only key the server will not allow it to be deleted (because of the old client tools)
     (key = Key.new(get_post_form.merge(:as => @user))).save!
     delete :destroy, :id => key.id
     assert_redirected_to account_path

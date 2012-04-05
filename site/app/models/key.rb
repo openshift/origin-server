@@ -12,6 +12,10 @@ class Key < RestApi::Base
     string :name, 'type', :content, :raw_content
   end
   custom_id :name, true
+  def id # support ID for legacy code which retrieves keys by .id
+    name
+  end
+
   # type is a method on Object in 1.8.7 and must be overriden so that the attribute 
   # will be read (method_missing is how ActiveResource attributes are looked up)
   def type

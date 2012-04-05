@@ -17,7 +17,6 @@ module ActiveResource
 
       def decode(json)
         decoded = super
-        #puts "decoded #{decoded.inspect}"
         if decoded.is_a?(Hash) and decoded.has_key?('data')
           decoded = decoded['data']
         end
@@ -45,13 +44,29 @@ class ActiveResource::Base
       find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
     end
 
-    def find_or_create_resource_for_with_reflections(name)
-      return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
+    def find_or_create_resource_for(name)
       # also sanitize names with dashes
-      find_or_create_resource_for_without_reflections name.to_s.gsub(/[^\w\:]/, '_')
-    end
+      name = name.to_s.gsub(/[^\w\:]/, '_')
+      # association support
+      return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
 
-  alias_method_chain :find_or_create_resource_for, :reflections
+      resource_name = name.to_s.camelize
+      ancestors = self.class.name.split("::")
+      if ancestors.size > 1
+        find_resource_in_modules(resource_name, ancestors)
+      else
+        self.class.const_get(resource_name)
+      end
+    rescue NameError
+      if self.class.const_defined?(resource_name)
+        resource = self.class.const_get(resource_name)
+      else
+        resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+      end
+      resource.prefix = self.class.prefix
+      resource.site   = self.class.site
+      resource
+    end
 end
 
 module RestApi
@@ -71,7 +86,7 @@ module RestApi
     # Exclude the root from JSON
     self.include_root_in_json = false
 
-    #
+  #
     # Connection properties
     #
     self.format = :openshift_json
@@ -98,8 +113,7 @@ module RestApi
           self.send :"#{to}?"
         end
         define_method :"#{from}=" do |val|
-          m = method :"#{to}="
-          m.call val
+          self.send :"#{to}=", val
         end
       end
       def aliased_attributes
@@ -121,14 +135,14 @@ module RestApi
         attributes = attributes.dup
         self.class.aliased_attributes.each do |from,to|
           value = attributes.delete(from)
-          send("#{to}=", value) if value
+          send("#{to}=", value) unless value.nil?
         end
         super attributes
       else
         super
       end
       self.class.calculated_attributes.each_key do |attr| 
-        if  attributes.has_key?(attr) 
+        if attributes.has_key?(attr) 
           send("#{attr}=", attributes[attr])
         end
       end
@@ -230,11 +244,11 @@ module RestApi
             @update_id = @attributes[name] if @update_id.nil?
             @attributes[name] = val
           end
-          define_method :id do
+          define_method :to_param do
             @update_id || @attributes[name]
           end
         else
-          define_method :id do
+          define_method :to_param do
             @attributes[name]
           end
         end

@@ -143,12 +143,6 @@ class ApplicationsController < ConsoleController
       Rails.logger.debug @application.errors.inspect
       render 'application_types/show'
     end
-  rescue ActiveResource::ServerError => e
-    #FIXME when submitting a form, expect all errors to be converted to application.errors[:base], not thrown
-    Rails.logger.debug "Unable to create application, #{e.response.inspect}" if defined? e.response
-    Rails.logger.debug "Unable to create application, #{e.response.body.inspect}" if defined? e.response.body
-    @application.errors.add(:base, "Unable to create application")
-    render 'application_types/show'
   end
 
   def show

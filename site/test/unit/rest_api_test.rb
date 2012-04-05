@@ -32,7 +32,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.post '/broker/user/keys.json', {'Content-Type' => 'application/json'}.merge!(@auth_headers), {:type => :rsa, :name => 'test2', :value => '1234_2' }.to_json()
       mock.delete '/user/keys/test1.json', {'Accept' => 'application/json'}.merge!(@auth_headers), {}
       mock.get '/user.json', {'Accept' => 'application/json'}.merge!(@auth_headers), { :login => 'test1' }.to_json()
-      mock.get '/domains.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :namespace => 'adomain' }].to_json()
+      mock.get '/domains.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :name => 'adomain' }].to_json()
       mock.get '/domains/adomain/applications.json', {'Accept' => 'application/json'}.merge!(@auth_headers), [{ :name => 'app1' }, { :name => 'app2' }].to_json()
     end
   end
@@ -284,8 +284,8 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_custom_id_rename
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains.json', json_header, [{:namespace => 'a'}].to_json
-      mock.put '/broker/rest/domains/a.json', json_header(true), {:namespace => 'b'}.to_json
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+      mock.put '/broker/rest/domains/a.json', json_header(true), {:id => 'b'}.to_json
     end
 
     domain = Domain.first :as => @user
@@ -295,8 +295,8 @@ class RestApiTest < ActiveSupport::TestCase
     domain.name = 'b'
 
     assert_equal 'a', domain.instance_variable_get(:@update_id)
-    assert_equal 'a', domain.id
-    assert_equal 'b', domain.namespace
+    assert_equal 'b', domain.id
+    assert_equal 'b', domain.name
     assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
     assert domain.save
 
@@ -304,28 +304,28 @@ class RestApiTest < ActiveSupport::TestCase
     domain.load({:name => 'b'})
 
     assert_equal 'a', domain.instance_variable_get(:@update_id)
-    assert_equal 'a', domain.id
-    assert_equal 'b', domain.namespace
+    assert_equal 'b', domain.id
+    assert_equal 'b', domain.name
     assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
   end
 
   class DomainWithValidation < Domain
     self.element_name = 'domain'
-    validates :name, :length => {:maximum => 1},
+    validates :id, :length => {:maximum => 1},
               :presence => true,
               :allow_blank => false
   end
 
   def test_custom_id_rename_with_validation
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains.json', json_header, [{:namespace => 'a'}].to_json
-      mock.put '/broker/rest/domains/a.json', json_header(true), {:namespace => 'b'}.to_json
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+      mock.put '/broker/rest/domains/a.json', json_header(true), {:id => 'b'}.to_json
     end
     t = DomainWithValidation.first :as => @user
     assert_nil t.instance_variable_get(:@update_id)
 
     t.name = 'ab'
-    assert !t.save
+    assert !t.save, t.pretty_inspect
     assert_equal 'a', t.instance_variable_get(:@update_id)
 
     t.name = 'b'
@@ -369,7 +369,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil key.type
 
     key.name = 'a'
-    assert_equal key.id, key.name
+    assert_equal key.name, key.to_param
 
     key.raw_content = 'ssh-rsa key'
     assert_equal 'ssh-rsa', key.type
@@ -396,33 +396,37 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rs', key.content
   end
 
-  def test_domain_namespaces
+  def test_domain_names
     domain = Domain.new
     assert_nil domain.name
-    assert_nil domain.namespace
+    assert_nil domain.name
     assert !domain.changed?
     domain.name = '1'
     assert domain.changed?
-    assert domain.namespace_changed?
+    assert domain.id_changed?
     assert_equal '1', domain.id
-    assert_equal '1', domain.name, domain.namespace
-    domain.namespace = '2'
+    assert_equal '1', domain.name, domain.name
+    assert_equal '1', domain.to_param
+    domain.name = '2'
     # id should only change on either first update  or save
-    assert_equal '1', domain.id
-    assert_equal '2', domain.name, domain.namespace
-    domain.namespace = '3'
-    assert_equal '1', domain.id
+    assert_equal '2', domain.id
+    assert_equal '2', domain.name
+    assert_equal '1', domain.to_param
+    domain.name = '3'
+    assert_equal '3', domain.id
+    assert_equal '1', domain.to_param
 
     domain = Domain.new :name => 'hello'
-    assert_equal 'hello', domain.name, domain.namespace
+    assert_equal 'hello', domain.name, domain.name
 
-    domain = Domain.new :namespace => 'hello'
-    assert_equal 'hello', domain.name, domain.namespace
+    domain = Domain.new :name => 'hello'
+    assert_equal 'hello', domain.name, domain.name
   end
 
   def test_domain_assignment_to_application
     app = Application.new :domain_name => '1'
-    assert_equal '1', app.domain_id, app.domain_name
+    assert_equal '1', app.domain_id, app.pretty_inspect
+    assert_equal '1', app.domain_name
 
     app = Application.new :domain_id => '1'
     assert_equal '1', app.domain_id, app.domain_name
@@ -440,18 +444,20 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_domain_object_assignment_to_application
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test3.json', json_header, { :namespace => 'test3' }.to_json()
+      mock.get '/broker/rest/domains/test3.json', json_header, { :id => 'test3' }.to_json()
     end
 
     app = Application.new :as => @user
     domain = Domain.new :name => 'test3'
 
-    app.domain_name = domain.namespace
+    app.domain_name = domain.name
     assert_equal domain, app.domain
 
     app = Application.new :as => @user
     app.domain = domain
-    assert_equal domain.namespace, app.domain_id, app.domain_name
+    assert_equal domain.name, app.domain_id
+    assert_equal domain.name, app.domain_name
+    assert_equal domain.name, domain.id
   end
 
   def test_cartridges

@@ -3,18 +3,16 @@
 #
 class Domain < RestApi::Base
   schema do
-    string :namespace
-    string :ssh #deprecated, remove
+    string :id
+    string :suffix
   end
 
-  custom_id :namespace, true
-  mutable_attribute :ssh #deprecated, remove
-  # TODO: Bug 789752: Make namespace consistent with other usages
-  alias_attribute :name, :namespace
+  custom_id :id, true # domain id is mutable, FIXME rename method to primary_key
+  alias_attribute :name, :id
 
   has_many :applications
   def applications
-    @applications ||= Application.find :all, { :params => { :domain_name => self.name }, :as => as }
+    @applications ||= Application.find :all, { :params => { :domain_name => self.id }, :as => as }
   end
   #FIXME should have an observer pattern that clears cached associations on reload
   def reload
@@ -28,7 +26,7 @@ class Domain < RestApi::Base
   end
 
   def find_application(name)
-    Application.find name, { :params => { :domain_name => self.name }, :as => as}
+    Application.find name, { :params => { :domain_name => self.id }, :as => as}
   end
 
   def destroy_recursive
@@ -43,7 +41,7 @@ class Domain < RestApi::Base
     first_domain = Domain.first(:as => @as)
     unless first_domain.nil?
       if first_domain != self && @update_id.nil?
-        @errors={:namespace => "User already has a domain associated. Go back to accounts to modify."}
+        @errors={:name => "User already has a domain associated. Go back to accounts to modify."}
         return false
       end
     end
