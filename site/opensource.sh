@@ -88,8 +88,8 @@ time git filter-branch $GIT_TEMP --prune-empty -f --tag-filter-name cat --parent
 echo Rewriting git history to move all /site content to /
 
 # Reroot the site dir at root
-echo To reroot /site to / (as last final step)
-echo time git filter-branch $GIT_TEMP --prune-empty -f --tag-name-filter cat --subdirectory-filter site -- --all
+echo 'To reroot /site to / (as last final step)'
+echo 'time git filter-branch $GIT_TEMP --prune-empty -f --tag-name-filter cat --subdirectory-filter site -- --all'
 
 popd
 git clone --no-hardlinks console console_clean
