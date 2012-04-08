@@ -50,7 +50,7 @@ find . -type f | grep -vf .opensource_exclude | sort -u >> /tmp/valid_sources.tx
 echo Generating script to separate content that went into the new repository
 find . | grep -f /tmp/valid_sources.txt | sort -u | xargs -n 1 echo git rm > /tmp/delete_moved.sh
 chmod 770 /tmp/delete_moved.sh
-echo   Run /tmp/delete_moved.sh from the li/site dir to remove all content that was copied into the new repository.
+echo '  Run /tmp/delete_moved.sh from the li/site dir to remove all content that was copied into the new repository.'
 
 echo Calculating all historical paths for valid files
 time cat /tmp/valid_sources.txt | xargs -P 4 -n 1 git log --pretty=oneline --follow --name-only | grep -v ' ' | sort -u > /tmp/paths_to_keep.txt
