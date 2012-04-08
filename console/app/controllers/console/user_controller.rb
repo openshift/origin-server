@@ -1,4 +1,4 @@
-class Console::UserController < SiteController
+class Console::UserController < ConsoleController
   layout 'console'
 
   before_filter :require_login, :only => :show

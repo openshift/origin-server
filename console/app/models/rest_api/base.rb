@@ -93,8 +93,8 @@ module RestApi
     self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
     self.timeout = 60
     # self.proxy = 'http://file.rdu.redhat.com:3128'
-    self.site = if defined?(Rails) && Rails.configuration.express_api_url
-      Rails.configuration.express_api_url + '/broker/rest'
+    self.site = if defined? Rails.configuration.broker.url
+      Rails.configuration.broker.url + '/broker/rest'
     else
       'http://localhost/broker/rest'
     end

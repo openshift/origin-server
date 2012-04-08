@@ -38,9 +38,9 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
 
   class TestLinks
     include HelpHelper
-    include ApplicationHelper
+    include CommunityHelper
   end
 
   urls_from_module(HelpHelper, TestLinks.new).each_pair &method(:create_test)
-  urls_from_module(ApplicationHelper, TestLinks.new).each_pair &method(:create_test)
+  urls_from_module(CommunityHelper, TestLinks.new).each_pair &method(:create_test)
 end
