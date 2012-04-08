@@ -1,12 +1,7 @@
 require 'recaptcha'
-require 'json'
-include ActionView::Helpers::UrlHelper
 
-class UserController < SiteController
+class UserController < Console::UserController
 
-  layout 'simple'
-
-  before_filter :require_login, :only => :show
   protect_from_forgery :except => :create_external
 
   def new
@@ -76,7 +71,7 @@ class UserController < SiteController
     unless @user.errors.length == 0
       respond_to do |format|
         format.js { render :json => @user.errors }
-        format.html { render :new }
+        format.html { render :new, :layout => 'simple' }
       end
       return
     end
@@ -102,25 +97,18 @@ class UserController < SiteController
     end
   end
 
-  def show
-    @user = session_user
-    @domain = Domain.find :first, :as => session_user
-    @keys = Key.find(:all, :as => session_user)
-    render :layout => 'console'
-  end
-
   def complete
     @event = 'event29' # set omniture 'simple registration' event
-    
+
     if session[:promo_code]
       @event += ",event8"
       @evar8 = session[:promo_code]
       session.delete(:promo_code)
     end
 
-    render :create
+    render :create, :layout => 'simple'
   end
-  
+
   def create_json_error_hash(user_errors)
     errors = {}
     user_errors.keys.each do |key|
@@ -128,7 +116,7 @@ class UserController < SiteController
     end
     errors
   end
-  
+
   def create_external
     Rails.logger.debug "External registration request"
 
