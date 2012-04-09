@@ -41,3 +41,20 @@ footer h3 {
   text-align: right;
 }
 
+// external links get a northeast arrow to indicate they are external
+a.external:after { 
+  content: " \279A"; 
+}
+
+p.larger { 
+  font-size: 14px; 
+}
+dl.larger {
+  > dt {
+    font-size: 18px; 
+    line-height: 23px; 
+  }
+  > dd {
+    margin-bottom: 15px; 
+  }
+}
