@@ -1,11 +1,11 @@
 require 'test_helper'
-require 'active_resource/http_mock'
 
 #
 # Mock tests only - should verify functionality of ActiveResource extensions
 # and simple server/client interactions via HttpMock
 #
 class RestApiTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
 
   def setup
     ActiveResource::HttpMock.reset!
