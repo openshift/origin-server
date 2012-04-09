@@ -31,6 +31,17 @@ module ActiveResource
   end
 end
 
+
+class ActiveResource::Connection
+  #
+  # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
+  # make GET consistent with other verbs (return response)
+  #
+  def get(path, headers = {})
+    with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) } #changed, remove .body at end, removed format decode
+  end
+end
+
 #
 # ActiveResource association support
 #
@@ -554,14 +565,6 @@ module RestApi
       end
       http
     end
-
-    #
-    # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
-    # make GET consistent with other verbs (return response)
-    #
-    def get(path, headers = {})
-      with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) } #changed, remove .body at end, removed format decode
-    end
   end
 
   # Raised when the authorization context is missing
@@ -571,13 +574,16 @@ module RestApi
   class ResourceExistsError < StandardError ; end
 
   # The server did not return the response we were expecting, possibly a server bug
-  class BadServerResponseError < StandardError
-  end
+  class BadServerResponseError < StandardError ; end
 end
 
 module RestApi
+  # During retrieval of info about the API, an error occurred
+  class ApiNotAvailable < StandardError ; end
+
   # An object which can return info about the REST API
   class Info < RestApi::Base
+    self.element_name = 'api'
     singleton
     allow_anonymous
 
@@ -595,9 +601,9 @@ module RestApi
       info.present? rescue false
     end
     def info
-      @info ||= Info.first
+      @info ||= Info.find :one
     rescue Exception => e
-      raise <<-EXCEPTION
+      raise ApiNotAvailable, <<-EXCEPTION
 
 The REST API could not be reached at #{RestApi::Base.site}
 

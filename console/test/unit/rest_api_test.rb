@@ -8,10 +8,10 @@ require 'active_resource/http_mock'
 class RestApiTest < ActiveSupport::TestCase
 
   def setup
-  end
+    ActiveResource::HttpMock.reset!
 
-  def setup
     RestApi::Base.site = "https://mock.test/broker/rest"
+    RestApi.instance_variable_set('@info', nil)
 
     @ts = "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
 
@@ -37,8 +37,11 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
+  def anonymous_json_header(is_post=false)
+    {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}
+  end
   def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(@auth_headers)
+    anonymous_json_header(is_post).merge!(@auth_headers)
   end
 
   class AnonymousApi < RestApi::Base
@@ -350,6 +353,21 @@ class RestApiTest < ActiveSupport::TestCase
     t.name = 'b'
     assert t.save
     assert_nil t.instance_variable_get(:@update_id)
+  end
+
+  def test_info_raises_error
+    assert_raises RestApi::ApiNotAvailable do
+      RestApi.info
+    end
+  end
+
+  def test_info_hits_server
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/api.json', anonymous_json_header, {:version => '1.0.0'}.to_json
+    end
+    info = RestApi.info
+    assert info
+    assert_equal '1.0.0', info.version
   end
 
   def test_key_make_unique_noop
