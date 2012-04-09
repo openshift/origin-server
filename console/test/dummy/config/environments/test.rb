@@ -34,4 +34,7 @@ Dummy::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  # Configure the appropriate environment for connecting to StickShift
+  config.stickshift = :none
 end

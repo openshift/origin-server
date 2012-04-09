@@ -70,6 +70,7 @@ class ActiveResource::Base
 end
 
 module RestApi
+
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
 
@@ -93,11 +94,7 @@ module RestApi
     self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
     self.timeout = 60
     # self.proxy = 'http://file.rdu.redhat.com:3128'
-    self.site = if defined? Rails.configuration.broker.url
-      Rails.configuration.broker.url + '/broker/rest'
-    else
-      'http://localhost/broker/rest'
-    end
+    self.site = 'http://localhost/broker/rest'
 
     #
     # ActiveResource doesn't fully support alias_attribute
@@ -255,6 +252,15 @@ module RestApi
       end
     end
 
+    class << self
+      def allow_anonymous
+        @allow_anonymous = true
+      end
+      def allow_anonymous?
+        @allow_anonymous
+      end
+    end
+
     #
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
     #
@@ -401,6 +407,8 @@ module RestApi
       def connection(options = {}, refresh = false)
         if options[:as]
           update_connection(UserAwareConnection.new(site, format, options[:as]))
+        elsif allow_anonymous?
+          update_connection(ActiveResource::Connection.new(site, format))
         else
           raise MissingAuthorizationError
         end
@@ -484,7 +492,7 @@ module RestApi
       end
 
       def connection(refresh = false)
-        raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as
+        raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as || self.class.allow_anonymous?
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
       end
@@ -564,5 +572,42 @@ module RestApi
 
   # The server did not return the response we were expecting, possibly a server bug
   class BadServerResponseError < StandardError
+  end
+end
+
+module RestApi
+  # An object which can return info about the REST API
+  class Info < RestApi::Base
+    singleton
+    allow_anonymous
+
+    schema do
+      string :version, :status
+    end
+    def url
+      self.class.site
+    end
+  end
+
+  # Test
+  class << self
+    def test?
+      info.present? rescue false
+    end
+    def info
+      @info ||= Info.first
+    rescue Exception => e
+      raise <<-EXCEPTION
+
+The REST API could not be reached at #{RestApi::Base.site}
+
+  Rails environment:     #{Rails.env}
+  Current configuration: #{@config.inspect} #{@symbol ? "(via  :#{@symbol})" : ''}
+
+  #{e.message}
+    #{e.backtrace.join("\n    ")}
+---------------------------------
+      EXCEPTION
+    end
   end
 end
