@@ -66,12 +66,9 @@ class ActiveSupport::TestCase
   end
 
   def setup_api
-    host = ENV['LIBRA_HOST'] || 'localhost'
-    RestApi::Base.site = "https://#{host}/broker/rest"
-    RestApi::Base.prefix='/broker/rest/'
   end
   def setup_user(unique=false)
-    @user = WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
+    @user ||= WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
 
     session[:login] = @user.login
     session[:user] = @user

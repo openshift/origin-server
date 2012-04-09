@@ -40,6 +40,19 @@ class ActiveResource::Connection
   def get(path, headers = {})
     with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) } #changed, remove .body at end, removed format decode
   end
+
+  #
+  # Allow integrated debugging
+  #
+  def new_http
+    http = if @proxy
+      Net::HTTP.new(@site.host, @site.port, @proxy.host, @proxy.port, @proxy.user, @proxy.password)
+    else
+      Net::HTTP.new(@site.host, @site.port)
+    end
+    http.set_debug_output $stderr if RestApi.debug?
+    http
+  end
 end
 
 #
@@ -85,27 +98,40 @@ module RestApi
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
 
-    def self.debug
-      @debug = true
-      yield
-    ensure
-      @debug = false
-    end
-    def self.debug?
-      @debug
-    end
+    puts "Initialize base"
 
     # Exclude the root from JSON
     self.include_root_in_json = false
 
-  #
+    #
     # Connection properties
     #
+    # self.proxy = 'http://file.rdu.redhat.com:3128'
+    self.site = 'http://localhost/broker/rest'
     self.format = :openshift_json
     self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
     self.timeout = 60
-    # self.proxy = 'http://file.rdu.redhat.com:3128'
-    self.site = 'http://localhost/broker/rest'
+
+    #
+    # Update the configuration of the Rest API.  Use instead of
+    # setting static variables directly.
+    #
+    def self.set_configuration(config, symbol=nil)
+      url = URI.parse(config[:url])
+      path = url.path
+      if path[-1..1] == '/'
+        url.path = path[0..-2]
+      else
+        path = "#{path}/"
+      end
+
+      RestApi::Base.site = url.to_s
+      RestApi::Base.prefix = path
+
+      @config = config
+      @symbol = symbol
+      @info = false
+    end
 
     #
     # ActiveResource doesn't fully support alias_attribute
@@ -557,14 +583,6 @@ module RestApi
       end
       headers
     end
-
-    def new_http
-      http = super
-      if RestApi::Base.debug?
-        http.set_debug_output $stderr
-      end
-      http
-    end
   end
 
   # Raised when the authorization context is missing
@@ -578,8 +596,59 @@ module RestApi
 end
 
 module RestApi
+
+  class << self
+    #
+    # All code in the block will dump detailed HTTP logs
+    #
+    def debug(&block)
+      @debug = true
+      yield block
+    ensure
+      @debug = false
+    end
+    def debug?
+      @debug
+    end
+
+    #
+    # Is the API reachable?
+    #
+    def test?
+      info.present? rescue false
+    end
+
+    #
+    # Return the version information about the REST API
+    #
+    def info
+      @info ||= Info.find :one
+    rescue Exception => e
+      raise ApiNotAvailable, <<-EXCEPTION
+
+The REST API could not be reached at #{RestApi::Base.site}
+
+  Rails environment:     #{Rails.env}
+  Current configuration: #{config.inspect} #{symbol ? "(via :#{symbol})" : ''}
+
+  #{e.message}
+    #{e.backtrace.join("\n    ")}
+---------------------------------
+      EXCEPTION
+    end
+
+    private
+      def symbol
+        RestApi::Base.instance_variable_get('@symbol')
+      end
+      def config
+        RestApi::Base.instance_variable_get('@config')
+      end
+  end
+
   # During retrieval of info about the API, an error occurred
   class ApiNotAvailable < StandardError ; end
+
 
   # An object which can return info about the REST API
   class Info < RestApi::Base
@@ -595,25 +664,4 @@ module RestApi
     end
   end
 
-  # Test
-  class << self
-    def test?
-      info.present? rescue false
-    end
-    def info
-      @info ||= Info.find :one
-    rescue Exception => e
-      raise ApiNotAvailable, <<-EXCEPTION
-
-The REST API could not be reached at #{RestApi::Base.site}
-
-  Rails environment:     #{Rails.env}
-  Current configuration: #{@config.inspect} #{@symbol ? "(via  :#{@symbol})" : ''}
-
-  #{e.message}
-    #{e.backtrace.join("\n    ")}
----------------------------------
-      EXCEPTION
-    end
-  end
 end

@@ -38,14 +38,18 @@ class Domain < RestApi::Base
     #        UI.  This mitigates a race condition where multiple domains
     #        can be created if there is no domains registered yet but does
     #        not fix it.
+    return false if check_duplicate_domain
+    super
+  end
+
+  def check_duplicate_domain
     first_domain = Domain.first(:as => @as)
     unless first_domain.nil?
       if first_domain != self && @update_id.nil?
         @errors={:name => "User already has a domain associated. Go back to accounts to modify."}
-        return false
+        return true
       end
     end
-
-    super
+    false
   end
 end
