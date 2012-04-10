@@ -396,6 +396,26 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rs', key.content
   end
 
+  def test_domain_throws_on_find_one
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [].to_json
+    end
+
+    assert_nil Domain.first :as => @user
+    assert_raise ActiveResource::ResourceNotFound do
+      Domain.find :one, :as => @user
+    end
+  end
+
+  def test_domain_find_one
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+    end
+
+    assert Domain.first :as => @user
+    assert Domain.find :one, :as => @user
+  end
+
   def test_domain_names
     domain = Domain.new
     assert_nil domain.name

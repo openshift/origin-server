@@ -6,7 +6,7 @@ class CartridgesController < ConsoleController
   end
 
   def show
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:application_id]
     @application_type = ApplicationType.find @application.framework
     Rails.logger.debug @application.cartridges
@@ -15,7 +15,7 @@ class CartridgesController < ConsoleController
 
   def create
     cart_params = params[:cartridge]
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:application_id]
     # TODO: check for app errors and redirect to app list if error
 
@@ -45,7 +45,7 @@ class CartridgesController < ConsoleController
   end
 
   def next_steps
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
