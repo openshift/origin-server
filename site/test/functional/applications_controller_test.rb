@@ -1,9 +1,9 @@
-require 'test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class ApplicationsControllerTest < ActionController::TestCase
   def setup
-    with_domain
-    @domain.reload.applications.each {|app| app.destroy}
+    with_unique_domain
+    #@domain.reload.applications.each {|app| app.destroy}
   end
 
   test "should create and delete app" do
@@ -112,10 +112,8 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   test "should result in a not found error when retrieving and application that does not exist" do
-    # FIXME: This should be an 404 error page, not an exception
-    assert_raise ActiveResource::ResourceNotFound do
-      get :show, :id => 'idontexist'
-    end
+    get :show, :id => 'idontexist'
+    assert_response 404
   end
 
 #  test "should check for empty name" do
