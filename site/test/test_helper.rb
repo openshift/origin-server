@@ -13,6 +13,16 @@ class ActiveSupport::TestCase
   # -- they do not yet inherit this setting
   #fixtures :all
 
+
+  def setup_session(role='')
+    session[:login] = 'tester'
+    session[:user] = WebUser.new
+    session[:ticket] = '123'
+    @request.cookies['rh_sso'] = '123'
+    @request.env['HTTPS'] = 'on'
+    session[:user].roles.push(role) unless role.empty?
+  end
+
   def expects_integrated
     flunk 'Test requires integrated Streamline authentication' unless Rails.configuration.integrated
   end
@@ -52,6 +62,7 @@ class ActiveSupport::TestCase
     @user = WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
 
     session[:login] = @user.login
+    session[:user] = @user
     session[:ticket] = '123'
     @request.cookies['rh_sso'] = '123'
     @request.env['HTTPS'] = 'on'

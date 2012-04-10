@@ -15,29 +15,33 @@ class UserController < SiteController
   end
 
   def create
-    logger.debug "Registration request"
+    Rails.logger.debug "Registration request"
 
     @user = WebUser.new(params[:web_user])
 
     # Run validations
     valid = @user.valid?
 
-    logger.warn "Starting user creation: #{@user.email_address}"
+    Rails.logger.warn "Starting user creation: #{@user.email_address}"
     
     # See if the captcha secret was provided
-    if params[:captcha_secret] == Rails.configuration.captcha_secret
-      logger.warn "Captcha secret provided - ignoring captcha"
-    elsif sauce_testing? #Checks for sauce_testing cookie and development Rails
-      logger.warn "Sauce testing cookie provided - ignoring captcha"
-    else
-      logger.debug "Checking captcha"
-      # Verify the captcha
-      unless verify_recaptcha
-        logger.debug "Captcha check failed"
-        valid = false
-        flash.delete(:recaptcha_error) # prevent the default flash from recaptcha gem
-        @user.errors[:captcha] = "Captcha text didn't match"
+    if Rails.configuration.integrated
+      if params[:captcha_secret] == Rails.configuration.captcha_secret
+        Rails.logger.warn "Captcha secret provided - ignoring captcha"
+      elsif sauce_testing? #Checks for sauce_testing cookie and development Rails
+        Rails.logger.warn "Sauce testing cookie provided - ignoring captcha"
+      else
+        Rails.logger.debug "Checking captcha"
+        # Verify the captcha
+        unless verify_recaptcha
+          Rails.logger.debug "Captcha check failed"
+          valid = false
+          flash.delete(:recaptcha_error) # prevent the default flash from recaptcha gem
+          @user.errors[:captcha] = "Captcha text didn't match"
+        end
       end
+    else
+      Rails.logger.warn "Non-integrated environment - ignoring captcha"
     end
     
     # Verify product choice if any
@@ -67,7 +71,7 @@ class UserController < SiteController
 
     @user.register(confirmationUrl)
     
-    logger.debug "Confirmation URL: #{confirmationUrl}"
+    Rails.logger.debug "Confirmation URL: #{confirmationUrl}"
 
     unless @user.errors.length == 0
       respond_to do |format|
@@ -88,13 +92,13 @@ class UserController < SiteController
       session[:promo_code] = @user.promo_code
     end
 
-    redirect_url = params[:redirectUrl]
-    if redirect_url
-      # Redirect to a running workflow if it exists
-      respond_to do |format|
-        format.js { render :json => {:redirectUrl => redirect_url} }
-        format.html { redirect_to redirect_url }
-      end
+    # Redirect to a running workflow if it exists
+    respond_to do |format|
+      format.js { render :json => {:redirectUrl => params[:redirectUrl]} }
+      format.html { 
+        session[:workflow] = params[:redirectUrl]
+        workflow_redirect 
+      }
     end
   end
 
@@ -126,7 +130,7 @@ class UserController < SiteController
   end
   
   def create_external
-    logger.debug "External registration request"
+    Rails.logger.debug "External registration request"
 
     data = JSON.parse(params[:json_data])
       

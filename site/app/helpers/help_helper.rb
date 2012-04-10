@@ -111,10 +111,6 @@ module HelpHelper
     ]
   end
 
-  def community_url
-    community_base_url('')
-  end
-
   private
     def community_base_url(path)
       "https://www.redhat.com/openshift/community/#{path}"
