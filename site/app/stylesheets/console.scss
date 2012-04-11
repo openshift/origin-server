@@ -183,7 +183,25 @@ section#app-cartridges .cartridge-block {
 @media (min-width: 1200px) {
 }
 
-
+.form-search {
+  position: relative;
+  > .search-query {
+    padding-left: 13px;
+    padding-right: 30px;
+    border-radius: 3px;
+    width: inherit;
+    width: -moz-available;
+  }
+  > .search {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    height: 25px;
+    width: 20px;
+    background: transparent url("../images/sprite-vert.png") 2px -228px no-repeat;
+    border: 0;
+  }
+}
 
 
 #app-errors {
