@@ -4,14 +4,20 @@ class RestApiKeyTest < ActiveSupport::TestCase
 
   def setup
     with_configured_user
+    once :remove_keys do
+      lambda { Key.find(:all, :as => @user).map(&:destroy) }
+    end
   end
   def teardown
     cleanup_domain
   end
 
+  def unique_name
+    super "#{uuid}%i"
+  end
+
   def test_key_get_all
-    items = Key.find :all, :as => @user
-    assert_equal 0, items.length
+    assert Key.find :all, :as => @user
   end
 
   def test_key_first
@@ -19,30 +25,17 @@ class RestApiKeyTest < ActiveSupport::TestCase
   end
 
   def test_key_create
-    items = Key.find :all, :as => @user
-
-    orig_num_keys = items.length
-
-    key = Key.new :type => 'ssh-rsa', :name => "test#{@ts}", :content => @ts, :as => @user
-    assert key.save
-
-    items = Key.find :all, :as => @user
-    assert_equal orig_num_keys + 1, items.length
+    assert_difference('Key.find(:all, :as => @user).length', 1) do
+      key = Key.new :type => 'ssh-rsa', :name => unique_name, :content => unique_name, :as => @user
+      assert key.save, key.errors.inspect
+    end
   end
 
   def test_invalid_key_create
-    items = Key.find :all, :as => @user
-
-    orig_num_keys = items.length
-    begin
+    assert_difference('Key.find(:all, :as => @user).length', 0) do
       key = Key.new :type => 'ssh-rsa', :name => "invalid_name#{@ts}", :content => @ts, :as => @user
-      key.save
-      fail
-    rescue
+      assert !key.save
     end
-
-    items = Key.find :all, :as => @user
-    assert_equal orig_num_keys, items.length
   end
 
   def test_key_server_validation
@@ -55,20 +48,14 @@ class RestApiKeyTest < ActiveSupport::TestCase
   end
 
   def test_key_delete
-    items = Key.find :all, :as => @user
-
-    orig_num_keys = items.length
-
-    key = Key.new :type => 'ssh-rsa', :name => "test#{@ts}", :content => @ts, :as => @user
-    assert key.save
-
-    items = Key.find :all, :as => @user
-    assert_equal orig_num_keys + 1, items.length
-
-    assert items[items.length-1].destroy
-
-    items = Key.find :all, :as => @user
-    assert_equal orig_num_keys, items.length
+    key = nil
+    assert_difference('Key.find(:all, :as => @user).length', 1) do
+      key = Key.new :type => 'ssh-rsa', :name => unique_name, :content => unique_name, :as => @user
+      assert key.save, key.errors.inspect
+    end
+    assert_difference('Key.find(:all, :as => @user).length', -1) do
+      key.destroy
+    end
   end
 
   def test_user_get
@@ -77,44 +64,13 @@ class RestApiKeyTest < ActiveSupport::TestCase
     assert_equal @user.login, user.login
   end
 
-  def test_key_create_without_domain
-    domain = Domain.first :as => @user
-    domain.destroy_recursive if domain
-
-    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
-    assert key.save
-    assert key.errors.empty?
-  end
-
-  def test_key_create
-    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
-    assert key.save
-    assert key.errors.empty?
-
-    key.destroy
-    assert_raise ActiveResource::ResourceNotFound do
-      Key.find 'default', :as => @user
-    end
-  end
-
   def test_key_list
-    keys = Key.find :all, :as => @user
-    assert_equal [], keys
-    assert_nil Key.first :as => @user
-
-    key = Key.new :raw_content => 'ssh-rsa key', :name => 'default', :as => @user
-    assert key.save
-    assert key.errors.empty?
-    key.messages = nil
-    key.id = nil
+    key = Key.new :raw_content => "ssh-rsa #{unique_name}", :name => unique_name, :as => @user
+    assert key.save, key.errors.inspect
 
     keys = Key.find :all, :as => @user
-    assert_equal 'ssh-rsa', keys[0].type
-    assert_equal 'key', keys[0].content
-    assert_equal 'default', keys[0].name
-    assert_equal [key], keys
-
-    key_new = Key.find 'default', :as => @user
-    assert_equal key, key_new
+    assert keys.length > 0
+    assert found_key = keys.find {|k| k.name == key.name }
+    assert_attr_equal key, found_key
   end
 end
