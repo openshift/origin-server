@@ -1,16 +1,12 @@
 require 'mocha'
-require 'openshift'
-require 'streamline'
+require "pp"
 
 class ActiveSupport::TestCase
 
   def setup_session(role='')
-    session[:login] = 'tester'
-    session[:user] = WebUser.new
-    session[:ticket] = '123'
-    @request.cookies['rh_sso'] = '123'
-    @request.env['HTTPS'] = 'on'
-    session[:user].roles.push(role) unless role.empty?
+    @user = WebUser.new :rhlogin => 'tester', :ticket => '1234'
+    @user.roles.push(role) unless role.empty?
+    set_user_on_session
   end
 
   def expects_integrated

@@ -5,7 +5,7 @@ module Test
     include ActiveModel::Serialization
     extend ActiveModel::Naming
 
-    attr_accessor :rhlogin, :password, :ticket, :email_address, :roles
+    attr_accessor :login, :password, :ticket, :email_address, :roles
     def initialize(opts={})
       opts.each_pair { |key,value| send("#{key}=", value) }
       @roles = []
@@ -14,31 +14,43 @@ module Test
       login = address
       @email_address = address
     end
-    def login
-      rhlogin
+    def rhhogin
+      login
     end
   end
 end
 
 class ActiveSupport::TestCase
-  # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
-  # Note: You'll currently still have to declare fixtures explicitly in integration tests
-  # -- they do not yet inherit this setting
-  #fixtures :all
+  # Integration tests are designed to run against the 
+  # production OpenShift service by default.  To change
+  # this, update ~/.openshift/api.yaml to point to a
+  # different server.
+  #
+  def with_configured_user
+    config = RestApi::Configuration.activate(:external)
+    if config[:authorization] == :passthrough
+      @user = Test::WebUser.new :login => config[:login], :password => config[:password]
+    else
+      @user = Test::WebUser.new :login => "#{name}#{uuid}@test1.com"
+      @with_unique_user = true
+    end
+    set_user_on_session
 
-  def setup_api
+    Domain.any_instance.expects(:check_duplicate_domain).at_least(0).returns(false)
   end
 
-  def setup_user(unique=false)
-    @user ||= TestWebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
-
-    session[:login] = @user.login
-    session[:user] = @user
-    session[:ticket] = '123'
-    @request.cookies['rh_sso'] = '123'
-    @request.env['HTTPS'] = 'on'
+  def set_user_on_session
+    if defined? session
+      session[:login] = @user.login
+      session[:user] = @user
+      session[:ticket] = @user.ticket
+      @request.cookies['rh_sso'] = '123'
+      @request.env['HTTPS'] = 'on'
+    end
   end
+
+
   def uuid
     @ts ||= "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
   end
@@ -65,43 +77,13 @@ class ActiveSupport::TestCase
   end
 
   #
-  # Create and authenticate a user that is unique per test case,
-  # without any session information.
-  #
-  def with_simple_unique_user
-    setup_api
-    @user = RestApi::Authorization.new "rest-api-test-#{uuid}@test1.com"
-    @with_unique_user = true
-  end
-
-  #
-  # Create and authenticate a user that is unique per test case
-  #
-  def with_unique_user
-    setup_api
-    uuid
-    setup_user(true)
-    @with_unique_user = true
-  end
-
-  #
-  # Create and authenticate a user that is unique per test case and
-  # create an initial domain for that user.
-  #
-  def with_unique_domain
-    with_unique_user
-    setup_domain
-  end
-
-  #
   # Create a domain and user that are shared by all tests in the test suite, 
   # and is only destroyed at the very end of the suite.  If you do not clean
   # up after creating applications you will hit the application limit for
   # this user.
   #
   def with_domain
-    setup_api
-    setup_user
+    with_configured_user
     once :domain do
       domain = Domain.first :as => @user
       domain.destroy_recursive if domain

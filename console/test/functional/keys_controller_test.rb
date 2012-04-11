@@ -2,11 +2,7 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class KeysControllerTest < ActionController::TestCase
 
-  @@setup = false
-
-  def setup
-    with_unique_user
-  end
+  setup :with_configured_user
 
   def unique_name_format
     'key%i'
