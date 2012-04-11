@@ -11,13 +11,13 @@ class UserController < SiteController
 
   def new
     @product = 'openshift' unless defined? @product
-    @user = WebUser.new
+    @user = WebUser.new params[:web_user]
   end
 
   def create
     logger.debug "Registration request"
 
-    @user = WebUser.new(params[:web_user])
+    @user = WebUser.new params[:web_user]
 
     # Run validations
     valid = @user.valid?
