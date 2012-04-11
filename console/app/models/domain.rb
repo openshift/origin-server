@@ -43,7 +43,7 @@ class Domain < RestApi::Base
   end
 
   def check_duplicate_domain
-    first_domain = Domain.first(:as => @as)
+    first_domain = Domain.first :as => @as
     unless first_domain.nil?
       if first_domain != self && @update_id.nil?
         @errors={:name => "User already has a domain associated. Go back to accounts to modify."}
@@ -51,5 +51,14 @@ class Domain < RestApi::Base
       end
     end
     false
+  end
+
+  class << self
+    # FIXME: Temporary until multiple domains are supported
+    def find_one(options)
+      domain = first options
+      raise ActiveResource::ResourceNotFound, :domain if domain.nil?
+      domain
+    end
   end
 end

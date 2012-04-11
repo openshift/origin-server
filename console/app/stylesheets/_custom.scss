@@ -797,7 +797,9 @@ input:focus, textarea:focus {
 	/*FIXME revisit with better names*/
   .link-column > header { display: inline; }
   .link-column ul { margin-bottom: 5px; }
-  .link-column h3 { display: inline; font-size: 14px; }
+  .link-column h3,
+  .link-column h4,
+  .link-column h5 { display: inline; font-size: 14px; }
   .link-column ul { margin: 0; padding: 0; display: inline; }
   .link-column li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
   .link-column a { margin-left: 5px; text-decoration: underline; }

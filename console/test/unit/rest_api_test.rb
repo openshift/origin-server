@@ -1,4 +1,4 @@
-require 'test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 #
 # Mock tests only - should verify functionality of ActiveResource extensions
@@ -18,11 +18,6 @@ class RestApiTest < ActiveSupport::TestCase
     @user = RestApi::Authorization.new 'test1', '1234'
     @auth_headers = {'Cookie' => "rh_sso=1234", 'Authorization' => 'Basic dGVzdDE6'};
 
-    #RestApi::Base.site = 'https://'
-    #Key.prefix = '/user/'
-    #User.prefix = '/'
-    #Domain.prefix = '/'
-    #Application.prefix = "#{Domain.prefix}domains/:domain_name/"
     ActiveSupport::XmlMini.backend = 'REXML'
   end
 
@@ -433,6 +428,39 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rs', key.content
   end
 
+  def test_domain_throws_on_find_one
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [].to_json
+    end
+
+    assert_nil Domain.first :as => @user
+    assert_raise ActiveResource::ResourceNotFound do
+      Domain.find :one, :as => @user
+    end
+  end
+
+  def test_domain_find_one
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+    end
+
+    assert Domain.first :as => @user
+    assert Domain.find :one, :as => @user
+  end
+
+  def test_domain_reload
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+      mock.get '/broker/rest/domains/a.json', json_header, {:id => 'a'}.to_json
+    end
+    domain = Domain.find :one, :as => @user
+    oldname = domain.name
+    domain.name = 'foo'
+    assert_equal 'foo', domain.name
+    domain.reload
+    assert_equal oldname, domain.name
+  end
+
   def test_domain_names
     domain = Domain.new
     assert_nil domain.name
@@ -495,6 +523,65 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal domain.name, app.domain_id
     assert_equal domain.name, app.domain_name
     assert_equal domain.name, domain.id
+  end
+
+  def opts1() {:name => 'app1', :cartridge => 'php-5.3'} ; end
+  def opts2() {:name => 'app2', :cartridge => 'php-5.3'} ; end
+  def app1() Application.new({:as => @user}.merge(opts1)) ; end
+  def app2() Application.new({:as => @user}.merge(opts2)) ; end
+
+  def test_domain_applications
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
+      mock.get '/broker/rest/domains/a/applications.json', json_header, [opts1, opts2].to_json
+    end
+
+    domain = Domain.find :one, :as => @user
+
+    apps = domain.applications
+    assert_attr_equal [app1, app2], apps
+  end
+
+  def test_domain_applications_reload
+    with_apps = lambda do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
+      mock.get '/broker/rest/domains/a.json', json_header, { :id => 'a' }.to_json
+      mock.get '/broker/rest/domains/a/applications.json', json_header, [opts1, opts2].to_json
+    end
+
+    ActiveResource::HttpMock.respond_to &with_apps
+    domain = Domain.find :one, :as => @user
+
+    cache = states('cache').starts_as('empty')
+    Application.expects(:find).once.returns([Application.new(opts1), Application.new(opts2)]).then(cache.is('full'))
+    Application.expects(:find).never.when(cache.is('full'))
+
+    domain.expects(:reload).once.then(cache.is('empty'))
+
+    assert apps = domain.applications
+    assert_attr_equal [app1, app2], apps
+
+    assert_attr_equal [app1, app2], domain.applications
+
+    domain.reload
+
+    assert_equal [app1, app2], domain.applications
+  end
+
+  def test_domain_find_applications
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{ :id => 'a' }].to_json
+      mock.get '/broker/rest/domains/a/applications/app1.json', json_header, opts1.to_json
+      mock.get '/broker/rest/domains/a/applications/app2.json', json_header, opts2.to_json
+      mock.get '/broker/rest/domains/a/applications/app3.json', json_header, nil, 404
+    end
+
+    domain = Domain.find :one, :as => @user
+    assert_attr_equal app1, domain.find_application('app1')
+    assert_attr_equal app2, domain.find_application('app2')
+    assert_raise ActiveResource::ResourceNotFound do
+      domain.find_application 'app3'
+    end
   end
 
   def test_cartridges

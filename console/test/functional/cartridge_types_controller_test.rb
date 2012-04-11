@@ -1,8 +1,9 @@
-require 'test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class CartridgeTypesControllerTest < ActionController::TestCase
   def setup
-    with_domain
+    #with_domain
+    with_unique_domain
     @application_type = ApplicationType.find 'ruby-1.8'
     @app = Application.new :name => uuid, :as => @user
     @app.cartridge = @application_type.cartridge || @application_type.id

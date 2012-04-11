@@ -1,10 +1,4 @@
-class ActiveSupport::TestCase
-  # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
-  #
-  # Note: You'll currently still have to declare fixtures explicitly in integration tests
-  # -- they do not yet inherit this setting
-  #fixtures :all
-
+module Test
   class WebUser
     include ActiveModel::Validations
     include ActiveModel::Conversion
@@ -24,51 +18,20 @@ class ActiveSupport::TestCase
       rhlogin
     end
   end
+end
 
-
-  def setup_session(role='')
-    session[:login] = 'tester'
-    session[:user] = WebUser.new
-    session[:ticket] = '123'
-    @request.cookies['rh_sso'] = '123'
-    @request.env['HTTPS'] = 'on'
-    session[:user].roles.push(role) unless role.empty?
-  end
-
-  def expects_integrated
-    flunk 'Test requires integrated Streamline authentication' unless Rails.configuration.integrated
-  end
-
-  def gen_small_uuid()
-    %x[/usr/bin/uuidgen].gsub('-', '').strip
-  end
-
-  @@name = 0
-  def unique_name_format
-    'name%i'
-  end
-  def unique_name(format=nil)
-    (format || unique_name_format) % self.class.next
-  end
-  def self.next
-    @@name += 1
-  end
-
-  @@once = []
-  def once(symbol, &block)
-    unless @@once.include? symbol
-      @@once << symbol
-      exit_block = yield block
-      at_exit do
-        exit_block.call
-      end
-    end
-  end
+class ActiveSupport::TestCase
+  # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
+  #
+  # Note: You'll currently still have to declare fixtures explicitly in integration tests
+  # -- they do not yet inherit this setting
+  #fixtures :all
 
   def setup_api
   end
+
   def setup_user(unique=false)
-    @user ||= WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
+    @user ||= TestWebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
 
     session[:login] = @user.login
     session[:user] = @user
@@ -89,6 +52,28 @@ class ActiveSupport::TestCase
     @domain
   end
 
+  # some unit tests or test environments may want to preserve domains
+  # created for unique users
+  def cleanup_domain?
+    not @with_unique_user
+  end
+
+  def cleanup_domain
+    if cleanup_domain? 
+      @domain.destroy_recursive if @domain
+    end
+  end
+
+  #
+  # Create and authenticate a user that is unique per test case,
+  # without any session information.
+  #
+  def with_simple_unique_user
+    setup_api
+    @user = RestApi::Authorization.new "rest-api-test-#{uuid}@test1.com"
+    @with_unique_user = true
+  end
+
   #
   # Create and authenticate a user that is unique per test case
   #
@@ -96,6 +81,7 @@ class ActiveSupport::TestCase
     setup_api
     uuid
     setup_user(true)
+    @with_unique_user = true
   end
 
   #
@@ -120,14 +106,28 @@ class ActiveSupport::TestCase
       domain = Domain.first :as => @user
       domain.destroy_recursive if domain
       @@domain = setup_domain
-      lambda do
-        begin
-          @@domain.destroy_recursive
-        rescue ActiveResource::ResourceNotFound
+      if cleanup_domain?
+        lambda do
+          begin
+            @@domain.destroy_recursive
+          rescue ActiveResource::ResourceNotFound
+          end
         end
       end
     end
     @domain = @@domain
   end
-end
 
+  def assert_attr_equal(o1, o2)
+    unless o1 == o2
+      assert o1, "#{o1} is not equal to #{o2}"
+      assert o2, "#{o1} is not equal to #{o2}"
+      if o1.is_a? Array and o2.is_a? Array
+        assert o1.length == o2.length, "Array 1 length #{o1.length} is not array 2 length #{o2.length}"
+        o1.each_with_index { |o,i| assert_attr_equal(o, o2[i]) }
+      else
+        assert_equal o1.attributes, o2.attributes, "Attributes do not match"
+      end
+    end
+  end
+end
