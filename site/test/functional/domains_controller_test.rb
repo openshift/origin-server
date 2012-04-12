@@ -11,9 +11,14 @@ class DomainsControllerTest < ActionController::TestCase
   def with_particular_user
     if @@user
       @user = @@user
+      user_to_session(@user)
     else
       @@user = @user
     end
+    with_domain
+  end
+
+  def with_domain
     @domain = Domain.first :as => @user
     unless @domain
       @domain = Domain.new(get_post_form.merge(:as => @user))
@@ -39,7 +44,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 2, domain.errors[:name].length, domain.errors.inspect, "Bug 812060 has been fixed, change to 1"
+    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
     assert_template :new
   end
 
@@ -49,7 +54,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
     assert_template :new
   end
 
@@ -59,23 +64,37 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
     assert_template :new
   end
 
   test "should assign errors on duplicate name" do
-    (domain = Domain.new(get_post_form.merge(:as => @user))).save!
+    assert (domain = Domain.new(get_post_form.merge(:as => unique_user))).save, domain.errors.inspect
 
     post :create, {:domain => get_post_form.merge(:name => domain.name)}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
+    assert_template :new
+  end
+
+  test "should allow only one domain" do
+    with_domain
+
+    post :create, {:domain => {:name => unique_name}}
+
+    assert domain = assigns(:domain)
+    assert !domain.errors.empty?
+    assert domain.errors[:name].present?, domain.errors.inspect
+    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
     assert_template :new
   end
 
   test "should show edit domain page" do
+    with_domain
+
     get :edit
     assert_template :edit
     assert_response :success
@@ -84,7 +103,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "should update domain" do
     with_particular_user
 
-    put :update, {:domain => get_post_form.merge(:name => unique_name)}
+    put :update, {:domain => {:name => unique_name}}
 
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
@@ -94,19 +113,19 @@ class DomainsControllerTest < ActionController::TestCase
   test "update should assign errors on empty name" do
     with_particular_user
 
-    put :update, {:domain => @domain.attributes.merge(:name => '')}
+    put :update, {:domain => {:name => ''}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
     assert_template :new
   end
 
   test "update should assign errors on long name" do
     with_particular_user
 
-    put :update, {:domain => @domain.attributes.merge(:name => 'aoeu'*2000)}
+    put :update, {:domain => {:name => 'aoeu'*2000}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
@@ -118,7 +137,7 @@ class DomainsControllerTest < ActionController::TestCase
   test "update should assign errors on invalid name" do
     with_particular_user
 
-    put :update, {:domain => @domain.attributes.merge(:name => '@@@@')}
+    put :update, {:domain => {:name => '@@@@'}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
@@ -129,9 +148,9 @@ class DomainsControllerTest < ActionController::TestCase
 
   test "update should assign errors on duplicate name" do
     with_particular_user
-    assert (domain = Domain.new(get_post_form.merge(:as => setup_new_user(true)))).save, domain.errors.inspect
+    assert (domain = Domain.new(get_post_form.merge(:as => unique_user))).save, domain.errors.inspect
 
-    put :update, {:domain => @domain.attributes.merge(:name => domain.name)}
+    put :update, {:domain => {:name => domain.name}}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
@@ -141,6 +160,6 @@ class DomainsControllerTest < ActionController::TestCase
   end
 
   def get_post_form
-    {:name => unique_name}
+    {:name => "d#{uuid[0..12]}"}
   end
 end
