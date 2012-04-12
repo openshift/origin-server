@@ -29,7 +29,7 @@ module LayoutHelper
   #
   def flashes
     return if @flashed_once || flash.nil?; @flashed_once = true
-    render :partial => 'layouts/new_flashes', :locals => {:flash => flash}
+    render :partial => 'layouts/flashes', :locals => {:flash => flash}
   end
 
   def alert_class_for(key)
