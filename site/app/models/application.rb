@@ -6,7 +6,7 @@ class Application < RestApi::Base
     string :name, :creation_time
     string :uuid, :domain_id
     string :server_identity
-    string :node_profile
+    string :gear_profile
   end
 
   custom_id :name
@@ -14,7 +14,6 @@ class Application < RestApi::Base
     name
   end
   alias_attribute :domain_name, :domain_id
-  alias_attribute :gear_size_profile, :node_profile
 
   has_many :aliases
   has_many :cartridges

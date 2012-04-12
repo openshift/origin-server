@@ -73,7 +73,7 @@ class ApplicationsController < ConsoleController
   def index
     # replace domains with Applications.find :all, :as => session_user
     # in the future
-    domain = Domain.first :as => session_user
+    domain = Domain.find :one, :as => session_user rescue nil
     return redirect_to application_types_path, :notice => 'Create your first application now!' if domain.nil? || domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
@@ -81,7 +81,7 @@ class ApplicationsController < ConsoleController
   end
 
   def destroy
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
     if @application.destroy
       redirect_to applications_path, :flash => {:success => "The application '#{@application.name}' has been deleted"}
@@ -91,7 +91,7 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
 
     # we get here from the details page or applications list page
@@ -146,13 +146,13 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
     @application_type = ApplicationType.find @application.framework
   end
 
   def get_started
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?

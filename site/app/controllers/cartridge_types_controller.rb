@@ -3,7 +3,7 @@ class CartridgeTypesController < ConsoleController
   def index
     @application_id = params[:application_id]
 
-    @domain = Domain.first :as => session_user
+    @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application @application_id
  
     types = CartridgeType.find :all, {:as=> session_user}

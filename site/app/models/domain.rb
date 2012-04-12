@@ -38,14 +38,23 @@ class Domain < RestApi::Base
     #        UI.  This mitigates a race condition where multiple domains
     #        can be created if there is no domains registered yet but does
     #        not fix it.
-    first_domain = Domain.first(:as => @as)
+    first_domain = Domain.first :as => @as
     unless first_domain.nil?
       if first_domain != self && @update_id.nil?
-        @errors={:name => "User already has a domain associated. Go back to accounts to modify."}
+        errors.add(:name, "User already has a domain associated. Go back to accounts to modify.")
         return false
       end
     end
 
     super
+  end
+
+  class << self
+    # FIXME: Temporary until multiple domains are supported
+    def find_one(options)
+      domain = first options
+      raise ActiveResource::ResourceNotFound, :domain if domain.nil?
+      domain
+    end
   end
 end
