@@ -1,7 +1,6 @@
 #new_domain
   = semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
     = f.semantic_errors
-    = f.semantic_errors :namespace
     .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group"}
       .controls
         .input-prepend-append

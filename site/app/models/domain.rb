@@ -41,7 +41,7 @@ class Domain < RestApi::Base
     first_domain = Domain.first :as => @as
     unless first_domain.nil?
       if first_domain != self && @update_id.nil?
-        @errors={:name => "User already has a domain associated. Go back to accounts to modify."}
+        errors.add(:name, "User already has a domain associated. Go back to accounts to modify.")
         return false
       end
     end
