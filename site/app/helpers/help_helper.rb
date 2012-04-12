@@ -30,7 +30,23 @@ module HelpHelper
   def git_user_guide_topic_url
     user_guide_topic_url 'sect-User_Guide-OpenShift_Web_Interface-Editing_and_Deploying_Applications.html'
   end
-  
+
+  def get_involved_url
+    community_base_url 'get-involved'
+  end
+
+  def opensource_community_url
+    community_base_url 'open-source'
+  end
+
+  def get_involved_developers_url
+    community_base_url 'developers/get-involved'
+  end
+
+  def developers_url
+    community_base_url 'developers'
+  end
+
   def install_cli_knowledge_base_url
     community_base_url 'kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems'
   end
@@ -113,6 +129,6 @@ module HelpHelper
 
   private
     def community_base_url(path)
-      "https://www.redhat.com/openshift/community/#{path}"
+      "/community/#{path}"
     end
 end
