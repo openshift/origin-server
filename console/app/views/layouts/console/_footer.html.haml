@@ -21,10 +21,7 @@
         %header
           %h3 Legal
         %ul.unstyled
-          %li= link_to 'Legal', legal_path
-          %li= link_to 'Privacy Policy', legal_openshift_privacy_path
-          %li= link_to 'Security', 'https://access.redhat.com/security/team/contact/'
-          %li= link_to 'Open Source Disclaimer', legal_opensource_disclaimer_path
+          %li= link_to 'Open Source Disclaimer', legal_opensource_disclaimer_url
 
       .span3.link-column
         %header
@@ -35,5 +32,5 @@
 
 %section#copyright
   .container
-    %img{ :src => "/app/images/redhat.png", :alt => "Red Hat" }
+    %img{ :src => image_path("redhat.png"), :alt => "Red Hat" }
     .pull-right Copyright &copy; 2011 Red Hat, Inc.

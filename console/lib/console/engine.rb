@@ -4,6 +4,9 @@ require 'rails/engine'
 require 'barista'
 require 'sass'
 require 'formtastic'
+require 'pp'
+
+require 'console/configuration'
 
 module Console
   class Engine < Rails::Engine
@@ -12,6 +15,10 @@ module Console
       ActiveSupport.on_load(:action_controller) do
         config.helpers_path += Console::Engine.config.paths.app.helpers.to_a
       end
+    end
+    initializer "console.static_assets" do |app|
+      app.middleware.use ::ActionDispatch::Static, "#{root}/public"
+      puts app.config.middleware.pretty_inspect
     end
   end
 end
