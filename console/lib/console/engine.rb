@@ -17,8 +17,8 @@ module Console
       end
     end
     initializer "console.static_assets" do |app|
-      app.middleware.use ::ActionDispatch::Static, "#{root}/public"
-      puts app.config.middleware.pretty_inspect
+      # Goes before Rack::Lock but after an application's own static assets
+      app.middleware.insert_before 'Rack::Lock', ::ActionDispatch::Static, "#{root}/public"
     end
   end
 end

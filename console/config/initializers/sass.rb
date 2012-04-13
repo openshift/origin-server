@@ -13,9 +13,6 @@ unless Console.config.disable_css
   Sass::Plugin.add_template_location(Console::Engine.root.join("app", "stylesheets"))
   Sass::Plugin.add_template_location(Rails.root.join("app", "stylesheets"))
 
-  puts Sass::Plugin.template_location_array.pretty_inspect
-  puts Sass::Plugin.options.pretty_inspect
-
   #
   # All production environments pregenerate CSS using the RPM build, development
   # environments use autogeneration
