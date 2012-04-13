@@ -98,8 +98,6 @@ module RestApi
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
 
-    puts "Initialize base"
-
     # Exclude the root from JSON
     self.include_root_in_json = false
 
