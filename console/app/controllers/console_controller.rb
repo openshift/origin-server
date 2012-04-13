@@ -1,4 +1,5 @@
-class ConsoleController < ApplicationController
+class ConsoleController < ActionController::Base
+  protect_from_forgery
 
   layout 'console'
 

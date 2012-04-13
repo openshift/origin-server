@@ -20,5 +20,9 @@ module Console
       # Goes before Rack::Lock but after an application's own static assets
       app.middleware.insert_before 'Rack::Lock', ::ActionDispatch::Static, "#{root}/public"
     end
+
+    config.to_prepare do
+      ConsoleController.send(:include, Console::Auth::Passthrough) if RestApi.config[:auth] == :passthrough
+    end
   end
 end

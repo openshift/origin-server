@@ -5,6 +5,7 @@
 # identifier in the session until the ticket expires.
 #
 module Console::Auth::Passthrough
+  extend ActiveSupport::Concern
 
   class PassthroughUser < RestApi::Authorization
     def initialize(opts={})
@@ -12,33 +13,34 @@ module Console::Auth::Passthrough
     end
   end
 
-  def self.included(base)
-    base.extend(self)
+  included do
   end
 
-  # return the current authenticated user or nil
-  def session_user
-    @authenticated_user
-  end
+  module ClassMethods
+    # return the current authenticated user or nil
+    def session_user
+      @authenticated_user
+    end
 
-  # This method should test authentication and handle if the user
-  # is unauthenticated
-  def require_login
-    authenticate_or_request_with_http_basic('somewhere') do |login,password|
-      if login.present?
-        session_user = PassthroughUser.new :login => login, :password => password
-      else
-        raise Console::AccessDenied
+    # This method should test authentication and handle if the user
+    # is unauthenticated
+    def require_login
+      authenticate_or_request_with_http_basic('somewhere') do |login,password|
+        if login.present?
+          session_user = PassthroughUser.new :login => login, :password => password
+        else
+          raise Console::AccessDenied
+        end
       end
     end
-  end
 
-  def logged_in?
-    not session_user.nil?
-  end
-
-  private
-    def session_user=(user)
-      @authenticated_user = user
+    def logged_in?
+      not session_user.nil?
     end
+
+    private
+      def session_user=(user)
+        @authenticated_user = user
+      end
+  end
 end

@@ -19,6 +19,10 @@ module RestApi
   end
 
   class << self
+    def config
+      @config || {}
+    end
+
     #
     # All code in the block will dump detailed HTTP logs
     #
