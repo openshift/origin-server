@@ -15,7 +15,7 @@ class DomainsController < ConsoleController
   end
 
   def edit
-    @domain = Domain.find :one => session_user
+    @domain = Domain.find :one, :as => session_user
     redirect_to new_domain_path unless @domain
   end
 

@@ -6,37 +6,33 @@ class UserController < Console::UserController
 
   def new
     @product = 'openshift' unless defined? @product
-    @user = WebUser.new
+    @user = WebUser.new params[:web_user]
   end
 
   def create
-    Rails.logger.debug "Registration request"
+    logger.debug "Registration request"
 
-    @user = WebUser.new(params[:web_user])
+    @user = WebUser.new params[:web_user]
 
     # Run validations
     valid = @user.valid?
 
-    Rails.logger.warn "Starting user creation: #{@user.email_address}"
+    logger.warn "Starting user creation: #{@user.email_address}"
     
     # See if the captcha secret was provided
-    if Rails.configuration.integrated
-      if params[:captcha_secret] == Rails.configuration.captcha_secret
-        Rails.logger.warn "Captcha secret provided - ignoring captcha"
-      elsif sauce_testing? #Checks for sauce_testing cookie and development Rails
-        Rails.logger.warn "Sauce testing cookie provided - ignoring captcha"
-      else
-        Rails.logger.debug "Checking captcha"
-        # Verify the captcha
-        unless verify_recaptcha
-          Rails.logger.debug "Captcha check failed"
-          valid = false
-          flash.delete(:recaptcha_error) # prevent the default flash from recaptcha gem
-          @user.errors[:captcha] = "Captcha text didn't match"
-        end
-      end
+    if params[:captcha_secret] == Rails.configuration.captcha_secret
+      logger.warn "Captcha secret provided - ignoring captcha"
+    elsif sauce_testing? #Checks for sauce_testing cookie and development Rails
+      logger.warn "Sauce testing cookie provided - ignoring captcha"
     else
-      Rails.logger.warn "Non-integrated environment - ignoring captcha"
+      logger.debug "Checking captcha"
+      # Verify the captcha
+      unless verify_recaptcha
+        logger.debug "Captcha check failed"
+        valid = false
+        flash.delete(:recaptcha_error) # prevent the default flash from recaptcha gem
+        @user.errors[:captcha] = "Captcha text didn't match"
+      end
     end
     
     # Verify product choice if any
@@ -66,7 +62,7 @@ class UserController < Console::UserController
 
     @user.register(confirmationUrl)
     
-    Rails.logger.debug "Confirmation URL: #{confirmationUrl}"
+    logger.debug "Confirmation URL: #{confirmationUrl}"
 
     unless @user.errors.length == 0
       respond_to do |format|
@@ -87,13 +83,13 @@ class UserController < Console::UserController
       session[:promo_code] = @user.promo_code
     end
 
-    # Redirect to a running workflow if it exists
-    respond_to do |format|
-      format.js { render :json => {:redirectUrl => params[:redirectUrl]} }
-      format.html { 
-        session[:workflow] = params[:redirectUrl]
-        workflow_redirect 
-      }
+    redirect_url = params[:redirectUrl]
+    if redirect_url
+      # Redirect to a running workflow if it exists
+      respond_to do |format|
+        format.js { render :json => {:redirectUrl => redirect_url} }
+        format.html { redirect_to redirect_url }
+      end
     end
   end
 
@@ -118,7 +114,7 @@ class UserController < Console::UserController
   end
 
   def create_external
-    Rails.logger.debug "External registration request"
+    logger.debug "External registration request"
 
     data = JSON.parse(params[:json_data])
       

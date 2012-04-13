@@ -6,7 +6,18 @@ class ActiveSupport::TestCase
   def setup_session(role='')
     @user = WebUser.new :rhlogin => 'tester', :ticket => '1234'
     @user.roles.push(role) unless role.empty?
-    set_user_on_session
+    user_to_session @user
+  end
+  def setup_user(unique=false)
+    @user = WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com"
+    user_to_session @user
+  end
+  def user_to_session(user)
+    session[:login] = user.login
+    session[:user] = user
+    session[:ticket] = user.ticket || '123'
+    @request.cookies['rh_sso'] = session[:ticket]
+    @request.env['HTTPS'] = 'on'
   end
 
   def expects_integrated
