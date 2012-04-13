@@ -3,6 +3,11 @@ require File.expand_path('../../test_helper', __FILE__)
 class KeysControllerTest < ActionController::TestCase
 
   setup :with_configured_user
+  setup :reset_keys
+
+  def reset_keys
+    Key.find(:all, :as => @user).map(&:destroy) if cleanup_user?
+  end
 
   def unique_name_format
     'key%i'
@@ -83,7 +88,9 @@ class KeysControllerTest < ActionController::TestCase
   test "should assign errors on empty name" do
     post :create, {:key => get_post_form.merge(:name => '')}
 
+    assert_response :success
     assert_template :new
+
     assert key = assigns(:key)
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect
@@ -92,8 +99,10 @@ class KeysControllerTest < ActionController::TestCase
 
   test "should assign errors on long name" do
     post :create, {:key => get_post_form.merge(:name => 'aoeu'*2000)}
-    
+
+    assert_response :success
     assert_template :new
+
     assert key = assigns(:key)
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect
@@ -103,7 +112,9 @@ class KeysControllerTest < ActionController::TestCase
   test "should assign errors on invalid name" do
     post :create, {:key => get_post_form.merge(:name => '@@@@')}
 
+    assert_response :success
     assert_template :new
+
     assert key = assigns(:key)
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect
@@ -115,7 +126,9 @@ class KeysControllerTest < ActionController::TestCase
 
     post :create, {:key => get_post_form.merge(:name => key.name, :raw_content => 'ssh-rsa XYZ')}
 
+    assert_response :success
     assert_template :new
+
     assert key = assigns(:key)
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect

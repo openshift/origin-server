@@ -1,59 +1,4 @@
-module Test
-  class WebUser
-    include ActiveModel::Validations
-    include ActiveModel::Conversion
-    include ActiveModel::Serialization
-    extend ActiveModel::Naming
-
-    attr_accessor :login, :password, :ticket, :email_address, :roles
-    def initialize(opts={})
-      opts.each_pair { |key,value| send("#{key}=", value) }
-      @roles = []
-    end
-    def email_address=(address)
-      login = address
-      @email_address = address
-    end
-    def rhhogin
-      login
-    end
-  end
-end
-
 class ActiveSupport::TestCase
-  #
-  # Integration tests are designed to run against the 
-  # production OpenShift service by default.  To change
-  # this, update ~/.openshift/api.yaml to point to a
-  # different server.
-  #
-  def with_configured_user
-    config = RestApi::Configuration.activate(:external)
-    if config[:authorization] == :passthrough
-      @user = Test::WebUser.new :login => config[:login], :password => config[:password]
-    else
-      @user = Test::WebUser.new :login => "#{name}#{uuid}@test1.com"
-      @with_unique_user = true
-    end
-    set_user_on_session
-
-    Domain.any_instance.expects(:check_duplicate_domain).at_least(0).returns(false)
-  end
-
-  def set_user_on_session
-    if defined? session
-      session[:login] = @user.login
-      session[:user] = @user
-      session[:ticket] = @user.ticket
-      @request.cookies['rh_sso'] = '123'
-      @request.env['HTTPS'] = 'on'
-    end
-  end
-
-
-  def uuid
-    @ts ||= "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
-  end
 
   def setup_domain
     @domain = Domain.new :name => "#{uuid}", :as => @user
@@ -64,11 +9,13 @@ class ActiveSupport::TestCase
     @domain
   end
 
-  # some unit tests or test environments may want to preserve domains
-  # created for unique users
-  def cleanup_domain?
+  def cleanup_user?
     not @with_unique_user
   end
+
+  # some unit tests or test environments may want to preserve domains
+  # created for unique users
+  alias_method :cleanup_domain?, :cleanup_user?
 
   def cleanup_domain
     if cleanup_domain? 

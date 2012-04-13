@@ -1,6 +1,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 
 class RestApiApplicationTest < ActiveSupport::TestCase
+  include RestApiAuth
 
   def setup
     with_configured_user
