@@ -140,7 +140,7 @@ class ApplicationType
       :id   => 'jenkins-1.4',
       :name => "Jenkins Server",
       :version => '1.4',
-      :categories => [],
+      :categories => [:framework],
       # nothing should be able to be embedded in a Jenkins app
       :blocks => [
         'mysql-5.1',
