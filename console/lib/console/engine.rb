@@ -1,8 +1,8 @@
 require 'rails/engine'
 
 # Engines must explicitly require dependencies
-require 'barista'
 require 'sass'
+require 'barista'
 require 'formtastic'
 require 'pp'
 

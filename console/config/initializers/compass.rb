@@ -8,7 +8,13 @@ unless Console.config.disable_css
     :root => "#{Rails.root}/tmp"
   }
 
+  Sass::Plugin.options[:css_location] = Rails.root.join("tmp", "stylesheets")
+
   Sass::Plugin.add_template_location(Console::Engine.root.join("app", "stylesheets"))
+  Sass::Plugin.add_template_location(Rails.root.join("app", "stylesheets"))
+
+  puts Sass::Plugin.template_location_array.pretty_inspect
+  puts Sass::Plugin.options.pretty_inspect
 
   #
   # All production environments pregenerate CSS using the RPM build, development
