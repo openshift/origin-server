@@ -47,6 +47,10 @@ module HelpHelper
     community_base_url 'developers'
   end
 
+  def developers_path
+    community_base_url 'developers'
+  end
+
   def install_cli_knowledge_base_url
     community_base_url 'kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems'
   end
