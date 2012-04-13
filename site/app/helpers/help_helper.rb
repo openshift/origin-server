@@ -127,6 +127,14 @@ module HelpHelper
     ]
   end
 
+  def community_path
+    community_base_url('')
+  end
+
+  def community_url
+    community_path
+  end
+
   private
     def community_base_url(path)
       "/community/#{path}"
