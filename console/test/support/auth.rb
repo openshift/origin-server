@@ -32,12 +32,9 @@ module RestApiAuth
     if config[:authorization] == :passthrough
       @user = Test::WebUser.new :login => config[:login], :password => config[:password]
     else
-      @user = Test::WebUser.new :login => "#{name}#{uuid}@test1.com"
       @with_unique_user = true
+      @user = Test::WebUser.new :login => "#{name}#{uuid}@test1.com"
     end
-
-    Domain.any_instance.expects(:check_duplicate_domain).at_least(0).returns(false)
-    @user
   end
 end
 

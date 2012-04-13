@@ -14,13 +14,13 @@ class RestApiDomainTest < ActiveSupport::TestCase
     setup_domain
     domains = Domain.find :all, :as => @user
     assert_equal 1, domains.length
-    assert_equal "#{@ts}", domains[0].name
+    assert_equal "#{uuid}", domains[0].name
   end
 
   def test_domains_first
     setup_domain
     domain = Domain.find :one, :as => @user
-    assert_equal "#{@ts}", domain.name
+    assert_equal "#{uuid}", domain.name
   end
 
   def test_domain_exists_error
@@ -37,27 +37,27 @@ class RestApiDomainTest < ActiveSupport::TestCase
     setup_domain
     domains = Domain.find :all, :as => @user
     assert_equal 1, domains.length
-    assert_equal "#{@ts}", domains[0].name
+    assert_equal "#{uuid}", domains[0].name
 
     d = domains[0]
     assert !d.changed?
-    assert_equal "#{@ts}", d.id
+    assert_equal "#{uuid}", d.id
 
     # change name twice to make sure id doesn't change
     d.name = "notsaved"
     assert d.changed?
-    assert_equal "#{@ts}", d.to_param
-    d.name = "#{@ts.reverse}"
-    assert_equal "#{@ts}", d.to_param
+    assert_equal "#{uuid}", d.to_param
+    d.name = "#{uuid.reverse}"
+    assert_equal "#{uuid}", d.to_param
 
     assert d.save, d.errors.inspect
     assert !d.changed?
     # make sure the param value == the current name
-    assert_equal "#{@ts.reverse}", d.to_param
+    assert_equal "#{uuid.reverse}", d.to_param
 
     domains = Domain.find :all, :as => @user
     assert_equal 1, domains.length
-    assert_equal "#{@ts.reverse}", domains[0].name
+    assert_equal "#{uuid.reverse}", domains[0].name
 
     #cleanup
     domains.each {|d| d.destroy_recursive}

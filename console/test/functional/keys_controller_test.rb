@@ -3,11 +3,7 @@ require File.expand_path('../../test_helper', __FILE__)
 class KeysControllerTest < ActionController::TestCase
 
   setup :with_configured_user
-  setup :reset_keys
-
-  def reset_keys
-    Key.find(:all, :as => @user).map(&:destroy) if cleanup_user?
-  end
+  setup :delete_keys
 
   def unique_name_format
     'key%i'

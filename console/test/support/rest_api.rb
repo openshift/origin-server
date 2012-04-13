@@ -47,6 +47,14 @@ class ActiveSupport::TestCase
     @domain = @@domain
   end
 
+  def delete_keys
+    Key.find(:all, :as => @user).map(&:destroy)
+  end
+
+  def allow_duplicate_domains
+    Domain.any_instance.expects(:check_duplicate_domain).at_least(0).returns(false)
+  end
+
   def assert_attr_equal(o1, o2)
     unless o1 == o2
       assert o1, "#{o1} is not equal to #{o2}"
