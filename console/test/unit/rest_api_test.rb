@@ -55,7 +55,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raises RestApi::MissingAuthorizationError do
       ProtectedApi.connection
     end
-    assert ProtectedApi.connection :as => WebUser.new
+    assert ProtectedApi.connection :as => Test::WebUser.new
   end
 
   def test_base_connection
