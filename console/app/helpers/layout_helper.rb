@@ -1,12 +1,24 @@
 require 'enumerator'
 
 module LayoutHelper
-  
+
+  def root_path
+    console_path
+  end
+
+  #FIXME: Replace with real isolation of login state
+  def logout_path
+    nil
+  end
+
+  def outage_notification
+  end
+
   def navigation_tabs(options={}, &block)
     content = capture &block
     content_tag(:ul, content, :class => 'nav')
   end
-  
+
   def navigation_tab(name, options={})
     action = options[:action]
     active = (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)

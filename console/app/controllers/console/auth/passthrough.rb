@@ -8,7 +8,7 @@ module Console::Auth::Passthrough
 
   class PassthroughUser < RestApi::Authorization
     def initialize(opts={})
-      opts.each_pair { |key,value| send("#{key}=", value) }
+      opts.each_pair { |key,value| instance_variable_set("@#{key}", value) }
     end
   end
 
