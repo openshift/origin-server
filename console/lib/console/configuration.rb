@@ -16,8 +16,6 @@ module Console
    @config ||= Configuration.new
  end
 
- puts "defined default config args"
-
  class InvalidConfiguration < StandardError ; end
 
  class Configuration #:nodoc:
@@ -44,7 +42,6 @@ module Console
     Builtin.freeze
 
     def api=(config=nil)
-      puts "Updating api with #{config.inspect}"
       config = case config
         when nil:
           symbol = :local
@@ -104,7 +101,6 @@ Valid api object:
   end
 
   configure do |config|
-    puts "Setting default config"
     config.disable_js = false
     config.disable_css = false
     config.disable_passthrough = false

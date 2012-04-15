@@ -8,8 +8,6 @@ require 'pp'
 
 require 'console/configuration'
 
-puts 'engine loaded'
-
 module Console
   class Engine < Rails::Engine
     #FIXME: Remove in Rails 3.1+

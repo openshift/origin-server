@@ -114,7 +114,6 @@ module RestApi
     # setting static variables directly.
     #
     def self.configuration=(config)
-      puts "Setting RestApi::Base configuration now"
       url = URI.parse(config[:url])
       path = url.path
       if path[-1..1] == '/'
@@ -459,7 +458,6 @@ module RestApi
 
       # possibly needed to decode gets
       #def get(custom_method_name, options = {})
-      #  puts 'default get'
       #  self.class.format.decode(connection(options).get(custom_method_collection_url(custom_method_name, options), headers).body) #changed
       #end
 

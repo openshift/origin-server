@@ -31,9 +31,6 @@
         %li= link_to "Community", community_url
         %li= link_to "My Account", account_path
         %li= link_to "Sign Out", logout_path
-        
-      #identity.pull-right
-        Logged in as: 
-        %span.username
-          = session_user.login
+
+      = render :partial => 'layouts/console/identity', :local => {:user => session_user}
 
