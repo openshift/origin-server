@@ -30,7 +30,8 @@
       %ul.navbar-text.pull-right#utility-nav
         %li= link_to "Community", community_url
         %li= link_to "My Account", account_path
-        %li= link_to "Sign Out", logout_path
+        - if logout_path
+          %li= link_to "Sign Out", logout_path
 
       = render :partial => 'layouts/console/identity', :local => {:user => session_user}
 

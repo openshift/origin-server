@@ -30,7 +30,14 @@
           %li= link_to 'FAQ', faq_url 
           %li= link_to 'Contact', 'mailto:openshift@redhat.com'
 
-%section#copyright
+-#%section#copyright
   .container
     %img{ :src => image_path("redhat.png"), :alt => "Red Hat" }
     .pull-right Copyright &copy; 2011 Red Hat, Inc.
+%section#copyright
+  .container
+    The #{link_to "OpenShift", openshift_url} management console is open source and
+    #{link_to "available on Github", openshift_github_project_url('console')}. See
+    #{link_to "README.md", openshift_github_project_url('console', 'console/blob/master/README.md')}
+    for copyright and source information.
+

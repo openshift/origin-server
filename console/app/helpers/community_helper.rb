@@ -37,8 +37,8 @@ module CommunityHelper
     'https://github.com/openshift'
   end
 
-  def openshift_github_project_url(project)
-    "https://github.com/openshift/#{project}"
+  def openshift_github_project_url(project, *args)
+    "https://github.com/openshift/#{project}/#{args.join('/')}"
   end
 
   def mailto_openshift_url

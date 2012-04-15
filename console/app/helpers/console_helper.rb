@@ -8,10 +8,6 @@ module ConsoleHelper
     openshift_url 'legal/opensource_disclaimer'
   end
 
-  def root_path
-    console_path
-  end
-
   #FIXME: Replace with real isolation of login state
   def logout_path
     nil

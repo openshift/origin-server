@@ -18,7 +18,7 @@
         .well
           http://applicationname&ndash;
           %strong.namespace>= @domain.name
-          = ".#{RestApi.application_domain_suffix}"
+          = RestApi.application_domain_suffix
         .btn-toolbar
           = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
 
