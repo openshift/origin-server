@@ -19,10 +19,6 @@ module RestApi
   end
 
   class << self
-    def config
-      @config || {}
-    end
-
     #
     # All code in the block will dump detailed HTTP logs
     #
@@ -49,25 +45,30 @@ module RestApi
     def info
       @info ||= Info.find :one
     rescue Exception => e
-      raise ApiNotAvailable, <<-EXCEPTION
+      raise ApiNotAvailable, <<-EXCEPTION, e.backtrace
 
 The REST API could not be reached at #{RestApi::Base.site}
 
   Rails environment:     #{Rails.env}
-  Current configuration: #{config.inspect} #{symbol ? "(via :#{symbol})" : ''}
+  Current configuration: #{config.inspect} #{config[:symbol] ? "(via :#{config[:symbol]})" : ''}
 
   #{e.message}
-    #{e.backtrace.join("\n    ")}
----------------------------------
       EXCEPTION
+    end
+
+    # FIXME: May be desirable to replace this with a standard ActiveSupport config object
+    def config
+      RestApi::Base.instance_variable_get("@last_config") || {}
+    end
+
+    # FIXME: replace with a dynamic call to api.json
+    def application_domain_suffix
+      config[:suffix] || '.rhcloud.com'
     end
 
     private
       def symbol
         RestApi::Base.instance_variable_get('@symbol')
-      end
-      def config
-        RestApi::Base.instance_variable_get('@config')
       end
   end
 

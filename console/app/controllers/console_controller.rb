@@ -1,4 +1,6 @@
-class ConsoleController < ActionController::Base
+class ConsoleController < Console.config.parent_controller.constantize
+  include Console::Auth::Passthrough unless Console.config.disable_passthrough
+
   protect_from_forgery
 
   layout 'console'

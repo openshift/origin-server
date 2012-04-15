@@ -50,6 +50,7 @@ class ActiveResource::Connection
     else
       Net::HTTP.new(@site.host, @site.port)
     end
+    Rails.logger.debug "Connecting to #{@site}"
     http.set_debug_output $stderr if RestApi.debug?
     http
   end
@@ -105,16 +106,15 @@ module RestApi
     # Connection properties
     #
     # self.proxy = 'http://file.rdu.redhat.com:3128'
-    self.site = 'http://localhost/broker/rest'
     self.format = :openshift_json
-    self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
     self.timeout = 60
 
     #
     # Update the configuration of the Rest API.  Use instead of
     # setting static variables directly.
     #
-    def self.set_configuration(config, symbol=nil)
+    def self.configuration=(config)
+      puts "Setting RestApi::Base configuration now"
       url = URI.parse(config[:url])
       path = url.path
       if path[-1..1] == '/'
@@ -123,13 +123,14 @@ module RestApi
         path = "#{path}/"
       end
 
-      RestApi::Base.site = url.to_s
-      RestApi::Base.prefix = path
+      self.site = url.to_s
+      self.prefix = path
+      self.ssl_options = config[:ssl_options] || { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
 
-      @config = config
-      @symbol = symbol
+      @last_config = config
       @info = false
     end
+    self.configuration = Console.config.api
 
     #
     # ActiveResource doesn't fully support alias_attribute

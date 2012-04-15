@@ -8,15 +8,27 @@ module Console::Auth::Passthrough
   extend ActiveSupport::Concern
 
   class PassthroughUser < RestApi::Authorization
+    extend ActiveModel::Naming
+    include ActiveModel::Conversion
+
     def initialize(opts={})
       opts.each_pair { |key,value| instance_variable_set("@#{key}", value) }
+    end
+    def email_address
+      login
+    end
+
+    def persisted?
+      true
     end
   end
 
   included do
+    puts "included"
   end
 
-  module ClassMethods
+  module InstanceMethods
+    puts "including instance methods"
     # return the current authenticated user or nil
     def session_user
       @authenticated_user
@@ -27,7 +39,7 @@ module Console::Auth::Passthrough
     def require_login
       authenticate_or_request_with_http_basic('somewhere') do |login,password|
         if login.present?
-          session_user = PassthroughUser.new :login => login, :password => password
+          @authenticated_user = PassthroughUser.new :login => login, :password => password
         else
           raise Console::AccessDenied
         end
@@ -37,10 +49,5 @@ module Console::Auth::Passthrough
     def logged_in?
       not session_user.nil?
     end
-
-    private
-      def session_user=(user)
-        @authenticated_user = user
-      end
   end
 end

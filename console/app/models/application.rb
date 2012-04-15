@@ -64,6 +64,6 @@ class Application < RestApi::Base
 
   protected
     def url_authority
-      "#{name}-#{domain_id}.#{Rails.configuration.base_domain}"
+      "#{name}-#{domain_id}.#{RestApi.application_domain_suffix}"
     end
 end

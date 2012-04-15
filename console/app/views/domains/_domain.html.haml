@@ -5,7 +5,7 @@
         .input-prepend-append
           %span.add-on-first> http://applicationname&ndash;
           = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => "domain_name"
-          %span.add-on-last> .rhcloud.com
+          %span.add-on-last>= RestApi.application_domain_suffix
         .row.control-group.error
           #app-errors.span
         .help-block Your namespace must be letters or numbers with no spaces or symbols.

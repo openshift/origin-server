@@ -6,7 +6,7 @@
         .input-prepend-append
           %span.add-on-first> http://applicationname&ndash;
           = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
-          %span.add-on-last> .rhcloud.com
+          %span.add-on-last>= RestApi.application_domain_suffix
           = f.inline_errors_for :name
         .row.control-group.error
           #app-errors.span

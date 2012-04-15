@@ -22,6 +22,9 @@ Dummy::Application.configure do
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
 
-  # Configure the appropriate environment for connecting to StickShift
-  config.stickshift = :openshift
+  puts "Setting development.rb config"
+  Console.configure do |config|
+    puts "  Set"
+    config.api = :external
+  end
 end

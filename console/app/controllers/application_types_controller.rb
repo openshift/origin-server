@@ -8,6 +8,7 @@ class ApplicationTypesController < ConsoleController
 
   def show
     @application_type = ApplicationType.find params[:id]
+    logger.debug "Session user #{session_user.inspect}"
     @domain = Domain.find :first, :as => session_user
     @application = Application.new :as => session_user
 
