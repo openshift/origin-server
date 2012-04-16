@@ -119,7 +119,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
-    assert_template :new
+    assert_template :edit
   end
 
   test "update should assign errors on long name" do
@@ -131,7 +131,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   test "update should assign errors on invalid name" do
@@ -143,12 +143,12 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   test "update should assign errors on duplicate name" do
     with_particular_user
-    assert (domain = Domain.new(get_post_form.merge(:as => unique_user))).save, domain.errors.inspect
+    assert (domain = Domain.new(get_post_form.merge(:name => "d#{new_uuid[0..12]}", :as => unique_user))).save, domain.errors.inspect
 
     put :update, {:domain => {:name => domain.name}}
 
@@ -156,7 +156,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   def get_post_form
