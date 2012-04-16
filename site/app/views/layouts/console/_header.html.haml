@@ -31,9 +31,12 @@
         %li= link_to "Community", community_url
         %li= link_to "My Account", account_path
         %li= link_to "Sign Out", logout_path
-        
-      #identity.pull-right
-        Logged in as: 
-        %span.username
-          = session[:login]
+
+      %ul#identity.nav.pull-right
+        %li.dropdown.username
+          %a{ :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', :href => '#' }
+            = session[:login]
+          %ul.dropdown-menu
+            %li= link_to "My Account", account_path
+            %li= link_to "Sign Out", logout_path
 
