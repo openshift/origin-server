@@ -36,19 +36,6 @@ $genericLightGreen:             #d4e16b;
 $cliText:                       #000C5A;
 $cliBackground:                 #E9ECFF;
 
-$grayDark:                      #444;
-$primaryButtonBackground:       #4e9fdd;
-$orange:                        #ffb02e;
-$warningBackground:             #ffd25E;
-$warningBorder:                 #ffd25E;
-$warningText:                   #222;
-$successBackground:             #d4e16b;
-$successBorder:                 #d4e16b;
-$errorBackground:               #CD1E25;
-$errorBorder:                   #CD1E25;
-$errorText:                     white;
-$infoText:                      #222;
-
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray;
 
@@ -82,12 +69,18 @@ $ribbonFoldColor:               #91010b; /* FIXME: From screenshots, is this acc
 $takeActionBackground:          #EB0011; /* FIXME: This makes the logo look desaturated.  We may want a different color set for the nav */
 $takeActionHighlightBackground: #91010b;
 
+$grayLight:                     #999;
+$grayDark:                      #444;
+$primaryButtonBackground:       #4e9fdd;
+$orange:                        #ffb02e;
+$linkColor:                     #0069d6;
+
 /* FIXME: Need to resolve these colors with _custom.scss */
-$warningText:             #ff9f00;
+$warningText:             #222;
 $warningBackground:       #ffd24e;
 $warningBorder:           darken(adjust-hue($warningBackground, -10), 3%);
 
-$errorText:               #c00;
+$errorText:               white;
 $errorBackground:         #CD1E25;
 $errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
 
@@ -95,7 +88,7 @@ $successText:             #95a321;
 $successBackground:       $genericLightGreen;
 $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
-$infoText:                #3a87ad;
+$infoText:                #222;
 $infoBackground:          #bfdce8;
 $infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
 /* END */
