@@ -51,7 +51,7 @@
 
 // Components: Nav
 @import "bootstrap/navs";
-@import "bootstrap/navbar";
+//@import "bootstrap/navbar";
 //@import "bootstrap/breadcrumbs";
 @import "breadcrumbs";
 @import "bootstrap/pagination";
@@ -64,7 +64,7 @@
 
 // Components: Misc
 @import "bootstrap/thumbnails";
-@import "bootstrap/labels";
+@import "labels";
 //@import "bootstrap/progress-bars";
 //@import "bootstrap/accordion";
 //@import "bootstrap/carousel";
@@ -72,6 +72,7 @@
 
 // Utility classes
 @import "bootstrap/utilities"; // Has to be last to override when necessary
+@import "utilities"; // Has to be last to override when necessary
 
 //@import "bootstrap/responsive";
 @import "responsive";
