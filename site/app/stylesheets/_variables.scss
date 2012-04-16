@@ -1,6 +1,8 @@
 $baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif;
 $headerFontFamily:    Overpass, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
+$baseLineHeight:          18px;
+
 $responsivePhone:         480px;
 $responsiveTablet:        768px;
 $responsiveDefault:       980px;
@@ -33,6 +35,19 @@ $genericLightGreen:             #d4e16b;
 
 $cliText:                       #000C5A;
 $cliBackground:                 #E9ECFF;
+
+$grayDark:                      #444;
+$primaryButtonBackground:       #4e9fdd;
+$orange:                        #ffb02e;
+$warningBackground:             #ffd25E;
+$warningBorder:                 #ffd25E;
+$warningText:                   #222;
+$successBackground:             #d4e16b;
+$successBorder:                 #d4e16b;
+$errorBackground:               #CD1E25;
+$errorBorder:                   #CD1E25;
+$errorText:                     white;
+$infoText:                      #222;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray;

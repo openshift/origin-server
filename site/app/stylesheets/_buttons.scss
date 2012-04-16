@@ -8,13 +8,13 @@
 // Core
 .btn {
   display: inline-block;
-  padding: 4px 10px 4px;
+  padding: 5px 10px;
   margin-bottom: 0; // For input.btn
   font-size: $baseFontSize;
   line-height: $baseLineHeight;
   color: $grayDark;
   text-align: center;
-  text-shadow: 0 1px 1px rgba(255,255,255,.75);
+  //text-shadow: 0 1px 1px rgba(255,255,255,.75);
   vertical-align: middle;
   @include buttonBackground($white, darken($white, 10%));
   border: 1px solid #ccc;
@@ -27,6 +27,11 @@
   // Give IE7 some love
   @include reset-filter();
   @include ie7-restore-left-whitespace();
+
+  *margin-left: .3em; //?
+}
+.btn:first-child {
+  *margin-left: 0;
 }
 
 // Hover state
@@ -55,6 +60,7 @@
   background-color: darken($white, 10%);
   background-color: darken($white, 15%) #{"\9"};
   outline: 0;
+  color: rgba(0,0,0,0.5); // custom
 }
 
 // Disabled state
@@ -117,7 +123,7 @@
 .btn-info:hover,
 .btn-inverse,
 .btn-inverse:hover {
-  text-shadow: 0 -1px 0 rgba(0,0,0,.25);
+  text-shadow: 0 -1px 0 rgba(0,0,0,.38); //tweaked
   color: $white;
 }
 // Provide *some* extra contrast for those who can get it
@@ -141,15 +147,15 @@
 }
 // Danger and error appear as red
 .btn-danger {
-  @include buttonBackground(#ee5f5b, #bd362f);
+  @include buttonBackground(#c00, #a00);
 }
 // Success appears as green
 .btn-success {
-  @include buttonBackground(#62c462, #51a351);
+  @include buttonBackground(#ABB64C, #959f41);
 }
 // Info appears as a neutral blue
 .btn-info {
-  @include buttonBackground(#5bc0de, #2f96b4);
+  @include buttonBackground(#93d8e2, #78cfdb);
 }
 // Inverse appears as dark gray
 .btn-inverse {
@@ -181,3 +187,8 @@ input[type="submit"].btn {
     *padding-bottom: 3px;
   }
 }
+
+.form-actions > img,
+.btn-toolbar > img {
+  vertical-align: middle;
+  }
