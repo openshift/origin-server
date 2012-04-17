@@ -1317,3 +1317,18 @@ section#app-cartridges .cartridge-block {
 }
 
 .control-group.error p+p {padding-left: 100px;}
+
+/* dropdown customization
+-----------------------------------------------*/
+
+.dropdown-menu {
+  background: black;
+  position: relative;
+  min-width: 1px;
+  float: none;
+}
+
+.dropdown-menu > li > a:hover {
+  border-radius: 0px;
+  background-color: #cd202c;
+}
