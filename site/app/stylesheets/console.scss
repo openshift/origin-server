@@ -572,7 +572,7 @@ figure {
     position: absolute;
     right: 0;
     top: 61px;
-    background: #000 url("../images/console/arrow-down.png") 97% center no-repeat;
+    background: #000 url("../images/console/arrow-down.png") 97% .75em no-repeat;
 	}
 #identity .username {
     max-width: 150px;
@@ -1326,6 +1326,10 @@ section#app-cartridges .cartridge-block {
   position: relative;
   min-width: 1px;
   float: none;
+}
+
+.dropdown-menu a {
+  color: #b1e5f2;
 }
 
 .dropdown-menu > li > a:hover {
