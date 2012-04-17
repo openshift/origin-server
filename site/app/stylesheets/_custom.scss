@@ -8,6 +8,21 @@ ABB64C -> green -> success
 93D8E2 -> lite blue -> info
 ------------------------------------------------ */
 
+.column-content {
+  padding-top: 25px;
+  h1 {
+    margin-bottom: 25px;
+  }
+
+  section {
+    margin-bottom: 25px;
+  }
+}
+
+.row-content {
+  margin-bottom: 30px;
+}
+
 #content {
 	min-height: 550px;
 	}

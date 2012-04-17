@@ -8,7 +8,7 @@
     = render "layouts/head"
     = render "layouts/console/stylesheets"
 
-  %body{ :class => "console console-transition #{controller.controller_name} #{controller.action_name}" }
+  %body{ :class => "console #{controller.controller_name} #{controller.action_name}" }
     = outage_notification
 
     %header
@@ -17,9 +17,14 @@
     - if content_for? :sub_layout
       = yield :sub_layout
     - else
-      .container#content
-        = flashes
-        = yield
+      .simple-content#content
+        .container
+          .row-content
+            .row.row-flush-right.light#console-panel
+              .column-content.grid-wrapper
+                .span12
+                  = flashes
+                  = yield
 
     %footer
       = render 'layouts/footer'

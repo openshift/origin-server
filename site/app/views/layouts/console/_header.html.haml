@@ -1,41 +1,39 @@
 .navbar
-  .navbar-inner
-    .container
-
-      .brand
-        = link_to root_path do
-          %img.brand-image{:src => image_path('/app/images/logo-24-inside.png')}
-          .brand-text 
-            %strong> Open
-            Shift
+  .container
+    .brand
+      = link_to root_path do
+        %img.brand-image{:src => image_path('/app/images/logo-24-inside.png')}
 
       %span.navbar-text.headline 
-        Management Console
+        %span.brand-text 
+          %strong> Open
+          Shift
+        | Management Console
 
-      -#= link_to root_path, :class => 'brand' do
-        Open
-        %strong> Shift
-        %span.trademark> &trade;
-        &nbsp;
-        Management Console
+    -#= link_to root_path, :class => 'brand' do
+      Open
+      %strong> Shift
+      %span.trademark> &trade;
+      &nbsp;
+      Management Console
 
-      .nav-collapse
-        = navigation_tabs do
-          = navigation_tab :applications, :action => :index, :name => "My Applications"
-          = navigation_tab :application_types, :name => "Create a New Application"
-          = navigation_tab :console, :action => :help, :name => "Help"
-          = navigation_tab :user, :action => :show, :name => "My Account"
-          -#= navigation_tab :help, :show
+    .nav-collapse
+      = navigation_tabs do
+        = navigation_tab :applications, :action => :index, :name => "My Applications"
+        = navigation_tab :application_types, :name => "Create a New Application"
+        = navigation_tab :console, :action => :help, :name => "Help"
+        = navigation_tab :user, :action => :show, :name => "My Account"
+        -#= navigation_tab :help, :show
 
-      %ul.navbar-text.pull-right#utility-nav
-        %li= link_to "Community", community_url
-        %li= link_to "Developer Center", "#"
+    %ul.navbar-text.pull-right#utility-nav
+      %li= link_to "Community", community_url
+      %li= link_to "Developer Center", "#"
 
-      %ul#identity.nav.pull-right
-        %li.dropdown.username
-          %a{ :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', :href => '#' }
-            = session[:login]
-          %ul.dropdown-menu
-            %li= link_to "My Account", account_path
-            %li= link_to "Sign Out", logout_path
+    %ul#identity.pull-right
+      %li.dropdown.username
+        %a{ :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', :href => '#' }
+          = session[:login]
+        %ul.dropdown-menu
+          %li= link_to "My Account", account_path
+          %li= link_to "Sign Out", logout_path
 

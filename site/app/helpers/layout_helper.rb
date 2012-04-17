@@ -112,6 +112,11 @@ module LayoutHelper
         else
           name
         end
+
+        content = content_tag(:span, [
+          content_tag(:i, index+1),
+          content].join.html_safe)
+
         classes = if index < active
           'completed'
         elsif index == active
@@ -119,7 +124,7 @@ module LayoutHelper
         end
         content_tag(:li, content, :class => classes)
       end.join.html_safe,
-      :class => 'wizard-steps'
+      :class => 'wizard'
     )
   end
 

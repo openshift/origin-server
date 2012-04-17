@@ -1,4 +1,4 @@
-= div_for application_type do
+= div_for application_type, :class => defined?(classes) ? classes : nil do
 
   - if application_type.categories.include? :new
     %span.label.label-important.pull-right Recently Added
