@@ -165,50 +165,6 @@ textarea:focus {
 }
 
 
-/* Temporary styles for the old openshift look */
-.console-transition #footer-nav {
-	background-color: #574D4F;
-  color: #eee;
-  }
-#copyright {
-  color: #505050;
-	background-color: black;
-  }
-.console-transition #footer-nav a,
-.console-transition #footer-nav h3 {
-  color: #eee;
-  }
-.console-transition .navbar .headline { 
-  color: #eee;
-  font-size: 24px;
-  line-height: 63px;
-  margin-left: 12px;
-  }
-.console-transition .navbar #utility-nav {
-  margin: -43px -5px 0 0;
-  }
-.console-transition .navbar-inner {
-  background-image: none;
-  background-color: #574D4F;
-  box-shadow: none;
-  }
-.console-transition .navbar .nav > li > a,
-.console-transition .navbar .nav .dropdown-menu a {
-  color: #eee;
-  }
-.console-transition .navbar .nav > li > a:hover,
-.console-transition .navbar .nav .dropdown-menu a:hover {
-  color: white;
-  }
-.console-transition .navbar .nav .active > a,
-.console-transition .navbar .nav .active > a:hover {
-  color: #333333;
-  background-color: white;
-  box-shadow: none;
-  text-shadow: none;
-  }
-  
-  
 
 /* Responsive styles */
 @media (max-width: 767px) {
@@ -234,15 +190,6 @@ textarea:focus {
   .link-column ul { margin: 0; padding: 0; display: inline; }
   .link-column li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
   .link-column a { margin-left: 5px; text-decoration: underline; }
-
-  .console-transition .navbar .headline { 
-    display: block;
-    clear: both;
-    }
-  .console-transition .navbar #utility-nav {
-    margin: 0;
-    float: none;
-    }
 }
 
 @media (min-width: 768px) and (max-width: 980px) {
@@ -285,10 +232,6 @@ textarea:focus {
   .navbar .nav > li > a:hover, .navbar .dropdown-menu a:hover {
     background-color: #1a1a1a;
   	}
-  .console-transition .navbar #utility-nav {
-    margin: 0;
-    float: none;
-    }
 }
 	  
 @media (min-width: 980px) {
