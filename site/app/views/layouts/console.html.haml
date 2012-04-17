@@ -22,6 +22,11 @@
           .row-content
             .row.row-flush-right.light#console-panel
               .column-content.grid-wrapper
+                - if content_for? :breadcrumbs
+                  .ribbon
+                    .ribbon-content.row
+                      %nav
+                        = yield :breadcrumbs
                 .span12
                   = flashes
                   = yield

@@ -128,6 +128,15 @@ module LayoutHelper
     )
   end
 
+  def breadcrumbs_for_each(items)
+    content_for :breadcrumbs, content_tag (
+      :ul,
+      items.each do |crumb|
+        content_tag(:li, crumb)
+      end.join.html_safe,
+      :class => 'breadcrumb')
+  end
+
   def take_action(link, text, *args)
     options = args.extract_options!
     link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do

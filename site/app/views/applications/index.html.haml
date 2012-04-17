@@ -1,10 +1,7 @@
 - lots_of_applications = @applications.length > 10
 - application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application_overview'
 
-%nav
-  %ul.breadcrumb
-    %li
-      = link_to 'My applications', :applications, :action => :index
+= breadcrumbs_for_each [link_to ('My Applications', :applications, :action => :index)]
 
 %section#console-mast
   .row
