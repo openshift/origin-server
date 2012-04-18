@@ -1,4 +1,7 @@
-= div_for cartridge_type, :class => cartridge_type.categories.join(" ") do
+- classes = "tile #{cartridge_type.categories.join(' ')}"
+- classes += "inactive" if defined? inactive
+- classes += " tile-click" unless defined? inactive or defined? hide_link
+= div_for cartridge_type, :class => classes do
 
   - if cartridge_type.categories.include? :installed
     %span.label.pull-right Installed
@@ -50,6 +53,6 @@
     - when :blocked
       .alert Cannot be added to #{@application.framework_name}
 
-  - unless defined? hide_link
+  - unless defined? hide_link or defined? inactive
     = link_to "Select »", application_cartridge_type_path(@application_id, cartridge_type), :class => 'btn'
 
