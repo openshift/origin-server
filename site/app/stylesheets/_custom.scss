@@ -131,6 +131,22 @@ textarea:focus {
   padding: 9px 35px 10px 21px;
 }
 
+// FORM FIELD FEEDBACK STATES
+// --------------------------
+
+// Warning
+.control-group.warning {
+  @include formFieldState($warningBackground, $warningBackground, $warningBackground);
+}
+// Error
+.control-group.error {
+  @include formFieldState($errorBackground, $errorBackground, $errorBackground);
+}
+// Success
+.control-group.success {
+  @include formFieldState($successBackground, $successBackground, $successBackground);
+}
+
 #footer-nav {
   padding-top: 35px;
   padding-bottom: 26px;
