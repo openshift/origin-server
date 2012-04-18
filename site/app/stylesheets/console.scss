@@ -166,7 +166,7 @@ body {
 
 
 /* overwrite font styles */
-#content label {
+.section-console label {
 	color: #cfcfcf;
 	}
 	
@@ -225,14 +225,16 @@ a.btn {
 	background-position: 0 15px;
 	}
 
-#content .well a, #content .well a:hover {
+.well a, 
+.well a:hover {
 	color: #f0f0f0;
 	}
-#content .well p, #content .well label {
+.well p, 
+.well label {
 	color: #aaa;
 	}
 
-#content .well {
+.well {
     background-color: #242424 /*.*/;
     }
 code, pre {
@@ -378,8 +380,11 @@ ol.wizard li a {
 		
 
 
-body > #content {
-	padding-top: 25px;
+.section-console {
+  padding-top: 25px;
+}
+
+.section-console {
 	  background-color: #1d1d1d; 
 	  background-image:
 	    url('../images/mts.png'), 
@@ -400,7 +405,8 @@ body > #content {
 	    297px 101%,
 	    center bottom;
 		}
-.ie9 body > #content {
+
+.ie9 .section-console {
 	background-color: #1d1d1d; 
 	  background-image:
 	    url('../images/mts.png');
@@ -409,6 +415,7 @@ body > #content {
 	  background-position:
 	  	297px 101%;
 	}
+
 figure {
 	background: black;
 	padding: 5px;
@@ -583,31 +590,36 @@ figure {
     white-space: nowrap;
     }
 
-#console-panel {
-	background: #010101;
-	background-image: -webkit-gradient(linear, center top, center bottom, from(#050505 88%), to(#010101));
-	background-image: -webkit-linear-gradient(top, #050505 88%, #010101);
-	background-image: -moz-linear-gradient(top, #050505 88%, #010101);
-	background-image: -o-linear-gradient(top, #050505 88%, #010101);
-	background-image: -ms-linear-gradient(top, #050505 88%, #010101);
-	background-image: linear-gradient(to bottom, #050505 88%, #010101);
-	color: #8f8f8f;
-//	padding-bottom: 8px;
-//	margin-bottom: 30px;
+.row-console {
+  margin-bottom: 30px;
+
+  > .row {
+    min-height: 525px;
+
+    background: #010101;
+    background-image: -webkit-gradient(linear, center top, center bottom, from(#050505 88%), to(#010101));
+    background-image: -webkit-linear-gradient(top, #050505 88%, #010101);
+    background-image: -moz-linear-gradient(top, #050505 88%, #010101);
+    background-image: -o-linear-gradient(top, #050505 88%, #010101);
+    background-image: -ms-linear-gradient(top, #050505 88%, #010101);
+    background-image: linear-gradient(to bottom, #050505 88%, #010101);
+    color: #8f8f8f;
+  }
+}
+
+.section-console-light .row-console > .row {
+	background: none repeat scroll 0 0 #292929;
+ 	color: #dadada;
+	
+	h1, h2, h3, h4, h5, h6 {
+   	color: #dadada;
 	}
-	#console-panel.light {
-		background: none repeat scroll 0 0 #292929;
-  	color: #dadada;
-//		padding-bottom: 8px;
-//		margin-bottom: 30px;
-		min-height: 525px;
-		}
-		#console-panel.light h1, #console-panel.light h2, #console-panel.light h3, #console-panel.light h4, #console-panel.light h5, #console-panel.light h6 {
-    	color: #dadada;
-			}
-	  /*#console-panel.light a {
-				color: #83BFCE;
-				}*/
+}
+
+@media (max-width: 767px) {
+  .section-console { background: #010101; }
+  .section-console-light { background: #292929; }
+}
 
 .app-block {
 	background: #131313;
@@ -1094,9 +1106,6 @@ section#app-cartridges .cartridge-block {
 }
 
 @media (max-width: 768px) {
-	.container {
-		padding: 0;
-		}
 	#console-panel .base {
 		float: none;
 		display: block;
@@ -1152,12 +1161,7 @@ section#app-cartridges .cartridge-block {
     margin: 0;
     width: auto;
 	}
-	body.styleguide > #content {
-		background: #000;
-		}
-	.simple-content .column-content {
-		padding-top: 0;
-		}
+
 	#console-head {
     margin-right: 0;
   }

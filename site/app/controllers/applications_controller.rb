@@ -149,7 +149,6 @@ class ApplicationsController < ConsoleController
     @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
     @application_type = ApplicationType.find @application.framework
-    render :action => :show, :layout => 'console/dark_layout'
   end
 
   def get_started

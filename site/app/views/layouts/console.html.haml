@@ -17,10 +17,10 @@
     - if content_for? :sub_layout
       = yield :sub_layout
     - else
-      .simple-content#content
+      .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
         .container
-          .row-content
-            .row.row-flush-right.light#console-panel
+          .row-console
+            .row.row-flush-right
               .column-content.grid-wrapper
                 - if content_for? :breadcrumbs
                   .ribbon
