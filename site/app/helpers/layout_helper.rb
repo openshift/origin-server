@@ -129,10 +129,19 @@ module LayoutHelper
   end
 
   def breadcrumbs_for_each(items)
+    last_index = items.length - 1
     content_for :breadcrumbs, content_tag (
       :ul,
-      items.each do |crumb|
-        content_tag(:li, crumb)
+      items.each_with_index.map do |crumb, index|
+        content = crumb
+        active_tag = ""
+        if index == last_index
+          active_tag = "active"
+        else
+          content += breadcrumb_divider
+        end
+
+        content_tag(:li, content, :class => active_tag)
       end.join.html_safe,
       :class => 'breadcrumb')
   end

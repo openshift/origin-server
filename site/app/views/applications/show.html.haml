@@ -1,9 +1,4 @@
-%nav
-  %ul.breadcrumb
-    %li
-      = link_to 'My applications', :applications, :action => :index
-      %span.divider /
-    %li.active= @application.name
+= breadcrumbs_for_each [link_to('My applications', :applications, :action => :index), @application.name]
 
 %section#app-mast
   .row
