@@ -225,6 +225,8 @@ a.btn {
 	background-position: 0 15px;
 	}
 
+/* Has problems visually - doesn't look like a link
+
 .well a, 
 .well a:hover {
 	color: #f0f0f0;
@@ -233,7 +235,7 @@ a.btn {
 .well label {
 	color: #aaa;
 	}
-
+*/
 .well {
     background-color: #242424 /*.*/;
     }
@@ -241,7 +243,7 @@ code, pre {
 	background-color: inherit;
   border: 1px dotted #444;
   border-radius: 0 0 0 0;
-  color: #888;
+  color: #eee; // too dark - #888;
 	}
 ol.wizard {
 	margin: 0 0 15px 5px;
