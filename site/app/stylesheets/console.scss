@@ -139,7 +139,7 @@ section#app-cartridges .cartridge-block {
 	}
 body {
     font-family: "Helvetica Neue",Helvetica,"Liberation Sans",Arial,sans-serif;
-		font-weight: 200;
+		font-weight: normal;
     }
 
 /* changes to bootstrap */
@@ -1085,6 +1085,9 @@ section#app-cartridges .cartridge-block {
 		display: block;
 		margin-left: 0;
 		}
+	#console-panel.light {
+		padding:0 20px;
+		}
 	.navbar {
     height: auto;
     border: 0;
@@ -1135,7 +1138,6 @@ section#app-cartridges .cartridge-block {
     margin: 0;
     width: auto;
 	}
-
 	#console-head {
     margin-right: 0;
   }
