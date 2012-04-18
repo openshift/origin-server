@@ -28,6 +28,7 @@
           -#= navigation_tab :user, :action => :show
 
       %ul.navbar-text.pull-right#utility-nav
+        %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => '', :style => 'display:none;'
         %li= link_to "Community", community_url
         %li= link_to "My Account", account_path
         %li= link_to "Sign Out", logout_path
