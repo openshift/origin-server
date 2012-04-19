@@ -75,6 +75,10 @@ module HelpHelper
    community_base_url 'faq'
   end
 
+  def get_started_fast_developers_url
+    community_base_url 'developers/get-started'
+  end
+
   def community_search_url
     community_base_url 'search/node'
   end
