@@ -130,7 +130,7 @@ module LayoutHelper
 
   def breadcrumbs_for_each(items)
     last_index = items.length - 1
-    content_for :breadcrumbs, content_tag (
+    content_for :breadcrumbs, content_tag(
       :ul,
       items.each_with_index.map do |crumb, index|
         content = crumb
@@ -144,6 +144,13 @@ module LayoutHelper
         content_tag(:li, content, :class => active_tag)
       end.join.html_safe,
       :class => 'breadcrumb')
+  end
+
+  def breadcrumb_for_application(application, *args)
+    breadcrumbs_for_each [
+      link_to('My Applications', :applications, :action => :index),
+      link_to(application.name, application),
+    ] + args
   end
 
   def take_action(link, text, *args)

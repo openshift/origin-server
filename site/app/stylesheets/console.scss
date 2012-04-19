@@ -241,7 +241,7 @@ code, pre {
 	background-color: inherit;
   border: 1px dotted #444;
   border-radius: 0 0 0 0;
-  color: #eee; // too dark - #888;
+  color: #AAA;
 	}
 ol.wizard {
 	margin: 0 0 15px 5px;
@@ -613,6 +613,18 @@ figure {
 	h1, h2, h3, h4, h5, h6 {
    	color: #dadada;
 	}
+}
+
+.column-content {
+  padding-top: 0;
+}
+
+.column-content > :first-child {
+  margin-top: 25px;
+}
+.column-content > .ribbon:first-child {
+  margin-top: 0;
+  margin-bottom: 25px;
 }
 
 @media (max-width: 767px) {

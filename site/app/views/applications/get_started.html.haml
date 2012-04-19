@@ -1,3 +1,5 @@
+- breadcrumb_for_application @application, @wizard ? 'Next steps' : 'Get Started'
+
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
   %h1.invisible Get Started
@@ -18,7 +20,7 @@
       - else
         If your application exposes services to the Internet they will be available at
 
-      .well.application-url
+      %p.well.application-url.larger
         = link_to @application.web_url, @application.web_url
 
     %p 
@@ -89,21 +91,18 @@
       %strong rhc.
       Whether it's adding cartridges, checking uptime, or pulling log files from
       the server, you can quickly put a finger on the pulse of your application.
-      = link_to "Follow these steps to install the client", install_cli_knowledge_base_url
+      #{link_to "Follow these steps to install the client", getting_started_path(:anchor => 'install_client_tools')}
       on Linux, Mac OS X, or Windows.
     %p
-      After installing the command line tool follow our User Guide
-      = link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url 
+      After installing the command line tool follow our User Guide 
+      #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }
 
     -# cartridges
     %h2 Adding capabilities
     %p
-      You may now
-      = link_to'add cartridges to provide extra functionality for your application.', application_cartridge_types_path(@application.name)
-    %p
       Cartridges are the components of an OpenShift application, and include databases, build systems,
-      and management capabilities. Adding a cartridge to an application provides the desired capability
-      without forcing you to administrate or update that feature. 
+      and management capabilities. #{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}
+      to an application provides the desired capability without forcing you to administrate or update that feature.
     %p
       To run a PHP application with MySQL (the M and P in LAMP) you 
       %strong embed

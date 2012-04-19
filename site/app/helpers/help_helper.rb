@@ -51,10 +51,6 @@ module HelpHelper
     community_base_url 'developers'
   end
 
-  def install_cli_knowledge_base_url
-    community_base_url 'kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems'
-  end
-
   def post_to_forum_url
     community_base_url 'forums/openshift'
   end
@@ -107,6 +103,10 @@ module HelpHelper
     user_guide_topic_url 'index.html'
   end
 
+  def getting_started_guide_url
+    'https://docs.redhat.com/docs/en-US/OpenShift/2.0/html/Getting_Started_Guide/index.html'
+  end
+
   def git_homepage_url
     "http://git-scm.com/"
   end
@@ -115,7 +115,7 @@ module HelpHelper
     [
       {:href => user_guide_url,
        :name => 'OpenShift User Guide'},
-      {:href => install_cli_knowledge_base_url,
+      {:href => getting_started_guide_url,
        :name => 'Installing OpenShift client tools on Mac OSX, Linux, and Windows'},
       {:href => rails_quickstart_guide_url,
        :name => 'Ruby on Rails Quickstart Guide'},
