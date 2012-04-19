@@ -15,17 +15,17 @@ class CartridgeTypesControllerTest < ActionController::TestCase
 
   test "should list cartridges" do
     get_index
-    assert cart_types = assigns(:cart_types)
+    assert cart_types = assigns(:carts)
     assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
+    assert installed_cart_types = assigns(:installed)
     assert_equal 0, installed_cart_types.length
   end
 
   test "should list cartridges with one marked as installed" do
     get_index
-    assert cart_types = assigns(:cart_types)
+    assert cart_types = assigns(:carts)
     assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
+    assert installed_cart_types = assigns(:installed)
     assert_equal 0, installed_cart_types.length
 
     num_cart_types = cart_types.length
@@ -37,9 +37,9 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert @cartridge.save
 
     get_index
-    assert cart_types = assigns(:cart_types)
+    assert cart_types = assigns(:carts)
     assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
+    assert installed_cart_types = assigns(:installed)
     assert_equal 1, installed_cart_types.length
     assert_equal num_cart_types - 1, cart_types.length
   end
