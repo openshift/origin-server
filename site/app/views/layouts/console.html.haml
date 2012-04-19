@@ -21,15 +21,16 @@
         .container
           .row-console
             .row.row-flush-right
-              .column-content.grid-wrapper
+              .grid-wrapper
                 - if content_for? :breadcrumbs
                   .ribbon
                     .ribbon-content.row
                       %nav
                         = yield :breadcrumbs
-                .span12
-                  = flashes
-                  = yield
+                = flashes
+                = yield
+
+          = yield :after
 
     %footer
       = render 'layouts/footer'

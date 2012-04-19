@@ -1,4 +1,5 @@
 - content_for :dark_layout, true
+
 = breadcrumbs_for_each [link_to('My applications', :applications, :action => :index), @application.name]
 
 #console-head.clearfix.base
@@ -104,4 +105,3 @@
         - @application_type.help_topics.each do |key, value|
           %li= link_to key, value
 
-= render :partial => 'applications/section_help'

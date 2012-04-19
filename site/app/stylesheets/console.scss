@@ -5,16 +5,13 @@
 @import "variables";
 @import "bootstrap/variables";
 @import "bootstrap/mixins";
+@import "mixins";
 @import "bootstrap/dropdowns";
 @import "console/navbar";
 
 /*------------------------------------------------------
 	 Console specific styles
 	------------------------------------------------------ */
-
-#help {
-	margin-top: 60px;
-	}
 
 .alert {
   word-wrap: break-word;
@@ -384,6 +381,7 @@ ol.wizard li a {
 
 .section-console {
   padding-top: 25px;
+  padding-bottom: 30px;
 }
 
 .section-console {
@@ -592,21 +590,15 @@ figure {
     white-space: nowrap;
     }
 
-.row-console {
-  margin-bottom: 30px;
-
-  > .row {
-    min-height: 525px;
-
-    background: #010101;
-    background-image: -webkit-gradient(linear, center top, center bottom, from(#050505 88%), to(#010101));
-    background-image: -webkit-linear-gradient(top, #050505 88%, #010101);
-    background-image: -moz-linear-gradient(top, #050505 88%, #010101);
-    background-image: -o-linear-gradient(top, #050505 88%, #010101);
-    background-image: -ms-linear-gradient(top, #050505 88%, #010101);
-    background-image: linear-gradient(to bottom, #050505 88%, #010101);
-    color: #8f8f8f;
-  }
+.row-console > .row {
+  background: #010101;
+  background-image: -webkit-gradient(linear, center top, center bottom, from(#050505 88%), to(#010101));
+  background-image: -webkit-linear-gradient(top, #050505 88%, #010101);
+  background-image: -moz-linear-gradient(top, #050505 88%, #010101);
+  background-image: -o-linear-gradient(top, #050505 88%, #010101);
+  background-image: -ms-linear-gradient(top, #050505 88%, #010101);
+  background-image: linear-gradient(to bottom, #050505 88%, #010101);
+  color: #8f8f8f;
 }
 
 .section-console-light .row-console > .row {
@@ -618,9 +610,41 @@ figure {
 	}
 }
 
+.row-console-help > .row {
+	background-color: #070707;
+	padding-top: 40px;
+  padding-bottom: 30px;
+
+  p {
+  	color: #808080;
+	}
+  h4 {
+  	text-transform: uppercase;
+  	font-size: 100%;
+  	color: #707070;
+  	padding-bottom: 4px;
+	}
+	a {
+		font-size: 22px;
+		color: #EB0011;
+		font-weight: 200;
+		}
+}
+
 @media (max-width: 767px) {
-  .section-console { background: #010101; }
+  .section-console { 
+    background: #010101;
+    padding-bottom: 0;
+  }
   .section-console-light { background: #292929; }
+  .container .row-console-help {
+    > .row {
+      background: transparent;
+    }
+    .column-console-help {
+      @include expand_for_phone();
+    }
+  }
 }
 
 .app-block {
@@ -688,12 +712,10 @@ figure {
     	margin: 0 -25px;
     	padding: 20px 25px;
     	}
-#help {
-	padding: 30px 0 40px 0;
-	margin: 0/*.*/;
-	background-color: #070707;
-	}
-footer{margin: 0/*.*/;background: #101010;}
+
+footer{
+  background: #101010;
+}
 
 #app-list, #account-digest {
  margin-top: 3px /*.*/;
@@ -811,28 +833,6 @@ footer{margin: 0/*.*/;background: #101010;}
   cursor: default;
   }
 
-#help p {
-	color: #808080;
-	}
-#help h4 {
-	text-transform: uppercase;
-	font-size: 100%;
-	color: #707070;
-	padding-bottom: 4px;
-	}
-	#help a {
-		font-size: 22px;
-		color: #EB0011;
-		font-weight: 200;
-		}
-	#help ul li {
-		margin-left:0;
-		margin-right: 30px;
-		border-right: 1px dotted;
-		}
-		#help ul li:last-child {
-			border-right: 0;
-			}
 .form-actions {
     background-color: transparent;
     border-top: 1px solid #333333;
@@ -1187,7 +1187,7 @@ section#app-cartridges .cartridge-block {
     	border-left: 0;
     	border-top: 0; 
     	}
-	#help ul li {
+/*	#help ul li {
 		margin-left:0;
 		margin-right: 30px;
 		margin-bottom: 10px;
@@ -1195,7 +1195,7 @@ section#app-cartridges .cartridge-block {
 		border-right: 0;
 		width: 100%;
 		float: none;
-		}
+		}*/
 	.ribbon .more a {
     border-width: 2.1em 0 2.1em 2.1em;
     }

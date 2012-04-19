@@ -4,6 +4,22 @@
 = breadcrumbs_for_each [link_to ('My Applications', :applications, :action => :index)]
 
 - content_for :dark_layout, true
+- content_for :after do
+  .row-console-help
+    .row.row-flush-right
+      %ul.column-console-help.unstyled.grid-wrapper
+        %li.span4
+          %h4 Updates
+          = link_to 'Latest Releases', openshift_blog_url, :target => '_blank'
+          %p Check out what new features are available
+        %li.span4
+          %h4 Need Help?
+          = link_to 'Check out the forums', forums_url, :target => '_blank'
+          %p Post a question, Get the answers
+        %li.span4
+          %h4 Found a Bug?
+          = link_to 'Report a Bug', open_bug_url, :target => '_blank'
+          %p The OpenShift bug tracker is now public
 
 %section#console-mast
   .row
