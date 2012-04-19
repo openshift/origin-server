@@ -5,6 +5,9 @@
 
 #console-head.clearfix.base
   %h1.span4= @application.name
+  .span.pull-right
+    %a.btn.btn-danger{:href => delete_application_path(@application.name), :style => 'margin-right:10px'} Delete
+-#
   .emblem.span
     %img{:src => '/app/images/console/gear-bars.png'}
     .span
@@ -23,8 +26,6 @@
       -# placeholder for warning info
   .total-cost
     -# cost placeholder
-  .span.pull-right
-    %a.btn{:href => delete_application_path(@application.name), :style => 'margin-right:10px'} Delete
 
 %section#app-specifics
 %section#app-cartridges.span9
@@ -46,15 +47,17 @@
             %h6 Created
             %span.data
               #{time_ago_in_words(@application.creation_time)} ago
-          %li
-            %h6 Status
-            %span.data
-              normal
+          -#
+            %li
+              %h6 Status
+              %span.data
+                normal
           %li
             %h6 Type
             %span.data= @application.framework_name
-          %li
-            %img{:src => "/app/images/console/gear-sm.png"}
+          -#
+            %li
+              %img{:src => "/app/images/console/gear-sm.png"}
     .row
       .span9
         .indent-left.indent-right
@@ -68,15 +71,17 @@
           %h2.indent-left= cartridge.name
         .span5
           %ul.unstyled-flat.bits.indent-right
-            %li
-              %h6 Status
-              %span.data
-                normal
+            -#
+              %li
+                %h6 Status
+                %span.data
+                  normal
             %li
               %h6 Type
               %span.data= cartridge.type
-            %li
-              %img{:src => "/app/images/console/gear-sm.png"}
+            -#
+              %li
+                %img{:src => "/app/images/console/gear-sm.png"}
 %aside#secondary.span3
   #app-unique-info
     %h5 Visibility
