@@ -3,6 +3,7 @@
 
 = breadcrumbs_for_each [link_to ('My Applications', :applications, :action => :index)]
 
+- content_for :full_layout, true
 - content_for :dark_layout, true
 - content_for :after do
   .row-console-help
@@ -37,7 +38,7 @@
       %li.span7.right
         = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-large'], :style => 'margin-right:10px'
 
-.row
+%div
   %section#app-list.span8
     %header
       %h3.invisible 

@@ -14,23 +14,38 @@
     %header
       = render 'layouts/console/header'
 
-    - if content_for? :sub_layout
-      = yield :sub_layout
-    - else
-      .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
-        .container
-          .row-console
+    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
+      .container
+        .row-console
+          - if content_for? :full_layout
             .row.row-flush-right
               .grid-wrapper
                 - if content_for? :breadcrumbs
                   .ribbon
-                    .ribbon-content.row
+                    .ribbon-content
                       %nav
                         = yield :breadcrumbs
                 = flashes
                 = yield
 
-          = yield :after
+          - elsif content_for? :breadcrumbs
+            .row.row-flush-right
+              .grid-wrapper
+                .ribbon
+                  .ribbon-content
+                    %nav
+                      = yield :breadcrumbs
+                .span12
+                  = flashes
+                  = yield
+          - else
+            .row.row-flush-right
+              .column-content.grid-wrapper
+                .span12
+                  = flashes
+                  = yield
+
+        = yield :after
 
     %footer
       = render 'layouts/footer'
