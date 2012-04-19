@@ -75,7 +75,7 @@ module HelpHelper
    community_base_url 'faq'
   end
 
-  def get_started_fast_developers_url
+  def developers_get_started_fast_url
     community_base_url 'developers/get-started'
   end
 
