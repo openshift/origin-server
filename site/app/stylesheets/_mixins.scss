@@ -6,3 +6,7 @@
   padding-left: $gridGutterWidthPhone;
   padding-right: $gridGutterWidthPhone;
 }
+
+@mixin font-family-monospace() {
+  font-family: Menlo, Monaco, "Liberation Mono", Consolas, monospace;
+}

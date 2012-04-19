@@ -74,22 +74,6 @@ class CartridgeType < RestApi::Base
       :help_topics => {
       }
     },
-    "cron-1.4" =>
-    {
-      :id => 'cron-1.4',
-      :name => 'Cron 1.4',
-      :type => 'embedded',
-      :version => 'Cron 1.4',
-      :license => 'MIT and BSD and ISC and GPLv2',
-      :license_url => nil,
-      :categories => [:embedded],
-      :description => 'Cron is a daemon that runs specified programs at scheduled times',
-      :website => 'https://fedorahosted.org/cronie/',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
     "postgresql-8.4" =>
     {
       :id => 'postgresql-8.4',
@@ -103,6 +87,22 @@ class CartridgeType < RestApi::Base
       :website => 'http://www.postgresql.org/',
       :requires => [],
       :conflicts => ['mysql-5.1'],
+      :help_topics => {
+      }
+    },
+    "cron-1.4" =>
+    {
+      :id => 'cron-1.4',
+      :name => 'Cron 1.4',
+      :type => 'embedded',
+      :version => 'Cron 1.4',
+      :license => 'MIT and BSD and ISC and GPLv2',
+      :license_url => nil,
+      :categories => [:embedded],
+      :description => 'The Cron cartridge allows you to run command line programs at scheduled times. Use this for background jobs and periodic processing.',
+      :website => 'https://fedorahosted.org/cronie/',
+      :requires => [],
+      :conflicts => [],
       :help_topics => {
       }
     },
@@ -147,7 +147,7 @@ class CartridgeType < RestApi::Base
       :license => nil,
       :license_url => nil,
       :categories => [:embedded, :experimental],
-      :description => 'The OpenShift Metrics cartridge.  This is an experimental module.',
+      :description => 'An experimental cartridge that demonstrates retrieving real-time statistics from your application. May be removed or replaced in the future.',
       :website => nil,
       :requires => [],
       :conflicts => [],
@@ -194,8 +194,8 @@ class CartridgeType < RestApi::Base
       :version => 'Jenkins Client 1.4',
       :license => 'MIT',
       :license_url => 'http://www.opensource.org/licenses/mit-license.php',
-      :categories => [:embedded, :blacklist],
-      :description => 'Tool for running and monitoring jobs such as continuous building and testing of your OpenShift applications.  Requires the Jenkins Server Application to be created first.',
+      :categories => [:embedded],
+      :description => RDiscount.new("The Jenkins client connects to your Jenkins application and enables builds and testing of your application.\n\nRequires the Jenkins Application to be [created via the new application page](/app/console/application_types)."),
       :website => 'https://jenkins-ci.org/',
       :requires => [],
       :conflicts => [],

@@ -112,6 +112,11 @@ module LayoutHelper
         else
           name
         end
+
+        content = content_tag(:span, [
+          content_tag(:i, index+1),
+          content].join.html_safe)
+
         classes = if index < active
           'completed'
         elsif index == active
@@ -119,8 +124,33 @@ module LayoutHelper
         end
         content_tag(:li, content, :class => classes)
       end.join.html_safe,
-      :class => 'wizard-steps'
+      :class => 'wizard'
     )
+  end
+
+  def breadcrumbs_for_each(items)
+    last_index = items.length - 1
+    content_for :breadcrumbs, content_tag(
+      :ul,
+      items.each_with_index.map do |crumb, index|
+        content = crumb
+        active_tag = ""
+        if index == last_index
+          active_tag = "active"
+        else
+          content += breadcrumb_divider
+        end
+
+        content_tag(:li, content, :class => active_tag)
+      end.join.html_safe,
+      :class => 'breadcrumb')
+  end
+
+  def breadcrumb_for_application(application, *args)
+    breadcrumbs_for_each [
+      link_to('My Applications', :applications, :action => :index),
+      link_to(application.name, application),
+    ] + args
   end
 
   def take_action(link, text, *args)

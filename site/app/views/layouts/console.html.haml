@@ -8,19 +8,45 @@
     = render "layouts/head"
     = render "layouts/console/stylesheets"
 
-  %body{ :class => "console console-transition #{controller.controller_name} #{controller.action_name}" }
+  %body{ :class => "console #{controller.controller_name} #{controller.action_name}" }
 
     %header
       = render 'layouts/console/header'
 
-    - if content_for? :sub_layout
-      = yield :sub_layout
-    - else
-      .container#content
-        = flashes
-        = yield
+    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
+      .container
+        .row-console
+          - if content_for? :full_layout
+            .row.row-flush-right
+              .grid-wrapper
+                - if content_for? :breadcrumbs
+                  .ribbon
+                    .ribbon-content
+                      %nav
+                        = yield :breadcrumbs
+                = flashes
+                = yield
+
+          - elsif content_for? :breadcrumbs
+            .row.row-flush-right
+              .column-content.grid-wrapper
+                .ribbon
+                  .ribbon-content
+                    %nav
+                      = yield :breadcrumbs
+                .span12
+                  = flashes
+                  = yield
+          - else
+            .row.row-flush-right
+              .column-content.grid-wrapper
+                .span12
+                  = flashes
+                  = yield
 
     %footer
+      = yield :footer
+
       = render 'layouts/footer'
 
     = render 'layouts/javascripts'

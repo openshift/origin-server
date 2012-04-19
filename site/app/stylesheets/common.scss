@@ -34,6 +34,7 @@
 @import "type";
 @import "bootstrap/code";
 @import "bootstrap/forms";
+@import "input-prepend-append";
 @import "bootstrap/tables";
 
 // Components: common
@@ -44,13 +45,13 @@
 @import "bootstrap/close";
 
 // Components: Buttons & Alerts
-@import "bootstrap/buttons";
+@import "buttons";
 @import "bootstrap/button-groups";
 @import "bootstrap/alerts"; // Note: alerts share common CSS with buttons and thus have styles in buttons.scss
 
 // Components: Nav
 @import "bootstrap/navs";
-@import "bootstrap/navbar";
+//@import "bootstrap/navbar";
 //@import "bootstrap/breadcrumbs";
 @import "breadcrumbs";
 @import "bootstrap/pagination";
@@ -63,7 +64,7 @@
 
 // Components: Misc
 @import "bootstrap/thumbnails";
-@import "bootstrap/labels";
+@import "labels";
 //@import "bootstrap/progress-bars";
 //@import "bootstrap/accordion";
 //@import "bootstrap/carousel";
@@ -71,6 +72,7 @@
 
 // Utility classes
 @import "bootstrap/utilities"; // Has to be last to override when necessary
+@import "utilities"; // Has to be last to override when necessary
 
 //@import "bootstrap/responsive";
 @import "responsive";
