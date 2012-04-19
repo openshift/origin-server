@@ -45,6 +45,9 @@ footer h3 {
 a.external:after { 
   content: " \279A"; 
 }
+a.external img[alt="external"] {
+  display: none;  
+}
 
 p.larger { 
   font-size: 14px; 
