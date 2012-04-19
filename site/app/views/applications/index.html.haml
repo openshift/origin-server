@@ -5,22 +5,22 @@
 
 - content_for :full_layout, true
 - content_for :dark_layout, true
-- content_for :after do
-  .row-console-help
-    .row.row-flush-right
-      %ul.column-console-help.unstyled.grid-wrapper
+- content_for :footer do 
+  %section#help
+    .container
+      %ul.row
         %li.span4
           %h4 Updates
-          = link_to 'Latest Releases', openshift_blog_url, :target => '_blank'
-          %p Check out what new features are available
+          = link_to 'Latest News', openshift_blog_url, :target => '_blank'
+          %p Check out what's happening in OpenShift
         %li.span4
           %h4 Need Help?
-          = link_to 'Check out the forums', forums_url, :target => '_blank'
-          %p Post a question, Get the answers
+          = link_to 'Find Answers Online', console_help_url
+          %p The help page brings together all our resources
         %li.span4
-          %h4 Found a Bug?
-          = link_to 'Report a Bug', open_bug_url, :target => '_blank'
-          %p The OpenShift bug tracker is now public
+          %h4 Participate
+          = link_to 'Check out the forum', post_to_forum_url, :target => '_blank'
+          %p Our community is what makes OpenShift strong
 
 %section#console-mast
   .row
@@ -105,5 +105,3 @@
         %a.thumbnail{:href => '#'}
           %figure
             %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
-            
-= render :partial => 'applications/section_help'

@@ -206,6 +206,7 @@ textarea:focus {
   .link-column ul { margin: 0; padding: 0; display: inline; }
   .link-column li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
   .link-column a { margin-left: 5px; text-decoration: underline; }
+  .link-column > header a { margin-left: 0; }
 }
 
 @media (min-width: 768px) and (max-width: 980px) {

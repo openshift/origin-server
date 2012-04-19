@@ -56,7 +56,7 @@ module HelpHelper
   end
 
   def post_to_forum_url
-    community_base_url 'forums/express'
+    community_base_url 'forums/openshift'
   end
 
   def events_url
