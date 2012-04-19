@@ -72,20 +72,21 @@
       %strong Application
       %span.sprite
         &nbsp;
+%section#account-digest.span5
+  .digest-bg
+    %aside#secondary
+      #assistance
+        %h5 OpenShift Help
+        %ul.unstyled
+          - console_help_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More help »', console_help_path
 
-  %section#account-digest.span4
-    #assistance
-      %h5 OpenShift Help
-      %ul.unstyled
-        - console_help_links.each do |l|
-          %li= link_to l[:name], l[:href]
-        %li= link_to 'More help »', console_help_path
-
-      %h5 Popular FAQs
-      %ul.unstyled
-        - console_faq_links.each do |l|
-          %li= link_to l[:name], l[:href]
-        %li= link_to 'More FAQs »', faq_url
+        %h5 Popular FAQs
+        %ul.unstyled
+          - console_faq_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More FAQs »', faq_url
 -#
   %header.invisible Billing, usage and charts
   %table.table.table-striped.table-condensed
