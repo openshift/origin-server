@@ -129,7 +129,12 @@ textarea:focus {
 .alert {
   border-width: 0;
   padding: 9px 35px 10px 21px;
+  text-shadow:none;
 }
+.alert a, .alert a:hover, alert a:active {
+  color:#fff;
+  text-decoration:underline;
+  }
 
 // FORM FIELD FEEDBACK STATES
 // --------------------------
