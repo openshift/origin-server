@@ -11,6 +11,7 @@ class UserController < SiteController
 
   def new
     @product = 'openshift' unless defined? @product
+    @redirect = params[:redirect].presence || params[:redirectUrl].presence
     @user = WebUser.new params[:web_user]
   end
 
@@ -60,13 +61,14 @@ class UserController < SiteController
       end
     end
 
+    # FIXME: Need to pass signin destination through confirmation link
     confirmationUrl = url_for(:action => 'confirm',
                               :controller => 'email_confirm',
                               :only_path => false,
                               :protocol => 'https')
 
     @user.register(confirmationUrl)
-    
+
     logger.debug "Confirmation URL: #{confirmationUrl}"
 
     unless @user.errors.length == 0
@@ -83,19 +85,12 @@ class UserController < SiteController
     #Process promo code
     if @user.promo_code and not @user.promo_code.blank?
       PromoCodeMailer.promo_code_email(@user).deliver
-      
+
       #Save promo code so that omniture tag can be updated in UserController::complete
       session[:promo_code] = @user.promo_code
     end
 
-    redirect_url = params[:redirectUrl]
-    if redirect_url
-      # Redirect to a running workflow if it exists
-      respond_to do |format|
-        format.js { render :json => {:redirectUrl => redirect_url} }
-        format.html { redirect_to redirect_url }
-      end
-    end
+    redirect_to complete_account_path
   end
 
   def show
