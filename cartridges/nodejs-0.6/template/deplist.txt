@@ -1,0 +1,17 @@
+#
+#  This file contains a list of Node modules and optionally version
+#  (one per line) of the form: <module-name>@<version>
+#  to install alongside your app ("locally") on the OpenShift environment.
+#
+
+#  Any blank lines or lines starting with a hash (#) are ignored.
+#  E.g. uncomment the next line to install sqlite3
+#sqlite3
+
+#
+#  For a list of globally installed modules - see file: npm_global_module_list.
+#
+#  Note: You can override a globally available module by specifying it in this
+#        file or packaging it in the node_modules/ directory. Node will give
+#        preference to the "locally" installed version of that module.
+#
