@@ -44,7 +44,7 @@ GEM
       json
       open4
       state_machine
-    stickshift-node (0.9.6)
+    stickshift-node (0.9.7)
       activemodel
       stickshift-common
       highline
