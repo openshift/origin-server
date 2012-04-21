@@ -1,7 +1,7 @@
 %define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.12.3
+Version: 0.12.4
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -61,6 +61,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.12.4-1
+- new package built with tito
+
 * Thu Apr 12 2012 Mike McGrath <mmcgrath@redhat.com> 0.12.2-1
 - release bump for tag uniqueness (mmcgrath@redhat.com)
 
