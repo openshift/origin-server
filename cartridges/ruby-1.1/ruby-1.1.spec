@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.1
-Version:   0.91.4
+Version:   0.91.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.91.5-1
+- new package built with tito
+
 * Wed Apr 18 2012 Adam Miller <admiller@redhat.com> 0.91.3-1
 - bug 811509 (bdecoste@gmail.com)
 
