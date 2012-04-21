@@ -2,7 +2,7 @@
 %define frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.25.4
+Version: 0.25.5
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -75,6 +75,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.25.5-1
+- new package built with tito
+
 * Wed Apr 18 2012 Adam Miller <admiller@redhat.com> 0.25.3-1
 - bug 808544 (dmcphers@redhat.com)
 - Changes to get gearchanger-oddjob selinux and misc other changes to configure
