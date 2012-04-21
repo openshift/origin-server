@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version:        0.9.3
+Version:        0.9.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -97,6 +97,9 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.9.4-1
+- new package built with tito
+
 * Thu Apr 12 2012 Mike McGrath <mmcgrath@redhat.com> 0.9.2-1
 - Updating gem versions (mmcgrath@redhat.com)
 - release bump for tag uniqueness (mmcgrath@redhat.com)
