@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.2
+Version:   0.6.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -151,6 +151,9 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.6.3-1
+- new package built with tito
+
 * Fri Mar 09 2012 Krishna Raman <kraman@gmail.com> 0.6.1-1
 - New package for StickShift (was Cloud-Sdk)
 
