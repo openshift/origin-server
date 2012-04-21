@@ -5,7 +5,7 @@
 
 Summary:        Crankcase plugin for MongoDB
 Name:           rubygem-%{gemname}
-Version:        0.8.5
+Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0

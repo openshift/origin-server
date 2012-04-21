@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.1
+Version:   0.6.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0

@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version:        0.9.2
+Version:        0.9.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
