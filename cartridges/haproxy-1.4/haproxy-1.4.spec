@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version:   0.8.4
+Version:   0.8.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
+- new package built with tito
+
 * Wed Apr 18 2012 Adam Miller <admiller@redhat.com> 0.8.3-1
 - 1) removing cucumber gem dependency from express broker. 2) moved ruby
   related cucumber tests back into express. 3) fixed issue with broker
