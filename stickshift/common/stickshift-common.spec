@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version:        0.8.4
+Version:        0.8.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -69,6 +69,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
+- forcing builds (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.3-1
 - new package built with tito
 
