@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.4
+Version:        0.9.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.9.5-1
+- new package built with tito
+
 * Wed Apr 18 2012 Adam Miller <admiller@redhat.com> 0.9.3-1
 - 1) removing cucumber gem dependency from express broker. 2) moved ruby
   related cucumber tests back into express. 3) fixed issue with broker
