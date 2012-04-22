@@ -24,11 +24,9 @@ module Console::Auth::Passthrough
   end
 
   included do
-    puts "included"
   end
 
   module InstanceMethods
-    puts "including instance methods"
     # return the current authenticated user or nil
     def session_user
       @authenticated_user
