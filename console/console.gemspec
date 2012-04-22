@@ -23,11 +23,12 @@ Gem::Specification.new do |s|
   # date.
   s.add_dependency 'formtastic', '~> 1.2.3'
   s.add_dependency 'sass', '~> 3.1.7'
-  s.add_dependency 'rack', '~> 1.3.0'
+  s.add_dependency 'rack', '>= 1.2.5'
   s.add_dependency 'haml', '~> 3.1.2'
   s.add_dependency 'compass', '~> 0.11.5'
   s.add_dependency 'barista', '~> 1.2.1'
-  
-  s.add_development_dependency 'mocha', '~> 0.9.8'
+
+  # Temporarily removed because of issues with Bundler < 1.0.22
+  #s.add_development_dependency 'mocha', '~> 0.9.8'
   #s.add_dependency '', '~> '
 end
