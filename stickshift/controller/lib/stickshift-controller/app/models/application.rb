@@ -469,7 +469,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
 
-  def execute_connections_optimized
+  def execute_connections
     return if not self.scalable
 
     self.conn_endpoints_list.each { |conn|
@@ -512,40 +512,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     }
   end
 
-  # execute all connections
-  def execute_connections
-    return execute_connections_optimized 
-    return if not self.scalable
-    self.conn_endpoints_list.each { |conn|
-      # get publisher's gears, execute the connector, and
-      # give the output to subscriber gears
-      pub_inst = self.comp_instance_map[conn.from_comp_inst]
-      pub_ginst = self.group_instance_map[pub_inst.group_instance_name]
-
-      r = ResultIO.new
-      pub_out = []
-      run_on_gears(pub_ginst.gears, r, false) do |gear, r|
-        appname = gear.name
-
-        gout, gstatus = gear.execute_connector(pub_inst, conn.from_connector.name, [appname, self.domain.namespace, gear.uuid])
-
-        if gstatus==0
-          pub_out.push("'#{gear.uuid}'='#{gout}'")
-        end
-      end
-      input_to_subscriber = Shellwords::shellescape(pub_out.join(' '))
-      Rails.logger.debug "Output of publisher - '#{pub_out}'"
-
-      sub_inst = self.comp_instance_map[conn.to_comp_inst]
-      sub_ginst = self.group_instance_map[sub_inst.group_instance_name]
-
-      run_on_gears(sub_ginst.gears, r, false) do |gear, r|
-        appname = gear.name
-        gout, gstatus = gear.execute_connector(sub_inst, conn.to_connector.name, [appname, self.domain.namespace, gear.uuid, input_to_subscriber])
-      end
-    }
-  end
-  
   # Deconfigure all cartriges for the application. Errors are logged but no exception is thrown.
   def deconfigure_dependencies
     reply = ResultIO.new
@@ -1194,46 +1160,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     prof.group_overrides << [from, to]
   end
 
-  def create_group_override(from, to)
-    # assuming from/to to be cartridge names as of now
-    # this also means that one cannot issue a group override at a lower hierarchy 
-    #   (e.g. some new cartridge that uses mysql inside it, and app wants to co-locate/re-use that mysql for app's use)
-    # this also means that one cannot have two instances of the same cartridge
-    from_cart = CartridgeCache.find_cartridge(from)
-    raise StickShift::NodeException.new("Cartridge #{from} not found, while resolving group overrides.", "-101", ResultIO.new) if from_cart.nil?
-    to_cart = CartridgeCache.find_cartridge(to)
-    raise StickShift::NodeException.new("Cartridge #{to} not found, while resolving group overrides.", "-101", ResultIO.new) if to_cart.nil?
-    begin 
-      from_group = from_cart.find_profile(nil).groups[0]
-      to_group = to_cart.find_profile(nil).groups[0]
-
-      from_gpath = self.get_name_prefix + from_cart.get_name_prefix + from_group.get_name_prefix
-      to_gpath = self.get_name_prefix + to_cart.get_name_prefix + to_group.get_name_prefix
-      self.group_override_map = {} if self.group_override_map.nil?
-      group_override_map[from_gpath] = to_gpath
-      group_override_map[to_gpath] = from_gpath
-    rescue Exception=>e
-      raise StickShift::NodeException.new("Cannot co-locate #{to} and #{from}. Internal fault - #{e.message}", "-101", ResultIO.new)
-    end
-  end
-
   # Parse the descriptor and build or update the runtime descriptor structure
   def elaborate_descriptor
     self.group_instance_map = {} if group_instance_map.nil?
     self.comp_instance_map = {} if comp_instance_map.nil?
     self.working_comp_inst_hash = {}
     self.working_group_inst_hash = {}
-    self.group_override_map = {} if self.group_override_map.nil?
+    self.group_override_map = {} 
     self.conn_endpoints_list = [] 
     default_profile = @profile_name_map[@default_profile]
     
-    # generate_group_overrides(default_profile)
-  
     default_profile.groups.each { |g|
       #gpath = self.name + "." + g.name
       gpath = self.get_name_prefix + g.get_name_prefix
-      mapped_path = group_override_map[gpath] || ""
-      gi = working_group_inst_hash[mapped_path]
+      gi = working_group_inst_hash[gpath]
       if gi.nil?
         gi = self.group_instance_map[gpath]
         if gi.nil?
@@ -1258,9 +1198,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     # check self.comp_instance_map for component instances
     # check self.group_instance_map for group instances
     # check self.conn_endpoints_list for list of connection endpoints (fully resolved)
-  
-    # auto merge top groups
-    auto_merge_top_groups(default_profile)
   
     # resolve group co-locations
     colocate_groups
@@ -1318,6 +1255,7 @@ private
   end
   
   def colocate_groups
+    default_profile = @profile_name_map[@default_profile]
     self.conn_endpoints_list.each { |conn|
       if conn.from_connector.type.match(/^FILESYSTEM/) or conn.from_connector.type.match(/^AFUNIX/)
         cinst1 = self.comp_instance_map[conn.from_comp_inst]
@@ -1326,11 +1264,12 @@ private
         ginst2 = self.group_instance_map[cinst2.group_instance_name]
         next if ginst1==ginst2
         # these two group instances need to be colocated
-        #ginst1.merge(ginst2.cart_name, ginst2.profile_name, ginst2.group_name, ginst2.name, ginst2.component_instances)
         ginst1.merge_inst(ginst2)
         self.group_instance_map[cinst2.group_instance_name] = ginst1
       end
     }
+    # generate_group_overrides(default_profile)
+    auto_merge_top_groups(default_profile)
   end
   
   def generate_group_overrides(default_profile)
@@ -1338,31 +1277,48 @@ private
       go_copy = go.dup
       n = go_copy.pop
       go_copy.each { |v|
-        create_group_override(n,v)
+        from_cinst = ComponentInstance::find_component_in_cart(default_profile, self, from, self.get_name_prefix)
+        to_cinst = ComponentInstance::find_component_in_cart(default_profile, self, to, self.get_name_prefix)
+        next if from_cinst.nil? or to_cinst.nil?
+        from_gpath = from_cinst.group_instance_name
+        to_gpath = to_cinst.group_instance_name
+        group_override_map[from_gpath] = to_gpath
+        group_override_map[to_gpath] = from_gpath
       }
     end
-    return
   end
   
   def auto_merge_top_groups(default_profile)
-    return if self.scalable
-    first_group = default_profile.groups[0]
-    gpath = self.get_name_prefix + first_group.get_name_prefix
-    gi = self.group_instance_map[gpath]
-    first_group.component_refs.each { |comp_ref|
-      cpath = self.get_name_prefix + comp_ref.get_name_prefix(default_profile)
-      ci = self.comp_instance_map[cpath]
-      ci.dependencies.each { |cdep|
-        cdepinst = self.comp_instance_map[cdep]
-        ginst = self.group_instance_map[cdepinst.group_instance_name]
-        next if ginst==gi
-        Rails.logger.debug "Auto-merging group #{ginst.name} into #{gi.name}"
-        # merge ginst into gi
-        #gi.merge(ginst.cart_name, ginst.profile_name, ginst.group_name, ginst.name, ginst.component_instances)
-        gi.merge_inst(ginst)
-        self.group_instance_map[cdepinst.group_instance_name] = gi
+    if self.scalable
+      group_name_list = self.group_instance_map.keys.dup
+      group_name_list.each { |gname|
+        mapped_to = group_override_map[gname]
+        next if mapped_to.nil?
+        ginst1 = self.group_instance_map[gname]
+        ginst2 = self.group_instance_map[mapped_to]
+        next if ginst1==ginst2
+        ginst1.merge(ginst2)
+        self.group_instance_map[mapped_to] = ginst1
       }
-    }
+    else
+      first_group = default_profile.groups[0]
+      gpath = self.get_name_prefix + first_group.get_name_prefix
+      gi = self.group_instance_map[gpath]
+      first_group.component_refs.each { |comp_ref|
+        cpath = self.get_name_prefix + comp_ref.get_name_prefix(default_profile)
+        ci = self.comp_instance_map[cpath]
+        ci.dependencies.each { |cdep|
+          cdepinst = self.comp_instance_map[cdep]
+          ginst = self.group_instance_map[cdepinst.group_instance_name]
+          next if ginst==gi
+          Rails.logger.debug "Auto-merging group #{ginst.name} into #{gi.name}"
+          # merge ginst into gi
+          #gi.merge(ginst.cart_name, ginst.profile_name, ginst.group_name, ginst.name, ginst.component_instances)
+          gi.merge_inst(ginst)
+          self.group_instance_map[cdepinst.group_instance_name] = gi
+        }
+      }
+    end
   end
 
 

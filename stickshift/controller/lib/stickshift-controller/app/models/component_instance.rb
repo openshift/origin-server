@@ -107,15 +107,9 @@ class ComponentInstance < StickShift::UserModel
   end
 
   def elaborate_cartridge(cart, profile, app)
-    profile.group_overrides.each do |n, v|
-      from = self.name + cart.get_name_prefix + "/" + n
-      to = self.name + cart.get_name_prefix + "/" + v
-      app.group_override_map[from] = to
-    end
     group_list = profile.groups.map do |g|
        gpath = self.name + cart.get_name_prefix + g.get_name_prefix
-       mapped_path = app.group_override_map[gpath] || ""
-       gi = app.working_group_inst_hash[mapped_path]
+       gi = app.working_group_inst_hash[gpath]
        if gi.nil?
          gi = app.group_instance_map[gpath]
          if gi.nil?
@@ -140,6 +134,14 @@ class ComponentInstance < StickShift::UserModel
       ComponentInstance::establish_connections(inst1, inst2, app)
     end
     
+    profile.group_overrides.each do |n, v|
+      from_cinst = ComponentInstance::find_component_in_cart(profile, app, n, self.name)
+      to_cinst = ComponentInstance::find_component_in_cart(profile, app, v, self.name)
+      next if from_cinst.nil? or to_cinst.nil?
+      app.group_override_map[from_cinst.group_instance_name] = to_cinst.group_instance_name
+      app.group_override_map[to_cinst.group_instance_name] = from_cinst.group_instance_name
+    end
+
     return group_list
   end
 
