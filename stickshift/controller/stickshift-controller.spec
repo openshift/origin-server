@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.8
+Version:        0.9.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.9-1
+- cleaning up spec files (dmcphers@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.8-1
 - Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
 - Bug 814379 - invalid input being sent back to the client (lnader@redhat.com)
