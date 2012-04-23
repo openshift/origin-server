@@ -3,11 +3,6 @@ require {
 	type httpd_exec_t;
         type httpd_t;
         type unconfined_t;
-	type httpd_passenger_helper_t;
-	class fifo_file { read write };
-	class process { sigchld transition };
-	class unix_stream_socket { read write getattr accept };
-	class capability dac_override;
 }
 
 type stickshift_t;
@@ -26,6 +21,12 @@ allow httpd_t stickshift_t:fifo_file { read write };
 allow httpd_t stickshift_t:process sigchld;
 allow httpd_t stickshift_t:unix_stream_socket { read write getattr accept };
 allow unconfined_t stickshift_t:process transition;
-allow httpd_passenger_helper_t self:capability dac_override;
 allow stickshift_t httpd_t:process transition;
 
+optional_policy(`
+gen_require(`
+    type httpd_passenger_helper_t;
+    
+')
+    allow httpd_passenger_helper_t self:capability dac_override;
+')
