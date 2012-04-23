@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.3
+Version:   0.6.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -153,5 +153,15 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Mon Apr 23 2012 Krishna Raman <kraman@gmail.com> 0.6.4-1
+- Updated SELinux policies (kraman@gmail.com)
+- Adding pasenger dependencies which provide required selinux policies.
+  (kraman@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+- cleaning up spec files (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- fix hanging comma (dmcphers@redhat.com)
+- move crankcase mongo datastore (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.6.3-1
 - new package built with tito
