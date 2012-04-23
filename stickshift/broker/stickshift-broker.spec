@@ -28,6 +28,8 @@ Requires:  rubygem(json)
 Requires:  rubygem(multimap)
 Requires:  rubygem(stickshift-controller)
 Requires:  rubygem(stickshift-node)
+Requires:  rubygem(passenger)
+Requires:  rubygem-passenger-native
 Requires:  stickshift-abstract
 Requires:  selinux-policy-targeted
 Requires:  policycoreutils-python
