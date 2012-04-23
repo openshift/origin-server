@@ -332,6 +332,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
     @app = TestApp.create_unique('diy-0.1', 'diy')
     if rhc_create_domain(@app)
       @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=120')
+      @diy_app.create_app_code.should be == 0
     else
       raise "Failed to create domain: #{@app}"
     end
@@ -371,20 +372,35 @@ When /^I push an update to the diy application$/ do
       Dir.chdir "diy"
       `sed -ie 's/Place your application here/Jenkins Builder Testing/' diy/index.html`
 
-      status = Open4::popen4("git commit -a -m 'push to force build'") do |pid, stdin, stdout, stderr|
+      status = Open4::popen4("git commit -a -m 'force build'") do |pid, stdin, stdout, stderr|
         $logger.debug "git commit: #{stdout.read}"
         $logger.info  "git commit: #{stderr.read}"
       end
       status.to_s.should be == "0"
 
-      status = Open4::popen4("git push") do |pid, stdin, stdout, stderr|
-        $logger.debug "git push: #{stdout.read}"
-        $logger.info  "git push: #{stderr.read}"
+      done = false
+      Timeout::timeout(300) do
+        status = Open4::popen4("git push") do |pid, stdin, stdout, stderr|
+          loop do
+            readers, writers, errors = IO.select([stdout, stderr], nil, nil, 1)
+            readers.each {|fd|
+              begin
+                $logger.debug "git push(#{fd}: #{fd.read_nonblock(256)}"
+              rescue EOFError
+                done = true
+              end
+            } if not readers.nil?
+            break if Process::waitpid(pid, Process::WNOHANG) || done
+          end
+        end
+        status.to_s.should be == "0"
       end
-      status.to_s.should be == "0"
+    rescue Timeout::Error
+      $logger.warn "Timed out while reading results from git push. Usually means jenkins cartridge failing"
+      raise
     rescue => e
-      $logger.error "Unexpected exception: #{e.message}\n#{e.backtrace.join("\n")}"
-      raise e
+      $logger.error "Unexpected exception #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
+      raise
     ensure
       Dir.chdir current
       # todo: uncomment when done with development
