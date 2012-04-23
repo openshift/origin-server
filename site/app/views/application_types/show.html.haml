@@ -15,13 +15,13 @@
 
   = f.inputs do
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group.control-group-important
+    .control-group.control-group-important{:class => @application.errors[:name].present? || @application.errors[:domain_name].present? ? 'error' : '', :data => @application.errors[:name].present? || @application.errors[:domain_name].present? ? {:"server-error" => 'server-error'} : {}}
       %label.control-label Public URL
       .controls
         .input-prepend-append
           %span.add-on-first http://
 
-          = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :maxlength => 32, :placeholder => 'Application name', :class => @application.errors[:name].present? ? 'error application_name' : 'application_name'
+          = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :maxlength => 32, :placeholder => 'Application name', :class => 'application_name'
 
           -# If the user has a domain, use it, otherwise prompt them for that field
           - if @domain and @domain.persisted?
@@ -31,7 +31,7 @@
           - else
 
             %span.add-on-middle> &ndash;
-            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :maxlength => 16, :class => @application.errors[:domain_name].present? ? 'error domain_name' : 'domain_name'
+            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :maxlength => 16, :class => 'domain_name'
             %span.add-on-last>= ".#{Rails.configuration.base_domain}"
         .row.control-group.error
           #app-errors.span

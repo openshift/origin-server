@@ -1,5 +1,10 @@
 $ = jQuery
 
+find_control_group_parent =
+  (child) ->
+    parent = $(child).parentsUntil(".control-group").parent().closest(".control-group")
+    return parent
+
 $ ->
   $.validator.addMethod "aws_account", ((value) ->
     (/^[\d]{4}-[\d]{4}-[\d]{4}$/).test value
@@ -13,9 +18,11 @@ $ ->
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
-      $(element).addClass('error').removeClass(validClass)
+      $(find_control_group_parent(element)).addClass('error').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
-      $(element).addClass(validClass).removeClass('error')
+      $el = $(find_control_group_parent(element))
+      if typeof($el.attr('data-server-error')) == 'undefined'
+        $el.removeClass('error')
 
   # /app/account/new
   # /app/account
