@@ -2,7 +2,7 @@
 %define frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.25.5
+Version: 0.25.6
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -75,5 +75,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.25.6-1
+- cleaning up spec files (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.25.5-1
 - new package built with tito
