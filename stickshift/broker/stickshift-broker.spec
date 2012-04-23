@@ -123,13 +123,6 @@ chkconfig stickshift-broker on
 pushd /usr/share/selinux/packages/stickshift-broker
 make -f /usr/share/selinux/devel/Makefile
 popd
-/usr/sbin/semodule -i /usr/share/selinux/packages/stickshift-broker/stickshift-broker.pp
-
-/usr/sbin/semodule -d passenger
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
-/sbin/restorecon -R -v /var/run
-
 semanage -i - <<_EOF
 boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
@@ -140,11 +133,14 @@ fcontext -a -t httpd_tmp_t '%{brokerdir}/tmp(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/httpd/logs(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/log(/.*)?'
 _EOF
-semodule -i /usr/share/selinux/packages/stickshift-broker/stickshift-broker.pp -d passenger
+semodule -i /usr/share/selinux/packages/stickshift-broker/stickshift-broker.pp -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
 
 chcon -R -t httpd_log_t %{brokerdir}/httpd/logs %{brokerdir}/log
 chcon -R -t httpd_tmp_t %{brokerdir}/httpd/run
 chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
+/sbin/fixfiles -R rubygem-passenger restore
+/sbin/fixfiles -R mod_passenger restore
+/sbin/restorecon -R -v /var/run
 
 %postun
 /usr/sbin/semodule -e passenger -r stickshift-broker
