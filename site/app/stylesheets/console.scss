@@ -205,6 +205,7 @@ a,a:visited {
 	}
 a:hover,a:active {color:#8addf2;}
 
+/*
 a.btn {
 	color: #111;
 	}
@@ -222,6 +223,52 @@ a.btn {
 .btn-primary:hover {
 	background-position: 0 15px;
 	}
+*/
+
+.btn, a.btn {
+	background-color: #4c4c4c;
+	background-image: -moz-linear-gradient(center top , #333 10%, #1f1f1f 100%, #333 100%);
+	color: #f0f0f0;
+	font-weight: 500;
+  line-height: 17px;
+	text-shadow: 0 -1px 1px #000000;
+	border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.3);
+}
+
+.btn:hover, a.btn:hover {
+	color: #fff;
+	background-color: #4c4c4c;
+	background-image: -moz-linear-gradient(center top , #4c4c4c 10%, #333 100%, #4c4c4c 100%);
+}
+
+.btn:active {
+  color: rgba(0,0,0,0.5); // custom
+  border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
+}
+
+
+
+
+.btn-primary, a.btn-primary {
+	background: #b1e5f2;
+	color: $grayDark;
+	background-image: -moz-linear-gradient(center top , #94dbed 10%, #7CA1AA 100%, #94dbed 100%);
+	text-shadow: 0 1px 0 #DFDFDF;
+	border-radius:0;
+	}
+.btn-primary:hover, a.btn-primary:hover {
+	background-color: #85d6eb;
+	background-image: none;
+	color: $grayDark;
+	text-shadow: 0 1px 0 #DFDFDF;
+	}
+.btn-primary:active, a.btn-primary:active {
+	background-color: #b1e5f2;
+	box-shadow:none;
+	border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
+	}
+
+
 
 /* Has problems visually - doesn't look like a link
 

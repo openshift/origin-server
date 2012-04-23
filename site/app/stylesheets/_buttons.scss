@@ -8,21 +8,26 @@
 // Core
 .btn {
   display: inline-block;
-  padding: 5px 10px;
+  padding: 5px 18px;
   margin-bottom: 0; // For input.btn
   font-size: $baseFontSize;
   line-height: $baseLineHeight;
   color: $grayDark;
+  font-weight: 500;
   text-align: center;
-  //text-shadow: 0 1px 1px rgba(255,255,255,.75);
+  text-shadow: 0 1px 0 #DFDFDF;
   vertical-align: middle;
-  @include buttonBackground($white, darken($white, 10%));
-  border: 1px solid #ccc;
-  border-bottom-color: #bbb;
-  @include border-radius(2px); //4px
-  $shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
-  @include box-shadow($shadow);
+  //@include buttonBackground($white, darken($white, 10%)); 
+  //@include border-radius(2px); //4px
+  //$shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 1px 2px rgba(0,0,0,.05);
+  //@include box-shadow($shadow);
+  background-image: -moz-linear-gradient(center top , #ddd 10%, #a4a8b0 100%, #c8cad0 100%);
+  border-color: rgba(5, 5, 5, 0.1) rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.5) rgba(5, 5, 5, 0.3);
   cursor: pointer;
+  border-radius: 0;
+  border-style: solid;
+  border-width: 1px;
+  text-transform: uppercase;
 
   // Give IE7 some love
   @include reset-filter();
@@ -34,12 +39,14 @@
   *margin-left: 0;
 }
 
+
 // Hover state
 .btn:hover {
   color: $grayDark;
+  background: -moz-linear-gradient(center top , #efefef 10%, #adb0b8 100%, #DFE3EC 100%) repeat scroll 0 0 transparent;
   text-decoration: none;
-  background-color: darken($white, 10%);
-  background-position: 0 -15px;
+  //background-color: darken($white, 10%);
+  //background-position: 0 -15px;
 
   // transition is only when going to hover, otherwise the background
   // behind the gradient (there for IE<=9 fallback) gets mismatched
@@ -52,15 +59,15 @@
 }
 
 // Active state
-.btn.active,
 .btn:active {
   background-image: none;
-  $shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
-  @include box-shadow($shadow);
-  background-color: darken($white, 10%);
-  background-color: darken($white, 15%) #{"\9"};
+  //$shadow: inset 0 2px 4px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.05);
+  //@include box-shadow($shadow);
+  background-color: darken($white, 20%);
+  background-color: darken($white, 25%) #{"\9"};
   outline: 0;
   color: rgba(0,0,0,0.5); // custom
+  border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
 }
 
 // Disabled state
