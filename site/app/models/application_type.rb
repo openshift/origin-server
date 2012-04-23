@@ -40,8 +40,8 @@ class ApplicationType
       :description => 'The leading open source Java EE6 application server for enterprise Java applications.  Popular development frameworks include Seam, CDI, Weld, and Spring.',
       :website => 'http://www.jboss.org/jbossas',
       :help_topics => {
-        'How to add JBoss modules to an OpenShift app' => 'https://www.redhat.com/openshift/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
-        'How to solve java.net.BindException to 8080' => 'https://www.redhat.com/openshift/community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting'
+        'How to add JBoss modules to an OpenShift app' => '/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
+        'How to solve java.net.BindException to 8080' => '/community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting'
       }
     },
     {
@@ -72,7 +72,7 @@ class ApplicationType
       :description => 'Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. The Web Server Gateway Interface (WSGI) defines a simple and universal interface between web servers and web applications or frameworks for the Python programming language. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears.',
       :website => 'http://www.wsgi.org/',
       :help_topics => {
-        'Getting Django up and running in 5 minutes' => 'https://www.redhat.com/openshift/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
+        'Getting Django up and running in 5 minutes' => '/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
       }
     },
     {
@@ -83,8 +83,8 @@ class ApplicationType
       :description => 'Perl is a high-level, general-purpose, interpreted, dynamic programming language. mod_perl is an optional module for the Apache HTTP server. It embeds a Perl interpreter into the Apache server, so that dynamic content produced by Perl scripts can be served in response to incoming requests, without the significant overhead of re-launching the Perl interpreter for each request. ',
       :website => 'http://perl.apache.org/start/index.html',
       :help_topics => {
-        'How to onboard a Perl application' => 'https://www.redhat.com/openshift/community/kb/kb-e1013-how-to-onboard-a-perl-application',
-        'How to deploy the Perl Dancer framework' => 'https://www.redhat.com/openshift/community/kb/kb-e1014-how-to-deploy-the-perl-dancer-framework-on-openshift-express'
+        'How to onboard a Perl application' => '/community/kb/kb-e1013-how-to-onboard-a-perl-application',
+        'How to deploy the Perl Dancer framework' => '/community/kb/kb-e1014-how-to-deploy-the-perl-dancer-framework-on-openshift-express'
       }
     },
     {

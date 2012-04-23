@@ -35,6 +35,10 @@ module HelpHelper
     community_base_url 'get-involved'
   end
 
+  def openshift_blog_url
+    community_base_url 'blogs'
+  end
+
   def opensource_community_url
     community_base_url 'open-source'
   end
@@ -51,6 +55,10 @@ module HelpHelper
     community_base_url 'developers'
   end
 
+  def developers_get_started_path
+    community_base_url 'developers/get-started'
+  end
+
   def post_to_forum_url
     community_base_url 'forums/openshift'
   end
@@ -60,7 +68,7 @@ module HelpHelper
   end
 
   def forums_url
-    community_base_url 'forums/'
+    community_base_url 'forums/openshift'
   end
 
   def knowledge_base_url
@@ -93,6 +101,14 @@ module HelpHelper
 
   def videos_url
     community_base_url 'videos'
+  end
+
+  def blog_post_url(post)
+    community_base_url "blogs/#{post}"
+  end
+
+  def community_document_url(file)
+    community_base_url "sites/default/files/documents/#{file}"
   end
 
   def mongodb_resources_url

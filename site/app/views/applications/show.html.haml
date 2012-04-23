@@ -109,9 +109,9 @@
     %h5 Client Tools Help
     %ul.unstyled
       %li
-        %a{:href => 'https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf'} OpenShift User Guide
+        = link_to 'OpenShift User Guide', user_guide_url
       %li
-        %a{:href => sync_git_with_remote_repo_knowledge_base_url} Sync your OpenShift repo with an existing Git repo
+        = link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
       - if @application_type.help_topics and not @application_type.help_topics.empty?
         %h5= @application.framework_name + ' Help'
         %ul.unstyled

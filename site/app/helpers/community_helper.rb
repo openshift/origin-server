@@ -20,10 +20,6 @@ module CommunityHelper
     'http://www.twitter.com/#!/openshift'
   end
 
-  def openshift_blog_url
-    'https://www.redhat.com/openshift/blogs'
-  end
-
   def open_bug_url
     'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Express'
   end
