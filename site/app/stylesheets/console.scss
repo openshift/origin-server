@@ -149,7 +149,7 @@ body {
 	}
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
 	.form-horizontal .control-label {
 		float: none;
 		text-align: left;
@@ -902,10 +902,12 @@ a.cap-link {
     color: #939598;
     text-decoration: none;
     font-weight: 500;
+    border-left: 2px solid transparent;
 		}
 		#app-cartridges header .add-cart-btn:hover {
 			color: #fff;
 			background: #1c1c1c;
+      border-color: black;
 			}
 		#app-cartridges header .add-cart-btn span.sprite {
 			background-position: 10px -50px;
@@ -1039,7 +1041,7 @@ section#app-cartridges .cartridge-block {
 	#app-unique-info h5 {	
 		border-bottom: 1px solid #222222;
 		}
-#console-panel h6 {
+.section-console h6 {
 	color: #8f8f8f;
  	font-weight: normal;
   }
@@ -1074,8 +1076,8 @@ section#app-cartridges .cartridge-block {
 
 .cartridge_type.installed,
 .cartridge_type.inactive,
-#console-panel.light .cartridge_type.installed > h3, 
-#console-panel.light .cartridge_type.inactive > h3 {
+.section-console-light .cartridge_type.installed > h3, 
+.section-console-light .cartridge_type.inactive > h3 {
   color: #888;
   }
 .cartridge_type.inactive,
@@ -1091,13 +1093,13 @@ section#app-cartridges .cartridge-block {
     }
 }
 
-@media (max-width: 768px) {
-	#console-panel .base {
+@media (max-width: 767px) {
+	.section-console .base {
 		float: none;
 		display: block;
 		margin-left: 0;
 		}
-	#console-panel.light {
+	.section-console-light {
 		padding:0 20px;
 		}
 	.navbar {
@@ -1184,7 +1186,7 @@ section#app-cartridges .cartridge-block {
   	}
 }
 	
-@media (min-width: 768px) and (max-width: 980px) {
+@media (min-width: 768px) and (max-width: 979px) {
 	.navbar .nav > li {
     float: left;
 	}
@@ -1269,7 +1271,7 @@ section#app-cartridges .cartridge-block {
 		position: static;
 		}
 }
-@media (max-width: 980px) {
+@media (max-width: 979px) {
 }
 @media (min-width: 980px) {
 }
