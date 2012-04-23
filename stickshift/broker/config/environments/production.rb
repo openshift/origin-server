@@ -32,6 +32,17 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+  
+  config.datastore = {
+    :replica_set => false,
+    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
+    :host_port => ["localhost", 27017],
+
+    :user => "stickshift",
+    :password => "mooo",
+    :db => "stickshift_broker",
+    :collections => {:user => "user"}
+  }
 
   ############################################
   # OpenShift Configuration Below this point #
@@ -39,18 +50,7 @@ Broker::Application.configure do
   # SS Config
   config.ss = {
     :domain_suffix => "dev.rhcloud.com",
-    :default_max_gears => 3,
-
-    :datastore_mongo => {
-      :replica_set => false,
-      # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-      :host_port => ["localhost", 27017],
-
-      :user => "stickshift",
-      :password => "mooo",
-      :db => "stickshift_broker_dev",
-      :collections => {:user => "user_test"}
-    }
+    :default_max_gears => 3
   }
 
 end

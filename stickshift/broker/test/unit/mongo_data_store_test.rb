@@ -1,7 +1,7 @@
 #require 'test_helper'
 #
 #class MongoDataStoreTest < ActiveSupport::TestCase
-#  include Crankcase
+#  include StickShift
 #
 #  def setup
 #    super

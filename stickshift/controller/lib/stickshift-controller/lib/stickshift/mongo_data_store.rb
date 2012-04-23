@@ -2,7 +2,7 @@ require 'rubygems'
 require 'mongo'
 require 'pp'
 
-module Crankcase
+module StickShift
   class MongoDataStore < StickShift::DataStore
     MAX_CON_RETRIES   = 60
     CON_RETRY_WAIT_TM = 0.5 # in secs
@@ -26,7 +26,7 @@ module Crankcase
     end
      
     def self.instance
-      Crankcase::MongoDataStore.new
+      StickShift::MongoDataStore.new
     end
 
     def find(obj_type, user_id, id)

@@ -32,6 +32,18 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+  
+  config.datastore = {
+    :replica_set => false,
+    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
+    :host_port => ["localhost", 27017],
+
+    :user => "stickshift",
+    :password => "mooo",
+    :db => "stickshift_broker_dev",
+    :collections => {:user => "user"}
+  }
+
 
   ############################################
   # OpenShift Configuration Below this point #
