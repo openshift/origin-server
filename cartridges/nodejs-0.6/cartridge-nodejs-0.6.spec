@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.6.5
+Version:   0.6.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -106,5 +106,8 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.6.6-1
+- cleaning up spec files (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.6.5-1
 - new package built with tito
