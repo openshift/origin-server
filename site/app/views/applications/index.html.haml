@@ -19,7 +19,7 @@
           = link_to 'Check out the forum', post_to_forum_url, :target => '_blank'
           %p Our community is what makes OpenShift strong
 
-#console-head.clearfix.base
+.console-head.clearfix.base
   %h1.span4
     All Applications
 -#
@@ -65,9 +65,8 @@
             %span.sprite.app-arrow
               &nbsp;
 
-  / add btn-toolbar here and fix icon-add to be theme independent
-  .base.right
-    %a.btn.btn-primary.btn-large{:href => application_types_path}
+  .btn-toolbar.base.right
+    = link_to application_types_path, :class => 'btn btn-primary btn-large' do
       Add
       %strong Application
       %i.icon-add

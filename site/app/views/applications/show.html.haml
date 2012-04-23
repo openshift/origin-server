@@ -3,7 +3,7 @@
 
 - breadcrumb_for_application @application
 
-#console-head.clearfix.base
+.console-head.clearfix.base
   %h1.span4= @application.name
   .span.pull-right
     %a.btn.btn-danger{:href => delete_application_path(@application.name), :style => 'margin-right:10px'} Delete

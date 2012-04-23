@@ -499,16 +499,19 @@ figure {
     padding: 0 30px;
   }
 
-#console-head {
+.console-head {
 	background: #1a1a1a;
 	border-bottom: 3px solid #1f1f1f;
 	padding: 15px 0 10px 0;
 	margin: 0 -25px 0 5px;
 	}
-#console-head.active {
+.console-head:first-child {
+  margin-top: 3px;
+}
+.console-head.active {
 	border-left: 2px dashed red;
 	}
-#console-head h1 {
+.console-head h1 {
 	white-space: nowrap;
 	margin-bottom: 10px;
   margin-top: 2px;
@@ -516,9 +519,9 @@ figure {
   font-size: 32px;
   font-weight:normal;
 	}
-	#console-head .emblem {
+	.console-head .emblem {
 		}
-	#console-head .emblem img {
+	.console-head .emblem img {
 		vertical-align: middle;
 		margin-right: 13px;
 		margin-bottom: 3px;
@@ -530,7 +533,7 @@ figure {
 		padding-right: 30px;
     text-align: right;
 		}
-#console-head * {
+.console-head * {
 	color: #e0e1dd;
 	}
 
@@ -1123,10 +1126,10 @@ section#app-cartridges .cartridge-block {
     margin: 0;
     width: auto;
 	}
-	#console-head {
+	.console-head {
     margin-right: 0;
   }
-  #console-head h1 {
+  .console-head h1 {
   	float: none;
   }
   .total-cost {
@@ -1176,7 +1179,7 @@ section#app-cartridges .cartridge-block {
 	#identity {
     top: 2px;
     }
-	#console-head {
+	.console-head {
     margin-right: -15px;
   }
   .app-block {
@@ -1192,7 +1195,7 @@ section#app-cartridges .cartridge-block {
 }
 
 @media (min-width: 980px) and (max-width: 1199px) {
-	#console-head {
+	.console-head {
     margin-right: -23px;
   }
 }	 
