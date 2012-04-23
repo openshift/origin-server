@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.7
+Version:        0.9.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,18 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.8-1
+- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- Bug 814379 - invalid input being sent back to the client (lnader@redhat.com)
+- show/conceal/expose port should not act upon app components
+  (rchopra@redhat.com)
+- support for group overrides (component colocation really). required for
+  transition between scalable/non-scalable apps (rchopra@redhat.com)
+- Enhanced cucumber jenkins build test  * rewrote tests to fail if git
+  push/jenkins cartridge blocks forever  * added tests to broker tags
+  (jhonce@redhat.com)
+- move crankcase mongo datastore (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.9.7-1
 - forcing builds (dmcphers@redhat.com)
 
