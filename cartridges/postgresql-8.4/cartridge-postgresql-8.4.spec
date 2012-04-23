@@ -1,7 +1,7 @@
 %define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.7.4
+Version: 0.7.5
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -74,5 +74,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.7.5-1
+- cleaning up spec files (dmcphers@redhat.com)
+- Fix for bugz 812491 - postgresql restore fails when user name begins w/ a
+  digit. (ramr@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.7.4-1
 - new package built with tito
