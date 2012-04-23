@@ -86,16 +86,3 @@ rm -rf %{buildroot}
 %changelog
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.8.3-1
 - new package built with tito
-
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.2-1
-- new package built with tito
-
-* Mon Apr 02 2012 Krishna Raman <kraman@gmail.com> 0.7.4-1
-- 
-
-* Fri Mar 30 2012 Krishna Raman <kraman@gmail.com> 0.7.3-1
-- Renaming for open-source release
-
-* Wed Mar 28 2012 Mark Lamourine <mlamouri@redhat.com>
-- new package built with tito
-- Added docs and examples to RPM

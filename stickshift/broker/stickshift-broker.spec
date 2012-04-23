@@ -153,9 +153,3 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 %changelog
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.6.3-1
 - new package built with tito
-
-* Fri Mar 09 2012 Krishna Raman <kraman@gmail.com> 0.6.1-1
-- New package for StickShift (was Cloud-Sdk)
-
-* Tue Mar 06 2012 Krishna Raman <kraman@gmail.com> 0.5.2-1
-- Cloud-Sdk => Stickshift rename
