@@ -11,7 +11,7 @@ class EmbCartController < BaseController
     application = Application.find(@cloud_user,id)
     if application.nil?
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -36,7 +36,7 @@ class EmbCartController < BaseController
     application = Application.find(@cloud_user,application_id)
     if application.nil?
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -53,7 +53,7 @@ class EmbCartController < BaseController
       end
     end
     @reply = RestReply.new(:not_found)
-    message = Message.new(:error, "Cartridge #{id} for application #{application_id} not found.", 129)
+    message = Message.new(:error, "Cartridge not found for application #{application_id}.", 129)
     @reply.messages.push(message)
     respond_with @reply, :status => @reply.status
   end
@@ -75,7 +75,7 @@ class EmbCartController < BaseController
     application = Application.find(@cloud_user,id)
     if(application.nil?)
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -87,7 +87,7 @@ class EmbCartController < BaseController
         @reply = RestReply.new( :bad_request)
         carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
         Application.get_available_cartridges("embedded")}
-        message = Message.new(:error, "Invalid cartridge #{cartridge}.  Valid values are (#{carts.join(', ')})",109,"cartridge") 
+        message = Message.new(:error, "Invalid cartridge.  Valid values are (#{carts.join(', ')})",109,"cartridge") 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
         return
@@ -156,7 +156,7 @@ class EmbCartController < BaseController
     application = Application.find(@cloud_user,id)
     if(application.nil?)
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with(@reply) do |format|
          format.xml { render :xml => @reply, :status => @reply.status }
@@ -167,7 +167,7 @@ class EmbCartController < BaseController
     
     if application.embedded.nil? or not application.embedded.has_key?(cartridge)
       @reply = RestReply.new( :bad_request)
-      message = Message.new(:error, "The application #{id} is not configured with embedded cartridge #{cartridge}.", 129) 
+      message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
       @reply.messages.push(message)
       respond_with(@reply) do |format|
          format.xml { render :xml => @reply, :status => @reply.status }

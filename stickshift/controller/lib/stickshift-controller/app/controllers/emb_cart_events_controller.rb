@@ -13,14 +13,14 @@ class EmbCartEventsController < BaseController
     application = Application.find(@cloud_user,id)
     if(application.nil?)
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
     end
     if application.embedded.nil? or not application.embedded.has_key?(cartridge)
       @reply = RestReply.new( :bad_request)
-      message = Message.new(:error, "The application #{id} is not configured with embedded cartridge #{cartridge}.", 129) 
+      message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status 
       return
@@ -38,7 +38,7 @@ class EmbCartEventsController < BaseController
           application.reload(cartridge)
         else
           @reply = RestReply.new(:bad_request)
-          message = Message.new(:error, "Invalid event #{event}.  Valid values are start, stop, restart and reload.", 126)
+          message = Message.new(:error, "Invalid event.  Valid values are start, stop, restart and reload.", 126)
           @reply.messages.push(message)
           respond_with @reply, :status => @reply.status   
           return

@@ -15,16 +15,16 @@ class AppValidator < ActiveModel::Validator
       record.errors.add(attribute, {:message => "Name is required and cannot be blank.", :exit_code => 105})
     end
     if !(val =~ /\A[A-Za-z0-9]+\z/)
-      record.errors.add(attribute, {:message => "Invalid name #{val}. Name must only contain alphanumeric characters.", :exit_code => 105})
+      record.errors.add(attribute, {:message => "Invalid name. Name must only contain alphanumeric characters.", :exit_code => 105})
     end
     if val and val.length > NAMESPACE_MAX_LENGTH
-      record.errors.add(attribute, {:message => "Name (#{val}) is too long.  Maximum length is #{APP_NAME_MAX_LENGTH} characters.", :exit_code => 105})
+      record.errors.add(attribute, {:message => "Name is too long.  Maximum length is #{APP_NAME_MAX_LENGTH} characters.", :exit_code => 105})
     end
     if val and val.length < NAMESPACE_MIN_LENGTH
-      record.errors.add(attribute, {:message => "Name (#{val}) is too short.  Minimum length is #{APP_NAME_MIN_LENGTH} characters.", :exit_code => 105})
+      record.errors.add(attribute, {:message => "Name is too short.  Minimum length is #{APP_NAME_MIN_LENGTH} characters.", :exit_code => 105})
     end
     if val and StickShift::ApplicationContainerProxy.blacklisted? val
-      record.errors.add(attribute, {:message => "Name (#{val}) is not allowed.  Please choose another.", :exit_code => 105})
+      record.errors.add(attribute, {:message => "Name is not allowed.  Please choose another.", :exit_code => 105})
     end
   end
 end

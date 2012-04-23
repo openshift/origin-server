@@ -11,7 +11,7 @@ class GearsController < BaseController
     
     if app.nil?
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application '#{app_id}' not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
     else
