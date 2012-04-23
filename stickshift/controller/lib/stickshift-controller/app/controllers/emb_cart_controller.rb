@@ -100,7 +100,7 @@ class EmbCartController < BaseController
       return
     rescue Exception => e
       @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, e.message, e.code) 
+      message = Message.new(:error, e.message) 
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
