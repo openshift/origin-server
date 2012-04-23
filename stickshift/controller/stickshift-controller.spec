@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.9
+Version:        0.9.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.10-1
+- fix for bug#810276 - an unhandled exception cannot be expected to have a
+  'code' field (rchopra@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.9-1
 - cleaning up spec files (dmcphers@redhat.com)
 
