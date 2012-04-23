@@ -737,39 +737,10 @@ figure {
 	.table .status-important {
 	background-color: #900;
 	}
-#app-list .add-app {
-	background-color: #b1e5f2;
-		  background-image: -webkit-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:    -moz-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:     -ms-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:      -o-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:         linear-gradient(to bottom, #b1e5f2, #7ca1aa);
-		  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#b1e5f2', endColorstr='#7ca1aa')";
-	vertical-align: middle;
+
+.btn-primary.btn-large {
   text-transform: uppercase;
-  vertical-align: middle;
-  font-size: 16px;
-  margin: 5px 0 5px -25px;
-  position: relative;
-  float: right;
-	}
-	#app-list .add-app a {	
-	display: block;
-	color: #232629;
-	padding: 13px 40px 13px 25px;
-	text-decoration: none;
-	}
-	#app-list .add-app span.sprite {
-			background-position: 10px -50px;
-			width: 36px;
-			height: 36px;
-			position: absolute;
-			right: 0;
-			top: 4px;
-			}
-			#app-list .add-app:hover span.sprite {
-				background-position:-26px -50px;
-			}
+}
 
 .nav {
 	margin-bottom: 6px;

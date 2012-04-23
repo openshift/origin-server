@@ -1,3 +1,6 @@
+- breadcrumb_for_application @application, 'Add a Cartridge'
+- content_for :page_title, 'Next Steps'
+
 - if @wizard
   = cartridge_wizard_steps_create 2, :completed => true
   %h1.invisible Next Steps

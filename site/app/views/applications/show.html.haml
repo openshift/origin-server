@@ -32,15 +32,14 @@
   %header
     %h3.pull-left Cartridges
     .pull-right
-      %a{:href => application_cartridge_types_path(@application.name),
-         :class => 'add-cart-btn'}
+      = link_to application_cartridge_types_path(@application), :class => 'add-cart-btn' do
         Add Cartridge
         %span.sprite
-      -# %a.btn{:href => '#'} Remove
+
   .cartridge-block
     .row
       .span4
-        %h2.indent-left= @application.name
+        %h2.indent-left= @application.framework_name
       .span5
         %ul.unstyled-flat.bits.indent-right
           %li
@@ -52,7 +51,7 @@
               %h6 Status
               %span.data
                 normal
-          %li
+          -#%li
             %h6 Type
             %span.data= @application.framework_name
           -#
@@ -64,6 +63,7 @@
           %h6 Git Repository
           %pre.command-line.git_url
             = @application.git_url
+
   - @application.cartridges.each do |cartridge|
     .cartridge-block
       .row
@@ -82,6 +82,13 @@
             -#
               %li
                 %img{:src => "/app/images/console/gear-sm.png"}
+
+  .base.right.btn-toolbar
+    = link_to application_cartridge_types_path(@application), :class => 'btn btn-primary btn-large' do
+      Add
+      %strong Cartridge
+      %i.icon-add
+
 %aside#secondary.span3
   #app-unique-info
     %h5 Visibility

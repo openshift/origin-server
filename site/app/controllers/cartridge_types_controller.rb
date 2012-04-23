@@ -1,11 +1,9 @@
 class CartridgeTypesController < ConsoleController
 
   def index
-    @application_id = params[:application_id]
-
     @domain = Domain.find :one, :as => session_user
-    @application = @domain.find_application @application_id
- 
+    @application = @domain.find_application params[:application_id]
+
     types = CartridgeType.find :all, {:as=> session_user}
     installed_carts = @application.cartridges
 
@@ -46,8 +44,10 @@ class CartridgeTypesController < ConsoleController
   end
 
   def show
+    @domain = Domain.find :one, :as => session_user
+    @application = @domain.find_application params[:application_id]
+
     @cartridge_type = CartridgeType.find params[:id], :as => session_user
-    @application_id = params[:application_id]
     @cartridge = Cartridge.new :as => session_user
   end
 

@@ -1,7 +1,5 @@
 - lots_of_applications = @applications.length > 10
 
-= breadcrumbs_for_each [link_to('My Applications', :applications, :action => :index)]
-
 - content_for :full_layout, true
 - content_for :dark_layout, true
 - content_for :footer do 
@@ -66,12 +64,14 @@
                 -# gear number placeholder
             %span.sprite.app-arrow
               &nbsp;
-  .base.add-app
-    %a{:href => application_types_path}
+
+  / add btn-toolbar here and fix icon-add to be theme independent
+  .base.right
+    %a.btn.btn-primary.btn-large{:href => application_types_path}
       Add
       %strong Application
-      %span.sprite
-        &nbsp;
+      %i.icon-add
+
 %section#account-digest.span5
   .digest-bg
     %aside#secondary
