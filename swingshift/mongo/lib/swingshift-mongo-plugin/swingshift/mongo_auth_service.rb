@@ -59,7 +59,7 @@ module Swingshift
 
     def login(request, params, cookies)
       if params['broker_auth_key'] && params['broker_auth_iv']
-        return {:username => params['broker_auth_key'], :auth_method => :broker_auth}
+        return {:username => Base64::decode64(params['broker_auth_key']), :auth_method => :broker_auth}
       else
         data = JSON.parse(params['json_data'])
         return authenticate(request, data['rhlogin'], params['password'])
