@@ -10,7 +10,7 @@ class ApplicationsController < BaseController
      if not domain or not domain.hasAccess?(@cloud_user)
        Rails.logger.debug "Domain #{domain_id}"
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{domain_id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
       return
     end
@@ -38,7 +38,7 @@ class ApplicationsController < BaseController
      if not domain or not domain.hasAccess?(@cloud_user)
       Rails.logger.debug "Domain #{domain_id}"
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{domain_id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
       return
     end
@@ -47,7 +47,7 @@ class ApplicationsController < BaseController
     
     if application.nil? or application.domain.uuid != domain.uuid
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
     else
@@ -65,7 +65,7 @@ class ApplicationsController < BaseController
      if not domain or not domain.hasAccess?(@cloud_user)
        Rails.logger.debug "Domain #{domain_id}"
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{domain_id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
       return
     end
@@ -118,7 +118,7 @@ class ApplicationsController < BaseController
       template = ApplicationTemplate.find(params[:template])
       if template.nil?
         @reply = RestReply.new(:unprocessable_entity)
-        message = Message.new(:error, "Invalid template #{params[:template]}.", 125, "template") 
+        message = Message.new(:error, "Invalid template.", 125, "template") 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
       end
@@ -127,7 +127,7 @@ class ApplicationsController < BaseController
       if cartridge.nil? or not CartridgeCache.cartridge_names('standalone').include?(cartridge)
         @reply = RestReply.new(:unprocessable_entity)
         carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
-        message = Message.new(:error, "Invalid cartridge #{cartridge}.  Valid values are (#{carts.join(', ')})", 109, "cartridge") 
+        message = Message.new(:error, "Invalid cartridge.  Valid values are (#{carts.join(', ')})", 109, "cartridge") 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
         return
@@ -206,7 +206,7 @@ class ApplicationsController < BaseController
      if not domain or not domain.hasAccess?(@cloud_user)
       Rails.logger.debug "Domain #{domain_id}"
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{domain_id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
@@ -219,7 +219,7 @@ class ApplicationsController < BaseController
     application = Application.find(@cloud_user,id)
     if application.nil? or application.domain.uuid != domain.uuid
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with(@reply) do |format|
          format.xml { render :xml => @reply, :status => @reply.status }

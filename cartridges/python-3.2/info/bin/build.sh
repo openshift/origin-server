@@ -27,7 +27,7 @@ then
 
     # Hack to fix symlink on rsync issue
     /bin/rm -f lib64
-    virtualenv ~/${OPENSHIFT_GEAR_NAME}/virtenv
+    virtualenv --system-site-packages ~/${OPENSHIFT_GEAR_NAME}/virtenv
     . ./bin/activate
 	if [ -n "$OPENSHIFT_PYTHON_MIRROR" ]
 	then

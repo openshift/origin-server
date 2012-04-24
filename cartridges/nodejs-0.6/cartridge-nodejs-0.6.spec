@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.6.5
+Version:   0.6.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -106,132 +106,8 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.6.6-1
+- cleaning up spec files (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.6.5-1
 - new package built with tito
-
-* Wed Apr 18 2012 Adam Miller <admiller@redhat.com> 0.6.3-1
-- bug 811509 (bdecoste@gmail.com)
-
-* Thu Apr 12 2012 Mike McGrath <mmcgrath@redhat.com> 0.6.2-1
-- release bump for tag uniqueness (mmcgrath@redhat.com)
-
-* Mon Apr 02 2012 Krishna Raman <kraman@gmail.com> 0.5.2-1
-- Merge remote-tracking branch 'origin/dev/kraman/US2048' (kraman@gmail.com)
-- Automatic commit of package [rhc-cartridge-nodejs-0.6] release [0.5.1-1].
-  (dmcphers@redhat.com)
-- bump spec numbers (dmcphers@redhat.com)
-
-* Sat Mar 31 2012 Dan McPherson <dmcphers@redhat.com> 0.5.1-1
-- bump spec numbers (dmcphers@redhat.com)
-* Fri Mar 30 2012 Krishna Raman <kraman@gmail.com> 0.4.4-1
-- Renaming for open-source release
-
-* Tue Mar 27 2012 Dan McPherson <dmcphers@redhat.com> 0.4.3-1
-- bug 807260 (wdecoste@localhost.localdomain)
-
-* Mon Mar 26 2012 Dan McPherson <dmcphers@redhat.com> 0.4.2-1
-- Merge branch 'master' of ssh://git1.ops.rhcloud.com/srv/git/li
-  (rmillner@redhat.com)
-- Add sync_gears script to abstract and make available in server cartridges
-  (rmillner@redhat.com)
-- Rename connector type to gear endpoint info (from ssh). (ramr@redhat.com)
-- Work for publishing ssh endpoint information from all cartridges as well as
-  cleanup the multiple copies of publish http and git (now ssh) information.
-  (ramr@redhat.com)
-
-* Sat Mar 17 2012 Dan McPherson <dmcphers@redhat.com> 0.4.1-1
-- bump spec numbers (dmcphers@redhat.com)
-
-* Thu Mar 15 2012 Dan McPherson <dmcphers@redhat.com> 0.3.5-1
-- The legacy APP env files were fine for bash but we have a number of parsers
-  which could not handle the new format.  Move legacy variables to the app_ctl
-  scripts and have migration set the TRANSLATE_GEAR_VARS variable to include
-  pairs of variables to migrate. (rmillner@redhat.com)
-
-* Mon Mar 12 2012 Dan McPherson <dmcphers@redhat.com> 0.3.4-1
-- Update cartridge landing page styles (ccoleman@redhat.com)
-- Merge branch 'master' of li-master:/srv/git/li (ramr@redhat.com)
-- Add the set-db-connection-info hook to all the frameworks. (ramr@redhat.com)
-
-* Sat Mar 10 2012 Dan McPherson <dmcphers@redhat.com> 0.3.3-1
-- Fix for bugz 801989 nodejs scaled app. (ramr@redhat.com)
-
-* Fri Mar 09 2012 Dan McPherson <dmcphers@redhat.com> 0.3.2-1
-- Batch variable name chage (rmillner@redhat.com)
-- Adding export control files (kraman@gmail.com)
-- replacing references to libra with stickshift (abhgupta@redhat.com)
-- NodeJS update li/libra => stickshift (kraman@gmail.com)
-- Renaming Cloud-SDK -> StickShift (kraman@gmail.com)
-- Add publication of git url and http proxy info to nodejs. Rename the
-  connection hook name in the abstract cartridge. (ramr@redhat.com)
-- Jenkens templates switch to proper gear size names (rmillner@redhat.com)
-- Removed new instances of GNU license headers (jhonce@redhat.com)
-
-* Fri Mar 02 2012 Dan McPherson <dmcphers@redhat.com> 0.3.1-1
-- bump spec numbers (dmcphers@redhat.com)
-- connectors for scaling perl/nodejs/rack/wsgi (rchopra@redhat.com)
-
-* Mon Feb 27 2012 Dan McPherson <dmcphers@redhat.com> 0.2.5-1
-- cleanup all the old command usage in help and messages (dmcphers@redhat.com)
-
-* Sat Feb 25 2012 Dan McPherson <dmcphers@redhat.com> 0.2.4-1
-- nodjs/build.sh: fixed the is_node_module_installed function.  Before it was
-  claiming that a module was installed if it was only installed as a
-  dependancy, which npm does not claim is fully installed. (tdawson@redhat.com)
-- Blanket purge proxy ports on application teardown. (rmillner@redhat.com)
-- Update cartridge configure hooks to load git repo from remote URL Add REST
-  API to create application from template Moved application template
-  models/controller to stickshift (kraman@gmail.com)
-
-* Wed Feb 22 2012 Dan McPherson <dmcphers@redhat.com> 0.2.3-1
-- Add show-proxy call. (rmillner@redhat.com)
-
-* Mon Feb 20 2012 Dan McPherson <dmcphers@redhat.com> 0.2.2-1
-- Fixup spec file to use newly built rpms. (ramr@redhat.com)
-- Temporary bandaid -- gave up on getting build + sync working ... commenting
-  Require lines in the spec file so that build can work. (ramr@redhat.com)
-- Fix nodejs installation to use rpms for common node modules. As a result of
-  rpms, also changed to link global modules in the home directory so that the
-  app is now able to override the common modules with a locally installed
-  versions. nodejs-mysql module is pending "enablement" ... due to a nodejs-
-  hashish rpm dependency issue (nodejs-mysql depends on nodejs-hashish).
-  (ramr@redhat.com)
-
-* Thu Feb 16 2012 Dan McPherson <dmcphers@redhat.com> 0.2.1-1
-- bump spec numbers (dmcphers@redhat.com)
-
-* Wed Feb 15 2012 Dan McPherson <dmcphers@redhat.com> 0.1.8-1
-- Adding expose/conceal port to more cartridges. (rmillner@redhat.com)
-
-* Wed Feb 15 2012 Dan McPherson <dmcphers@redhat.com> 0.1.7-1
-- Fix template to keep symlinks as is and ignore set times error.
-  (ramr@redhat.com)
-
-* Tue Feb 14 2012 Dan McPherson <dmcphers@redhat.com> 0.1.6-1
-- Add missing jenkins job and ssl templates. (ramr@redhat.com)
-
-* Mon Feb 13 2012 Dan McPherson <dmcphers@redhat.com> 0.1.5-1
-- Add sample/empty directories for minutely,hourly,daily and monthly
-  frequencies as well. (ramr@redhat.com)
-- Add cron example and directories to all the openshift framework templates.
-  (ramr@redhat.com)
-
-* Mon Feb 13 2012 Dan McPherson <dmcphers@redhat.com> 0.1.4-1
-- cleaning up specs to force a build (dmcphers@redhat.com)
-
-* Sat Feb 11 2012 Dan McPherson <dmcphers@redhat.com> 0.1.3-1
-- Use links in sample server.js rather than a redirect. (ramr@redhat.com)
-- Update build script for handling (ignoring) global npm modules and fix bug to
-  update the modules from deplist.txt in the correct directory.
-  (ramr@redhat.com)
-- Better method of installing global npm modules (more generic).
-  (ramr@redhat.com)
-- Handle signals gracefully in sample app + print log messages w/ timestamps.
-  (ramr@redhat.com)
-- bug 722828 (bdecoste@gmail.com)
-- more abstracting out selinux (dmcphers@redhat.com)
-- better name consistency (dmcphers@redhat.com)
-- first pass at splitting out selinux logic (dmcphers@redhat.com)
-- Fix wrong link to remove-httpd-proxy (hypens not underscores) and fix
-  manifests for Node and Python to allow for nodejs/python app creation.
-  (ramr@redhat.com)

@@ -6,7 +6,7 @@ class UserController < BaseController
   def show
     if(@cloud_user.nil?)
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(Message.new(:error, "User #{@login} not found", 99))
+      @reply.messages.push(Message.new(:error, "User not found", 99))
       respond_with @reply, :status => @reply.status
       return
     end

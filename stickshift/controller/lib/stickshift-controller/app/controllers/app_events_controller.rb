@@ -12,7 +12,7 @@ class AppEventsController < BaseController
     application = Application.find(@cloud_user,id)
     if application.nil?
       @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application #{id} not found.", 101)
+      message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -58,7 +58,7 @@ class AppEventsController < BaseController
 #          end
         else
           @reply = RestReply.new(:unprocessable_entity)
-          message = Message.new(:error, "Invalid event #{event}.  Valid events are start, stop, restart, force-stop, expose-port, conceal-port, show-port, scale-up, scale-down, add-alias, remove-alias", 126, "event")
+          message = Message.new(:error, "Invalid event.  Valid events are start, stop, restart, force-stop, expose-port, conceal-port, show-port, scale-up, scale-down, add-alias, remove-alias", 126, "event")
           @reply.messages.push(message)
           respond_with @reply, :status => @reply.status   
           return

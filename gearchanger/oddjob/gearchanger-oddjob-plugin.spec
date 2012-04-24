@@ -110,15 +110,3 @@ service oddjobd restart
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.8.3-1
 - new package built with tito
 
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.2-1
-- new package built with tito
-
-* Mon Apr 02 2012 Krishna Raman <kraman@gmail.com> 0.7.5-1
-- 1) changes to fix remote job creation to work for express as well as
-  stickshift.  2) adding resource_limits.conf file to stickshift node.  3)
-  adding implementations of generating remote job objects in mcollective
-  application container proxy (abhgupta@redhat.com)
-
-* Fri Mar 30 2012 Krishna Raman <kraman@gmail.com> 0.7.4-1
-- Renaming for open-source release
-

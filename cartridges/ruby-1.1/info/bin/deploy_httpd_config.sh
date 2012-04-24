@@ -13,9 +13,10 @@ APP_DIR=`echo $APP_HOME/$application | tr -s /`
 
 # FIXME: Remove this after PassengerSpawnIPAddress change is upstreamed.
 LINUX_DISTRO=$(</etc/redhat-release)
+RED_HAT_DISTRO_NAME="Red Hat"
 SPAWN_IP=""
 
-if [[ ! "$LINUX_DISTRO" =~ .*Fedora.* ]]
+if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* ]]
 then
     SPAWN_IP="PassengerSpawnIPAddress $IP"
 fi

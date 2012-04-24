@@ -22,13 +22,17 @@ then
     [ -f "$OPENSHIFT_DATA_DIR/postgresql_dbuser" ] &&  old_dbuser=$(cat "$OPENSHIFT_DATA_DIR/postgresql_dbuser")
 
     # Restore the PostgreSQL databases
-    rexp="^\s*\(DROP\|CREATE\)\s*DATABASE\s*$old_dbname"
+    rexp="\(DROP\|CREATE\)\s*DATABASE\s*$old_dbname"
+    owner_rexp="\(CREATE\s*DATABASE\)\s*\(.*\)\s*OWNER\s*=\s*[^ ;]*"
+    pgrole_rexp="\(CREATE\|DROP\)\s*ROLE\s*postgres;"
     pargz="--username=$OPENSHIFT_DB_USERNAME --host=$OPENSHIFT_DB_HOST"
 
-    /bin/zcat $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz |        \
+    /bin/zcat $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz |         \
         sed "s#$rexp#\\1 DATABASE $OPENSHIFT_GEAR_NAME#g;               \
+             s#$owner_rexp#\\1 \\2 OWNER = \"$OPENSHIFT_GEAR_UUID\"#g;  \
              s#\\connect $old_dbname#\\connect $OPENSHIFT_GEAR_NAME#g;  \
-             s#$old_dbuser#$OPENSHIFT_GEAR_UUID#g" |                    \
+             s#$old_dbuser#$OPENSHIFT_GEAR_UUID#g;                      \
+             /$pgrole_rexp/d;" |                                        \
         PGPASSWORD="$OPENSHIFT_DB_PASSWORD" /usr/bin/psql $pargz -d postgres
 
     if [ ! ${PIPESTATUS[1]} -eq 0 ]

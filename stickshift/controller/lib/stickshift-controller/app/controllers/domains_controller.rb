@@ -25,7 +25,7 @@ class DomainsController < BaseController
       respond_with @reply, :status => @reply.status
     else
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
     end
   end
@@ -90,7 +90,7 @@ class DomainsController < BaseController
 
     if not domain or not domain.hasAccess?@cloud_user
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
@@ -172,7 +172,7 @@ class DomainsController < BaseController
     domain = get_domain(id)
     if not domain or not domain.hasAccess?@cloud_user
       @reply = RestReply.new(:not_found)
-      @reply.messages.push(message = Message.new(:error, "Domain #{id} not found.", 127))
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }

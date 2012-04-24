@@ -21,20 +21,20 @@ class Application < StickShift::Cartridge
   
   validates_each :name, :allow_nil =>false do |record, attribute, val|
     if !(val =~ /\A[A-Za-z0-9]+\z/)
-      record.errors.add attribute, {:message => "Invalid #{attribute} specified: #{val}", :exit_code => 105}
+      record.errors.add attribute, {:message => "Invalid #{attribute} specified", :exit_code => 105}
     end
     if val and val.length > APP_NAME_MAX_LENGTH
-      record.errors.add attribute, {:message => "The supplied application name '#{val}' is too long. (Max permitted length: #{APP_NAME_MAX_LENGTH} characters)", :exit_code => 105}
+      record.errors.add attribute, {:message => "The supplied application name is too long. (Max permitted length: #{APP_NAME_MAX_LENGTH} characters)", :exit_code => 105}
     end
     Rails.logger.debug "Checking to see if application name is black listed"    
     if StickShift::ApplicationContainerProxy.blacklisted?(val)
-      record.errors.add attribute, {:message => "The supplied application name '#{val}' is not allowed", :exit_code => 105}
+      record.errors.add attribute, {:message => "The supplied application name is not allowed", :exit_code => 105}
     end
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
     if !(val =~ /\A(jumbo|exlarge|large|micro|medium|small)\z/)
-      record.errors.add attribute, {:message => "Invalid Profile: #{val}.  Must be: (jumbo|exlarge|large|medium|micro|small)", :exit_code => 134}
+      record.errors.add attribute, {:message => "Invalid Profile.  Must be: (jumbo|exlarge|large|medium|micro|small)", :exit_code => 134}
     end
   end
 
@@ -725,6 +725,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
       next if comp_inst.name == "@@app"
+      next if comp_inst.parent_cart_name == self.name
 
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
@@ -741,6 +742,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
       next if comp_inst.name == "@@app"
+      next if comp_inst.parent_cart_name == self.name
 
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
@@ -756,6 +758,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
       next if comp_inst.name == "@@app"
+      next if comp_inst.parent_cart_name == self.name
 
       Rails.logger.debug( comp_inst.inspect )
       Rails.logger.debug( "\n" )
