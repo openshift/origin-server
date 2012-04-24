@@ -20,6 +20,7 @@ def register_user
     pid, stdin, stdout, stderr = Open4::popen4(cmd)
     stdin.close
     ignored, status = Process::waitpid2 pid
+#    exitcode = status.exitstatus
   }
 end
 

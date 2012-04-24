@@ -106,6 +106,8 @@ end
 
 class BaseObj_V1 < BaseObj
   def self.to_obj(hash)
+    return nil if hash.to_s.length == 0
+
     obj = super(hash)
     if defined?(obj.links)
       obj_links = {}
@@ -173,7 +175,6 @@ class RestCartridge_V1 < BaseObj_V1
   def initialize(type=nil, name=nil)
     self.name = name
     self.type = type
-    self.links = nil
     if type == "embedded"
       self.links = {
         "GET" => Link_V1.new("GET", "/cartridges/#{name}"),

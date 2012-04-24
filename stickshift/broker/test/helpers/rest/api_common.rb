@@ -8,6 +8,9 @@ class BaseObj
   def attributes=(hash)
     return nil unless hash
 
+    self.instance_variables.each do |var|
+      raise_ex("Object does NOT contain required variable '#{var[1..-1]}'") unless hash.include?(var[1..-1])
+    end
     hash.each do |key,value|
       self.send("#{key}=",value)
     end
