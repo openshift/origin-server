@@ -4,21 +4,6 @@
   margin-bottom: $baseLineHeight;
 }
 
-.navbar-inner {
-  padding-left: 20px;
-  padding-right: 20px;
-  background-color: #212121;
-  background-image: -moz-linear-gradient(top, #323232, #191919);
-  background-image: -ms-linear-gradient(top, #323232, #191919);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#323232), to(#191919));
-  background-image: -webkit-linear-gradient(top, #323232, #191919);
-  background-image: -o-linear-gradient(top, #323232, #191919);
-  background-image: linear-gradient(top, #323232, #191919);
-  background-repeat: repeat-x;
-  -webkit-border-radius: 0;
-  -moz-border-radius: 0;
-  border-radius: 0;
-	}
 .navbar .nav {
   position: relative;
   left: 0;
@@ -235,14 +220,6 @@
 	height: 90px;
 	margin: 0/*.*/;
 	}
-	.navbar-inner {
-    background-color: transparent;
-    background-image: none;
-    background-repeat: repeat-x;
-    border-radius: 0 0 0 0;
-    padding-left: 20px;
-    padding-right: 20px;
-		}
 .navbar .brand {
     color: #FFFFFF;
     display: block;
