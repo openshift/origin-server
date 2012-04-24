@@ -50,19 +50,14 @@
 .navbar .brand {	
   font-size: 16px;
   font-weight: 200;
-  //line-height: 1;
 
 	color: white;
   text-shadow: 0 1px 2px #000000;
 
   text-transform: uppercase;
-  white-space: nowrap;
 
-  float: none;
-  display: block;
   position: absolute;
   top: 18px;
-  left: 0;
   margin: 0;
   padding: 0;
 
@@ -75,12 +70,18 @@
   }
 
   a {
+    display: inline-block;
     color: white;
+    white-space: nowrap;
   }
 
   .navbar-text {
-    //font-size: 13px;
     text-transform: uppercase;
+    white-space: nowrap;
+
+    &:before {
+      content: ' | ';
+    }
   }
 }
 
@@ -207,6 +208,10 @@
 	}
 	.navbar .brand {
 		position: relative;
+
+    .navbar-text:before {
+      content: none;
+    }
 	}
 	.navbar .nav {
 		display: block;
