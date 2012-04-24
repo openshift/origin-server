@@ -96,19 +96,8 @@ case "$1" in
         start_jenkins
     ;;
     reload)
-        if isrunning
-        then
-            if ! out=$(jenkins_reload "${JENKINS_USERNAME}" "${JENKINS_PASSWORD}" "${JENKINS_URL}" 2>&1)
-            then
-                # An error occurred reloading jenkins configuration
-                echo "Could not reload Jenkins server '${OPENSHIFT_GEAR_NAME}' configuration:" 1>&2
-                echo "   $out" 1>&2
-                exit 1
-            fi
-        else
-            echo "Application is stopped!" 1>&2
-            exit 0
-        fi
+        # the plugin automatically does a reload prior to a build - so a no-op here
+        exit 0
     ;;
     status)
         if ! isrunning; then
