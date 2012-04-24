@@ -447,6 +447,7 @@ figure {
   .section-console { 
     background: #010101;
     padding-bottom: 0;
+    padding-top: 0;
   }
   .section-console-light { background: #292929; }
 }
@@ -867,6 +868,10 @@ section#app-cartridges .cartridge-block {
   display: inline;
 }
 
+.tile.cartridge_type .warning {
+  color: $orange;
+}
+
 .cartridge_type.installed,
 .cartridge_type.inactive,
 .section-console-light .cartridge_type.installed > h3, 
@@ -893,7 +898,7 @@ section#app-cartridges .cartridge-block {
 		margin-left: 0;
 		}
 	.section-console-light {
-		padding:0 20px;
+		//padding:0 20px;
 		}
 	.row > strong {
     display: block;
