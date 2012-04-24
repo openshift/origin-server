@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version:        0.8.6
+Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -69,6 +69,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.8.7-1
+- CloudUser.find() not creating scaling object for user.scaling as it expectes
+  'Hash' instead of 'BSON::OrderedHash'. Fix is to create scaling object if the
+  record has any 'Hash type'. (rpenta@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 

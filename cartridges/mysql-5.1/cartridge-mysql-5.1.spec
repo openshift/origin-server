@@ -2,7 +2,7 @@
 %define frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.25.6
+Version: 0.25.7
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -75,6 +75,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.25.7-1
+- Crankcase missing node_ssl_template.conf - add it in - fix for bugz 815276.
+  (ramr@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.25.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 
