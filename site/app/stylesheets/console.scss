@@ -19,9 +19,6 @@
   text-shadow: none;
 }
 
-/*	Console overview
-	----------------------------------------------------- */	
-		
 #app-list, #account-digest {
 	margin-top: 20px;
 	}
@@ -57,65 +54,6 @@
   word-wrap: break-word;
   }
 
-
-/*	App details
-	----------------------------------------------------- */
-
-.app-settings img {
-  vertical-align: middle;
-  }
-.app-settings a {
-  padding: 5px;
-  }
-#app-mast {
-	background-color: #f0f0f0;
-	margin-bottom: 21px;
-	padding: 10px 0;
-	}
-	#app-mast h1 {
-		font-weight: normal;
-		margin-bottom: 0;
-		}
-#app-mast li.app-title, #app-mast li.app-status {
-	float: left;
-	margin: 15px 40px 15px 20px;
-	}
-.app-status span {
-	font-size: 30px;
-  line-height: 36px;
-  font-family: Overpass, Helvetica, Arial, sans-serif;
-  }
-#app-unique-info {
-	border: 5px solid #efefef;
-	padding: 15px;
-	margin-bottom: 30px;
-	border-radius: 8px;
-	}
-	#app-unique-info h5 {
-		border-bottom: 1px solid #eee;
-		}
-  #app-unique-info a {
-    word-wrap: break-word;
-    }
-section#app-cartridges .cartridge-block {
-	background: #f0f0f0 ; //url("http://placehold.it/60&text=img") 15px 15px no-repeat;
-	margin-bottom: 15px;
-	}
-	section#app-cartridges .cartridge-block-overview {
-		padding: 10px 0;
-		overflow: hidden;
-		}
-	section#app-cartridges .embeded-cartridge-block {
-		border-top: 2px solid #ddd;
-		padding: 10px 0;
-		}
-	section#app-cartridges > header {
-		overflow: hidden;
-		}
-
-
-/*	New theme
-	----------------------------------------------------- */
 
 /* OpenShift color palette
  -------------------------------------------------------------------
@@ -169,7 +107,7 @@ body {
 	
 input, textarea {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
-  background: #d0d0d0;
+  background: #c4c4c4;
   border: 1px solid #222;
 	}
   input:focus, textarea:focus {
@@ -182,7 +120,7 @@ input, textarea {
     border: 1px solid #222;
     }
     .input-prepend-append input, .input-prepend-append .add-on-middle {
-    	background: #ddd;
+    	background: #c4c4c4;
     	border-top: 1px solid #222;
     	border-bottom: 1px solid #222;
     	color: #000;
@@ -205,37 +143,19 @@ a,a:visited {
 	}
 a:hover,a:active {color:#8addf2;}
 
-/*
-a.btn {
-	color: #111;
-	}
-  .btn-primary, .btn-primary:hover, .btn-primary:active {
-    background-color: #b1e5f2;
-		  background-image: -webkit-gradient(linear, left top, left bottom, from(#b1e5f2), to(#7ca1aa));
-		  background-image: -webkit-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:    -moz-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:     -ms-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:      -o-linear-gradient(top, #b1e5f2, #7ca1aa);
-		  background-image:         linear-gradient(to bottom, #b1e5f2, #7ca1aa);
-		  color: #232629;
-		  text-shadow: none;
-		  }
-.btn-primary:hover {
-	background-position: 0 15px;
-	}
-*/
 
-.btn, a.btn {
+.btn, 
+a.btn {
 	background-color: #4c4c4c;
-	background-image: -moz-linear-gradient(center top , #333 10%, #1f1f1f 100%, #333 100%);
-	color: #f0f0f0;
-	font-weight: 500;
+	background-image: -moz-linear-gradient(center top, #505050, #333 5%, #1f1f1f 100%, #333 100%);
+	color: #ccc;
   line-height: 17px;
 	text-shadow: 0 -1px 1px #000000;
-	border-color: rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.4) rgba(255, 255, 255, 0.35) rgba(255, 255, 255, 0.3);
+	border-color: #010101;//rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.25);
 }
 
-.btn:hover, a.btn:hover {
+.btn:hover, 
+a.btn:hover {
 	color: #fff;
 	background-color: #4c4c4c;
 	background-image: -moz-linear-gradient(center top , #4c4c4c 10%, #333 100%, #4c4c4c 100%);
@@ -247,43 +167,29 @@ a.btn {
 }
 
 
-
-
 .btn-primary, a.btn-primary {
+  border-color: transparent;
 	background: #b1e5f2;
-	color: $grayDark;
 	background-image: -moz-linear-gradient(center top , #94dbed 10%, #7CA1AA 100%, #94dbed 100%);
+	color: $grayDark;
 	text-shadow: 0 1px 0 #DFDFDF;
-	border-radius:0;
-	}
+}
 .btn-primary:hover, a.btn-primary:hover {
 	background-color: #85d6eb;
 	background-image: none;
 	color: $grayDark;
 	text-shadow: 0 1px 0 #DFDFDF;
-	}
+}
 .btn-primary:active, a.btn-primary:active {
-	background-color: #b1e5f2;
-	box-shadow:none;
 	border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
-	}
+	background-color: #b1e5f2;
+	@include box-shadow(none);
+}
 
 
-
-/* Has problems visually - doesn't look like a link
-
-.well a, 
-.well a:hover {
-	color: #f0f0f0;
-	}
-.well p, 
-.well label {
-	color: #aaa;
-	}
-*/
 .well {
-    background-color: #242424 /*.*/;
-    }
+  background-color: #242424 /*.*/;
+}
 code, pre {
 	background-color: inherit;
   border: 1px dotted #444;
@@ -618,35 +524,41 @@ figure {
 .app-full-path {
 	color: #9a9b9c;
 	}
-.table td, .table th {
-	border: 0;
-	text-align: right;
-	vertical-align: middle;
-	}
-	.table td:first-child, .table th:first-child {
-		text-align: left;
-		}
-		.table tr:last-child td {
-			border-top: 1px solid #232323;
-			color: #8ADDF2;
-			}
-.table tbody tr:hover td, .table tbody tr:hover th {
-	background-color:transparent;
-	}
-.table .line-item-title {
-	margin-left: 15px;
-	}
-.table .status {
-	display: inline-block;
-	float: left;
-	height: 10px;
-	width: 10px;
-	margin-top: 5px;
-	background-color: #333;
-	}
-	.table .status-important {
-	background-color: #900;
-	}
+
+.table-data {
+  td,
+  th {
+  	border: 0;
+  	text-align: right;
+  	vertical-align: middle;
+  }
+  td:first-child,
+  th:first-child {
+    text-align: left;
+  }
+  tr:last-child td {
+    border-top: 1px solid #232323;
+    color: #8ADDF2; //breaks regular tables
+  }
+  tbody tr:hover td,
+  tbody tr:hover th {
+  	background-color:transparent;
+  }
+  .line-item-title {
+  	margin-left: 15px;
+  }
+  .status {
+  	display: inline-block;
+  	float: left;
+  	height: 10px;
+  	width: 10px;
+  	margin-top: 5px;
+  	background-color: #333;
+  }
+  .status-important {
+  	background-color: #900;
+  }
+}
 
 .btn-primary.btn-large {
   text-transform: uppercase;
@@ -1121,6 +1033,47 @@ section#app-cartridges .cartridge-block {
 }
 
 .control-group.error p+p {padding-left: 100px;}
+
+/* table customization
+-----------------------------------------------*/
+
+.table {
+  th,
+  td {
+    border-color: #383838;
+  }
+  // Account for multiple tbody instances
+  tbody + tbody {
+    border-color: #383838;
+  }
+}
+
+.table-bordered {
+  border-color: #383838;
+  th + th,
+  td + td,
+  th + td,
+  td + th {
+    border-color: #383838;
+  }
+}
+
+
+.table-striped {
+  tbody {
+    tr:nth-child(odd) td,
+    tr:nth-child(odd) th {
+      background-color: rgba(255,255,255,0.02);
+    }
+  }
+}
+.table {
+  tbody tr:hover td,
+  tbody tr:hover th {
+    background-color: rgba(255,255,255,0.04);
+  }
+}
+
 
 /* dropdown customization
 -----------------------------------------------*/
