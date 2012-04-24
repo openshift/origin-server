@@ -627,13 +627,14 @@ figure {
 	-webkit-border-radius: 3px;
   -moz-border-radius: 3px;  
   border-radius: 3px; 
-    color: #999999;
-    font-size: 11px;
-    padding: 0 17px 0 8px;
-    position: absolute;
-    right: 0;
-    top: 61px;
-    background: #000 url("../images/console/arrow-down.png") 97% .75em no-repeat;
+  color: #999999;
+  font-size: 11px;
+  padding: 0 17px 0 8px;
+  position: absolute;
+  right: 0;
+  top: 61px;
+  background: #000 url("../images/console/arrow-down.png") 97% .75em no-repeat;
+  z-index: 999;
 	}
 #identity .username {
     max-width: 150px;
@@ -1224,7 +1225,7 @@ section#app-cartridges .cartridge-block {
     top: 3px;
     }
 	#identity {
-    top: 2px;
+    top: 3px;
     }
 	.console-head {
     margin-right: -15px;
