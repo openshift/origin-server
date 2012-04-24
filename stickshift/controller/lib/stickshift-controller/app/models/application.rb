@@ -736,6 +736,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       f.each do |fail|
         next if fail[:exception].resultIO.exitcode == 127
         raise fail[:exception]
+      end
 
     end
     reply
@@ -757,6 +758,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       f.each do |fail|
         next if fail[:exception].resultIO.exitcode == 127
         raise fail[:exception]
+      end
 
     end
     reply
@@ -781,6 +783,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       f.each do |fail|
         next if fail[:exception].resultIO.exitcode == 127
         raise fail[:exception]
+      end
 
     end
     reply
