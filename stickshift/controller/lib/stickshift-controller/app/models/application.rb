@@ -732,7 +732,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         r.append gear.expose_port(comp_inst)
       end
 
-      raise f[0][:exception] if(f.length > 0)
+      # Not all cartridges will have this hook.
+      f.each do |fail|
+        next if fail[:exception].resultIO.exitcode == 127
+        raise fail[:exception]
+
     end
     reply
   end
@@ -748,7 +752,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
         r.append gear.conceal_port(comp_inst)
       end
-      raise f[0][:exception] if(f.length > 0)      
+
+      # Not all cartridges will have this hook.
+      f.each do |fail|
+        next if fail[:exception].resultIO.exitcode == 127
+        raise fail[:exception]
+
     end
     reply
   end
@@ -767,7 +776,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
         r.append gear.show_port(comp_inst)
       end
-      raise f[0][:exception] if(f.length > 0)      
+
+      # Not all cartridges will have this hook.
+      f.each do |fail|
+        next if fail[:exception].resultIO.exitcode == 127
+        raise fail[:exception]
+
     end
     reply
   end
