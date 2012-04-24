@@ -58,9 +58,14 @@ class ActiveResource::Base
         self.class.const_get(resource_name)
       end
     rescue NameError
-      if self.class.const_defined?(resource_name)
-        resource = self.class.const_get(resource_name)
-      else
+      begin
+        if self.class.const_defined?(resource_name)
+          resource = self.class.const_get(resource_name)
+        else
+          resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+        end
+      rescue NameError # invalid constant name (starting by number for example)
+        resource_name = 'Constant' + resource_name
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
       end
       resource.prefix = self.class.prefix
@@ -92,7 +97,9 @@ module RestApi
     self.format = :openshift_json
     self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
     self.timeout = 60
-    # self.proxy = 'http://file.rdu.redhat.com:3128'
+    unless Rails.env.production?
+      self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
+    end
     self.site = if defined?(Rails) && Rails.configuration.express_api_url
       Rails.configuration.express_api_url + '/broker/rest'
     else
