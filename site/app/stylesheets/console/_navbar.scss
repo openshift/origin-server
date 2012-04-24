@@ -60,19 +60,19 @@
   top: 18px;
   margin: 0;
   padding: 0;
+  white-space: nowrap;
 
   .brand-image {
     display: inline-block;
     background: url('../images/logo-24-inside.png') no-repeat left;
     height: 32px;
-    width: 48px;
+    width: 40px;
     vertical-align: middle;
   }
 
   a {
     display: inline-block;
     color: white;
-    white-space: nowrap;
   }
 
   .navbar-text {
@@ -207,7 +207,9 @@
     border: 0;
 	}
 	.navbar .brand {
-		position: relative;
+		position: static;
+    margin-top: 30px;
+    white-space: normal;
 
     .navbar-text:before {
       content: none;
@@ -215,7 +217,7 @@
 	}
 	.navbar .nav {
 		display: block;
-		margin: 30px 0 0;
+		margin: 5px 0 0;
 		border: 0;
 	}
 	.navbar .nav > li {
