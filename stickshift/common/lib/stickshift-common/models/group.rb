@@ -40,7 +40,7 @@ module StickShift
     
     def scaling=(value)
       scaling_will_change!
-      if value.class == Hash
+      if value.kind_of?(Hash)
         @scaling = Scaling.new
         @scaling.attributes=value
       else
