@@ -1,4 +1,4 @@
 crankcase
 =========
 
-OpenShift Server Components
+OpenShift Origin server components.
