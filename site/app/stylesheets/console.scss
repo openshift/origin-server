@@ -331,13 +331,13 @@ ol.wizard li a {
 	color: inherit;
 	}
 #copyright {
-	color: #222;
+	color: #666;
 	min-height: 100px;
 	background-color: #101010;
-	}
+}
 .help-block {
-    color: #cfcfcf;
-    }
+  color: #cfcfcf;
+}
 
 .help-block-multiple {
   background: transparent;
@@ -525,14 +525,14 @@ figure {
 	}
 }
 
-.column-content {
+.row > .column-content {
   padding-top: 0;
 }
 
-.column-content > :first-child {
+.row > .column-content > :first-child {
   margin-top: 25px;
 }
-.column-content > .ribbon:first-child {
+.row > .column-content > .ribbon:first-child {
   margin-top: 0;
   margin-bottom: 25px;
 }
