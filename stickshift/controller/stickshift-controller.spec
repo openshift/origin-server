@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.10
+Version:        0.9.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.9.11-1
+- Forgot to end my blocks. (rmillner@redhat.com)
+- The hooks are now called on each cartridge on each gear for an app but not
+  every cartridge has or should have them.  Was causing an error.
+  (rmillner@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.10-1
 - fix for bug#810276 - an unhandled exception cannot be expected to have a
   'code' field (rchopra@redhat.com)
