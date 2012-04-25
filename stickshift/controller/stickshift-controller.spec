@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.11
+Version:        0.9.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Apr 25 2012 Adam Miller <admiller@redhat.com> 0.9.12-1
+- set uid in gear.new constructor; fix for bug#813244 (rchopra@redhat.com)
+
 * Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.9.11-1
 - Forgot to end my blocks. (rmillner@redhat.com)
 - The hooks are now called on each cartridge on each gear for an app but not
