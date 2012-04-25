@@ -44,6 +44,10 @@ module CommunityHelper
     crankcase_source_path_url 'cartridges'
   end
 
+  def crankcase_srpm_url
+   "http://mirror.openshift.com/pub/crankcase/fedora-16/SRPMS/"
+  end
+
   def openshift_github_project_url(project)
     "https://github.com/openshift/#{project}"
   end
