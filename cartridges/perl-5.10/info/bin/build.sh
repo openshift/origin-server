@@ -15,11 +15,18 @@ then
     rm -rf ~/"${OPENSHIFT_GEAR_NAME}/perl5lib/"* ~/.cpanm/*
 fi
 
-if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
-then 
-    OPENSHIFT_CPAN_MIRROR="http://mirror1.stg.rhcloud.com/mirror/perl/CPAN/"
-else 
-    OPENSHIFT_CPAN_MIRROR="http://mirror1.prod.rhcloud.com/mirror/perl/CPAN/"
+LINUX_DISTRO=$(</etc/redhat-release)
+RED_HAT_DISTRO_NAME="Red Hat"
+OPENSHIFT_CPAN_MIRROR=""
+
+if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* ]]
+then
+  if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
+  then 
+      OPENSHIFT_CPAN_MIRROR="http://mirror1.stg.rhcloud.com/mirror/perl/CPAN/"
+  else 
+      OPENSHIFT_CPAN_MIRROR="http://mirror1.prod.rhcloud.com/mirror/perl/CPAN/"
+  fi
 fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
