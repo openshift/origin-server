@@ -135,13 +135,15 @@ class ApplicationsController < BaseController
       application = Application.new(@cloud_user, app_name, nil, node_profile, cartridge, nil, scale, domain)
     end
 
+    app_configure_reply = nil
+
     Rails.logger.debug "Validating application"  
     if application.valid?
       begin
         Rails.logger.debug "Creating application #{application.name}"
         application.create
         Rails.logger.debug "Configuring dependencies #{application.name}"
-        application.configure_dependencies
+        app_configure_reply = application.configure_dependencies
         #Rails.logger.debug "Adding node settings #{application.name}"
         #application.add_node_settings
         Rails.logger.debug "Executing connections for #{application.name}"
@@ -185,6 +187,10 @@ class ApplicationsController < BaseController
       @reply = RestReply.new( :created, "application", app)
       message = Message.new(:info, "Application #{application.name} was created.")
       @reply.messages.push(message)
+      if app_configure_reply
+        message = Message.new(:info, app_configure_reply.resultIO.string, 0, :result)
+        @reply.messages.push(message)
+      end
       respond_with @reply, :status => @reply.status
     else
       @reply = RestReply.new(:unprocessable_entity)

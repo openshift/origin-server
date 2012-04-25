@@ -10,6 +10,7 @@ class Gear < StickShift::UserModel
     self.group_instance_name = group_instance.name
     self.node_profile = group_instance.node_profile
     self.configured_components = []
+    @uid = uid
     get_proxy
   end
   
