@@ -7,7 +7,7 @@ Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   %{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 
 Obsoletes: rhc-cartridge-rack-1.1
 
