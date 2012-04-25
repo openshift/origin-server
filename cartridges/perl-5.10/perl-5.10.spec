@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version:   0.22.6
+Version:   0.22.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -108,6 +108,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Apr 25 2012 Adam Miller <admiller@redhat.com> 0.22.7-1
+- BZ816297 Do not use internal CPAN mirrors for Fedora images
+  (jhonce@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.22.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 
