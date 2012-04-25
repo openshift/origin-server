@@ -10,6 +10,7 @@ Feature: PHP Application
     And a php application git repo will exist
     And a php application source tree will exist
     And a php application httpd will be running 
+    And the file permissions are correct
  
     When I stop the php application
     Then the php application will not be running
