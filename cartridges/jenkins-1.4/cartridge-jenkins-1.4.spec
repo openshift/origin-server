@@ -1,4 +1,4 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/jenkins-1.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/jenkins-1.4
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
@@ -9,39 +9,44 @@ License:   ASL 2.0
 URL:       http://openshift.redhat.com
 Source0:   %{name}-%{version}.tar.gz
 
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+BuildArch: noarch
+
 Obsoletes: rhc-cartridge-jenkins-1.4
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
-Requires:  jenkins
-Requires:  jenkins-plugin-openshift
+Requires: stickshift-abstract
+Requires: rubygem(stickshift-node)
+Requires: jenkins
+Requires: jenkins-plugin-openshift
 
-BuildArch: noarch
 
 %description
 Provides jenkins cartridge to openshift nodes
 
+
 %prep
 %setup -q
 
+
 %build
+
 
 %post
 service jenkins stop
 chkconfig jenkins off
 
+
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
-mkdir -p %{buildroot}%{cartridgedir}/info/data/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../abstract/info/hooks/post-install %{buildroot}%{cartridgedir}/info/hooks/post-install
@@ -63,8 +68,10 @@ ln -s %{cartridgedir}/../abstract/info/hooks/move %{buildroot}%{cartridgedir}/in
 ln -s %{cartridgedir}/../abstract/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartridgedir}/info/hooks/system-messages
 
+
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -81,6 +88,7 @@ rm -rf %{buildroot}
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Tue Apr 24 2012 Dan McPherson <dmcphers@redhat.com> 0.91.7-1

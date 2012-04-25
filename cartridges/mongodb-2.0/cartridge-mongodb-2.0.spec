@@ -1,4 +1,4 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.0
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
 Version: 0.18.5
@@ -9,7 +9,8 @@ Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
 Source0: %{name}-%{version}.tar.gz
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 Obsoletes: rhc-cartridge-mongodb-2.0
@@ -20,26 +21,31 @@ Requires: mongodb-devel
 Requires: libmongodb
 Requires: mongodb
 
+
 %description
 Provides rhc mongodb cartridge support
+
 
 %prep
 %setup -q
 
+
 %build
 
+
 %install
-rm -rf $RPM_BUILD_ROOT
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+cp -r info %{buildroot}%{cartridgedir}/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -54,6 +60,7 @@ rm -rf $RPM_BUILD_ROOT
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.18.5-1

@@ -1,4 +1,4 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
 Version: 0.12.5
@@ -7,7 +7,7 @@ Summary: Embedded phpMyAdmin support for express
 
 Group: Applications/Internet
 License: ASL 2.0
-URL: https://engineering.redhat.com/trac/Libra
+URL: https://openshift.redhat.com
 Source0: %{name}-%{version}.tar.gz
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch

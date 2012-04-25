@@ -1,53 +1,42 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/ruby-1.8
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/php-5.3
 
-Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      cartridge-ruby-1.1
-Version:   0.91.7
+Summary:   Provides php-5.3 support
+Name:      cartridge-php-5.3
+Version:   0.91.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
 Source0:   %{name}-%{version}.tar.gz
 
-Obsoletes: rhc-cartridge-rack-1.1
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
-Requires:  mod_bw
-Requires:  sqlite-devel
-Requires:  rubygems
-Requires:  rubygem-rack >= 1.1.0
-#Requires:  rubygem-rack < 1.2.0
-Requires:  rubygem-passenger
-Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
-Requires:  mod_passenger
-Requires:  rubygem-bundler
-Requires:  rubygem-mongo
-Requires:  rubygem-sqlite3
-Requires:  rubygem-thread-dump
-Requires:  ruby-sqlite3
-Requires:  ruby-mysql
-Requires:  rubygem-bson_ext
-Requires:  mysql-devel
-Requires:  ruby-devel
-Requires:  ruby-nokogiri
-Requires:  libxml2
-Requires:  libxml2-devel
-Requires:  libxslt
-Requires:  libxslt-devel
-Requires:  gcc-c++
-Requires:  js
-
-# Deps for users
-Requires: ruby-RMagick
-
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
+Obsoletes: rhc-cartridge-php-5.3
+
+BuildRequires: git
+Requires: stickshift-abstract
+Requires: rubygem(stickshift-node)
+Requires: php >= 5.3.2
+Requires: php < 5.4.0
+Requires: mod_bw
+Requires: rubygem-builder
+Requires: php-pdo
+Requires: php-gd
+Requires: php-xml
+Requires: php-mysql
+Requires: php-pecl-mongo
+Requires: php-pgsql
+Requires: php-mbstring
+Requires: php-pear
+Requires: php-imap
+Requires: php-pecl-apc
+Requires: php-mcrypt
+
+
 %description
-Provides ruby support to OpenShift
+Provides php support to OpenShift
 
 %prep
 %setup -q
@@ -95,6 +84,7 @@ ln -s %{cartridgedir}/../abstract/info/hooks/add-alias %{buildroot}%{cartridgedi
 ln -s %{cartridgedir}/../abstract/info/hooks/tidy %{buildroot}%{cartridgedir}/info/hooks/tidy
 ln -s %{cartridgedir}/../abstract/info/hooks/remove-alias %{buildroot}%{cartridgedir}/info/hooks/remove-alias
 ln -s %{cartridgedir}/../abstract/info/hooks/move %{buildroot}%{cartridgedir}/info/hooks/move
+ln -s %{cartridgedir}/../abstract/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 ln -s %{cartridgedir}/../abstract/info/hooks/expose-port %{buildroot}%{cartridgedir}/info/hooks/expose-port
 ln -s %{cartridgedir}/../abstract/info/hooks/conceal-port %{buildroot}%{cartridgedir}/info/hooks/conceal-port
 ln -s %{cartridgedir}/../abstract/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
@@ -124,10 +114,6 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
-* Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.91.7-1
-- Inversed logic since we don't use Fedora name in the open source image.
-  (mpatel@redhat.com)
-
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.91.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 

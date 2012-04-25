@@ -1,28 +1,40 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/diy-0.1
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/perl-5.10
 
-Summary:   Provides diy support
-Name:      cartridge-diy-0.1
-Version:   0.25.6
+Summary:   Provides mod_perl support
+Name:      cartridge-perl-5.10
+Version:   0.22.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
 Source0:   %{name}-%{version}.tar.gz
 
-Obsoletes: rhc-cartridge-raw-0.1
-
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: git
-Requires:  stickshift-abstract
-Requires: rubygem(stickshift-node)
-Requires:  httpd
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
+Obsoletes: rhc-cartridge-perl-5.10
+
+BuildRequires: git
+Requires: stickshift-abstract
+Requires: rubygem(stickshift-node)
+Requires: mod_perl
+Requires: perl-DBD-SQLite
+Requires: perl-DBD-MySQL
+Requires: perl-MongoDB
+Requires: ImageMagick-perl
+Requires: perl-App-cpanminus
+Requires: perl-CPAN
+Requires: perl-CPANPLUS
+Requires: rpm-build
+
+
 %description
-Provides diy support to OpenShift
+Provides rhc perl cartridge support
+
 
 %prep
 %setup -q
+
 
 %build
 rm -rf git_template
@@ -37,6 +49,7 @@ cd ..
 git clone --bare git_template git_template.git
 rm -rf git_template
 touch git_template.git/refs/heads/.gitignore
+
 
 %install
 rm -rf %{buildroot}
@@ -56,12 +69,12 @@ ln -s %{cartridgedir}/../abstract/info/hooks/reload %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/../abstract/info/hooks/remove-module %{buildroot}%{cartridgedir}/info/hooks/remove-module
 ln -s %{cartridgedir}/../abstract/info/hooks/restart %{buildroot}%{cartridgedir}/info/hooks/restart
 ln -s %{cartridgedir}/../abstract/info/hooks/start %{buildroot}%{cartridgedir}/info/hooks/start
-ln -s %{cartridgedir}/../abstract/info/hooks/status %{buildroot}%{cartridgedir}/info/hooks/status
+ln -s %{cartridgedir}/../abstract-httpd/info/hooks/status %{buildroot}%{cartridgedir}/info/hooks/status
 ln -s %{cartridgedir}/../abstract/info/hooks/stop %{buildroot}%{cartridgedir}/info/hooks/stop
+ln -s %{cartridgedir}/../abstract/info/hooks/preconfigure %{buildroot}%{cartridgedir}/info/hooks/preconfigure
 ln -s %{cartridgedir}/../abstract/info/hooks/update-namespace %{buildroot}%{cartridgedir}/info/hooks/update-namespace
 ln -s %{cartridgedir}/../abstract/info/hooks/deploy-httpd-proxy %{buildroot}%{cartridgedir}/info/hooks/deploy-httpd-proxy
 ln -s %{cartridgedir}/../abstract/info/hooks/remove-httpd-proxy %{buildroot}%{cartridgedir}/info/hooks/remove-httpd-proxy
-ln -s %{cartridgedir}/../abstract/info/hooks/preconfigure %{buildroot}%{cartridgedir}/info/hooks/preconfigure
 ln -s %{cartridgedir}/../abstract/info/hooks/force-stop %{buildroot}%{cartridgedir}/info/hooks/force-stop
 ln -s %{cartridgedir}/../abstract/info/hooks/add-alias %{buildroot}%{cartridgedir}/info/hooks/add-alias
 ln -s %{cartridgedir}/../abstract/info/hooks/tidy %{buildroot}%{cartridgedir}/info/hooks/tidy
@@ -78,16 +91,18 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/publish-http-url %{build
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
+
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
-%attr(0750,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
+%attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %{_sysconfdir}/stickshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
@@ -96,9 +111,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
+
 %changelog
-* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.25.6-1
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.22.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.25.5-1
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.22.5-1
 - new package built with tito
