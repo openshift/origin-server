@@ -14,6 +14,7 @@ Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) = 1.8
 Requires:       rubygems
+Requires:       oddjob
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
 
