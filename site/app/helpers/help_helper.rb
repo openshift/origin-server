@@ -16,7 +16,7 @@ module HelpHelper
   end
 
   def deploy_hook_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift_Express.html'
+    user_guide_topic_url 'sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift.html'
   end
 
   def add_domains_user_guide_topic_url
