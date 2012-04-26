@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.1
-Version: 0.92.0
+Version: 0.92.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.91.7-1
 - Inversed logic since we don't use Fedora name in the open source image.
   (mpatel@redhat.com)
