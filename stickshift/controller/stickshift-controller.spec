@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.0
+Version: 0.10.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed Apr 25 2012 Adam Miller <admiller@redhat.com> 0.9.12-1
 - set uid in gear.new constructor; fix for bug#813244 (rchopra@redhat.com)
 
