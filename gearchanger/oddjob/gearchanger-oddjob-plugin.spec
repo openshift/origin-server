@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for oddjob service
 Name:           rubygem-%{gemname}
-Version:        0.8.3
+Version:        0.8.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,12 @@ service oddjobd restart
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
+- Update oddjob plugin dependencies to include oddjob (kraman@gmail.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
+- Fix update namespace for scalable apps (rpenta@redhat.com)
+- cleaning up spec files (dmcphers@redhat.com)
+
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.8.3-1
 - new package built with tito
 
