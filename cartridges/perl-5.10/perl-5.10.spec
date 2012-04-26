@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version:   0.22.7
+Version: 0.23.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

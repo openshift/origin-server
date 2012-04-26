@@ -2,7 +2,7 @@
 
 Summary:   Provides python-wsgi-3.2 support
 Name:      cartridge-python-3.2
-Version:   0.91.7
+Version: 0.92.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
