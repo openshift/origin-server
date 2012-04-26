@@ -5,7 +5,7 @@
 
 Summary:        SwingShift plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.3
+Version:        0.8.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,5 +85,11 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Apr 26 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
+- Added README for SwingShift-mongo plugin (rpenta@redhat.com)
+- cleaning up spec files (dmcphers@redhat.com)
+- decoding the broker auth key before returning from login in the auth plugin
+  (abhgupta@redhat.com)
+
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.8.3-1
 - new package built with tito
