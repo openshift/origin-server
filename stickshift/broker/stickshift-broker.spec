@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.4
+Version:   0.6.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -149,6 +149,21 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.6.5-1
+- Updating gem versions (admiller@redhat.com)
+- fix gem version (dmcphers@redhat.com)
+- Modifed SELinux policy to allow connection to DB. (mpatel@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
+- Fixes + README file for REST api version unit tests (rpenta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Stickshift broker Unit tests to verify REST api version compatibility
+  (rpenta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Fixing stickshift-broker.spec to load rubygem-passenger.pp SELinux policy
+  (kraman@gmail.com)
+- Adding missing initializer to load Mongo datastore (kraman@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+
 * Mon Apr 23 2012 Krishna Raman <kraman@gmail.com> 0.6.4-1
 - Updated SELinux policies (kraman@gmail.com)
 - Adding pasenger dependencies which provide required selinux policies.
