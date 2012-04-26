@@ -54,6 +54,14 @@
   word-wrap: break-word;
   }
 
+.console .icon-loading {
+	background: transparent url('../images/loader-dark.gif') 0 0 no-repeat;
+	display: inline-block;
+  height: 31px;
+  margin: 0 5px;
+  vertical-align: middle;
+  width: 31px;
+	}
 
 /* OpenShift color palette
  -------------------------------------------------------------------
@@ -920,9 +928,10 @@ section#app-cartridges .cartridge-block {
 	margin-right: 7px;
 	}
 	.ribbon {
-		padding-left: 27px;
-		min-width: 97%;
+		padding-left: 30px;
+		min-width: 98%;
 		min-width: -moz-available;
+		margin-left:-20px;
 		}
 		.ribbon:before {
     	border-left: 0;
