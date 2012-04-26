@@ -2,7 +2,7 @@
 
 Summary:   Provides python-wsgi-3.2 support
 Name:      cartridge-python-3.2
-Version: 0.92.0
+Version: 0.92.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.91.7-1
 - Update to python cartridge to use default (empty) mirror in Fedora
   (kraman@gmail.com)
