@@ -40,7 +40,7 @@ class UserController < SiteController
         @user.errors[:captcha] = "Captcha text didn't match"
       end
     end
-    
+
     # Verify product choice if any
     @product = 'openshift'
     action = 'confirm'
@@ -50,7 +50,7 @@ class UserController < SiteController
         @product = 'express'
       end
     end
-    
+
     # flash[:product] = @product
 
     # Stop if you have a validation error
@@ -90,7 +90,7 @@ class UserController < SiteController
       session[:promo_code] = @user.promo_code
     end
 
-    redirect_to complete_account_path
+    redirect_to complete_account_path(:promo_code => @user.promo_code)
   end
 
   def show

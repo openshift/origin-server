@@ -77,3 +77,12 @@ $ ->
   $("#new_domain form").validate
     errorLabelContainer: '#app-errors'
     errorContainer: '#app-errors'
+
+  $("[data-unhide]").click (event) ->
+    src = $(this)
+    tgt = $(src.attr('data-unhide'))
+    if (tgt)
+      event.preventDefault() if event?
+      src.closest('[data-hide-parent]').addClass('hidden')
+      $('input',tgt.removeClass('hidden')).focus()
+

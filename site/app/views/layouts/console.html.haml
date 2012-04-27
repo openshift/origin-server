@@ -51,5 +51,8 @@
 
     = render 'layouts/javascripts'
 
-    -# Omniture code will not load in devenvs to force it to load, just comment out if statement
-    = render('shared/omniture_code', :controller => controller.controller_name, :action => controller.action_name, :event => @event ||= '', :evar8 => @evar8 ||= '') if Rails.env.production?
+    = render('shared/tracking',
+      :controller => controller.controller_name,
+      :action => controller.action_name,
+      :event => @event ||= '',
+      :evar8 => @evar8 ||= '') if Rails.env.production?
