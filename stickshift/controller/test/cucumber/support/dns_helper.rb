@@ -22,6 +22,16 @@ module DnsHelper
     return dns_service.namespace_available?(namespace)
   end
 
+  # Public: Removes DNS entries
+  #
+  # entries - The Array of entries to remove
+  #
+  # Examples
+  #
+  #   remove_dns_entries(['myapp-test2.dev.rhcloud.com'])
+  #   # => true
+  #
+  # Returns entries Array on success
   def remove_dns_entries(entries=[])
     entries.each do |domain|
       yes = dns_service.namespace_available?(domain)
