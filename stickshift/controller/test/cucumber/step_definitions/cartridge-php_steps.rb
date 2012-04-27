@@ -22,49 +22,6 @@ $php_status_format = "#{$php_status_path} '%s' '%s' '%s'"
 
 $libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
 
-# Confirm file_path has target_mode
-# file_path = Path to a given file
-# target_mode = The target mode of the file in oct
-def mode?(file_path, target_mode)
-  actual_mode = File.stat(file_path).mode.to_s(8)
-  $logger.debug("MODE_CHECK: #{file_path}: #{actual_mode}, expected: #{target_mode}")
-  return true if actual_mode == target_mode
-end
-
-
-# Confirm file_path context is correct
-# file_path = Path to a file
-# target_context = Target context label of the file (full context)
-def context?(file_path, target_context)
-  actual_context = `/usr/bin/stat -c %C #{file_path}| /usr/bin/head -n1`.chomp
-  $logger.debug("LABEL_CHECK: #{file_path}: #{actual_context}, expected: #{target_context}")
-  return true if actual_context == target_context
-end
-
-# Confirm file_path ownership is correct
-# file_path = path to a file
-# owner_uid = owner uid
-# group_uid = group uid
-def owner?(file_path, owner_uid, group_uid)
-  stat = File.stat(file_path)
-  $logger.debug("OWNER_CHECK: #{file_path}: #{stat.uid}.#{stat.gid}, expected: #{owner_uid}.#{group_uid}")
-  return true if (stat.uid == owner_uid and stat.gid == group_uid)
-end
-
-# Convert UID to MCS
-# uid = numeric user id
-# returns MCS label.  eg s0:c0,c508
-def libra_mcs_level(uid)
-  setsize=1023
-  tier=setsize
-  ord=uid
-  while ord > tier
-    ord -= tier
-    tier -= 1
-  end
-  tier = setsize - tier
-  "s0:c#{tier},c#{ord + tier}"
-end
 
 When /^I configure a php application$/ do
   account_name = @account['accountname']
@@ -109,8 +66,8 @@ Then /^the file permissions are correct/ do
   configure_files.each do | file, permissions |
     raise "Invalid permissions for #{file}" unless mode?("#{app_home}/#{file}", permissions[2])
     raise "Invalid context for #{file}" unless context?("#{app_home}/#{file}", permissions[3])
-    target_uid = Etc.getpwnam(permissions[0]).uid
-    target_gid = Etc.getgrnam(permissions[1]).gid
+    target_uid = Etc.getpwnam(permissions[0]).uid.to_i
+    target_gid = Etc.getgrnam(permissions[1]).gid.to_i
     raise "Invalid ownership for #{file}" unless owner?("#{app_home}/#{file}", target_uid, target_gid)
   end
 end
