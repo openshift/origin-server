@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.10.1
+Version: 0.10.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -97,6 +97,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.10.2-1
+- Updating login prompt script to work with mongo and mysql shell
+  (kraman@gmail.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
 - Updating gem versions (admiller@redhat.com)
 - bumping spec versions (admiller@redhat.com)
