@@ -62,7 +62,11 @@ class GroupInstance < StickShift::UserModel
     end
     create_result = gear.create
     unless create_result.exitcode == 0
-      raise NodeException.new("Unable to create gear on node", "-100", create_result)
+      begin
+        gear.destroy
+      rescue
+      end
+      raise StickShift::NodeException.new("Unable to create gear on node", "-100", create_result)
     end
     self.gears << gear
     if app.scalable and not self.component_instances.include? "@@app/comp-proxy/cart-haproxy-1.4"
