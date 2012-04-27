@@ -9,7 +9,5 @@
 .pydevproject
 *.pyo
 *.redcar*
-rhc/
-site/.sass-cache/
 .*.swp
 .sass-cache
