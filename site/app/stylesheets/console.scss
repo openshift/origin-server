@@ -6,9 +6,34 @@
 @import "bootstrap/variables";
 @import "bootstrap/mixins";
 @import "mixins";
+
+
 @import "bootstrap/dropdowns";
+
+.dropdown-menu {
+  background: black;
+  position: relative;
+  min-width: 1px;
+  float: none;
+}
+
+.dropdown-menu a {
+  color: #b1e5f2;
+}
+
+.dropdown-menu > li > a:hover {
+  border-radius: 0px;
+  background-color: #cd202c;
+}
+
+
 @import "console/navbar";
+
 @import "console/help";
+
+@import "console/breadcrumbs";
+
+@import "console/ribbon";
 
 /*------------------------------------------------------
 	 Console specific styles
@@ -249,14 +274,6 @@ ol.wizard li a {
 	min-height: 100px;
 	background-color: #101010;
 }
-.help-block {
-  color: #cfcfcf;
-}
-
-.help-block-multiple {
-  background: transparent;
-}
-
 
 .section-console {
   padding-top: 25px;
@@ -303,79 +320,6 @@ figure {
 	background-image: url("../images/console/console-sprite.png");
 	background-repeat: no-repeat;
 	}
-
-.ribbon {  
-  background-color: #333b3f;
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#333b3f), to(#1a2124));
-  background-image: -webkit-linear-gradient(top, #333b3f, #1a2124);
-  background-image:    -moz-linear-gradient(top, #333b3f, #1a2124);
-  background-image:     -ms-linear-gradient(top, #333b3f, #1a2124);
-  background-image:      -o-linear-gradient(top, #333b3f, #1a2124);
-  background-image:         linear-gradient(to bottom, #333b3f, #1a2124);
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#333b3f', endColorstr='#1a2124')";
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);
-  color: #bcbdbc;
-  display: inline-block;
-  margin-left: -11px;
-  min-width: 101%;
-  padding: 0 0 0 38px;
-  position: relative;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
-  font-weight: 400;
-	font-size: 95%;
-}
-.ribbon-content {
-	float: left;
-	margin-left: 5px;
-  margin-top: 8px;
-	}
-.ribbon strong {
-		text-transform: uppercase;
-		float: left;
-	}
-.ribbon em {
-	padding-bottom: 5px;
-	}
-.ribbon:before {
-    border-left: 10px solid transparent;
-    /*border-top: 10px solid #91010B; red version */
-    border-top: 10px solid #000;
-    bottom: -10px;
-    content: "";
-    height: 0;
-    left: 1px;
-    position: absolute;
-    width: 0;
-}
-.ribbon:after {
-    bottom: 0;
-    /*box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5); red version */
-    content: " ";
-    height: 1px;
-    left: 0;
-    position: absolute;
-    width: 10px;
-}
-
-.ribbon .more {
-  }
-  
-.ribbon .more a {
-	/*background-color: #bb161c; red version */
-	background-color: rgba(0, 0, 0, 0.075);
-	float: right;
-	color: #e0e1dd;
-	text-transform: uppercase;
-    /*border-color: transparent #EB0011; red version */
-    border-color: transparent;
-    border-style: solid;
-    border-width: 1.5em 0 1.5em 1.5em;
-    color: #e0e1dd;
-    display: inline-block;
-    line-height: 0;
-    height: 0;
-    padding: 0 30px;
-  }
 
 .console-head {
 	background: #1a1a1a;
@@ -445,10 +389,6 @@ figure {
 
 .row > .column-content > :first-child {
   margin-top: 25px;
-}
-.row > .column-content > .ribbon:first-child {
-  margin-top: 0;
-  margin-bottom: 25px;
 }
 
 @media (max-width: 767px) {
@@ -665,26 +605,6 @@ a.cap-link {
 		}
 
 /* application details */
-.breadcrumb {
-    	margin: 0 0 9px 0;
-    	padding: 0;
-    	}
-    .breadcrumb a, .breadcrumb a:hover {
-    color: #e0e1dd;
-    text-shadow: none;
-		}
-		.breadcrumb li {
-    display: inline;
-    text-shadow: none;
-    color: #939598;
-    text-transform: uppercase;
-    font-weight: 500;
-		}
-		.breadcrumb .divider {
-    color: #939598;
-    padding: 0 5px;
-    text-shadow: none;
-		}
 #app-specifics {
 	margin-bottom: 20px;
 	}
@@ -927,19 +847,6 @@ section#app-cartridges .cartridge-block {
 	.app-block .emblem {
 	margin-right: 7px;
 	}
-	.ribbon {
-		padding-left: 30px;
-		min-width: 98%;
-		min-width: -moz-available;
-		margin-left:-20px;
-		}
-		.ribbon:before {
-    	border-left: 0;
-    	border-top: 0; 
-    	}
-	.ribbon .more a {
-    border-width: 2.1em 0 2.1em 2.1em;
-    }
   .digest-bg {
     margin: 0;
     }
@@ -1085,21 +992,3 @@ section#app-cartridges .cartridge-block {
 }
 
 
-/* dropdown customization
------------------------------------------------*/
-
-.dropdown-menu {
-  background: black;
-  position: relative;
-  min-width: 1px;
-  float: none;
-}
-
-.dropdown-menu a {
-  color: #b1e5f2;
-}
-
-.dropdown-menu > li > a:hover {
-  border-radius: 0px;
-  background-color: #cd202c;
-}

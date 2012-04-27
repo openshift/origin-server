@@ -1,0 +1,23 @@
+.breadcrumb {
+  margin: 9px 0;
+  padding: 0;
+
+  text-transform: uppercase;
+  color: #939598;
+  font-weight: 500;
+
+  li {
+    text-shadow: -1px -1px 1px #111;
+  }
+
+  a,
+  a:hover,
+  a:visited {
+    color: #e0e1dd;
+  }
+
+  .divider {
+    color: #939598;
+  }
+}
+

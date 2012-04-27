@@ -18,12 +18,12 @@
         .row-console
           - if content_for? :full_layout
             .row.row-flush-right
-              .grid-wrapper
+              .grid-wrapper.ribbon
                 - if content_for? :breadcrumbs
-                  .ribbon
-                    .ribbon-content
-                      %nav
-                        = yield :breadcrumbs
+                  .span12.span-flush-right
+                    %nav
+                      = yield :breadcrumbs
+              .grid-wrapper
                 = flashes
                 = yield
 

@@ -1,53 +1,54 @@
 h1, h2, h3, h4, h5, .headline, .nav, .section-top {
-	font-family: $headerFontFamily;
-	font-weight: normal;
-	}
+  font-family: $headerFontFamily;
+  font-weight: normal;
+}
 h1, h2, h3, h4, h5 {
-	color: #000;
-	}
+  color: #000;
+}
 p {
-	margin: 5px 0 13px;
-	}
+  margin: 5px 0 13px;
+}
 h1 {
   font-size: 30px;
   line-height: 36px;
   margin-bottom: 10px;
-	}
+}
 h2 {
   font-size: 22px;
   line-height: 36px;
   margin-bottom: 8px;
-	}
+}
 h3 {
   line-height: 27px;
   font-size: 18px;
   margin-bottom: 8px;
-	}
+}
 h4 {
-	font-size: 16px;
-	}
+  font-size: 16px;
+}
 h5 {
-	font-size: 14px;
-	}
+  font-size: 14px;
+}
 h6 {
-	font-size: 11px;
-	}
-	
+  font-size: 11px;
+}
+
 footer h3 {
-	text-transform:uppercase;
-	}
+  text-transform:uppercase;
+}
 
 .align-right {
   text-align: right;
 }
 
-// external links get a northeast arrow to indicate they are external
+
 a.external:after { 
-  content: " \279A"; 
+  content: " \279A";
 }
 a.external img[alt="external"] {
-  display: none;  
+  display: none;
 }
+
 
 p.larger { 
   font-size: 14px; 
@@ -59,5 +60,38 @@ dl.larger {
   }
   > dd {
     margin-bottom: 20px; 
+  }
+}
+
+
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  word-wrap: break-word;
+}
+
+
+ol.unstyled {
+  margin-left: 0;
+  list-style: none;
+}
+
+
+ul.regular,
+ol.regular {
+  margin: 0 0 9px 30px;
+  padding: 0;
+}
+
+
+ul.unstyled-flat {
+  list-style: none;
+
+  > li {
+    list-style: none;
+    float:left;
   }
 }
