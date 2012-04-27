@@ -38,6 +38,53 @@ function ctl_all {
 }
 
 
+function mysql() {
+   #  Setup default options.
+   if [ -n "$OPENSHIFT_DB_GEAR_DNS" ]; then
+      hostopt="-h $OPENSHIFT_DB_GEAR_DNS"
+   else
+      [ -n "$OPENSHIFT_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_DB_HOST"
+   fi
+   portopt="-P ${OPENSHIFT_DB_PORT:-3306}"
+   useropt="-u ${OPENSHIFT_DB_USERNAME:-'admin'}"
+   passopt=--password="$OPENSHIFT_DB_PASSWORD"
+
+   #  Unset default value if it was provided to us.
+   for arg in $@; do
+      case "$arg" in
+         --host=*|-h)      unset hostopt  ;;
+         --port=*|-P)      unset portopt  ;;
+         --user=*|-u)      unset useropt  ;;
+         --password=*|-p)  unset passopt  ;;
+         *)  ;;
+      esac
+   done
+
+   /usr/bin/mysql ${hostopt} ${portopt} ${useropt} ${passopt} "$@"
+
+}  #  End of  mysql  function.
+
+
+function mongo() {
+   if test $# -gt 0; then
+      uopt=""
+      popt=""
+   else
+      uopt="--username ${OPENSHIFT_NOSQL_DB_USERNAME:-'admin'}"
+      [ -n "$OPENSHIFT_NOSQL_DB_PASSWORD" ]  &&  popt="--password $OPENSHIFT_NOSQL_DB_PASSWORD"
+   fi
+
+   if echo "$@" | egrep "\-\-host|$OPENSHIFT_NOSQL_DB_HOST" > /dev/null; then
+      hopt=""  #  Do not override if --host is passed.
+   else
+      hopt="${OPENSHIFT_NOSQL_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_NOSQL_DB_PORT:-27017}/admin"
+   fi
+
+   /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@"
+
+}  #  End of  mongo  function.
+
+
 function help {
 # FIXME: Comment out quota for now - till the selinux policy is in place.
 # quota           list free space
@@ -53,6 +100,8 @@ rm              remove files / directories
 ls              list files / directories
 ps              list running applications
 kill            kill running applications
+mysql           interactive MySQL shell
+mongo           interactive MongoDB shell
 
 EOF
 }
