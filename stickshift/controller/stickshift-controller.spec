@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.1
+Version: 0.10.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.10.2-1
+- Fix scalable param in response for GET applications rest api
+  (rpenta@redhat.com)
+- added tomdoc info for remove_dns (mmcgrath@redhat.com)
+- abstracting permissions functions (mmcgrath@redhat.com)
+- Merge branch 'php-tests' (mmcgrath@redhat.com)
+- additional test breakout (mmcgrath@redhat.com)
+- adding new php tests (mmcgrath@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
 - bumping spec versions (admiller@redhat.com)
 
