@@ -1,5 +1,5 @@
 require 'etc'
-
+$temp="/tmp/rhc/cartridge-php/"
 # Controller cartridge command paths
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
 $php_cartridge = "#{$cartridge_root}/php-5.3"
@@ -41,6 +41,16 @@ def context?(file_path, target_context)
   return true if actual_context == target_context
 end
 
+# Confirm file_path ownership is correct
+# file_path = path to a file
+# owner_uid = owner uid
+# group_uid = group uid
+def owner?(file_path, owner_uid, group_uid)
+  stat = File.stat(file_path)
+  $logger.debug("OWNER_CHECK: #{file_path}: #{stat.uid}.#{stat.gid}, expected: #{owner_uid}.#{group_uid}")
+  return true if (stat.uid == owner_uid and stat.gid == group_uid)
+end
+
 # Convert UID to MCS
 # uid = numeric user id
 # returns MCS label.  eg s0:c0,c508
@@ -55,7 +65,6 @@ def libra_mcs_level(uid)
   tier = setsize - tier
   "s0:c#{tier},c#{ord + tier}"
 end
-
 
 When /^I configure a php application$/ do
   account_name = @account['accountname']
@@ -74,6 +83,7 @@ Then /^the file permissions are correct/ do
   gear_uuid = @account['accountname']
   app_home = "/var/lib/stickshift/#{gear_uuid}"
   uid = Etc.getpwnam(gear_uuid).uid
+  gid = Etc.getpwnam(gear_uuid).gid
   mcs = libra_mcs_level(uid)
   # Configure files (relative to app_home)
   configure_files = { "#{@app['name']}" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
@@ -84,20 +94,24 @@ Then /^the file permissions are correct/ do
                     "#{@app['name']}/conf/magic" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/conf.d/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/conf.d/stickshift.conf" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/data/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/logs/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/logs/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/phplib/pear/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/repo/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/runtime/repo/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/run/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/run/httpd.pid" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/runtime/repo/php/index.php" => ['root', 'root', '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/sessions/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/tmp/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"]
+                    "#{@app['name']}/repo/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/runtime/repo/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/runtime/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/run/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/runtime/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/sessions/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "#{@app['name']}/tmp/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"]
                     }
   configure_files.each do | file, permissions |
     raise "Invalid permissions for #{file}" unless mode?("#{app_home}/#{file}", permissions[2])
     raise "Invalid context for #{file}" unless context?("#{app_home}/#{file}", permissions[3])
+    target_uid = Etc.getpwnam(permissions[0]).uid
+    target_gid = Etc.getgrnam(permissions[1]).gid
+    raise "Invalid ownership for #{file}" unless owner?("#{app_home}/#{file}", target_uid, target_gid)
   end
 end
 
@@ -264,7 +278,7 @@ When /^I (add-alias|remove-alias) the php application$/ do |action|
   end
 end
 
-When /^I (start|stop) the php application$/ do |action|
+When /^I (start|stop|status|restart) the php application$/ do |action|
   account_name = @account['accountname']
   namespace = @app['namespace']
   app_name = @app['name']
