@@ -13,6 +13,8 @@ options = {
 #
 if Rails.env.development?
   Rails.configuration.middleware.insert_after('Sass::Plugin::Rack', 'Rack::Static', options)
+  Sass::Plugin.options[:style] = :expanded
+  Sass::Plugin.options[:line_numbers] = true
 else
   Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Rack::Static', options)
   Sass::Plugin.options[:never_update] = true
