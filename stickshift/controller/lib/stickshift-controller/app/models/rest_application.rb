@@ -11,7 +11,7 @@ class RestApplication < StickShift::Model
     self.embedded = app.embedded
     self.domain_id = app.domain.namespace
     self.gear_profile = app.node_profile
-    self.scalable = scalable
+    self.scalable = app.scalable
     self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/~/git/#{@name}.git/"
     self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
     self.health_check_path = app.health_check_path
