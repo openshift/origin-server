@@ -1,1 +1,15 @@
+*~
+#*#
+.idea
+*.iml
+*.komodoproject
+.loadpath
 .project
+*.pyc
+.pydevproject
+*.pyo
+*.redcar*
+rhc/
+site/.sass-cache/
+.*.swp
+.sass-cache
