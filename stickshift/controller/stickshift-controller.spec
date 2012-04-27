@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.12
+Version:        0.9.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Apr 27 2012 Adam Miller <admiller@redhat.com> 0.9.13-1
+- Fix scalable param in response for GET applications rest api
+  (rpenta@redhat.com)
+
 * Wed Apr 25 2012 Adam Miller <admiller@redhat.com> 0.9.12-1
 - set uid in gear.new constructor; fix for bug#813244 (rchopra@redhat.com)
 
