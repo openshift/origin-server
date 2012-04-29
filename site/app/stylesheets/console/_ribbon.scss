@@ -1,36 +1,25 @@
+@import "compass";
 
 .ribbon {
-  background-color: #333b3f;
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#333b3f), to(#1a2124));
-  background-image: -webkit-linear-gradient(top, #333b3f, #1a2124);
-  background-image:    -moz-linear-gradient(top, #333b3f, #1a2124);
-  background-image:     -ms-linear-gradient(top, #333b3f, #1a2124);
-  background-image:      -o-linear-gradient(top, #333b3f, #1a2124);
-  background-image:         linear-gradient(to bottom, #333b3f, #1a2124);
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#333b3f', endColorstr='#1a2124')";
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);
-  color: #bcbdbc;
-  display: inline-block;
-  margin-left: -11px;
-  min-width: 101%;
-  padding: 0 0 0 38px;
   position: relative;
+
+  background-color: #333b3f;
+  @include background-image(linear-gradient(color-stops(#333b3f, #1a2124)));
+
+  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);
+
+  color: #bcbdbc;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
   font-weight: 400;
   font-size: 95%;
+
+  margin-left: -10px;
+  > div {
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+  }
 }
-.ribbon-content {
-  float: left;
-  margin-left: 5px;
-  margin-top: 8px;
-}
-.ribbon strong {
-  text-transform: uppercase;
-  float: left;
-}
-.ribbon em {
-  padding-bottom: 5px;
-}
+
 .ribbon:before {
   border-left: 10px solid transparent;
   /*border-top: 10px solid #91010B; red version */
@@ -41,15 +30,6 @@
   left: 1px;
   position: absolute;
   width: 0;
-}
-.ribbon:after {
-  bottom: 0;
-  /*box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5); red version */
-  content: " ";
-  height: 1px;
-  left: 0;
-  position: absolute;
-  width: 10px;
 }
 
 .ribbon .more {
@@ -73,17 +53,24 @@
 }
 
 @media (max-width: 767px) {
-  .ribbon {
-    padding-left: 30px;
-    min-width: 98%;
-    min-width: -moz-available;
-    margin-left:-20px;
-  }
-  .ribbon:before {
-    border-left: 0;
-    border-top: 0; 
-  }
-  .ribbon .more a {
-    border-width: 2.1em 0 2.1em 2.1em;
+  .row > .ribbon {
+    margin-top: 10px;
+    padding: 1px;
+    @include expand_for_phone();
   }
 }
+/* The ribbon should tuck in on very narrow windows */
+@media (max-width: 810px) {
+  .ribbon {
+    margin-left: 0;
+    > div {
+      border: 0;
+    }
+
+    &:before,
+    &:after {
+      display: none;
+    }
+  }
+}
+
