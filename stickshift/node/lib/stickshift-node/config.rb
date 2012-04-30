@@ -25,8 +25,8 @@ module StickShift
   # Allows access to stickshift-node config file.
   #
   # Reads config entried for the sdk from /etc/ss/stickshift-node.conf and if
-  # that is not available then it will read it from conf/stickshift-node.conf within
-  # the ruby gem.
+  # that is not available then it will read it from conf/stickshift-node.conf 
+  # within the ruby gem.
   class Config
     include Object::Singleton
 
@@ -35,7 +35,8 @@ module StickShift
     
     def initialize()
       _linux_cfg = File.join(CONF_DIR,CONF_NAME)
-      _gem_cfg = File.join(File.expand_path(File.dirname(__FILE__) + "/../../conf"), CONF_NAME)
+      _gem_cfg = File.join(File.expand_path(File.dirname(__FILE__) + 
+            '/../../conf'), CONF_NAME)
       @config_path = File.exists?(_linux_cfg) ? _linux_cfg : _gem_cfg
 
       begin
