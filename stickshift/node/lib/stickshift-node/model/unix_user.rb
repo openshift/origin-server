@@ -97,7 +97,7 @@ module StickShift
       raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uid.nil? || @homedir.nil? || @uuid.nil?
       notify_observers(:before_unix_user_destroy)
       
-      cmd = "/bin/ps -U \"#{@uuid}\" -o pid | /bin/grep -v PID | xargs kill -9 2> /dev/null"
+      cmd = "/bin/ps -U '#{@uuid}' -o pid | /bin/grep -v PID | xargs kill -9 2> /dev/null"
       (1..10).each do |i|
         out,err,rc = shellCmd(cmd)
         break unless rc == 0
@@ -109,7 +109,22 @@ module StickShift
       raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
-    
+
+
+    # Public: Append an SSH key to a users authorized_keys file
+    #
+    # key - The String value of the ssh key.
+    # key_type - The String value of the key type ssh-(rsa|dss)).
+    # comment - The String value of the comment to append to the key.
+    #
+    # Examples
+    #
+    #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+    #               'ssh-rsa',
+    #               'example@example.com')
+    #   # => ?
+    #
+    # Returns Unknown
     def add_ssh_key(key, key_type=nil, comment=nil)
       self.class.notify_observers(:before_add_ssh_key, self, key)
       ssh_dir = File.join(@homedir, ".ssh")
@@ -130,15 +145,28 @@ module StickShift
       self.class.notify_observers(:after_add_ssh_key, self, key)
     end
     
+    # Public: Remove an SSH key from a users authorized_keys file.
+    #
+    # key - The String value of the ssh key.
+    # comment - The String value of the comment associated with the key.
+    #
+    # Examples
+    #
+    #   remove_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+    #               'example@example.com')
+    #   # => ?
+    #
+    # Returns Unknown
     def remove_ssh_key(key, comment=nil)
       self.class.notify_observers(:before_remove_ssh_key, self, key)
-      ssh_dir = File.join(@homedir, ".ssh")
-      authorized_keys_file = File.join(ssh_dir,"authorized_keys")
+      ssh_dir = File.join(@homedir, '.ssh')
+      authorized_keys_file = File.join(ssh_dir,'authorized_keys')
       
       FileUtils.mkdir_p ssh_dir
       FileUtils.chmod(0o0750,ssh_dir)
       keys = []
-      File.open(authorized_keys_file, File::RDONLY|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file, File::RDONLY|File::CREAT, 0o0440) do
+            | file |
         keys = file.readlines
       end
       
@@ -149,34 +177,75 @@ module StickShift
       end
       keys.map!{ |k| k.strip }
       
-      File.open(authorized_keys_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file, File::WRONLY|File::TRUNC|File::CREAT,
+                0o0440) do |file|
         file.write(keys.join("\n"))
         file.write("\n")
       end
       
       FileUtils.chmod 0o0440, authorized_keys_file
-      FileUtils.chown("root",@uuid,ssh_dir)
+      FileUtils.chown('root', @uuid, ssh_dir)
       self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
-    
+
+    # Public: Add an environment variable to a given gear.
+    #
+    # key - The String value of target environment variable.
+    # value - The String value to place inside the environment variable.
+    # prefix_cloud_name - The String value to append in front of key.
+    #
+    # Examples
+    #
+    #  add_env_var('OPENSHIFT_DB_TYPE',
+    #               'mysql-5.3')
+    #  # => 36
+    #
+    # Returns the Integer value for how many bytes got written or raises on 
+    # failure.
     def add_env_var(key, value, prefix_cloud_name=false)
-      env_dir = File.join(@homedir,".env")
+      env_dir = File.join(@homedir,'.env/')
       if prefix_cloud_name
-        key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
+        key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
       end
-      File.open(File.join(env_dir, key),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(env_dir, key),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write "export #{key}='#{value}'"
       end
     end
     
+    # Public: Remove an environment variable from a given gear.
+    #
+    # key - String name of the environment variable to remove.
+    # prefix_cloud_name - String prefix to append to key.
+    #
+    # Examples
+    #
+    #   remove_env_var('OPENSHIFT_DB_TYPE')
+    #   # => true
+    #
+    # Returns an true on success and false on failure.
     def remove_env_var(key, prefix_cloud_name=false)
       env_dir = File.join(@homedir,".env")
       if prefix_cloud_name
         key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
       end
-      FileUtils.rm_f File.join(env_dir, key)
+      env_file_path = File.join(env_dir, key)
+      FileUtils.rm_f env_file_path
+      File.exists?(env_file_path) ? false : true
     end
     
+    # Public: Add broker authorization keys so gear can communicate with 
+    # broker.
+    #
+    # iv - A String value for the IV file.
+    # token - A String value for the token file.
+    #
+    # Examples
+    #   add_broker_auth('ivvalue', 'tokenvalue')
+    #   # => ["/var/lib/stickshift/UUID/.auth/iv",
+    #         "/var/lib/stickshift/UUID/.auth/token"]
+    #
+    # Returns An Array of Strings for the newly created files
     def add_broker_auth(iv,token)
       broker_auth_dir=File.join(@homedir,".auth")
       FileUtils.mkdir_p broker_auth_dir
