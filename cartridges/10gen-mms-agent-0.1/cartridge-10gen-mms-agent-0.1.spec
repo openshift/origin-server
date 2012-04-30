@@ -1,15 +1,16 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
 
 Name: cartridge-10gen-mms-agent-0.1
-Version: 1.9.1
+Version: 1.8.5
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
 Group: Applications/Internet
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: %{name}-%{version}.tar.gz
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 Obsoletes: rhc-cartridge-10gen-mms-agent-0.1
@@ -19,26 +20,30 @@ Requires: cartridge-mongodb-2.0
 Requires: pymongo
 Requires: mms-agent
 
+
 %description
 Provides 10gen MMS agent cartridge support
+
 
 %prep
 %setup -q
 
+
 %build
 
+
 %install
-rm -rf $RPM_BUILD_ROOT
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
-%post
+
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -51,10 +56,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
-%changelog
-* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 1.9.1-1
-- bumping spec versions (admiller@redhat.com)
 
+%changelog
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 1.8.5-1
 - cleaning up spec files (dmcphers@redhat.com)
 
