@@ -1,8 +1,0 @@
-SHELL=/bin/bash
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=root
-HOME=/
-
-# For now minutely means minutely ... replace minute field [1st field] 
-# with */5 for a 5 mins basis.
-* * * * * root run-parts /etc/cron.minutely

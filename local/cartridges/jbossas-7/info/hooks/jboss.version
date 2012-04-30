@@ -1,4 +1,0 @@
-# The name of the jbossas cartridge dir under /usr/libexec/stickshift/cartridges
-jboss_version=jbossas-7
-# The location of jbossas server installation
-jboss_home=/etc/alternatives/jbossas-7
