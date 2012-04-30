@@ -12,8 +12,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-jenkins-client-1.4
-
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 Requires: mysql-devel

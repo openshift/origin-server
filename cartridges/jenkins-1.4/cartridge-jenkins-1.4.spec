@@ -12,8 +12,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-jenkins-1.4
-
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)

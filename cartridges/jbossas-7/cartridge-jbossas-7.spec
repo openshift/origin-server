@@ -14,9 +14,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-jbossas-7
-Obsoletes: cartridge-jbossas-7.0
-
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils

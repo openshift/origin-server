@@ -13,8 +13,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-php-5.3
-
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)

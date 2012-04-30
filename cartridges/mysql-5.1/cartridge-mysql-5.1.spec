@@ -14,8 +14,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-mysql-5.1
-
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: mysql-server

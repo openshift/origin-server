@@ -13,8 +13,6 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-10gen-mms-agent-0.1
-
 Requires: stickshift-abstract
 Requires: cartridge-mongodb-2.0
 Requires: pymongo
