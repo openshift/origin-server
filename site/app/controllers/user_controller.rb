@@ -95,8 +95,13 @@ class UserController < SiteController
 
   def show
     @user = session_user
-    @domain = Domain.find :first, :as => session_user
-    @keys = Key.find(:all, :as => session_user)
+    @user.establish.email_address # FIXME: refactor to be cleaner
+    logger.debug "User: #{@user.inspect}"
+    @identities = Identity.find(@user)
+    @show_email = @identities.any? {|i| i.id != i.email }
+
+    @domain = Domain.find :first, :as => @user
+    @keys = Key.find(:all, :as => @user)
     render :layout => 'console'
   end
 

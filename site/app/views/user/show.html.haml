@@ -9,6 +9,20 @@
       = div_for @user do
         %h2 Personal Information
 
+        %table.table
+          %thead
+            %tr
+              %th Login
+              - if @show_email
+                %th Email
+              %th Service
+          - @identities.each do |i|
+            %tr
+              %td= i.id
+              - if @show_email
+                %td= i.email
+              %td= i.type.to_s.titleize
+
         %p
           We will only use your email account for information about your account. We do not share it with third parties.
 
