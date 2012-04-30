@@ -1,5 +1,3 @@
-/* no longer used, see site/_navbar */
-
 .navbar {
 	height: 90px;
 	margin: 0/*.*/;
@@ -48,12 +46,11 @@
 	}
 
 .navbar .brand {	
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 200;
-
 	color: white;
   text-shadow: 0 1px 2px #000000;
-
+	background: #000;
   text-transform: uppercase;
 
   position: absolute;
@@ -136,7 +133,7 @@
   border-top-right-radius: 6px;
   border-top-left-radius: 6px;
   float: none;
-  left: 0;
+  left: 91px;
   margin: 61px 0 0 0;
   position: relative;
 }
@@ -219,6 +216,7 @@
 		display: block;
 		margin: 5px 0 0;
 		border: 0;
+		left: 0;
 	}
 	.navbar .nav > li {
     display: inline-block;
@@ -245,7 +243,8 @@
     position: static;
   }
 	#utility-nav {
-  }
+    margin: 0 5px 0 0;
+	}
 }
 
 

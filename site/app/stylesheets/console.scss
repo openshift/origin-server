@@ -43,10 +43,6 @@
   word-wrap: break-word;
   text-shadow: none;
 }
-
-#app-list, #account-digest {
-	margin-top: 20px;
-	}
 #console-mast {
 	background: #f0f0f0;
 	}
@@ -466,8 +462,8 @@ figure {
     	}
 
 #app-list, #account-digest {
- margin-top: 3px /*.*/;
- color: #939598 /*.*/;
+ margin-top: 0;
+ color: #939598;
 }
 .app-full-path {
 	color: #9a9b9c;
@@ -857,7 +853,7 @@ section#app-cartridges .cartridge-block {
 	
 @media (min-width: 768px) and (max-width: 979px) {
 	.console-head {
-    margin-right: 0;
+    margin-right: -15px;
   }
 	.total-cost {
 		font-size: 23px;
@@ -871,6 +867,9 @@ section#app-cartridges .cartridge-block {
 @media (min-width: 980px) and (max-width: 1199px) {
 	.console-head {
     margin-right: -23px;
+  }
+  .digest-bg {
+  	margin: 0 -23px;
   }
 }	 
 
