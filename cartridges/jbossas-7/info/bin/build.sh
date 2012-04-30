@@ -9,6 +9,7 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 
 CONFIG_DIR="$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info/configuration"
+OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
 	OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.stg.xml"
@@ -21,7 +22,7 @@ resource_limits_file=`readlink -f /etc/stickshift/resource_limits.conf`
 resource_limits_file_name=`basename $resource_limits_file`
 node_profile=`echo ${resource_limits_file_name/*./}`
 case "$node_profile" in
-	micro)
+    micro)
         OPENSHIFT_MAVEN_XMX="-Xmx208m"
     ;;
     small)
@@ -38,6 +39,9 @@ case "$node_profile" in
     ;;
     jumbo)
         OPENSHIFT_MAVEN_XMX="-Xmx1584m"
+    ;;
+    *)
+        OPENSHIFT_MAVEN_XMX="-Xmx396m"
     ;;
 esac
 

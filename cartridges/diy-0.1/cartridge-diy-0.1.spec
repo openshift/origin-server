@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version:   0.25.6
+Version:   0.26.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -106,6 +106,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.26.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.25.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 

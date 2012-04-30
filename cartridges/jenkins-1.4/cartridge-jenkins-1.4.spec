@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version:   0.91.7
+Version:   0.92.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Tue Apr 24 2012 Dan McPherson <dmcphers@redhat.com> 0.91.7-1
 - fix for bug 813229 - jenkins reload now happens in the plugin - so reload
   step in app_ctl.sh is a no-op now (abhgupta@redhat.com)
@@ -100,3 +103,4 @@ rm -rf %{buildroot}
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.91.5-1
 - new package built with tito
+
