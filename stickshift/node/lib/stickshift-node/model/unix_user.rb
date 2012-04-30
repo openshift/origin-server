@@ -106,7 +106,8 @@ module StickShift
       FileUtils.rm_rf(@homedir)
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
-      raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") unless rc == 0
+      raise UserDeletionException.new(
+            "ERROR: unable to destroy user account #{@uuid}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
 
@@ -235,7 +236,7 @@ module StickShift
     end
     
     # Public: Add broker authorization keys so gear can communicate with 
-    # broker.
+    #         broker.
     #
     # iv - A String value for the IV file.
     # token - A String value for the token file.
@@ -245,25 +246,34 @@ module StickShift
     #   # => ["/var/lib/stickshift/UUID/.auth/iv",
     #         "/var/lib/stickshift/UUID/.auth/token"]
     #
-    # Returns An Array of Strings for the newly created files
+    # Returns An Array of Strings for the newly created auth files
     def add_broker_auth(iv,token)
-      broker_auth_dir=File.join(@homedir,".auth")
+      broker_auth_dir=File.join(@homedir,'.auth')
       FileUtils.mkdir_p broker_auth_dir
-      File.open(File.join(broker_auth_dir,"iv"),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(broker_auth_dir, 'iv'),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write iv
       end
-      File.open(File.join(broker_auth_dir,"token"),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(broker_auth_dir, 'token'),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write token
       end
       
-      FileUtils.chown_R("root",@uuid,broker_auth_dir)
-      FileUtils.chmod(0o0750,broker_auth_dir)
-      FileUtils.chmod(0o0640,Dir.glob("#{broker_auth_dir}/*"))
+      FileUtils.chown_R("root", @uuid,broker_auth_dir)
+      FileUtils.chmod(0o0750, broker_auth_dir)
+      FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
     end
-    
+
+    # Public: Remove broker authentication keys from gear.
+    #
+    # Examples
+    #   remove_broker_auth
+    #
+    # Returns true on Success and false on Failure
     def remove_broker_auth
-      broker_auth_dir=File.join(@homedir,".auth")
+      broker_auth_dir=File.join(@homedir, '.auth')
       FileUtils.rm_rf broker_auth_dir
+      File.exists?(broker_auth_dir) ? false : true
     end
 
     def run_as(&block)
