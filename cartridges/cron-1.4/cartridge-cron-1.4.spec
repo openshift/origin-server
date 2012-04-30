@@ -1,4 +1,4 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
 Version: 0.6.1
@@ -7,12 +7,11 @@ Summary: Embedded cron support for express
 
 Group: Network/Daemons
 License: ASL 2.0
-URL: https://engineering.redhat.com/trac/Libra
-Source0: %{name}-%{version}.tar.gz
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildArch: noarch
+URL: http://openshift.redhat.com
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 
-Obsoletes: rhc-cartridge-cron-1.4
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildArch: noarch
 
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
@@ -23,13 +22,15 @@ Requires: crontabs
 %description
 Provides rhc cron cartridge support
 
+
 %prep
 %setup -q
 
+
 %build
 
+
 %install
-rm -rf $RPM_BUILD_ROOT
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
@@ -51,12 +52,14 @@ ln -s %{cartridgedir}/jobs/stickshift-cron-daily %{buildroot}/%{_sysconfdir}/cro
 ln -s %{cartridgedir}/jobs/stickshift-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
 ln -s %{cartridgedir}/jobs/stickshift-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
 
+
 %post
 service crond restart || :
 
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -78,6 +81,7 @@ rm -rf $RPM_BUILD_ROOT
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.6.1-1

@@ -1,4 +1,4 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
 Version: 0.8.1
@@ -7,12 +7,10 @@ Summary: Embedded postgresql support for express
 
 Group: Network/Daemons
 License: ASL 2.0
-URL: https://engineering.redhat.com/trac/Libra
-Source0: %{name}-%{version}.tar.gz
+URL: https://openshift.redhat.com
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
-
-Obsoletes: rhc-cartridge-postgresql-8.4
 
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)

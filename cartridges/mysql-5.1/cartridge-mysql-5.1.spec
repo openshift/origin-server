@@ -1,5 +1,5 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mysql-5.1
-%define frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mysql-5.1
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
 Version: 0.26.1
@@ -9,22 +9,24 @@ Summary: Provides embedded mysql support
 Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: %{name}-%{version}.tar.gz
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: git
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Obsoletes: rhc-cartridge-mysql-5.1
-
+BuildRequires: git
 Requires: stickshift-abstract
 Requires: mysql-server
 Requires: mysql-devel
 
+
 %description
 Provides mysql cartridge support to OpenShift
 
+
 %prep
 %setup -q
+
 
 %build
 rm -rf git_template
@@ -40,22 +42,24 @@ git clone --bare git_template git_template.git
 rm -rf git_template
 touch git_template.git/refs/heads/.gitignore
 
+
 %install
-rm -rf $RPM_BUILD_ROOT
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
-cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
-mkdir -p %{buildroot}%{cartridgedir}/info/data/
+cp -r info %{buildroot}%{cartridgedir}/
 cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{cartridgedir}/info/hooks/update-namespace
 
+
 %clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -73,6 +77,7 @@ rm -rf $RPM_BUILD_ROOT
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.26.1-1
