@@ -1,31 +1,36 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/haproxy-1.4
-%define frameworkdir %{_libexecdir}/stickshift/cartridges/haproxy-1.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/haproxy-1.4
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/haproxy-1.4
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.9.1
+Version:   0.9.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   %{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildArch: noarch
 
 Obsoletes: rhc-cartridge-haproxy-1.4
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
+
 Requires:  stickshift-abstract
 Requires:  haproxy
 Requires:  rubygem-daemons
 Requires:  rubygem-rest-client
 
-BuildArch: noarch
 
 %description
 Provides haproxy balancer support to OpenShift
 
+
 %prep
 %setup -q
+
 
 %build
 rm -rf git_template
@@ -41,17 +46,18 @@ git clone --bare git_template git_template.git
 rm -rf git_template
 touch git_template.git/refs/heads/.gitignore
 
+
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
-mkdir -p %{buildroot}%{cartridgedir}/info/data/
 cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../../abstract/info/hooks/preconfigure %{buildroot}%{cartridgedir}/info/hooks/preconfigure
@@ -73,8 +79,10 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/move %{buildroot}%{cartridgedir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 ln -s %{cartridgedir}/../../abstract/info/hooks/system-messages %{buildroot}%{cartridgedir}/info/hooks/system-messages
 
+
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -92,6 +100,7 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
+
 %changelog
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bumping spec versions (admiller@redhat.com)
@@ -101,3 +110,4 @@ rm -rf %{buildroot}
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
 - new package built with tito
+
