@@ -19,6 +19,7 @@ require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
+require 'syslog'
 
 module StickShift
   class UserCreationException < Exception
@@ -90,7 +91,7 @@ module StickShift
         FileUtils.chmod 0o0750, @homedir
       end
       notify_observers(:after_unix_user_create)
-      initialize_homedir
+      initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
     end
     
     def destroy
@@ -103,10 +104,19 @@ module StickShift
         break unless rc == 0
       end
       
-      FileUtils.rm_rf(@homedir)
+      #FileUtils.rm_rf(@homedir)
+
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      path = File.join(basedir, ".httpd.d", token)
+      conf_file = path + ".conf"
+
+      FileUtils.rm_rf(path)   if File.exist? path
+      FileUtils.rm(conf_file) if File.exist? conf_file
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
       raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") unless rc == 0
+
       notify_observers(:after_unix_user_destroy)
     end
     
@@ -159,13 +169,17 @@ module StickShift
       self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
     
-    def add_env_var(key, value, prefix_cloud_name=false)
+    def add_env_var(key, value, prefix_cloud_name = false, &blk)
       env_dir = File.join(@homedir,".env")
       if prefix_cloud_name
         key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
       end
       File.open(File.join(env_dir, key),File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write "export #{key}='#{value}'"
+      end
+
+      if block_given?
+        blk.call(value)
       end
     end
     
@@ -208,26 +222,67 @@ module StickShift
       Process.wait  
     end
     
-    private
+    #private
     
-    def initialize_homedir
+    def initialize_homedir(basedir, homedir, cart_basedir)
+      @homedir = homedir
+      geardir = File.join(homedir, @app_name, "/")
+
       notify_observers(:before_initialize_homedir)
+      homedir = homedir.end_with?('/') ? homedir : homedir + '/'
       
-      tmp_dir = File.join(@homedir,".tmp")
+      tmp_dir = File.join(homedir, ".tmp")
       # Required for polyinstantiated tmp dirs to work
       FileUtils.mkdir_p tmp_dir
-      FileUtils.chmod(0o0000,tmp_dir)
+      FileUtils.chmod(0o0000, tmp_dir)
             
-      env_dir = File.join(@homedir,".env")
+      env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
-      FileUtils.chmod(0o0750,env_dir)
-      FileUtils.chown(nil,@uuid,env_dir)
+      FileUtils.chmod(0o0750, env_dir)
+      FileUtils.chown(nil, @uuid, env_dir)
 
-      add_env_var("APP_UUID", @application_uuid, true)
-      add_env_var("GEAR_UUID", @container_uuid, true)
-      add_env_var("APP_NAME", @app_name, true)
       add_env_var("APP_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
-      add_env_var("HOMEDIR", @homedir.end_with?('/') ? @homedir : @homedir + '/', true)
+      add_env_var("APP_NAME", @app_name, true)
+      add_env_var("APP_UUID", @application_uuid, true)
+
+      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+
+      add_env_var("GEAR_DIR", geardir, true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+      add_env_var("GEAR_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
+      add_env_var("GEAR_NAME", @app_name, true) 
+      add_env_var("GEAR_UUID", @container_uuid, true)
+      add_env_var("GEAR_CTL_SCRIPT", File.join(geardir, @app_name + "_ctl.sh"), true)
+
+      add_env_var("HOMEDIR", homedir, true)
+
+      add_env_var("LOG_DIR", File.join(geardir, "logs")) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+
+      add_env_var("PATH", "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH", false)
+
+      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+      
+      add_env_var("TMP_DIR", "/tmp/", true)
+
+      FileUtils.chmod_R(0o0750, geardir, :verbose => true)
+      FileUtils.chown_R(@uuid, @uuid, geardir, :verbose => true)
+      puts("initialized app_dir #{geardir}")
+      raise "Failed to instantiate gear: missing application directory (#{geardir})" unless File.exist?(geardir)
+
+      state_file = File.join(geardir, ".state")
+      File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file| file.write "new\n" }
+      FileUtils.chown(@uuid, @uuid, state_file, :verbose => true)
+
+      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      path = File.join(basedir, ".httpd.d", token)
+      FileUtils.mkdir_p(path)
+
+      source = File.join(cart_basedir, "abstract", "info", "lib", "default_http.conf")
+      target = path + ".conf"
+
+      out,err,rc = shellCmd("sed -e \"s/%APP%/#{token}/g\" #{source} >#{target}")
+      raise "Failed to instantiate gear http configuration" unless rc == 0
+      puts("initialized http conf #{target}")
+
       notify_observers(:after_initialize_homedir)
     end
     

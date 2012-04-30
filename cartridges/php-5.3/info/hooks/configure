@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Creates a php instance
 
@@ -30,7 +30,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
 
-check_app_dir_doesnt_exist
+#check_app_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
 # Repo
@@ -44,10 +44,11 @@ fi
 # Create the core of the application
 #
 
-mkdir -p "$APP_DIR"
+#mkdir -p "$APP_DIR"
 pushd "$APP_DIR" > /dev/null
 create_standard_app_dirs
-mkdir conf conf.d logs sessions
+#mkdir conf conf.d logs sessions
+mkdir conf conf.d sessions
 mkdir -p phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
 ln -s /usr/lib64/httpd/modules modules
 ln -s /etc/httpd/conf/magic conf/magic
