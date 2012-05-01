@@ -147,8 +147,6 @@ translate_env_vars
 
 validate_run_as_user
 
-arm_ctl_script_timeout
-
 # Handle commands.
 case "$1" in
     start)               _start_node_service    ;;
