@@ -1,0 +1,18 @@
+require 'rubygems'
+require 'rake'
+require 'fileutils'
+
+subprojects = %w[common node controller]
+
+desc "Install all subprojects #{subprojects.inspect}"
+task :install
+
+subprojects.each do |project|
+  task :install do
+    FileUtils.chdir(project) do
+      puts "Inside #{project}..."
+      sh "bundle"
+      sh "bundle exec rake install"
+    end
+  end
+end

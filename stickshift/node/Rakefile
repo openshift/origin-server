@@ -2,6 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'rake/clean'
 require 'rake/testtask'
+require "bundler/gem_tasks"
 
 desc "Print environment to run from checkout - eval $( rake local_env | tail -n +1 )"
 task :local_env do
