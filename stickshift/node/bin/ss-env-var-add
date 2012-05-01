@@ -54,7 +54,7 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
-uuid = args['--with-container-uuid']
+container_uuid = args['--with-container-uuid']
 app_uuid = args['--with-app-uuid']
 key = args['--with-key']
 value = args['--with-value']
@@ -64,13 +64,13 @@ if args["--help"]
   exit -1
 end
 
-unless uuid and key and value
+unless container_uuid and app_uuid and key and value
   usage
   exit -100
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid,uuid)
+  container = StickShift::ApplicationContainer.new(app_uuid, container_uuid)
   container.user.add_env_var(key, value)
 rescue Exception => e
   $stderr.puts(e.message)
