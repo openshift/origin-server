@@ -1,43 +1,38 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/php-5.3
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/perl-5.10
 
-Summary:   Provides php-5.3 support
-Name:      cartridge-php-5.3
-Version: 0.92.2
+Summary:   Provides mod_perl support
+Name:      cartridge-perl-5.10
+Version:   0.23.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   %{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 
-Obsoletes: rhc-cartridge-php-5.3
-
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
-Requires:  php >= 5.3.2
-Requires:  php < 5.4.0
-Requires:  mod_bw
-Requires:  rubygem-builder
-Requires:  php-pdo
-Requires:  php-gd
-Requires:  php-xml
-Requires:  php-mysql
-Requires:  php-pecl-mongo
-Requires:  php-pgsql
-Requires:  php-mbstring
-Requires:  php-pear
-Requires:  php-imap
-Requires:  php-pecl-apc
-Requires:  php-mcrypt
-
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
+BuildRequires: git
+Requires: stickshift-abstract
+Requires: rubygem(stickshift-node)
+Requires: mod_perl
+Requires: perl-DBD-SQLite
+Requires: perl-DBD-MySQL
+Requires: perl-MongoDB
+Requires: ImageMagick-perl
+Requires: perl-App-cpanminus
+Requires: perl-CPAN
+Requires: perl-CPANPLUS
+Requires: rpm-build
+
+
 %description
-Provides php support to OpenShift
+Provides rhc perl cartridge support
+
 
 %prep
 %setup -q
+
 
 %build
 rm -rf git_template
@@ -52,6 +47,7 @@ cd ..
 git clone --bare git_template git_template.git
 rm -rf git_template
 touch git_template.git/refs/heads/.gitignore
+
 
 %install
 rm -rf %{buildroot}
@@ -93,8 +89,10 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/publish-http-url %{build
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
+
 %clean
 rm -rf %{buildroot}
+
 
 %files
 %defattr(-,root,root,-)
@@ -111,16 +109,17 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
-%changelog
-* Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.92.2-1
-- Merge branch 'php-tests' (mmcgrath@redhat.com)
-- correcting selinux label for pearrc (mmcgrath@redhat.com)
 
-* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
+%changelog
+* Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.23.1-1
 - bumping spec versions (admiller@redhat.com)
 
-* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.91.6-1
+* Wed Apr 25 2012 Adam Miller <admiller@redhat.com> 0.22.7-1
+- BZ816297 Do not use internal CPAN mirrors for Fedora images
+- (jhonce@redhat.com)
+
+* Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.22.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.91.5-1
+* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.22.5-1
 - new package built with tito

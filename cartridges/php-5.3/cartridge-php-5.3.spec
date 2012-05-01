@@ -1,37 +1,40 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/python-2.6
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/php-5.3
 
-Summary:   Provides python-wsgi-3.2 support
-Name:      cartridge-python-3.2
-Version: 0.92.1
+Summary:   Provides php-5.3 support
+Name:      cartridge-php-5.3
+Version:   0.92.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   %{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 
-Obsoletes: rhc-cartridge-wsgi-3.2
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
-Requires:  mod_bw
-Requires:  python
-Requires:  mod_wsgi >= 3.2
-Requires:  MySQL-python
-Requires:  pymongo
-Requires:  pymongo-gridfs
-Requires:  python-psycopg2
-Requires:  python-virtualenv
-Requires:  libjpeg
-Requires:  libjpeg-devel
-Requires:  libcurl
-Requires:  libcurl-devel
-
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
+BuildRequires: git
+Requires: stickshift-abstract
+Requires: rubygem(stickshift-node)
+Requires: php >= 5.3.2
+Requires: php < 5.4.0
+Requires: mod_bw
+Requires: rubygem-builder
+Requires: php-pdo
+Requires: php-gd
+Requires: php-xml
+Requires: php-mysql
+Requires: php-pecl-mongo
+Requires: php-pgsql
+Requires: php-mbstring
+Requires: php-pear
+Requires: php-imap
+Requires: php-pecl-apc
+Requires: php-mcrypt
+
+
 %description
-Provides wsgi support to OpenShift
+Provides php support to OpenShift
 
 %prep
 %setup -q
@@ -95,8 +98,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %{cartridgedir}
-%dir %{cartridgedir}/info/
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
@@ -111,19 +112,15 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.92.2-1
+- Merge branch 'php-tests' (mmcgrath@redhat.com)
+- correcting selinux label for pearrc (mmcgrath@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
 - bumping spec versions (admiller@redhat.com)
 
-* Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.91.7-1
-- Update to python cartridge to use default (empty) mirror in Fedora
-  (kraman@gmail.com)
-
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.91.6-1
 - cleaning up spec files (dmcphers@redhat.com)
-- Add system site packages to the virtual environment. Allows packages with
-  custom build configurations like pycurl to be installed on the system via RPM
-  and re-used rather than have to hack up per-package builds.  And faster to
-  deploy. (rmillner@redhat.com)
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.91.5-1
 - new package built with tito
