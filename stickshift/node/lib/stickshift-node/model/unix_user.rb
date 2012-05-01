@@ -14,7 +14,6 @@
 # limitations under the License.
 #++
 
-
 require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
@@ -32,11 +31,13 @@ module StickShift
   # Represents a user account on the system.
   class UnixUser < Model
     include StickShift::Utils::ShellExec
-    attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid, :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
+    attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
+        :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
     
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
-    def initialize(application_uuid, container_uuid, user_uid=nil, app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
+    def initialize(application_uuid, container_uuid, user_uid=nil,
+        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -64,6 +65,16 @@ module StickShift
       @uuid
     end
     
+    # Public: Create an empty gear.
+    #
+    # Examples
+    #
+    #   create
+    #   # => true
+    #   # a user
+    #   # Setup permissions
+    #
+    # Returns true on Success or raises on Failure
     def create
       skel_dir = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
       shell    = @config.get("GEAR_SHELL")     || "/bin/bash"
@@ -71,7 +82,8 @@ module StickShift
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
       
-      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do |lock|
+      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do
+            | lock |
         lock.flock(File::LOCK_EX)
         
         unless @uid
@@ -82,9 +94,17 @@ module StickShift
           @homedir = File.join(basedir,@uuid)
         end
         
-        cmd = "useradd -u #{@uid} -d #{@homedir} -s #{shell} -c '#{gecos}' -m -k #{skel_dir} #{@uuid}"
+        cmd = %{useradd -u #{@uid} \
+                -d #{@homedir} \
+                -s #{shell} \
+                -c '#{gecos}' \
+                -m \
+                -k #{skel_dir} \
+                #{@uuid}}
         out,err,rc = shellCmd(cmd)
-        raise UserCreationException.new("ERROR: unable to create user account #{@uuid}, #{cmd}") unless rc == 0
+        raise UserCreationException.new(
+                "ERROR: unable to create user account #{@uuid}, #{cmd}"
+                ) unless rc == 0
         
         FileUtils.chown("root", @uuid, @homedir)
         FileUtils.chmod 0o0750, @homedir
@@ -93,11 +113,23 @@ module StickShift
       initialize_homedir
     end
     
+    # Public: Destroys a gear stopping all processes and removing all files
+    #
+    # Examples
+    #
+    #   destroy
+    #   # => true
+    #
+    # Returns true on Success or raises on Failure
     def destroy
-      raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uid.nil? || @homedir.nil? || @uuid.nil?
+      raise UserDeletionException.new(
+            "ERROR: unable to destroy user account #{@uuid}"
+            ) if @uid.nil? || @homedir.nil? || @uuid.nil?
       notify_observers(:before_unix_user_destroy)
       
-      cmd = "/bin/ps -U '#{@uuid}' -o pid | /bin/grep -v PID | xargs kill -9 2> /dev/null"
+      cmd = %{/bin/ps -U '#{@uuid}' -o pid | \
+              /bin/grep -v PID | \
+              xargs kill -9 2> /dev/null}
       (1..10).each do |i|
         out,err,rc = shellCmd(cmd)
         break unless rc == 0
@@ -123,9 +155,9 @@ module StickShift
     #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
     #               'ssh-rsa',
     #               'example@example.com')
-    #   # => ?
+    #   # => true
     #
-    # Returns Unknown
+    # Returns true on Success or raises on Failure
     def add_ssh_key(key, key_type=nil, comment=nil)
       self.class.notify_observers(:before_add_ssh_key, self, key)
       ssh_dir = File.join(@homedir, ".ssh")
@@ -155,9 +187,9 @@ module StickShift
     #
     #   remove_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
     #               'example@example.com')
-    #   # => ?
+    #   # => true
     #
-    # Returns Unknown
+    # Returns true on Success or raises on Failure
     def remove_ssh_key(key, comment=nil)
       self.class.notify_observers(:before_remove_ssh_key, self, key)
       ssh_dir = File.join(@homedir, '.ssh')
@@ -268,6 +300,7 @@ module StickShift
     #
     # Examples
     #   remove_broker_auth
+    #   # => true
     #
     # Returns true on Success and false on Failure
     def remove_broker_auth
@@ -289,6 +322,18 @@ module StickShift
     
     private
     
+    # Private: Create and populate the users home dir.
+    #
+    # Examples
+    #   initialize_homedir
+    #   # => true
+    #   # Creates:
+    #   # ~
+    #   # ~/.tmp/
+    #   # ~/.env/
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR
+    #
+    # Returns true on Success and raises on Failure.
     def initialize_homedir
       notify_observers(:before_initialize_homedir)
       
@@ -310,6 +355,15 @@ module StickShift
       notify_observers(:after_initialize_homedir)
     end
     
+    # Private: Determine next available user id.  This is usually determined
+    #           and provided by the broker but is auto determined if not
+    #           provided.
+    #
+    # Examples:
+    #   next_uid =>
+    #   # => 504
+    #
+    # Returns Integer value for next available uid.
     def next_uid
       uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
       gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }
