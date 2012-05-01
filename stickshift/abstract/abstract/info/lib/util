@@ -113,6 +113,7 @@ function create_standard_network_env_vars {
     echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
     echo "export OPENSHIFT_INTERNAL_PORT='8080'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
     echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$APP_DIR/${application}_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
+    echo "export OPENSHIFT_GEAR_CTL_TIMEOUT='30'" > $APP_HOME/.env/OPENSHIFT_GEAR_CTL_TIMEOUT
     echo "export OPENSHIFT_GEAR_DNS='${application}-${namespace}.${CLOUD_DOMAIN}'" > $APP_HOME/.env/OPENSHIFT_GEAR_DNS
 }
 
