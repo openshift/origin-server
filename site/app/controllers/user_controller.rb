@@ -94,7 +94,7 @@ class UserController < SiteController
       session[:promo_code] = @user.promo_code
     end
 
-    redirect_to complete_account_path(:promo_code => @user.promo_code)
+    redirect_to complete_account_path(:promo_code => @user.promo_code.presence)
   end
 
   def complete
