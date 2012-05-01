@@ -23,33 +23,46 @@ module StickShift
   # == Application Container
   class ApplicationContainer < Model
     attr_reader :uuid, :application_uuid, :user
-    
-    def initialize(application_uuid, container_uuid, user_uid=nil, app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
+
+    def initialize(application_uuid, container_uuid, user_uid = nil,
+        app_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
       @uuid = container_uuid
       @application_uuid = application_uuid
-      @user = UnixUser.new(application_uuid, container_uuid, user_uid, app_name, namespace, quota_blocks, quota_files)
+      @user = UnixUser.new(application_uuid, container_uuid, user_uid,
+        app_name, namespace, quota_blocks, quota_files)
     end
-    
+
     def name
       @uuid
     end
-    
+
+    # Create gear - model/unix_user.rb
     def create
       notify_observers(:before_container_create)
       @user.create
       notify_observers(:after_container_create)
     end
-    
+
+    # Destroy gear - model/unix_user.rb
     def destroy
       notify_observers(:before_container_destroy)
       @user.destroy
       notify_observers(:after_container_destroy)      
     end
-    
+
+    # Public: Load a gears environment variables into the environment
+    #
+    # Examples
+    #
+    #   load_env
+    #   # => {"OPENSHIFT_APP_DIR"=>"/var/lib/UUID/mysql-5.3",
+    #         "OPENSHIFT_APP_NAME"=>"myapp"}
+    #
+    # Returns env Array
     def load_env
       env = {}
       # Load environment variables into a hash
-      Dir["#{user.homedir}/.env/*"].each { |f|
+      Dir["#{user.homedir}/.env/*"].each { | f |
         contents = nil
         File.open(f) {|input|
           contents = input.read.chomp

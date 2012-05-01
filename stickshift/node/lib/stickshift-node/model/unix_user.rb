@@ -70,11 +70,11 @@ module StickShift
     # Examples
     #
     #   create
-    #   # => true
+    #   # => nil
     #   # a user
     #   # Setup permissions
     #
-    # Returns true on Success or raises on Failure
+    # Returns nil on Success or raises on Failure
     def create
       skel_dir = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
       shell    = @config.get("GEAR_SHELL")     || "/bin/bash"
@@ -118,9 +118,9 @@ module StickShift
     # Examples
     #
     #   destroy
-    #   # => true
+    #   # => nil
     #
-    # Returns true on Success or raises on Failure
+    # Returns nil on Success or raises on Failure
     def destroy
       raise UserDeletionException.new(
             "ERROR: unable to destroy user account #{@uuid}"
@@ -155,9 +155,9 @@ module StickShift
     #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
     #               'ssh-rsa',
     #               'example@example.com')
-    #   # => true
+    #   # => nil
     #
-    # Returns true on Success or raises on Failure
+    # Returns nil on Success or raises on Failure
     def add_ssh_key(key, key_type=nil, comment=nil)
       self.class.notify_observers(:before_add_ssh_key, self, key)
       ssh_dir = File.join(@homedir, ".ssh")
@@ -170,7 +170,8 @@ module StickShift
       cmd_entry = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{cloud_name}-#{@uuid}#{comment}\n"
       FileUtils.mkdir_p ssh_dir
       FileUtils.chmod(0o0750,ssh_dir)
-      File.open(authorized_keys_file, File::WRONLY|File::APPEND|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file,
+        File::WRONLY|File::APPEND|File::CREAT, 0o0440) do | file |
         file.write(cmd_entry)
       end
       FileUtils.chmod 0o0440, authorized_keys_file
@@ -187,9 +188,9 @@ module StickShift
     #
     #   remove_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
     #               'example@example.com')
-    #   # => true
+    #   # => nil
     #
-    # Returns true on Success or raises on Failure
+    # Returns nil on Success or raises on Failure
     def remove_ssh_key(key, comment=nil)
       self.class.notify_observers(:before_remove_ssh_key, self, key)
       ssh_dir = File.join(@homedir, '.ssh')
@@ -254,9 +255,9 @@ module StickShift
     # Examples
     #
     #   remove_env_var('OPENSHIFT_DB_TYPE')
-    #   # => true
+    #   # => nil
     #
-    # Returns an true on success and false on failure.
+    # Returns an nil on success and false on failure.
     def remove_env_var(key, prefix_cloud_name=false)
       env_dir = File.join(@homedir,".env")
       if prefix_cloud_name
@@ -300,9 +301,9 @@ module StickShift
     #
     # Examples
     #   remove_broker_auth
-    #   # => true
+    #   # => nil
     #
-    # Returns true on Success and false on Failure
+    # Returns nil on Success and false on Failure
     def remove_broker_auth
       broker_auth_dir=File.join(@homedir, '.auth')
       FileUtils.rm_rf broker_auth_dir
@@ -326,14 +327,14 @@ module StickShift
     #
     # Examples
     #   initialize_homedir
-    #   # => true
+    #   # => nil
     #   # Creates:
     #   # ~
     #   # ~/.tmp/
     #   # ~/.env/
     #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR
     #
-    # Returns true on Success and raises on Failure.
+    # Returns nil on Success and raises on Failure.
     def initialize_homedir
       notify_observers(:before_initialize_homedir)
       
