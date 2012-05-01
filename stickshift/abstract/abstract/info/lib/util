@@ -639,6 +639,27 @@ function test_cartridge_state {
   return `test "$_state" = $2`
 }
 
+function run_user_hook {
+  local position="$1"
+  local event="$2"
+
+  local hook="$APP_HOME/.openshift/action-hooks/${position}-${event}"
+
+  if [ $(id -u) -eq 0 ]; then
+    echo "ERROR: run_user_hook called as root" 1>&2
+    exit 15
+  fi
+
+  if [ -f "$hook" ]; then
+    if [ "$position" = "pre" ]; then
+      source "$hook"
+    else
+      "$hook"
+    fi
+  fi
+}
+
+
 if [ -f /usr/libexec/stickshift/lib/util_ext ]
 then
     source /usr/libexec/stickshift/lib/util_ext
