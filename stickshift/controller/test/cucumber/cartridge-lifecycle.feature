@@ -13,6 +13,7 @@ Feature: Cartridge Lifecycle Verification Tests
     |     1     |  python-2.6  |
     |     1     |  perl-5.10   |
     |     1     |  jbossas-7   |
+    |     1     |  ruby-1.8    |
     |     1     |  nodejs-0.6  |
     |     1     |  jenkins-1.4 |
 
@@ -38,6 +39,7 @@ Feature: Cartridge Lifecycle Verification Tests
     |   python-2.6  |
     |   perl-5.10   |
     |   jbossas-7   |
+    |   ruby-1.8    |
     |   nodejs-0.6  |
 
   Scenario Outline: Application Stopping
@@ -51,6 +53,7 @@ Feature: Cartridge Lifecycle Verification Tests
     |   python-2.6  |
     |   perl-5.10   |
     |   jbossas-7   |
+    |   ruby-1.8    |
     |   nodejs-0.6  |
     |   jenkins-1.4 |
 
@@ -65,6 +68,7 @@ Feature: Cartridge Lifecycle Verification Tests
     |   python-2.6  |
     |   perl-5.10   |
     |   jbossas-7   |
+    |   ruby-1.8    |
     |   nodejs-0.6  |
     |   jenkins-1.4 |
     
@@ -78,7 +82,8 @@ Feature: Cartridge Lifecycle Verification Tests
     |   php-5.3     |
     |   python-2.6  |
     |   perl-5.10   |
-    |   jbossas-7 |
+    |   jbossas-7   |
+    |   ruby-1.8    |
     |   nodejs-0.6  |
     |   jenkins-1.4 |
 
@@ -93,6 +98,7 @@ Feature: Cartridge Lifecycle Verification Tests
     |   python-2.6  |
     |   perl-5.10   |
     |   jbossas-7   |
+    |   ruby-1.8    |
     |   nodejs-0.6  |
     |   jenkins-1.4 |
     |   diy-0.1     |
