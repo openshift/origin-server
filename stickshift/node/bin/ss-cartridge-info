@@ -68,7 +68,8 @@ begin
     begin
       cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
       if cart.name == cart_name
-        print "CLIENT_RESULT: ",cart.to_descriptor.to_json
+        print "CLIENT_RESULT: " if $ss_debug
+        print cart.to_descriptor.to_json
         cart_found = true
         break
       end
@@ -86,7 +87,8 @@ begin
       begin
         cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
         if cart.name == cart_name
-          print "CLIENT_RESULT: ",cart.to_descriptor.to_json
+          print "CLIENT_RESULT: " if $ss_debug
+          print cart.to_descriptor.to_json
           break
         end
       rescue Exception => e
