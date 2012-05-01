@@ -15,6 +15,9 @@
 # limitations under the License.
 #++
 
+require 'stickshift-node'
+require 'stickshift-node/utils/shell_exec'
+
 def usage
     puts <<USAGE
 == Synopsis
@@ -24,7 +27,9 @@ ss-env-var-remove: Removes an env var from the app.
 
 == Usage
 
-ss-env-var-remove  --with-app-uuid APP_UUID --with-container-uuid UUID --with-key KEY
+ss-env-var-remove  --with-app-uuid APP_UUID \\
+                    --with-container-uuid UUID \\
+                    --with-key KEY
 
 Options:
 -h|--help:
@@ -36,17 +41,15 @@ NAME: The name of the application to create
 USAGE
 end
 
-require 'stickshift-node'
-require 'stickshift-node/utils/shell_exec'
 opts = GetoptLong.new(
-    ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-key",            "-k", GetoptLong::REQUIRED_ARGUMENT]
+    ['--with-app-uuid',       '-a', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-container-uuid', '-c', GetoptLong::REQUIRED_ARGUMENT],
+    ['--with-key',            '-k', GetoptLong::REQUIRED_ARGUMENT]
 )
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+    opts.each{ | k, v | args[k]=v }
 rescue GetoptLong::Error => e
     usage
     exit -100
@@ -55,7 +58,7 @@ end
 uuid = args['--with-container-uuid']
 key = args['--with-key']
 
-if args["--help"]
+if args['--help']
   usage
   exit -1
 end
@@ -66,7 +69,7 @@ unless uuid and key
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid,uuid)
+  container = StickShift::ApplicationContainer.new(uuid, uuid)
   container.user.remove_env_var(key)
 rescue Exception => e
   $stderr.puts(e.message)

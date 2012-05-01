@@ -24,7 +24,10 @@ ss-env-var-add: Adds an environment var to the app.
 
 == Usage
 
-ss-env-var-add  --with-app-uuid APP_UUID --with-container-uuid UUID --with-key KEY --with-value VALUE
+ss-env-var-add  --with-app-uuid APP_UUID \\
+                --with-container-uuid UUID \\
+                --with-key KEY \\
+                --with-value VALUE
 
 Options:
 -h|--help:
@@ -70,7 +73,7 @@ unless uuid and key and value
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid,uuid)
+  container = StickShift::ApplicationContainer.new(uuid, uuid)
   container.user.add_env_var(key, value)
 rescue Exception => e
   $stderr.puts(e.message)

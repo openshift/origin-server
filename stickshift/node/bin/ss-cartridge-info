@@ -61,12 +61,17 @@ cart_name = ARGV.shift
 cart_found = false
 
 begin
-  cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
-  Dir.foreach(cartridge_path) do |cart_dir|
-    next if [".", "..", "embedded", "abstract", "abstract-httpd", "mysql-5.1"].include? cart_dir
-    path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
+  cartridge_path = StickShift::Config.instance.get('CARTRIDGE_BASE_PATH')
+  Dir.foreach(cartridge_path) do | cart_dir |
+    next if ['.', '..',
+            'embedded',
+            'abstract',
+            'abstract-httpd',
+            'mysql-5.1'].include? cart_dir
+    path = File.join(cartridge_path, cart_dir, 'info', 'manifest.yml')
     begin
-      cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+      cart = StickShift::Cartridge.new.from_descriptor(
+            YAML.load(File.open(path)))
       if cart.name == cart_name
         print "CLIENT_RESULT: ",cart.to_descriptor.to_json
         cart_found = true
@@ -78,15 +83,17 @@ begin
     end
   end
   
-  embedded_cartridge_path = File.join(cartridge_path, "embedded")
+  embedded_cartridge_path = File.join(cartridge_path, 'embedded')
   if (! cart_found) and File.directory?(embedded_cartridge_path)
-    Dir.foreach(embedded_cartridge_path) do |cart_dir|
-      next if [".",".."].include? cart_dir
-      path = File.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
+    Dir.foreach(embedded_cartridge_path) do | cart_dir |
+      next if ['.', '..'].include? cart_dir
+      path = File.join(embedded_cartridge_path, cart_dir, 'info',
+                       'manifest.yml')
       begin
-        cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
+        cart = StickShift::Cartridge.new.from_descriptor(
+                YAML.load(File.open(path)))
         if cart.name == cart_name
-          print "CLIENT_RESULT: ",cart.to_descriptor.to_json
+          print 'CLIENT_RESULT: ',cart.to_descriptor.to_json
           break
         end
       rescue Exception => e

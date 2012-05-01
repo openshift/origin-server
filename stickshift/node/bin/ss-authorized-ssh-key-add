@@ -24,7 +24,11 @@ ss-authorized-ssh-key-add: Adds an authorized ssh key to the app.
 
 == Usage
 
-ss-authorized-ssh-key-add  --with-app-uuid APP_UUID --with-container-uuid UUID --with-ssh-key KEY --with-ssh-key-type KEY_TYPE
+ss-authorized-ssh-key-add  \\
+        --with-app-uuid APP_UUID \\
+        --with-container-uuid UUID \\
+        --with-ssh-key KEY \\
+        --with-ssh-key-type KEY_TYPE
 
 Options:
 -h|--help:

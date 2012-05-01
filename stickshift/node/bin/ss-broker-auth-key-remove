@@ -63,7 +63,7 @@ unless uuid
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid,uuid)
+  container = StickShift::ApplicationContainer.new(uuid, uuid)
   container.user.remove_broker_auth
 rescue Exception => e
   $stderr.puts(e.message)

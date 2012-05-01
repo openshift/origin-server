@@ -43,7 +43,7 @@ module StickShift::Utils::ShellExec
   #
   # Examples
   #   StickShift::Utils::ShellExec.shellCmd('ls /etc/passwd')
-  #   # => ["/etc/passwd","", 0]
+  #   # => ["/etc/passwd\n","", 0]
   #
   # Returns An Array with [stdout, stderr, return_code]
   def self.shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0)

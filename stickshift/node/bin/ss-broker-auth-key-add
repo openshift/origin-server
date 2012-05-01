@@ -24,7 +24,11 @@ ss-broker-auth-key-add: Adds broker auth key to the application.
 
 == Usage
 
-ss-broker-auth-key-add  --with-app-uuid APP_UUID --with-container-uuid UUID --with-iv INITIALIZATION_VECTOR --with-token TOKEN
+ss-broker-auth-key-add  \\
+        --with-app-uuid APP_UUID \\
+        --with-container-uuid UUID \\
+        --with-iv INITIALIZATION_VECTOR \\
+        --with-token TOKEN
 
 Options:
 -h|--help:
@@ -70,7 +74,7 @@ unless uuid and iv and token
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid,uuid)
+  container = StickShift::ApplicationContainer.new(uuid, uuid)
   container.user.add_broker_auth(iv,token)
 rescue Exception => e
   $stderr.puts(e.message)
