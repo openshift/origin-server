@@ -39,6 +39,8 @@ Requires:  libxslt-devel
 Requires:  gcc-c++
 Requires:  js
 
+Obsoletes: cartridge-ruby-1.1
+
 # Deps for users
 Requires: ruby-RMagick
 

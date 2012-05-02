@@ -26,6 +26,8 @@ Requires:  libjpeg-devel
 Requires:  libcurl
 Requires:  libcurl-devel
 
+Obsoletes: cartridge-python-3.2
+
 BuildArch: noarch
 
 %description
