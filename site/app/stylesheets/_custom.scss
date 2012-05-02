@@ -50,13 +50,6 @@ textarea:focus {
 .form-actions {
 	background-color: none;
 	}
-
-.help-block-multiple {
-	background-color: #FFFCE4;
- 	border: 4px solid #ddd;
-  border: 4px solid rgba(88, 88, 88, 0.05);
- 	padding: 14px;
-	}
 .side-block {
 	margin-top: 5px;
   margin-bottom: 0;
@@ -141,15 +134,13 @@ textarea:focus {
 }
 
 #footer-nav {
-  padding-top: 35px;
-  padding-bottom: 26px;
+  padding: 35px 0;
   }
  	#footer-nav a {
  		color: #666;
  		}
 #copyright {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding: 20px;
   }
   #copyright > .container > div {
     margin-top: 15px;

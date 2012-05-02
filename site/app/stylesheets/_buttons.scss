@@ -21,7 +21,8 @@
   @include border-radius(0); //4px
   //$shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset;
   //@include box-shadow($shadow);
-  background-image: -moz-linear-gradient(center top , #ddd 10%, #a4a8b0 100%, #c8cad0 100%);
+  //background-image: -moz-linear-gradient(center top , #ddd 10%, #a4a8b0 100%, #c8cad0 100%);
+  @include gradient-vertical($startColor: #ddd, $endColor: #a4a8b0);
   border-color: rgba(5, 5, 5, 0.1) rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.5) rgba(5, 5, 5, 0.3);
   cursor: pointer;
   border-style: solid;
@@ -60,8 +61,8 @@
 // Active state
 .btn:active {
   background-image: none;
-  $shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset;
-  @include box-shadow($shadow);
+  //$shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset;
+  //@include box-shadow($shadow);
   background-color: darken($white, 20%);
   background-color: darken($white, 25%) #{"\9"};
   outline: 0;
@@ -78,6 +79,7 @@
   @include opacity(65);
   @include box-shadow(none);
 }
+
 
 
 // Button Sizes
