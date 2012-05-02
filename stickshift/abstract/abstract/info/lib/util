@@ -616,10 +616,12 @@ function test_cartridge_state {
 }
 
 function run_user_hook {
+  # Run pre_start, pre_stop, post_start, post_stop hooks.
+  # The pre_* hooks may modify environment.
   local position="$1"
   local event="$2"
 
-  local hook="$APP_HOME/.openshift/action-hooks/${position}-${event}"
+  local hook="$APP_HOME/.openshift/action-hooks/${position}_${event}"
 
   if [ $(id -u) -eq 0 ]; then
     echo "ERROR: run_user_hook called as root" 1>&2
