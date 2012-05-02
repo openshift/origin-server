@@ -12,7 +12,7 @@ class BaseController < ActionController::Base
   respond_to :json, :xml
   before_filter :check_version, :only => :show
   API_VERSION = "1.0"
-  SUPPORTED_API_VERSIONS = ["1.0"]
+  SUPPORTED_API_VERSIONS = ["1.0", "2.0"]
   
   def show
     links = {
@@ -94,7 +94,7 @@ class BaseController < ActionController::Base
       $requested_api_version = API_VERSION
     end
     
-    if not SUPPORTED_API_VERSIONS.include?$requested_api_version
+    if not SUPPORTED_API_VERSIONS.include? $requested_api_version
       invalid_version = $requested_api_version
       $requested_api_version = API_VERSION
       @reply = RestReply.new(:not_acceptable)

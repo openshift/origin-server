@@ -56,7 +56,7 @@ class GearsController < BaseController
 
         git_url = "ssh://#{gear.uuid}@#{app_name}-#{app.domain.namespace}." + Rails.application.config.ss[:domain_suffix] + "/~/git/#{app_name}.git/"
 
-        gear_info = RestGear.new(gear.uuid, comp_list, git_url)
+        gear_info = RestGearBase.instance(gear.uuid, comp_list, git_url, gear.node_profile)
         app_gears_info.push gear_info
       end
 
