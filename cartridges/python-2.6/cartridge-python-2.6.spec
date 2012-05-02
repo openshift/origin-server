@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/python-2.6
 
-Summary:   Provides python-wsgi-3.2 support
-Name:      cartridge-python-3.2
+Summary:   Provides python-2.6 support
+Name:      cartridge-python-2.6
 Version:   0.92.1
 Release:   1%{?dist}
 Group:     Development/Languages
