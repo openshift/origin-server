@@ -69,7 +69,7 @@ function _service_stop() {
                let TIMEOUT=${TIMEOUT}-1
             done
             if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
-               pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m immedate -w >> $pglogfile 2>&1
+               pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m immediate -w >> $pglogfile 2>&1
             fi
          fi
       fi
