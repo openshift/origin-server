@@ -163,7 +163,7 @@ class UserController < SiteController
 
   def show
     @user = session_user
-    @user.establish.load_email_address # FIXME: refactor to be cleaner
+    @user.load_email_address
     logger.debug "User: #{@user.inspect}"
     @identities = Identity.find(@user)
     @show_email = @identities.any? {|i| i.id != i.email }
