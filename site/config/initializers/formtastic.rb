@@ -1,4 +1,17 @@
 require 'bootstrap_form_builder.rb'
+require 'active_model/errors'
+
+#
+# Minor backport from Rails 3.1, may break hash behavior of errors
+#
+module ActiveModel
+  class Errors
+    # Do the error messages include an error with key +error+?
+    def include?(error)
+      (v = self[error]) && v.any?
+    end
+  end
+end
 
 # encoding: utf-8
 

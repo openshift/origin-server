@@ -66,12 +66,6 @@ $ ->
       required: true
       alpha_numeric: true
 
-  # These forms are inline, so we need to handle them differently
-  # /app/console/application_types/*
-  $('#new_application').validate
-    errorLabelContainer: '#app-errors'
-    errorContainer: '#app-errors'
-
   # /app/account
   # /app/account/domain/edit
   $("#new_domain form").validate
