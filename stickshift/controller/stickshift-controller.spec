@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version:        0.9.13
+Version:        0.9.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 02 2012 Dan McPherson <dmcphers@redhat.com> 0.9.14-1
+- Validate ssh key type against the whole string rather than a line
+  (dmcphers@redhat.com)
+
 * Fri Apr 27 2012 Adam Miller <admiller@redhat.com> 0.9.13-1
 - Fix scalable param in response for GET applications rest api
   (rpenta@redhat.com)
