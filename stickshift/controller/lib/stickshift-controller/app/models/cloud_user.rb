@@ -16,7 +16,7 @@
       if !(key_name =~ /\A[A-Za-z0-9]+\z/)
         record.errors.add attribute, {:message => "Invalid key name: #{key_name}", :exit_code => 117}
       end
-      if !(key_info['type'] =~ /^(ssh-rsa|ssh-dss)$/)
+      if !(key_info['type'] =~ /\A(ssh-rsa|ssh-dss)\z/)
         record.errors.add attribute, {:message => "Invalid key type: #{key_info['type']}", :exit_code => 116}
       end
       if !(key_info['key'] =~ /\A[A-Za-z0-9\+\/=]+\z/)

@@ -28,7 +28,7 @@ class LegacyRequest < StickShift::Model
   end
   
   validates_each :key_type, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /^(ssh-rsa|ssh-dss)$/)
+    if !(val =~ /\A(ssh-rsa|ssh-dss)\z/)
       record.errors.add attribute, {:message => "Invalid key type: #{val}", :exit_code => 116}
     end
   end
