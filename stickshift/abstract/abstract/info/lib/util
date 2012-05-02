@@ -621,7 +621,7 @@ function run_user_hook {
   local position="$1"
   local event="$2"
 
-  local hook="$APP_HOME/.openshift/action_hooks/${position}_${event}"
+  local hook="${OPENSHIFT_REPO_DIR}.openshift/action_hooks/${position}_${event}"
 
   if [ $(id -u) -eq 0 ]; then
     echo "ERROR: run_user_hook called as root" 1>&2
