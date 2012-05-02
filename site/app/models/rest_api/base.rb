@@ -137,22 +137,44 @@ module RestApi
     end
 
     def load(attributes)
+      raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
+      @prefix_options, attributes = split_options(attributes)
 
-      if self.class.aliased_attributes
-        attributes = attributes.dup
-        self.class.aliased_attributes.each do |from,to|
-          value = attributes.delete(from)
-          send("#{to}=", value) unless value.nil?
-        end
-        super attributes
-      else
-        super
+      attributes = attributes.dup
+      aliased = self.class.aliased_attributes
+      calculated = self.class.calculated_attributes
+      known = self.class.known_attributes
+
+      aliased.each do |from,to|
+        value = attributes.delete(from)
+        send("#{to}=", value) unless value.nil?
       end
-      self.class.calculated_attributes.each_key do |attr| 
-        if attributes.has_key?(attr) 
-          send("#{attr}=", attributes[attr])
+
+      attributes.each do |key, value|
+        if !known.include? key.to_s and !calculated.include? key and respond_to?("#{key}=") 
+          send("#{key}=", value)
+        else
+          @attributes[key.to_s] =
+            case value
+              when Array
+                resource = find_or_create_resource_for_collection(key)
+                value.map do |attrs|
+                  if attrs.is_a?(Hash)
+                    resource.new(attrs)
+                  else
+                    attrs.duplicable? ? attrs.dup : attrs
+                  end
+                end
+              when Hash
+                resource = find_or_create_resource_for(key)
+                resource.new(value)
+              else
+                value.dup rescue value
+            end
         end
       end
+
+      calculated.each_key { |key| send("#{key}=", attributes[key]) if attributes.include?(key) }
       self
     end
 
@@ -187,9 +209,9 @@ module RestApi
 
     def save(*args)
       @previously_changed = changes # track changes
-      @changed_attributes.clear
       valid = super
       remove_instance_variable(:@update_id) if @update_id && valid
+      @changed_attributes.clear
       valid
 
     rescue ActiveResource::ConnectionError => error
@@ -287,7 +309,7 @@ module RestApi
         #begin changes
         path = "#{prefix(prefix_options)}#{collection_name}"
         unless singleton?
-          raise ArgumentError, 'id is required for non-singleton resources' if id.nil?
+          raise ArgumentError, "id is required for non-singleton resources #{self}" if id.nil?
           path << "/#{URI.escape id.to_s}"
         end
         path << ".#{format.extension}#{query_string(query_options)}"
@@ -387,6 +409,13 @@ module RestApi
         message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
         errors.add( (field || 'base').to_sym, message) unless message.blank?
       end
+    end
+
+    #
+    # Override method from CustomMethods to handle body objects
+    #
+    def get(custom_method_name, options = {})
+      self.class.send(:instantiate_collection, self.class.format.decode(connection.get(custom_method_element_url(custom_method_name, options), self.class.headers).body), as, prefix_options ) #changed
     end
 
     #
@@ -553,7 +582,6 @@ module RestApi
       end
       http
     end
-
     #
     # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
     # make GET consistent with other verbs (return response)

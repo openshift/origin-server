@@ -564,4 +564,110 @@ class RestApiTest < ActiveSupport::TestCase
 
     assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
   end
+
+  def test_cartridge_assignment
+    cart = Cartridge.new
+    app = Application.new :name => 'testapp1', :domain_name => 'test3'
+    cart.application = app
+
+    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+  end
+
+  def test_cartridge_initialization_object
+    app = Application.new :name => 'testapp1', :domain_id => 'test3'
+    cart = Cartridge.new :application => app
+
+    assert_equal app.name, cart.application_name
+
+    Application.expects(:find).with(app.name, :params => {:domain_id => app.domain_id}, :as => nil).returns(app)
+    assert_equal app.name, cart.application.name
+
+    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+  end
+
+  def test_cartridge_assignment_object
+    app = Application.new :name => 'testapp1', :domain_id => 'test3'
+    cart = Cartridge.new
+    cart.application = app
+
+    assert_equal app.name, cart.application_name
+
+    Application.expects(:find).with(app.name, :params => {:domain_id => app.domain_id}, :as => nil).returns(app)
+    assert_equal app.name, cart.application.name
+
+    assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
+  end
+
+  def test_gear_assigns_as
+    [Domain, Application, Key, Cartridge, Gear].each do |klass|
+      assert_equal @user, klass.new(:as => @user).send(:as)
+    end
+    [Domain, Application, Key, Cartridge, Gear].each do |klass|
+      (obj = klass.new).as = @user
+      assert_equal @user, obj.send(:as)
+    end
+  end
+
+  def test_app_domain_assignment_transfers_as
+    app = Application.new :domain => Domain.new(:id => '1', :as => @user)
+    assert_equal @user, app.send(:as)
+  end
+
+  def test_app_cart_assignment_transfers_as
+    cart = Cartridge.new :application => Application.new(:as => @user)
+    assert_equal @user, cart.send(:as)
+  end
+
+  def test_app_domain_object_assignment
+    domain = Domain.new :id => "1"
+    app = Application.new :name => 'testapp1', :domain => domain
+    assert_equal domain.id, app.domain_id
+    assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
+
+    app = Application.new :name => 'testapp1'
+    app.domain = domain
+    assert_equal domain.id, app.domain_id
+    assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
+  end
+
+  def test_app_custom_get_method
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/1/applications/testapp1/gears.json', json_header, [
+        { :uuid => 'abc', :components => [ { :name => 'ruby-1.8' } ] },
+      ].to_json
+    end
+    app = Application.new :name => 'testapp1', :domain => Domain.new(:id => '1', :as => @user)
+    assert 1, (gears = app.gears).length
+    assert 'abc', (gear = gears[0]).uuid
+    assert 1, gear.components.length
+    assert 'ruby-1.8', gear.components[0].name
+  end
+
+  def test_domain_id_tracks_changes
+    d = Domain.new :id => '1'
+    assert !d.changed?, d.pretty_inspect
+
+    d.id = '2'
+    assert d.changed?
+
+    d.id = '1'
+    assert d.changed?
+
+    d.changed_attributes.clear
+    assert !d.changed?
+  end
+
+  def test_domain_update_id_reset
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', {'Content-Type' => 'application/json'}.merge!(@auth_headers), {:id => '1'}.to_json
+      mock.put '/broker/rest/domains/1.json', {'Content-Type' => 'application/json'}.merge!(@auth_headers), {:id => '2'}.to_json
+    end
+    d = Domain.create :id => '1', :as => @user
+    assert !d.changed?, d.pretty_inspect
+
+    d.id = '2'
+    assert_equal '1', d.instance_variable_get(:@update_id)
+    assert d.save
+    assert_equal '2', d.id
+  end
 end

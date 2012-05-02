@@ -80,17 +80,17 @@ class DomainsControllerTest < ActionController::TestCase
     assert_template :new
   end
 
-  test "should allow only one domain" do
-    with_domain
+  #test "should allow only one domain" do
+  #  with_domain
 
-    post :create, {:domain => {:name => unique_name}}
+  #  post :create, {:domain => {:name => unique_name}}
 
-    assert domain = assigns(:domain)
-    assert !domain.errors.empty?
-    assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
-    assert_template :new
-  end
+  #  assert domain = assigns(:domain)
+  #  assert !domain.errors.empty?
+  #  assert domain.errors[:name].present?, domain.errors.inspect
+  #  assert_equal 1, domain.errors[:name].length, domain.errors.inspect
+  #  assert_template :new
+  #end
 
   test "should show edit domain page" do
     with_domain

@@ -21,6 +21,13 @@ module ActiveResource
     module ClassMethods
       def create_reflection(macro, name, options)
         reflection = AssociationReflection.new(macro, name, options)
+
+        # Simple reflection based abstraction
+        if (target = "#{reflection.class_name}Associations".safe_constantize)
+          method_name = "when_#{macro}".to_sym
+          target.send(method_name, self, options) if target.respond_to? method_name
+        end
+
         self.reflections = self.reflections.merge(name => reflection)
         reflection
       end
