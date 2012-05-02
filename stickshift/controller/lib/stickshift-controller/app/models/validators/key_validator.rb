@@ -23,7 +23,7 @@ class KeyValidator < ActiveModel::Validator
     if !record.type
       record.errors.add("type", {:message => "Key type is required and cannot be blank.", :exit_code => 116})
     end
-    if record.type and !(record.type =~ /^(ssh-rsa|ssh-dss)$/)
+    if record.type and !(record.type =~ /\A(ssh-rsa|ssh-dss)\z/)
       record.errors.add("type", {:message => "Invalid key type.  Valid types are ssh-rsa or ssh-dss.", :exit_code => 116})
     end
   end
