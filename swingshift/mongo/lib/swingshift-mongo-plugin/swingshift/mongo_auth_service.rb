@@ -44,6 +44,12 @@ module Swingshift
       !hash.nil?
     end
 
+    def generate_broker_key(app)
+      iv = Base64::encode64(app.name)
+      token = Base64::encode64(app.user.login)
+      [iv, token]
+    end
+
     def authenticate(request, login, password)
       begin
         encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)

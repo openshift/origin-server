@@ -28,6 +28,9 @@ $user_register_script = "/usr/bin/ss-register-user"
 # Alternatie domain suffix for use in alias commands
 $alias_domain = "foobar.com"
 
+# Submodule repo directory for testing submodule addition test case
+$submodule_repo_dir = "~/submodule_test_repo"
+
 #
 # Old RHC Client scripts
 #
@@ -77,6 +80,17 @@ module SetupHelper
     FileUtils.cp $test_pub_key, $libra_pub_key if !File.exists?($libra_pub_key)
     FileUtils.cp $test_priv_key, $libra_priv_key if !File.exists?($libra_priv_key)
     FileUtils.chmod 0600, $libra_priv_key
+
+    # create a submodule repo for the tests
+    if !File.exists?($submodule_repo_dir)
+      `git init #{$submodule_repo_dir}`
+      Dir.chdir($submodule_repo_dir) do
+        `echo Submodule > index`
+        `git add index`
+        `git commit -m 'test'`
+      end
+    end
+
   end
 end
 World(SetupHelper)
