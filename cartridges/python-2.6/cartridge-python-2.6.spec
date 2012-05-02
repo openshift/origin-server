@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version:   0.92.1
+Version:   0.92.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -109,6 +109,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 02 2012 Krishna Raman <kraman@gmail.com> 0.92.2-1
+- new package built with tito
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
 - bumping spec versions (admiller@redhat.com)
 
