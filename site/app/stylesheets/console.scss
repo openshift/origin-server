@@ -1,7 +1,7 @@
-// Management Console //
+/* OPENSHIFT MANAGEMENT CONSOLE
 
-/* OpenShift color palette
- --------------------------------------------
+Color palette
+--------------------------------------------
   0   0   0    000000     Black
 177 229 242    b1e5f2			Primary Blue
  54  53  52    363634     Primary Dark Gray
@@ -13,13 +13,17 @@
 234   0  17    ea0011     Bright Red
 205  32  44    cd202c     Primary Red
 161   0  12    a1000c     Dark Red
-
-Console colors		
-Grayscale (light -> dark) based on 9a9b9c - Cool Gray 7
---------------------------------------------------------------------------------------------------------------------------
-fafbfc	eaebec	dadbdc	cacbcc	babbbc	9a9b9c 8a8b8c	9a9b9c	7a7b7c	6a6b6c	5a5b5c 4a4b4c	3a3b3c	2a2b2c	1a1b1c 0a0b0c
-	1				2				3				4				5				6			 7			8				9				10			11			12		13			14			15		16
--------------------------------------------------------------------------------------------------------------------------- */
+ 
+Grayscale based on 9a9b9c - Cool Gray 7 (light -> dark)
+---------------------------------------------------------------------------------------------------------------------------------
+ ________________________________________________                                ________________________________________________
+|                  Usage: FONTS                  |                              |              Usage: BACKGROUNDS               |
+	fafbfc	eaebec	dadbdc	cacbcc	babbbc	9a9b9c	8a8b8c	9a9b9c	7a7b7c	6a6b6c	5a5b5c	4a4b4c	3a3b3c	2a2b2c	1a1b1c	0a0b0c
+		1				2				3				4				5				6				7				8				9				10			11			12			13			14			15			16
+			f2f3f4	e2e3e4	d2d3d4	c2c3c4	b2b3b4																					525354	424344	323334	222324	121314
+				1.5			2.5			3.5			4.5			5.5																							11.5		12.5		13.5		14.5		15.5		
+----------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------- */
 
 
 // Defaults before partials
@@ -234,11 +238,11 @@ ol.wizard li a {
 
 .section-console {
   padding-top: 25px;
-  padding-bottom: 30px;
+  padding-bottom: 60px;
 }
 
 .section-console {
-	  background-color: #1d1d1d; 
+	  background-color: #1f1f1f; 
 	  background-image:
 	    url('../images/mts.png'), 
 	    -moz-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
@@ -260,7 +264,7 @@ ol.wizard li a {
 		}
 
 .ie9 .section-console {
-	background-color: #1d1d1d; 
+	background-color: #1f1f1f; 
 	  background-image:
 	    url('../images/mts.png');
 	  background-repeat:
@@ -279,8 +283,8 @@ figure {
 	}
 
 .console-head {
-	background: #212121;
-	border-bottom: 3px solid #2a2a2a;
+	background: #262626;
+	border-bottom: 3px solid #2f2f2f;
 	padding: 15px 0 10px 0;
 	margin: 0 -25px 0 5px;
 	}
@@ -313,7 +317,7 @@ figure {
     text-align: right;
 		}
 .console-head * {
-	color: #eaebec;
+	color: #dadbdc;
 	}
 
 #footer-nav {
@@ -322,7 +326,7 @@ figure {
 
 .row-console > .row {
   background: #000;
-  color: #9a9b9c;
+  color: #babbbc;
 }
 
 .section-console-light .row-console > .row {
@@ -418,7 +422,7 @@ figure {
 
 #app-list, #account-digest {
  margin-top: 0;
- color: #9a9b9c;
+ color: #babbbc;
 }
 .app-full-path {
 	color: #9a9b9c;
@@ -443,10 +447,13 @@ figure {
   tbody tr:hover th {
   	background-color:transparent;
   }
-  .line-item-title {
-  	margin-left: 15px;
-  }
-  .status {
+  
+}
+
+.line-item-title {
+	margin-left: 15px;
+}
+.status {
   	display: inline-block;
   	float: left;
   	height: 10px;
@@ -457,7 +464,7 @@ figure {
   .status-important {
   	background-color: #900;
   }
-}
+  
 
 .nav {
 	margin-bottom: 6px;
