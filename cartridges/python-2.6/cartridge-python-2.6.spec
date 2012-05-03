@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/ruby-1.8
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/python-2.6
 
-Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      cartridge-ruby-1.1
-Version:   0.92.1
+Summary:   Provides python-2.6 support
+Name:      cartridge-python-2.6
+Version:   0.92.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -14,38 +14,24 @@ BuildRequires: git
 Requires:  stickshift-abstract
 Requires:  rubygem(stickshift-node)
 Requires:  mod_bw
-Requires:  sqlite-devel
-Requires:  rubygems
-Requires:  rubygem-rack >= 1.1.0
-#Requires:  rubygem-rack < 1.2.0
-Requires:  rubygem-passenger
-Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
-Requires:  mod_passenger
-Requires:  rubygem-bundler
-Requires:  rubygem-mongo
-Requires:  rubygem-sqlite3
-Requires:  rubygem-thread-dump
-Requires:  ruby-sqlite3
-Requires:  ruby-mysql
-Requires:  rubygem-bson_ext
-Requires:  mysql-devel
-Requires:  ruby-devel
-Requires:  ruby-nokogiri
-Requires:  libxml2
-Requires:  libxml2-devel
-Requires:  libxslt
-Requires:  libxslt-devel
-Requires:  gcc-c++
-Requires:  js
+Requires:  python
+Requires:  mod_wsgi >= 3.2
+Requires:  MySQL-python
+Requires:  pymongo
+Requires:  pymongo-gridfs
+Requires:  python-psycopg2
+Requires:  python-virtualenv
+Requires:  libjpeg
+Requires:  libjpeg-devel
+Requires:  libcurl
+Requires:  libcurl-devel
 
-# Deps for users
-Requires: ruby-RMagick
+Obsoletes: cartridge-python-3.2
 
 BuildArch: noarch
 
 %description
-Provides ruby support to OpenShift
+Provides wsgi support to OpenShift
 
 %prep
 %setup -q
@@ -93,6 +79,7 @@ ln -s %{cartridgedir}/../abstract/info/hooks/add-alias %{buildroot}%{cartridgedi
 ln -s %{cartridgedir}/../abstract/info/hooks/tidy %{buildroot}%{cartridgedir}/info/hooks/tidy
 ln -s %{cartridgedir}/../abstract/info/hooks/remove-alias %{buildroot}%{cartridgedir}/info/hooks/remove-alias
 ln -s %{cartridgedir}/../abstract/info/hooks/move %{buildroot}%{cartridgedir}/info/hooks/move
+ln -s %{cartridgedir}/../abstract/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 ln -s %{cartridgedir}/../abstract/info/hooks/expose-port %{buildroot}%{cartridgedir}/info/hooks/expose-port
 ln -s %{cartridgedir}/../abstract/info/hooks/conceal-port %{buildroot}%{cartridgedir}/info/hooks/conceal-port
 ln -s %{cartridgedir}/../abstract/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
@@ -108,6 +95,8 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
+%dir %{cartridgedir}
+%dir %{cartridgedir}/info/
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
@@ -122,15 +111,26 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 03 2012 Dan McPherson <dmcphers@redhat.com> 0.92.3-1
+- Adding obsoletes for machines that may have cartridge with old name already
+  installed. (kraman@gmail.com)
+
+* Wed May 02 2012 Krishna Raman <kraman@gmail.com> 0.92.2-1
+- new package built with tito
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
 - bumping spec versions (admiller@redhat.com)
 
-* Tue Apr 24 2012 Adam Miller <admiller@redhat.com> 0.91.7-1
-- Inversed logic since we don't use Fedora name in the open source image.
-  (mpatel@redhat.com)
+* Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.91.7-1
+- Update to python cartridge to use default (empty) mirror in Fedora
+-  (kraman@gmail.com)
 
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.91.6-1
 - cleaning up spec files (dmcphers@redhat.com)
+- Add system site packages to the virtual environment. Allows packages with
+  custom build configurations like pycurl to be installed on the system via RPM
+  and re-used rather than have to hack up per-package builds.  And faster to
+  deploy. (rmillner@redhat.com)
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.91.5-1
 - new package built with tito

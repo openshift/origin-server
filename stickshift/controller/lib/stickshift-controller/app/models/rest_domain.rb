@@ -10,6 +10,8 @@ class RestDomain < StickShift::Model
       Application.get_available_cartridges("standalone")
     end
     
+    valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
+    
     self.links = {
       "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),
       "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
@@ -18,7 +20,7 @@ class RestDomain < StickShift::Model
         [OptionalParam.new("cartridge", "string", "framework-type, e.g: php-5.3", carts),
         OptionalParam.new("template", "string", "UUID of the application template"),
         OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
-        OptionalParam.new("gear_profile", "string", "The size of the gear", ["small", "micro", "medium", "large", "exlarge", "jumbo"], "small")
+        OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0])
       ]),
       "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{id}"),[
         Param.new("id", "string", "Name of the domain")

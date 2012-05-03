@@ -242,7 +242,7 @@ class RestDomain_V1 < BaseObj_V1
         [OptionalParam_V1.new("cartridge", "string"),
          OptionalParam_V1.new("template", "string"),
          OptionalParam_V1.new("scale", "boolean", [true, false], false),
-         OptionalParam_V1.new("gear_profile", "string", ["small", "micro", "medium","large", "exlarge", "jumbo"], "small")]),
+         OptionalParam_V1.new("gear_profile", "string", ["small"], "small")]),
       "UPDATE" => Link_V1.new("PUT", "domains/#{id}",
         [ Param_V1.new("id", "string") ]),
       "DELETE" => Link_V1.new("DELETE", "domains/#{id}", nil,

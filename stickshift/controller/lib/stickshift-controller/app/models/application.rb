@@ -33,7 +33,7 @@ class Application < StickShift::Cartridge
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /\A(jumbo|exlarge|large|micro|medium|small)\z/)
+    unless StickShift::ApplicationContainerProxy.valid_gear_sizes(record.user).include? val
       record.errors.add attribute, {:message => "Invalid Profile.  Must be: (jumbo|exlarge|large|medium|micro|small)", :exit_code => 134}
     end
   end

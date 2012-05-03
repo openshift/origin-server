@@ -8,6 +8,6 @@ Type: Cartridge
 Role: misc
 Vendor: rack.rubyforge.org/
 DisplayName: RACK-1.1
-Bundles:  ruby-1.1-bundle.tar.gz
+Bundles:  ruby-1.8-bundle.tar.gz
 Description: 
 Rack provides a minimal interface between webservers supporting Ruby and Ruby frameworks.
