@@ -1,5 +1,3 @@
-require "stickshift-common"
-
 module Swingshift
   module AuthService
     require 'swingshift-mongo-plugin/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3

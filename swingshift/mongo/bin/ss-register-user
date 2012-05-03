@@ -10,8 +10,8 @@ Register a new user.
 
   -l|--login       Login for admin user
   -p|--password    Password for admin user
-  -u|--username    User name for the new user
-  -z|--userpass    User password for the new user
+     --username    User name for the new user
+     --userpass    User password for the new user
   -h|--help        Show usage info
 
 USAGE
@@ -22,8 +22,8 @@ begin
   opts = GetoptLong.new(
                         ["--login",     "-l", GetoptLong::REQUIRED_ARGUMENT],  
                         ["--password",  "-p", GetoptLong::REQUIRED_ARGUMENT],                          
-                        ["--username",  "-u", GetoptLong::REQUIRED_ARGUMENT],
-                        ["--userpass",  "-z", GetoptLong::REQUIRED_ARGUMENT],
+                        ["--username",        GetoptLong::REQUIRED_ARGUMENT],
+                        ["--userpass",        GetoptLong::REQUIRED_ARGUMENT],
                         ["--help",      "-h", GetoptLong::NO_ARGUMENT]
                        )
   opt = {}

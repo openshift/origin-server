@@ -30,7 +30,7 @@ module Swingshift
         con = Mongo::Connection.new(@host_port[0], @host_port[1])
       end
       user_db = con.db(@db)
-      user_db.authenticate(@user, @password)
+      user_db.authenticate(@user, @password) unless @user.nil?
       user_db
     end
     
