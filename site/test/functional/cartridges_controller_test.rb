@@ -40,6 +40,7 @@ class CartridgesControllerTest < ActionController::TestCase
     assert cart.errors.empty?, cart.errors.inspect
 
     post(:create, get_post_form)
+    assert_response :success
     assert cart = assigns(:cartridge)
     assert !cart.errors.empty?
     assert cart.errors[:base].present?
