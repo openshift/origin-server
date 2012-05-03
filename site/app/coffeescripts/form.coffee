@@ -6,6 +6,19 @@ find_control_group_parent =
     return parent
 
 $ ->
+
+  # Show/hide loading icons when form buttons are clicked
+  loading_match = '*[data-loading=true]'
+  ($ 'form '+loading_match).each ->
+    ($ window).bind 'pagehide', ->
+      ($ loading_match, body).hide()
+      ($ 'input[type=submit][disabled]').removeAttr('disabled')
+    ($ this).closest('form').bind 'submit', ->
+      if ($ 'input.error').length == 0
+        ($ loading_match, this).show()
+        ($ 'input[type=submit]', this).attr('disabled','disabled')
+        true
+
   $.validator.addMethod "aws_account", ((value) ->
     (/^[\d]{4}-[\d]{4}-[\d]{4}$/).test value
   ), "Account numbers should be a 12-digit number separated by dashes. Ex: 1234-5678-9000"
