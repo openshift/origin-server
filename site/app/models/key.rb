@@ -23,7 +23,6 @@ class Key < RestApi::Base
   end
 
   belongs_to :user
-  self.prefix = "#{RestApi::Base.site.path}/user/"
 
   attr_alters :raw_content, [:content, :type]
   # Raw content is decomposed into content and type

@@ -16,7 +16,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :categories, :learn_more_url
   attr_accessor :help_topics
 
-  self.prefix = "#{RestApi::Base.site.path}/cartridges/embedded"
+  self.prefix = "#{RestApi::Base.prefix}cartridges/embedded"
 
   def type
     @attributes[:type]

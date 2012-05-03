@@ -1,7 +1,7 @@
 module DomainAssociations
 
   def self.when_belongs_to(klass, options)
-    klass.prefix = "#{RestApi::Base.site.path}domains/:domain_id/"
+    klass.prefix = "#{RestApi::Base.prefix}domains/:domain_id/"
     klass.class_eval do
       # domain_id overlaps with the attribute returned by the server
       def domain_id=(id)
