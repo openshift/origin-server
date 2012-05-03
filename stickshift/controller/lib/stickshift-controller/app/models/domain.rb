@@ -70,6 +70,7 @@ class Domain < StickShift::UserModel
       dns_service.close
     end
     super(user.login)
+    notify_observers(:after_domain_destroy) 
     resultIO
   end
    
@@ -143,7 +144,7 @@ class Domain < StickShift::UserModel
     ensure
       dns_service.close
     end
-    
+    notify_observers(:after_domain_update) 
     resultIO
   end
   def create
@@ -169,6 +170,7 @@ class Domain < StickShift::UserModel
     ensure
       dns_service.close
     end
+    notify_observers(:after_domain_create) 
     resultIO
   end
 end
