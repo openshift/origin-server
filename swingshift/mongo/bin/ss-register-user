@@ -1,16 +1,17 @@
 #!/usr/bin/ruby
 require 'rubygems'
-require 'digest/md5'
-require 'swingshift-mongo-plugin'
-require '/var/www/stickshift/broker/config/environment'
+require 'getoptlong'
+require 'active_resource'
 
 def p_usage
   puts <<USAGE
 Usage: #{$0}
-Register StickShift user.
+Register a new user.
 
-  -u|--user        StickShift user name or email address
-  -p|--password    User password
+  -l|--login       Login for admin user
+  -p|--password    Password for admin user
+  -u|--username    User name for the new user
+  -z|--userpass    User password for the new user
   -h|--help        Show usage info
 
 USAGE
@@ -19,9 +20,11 @@ end
 
 begin
   opts = GetoptLong.new(
-                        ["--user",  "-u", GetoptLong::REQUIRED_ARGUMENT],
-                        ["--password",  "-p", GetoptLong::REQUIRED_ARGUMENT],
-                        ["--help",  "-h", GetoptLong::NO_ARGUMENT]
+                        ["--login",     "-l", GetoptLong::REQUIRED_ARGUMENT],  
+                        ["--password",  "-p", GetoptLong::REQUIRED_ARGUMENT],                          
+                        ["--username",  "-u", GetoptLong::REQUIRED_ARGUMENT],
+                        ["--userpass",  "-z", GetoptLong::REQUIRED_ARGUMENT],
+                        ["--help",      "-h", GetoptLong::NO_ARGUMENT]
                        )
   opt = {}
   opts.each do |o, a|
@@ -32,17 +35,58 @@ rescue Exception => e
   p_usage
 end
 
-if opt['help'] || !opt['user'] || !opt['password']
+if opt['help'] || !opt['login'] || !opt['password'] || !opt['username'] || !opt['userpass']
     p_usage
 end
 
-auth_config = Rails.application.config.auth
-auth_service = Swingshift::MongoAuthService.new(auth_config)
+ActiveResource::Base.include_root_in_json = false
+module ActiveResource
+  module Formats
+    #
+    # The OpenShift REST API wraps the root resource element whi
+    # to be unwrapped.
+    #
+    module OpenshiftJsonFormat
+      extend ActiveResource::Formats::JsonFormat
+      extend self
 
-if auth_service.user_exists?(opt['user'])
-  puts "Error: User '#{opt['user']}' already registered."
-  exit 1
+      def decode(json)
+        decoded = super
+        if decoded.is_a?(Hash) and decoded.has_key?('data')
+          decoded = decoded['data']
+        end
+        if decoded.is_a?(Array)
+          decoded.each { |i| i.delete 'links' }
+        else
+          decoded.delete 'links'
+        end
+        decoded
+      end
+    end
+  end
 end
 
-auth_service.register_user(opt['user'],opt['password'])
-puts "User '#{opt['user']}' successfully registered with StickShift."
+$options = opt
+class Account < ActiveResource::Base
+  self.site="https://localhost/broker/rest"
+  self.user = $options['login']
+  self.password = $options['password']
+  self.format = :OpenshiftJson
+
+  def read_errors
+    error_data = JSON.parse(@remote_errors.response.body)
+    error_data["messages"]
+  end
+end
+
+acc = Account.new(:username => opt['username'], :password => opt['userpass'])
+if acc.save
+  print "User created succesfully\n"
+else
+  errors = acc.read_errors
+  if errors.nil? || errors.empty?
+    print "An unknown error has occured"
+  else
+    print "#{errors[0]["text"]}\n"
+  end
+end
