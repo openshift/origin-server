@@ -103,6 +103,7 @@ echo "use admin
       db.addUser(\"admin\", \"${password}\")
       exit
      "  | mongo $IP
+rm -f /tmp/.dbshell
 
 
 client_result ""
