@@ -109,6 +109,16 @@
     padding-top: 10px;
     }
 
+.input-prepend-append .error {
+  color: $errorBackground;
+  border-color: $errorBackground;
+  &:focus {
+    border-color: darken($errorBackground, 10%);
+    @include box-shadow(0 0 2px lighten($errorBackground, 20%));
+  }
+}
+
+
 @media (max-width: 480px) {
 	.input-prepend-append input {
     border-left: 1px solid;

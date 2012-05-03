@@ -12,8 +12,12 @@ class Domain < RestApi::Base
 
   has_many :applications
   def applications
-    @applications ||= Application.find :all, { :params => { :domain_name => self.id }, :as => as }
+    @applications ||= Application.find :all, { :params => { :domain_id => self.id }, :as => as }
   end
+  def find_application(name)
+    Application.find name, { :params => { :domain_id => self.id }, :as => as}
+  end
+
   #FIXME should have an observer pattern that clears cached associations on reload
   def reload
     @applications = nil
@@ -25,36 +29,53 @@ class Domain < RestApi::Base
     User.find :one, :as => as
   end
 
-  def find_application(name)
-    Application.find name, { :params => { :domain_name => self.id }, :as => as}
-  end
-
   def destroy_recursive
     connection.delete(element_path({:force => true}.merge(prefix_options)), self.class.headers)
   end
 
-  def save(*args)
+  #def save(*args)
     # FIXME: We do this since we do not yet handle multiple domains in the
     #        UI.  This mitigates a race condition where multiple domains
     #        can be created if there is no domains registered yet but does
     #        not fix it.
-    first_domain = Domain.first :as => @as
-    unless first_domain.nil?
-      if first_domain != self && @update_id.nil?
-        errors.add(:name, "User already has a domain associated. Go back to accounts to modify.")
-        return false
+  #  first_domain = Domain.first :as => @as
+  #  unless first_domain.nil?
+  #    if first_domain != self && @update_id.nil?
+  #      errors.add(:name, "User already has a domain associated. Go back to accounts to modify.")
+  #      return false
+  #    end
+  #  end
+
+  #  super
+  #end
+
+  def self.when_belongs_to(klass, options, set_prefix=true)
+    puts "Adding #{self} methods to #{klass}"
+    klass.prefix = "#{RestApi::Base.site.path}/domains/:domain_id/" if set_prefix
+    klass.class_eval do
+      # domain_id overlaps with the attribute returned by the server
+      def domain_id=(id)
+        self.prefix_options[:domain_id] = id
+        super
+      end
+      def domain_id
+        self.prefix_options[:domain_id] || super
+      end
+
+      def domain
+        Domain.find domain_id, :as => as
+      end
+
+      def domain=(domain)
+        self.domain_id = domain.is_a?(String) ? domain : domain.id
       end
     end
-
-    super
   end
 
-  class << self
-    # FIXME: Temporary until multiple domains are supported
-    def find_one(options)
-      domain = first options
-      raise ActiveResource::ResourceNotFound, :domain if domain.nil?
-      domain
-    end
+  # FIXME: Temporary until multiple domains are supported
+  def self.find_one(options)
+    domain = first(options)
+    raise ActiveResource::ResourceNotFound, :domain if domain.nil?
+    domain
   end
 end

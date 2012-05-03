@@ -13,34 +13,23 @@ class Application < RestApi::Base
   def id #FIXME provided as legacy support for accessing .name via .id
     name
   end
+
+  belongs_to :domain
   alias_attribute :domain_name, :domain_id
 
   has_many :aliases
   has_many :cartridges
+  has_many :gears
 
-  belongs_to :domain
-  self.prefix = "#{RestApi::Base.site.path}/domains/:domain_name/"
-
-  # domain_id overlaps with the attribute returned by the server
-  def domain_id=(id)
-    self.prefix_options[:domain_name] = id
-    super
-  end
-
-  def domain
-    Domain.find domain_name, :as => as
-  end
-
-  def domain=(domain)
-    self.domain_id = domain.is_a?(String) ? domain : domain.id
-  end
-  
   def find_cartridge(name)
-    Cartridge.find name, { :params => { :domain_name => domain_id, :application_name => self.name }, :as => as}
+    Cartridge.find name, { :params => { :domain_id => domain_id, :application_name => self.name }, :as => as}
   end
-  
+
   def cartridges
-    Cartridge.find :all, { :params => { :domain_name => domain_id, :application_name => self.name }, :as => as }
+    Cartridge.find :all, { :params => { :domain_id => domain_id, :application_name => self.name }, :as => as }
+  end
+  def gears
+    get :gears
   end
 
   def web_url
@@ -53,14 +42,6 @@ class Application < RestApi::Base
   def framework_name
     ApplicationType.find(framework).name rescue framework
   end
-  
-  # Causes a problem during serialization, application_type is set during create 
-  # as a dynamic attribute for form simplicity, but once that happens serialization
-  # invokes this getter and fails because framework is only set after the app has been
-  # loaded from the server
-  #def application_type
-  #  ApplicationType.find(framework)
-  #end
 
   protected
     def url_authority

@@ -52,6 +52,10 @@ module CommunityHelper
     "https://github.com/openshift/#{project}"
   end
 
+  def red_hat_account_url
+    'https://www.redhat.com/wapps/ugc'
+  end
+
   def mailto_openshift_url
     'mailto:openshift@redhat.com'
   end
