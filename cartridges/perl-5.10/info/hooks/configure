@@ -48,7 +48,7 @@ fi
 mkdir -p "$APP_DIR"
 pushd "$APP_DIR" > /dev/null
 create_standard_app_dirs
-mkdir conf conf.d logs perl5lib ../.cpanm
+mkdir conf conf.d perl5lib ../.cpanm
 ln -s /usr/lib64/httpd/modules modules
 ln -s /etc/httpd/conf/magic conf/magic
 popd > /dev/null

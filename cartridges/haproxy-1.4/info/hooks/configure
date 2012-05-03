@@ -51,7 +51,7 @@ function setup_haproxy_as_a_service() {
     mkdir -p "$APP_DIR"
     pushd "$APP_DIR" > /dev/null
     create_standard_app_dirs
-    mkdir -p conf conf.d logs sessions
+    mkdir -p conf conf.d sessions
     ln -s /usr/lib64/httpd/modules modules
     ln -s /etc/httpd/conf/magic conf/magic
     popd > /dev/null
@@ -142,7 +142,7 @@ add_broker_auth_key
 #
 mkdir -p "$HAPROXY_DIR"
 pushd "$HAPROXY_DIR" > /dev/null
-mkdir -p conf conf.d logs run sessions
+mkdir -p conf conf.d run sessions
 ln -s /usr/lib64/httpd/modules modules
 ln -s /etc/httpd/conf/magic conf/magic
 touch conf/gear-registry.db
@@ -159,7 +159,7 @@ export IP2=`embedded_find_open_ip $uid "$APP_HOME"`
 echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 mkdir -p $APP_HOME/.openshift
-chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
+chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
 observe_setup_var_lib_dir "$HAPROXY_DIR"
 
 # Alter PATH so that the haproxy app_ctl.sh script is called.

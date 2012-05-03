@@ -57,7 +57,7 @@ fi
 #
 # Checking if the user has added the settings.py file in the git repo
 #
-if [ ! -f "${APP_DIR}/repo/.openshift/mms/settings.py" ]
+if [ ! -f "${APP_REPO_DIR}/.openshift/mms/settings.py" ]
 then
     client_error ""
     client_error "Missing settings.py file:  $APP_DIR/.openshift/mms/settings.py"

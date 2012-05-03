@@ -98,7 +98,7 @@ EOF
 
 function create_standard_env_vars {
     #echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > $APP_HOME/.env/OPENSHIFT_GEAR_DIR
-    #echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > $APP_HOME/.env/OPENSHIFT_LOG_DIR
+    #echo "export OPENSHIFT_LOG_DIR='$APP_LOGS_DIR/'" > $APP_HOME/.env/OPENSHIFT_LOG_DIR
     #echo "export OPENSHIFT_DATA_DIR='$APP_DIR/data/'" > $APP_HOME/.env/OPENSHIFT_DATA_DIR
     #echo "export OPENSHIFT_TMP_DIR='/tmp/'" > $APP_HOME/.env/OPENSHIFT_TMP_DIR
     echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > $APP_HOME/.env/OPENSHIFT_RUN_DIR
@@ -117,7 +117,7 @@ function create_standard_network_env_vars {
 }
 
 function create_standard_repo_dir_env_var {
-    #echo "export OPENSHIFT_REPO_DIR='$APP_DIR/repo/'" > $APP_HOME/.env/OPENSHIFT_REPO_DIR
+    #echo "export OPENSHIFT_REPO_DIR='$APP_REPO_DIR/'" > $APP_HOME/.env/OPENSHIFT_REPO_DIR
     true
 }
 
@@ -130,8 +130,11 @@ function create_custom_uservars_var {
 }
 
 function create_standard_app_dirs {
-	mkdir -p run tmp data ci runtime/repo
-	ln -s runtime/repo repo
+    mkdir -p run tmp data ci
+    if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
+        ln -s ../$OPENSHIFT_APP_NAME/repo repo
+        ln -s ../$OPENSHIFT_APP_NAME/logs logs
+    fi
 }
 
 # Create simple application start / stop script
@@ -346,6 +349,9 @@ function setup_basic_vars {
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$application | tr -s /`
+    source "$APP_HOME/.env/OPENSHIFT_APP_NAME"
+    APP_REPO_DIR="$APP_HOME/$OPENSHIFT_APP_NAME/repo"
+    APP_LOGS_DIR="$APP_HOME/$OPENSHIFT_APP_NAME/logs"
 }
 
 function force_kill {

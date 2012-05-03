@@ -10,25 +10,27 @@ IP="$3"
 
 APP_HOME="$GEAR_BASE_DIR/$uuid"
 APP_DIR=`echo $APP_HOME/$application | tr -s /`
+source "$APP_HOME/.env/OPENSHIFT_LOG_DIR"
+source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
 cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
 ServerRoot "$APP_DIR"
-DocumentRoot "$APP_DIR/repo/wsgi"
+DocumentRoot "$OPENSHIFT_REPO_DIR/wsgi"
 Listen $IP:8080
 User $uuid
 Group $uuid
 
-ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
+ErrorLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/access_log$rotatelogs_format $rotatelogs_interval" combined
  
-<Directory $APP_DIR/repo/wsgi>
+<Directory $OPENSHIFT_REPO_DIR/wsgi>
   AllowOverride all
   Options -MultiViews
 </Directory>
 
-WSGIScriptAlias / "$APP_DIR/repo/wsgi/application"
-Alias /static "$APP_DIR/repo/wsgi/static/"
-WSGIPythonPath "$APP_DIR/repo/libs:$APP_DIR/repo/wsgi:$APP_DIR/virtenv/lib/python2.6/"
+WSGIScriptAlias / "$OPENSHIFT_REPO_DIR/wsgi/application"
+Alias /static "$OPENSHIFT_REPO_DIR/wsgi/static/"
+WSGIPythonPath "$OPENSHIFT_REPO_DIR/libs:$OPENSHIFT_REPO_DIR/wsgi:$APP_DIR/virtenv/lib/python2.6/"
 WSGIPassAuthorization On
 
 # TODO: Adjust from ALL to more conservative values

@@ -64,7 +64,7 @@ ln -s $CART_INFO_DIR/bin/cron_ctl.sh $CRON_DIR/${application}_cron_ctl.sh
 #
 # Create links to the jobs directory and the run jobs script.
 #
-ln -s $APP_HOME/${application}/repo/.openshift/cron $CRON_DIR/jobs
+ln -s $APP_REPO_DIR/.openshift/cron $CRON_DIR/jobs
 ln -s $CART_INFO_DIR/bin/cron_runjobs.sh $CRON_DIR/cron_runjobs.sh
 
 #

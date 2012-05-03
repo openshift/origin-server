@@ -46,7 +46,7 @@ function _start_node_service() {
     #  Got here - it means that we need to start up Node.
 
     envf="$OPENSHIFT_GEAR_DIR/conf/node.env"
-    logf="$OPENSHIFT_GEAR_DIR/logs/node.log"
+    logf="$OPENSHIFT_LOG_DIR/node.log"
 
     #  Source environment if it exists.
     [ -f "$envf" ]  &&  source "$envf"
@@ -81,7 +81,7 @@ function _stop_node_service() {
     fi
 
     if [ -n "$node_pid" ]; then
-        logf="$OPENSHIFT_GEAR_DIR/logs/node.log"
+        logf="$OPENSHIFT_LOG_DIR/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
         /bin/kill $node_pid
         ret=$?

@@ -36,7 +36,7 @@ stop_app
 
 confirm_pid_gone "${APP_DIR}/run/httpd.pid"
 
-confirm_log_files_inactive "$APP_DIR/logs"
+confirm_log_files_inactive "$APP_LOGS_DIR"
 
 rm_app_dir
 

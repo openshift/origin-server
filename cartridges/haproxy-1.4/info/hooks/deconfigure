@@ -53,7 +53,7 @@ source ${GEAR_BASE_DIR}/${uuid}/.env/PATH
 
 # Stop old apps
 stop_app
-confirm_log_files_inactive "$HAPROXY_DIR/logs"
+confirm_log_files_inactive "$APP_LOGS_DIR"
 
 # Remove PATH override
 export PATH=`echo "$PATH" | sed "s,$CART_INFO_DIR/bin/:,,g"`

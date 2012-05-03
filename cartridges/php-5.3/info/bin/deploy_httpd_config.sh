@@ -10,18 +10,20 @@ IP="$3"
 
 APP_HOME="$GEAR_BASE_DIR/$uuid"
 APP_DIR=`echo $APP_HOME/$application | tr -s /`
+source "$APP_HOME/.env/OPENSHIFT_LOG_DIR"
+source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
 cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
 ServerRoot "$APP_DIR"
-DocumentRoot "$APP_DIR/repo/php"
+DocumentRoot "$OPENSHIFT_REPO_DIR/php"
 Listen $IP:8080
 User $uuid
 Group $uuid
-ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
-php_value include_path ".:$APP_DIR/repo/libs/:$APP_DIR/phplib/pear/pear/php/:/usr/share/pear/"
+ErrorLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/access_log$rotatelogs_format $rotatelogs_interval" combined
+php_value include_path ".:$OPENSHIFT_REPO_DIR/libs/:$APP_DIR/phplib/pear/pear/php/:/usr/share/pear/"
 # TODO: Adjust from ALL to more conservative values
-<Directory "$APP_DIR/repo/php">
+<Directory "$OPENSHIFT_REPO_DIR/php">
   AllowOverride All
 </Directory>
 
