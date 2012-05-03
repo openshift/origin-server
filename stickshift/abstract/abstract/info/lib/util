@@ -4,6 +4,11 @@
 SS_CONTROLLER_LIB_UTIL=true
 source /etc/stickshift/stickshift-node.conf
 
+function source_if_exists {
+    [ -f "$1" ]  &&  source "$1"
+    return 0
+}
+
 function start_app {
     for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
     do
@@ -53,11 +58,6 @@ function start_dbs {
     do
         $cmd start || error "Failed to start ${cmd}" 121
     done
-}
-
-function source_if_exists {
-    [ -f "$1" ]  &&  source "$1"
-    return 0
 }
 
 function get_app_type {
@@ -614,6 +614,29 @@ function test_cartridge_state {
   _state=`get_cartridge_state "$1"`
   return `test "$_state" = $2`
 }
+
+function run_user_hook {
+  # Run pre_start, pre_stop, post_start, post_stop hooks.
+  # The pre_* hooks may modify environment.
+  local position="$1"
+  local event="$2"
+
+  local hook="${OPENSHIFT_REPO_DIR}.openshift/action_hooks/${position}_${event}"
+
+  if [ $(id -u) -eq 0 ]; then
+    echo "ERROR: run_user_hook called as root" 1>&2
+    exit 15
+  fi
+
+  if [ -f "$hook" ]; then
+    if [ "$position" = "pre" ]; then
+      source "$hook"
+    else
+      "$hook"
+    fi
+  fi
+}
+
 
 if [ -f /usr/libexec/stickshift/lib/util_ext ]
 then

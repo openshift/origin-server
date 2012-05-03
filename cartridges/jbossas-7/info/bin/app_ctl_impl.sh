@@ -73,6 +73,7 @@ function start_app() {
         if isrunning; then
             echo "Application is already running" 1>&2
         else
+            run_user_hook pre start
             set_app_state started
             # Start
             jopts="${JAVA_OPTS}"
@@ -84,6 +85,7 @@ function start_app() {
 	            echo "Timed out waiting for http listening port"
 	            exit 1
 	        fi
+               run_user_hook post start
         fi
     fi
 }
@@ -94,9 +96,11 @@ function stop_app() {
         jbpid=$(cat $JBOSS_PID_FILE);
         echo "Application($jbpid) is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
+        run_user_hook pre stop
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid
+        run_user_hook post stop
     else 
         echo "Failed to locate JBOSS PID File" 1>&2
     fi
