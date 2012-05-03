@@ -45,6 +45,8 @@ function _start_node_service() {
 
     #  Got here - it means that we need to start up Node.
 
+    run_user_hook pre start
+
     envf="$OPENSHIFT_GEAR_DIR/conf/node.env"
     logf="$OPENSHIFT_GEAR_DIR/logs/node.log"
 
@@ -68,6 +70,7 @@ function _start_node_service() {
     popd > /dev/null
     if [ $ret -eq 0 ]; then
         echo "$npid" > "$OPENSHIFT_GEAR_DIR/run/node.pid"
+        run_user_hook post start
     else
         echo "Application '$OPENSHIFT_GEAR_NAME' failed to start - $ret" 1>&2
     fi
@@ -81,6 +84,8 @@ function _stop_node_service() {
     fi
 
     if [ -n "$node_pid" ]; then
+        run_user_hook pre stop
+
         logf="$OPENSHIFT_GEAR_DIR/logs/node.log"
         echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
         /bin/kill $node_pid
@@ -101,6 +106,8 @@ function _stop_node_service() {
 
         echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_GEAR_NAME'" >> $logf
         rm -f $OPENSHIFT_GEAR_DIR/run/node.pid
+        
+        run_user_hook post stop
     else
         if `pgrep -x node -u $(id -u)  > /dev/null 2>&1`; then
             echo "Warning: Application '$OPENSHIFT_GEAR_NAME' Node server exists without a pid file.  Use force-stop to kill." 1>&2

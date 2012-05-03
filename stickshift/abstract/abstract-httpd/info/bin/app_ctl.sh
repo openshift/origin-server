@@ -30,15 +30,19 @@ case "$1" in
             echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
             exit 0
         else
+            run_user_hook pre start
             set_app_state started
             /usr/sbin/httpd -C "Include ${OPENSHIFT_GEAR_DIR}conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
+            run_user_hook post start
         fi
     ;;
     graceful-stop|stop)
         app_ctl_stop.sh $1
     ;;
     restart|graceful)
+        run_user_hook pre start
         set_app_state started
         /usr/sbin/httpd -C "Include ${OPENSHIFT_GEAR_DIR}conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
+        run_user_hook post start
     ;;
 esac
