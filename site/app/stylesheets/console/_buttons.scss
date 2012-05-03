@@ -1,0 +1,68 @@
+// CONSOLE BUTTON STYLES
+// -------------
+
+.btn, 
+a.btn {
+	color: #ccc;
+  line-height: 17px;
+	text-shadow: 0 -1px 1px #000000;
+	border-color: #010101;//rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.25) rgba(255, 255, 255, 0.25);
+	@include gradient-vertical-three-colors($startColor: #505050, $midColor: #333, $colorStop: 5%, $endColor: #1f1f1f);
+}
+
+.btn:hover, 
+a.btn:hover {
+	color: #fff;
+	background-color: #4c4c4c;
+	@include gradient-vertical-three-colors($startColor: #4c4c4c, $midColor: #333, $colorStop: 95%, $endColor: #252525);
+}
+
+.btn:active,
+a.btn:active {
+  color: $activeButtonLightColor;
+  border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
+}
+
+
+.btn-primary, a.btn-primary {
+	@include buttonBackground(#94dbed, #7CA1AA);
+	color: $grayDark;
+	border-color: transparent;
+	text-shadow: 0 1px 0 #DFDFDF;
+}
+.btn-primary:hover, a.btn-primary:hover {
+	background-color: #85d6eb;
+	background-image: none;
+	border-color: transparent;
+	color: $grayDark;
+	text-shadow: 0 1px 0 #DFDFDF;
+}
+.btn-primary:active, a.btn-primary:active {
+	border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
+	color: $activeButtonDarkColor;
+	@include box-shadow(none);
+}
+
+.btn-primary.btn-large {
+  text-transform: uppercase;
+}
+
+
+.btn-danger, a.btn-danger {
+	@include buttonBackground(#c00, #a00);
+	color: #fff;
+	border-color: transparent;
+	text-shadow: 0 0 1px black;
+}
+.btn-danger:hover, a.btn-danger:hover {
+	color: #fff;
+	background-image:none;
+	border-color: transparent;
+}
+.btn-danger:active, a.btn-danger:active {
+	border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
+	background-image:none;
+	color: $activeButtonLightColor;
+	@include box-shadow(none);
+}
+
