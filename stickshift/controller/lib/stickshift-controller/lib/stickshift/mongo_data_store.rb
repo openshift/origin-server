@@ -272,7 +272,7 @@ module StickShift
     end
 
     def get_app(user_id, id)
-      hash = find_one({ "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
+      hash = find_one({ "_id" => user_id, "apps.name" => /^#{id}$/i }, :fields => ["apps"])
       return nil unless hash && !hash.empty?
 
       app_hash = nil
