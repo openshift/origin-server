@@ -54,4 +54,9 @@ cart_data "JBOSS_CLUSTER_PROXY_PORT=$cluster_port"
 cart_data "JBOSS_CLUSTER_HOST=$OPENSHIFT_INTERNAL_IP"
 cart_data "JBOSS_CLUSTER_PORT=$OPENSHIFT_JBOSS_CLUSTER__PORT"
 
+cart_data "JBOSS_MESSAGING_PORT=$messaging_port"
+cart_data "JBOSS_MESSAGING_THROUGHPUT_PORT=$messaging_throughput_port"
+cart_data "JBOSS_REMOTING_PORT=$remoting_port"
+
+
 exit 0

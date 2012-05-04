@@ -35,6 +35,8 @@ Profiles:
             Type: "NET_TCP:httpd-proxy-info"
           publish_jboss_cluster:
             Type: "NET_TCP:jboss-cluster-info"
+          publish_jboss_remoting:
+            Type: "NET_TCP:jboss-remoting-info"
           publish-gear-endpoint:
             Type: "NET_TCP:gear-endpoint-info"
         Subscribes:
@@ -45,6 +47,8 @@ Profiles:
             Type: "NET_TCP:jdbc"
           set_jboss_cluster:
             Type: "NET_TCP:jboss-cluster-info"
+          set_jboss_remoting:
+            Type: "NET_TCP:jboss-remoting-info"
     Groups:
       app-servers:
         Components:

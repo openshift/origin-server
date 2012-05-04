@@ -24,7 +24,11 @@ ss-authorized-ssh-key-remove: Removes an authorized ssh key from the app.
 
 == Usage
 
-ss-authorized-ssh-key-remove  --with-app-uuid APP_UUID --with-container-uuid UUID --with-ssh-key KEY [--with-ssh-comment COMMENT]
+ss-authorized-ssh-key-remove  \\
+        --with-app-uuid APP_UUID \\
+        --with-container-uuid UUID \\
+        --with-ssh-key KEY \\
+        [--with-ssh-comment COMMENT]
 
 Options:
 -h|--help:

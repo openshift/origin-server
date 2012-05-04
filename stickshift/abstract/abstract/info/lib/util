@@ -4,6 +4,13 @@
 SS_CONTROLLER_LIB_UTIL=true
 source /etc/stickshift/stickshift-node.conf
 
+# Public: Start all processes in a given gear
+#
+# Examples:
+#   start_app
+#   # => 0
+#
+# Returns 0 on success
 function start_app {
     for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
     do
@@ -12,15 +19,26 @@ function start_app {
 
     set_app_state started
 
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /DB_CTL_SCRIPT$/) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                            for (a in ENVIRON)
+                            if (a ~ /DB_CTL_SCRIPT$/)
+                            print ENVIRON[a] }'`
     do
         run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && (a != "OPENSHIFT_GEAR_CTL_SCRIPT")) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                            for (a in ENVIRON)
+                                if ((a ~ /_CTL_SCRIPT$/) &&
+                                    !(a ~ /DB_CTL_SCRIPT$/) &&
+                                    (a != "OPENSHIFT_GEAR_CTL_SCRIPT"))
+                                        print ENVIRON[a] }'`
     do
         run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a == "OPENSHIFT_GEAR_CTL_SCRIPT") print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                        for (a in ENVIRON)
+                            if (a == "OPENSHIFT_GEAR_CTL_SCRIPT")
+                                print ENVIRON[a] }'`
     do
         run_as_user "$cmd start" || error "Failed to start ${cmd}" 121
     done
@@ -34,22 +52,36 @@ function stop_app {
 
     set_app_state stopped
 
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a == "OPENSHIFT_GEAR_CTL_SCRIPT") print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                        for (a in ENVIRON)
+                            if (a == "OPENSHIFT_GEAR_CTL_SCRIPT")
+                                print ENVIRON[a] }'`
     do
         run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && (a != "OPENSHIFT_GEAR_CTL_SCRIPT")) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                        for (a in ENVIRON)
+                        if ((a ~ /_CTL_SCRIPT$/) &&
+                            !(a ~ /DB_CTL_SCRIPT$/) &&
+                            (a != "OPENSHIFT_GEAR_CTL_SCRIPT"))
+                                print ENVIRON[a] }'`
     do
         run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
     done
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /DB_CTL_SCRIPT$/) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                            for (a in ENVIRON)
+                                if (a ~ /DB_CTL_SCRIPT$/)
+                                    print ENVIRON[a] }'`
     do
         run_as_user "$cmd stop" || echo "Failed to stop ${cmd}" 1>&2
     done
 }
 
 function start_dbs {
-    for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /DB_CTL_SCRIPT$/) print ENVIRON[a] }'`
+    for cmd in `awk 'BEGIN {
+                        for (a in ENVIRON)
+                        if (a ~ /DB_CTL_SCRIPT$/)
+                            print ENVIRON[a] }'`
     do
         $cmd start || error "Failed to start ${cmd}" 121
     done
@@ -62,7 +94,8 @@ function source_if_exists {
 
 function get_app_type {
     source /etc/stickshift/stickshift-node.conf
-    [ -z "$OPENSHIFT_GEAR_TYPE" ]  &&  source_if_exists "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_GEAR_TYPE"
+    [ -z "$OPENSHIFT_GEAR_TYPE" ]  && \
+        source_if_exists "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_GEAR_TYPE"
     echo "$OPENSHIFT_GEAR_TYPE"
 }
 
@@ -97,27 +130,40 @@ EOF
 }
 
 function create_standard_env_vars {
-    echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > $APP_HOME/.env/OPENSHIFT_GEAR_DIR
-    echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > $APP_HOME/.env/OPENSHIFT_LOG_DIR
-    echo "export OPENSHIFT_DATA_DIR='$APP_DIR/data/'" > $APP_HOME/.env/OPENSHIFT_DATA_DIR
-    echo "export OPENSHIFT_TMP_DIR='/tmp/'" > $APP_HOME/.env/OPENSHIFT_TMP_DIR
-    echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > $APP_HOME/.env/OPENSHIFT_RUN_DIR
-    echo "export OPENSHIFT_GEAR_NAME='$application'" > $APP_HOME/.env/OPENSHIFT_GEAR_NAME
-    echo "export OPENSHIFT_GEAR_TYPE='$app_type'" > $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
-    echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
+    echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_GEAR_DIR
+    echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_LOG_DIR
+    echo "export OPENSHIFT_DATA_DIR='$APP_DIR/data/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_DATA_DIR
+    echo "export OPENSHIFT_TMP_DIR='/tmp/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_TMP_DIR
+    echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_RUN_DIR
+    echo "export OPENSHIFT_GEAR_NAME='$application'" > \
+                                        $APP_HOME/.env/OPENSHIFT_GEAR_NAME
+    echo "export OPENSHIFT_GEAR_TYPE='$app_type'" > \
+                                        $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+    echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > \
+                                        $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
     create_env_uservars_dir
     create_env_uservars_script
 }
 
 function create_standard_network_env_vars {
-    echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-    echo "export OPENSHIFT_INTERNAL_PORT='8080'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
-    echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$APP_DIR/${application}_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
-    echo "export OPENSHIFT_GEAR_DNS='${application}-${namespace}.${CLOUD_DOMAIN}'" > $APP_HOME/.env/OPENSHIFT_GEAR_DNS
+    echo "export OPENSHIFT_INTERNAL_IP='$IP'" > \
+                $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
+    echo "export OPENSHIFT_INTERNAL_PORT='8080'" > \
+                $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
+    echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$APP_DIR/${application}_ctl.sh'" > \
+                $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
+    echo "export OPENSHIFT_GEAR_DNS='${application}-${namespace}.${CLOUD_DOMAIN}'" > \
+                $APP_HOME/.env/OPENSHIFT_GEAR_DNS
 }
 
 function create_standard_repo_dir_env_var {
-    echo "export OPENSHIFT_REPO_DIR='$APP_DIR/repo/'" > $APP_HOME/.env/OPENSHIFT_REPO_DIR
+    echo "export OPENSHIFT_REPO_DIR='$APP_DIR/repo/'" > \
+                $APP_HOME/.env/OPENSHIFT_REPO_DIR
 }
 
 function create_standard_path_env_var {
@@ -148,12 +194,14 @@ done
 app_ctl.sh \$1
 EOF
 
-chmod +x "$APP_DIR/${application}_ctl.sh" || error "Failed to chmod new application scripts" 122
+chmod +x "$APP_DIR/${application}_ctl.sh" || \
+        error "Failed to chmod new application scripts" 122
 
 }
 
 function secure_app_dir {
-    chown $user_id.$group_id -R $APP_DIR || error "Failed to chown new application space.  Please contact support" 123
+    chown $user_id.$group_id -R $APP_DIR || \
+        error "Failed to chown new application space." 123
     chown root.root "$APP_DIR"
     if [ -f $APP_DIR/${application}_ctl.sh ]
     then
@@ -180,8 +228,8 @@ function check_app_dir_exists {
 }
 
 function rm_app_dir {
-	#rm -rf "$APP_DIR"
-	runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR"
+    #rm -rf "$APP_DIR"
+    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR"
 }
 
 function load_resource_limits_conf {
@@ -192,7 +240,7 @@ function load_resource_limits_conf {
 }
 
 function generate_password {
-    head -n 500 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | head | head -n1
+    head -n 500 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | head -n1
 }
 
 function error {
@@ -261,7 +309,7 @@ function setup_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-	
+
     CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$app_type/info
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
@@ -271,10 +319,10 @@ function setup_configure {
     namespace=`basename $2`
     uuid=$3
     git_url=$4
-		
+
     setup_app_dir_vars
     setup_user_vars
-	
+
     #
     # Get user id info
     # Not caching this information caused some early chowns to work but some later

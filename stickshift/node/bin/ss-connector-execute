@@ -15,6 +15,11 @@
 # limitations under the License.
 #++
 
+require 'rubygems'
+require 'stickshift-node'
+require 'open4'
+require 'shellwords'
+
 def usage
     puts <<USAGE
 == Synopsis
@@ -37,17 +42,13 @@ HOOK_NAME: Name of the connector to be executed
 USAGE
 end
 
-require 'rubygems'
-require 'stickshift-node'
-require 'open4'
-require 'shellwords'
 opts = GetoptLong.new(
-    ["--gear-uuid",       "-g", GetoptLong::REQUIRED_ARGUMENT],
-    ["--cart-name",       "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--hook-name",       "-h", GetoptLong::REQUIRED_ARGUMENT],
-    ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
-    ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+    ['--gear-uuid',       '-g', GetoptLong::REQUIRED_ARGUMENT],
+    ['--cart-name',       '-c', GetoptLong::REQUIRED_ARGUMENT],
+    ['--hook-name',       '-h', GetoptLong::REQUIRED_ARGUMENT],
+    ['--porcelain',           '-q', GetoptLong::NO_ARGUMENT],
+    ['--debug',               '-d', GetoptLong::NO_ARGUMENT],
+    ['--help',                '-?', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
@@ -77,11 +78,11 @@ end
 
 exitcode = 0
 begin
-  cart_dir = config.get("CARTRIDGE_BASE_PATH")
+  cart_dir = config.get('CARTRIDGE_BASE_PATH')
   if File.exists? "#{cart_dir}/#{cart_name}/info/connection-hooks/#{hook_name}"                
      shellsafe_argv = ARGV.map { |arg| Shellwords::shellescape(arg) }
-     # pid, stdin, stdout, stderr = Open4::popen4ext(true, "runuser --shell /bin/sh #{gear_uuid} /usr/libexec/stickshift/cartridges/#{cart_name}/info/connection-hooks/#{hook_name} #{shellsafe_argv.join(' ')} 2>&1")
-     pid, stdin, stdout, stderr = Open4::popen4ext(true, "#{cart_dir}/#{cart_name}/info/connection-hooks/#{hook_name} #{shellsafe_argv.join(' ')} 2>&1")
+     pid, stdin, stdout, stderr = Open5::popen4ext(true,
+        "#{cart_dir}/#{cart_name}/info/connection-hooks/#{hook_name} #{shellsafe_argv.join(' ')} 2>&1")
      ignored, status = Process::waitpid2 pid
      exitcode = status.exitstatus
      zout = stdout.gets

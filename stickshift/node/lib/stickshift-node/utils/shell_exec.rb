@@ -14,7 +14,6 @@
 # limitations under the License.
 #++
 
-
 require 'rubygems'
 require 'open3'
 
@@ -29,16 +28,31 @@ module StickShift::Utils
 end
 
 module StickShift::Utils::ShellExec
-  def shellCmd(cmd, pwd=".", ignore_err=true, expected_rc=0)
+
+  def shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0)
     StickShift::Utils::ShellExec.shellCmd(cmd, pwd, ignore_err, expected_rc)
   end
-  
-  def self.shellCmd(cmd, pwd=".", ignore_err=true, expected_rc=0)
+
+  # Public: Execute shell command.
+  #
+  # iv - A String value for the IV file.
+  # cmd - A String value of the command to run.
+  # pwd - A String value of target working directory.
+  # ignore_err - A Boolean value to determine if errors should be ignored.
+  # expected_rc - A Integer value for the expected return code of cmd.
+  #
+  # Examples
+  #   StickShift::Utils::ShellExec.shellCmd('ls /etc/passwd')
+  #   # => ["/etc/passwd\n","", 0]
+  #
+  # Returns An Array with [stdout, stderr, return_code]
+  def self.shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0)
     out = err = rc = nil         
     begin
       rc_file = "/var/tmp/#{Process.pid}.#{rand}"
       m_cmd = "cd #{pwd}; #{cmd}; echo $? > #{rc_file}"
-      stdin, stdout, stderr = Open3.popen3(m_cmd){ |stdin,stdout,stderr,thr|
+      stdin, stdout, stderr = Open3.popen3(m_cmd){ | stdin, stdout, stderr,
+                                                    thr |
         stdin.close
         out = stdout.read
         err = stderr.read          
@@ -50,13 +64,14 @@ module StickShift::Utils::ShellExec
       f_rc_file.close
       `rm -f #{rc_file}`
     rescue Exception => e
-      raise StickShift::Utils::ShellExecutionException.new(e.message) unless ignore_err
+      raise StickShift::Utils::ShellExecutionException.new(e.message
+                                                    ) unless ignore_err
     end
-    
+
     if !ignore_err and rc != expected_rc 
-      raise StickShift::Utils::ShellExecutionException.new("Shell command '#{cmd}' returned an error. rc=#{rc}", rc)
+      raise StickShift::Utils::ShellExecutionException.new(
+        "Shell command '#{cmd}' returned an error. rc=#{rc}", rc)
     end
-     
     return [out, err, rc]
   end
 end
