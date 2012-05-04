@@ -37,49 +37,53 @@ function _service_status() {
 
 
 function _service_start() {
-   if _is_service_running; then
-      echo "$SERVICE_NAME server instance already running" 1>&2
-   else
-      pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
-      /usr/bin/postgres -D $CART_INSTANCE_DIR/data > $pglogfile 2>&1 &
-      wait_to_start_as_user
-   fi
+    if _is_service_running; then
+        echo "$SERVICE_NAME server instance already running" 1>&2
+    else
+        src_user_hook pre_start_postgresql-8.4
+        pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
+        /usr/bin/postgres -D $CART_INSTANCE_DIR/data > $pglogfile 2>&1 &
+        wait_to_start_as_user
+        run_user_hook post_start_postgresql-8.4
+    fi
 
 }  #  End of function  _service_start.
 
 
 function _service_stop() {
-   if [ -f $CART_INSTANCE_DIR/pid/postgres.pid ]; then
-      pid=$( /bin/cat $CART_INSTANCE_DIR/pid/postgres.pid )
-   fi
+    if [ -f $CART_INSTANCE_DIR/pid/postgres.pid ]; then
+        pid=$( /bin/cat $CART_INSTANCE_DIR/pid/postgres.pid )
+    fi
 
-   if [ -n "$pid" ]; then
-      # Fix for bugz 813934: Postgres gets into a bad state after a deploy
-      pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
-      pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m fast -w -t 30 >> $pglogfile 2>&1
-      sleep 1
-      if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
-         /bin/kill $pid
-         ret=$?
-         if [ $ret -eq 0 ]; then
-            TIMEOUT="$STOPTIMEOUT"
-            while [ $TIMEOUT -gt 0 ]  &&  _is_service_running; do
-               /bin/kill -0 "$pid" >/dev/null 2>&1 || break
-               sleep 1
-               let TIMEOUT=${TIMEOUT}-1
-            done
-            if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
-               pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m immediate -w >> $pglogfile 2>&1
+    if [ -n "$pid" ]; then
+        src_user_hook pre_stop_postgresql-8.4
+        # Fix for bugz 813934: Postgres gets into a bad state after a deploy
+        pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
+        pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m fast -w -t 30 >> $pglogfile 2>&1
+        sleep 1
+        if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
+            /bin/kill $pid
+            ret=$?
+            if [ $ret -eq 0 ]; then
+                TIMEOUT="$STOPTIMEOUT"
+                while [ $TIMEOUT -gt 0 ]  &&  _is_service_running; do
+                    /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+                    sleep 1
+                    let TIMEOUT=${TIMEOUT}-1
+                done
+                if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
+                    pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m immediate -w >> $pglogfile 2>&1
+                fi
             fi
-         fi
-      fi
-   else
-      if `pgrep -x postgres -u $(id -u)  > /dev/null 2>&1`; then
-         echo "Warning: $SERVICE_NAME server instance exists without a pid file.  Use force-stop to kill." 1>&2
-      else
-         echo "$SERVICE_NAME server instance already stopped" 1>&2
-      fi
-   fi
+        fi
+        run_user_hook post_stop_postgresql-8.4
+    else
+        if `pgrep -x postgres -u $(id -u)  > /dev/null 2>&1`; then
+            echo "Warning: $SERVICE_NAME server instance exists without a pid file.  Use force-stop to kill." 1>&2
+        else
+            echo "$SERVICE_NAME server instance already stopped" 1>&2
+        fi
+    fi
 
 }  #  End of function  _service_stop.
 

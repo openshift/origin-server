@@ -73,17 +73,19 @@ function start_app() {
         if isrunning; then
             echo "Application is already running" 1>&2
         else
+            src_user_hook pre_start_${CARTRIDGE_TYPE}
             set_app_state started
             # Start
             jopts="${JAVA_OPTS}"
             [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n ${JAVA_OPTS}"
             JAVA_OPTS="${jopts}" $APP_JBOSS_BIN_DIR/standalone.sh > ${APP_JBOSS_TMP_DIR}/${OPENSHIFT_GEAR_NAME}.log 2>&1 &
-	        PROCESS_ID=$!
-	        echo $PROCESS_ID > $JBOSS_PID_FILE
-	        if ! ishttpup; then
-	            echo "Timed out waiting for http listening port"
-	            exit 1
-	        fi
+            PROCESS_ID=$!
+            echo $PROCESS_ID > $JBOSS_PID_FILE
+            if ! ishttpup; then
+                echo "Timed out waiting for http listening port"
+                exit 1
+            fi
+            run_user_hook post_start_${CARTRIDGE_TYPE}
         fi
     fi
 }
@@ -94,9 +96,11 @@ function stop_app() {
         jbpid=$(cat $JBOSS_PID_FILE);
         echo "Application($jbpid) is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
+        src_user_hook pre_stop_${CARTRIDGE_TYPE}
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid
+        run_user_hook post_stop_${CARTRIDGE_TYPE}
     else 
         echo "Failed to locate JBOSS PID File" 1>&2
     fi
