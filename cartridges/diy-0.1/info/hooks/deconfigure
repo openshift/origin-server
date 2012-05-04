@@ -22,6 +22,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="diy-0.1"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 

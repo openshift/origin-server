@@ -24,13 +24,13 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="phpmyadmin-3.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="phpmyadmin-3.4"
 setup_embedded_configure "$1" $2 $3
 
-PHPMYADMIN_DIR=`echo $APP_HOME/phpmyadmin-3.4 | tr -s /` # ensure that there aren't double /'s
+PHPMYADMIN_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 PHPMYADMIN_CTL_SCRIPT="$PHPMYADMIN_DIR/${application}_phpmyadmin_ctl.sh"
 
 if [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_USERNAME" ] ||
@@ -56,7 +56,8 @@ then
     client_error "Embedded phpMyAdmin-3.4 already attached to $application"
     exit 132
 fi
-mkdir -p "$PHPMYADMIN_DIR"
+
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$PHPMYADMIN_DIR" > /dev/null
 mkdir -p conf conf.d logs run sessions tmp
 ln -s /usr/lib64/httpd/modules modules

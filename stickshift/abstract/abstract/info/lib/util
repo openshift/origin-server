@@ -60,6 +60,10 @@ function source_if_exists {
     return 0
 }
 
+function get_cartridge_instance_dir {
+    echo "$APP_HOME/$1"
+}
+
 function get_app_type {
     source /etc/stickshift/stickshift-node.conf
     [ -z "$OPENSHIFT_GEAR_TYPE" ]  &&  source_if_exists "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_GEAR_TYPE"
@@ -98,12 +102,12 @@ EOF
 
 function create_standard_env_vars {
     #echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > $APP_HOME/.env/OPENSHIFT_GEAR_DIR
-    #echo "export OPENSHIFT_LOG_DIR='$APP_LOGS_DIR/'" > $APP_HOME/.env/OPENSHIFT_LOG_DIR
-    #echo "export OPENSHIFT_DATA_DIR='$APP_DIR/data/'" > $APP_HOME/.env/OPENSHIFT_DATA_DIR
+    echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > $APP_HOME/.env/OPENSHIFT_LOG_DIR
+    #echo "export OPENSHIFT_DATA_DIR='$APP_DATA_DIR/'" > $APP_HOME/.env/OPENSHIFT_DATA_DIR
     #echo "export OPENSHIFT_TMP_DIR='/tmp/'" > $APP_HOME/.env/OPENSHIFT_TMP_DIR
     echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > $APP_HOME/.env/OPENSHIFT_RUN_DIR
     #echo "export OPENSHIFT_GEAR_NAME='$application'" > $APP_HOME/.env/OPENSHIFT_GEAR_NAME
-    echo "export OPENSHIFT_GEAR_TYPE='$app_type'" > $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+    echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
     echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
     create_env_uservars_dir
     create_env_uservars_script
@@ -130,11 +134,17 @@ function create_custom_uservars_var {
 }
 
 function create_standard_app_dirs {
-    mkdir -p run tmp data ci
-    if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
-        ln -s ../$OPENSHIFT_APP_NAME/repo repo
-        ln -s ../$OPENSHIFT_APP_NAME/logs logs
-    fi
+    mkdir -p run tmp ci
+    ln -s ../app/repo repo
+    ln -s ../app/data data
+}
+
+function create_cartridge_instance_dir {
+    mkdir -p "$APP_HOME/$1"
+}
+
+function create_app_dir_symlink {
+    ln -s "$1" "$APP_DIR"
 }
 
 # Create simple application start / stop script
@@ -266,7 +276,7 @@ function setup_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 	
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$app_type/info
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
     load_resource_limits_conf
@@ -303,7 +313,7 @@ function setup_embedded_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$app_type/info
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$cartridge_type/info
     CART_ETC_DIR=$CART_INFO_DIR/configuration/etc
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
@@ -323,7 +333,7 @@ function setup_embedded_deconfigure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$app_type/info
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$cartridge_type/info
 
     application="$1"
     namespace=$2
@@ -349,9 +359,8 @@ function setup_basic_vars {
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$application | tr -s /`
-    source "$APP_HOME/.env/OPENSHIFT_APP_NAME"
-    APP_REPO_DIR="$APP_HOME/$OPENSHIFT_APP_NAME/repo"
-    APP_LOGS_DIR="$APP_HOME/$OPENSHIFT_APP_NAME/logs"
+    APP_REPO_DIR="$APP_HOME/app/repo"
+    APP_DATA_DIR="$APP_HOME/app/repo"
 }
 
 function force_kill {

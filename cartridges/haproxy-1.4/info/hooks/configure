@@ -48,10 +48,12 @@ function setup_haproxy_as_a_service() {
     #
     # Create the core of the application
     #
-    mkdir -p "$APP_DIR"
-    pushd "$APP_DIR" > /dev/null
+    create_cartridge_instance_dir "$cartridge_type"
+    create_app_dir_symlink "$cartridge_type"
+    HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+    pushd "$HAPROXY_DIR" > /dev/null
     create_standard_app_dirs
-    mkdir -p conf conf.d sessions
+    mkdir -p conf conf.d logs sessions
     ln -s /usr/lib64/httpd/modules modules
     ln -s /etc/httpd/conf/magic conf/magic
     popd > /dev/null
@@ -108,12 +110,11 @@ done
 
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
+cartridge_type="$CART_NAME-$CART_VERSION"
 source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="$CART_NAME-$CART_VERSION"
-
-if [ -z "$(get_app_type $3)" ]; then
+if [ ! -d "$APP_DIR" ]; then
     #  This gear is dedicated to running haproxy - configure it as such.
     setup_haproxy_as_a_service "$@"
 fi
@@ -122,9 +123,9 @@ setup_embedded_configure "$1" $2 $3
 
 stop_app
 
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/haproxy-1.4/info
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
-export HAPROXY_DIR="$APP_HOME/$CART_NAME-$CART_VERSION"
+export HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 
 #
@@ -140,11 +141,11 @@ add_broker_auth_key
 #
 # Create the core of the application
 #
-mkdir -p "$HAPROXY_DIR"
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$HAPROXY_DIR" > /dev/null
-mkdir -p conf conf.d run sessions
-ln -s /usr/lib64/httpd/modules modules
-ln -s /etc/httpd/conf/magic conf/magic
+mkdir -p conf conf.d logs run sessions
+ln -sf /usr/lib64/httpd/modules modules
+ln -sf /etc/httpd/conf/magic conf/magic
 touch conf/gear-registry.db
 popd > /dev/null
 
@@ -159,7 +160,7 @@ export IP2=`embedded_find_open_ip $uid "$APP_HOME"`
 echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 mkdir -p $APP_HOME/.openshift
-chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
+chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
 observe_setup_var_lib_dir "$HAPROXY_DIR"
 
 # Alter PATH so that the haproxy app_ctl.sh script is called.

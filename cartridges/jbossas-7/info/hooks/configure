@@ -94,7 +94,7 @@ done
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
 JBOSS_CARTRIDGE_ROOT=$CARTRIDGE_BASE_PATH/${jboss_version}
-app_type="${jboss_version}"
+cartridge_type="${jboss_version}"
 
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_configure "$1" $2 $3 $4
@@ -103,7 +103,8 @@ check_app_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
 # The root of the application jbossas contents
-APP_JBOSS="$APP_DIR"/${jboss_version}
+JBOSS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+APP_JBOSS=$JBOSS_INSTANCE_DIR/${jboss_version}
 # Maven dir
 M2_DIR=`echo $APP_HOME/.m2 | tr -s /`
 mkdir -p $M2_DIR
@@ -124,8 +125,9 @@ IP=`find_open_ip $uid $uuid`
 #
 # Create jbossas7 base for application, every app gets its own jboss instance
 #
-mkdir -p "$APP_DIR"
-pushd "$APP_DIR" > /dev/null
+create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
+pushd "$JBOSS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir -p ${jboss_version}/{bin,standalone/configuration}
 # application jbossas bin directory
@@ -160,11 +162,10 @@ fi
 
 # Create a link from the repo/deployments directory to the standalone/deployments content
 mkdir -p "$APP_REPO_DIR"/deployments
-ln -s ../../../$OPENSHIFT_APP_NAME/repo/deployments "$APP_JBOSS"/standalone/deployments
+ln -s ../../../app/repo/deployments "$APP_JBOSS"/standalone/deployments
 
-# Create a link from the standalone/log directory to $APP_LOGS_DIR for rhc app tail
-[ -d "$APP_LOGS_DIR" ]  &&  rm -rf "$APP_LOGS_DIR"
-ln -s ${jboss_version}/standalone/log "$APP_LOGS_DIR"
+# Create a link from the standalone/log directory to ${APP_DIR}/logs for rhc app tail
+ln -s ${jboss_version}/standalone/log "$APP_DIR"/logs
 
 create_app_ctl_script
 

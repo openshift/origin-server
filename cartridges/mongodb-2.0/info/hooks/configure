@@ -25,16 +25,16 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="mongodb-2.0"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
 
-app_type="mongodb-2.0"
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-MONGODB_DIR="$APP_HOME/mongodb-2.0/"
+MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Detect IP
@@ -50,7 +50,8 @@ then
     client_error "Embedded mongodb-2.0 already attached to $application"
     exit 132
 fi
-mkdir -p "$MONGODB_DIR"
+
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$MONGODB_DIR" > /dev/null
 mkdir -p log etc data socket pid run
 sed "s,RHC_MONGODIR,$MONGODB_DIR," $CART_ETC_DIR/mongodb.conf > $MONGODB_DIR/etc/mongodb.conf
@@ -103,7 +104,7 @@ echo "use admin
       db.addUser(\"admin\", \"${password}\")
       exit
      "  | mongo $IP
-
+rm -f /tmp/.dbshell
 
 client_result ""
 client_result "MongoDB 2.0 database added.  Please make note of these credentials:"

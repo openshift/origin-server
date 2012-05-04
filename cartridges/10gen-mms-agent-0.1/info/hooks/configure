@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Creates a rockmongo instance
+# Creates a 10gen-mms-agent instance
 
 # Exit on any errors
 set -e
@@ -24,14 +24,14 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="10gen-mms-agent-0.1"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="10gen-mms-agent-0.1"
 setup_embedded_configure "$1" $2 $3
 
 APP_DIR=`echo $APP_HOME/${application} | tr -s /` # ensure that there aren't double /'s
-MMS_DIR=`echo $APP_HOME/10gen-mms-agent-0.1 | tr -s /` # ensure that there aren't double /'s
+MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
 if [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME" ] ||
@@ -78,7 +78,7 @@ then
     exit 132
 fi
 
-mkdir -p "$MMS_DIR"
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$MMS_DIR" > /dev/null
 mkdir -p logs mms-agent run
 cp -r /usr/local/share/mms-agent/* $MMS_DIR/mms-agent/
@@ -99,7 +99,7 @@ chown root.root "$MMS_DIR"
 observe_setup_var_lib_dir "$MMS_DIR"
 
 #
-# Create environment variables. This MUST be before starting rockmongo as the CTL script relies on these.
+# Create environment variables. This MUST be before starting 10gen-mms-agent as the CTL script relies on these.
 #
 echo "export OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR='$MMS_DIR/'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR
 echo "export OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT='$MMS_CTL_SCRIPT'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT

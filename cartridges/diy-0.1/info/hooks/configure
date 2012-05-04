@@ -25,8 +25,8 @@ done
 
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
+cartridge_type="diy-0.1"
 source "/etc/stickshift/stickshift-node.conf"
-app_type="diy-0.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
@@ -45,9 +45,12 @@ fi
 # Create the core of the application
 #
 
-mkdir -p "$APP_DIR"
-pushd "$APP_DIR" > /dev/null
+create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
+DIY_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+pushd "$DIY_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
+mkdir logs
 popd > /dev/null
 
 populate_repo_dir

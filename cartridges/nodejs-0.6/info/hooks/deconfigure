@@ -3,9 +3,6 @@
 # Destroys a Node instance (Node.js Application).
 #
 
-# Variables.
-source "/etc/stickshift/stickshift-node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function print_help() {
    echo "Usage: $0 app-name namespace uuid"
@@ -29,7 +26,10 @@ done
 # Ensure arguments.
 [ $# -eq 3 ] || print_help
 
+cartridge_type="nodejs-0.6"
+
 # Source in common utility functions.
+source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Deconfigure app.
@@ -42,8 +42,9 @@ destroy_git_repo $application $uuid
 stop_app
 
 # Confirm stop + no activity in logs.
-confirm_pid_gone "${APP_DIR}/run/nodejs.pid"
-confirm_log_files_inactive "$APP_LOGS_DIR"
+NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+confirm_pid_gone "$NODEJS_INSTANCE_DIR/run/nodejs.pid"
+confirm_log_files_inactive "$NODEJS_INSTANCE_DIR/logs"
 
 # Blow away the directories.
 rm_app_dir

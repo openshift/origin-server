@@ -12,7 +12,6 @@ IP="$3"
 
 APP_HOME="$GEAR_BASE_DIR/$uuid"
 APP_DIR=`echo $APP_HOME/$application | tr -s /`
-source "$APP_HOME/.env/OPENSHIFT_LOG_DIR"
 source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
 cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
@@ -21,8 +20,8 @@ DocumentRoot "$OPENSHIFT_REPO_DIR/perl"
 Listen $IP:8080
 User $uuid
 Group $uuid
-ErrorLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $OPENSHIFT_LOG_DIR/access_log$rotatelogs_format $rotatelogs_interval" combined
+ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
 
 <Directory $OPENSHIFT_REPO_DIR/perl/>
     AddHandler perl-script .pl

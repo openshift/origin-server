@@ -24,20 +24,20 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="$CART_NAME-$CART_VERSION"
 source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 
-app_type="haproxy-1.4"
 setup_deconfigure "$1" $2 $3
 
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/haproxy-1.4/info
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
 
-export HAPROXY_DIR="$APP_HOME/haproxy-1.4"
+HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Teardown port proxy (ignore failures or missing hook)
@@ -45,7 +45,7 @@ export HAPROXY_DIR="$APP_HOME/haproxy-1.4"
 ( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
 
 # For non-embedded (dedicated) haproxy gear, remove all the proxy ports.
-[ "$app_type" = "$OPENSHIFT_GEAR_TYPE" ]  &&  remove_all_proxy_ports $uuid
+[ "$APP_DIR" -ef "$HAPROXY_DIR" ]  &&  remove_all_proxy_ports $uuid
 
 # Remove PATH override
 OLD_PATH=$PATH
@@ -53,7 +53,7 @@ source ${GEAR_BASE_DIR}/${uuid}/.env/PATH
 
 # Stop old apps
 stop_app
-confirm_log_files_inactive "$APP_LOGS_DIR"
+confirm_log_files_inactive "$HAPROXY_DIR/logs"
 
 # Remove PATH override
 export PATH=`echo "$PATH" | sed "s,$CART_INFO_DIR/bin/:,,g"`
@@ -75,7 +75,7 @@ if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
    rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
 fi
 
-if [ "$app_type" = "$OPENSHIFT_GEAR_TYPE" ]; then
+if [ "$APP_DIR" -ef "$HAPROXY_DIR" ]; then
     # For non-embedded (dedicated) haproxy gear, destroy the gear.
 
     # Destroy git repo.

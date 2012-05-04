@@ -22,6 +22,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="ruby-1.8"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -33,9 +34,10 @@ destroy_git_repo $application $uuid
 
 stop_app
 
-confirm_pid_gone "${APP_DIR}/run/httpd.pid"
+RUBYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+confirm_pid_gone "${RUBYCART_INSTANCE_DIR}/run/httpd.pid"
 
-confirm_log_files_inactive "$APP_LOGS_DIR"
+confirm_log_files_inactive "$RUBYCART_INSTANCE_DIR/logs"
 
 rm_app_dir
 
