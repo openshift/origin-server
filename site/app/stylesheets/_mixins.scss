@@ -10,3 +10,36 @@
 @mixin font-family-monospace() {
   font-family: Menlo, Monaco, "Liberation Mono", Consolas, monospace;
 }
+
+
+// Override Mixin for generating button backgrounds
+// ---------------------------------------
+@mixin buttonBackground($startColor, $endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include gradientBar($startColor, $endColor);
+  @include reset-filter();
+
+  &:hover {
+    background-color: $endColor;
+  }
+  
+   &:active, &.active, &.disabled, &[disabled] {
+    background-color: $startColor;
+  }
+
+}
+
+@mixin buttonBackgroundInverse($startColor, $endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include gradientBar($startColor, $endColor);
+  @include reset-filter();
+
+  &:hover {
+    background-color: $startColor;
+  }
+  
+   &:active, &.active, &.disabled, &[disabled] {
+    background-color: $endColor;
+  }
+
+}
