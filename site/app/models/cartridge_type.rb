@@ -2,50 +2,42 @@ class CartridgeType < RestApi::Base
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
-  class NotFound < StandardError
-  end
-
   schema do
-    string :name, :type
+    string :name, 'type'
   end
 
-  attr_accessor :name, :id, :version, :description
+  custom_id :name
+
+  # provided by client
+  attr_accessor :version, :description
+  attr_accessor :display_name
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
   attr_accessor :help_topics
 
-  self.prefix = "#{RestApi::Base.site.path}/cartridges/embedded"
+  self.element_name = 'cartridges'
+  #self.prefix = "#{RestApi::Base.prefix}cartridges"
+
+  def initialize(attributes={},persisted=true)
+    attr = attributes.reverse_merge!(self.class.defaults(attributes['name'].presence || attributes[:name].presence))
+    super attr, true
+  end
 
   def type
-    @attributes[:type]
-  end
-
-  def type=(type)
-    @attributes[:type]=type
-  end
-
-  def initialize(attributes={})
-    @attributes={}
-    attributes.each do |name,value|
-      send("#{name}=", value)
-    end
-    super
+    (e = @attributes[:type]).is_a?(String) ? [e.to_sym] : e
   end
 
   def persisted?
     true
   end
 
-  # FIXME: Right now the restapi only gives the name (id) of the available
-  #        types so we supliment it with info here.  Ideally the REST API
-  #        or some common lookaside cache populates this data
   @type_map = {
     "mongodb-2.0" =>
     {
-      :id => 'mongodb-2.0',
-      :name => 'MongoDB NoSQL Database 2.0',
+      :name => 'mongodb-2.0',
+      :display_name => 'MongoDB NoSQL Database 2.0',
       :type => 'embedded',
       :version => 'MongoDB 2.0',
       :license => 'ASL 2.0 and AGPLv3',
@@ -60,8 +52,8 @@ class CartridgeType < RestApi::Base
     },
     "mysql-5.1" =>
     {
-      :id => 'mysql-5.1',
-      :name => 'MySQL Database 5.1',
+      :name => 'mysql-5.1',
+      :display_name => 'MySQL Database 5.1',
       :type => 'embedded',
       :version => 'MySQL 5.1',
       :license => 'GPLv2 with exceptions',
@@ -76,8 +68,8 @@ class CartridgeType < RestApi::Base
     },
     "postgresql-8.4" =>
     {
-      :id => 'postgresql-8.4',
-      :name => 'PostgreSQL Database 8.4',
+      :name => 'postgresql-8.4',
+      :display_name => 'PostgreSQL Database 8.4',
       :type => 'embedded',
       :version => 'PostgreSQL 8.4',
       :license => 'PostgreSQL',
@@ -92,8 +84,8 @@ class CartridgeType < RestApi::Base
     },
     "cron-1.4" =>
     {
-      :id => 'cron-1.4',
-      :name => 'Cron 1.4',
+      :name => 'cron-1.4',
+      :display_name => 'Cron 1.4',
       :type => 'embedded',
       :version => 'Cron 1.4',
       :license => 'MIT and BSD and ISC and GPLv2',
@@ -108,8 +100,8 @@ class CartridgeType < RestApi::Base
     },
     "10gen-mms-agent-0.1" =>
     {
-      :id => '10gen-mms-agent-0.1',
-      :name => '10gen - MongoDB Monitoring Service Agent',
+      :name => '10gen-mms-agent-0.1',
+      :display_name => '10gen - MongoDB Monitoring Service Agent',
       :type => 'embedded',
       :version => '10gen MMS Agent 0.1',
       :license => nil,
@@ -124,8 +116,8 @@ class CartridgeType < RestApi::Base
     },
     "phpmyadmin-3.4" =>
     {
-      :id => 'phpmyadmin-3.4',
-      :name => 'phpMyAdmin 3.4',
+      :name => 'phpmyadmin-3.4',
+      :display_name => 'phpMyAdmin 3.4',
       :type => 'embedded',
       :version => 'phpMyAdmin 3.4',
       :license => 'GPLv2',
@@ -140,8 +132,8 @@ class CartridgeType < RestApi::Base
     },
     "metrics-0.1" =>
     {
-      :id => 'metrics-0.1',
-      :name => 'OpenShift Metrics 0.1',
+      :name => 'metrics-0.1',
+      :display_name => 'OpenShift Metrics 0.1',
       :type => 'embedded',
       :version => 'Metrics 0.1',
       :license => nil,
@@ -156,8 +148,8 @@ class CartridgeType < RestApi::Base
     },
     "phpmoadmin-1.0" =>
     {
-      :id => 'phpmoadmin-1.0',
-      :name => 'phpMoAdmin 1.0',
+      :name => 'phpmoadmin-1.0',
+      :display_name => 'phpMoAdmin 1.0',
       :type => 'embedded',
       :version => 'phpMoAdmin 1.0',
       :license => 'GPL v3',
@@ -172,8 +164,8 @@ class CartridgeType < RestApi::Base
     },
     "rockmongo-1.1" =>
     {
-      :id => 'rockmongo-1.1',
-      :name => 'RockMongo 1.1',
+      :name => 'rockmongo-1.1',
+      :display_name => 'RockMongo 1.1',
       :type => 'embedded',
       :version => 'RockMongo 1.1',
       :license => 'BSD',
@@ -188,8 +180,8 @@ class CartridgeType < RestApi::Base
     },
     "jenkins-client-1.4" =>
     {
-      :id => 'jenkins-client-1.4',
-      :name => 'Jenkins Client 1.4',
+      :name => 'jenkins-client-1.4',
+      :display_name => 'Jenkins Client 1.4',
       :type => 'embedded',
       :version => 'Jenkins Client 1.4',
       :license => 'MIT',
@@ -204,8 +196,8 @@ class CartridgeType < RestApi::Base
     },
     "haproxy-1.4" =>
     {
-      :id => 'haproxy-1.4',
-      :name => 'High Availability Proxy',
+      :name => 'haproxy-1.4',
+      :display_name => 'High Availability Proxy',
       :type => 'embedded',
       :version => '1.4',
       :license => '',
@@ -219,34 +211,40 @@ class CartridgeType < RestApi::Base
     }
   }
 
-  class << self
-    def find(*arguments)
-      scope   = arguments.slice!(0)
-      options = arguments.slice!(0) || {}
+#  def self.find(*arguments)
+#    scope   = arguments.slice!(0)
+#    options = arguments.slice!(0) || {}
 
-      path = "#{prefix}.json"
-      rest_types = format.decode(connection(options).get(path, headers).body)
+#    path = "#{prefix}.json"
+#    rest_types = format.decode(connection(options).get(path, headers).body)
 
-      default_types = rest_types.map do |t|
-        name = t['name']
+#    default_types = rest_types.map do |t|
+#      CartridgeType.new :display_name => name
+#    end
 
-        if !@type_map[name].nil?
-          CartridgeType.new(@type_map[name])
-        else
-          CartridgeType.new({:id => name, :name => name, :type => t['type'], :categories => [t['type']]})
-        end
-      end
+#    case scope
+#    when String
+#      default_types.find { |type| type.id == scope } or raise NotFound
+#    when :all
+#      default_types
+#when Symbol
+#      default_types.find { |type| type.categories.include? scope }
+#    else
+#  raise "Unsupported scope"
+#    end
+#  end
 
-      case scope
-      when String
-        default_types.find { |type| type.id == scope } or raise NotFound
-      when :all
-        default_types
-      when Symbol
-        default_types.find { |type| type.categories.include? scope }
-      else
-        raise "Unsupported scope"
-      end
-    end
+  def self.embedded(options={})
+    CartridgeType.all options.dup.merge!(:from => :embedded)
   end
+
+  protected
+    def self.find_single(scope, options)
+      embedded(options).find{ |t| t.to_param == scope } or raise ActiveResource::ResourceNotFound, scope
+    end
+
+  private 
+    def self.defaults(name)
+      @type_map[name] || {}
+    end
 end

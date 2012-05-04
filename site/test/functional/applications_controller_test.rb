@@ -37,7 +37,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
-    assert_equal 1, app.errors[:name].length
+    assert_equal 1, app.errors[:name].length, app.errors.inspect
   end
 
   test "should assign errors on invalid characters" do
@@ -49,7 +49,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
-    assert_equal 1, app.errors[:name].length
+    assert_equal 1, app.errors[:name].length, app.errors.inspect
   end
 
   test "should retrieve application list" do

@@ -670,4 +670,70 @@ class RestApiTest < ActiveSupport::TestCase
     assert d.save
     assert_equal '2', d.id
   end
+
+  def test_cartridge_type_init
+    type = CartridgeType.new :name => 'haproxy-1.4', :display_name => 'Test - haproxy', :website => 'test'
+
+    # custom attributes
+    assert 'Test - haproxy', type.display_name
+    assert 'haproxy-1.4', type.name
+    assert type.name, type.id
+    assert 'test', type.website
+
+    # default values
+    assert [:embedded], type.type
+    assert '1.4', type.version
+  end
+
+  def test_cartridge_type_find
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
+        {:name => 'haproxy-1.4'},
+      ].to_json
+    end
+    type = CartridgeType.find 'haproxy-1.4', :as => @user
+
+    # custom attributes
+    assert 'Test - haproxy', type.display_name
+    assert 'haproxy-1.4', type.name
+    assert type.name, type.id
+    assert 'test', type.website
+
+    # default values
+    assert [:embedded], type.type
+    assert '1.4', type.version
+  end
+
+  def test_cartridge_type_find_throws
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
+        {:name => 'haproxy-1.4'},
+      ].to_json
+    end
+    assert_raise(ActiveResource::ResourceNotFound) do
+      CartridgeType.find 'haproxy-1.5', :as => @user
+    end
+  end
+
+  def test_custom_id_must_be_valid
+    assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id "string" } }
+    assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id Class } }
+    assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id nil } }
+  end
+
+  def test_cartridge_type_embedded
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
+        {:name => 'haproxy-1.4'},
+      ].to_json
+    end
+
+    types = CartridgeType.embedded :as => @user
+
+    assert type = types.find {|t| t.name == 'haproxy-1.4'}
+    assert_equal [:embedded], type.type
+    assert_equal '1.4', type.version
+    assert_equal CartridgeType.new(:name => 'haproxy-1.4'), type
+    assert_equal 'haproxy-1.4', type.to_param
+  end
 end

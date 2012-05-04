@@ -260,6 +260,7 @@ module RestApi
       end
 
       def custom_id(name, mutable=false)
+        raise "Name #{name.inspect} must be a symbol" unless name.is_a?(Symbol) && !name.is_a?(Class)
         @primary_key = name
         @update_id = nil
         if mutable
@@ -411,6 +412,7 @@ module RestApi
       end
     end
 
+
     #
     # Override method from CustomMethods to handle body objects
     #
@@ -427,6 +429,9 @@ module RestApi
     end
 
     class << self
+      def get(custom_method_name, options = {}, call_options = {})
+        connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
+      end
       def delete(id, options = {})
         connection(options).delete(element_path(id, options)) #changed
       end
@@ -449,23 +454,7 @@ module RestApi
         #end
       end
 
-      # possibly needed to decode gets
-      #def get(custom_method_name, options = {})
-      #  puts 'default get'
-      #  self.class.format.decode(connection(options).get(custom_method_collection_url(custom_method_name, options), headers).body) #changed
-      #end
-
-      private
-        def update_connection(connection)
-          connection.proxy = proxy if proxy
-          connection.user = user if user
-          connection.password = password if password
-          connection.auth_type = auth_type if auth_type
-          connection.timeout = timeout if timeout
-          connection.ssl_options = ssl_options if ssl_options
-          connection
-        end
-
+      protected
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
@@ -477,7 +466,7 @@ module RestApi
             as = options[:as]
             case from = options[:from]
             when Symbol
-              instantiate_collection(get(from, options[:params]), as) #changed
+              instantiate_collection(format.decode(get(from, options[:params], options).body), as) #changed
             when String
               path = "#{from}#{query_string(options[:params])}"
               instantiate_collection(format.decode(connection(options).get(path, headers).body) || [], as) #changed
@@ -492,6 +481,17 @@ module RestApi
             # ActiveRecord.
             [] #changed
           end
+        end
+
+      private
+        def update_connection(connection)
+          connection.proxy = proxy if proxy
+          connection.user = user if user
+          connection.password = password if password
+          connection.auth_type = auth_type if auth_type
+          connection.timeout = timeout if timeout
+          connection.ssl_options = ssl_options if ssl_options
+          connection
         end
 
         def instantiate_collection(collection, as, prefix_options = {}) #changed

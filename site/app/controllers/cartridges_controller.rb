@@ -36,7 +36,7 @@ class CartridgesController < ConsoleController
         @cartridge_message = result[:text] if result.respond_to?(:has_key?) && result.has_key?(:text)
       end
 
-      render 'cartridges/next_steps'
+      render :next_steps
     else
       Rails.logger.debug @cartridge.errors.inspect
       @application_id = @application.id

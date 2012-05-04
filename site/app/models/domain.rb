@@ -24,7 +24,7 @@ class Domain < RestApi::Base
     super
   end
 
-  belongs_to :user
+  #belongs_to :user
   def user
     User.find :one, :as => as
   end
@@ -48,29 +48,6 @@ class Domain < RestApi::Base
 
   #  super
   #end
-
-  def self.when_belongs_to(klass, options, set_prefix=true)
-    puts "Adding #{self} methods to #{klass}"
-    klass.prefix = "#{RestApi::Base.site.path}/domains/:domain_id/" if set_prefix
-    klass.class_eval do
-      # domain_id overlaps with the attribute returned by the server
-      def domain_id=(id)
-        self.prefix_options[:domain_id] = id
-        super
-      end
-      def domain_id
-        self.prefix_options[:domain_id] || super
-      end
-
-      def domain
-        Domain.find domain_id, :as => as
-      end
-
-      def domain=(domain)
-        self.domain_id = domain.is_a?(String) ? domain : domain.id
-      end
-    end
-  end
 
   # FIXME: Temporary until multiple domains are supported
   def self.find_one(options)
