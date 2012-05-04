@@ -48,18 +48,21 @@ start() {
     set_app_state started
     if ! isrunning
     then
+        src_user_hook pre_start
         /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > /dev/null 2>&1
         haproxy_ctld_daemon stop > /dev/null 2>&1  || :
         haproxy_ctld_daemon start > /dev/null 2>&1
+        wait_to_start
+        run_user_hook post_start
     else
         echo "Haproxy already running" 1>&2
+        wait_to_start
     fi
-
-    wait_to_start
 }
 
 
 stop() {
+    src_user_hook pre_stop
     set_app_state stopped
     haproxy_ctld_daemon stop > /dev/null 2>&1
     if [ -f $HAPROXY_PID ]; then
@@ -82,6 +85,7 @@ stop() {
             echo "Haproxy already stopped" 1>&2
         fi
     fi
+    run_user_hook post_stop
 }
 
 
@@ -93,7 +97,9 @@ function restart() {
 
 function _reload_haproxy_service() {
     [ -n "$1" ]  &&  zopts="-sf $1"
+    src_user_hook pre_start
     /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
+    run_user_hook post_start
 
 }
 
