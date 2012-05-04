@@ -24,9 +24,20 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_alias.conf"
+  Alias /health $CART_INFO_DIR/configuration/health.html
+  Alias /errors $CART_INFO_DIR/configuration
 
-mkdir "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"
+  ErrorDocument 503 /errors/503.html
+EOF
+
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_proxy.conf"
+  ProxyPass /health !
+  ProxyPass /errors !
+  ProxyPass / http://$IP:8080/
+  ProxyPassReverse / http://$IP:8080/
+  ProxyErrorOverride On
+EOF
 
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
@@ -34,21 +45,12 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00
   DocumentRoot /var/www/html
   DefaultType None
 EOF
+
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf"
 <VirtualHost *:80>
   RequestHeader append X-Forwarded-Proto "http"
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
-
-  Alias /health $CART_INFO_DIR/configuration/health.html
-  Alias /errors $CART_INFO_DIR/configuration
-
-  ProxyPass /health !
-  ProxyPass /errors !
-  ProxyPass / http://$IP:8080/
-  ProxyPassReverse / http://$IP:8080/
-  ProxyErrorOverride On
-  ErrorDocument 503 /errors/503.html
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -57,15 +59,5 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
 $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
-
-  Alias /health $CART_INFO_DIR/configuration/health.html
-  Alias /errors $CART_INFO_DIR/configuration
-
-  ProxyPass /health !
-  ProxyPass /errors !
-  ProxyPass / http://$IP:8080/
-  ProxyPassReverse / http://$IP:8080/
-  ProxyErrorOverride On
-  ErrorDocument 503 /errors/503.html
 </VirtualHost>
 EOF

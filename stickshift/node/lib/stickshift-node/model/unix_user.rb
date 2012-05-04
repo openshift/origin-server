@@ -34,10 +34,12 @@ module StickShift
   class UnixUser < Model
     include StickShift::Utils::ShellExec
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid, :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
-    
+    attr_accessor :debug
+
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
-    def initialize(application_uuid, container_uuid, user_uid=nil, app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
+    #fixme: set debug to false
+    def initialize(application_uuid, container_uuid, user_uid=nil, app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -47,6 +49,8 @@ module StickShift
       @namespace = namespace
       @quota_blocks = quota_blocks
       @quota_files = quota_files
+      @debug = debug
+
       begin
         user_info = Etc.getpwnam(@uuid)
         @uid = user_info.uid
@@ -226,8 +230,6 @@ module StickShift
     
     def initialize_homedir(basedir, homedir, cart_basedir)
       @homedir = homedir
-      geardir = File.join(homedir, @app_name, "/")
-
       notify_observers(:before_initialize_homedir)
       homedir = homedir.end_with?('/') ? homedir : homedir + '/'
       
@@ -241,13 +243,15 @@ module StickShift
       FileUtils.chmod(0o0750, env_dir)
       FileUtils.chown(nil, @uuid, env_dir)
 
+      geardir = File.join(homedir, "app", "/")
+
       add_env_var("APP_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
       add_env_var("APP_NAME", @app_name, true)
       add_env_var("APP_UUID", @application_uuid, true)
 
-      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
 
-      add_env_var("GEAR_DIR", geardir, true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+      add_env_var("GEAR_DIR", geardir, true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
       add_env_var("GEAR_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
       add_env_var("GEAR_NAME", @app_name, true) 
       add_env_var("GEAR_UUID", @container_uuid, true)
@@ -255,33 +259,32 @@ module StickShift
 
       add_env_var("HOMEDIR", homedir, true)
 
-      add_env_var("LOG_DIR", File.join(geardir, "logs")) {|v| FileUtils.mkdir_p(v, :verbose => true) }
-
       add_env_var("PATH", "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH", false)
 
-      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => true) }
+      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
       
       add_env_var("TMP_DIR", "/tmp/", true)
 
-      FileUtils.chmod_R(0o0750, geardir, :verbose => true)
-      FileUtils.chown_R(@uuid, @uuid, geardir, :verbose => true)
-      puts("initialized app_dir #{geardir}")
+      FileUtils.chmod_R(0o0750, geardir, :verbose => @debug)
+      FileUtils.chown_R(@uuid, @uuid, geardir, :verbose => @debug)
       raise "Failed to instantiate gear: missing application directory (#{geardir})" unless File.exist?(geardir)
 
       state_file = File.join(geardir, ".state")
       File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file| file.write "new\n" }
-      FileUtils.chown(@uuid, @uuid, state_file, :verbose => true)
+      FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
 
       token = "#{@uuid}_#{@namespace}_#{@app_name}"
       path = File.join(basedir, ".httpd.d", token)
+
+      FileUtils.rm_rf(path) if File.exist?(path)
       FileUtils.mkdir_p(path)
 
-      source = File.join(cart_basedir, "abstract", "info", "lib", "default_http.conf")
-      target = path + ".conf"
+      #source = File.join(cart_basedir, "abstract", "info", "lib", "default_http.conf")
+      #target = path + ".conf"
 
-      out,err,rc = shellCmd("sed -e \"s/%APP%/#{token}/g\" #{source} >#{target}")
-      raise "Failed to instantiate gear http configuration" unless rc == 0
-      puts("initialized http conf #{target}")
+      #out,err,rc = shellCmd("sed -e \"s/%APP%/#{token}/g\" #{source} >#{target}")
+      #raise "Failed to instantiate gear http configuration" unless rc == 0
+      #puts("initialized http conf #{target}")
 
       notify_observers(:after_initialize_homedir)
     end

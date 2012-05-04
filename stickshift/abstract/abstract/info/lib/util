@@ -601,7 +601,7 @@ function get_cartridge_state {
   fi
 }
 
-# expected values: building, deploying, started, idle, stopped, or unknown
+# expected values: building, deploying, started, idle, new, stopped, or unknown
 function set_app_state {
   set_cartridge_state `openshift_state_dir` $1
 }
