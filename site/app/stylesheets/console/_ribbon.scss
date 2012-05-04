@@ -1,5 +1,16 @@
 @import "compass";
 
+.ribbon:after {
+    border-right: 10px solid transparent;
+    border-top: 10px solid #000;
+    bottom: -10px;
+    content: "";
+    height: 0;
+    right: 0;
+    position: absolute;
+    width: 0;
+}
+
 .ribbon {
   position: relative;
 
@@ -29,6 +40,17 @@
     content: "";
     height: 0;
     left: 0;
+    position: absolute;
+    width: 0;
+  }
+  
+  &:after {
+    border-right: 10px solid transparent;
+    border-top: 10px solid #000;
+    bottom: -10px;
+    content: "";
+    height: 0;
+    right: 0;
     position: absolute;
     width: 0;
   }

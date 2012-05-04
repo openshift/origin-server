@@ -158,16 +158,16 @@
 	} 
 
 #identity {
-	border: 1px solid #383838;
+	//border: 1px solid #383838;
   @include border-radius(3px);
   color: #999999;
   font-size: 11px;
-  background: #000 url("../images/console/arrow-down.png") 97% .75em no-repeat;
-
+  //background-color: #222;
+  //background: rgba(50, 50, 50, 0.8) url("../images/console/arrow-down.png") 97% .75em no-repeat;
   position: absolute;
   right: 0;
   top: 35px;
-  padding: 0 17px 0 8px;
+  padding: 0;
   margin-left: 0;
 }
 #identity .username {

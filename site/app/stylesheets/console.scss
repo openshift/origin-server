@@ -50,29 +50,56 @@ a:hover,a:active {color:#b1e5f2;}
 @import "bootstrap/variables";
 @import "bootstrap/mixins";
 @import "mixins";
-@import "bootstrap/dropdowns";
 
 
 @import "console/navbar";
 @import "console/help";
 @import "console/breadcrumbs";
 @import "console/ribbon";
-// @import "console/buttons";
 
 
 
 .dropdown-menu {
-  background: black;
+	background-color: #444;
+  background-color:rgba(70, 70, 70, 0.75);
+  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;
   float: none;
-}
+  border:none;
+  @include border-radius($radius: 0 0 3px 3px);
+  }
 .dropdown-menu a {
-  color: #9a9b9c;
+  color: #cacbcc;
 }
 .dropdown-menu > li > a:hover {
   border-radius: 0px;
   background-color: #5a5b5c;
+}
+.dropdown.open .dropdown-toggle {
+  color: #CACBCC;
+	background-color: #444;
+  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 1em no-repeat;
+  @include border-radius($radius: 3px 3px 0 0);
+  
+  &:hover, &:active {
+  	color: #fff;
+  }
+}
+.dropdown-toggle {
+	background-color: #444;
+  background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 1em no-repeat;
+  padding: 3px 20px 3px 10px;
+  color: #CACBCC;
+  text-decoration: none !important;
+  display: inline-block;
+  @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
+  @include border-radius($radius: 3px);
+  
+  
+  &:hover, &:active {
+  	color: #fff;
+  }
 }
 
 
@@ -224,6 +251,42 @@ ol.wizard li.active {
 ol.wizard li a {
 	color: inherit;
 	}
+	
+@media (max-width: 767px) {
+	ol.wizard {
+		display:block;
+		margin: 0 0 15px;
+		
+		li {
+			background-position: 0 -84;
+			background-repeat: no-repeat;
+    	display: inline-block;
+    	font-size: inherit;
+    	line-height: 25px;
+    	list-style-position: inside;
+    	list-style-type: none;
+    	margin: 0;
+    	padding:0 30px 10px 25px;
+    	
+    	span i {
+    		background:none;
+    		border:none;
+    		font-style:normal;
+    		font-weight:bold;
+    		height:35px;
+    		left:-20px;
+    		line-height:32px;
+    		position:absolute;
+    		text-align:center;
+    		top:center;
+    		width: 8px;
+    		top: -8px;
+    	}
+		}
+	}
+}
+
+
 #copyright {
 	color: #666;
 	min-height: 100px;

@@ -1,6 +1,6 @@
 // CONSOLE BUTTON STYLES
 // -------------
-
+/*
 .btn, 
 a.btn {
 	color: #ccc;
@@ -22,10 +22,11 @@ a.btn:active {
   color: $activeButtonLightColor;
   border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
 }
-
+*/
 
 .btn-primary, a.btn-primary {
-	@include buttonBackground(#94dbed, #7CA1AA);
+	//@include buttonBackground(#94dbed, #569daf);
+	@include buttonBackground(#B1E5F2, #8bb4be);
 	color: $grayDark;
 	border-color: transparent;
 	text-shadow: 0 1px 0 #DFDFDF;
@@ -38,6 +39,7 @@ a.btn:active {
 	text-shadow: 0 1px 0 #DFDFDF;
 }
 .btn-primary:active, a.btn-primary:active {
+	background-color: #b1e5f2;
 	border-color: rgba(5, 5, 5, 0.3) rgba(5, 5, 5, 0.35) rgba(5, 5, 5, 0.2) rgba(5, 5, 5, 0.15);
 	color: $activeButtonDarkColor;
 	@include box-shadow(none);
