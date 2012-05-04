@@ -1,24 +1,10 @@
 @import "compass";
 
-.ribbon:after {
-    border-right: 10px solid transparent;
-    border-top: 10px solid #000;
-    bottom: -10px;
-    content: "";
-    height: 0;
-    right: 0;
-    position: absolute;
-    width: 0;
-}
-
 .ribbon {
   position: relative;
-
   background-color: #333b3f;
   @include background-image(linear-gradient(color-stops(#333b3f, #1a2124)));
-
-  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);
-
+  @include box-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
   color: #bcbdbc;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
   font-weight: 400;
