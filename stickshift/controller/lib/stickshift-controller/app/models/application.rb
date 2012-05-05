@@ -165,7 +165,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     app = nil
     if user.applications
       user.applications.each do |next_app|
-        if next_app.name.downcase == app_name.downcase
+        if next_app.name == app_name
           app = next_app
           break
         end

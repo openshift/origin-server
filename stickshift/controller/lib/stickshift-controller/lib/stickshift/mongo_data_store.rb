@@ -272,7 +272,7 @@ module StickShift
     end
 
     def get_app(user_id, id)
-      hash = find_one({ "_id" => user_id, "apps.name" => /^#{id}$/i }, :fields => ["apps"])
+      hash = find_one({ "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
       return nil unless hash && !hash.empty?
 
       app_hash = nil
@@ -337,17 +337,17 @@ module StickShift
       app_attrs.delete("ngears")
 
       if ngears > 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => /^#{id}$/i,
+        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
                "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"},
                :update => { "$set" => { "apps.$" => app_attrs }, "$inc" => { "consumed_gears" => ngears}}})
         raise StickShift::UserException.new("Application limit has reached for '#{user_id}'", 104) if hash == nil
       elsif ngears < 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => /^#{id}$/i,
+        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
                "$where" => "this.consumed_gears + #{ngears} >= 0"},
                :update => { "$set" => { "apps.$" => app_attrs }, "$inc" => { "consumed_gears" => ngears}}})
         raise StickShift::UserException.new("Application gears already at zero for '#{user_id}'", 135) if hash == nil
       else
-        update({ "_id" => user_id, "apps.name" => /^#{id}$/i}, { "$set" => { "apps.$" => app_attrs }} )
+        update({ "_id" => user_id, "apps.name" => id}, { "$set" => { "apps.$" => app_attrs }} )
       end
     end
 
@@ -357,7 +357,7 @@ module StickShift
       ngears = ngears.to_i
       app_attrs.delete("ngears")
 
-      hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => { "$not" => /^#{id}$/i }, "domains" => {"$exists" => true}, 
+      hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
              "$where" => "((this.consumed_gears + #{ngears}) <= this.max_gears) && (this.domains.length > 0)"},
              :update => { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }} })
       raise StickShift::UserException.new("Failed: Either application limit has already reached or " +
@@ -382,7 +382,7 @@ module StickShift
     end
 
     def delete_app(user_id, id)
-      update({ "_id" => user_id, "apps.name" => /^#{id}$/i},
+      update({ "_id" => user_id, "apps.name" => id},
              { "$pull" => { "apps" => {"name" => id }}})
     end
 
