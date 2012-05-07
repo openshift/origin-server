@@ -40,10 +40,12 @@ isrunning() {
 }
 
 start() {
-	if ! isrunning
+    if ! isrunning
     then
+        src_user_hook pre_start_mysql-5.1
         /usr/bin/mysqld_safe --defaults-file=$MYSQL_DIR/etc/my.cnf >/dev/null 2>&1 &
         wait_to_start_as_user
+        run_user_hook post_start_mysql-5.1
     else
         echo "MySQL already running" 1>&2
     fi
@@ -51,7 +53,8 @@ start() {
 
 stop() {
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
-    	pid=$( /bin/cat $MYSQL_DIR/pid/mysql.pid )
+        src_user_hook pre_stop_mysql-5.1
+        pid=$( /bin/cat $MYSQL_DIR/pid/mysql.pid )
         /bin/kill $pid
         ret=$?
         if [ $ret -eq 0 ]; then
@@ -62,6 +65,7 @@ stop() {
                 let TIMEOUT=${TIMEOUT}-1
             done
         fi
+        run_user_hook post_stop_mysql-5.1
     else
         if `pgrep -x mysqld_safe > /dev/null 2>&1`
         then

@@ -4,6 +4,11 @@
 SS_CONTROLLER_LIB_UTIL=true
 source /etc/stickshift/stickshift-node.conf
 
+function source_if_exists {
+    [ -f "$1" ]  &&  source "$1"
+    return 0
+}
+
 # Public: Start all processes in a given gear
 #
 # Examples:
@@ -85,11 +90,6 @@ function start_dbs {
     do
         $cmd start || error "Failed to start ${cmd}" 121
     done
-}
-
-function source_if_exists {
-    [ -f "$1" ]  &&  source "$1"
-    return 0
 }
 
 function get_app_type {
@@ -181,6 +181,21 @@ function create_standard_app_dirs {
 
 # Create simple application start / stop script
 function create_app_ctl_script {
+    rm -f "$APP_DIR/${application}_ctl.sh"
+    
+    cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
+#!/bin/bash -e
+
+EOF
+    
+    if [ "$1" ]; then
+        cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
+# Expose which cartridge created the ctl script
+export CARTRIDGE_TYPE="$1"
+
+EOF
+    fi
+
 
     cat <<EOF > "$APP_DIR/${application}_ctl.sh"
 #!/bin/bash -e
@@ -662,6 +677,40 @@ function test_cartridge_state {
   _state=`get_cartridge_state "$1"`
   return `test "$_state" = $2`
 }
+
+function src_user_hook {
+    # Run pre_start, pre_stop, post_start, post_stop hooks.
+    # The pre_* hooks may modify environment.
+    local hook="${OPENSHIFT_REPO_DIR}.openshift/action_hooks/$1"
+    shift
+
+    if [ $(id -u) -eq 0 ]; then
+        echo "ERROR: src_user_hook called as root" 1>&2
+        exit 15
+    fi
+
+    if [ -f "$hook" ]; then
+        source "$hook" "$@"
+    fi
+}
+
+
+function run_user_hook {
+    # Run pre_start, pre_stop, post_start, post_stop hooks.
+    # The pre_* hooks may modify environment.
+    local hook="${OPENSHIFT_REPO_DIR}.openshift/action_hooks/$1"
+    shift
+
+    if [ $(id -u) -eq 0 ]; then
+        echo "ERROR: run_user_hook called as root" 1>&2
+        exit 15
+    fi
+
+    if [ -f "$hook" ]; then
+        "$hook" "$@"
+    fi
+}
+
 
 if [ -f /usr/libexec/stickshift/lib/util_ext ]
 then

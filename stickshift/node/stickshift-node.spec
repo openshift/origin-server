@@ -19,6 +19,7 @@ Requires:       rubygem(parseconfig)
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
+Requires:       rubygem(rcov)
 Requires:       python
 
 BuildRequires:  ruby
