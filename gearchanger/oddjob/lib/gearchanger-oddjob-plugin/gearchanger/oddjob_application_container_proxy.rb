@@ -97,6 +97,12 @@ module GearChanger
       parse_result(reply)
     end
 
+    def show_state(app, gear)
+      args = "--with-app-uuid '#{app.uuid}' --with-container-uuid '#{gear.uuid}'"
+      reply = exec_command("stickshift", "app-state-show", args)
+      parse_result(reply)
+    end
+
     def preconfigure_cartridge(app, gear, cart)
       Rails.logger.debug("Inside preconfigure_cartridge :: application: #{app.name} :: cartridge name: #{cart}")
 
@@ -461,6 +467,8 @@ module GearChanger
             else
               result.errorIO << line['CLIENT_ERROR: '.length..-1]
             end
+          elsif line =~ /^CART_DATA: /
+            result.data << line['CART_DATA: '.length..-1]
           elsif line =~ /^APP_INFO: /
             result.appInfoIO << line['APP_INFO: '.length..-1]
           elsif result.exitcode == 0
@@ -565,5 +573,10 @@ module GearChanger
       job
     end
 
+    def get_show_state_job(app, gear)
+      args = "--with-app-uuid '#{app.uuid}' --with-container-uuid '#{gear.uuid}'"
+      job = RemoteJob.new('stickshift', 'app-state-show', args)
+      job
+    end
   end
 end

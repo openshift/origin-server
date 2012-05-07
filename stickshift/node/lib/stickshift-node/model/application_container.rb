@@ -50,19 +50,36 @@ module StickShift
       notify_observers(:after_container_destroy)      
     end
 
+    # Public: Fetch application state from gear.
+    # Returns app state as string on Success and 'unknown' on Failure
+    def get_app_state
+      env = load_env
+      app_state_file=File.join(env[:OPENSHIFT_GEAR_DIR], '/runtime/.state')
+      
+      if File.exists?(app_state_file)
+        app_state = nil
+        File.open(app_state_file) { |input| app_state = input.read.chomp }
+      else
+        app_state = 'unknown'
+      end
+      app_state
+    end
+
     # Public: Load a gears environment variables into the environment
     #
     # Examples
     #
     #   load_env
-    #   # => {"OPENSHIFT_APP_DIR"=>"/var/lib/UUID/mysql-5.3",
+    #   # => {"OPENSHIFT_GEAR_DIR"=>"/var/lib/UUID/mysql-5.3",
     #         "OPENSHIFT_APP_NAME"=>"myapp"}
     #
     # Returns env Array
     def load_env
       env = {}
       # Load environment variables into a hash
+      
       Dir["#{user.homedir}/.env/*"].each { | f |
+        next if File.directory?(f)
         contents = nil
         File.open(f) {|input|
           contents = input.read.chomp

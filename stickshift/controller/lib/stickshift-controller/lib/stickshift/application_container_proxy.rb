@@ -87,6 +87,9 @@ module StickShift
     def remove_broker_auth_key(app, gear)
     end
 
+    def show_state(app, gear)
+    end
+
     def preconfigure_cartridge(app, gear, cart)
     end
 
@@ -199,6 +202,9 @@ module StickShift
     end
   
     def get_broker_auth_key_remove_job(app, gear)
+    end
+    
+    def get_show_state_job(app, gear)
     end
   end
 end

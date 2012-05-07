@@ -788,7 +788,27 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     reply
   end
-  
+
+  # Get the state of the application on all gears. 
+  def show_state()
+    gear_states = {}
+    tag = ""
+    handle = RemoteJob.create_parallel_job
+    RemoteJob.run_parallel_on_gears(self.gears, handle) { |exec_handle, gear|
+      job = gear.app_state_job_show()
+      RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+    }
+    RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
+      if status != 0
+        Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}", 143)
+        gear_states[gear] = 'unknown'
+      else
+        gear_states[gear] = output
+      end
+    }
+    gear_states
+  end
+
   def add_authorized_ssh_key(ssh_key, key_type=nil, comment=nil)
     reply = ResultIO.new
     s,f = run_on_gears(nil,reply,false) do |gear,r|
