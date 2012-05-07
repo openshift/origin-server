@@ -251,7 +251,7 @@ class LegacyBrokerController < ApplicationController
         end
         @reply.resultIO << "Successfully created application: #{app.name}" if @reply.resultIO.length == 0
       else
-        @reply.result = app.errors.first[1][:message]
+        @reply.resultIO << app.errors.first[1][:message]
         render :json => @reply, :status => :bad_request 
         return
       end
