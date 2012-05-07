@@ -84,6 +84,12 @@ class KeysControllerTest < ActionController::TestCase
     assert_redirected_to account_path
   end
 
+  test "should destroy default key" do
+    (key = Key.new(get_post_form.merge(:name => 'default', :as => @user))).save!
+    delete :destroy, :id => key.id
+    assert_redirected_to account_path
+  end
+
   test "should assign errors on empty name" do
     post :create, {:key => get_post_form.merge(:name => '')}
 
