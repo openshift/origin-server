@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version:   0.92.2
+Version:   0.92.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.3-1
+- remove old obsoletes (dmcphers@redhat.com)
+- clean specs (whearn@redhat.com)
+
 * Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.92.2-1
 - Merge branch 'php-tests' (mmcgrath@redhat.com)
 - correcting selinux label for pearrc (mmcgrath@redhat.com)
