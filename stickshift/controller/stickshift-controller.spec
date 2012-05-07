@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.2
+Version: 0.10.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,26 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
+- Revert "BugZ 818896. Making app name search case in-sensitive"
+  (kraman@gmail.com)
+- Merge pull request #17 from kraman/Bug818896 (dmcphers@redhat.com)
+- Changing cartridge type attribute to name to remain consistent with rest of
+  API (kraman@gmail.com)
+- BugZ 818896. Making app name search case in-sensitive (kraman@gmail.com)
+- Adding a new REST endpoint for gear group information (kraman@gmail.com)
+- BugZ 817170. Add ability to get valid gear size options from the
+  ApplicationContainerProxy (kraman@gmail.com)
+- BugZ 817170. Add ability to get valid gear size options from the
+  ApplicationContainerProxy (kraman@gmail.com)
+- Validate ssh key type against the whole string rather than a line
+  (dmcphers@redhat.com)
+- moving broker auth key and iv encoding/decoding both into the plugin
+  (abhgupta@redhat.com)
+- changes to cucumber tests to make them work for OpenShift Origin
+  (abhgupta@redhat.com)
+- potential fix for bug#800188 (rchopra@redhat.com)
+
 * Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.10.2-1
 - Fix scalable param in response for GET applications rest api
   (rpenta@redhat.com)
