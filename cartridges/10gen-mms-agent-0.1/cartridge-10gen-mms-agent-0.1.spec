@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
 
 Name: cartridge-10gen-mms-agent-0.1
-Version: 1.9.2
+Version: 1.9.3
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -56,6 +56,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 1.9.3-1
+- Add support for pre/post start/stop hooks to both web application service and
+  embedded cartridges.   Include the cartridge name in the calling hook to
+  avoid conflicts when typeless gears are implemented. (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 1.9.2-1
 - remove old obsoletes (dmcphers@redhat.com)
 - clean specs (whearn@redhat.com)
