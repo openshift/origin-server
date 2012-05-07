@@ -25,6 +25,7 @@ fi
 MYSQL_DIR="$OPENSHIFT_HOMEDIR/mysql-5.1/"
 
 source /etc/stickshift/stickshift-node.conf
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mysql-5.1/info
 source ${CART_INFO_DIR}/lib/util
 
