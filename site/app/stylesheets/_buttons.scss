@@ -164,7 +164,7 @@
 }
 // Inverse appears as dark gray
 .btn-inverse {
-  @include buttonBackgroundInverse(#505050, #1f1f1f);
+  @include buttonBackground(#505050, #1f1f1f);
   border-color: #010101;
 }
 

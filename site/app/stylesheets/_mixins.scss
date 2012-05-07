@@ -29,17 +29,20 @@
 
 }
 
-@mixin buttonBackgroundInverse($startColor, $endColor) {
+@mixin buttonBackgroundConsole($startColor, $endColor) {
   // gradientBar will set the background to a pleasing blend of these, to support IE<=9
   @include gradientBar($startColor, $endColor);
   @include reset-filter();
 
   &:hover {
     background-color: $startColor;
+    color: #fff;
   }
   
    &:active, &.active, &.disabled, &[disabled] {
-    background-color: $endColor;
+    background-color: $startColor;
+    color: #ccc;
+    border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
   }
 
 }
