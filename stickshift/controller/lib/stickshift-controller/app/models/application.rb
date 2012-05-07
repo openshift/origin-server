@@ -33,7 +33,7 @@ class Application < StickShift::Cartridge
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /\A(jumbo|exlarge|large|micro|medium|small)\z/)
+    unless StickShift::ApplicationContainerProxy.valid_gear_sizes(record.user).include? val
       record.errors.add attribute, {:message => "Invalid Profile.  Must be: (jumbo|exlarge|large|medium|micro|small)", :exit_code => 134}
     end
   end
@@ -827,8 +827,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   
   def add_broker_key
     iv, token = StickShift::AuthService.instance.generate_broker_key(self)
-    iv = Base64::encode64(iv)
-    token = Base64::encode64(token)
     
     reply = ResultIO.new
     s,f = run_on_gears(nil,reply,false) do |gear,r|
@@ -1391,8 +1389,6 @@ private
         self.user.remove_env_var(key)
       when "BROKER_KEY_ADD"
         iv, token = StickShift::AuthService.instance.generate_broker_key(self)
-        iv = Base64::encode64(iv)
-        token = Base64::encode64(token)
         self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
       when "BROKER_KEY_REMOVE"
         self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])

@@ -6,16 +6,19 @@ module DnsHelper
   #
   # Utility functions for checking namespace availability and removing dns entries
   #
+
+  $dns_con = nil
+
   def dns_service
-    if not @dns_con
-      @dns_con = Uplift::BindPlugin.new({:server => "127.0.0.1", 
+    if not $dns_con
+      $dns_con = Uplift::BindPlugin.new({:server => "127.0.0.1", 
                                          :port => 53,
                                          :keyname => "example.com", 
                                          :keyvalue => "lOuqTjZbxrFwOodiqXMcBQ8J5bGNvU6xUgOQxOohSRmiSi49P56x/wVNd/0kqmLvUxjt3qzx0lVCsFnxaRgg7g==", 
                                          :domain_suffix => $domain, 
                                          :zone => "example.com"})
     end
-    @dns_con
+    $dns_con
   end
 
   def namespace_available?(namespace)

@@ -15,6 +15,9 @@
 # limitations under the License.
 #++
 
+require 'stickshift-node'
+require 'stickshift-common'
+
 def usage
     puts <<USAGE
 == Synopsis
@@ -32,13 +35,11 @@ Options:
 USAGE
 end
 
-require 'stickshift-node'
-require 'stickshift-common'
 opts = GetoptLong.new(
-    ["--with-descriptors",  "-a", GetoptLong::NO_ARGUMENT],
-    ["--porcelain",         "-q", GetoptLong::NO_ARGUMENT],
-    ["--debug",             "-d", GetoptLong::NO_ARGUMENT],
-    ["--help",              "-?", GetoptLong::NO_ARGUMENT]
+    ['--with-descriptors',  '-a', GetoptLong::NO_ARGUMENT],
+    ['--porcelain',         '-q', GetoptLong::NO_ARGUMENT],
+    ['--debug',             '-d', GetoptLong::NO_ARGUMENT],
+    ['--help',              '-?', GetoptLong::NO_ARGUMENT]
 )
 
 args = {}
@@ -59,57 +60,8 @@ $ss_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
 begin
-  carts = []
-  cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
-  Dir.foreach(cartridge_path) do |cart_dir|
-    next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1"].include? cart_dir
-    path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
-    begin
-      print "Loading #{cart_dir}..." if $ss_debug
-      carts.push StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
-      print "OK\n" if $ss_debug
-    rescue Exception => e
-      print "ERROR\n" if $ss_debug      
-      print "#{e.message}\n#{e.backtrace.inspect}\n" unless $porcelain
-    end
-  end
-  
-  embedded_cartridge_path = File.join(cartridge_path, "embedded")
-  if File.directory?(embedded_cartridge_path)
-    Dir.foreach(embedded_cartridge_path) do |cart_dir|
-      next if [".",".."].include? cart_dir
-      path = File.join(embedded_cartridge_path, cart_dir, "info", "manifest.yml")
-      begin
-        print "Loading #{cart_dir}..." if $ss_debug
-        carts.push StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
-        print "OK\n" if $ss_debug
-      rescue Exception => e
-        print "ERROR\n" if $ss_debug      
-        print "#{e.message}\n#{e.backtrace.inspect}\n" unless $porcelain
-      end
-    end
-  end
-  
-  print "\n\n\n" if $ss_debug
-  
-  if $porcelain
-    if list_descriptors
-      print "CLIENT_RESULT: ",carts.map{|c| c.to_descriptor.to_yaml}.to_json
-    else
-      print "CLIENT_RESULT: ",carts.map{|c| c.name}.to_json
-    end
-  else
-    if list_descriptors
-      carts.each do |c|
-        print "Cartridge name: #{c.name}\n\nDescriptor:\n #{c.to_descriptor.inspect}\n\n\n"
-      end
-    else
-      print "Cartridges:\n"
-      carts.each do |c|
-        print "\t#{c.name}\n"
-      end
-    end
-  end
+  list = StickShift::Node.get_cartridge_list(list_descriptors, $porcelain, $ss_debug)
+  puts list
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

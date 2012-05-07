@@ -16,6 +16,8 @@
 
 
 module StickShift
-  VERSION = File.open("#{File.dirname(__FILE__)}/../../stickshift-node.spec").readlines.delete_if{ |x| !x.match(/Version:/) }.first.split(':')[1].strip
+  VERSION = File.open("#{File.dirname(__FILE__)}/../../stickshift-node.spec"
+                        ).readlines.delete_if{ |x| !x.match(/Version:/)
+                        }.first.split(':')[1].strip
   SDK_PATH = File.dirname(__FILE__)
 end

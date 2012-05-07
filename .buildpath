@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildpath>
+	<buildpathentry kind="src" path="cartridges/haproxy-1.4/info/bin"/>
+	<buildpathentry kind="src" path="cartridges/jenkins-client-1.4/info/bin"/>
+	<buildpathentry kind="src" path="gearchanger/oddjob"/>
+	<buildpathentry kind="src" path="stickshift/abstract/abstract/info/bin"/>
+	<buildpathentry kind="src" path="stickshift/broker"/>
+	<buildpathentry kind="src" path="stickshift/common"/>
+	<buildpathentry kind="src" path="stickshift/controller"/>
+	<buildpathentry kind="src" path="stickshift/node"/>
+	<buildpathentry kind="src" path="swingshift/mongo"/>
+	<buildpathentry kind="src" path="uplift/bind"/>
+	<buildpathentry kind="con" path="org.eclipse.dltk.launching.INTERPRETER_CONTAINER"/>
+</buildpath>

@@ -1,18 +1,16 @@
-%define cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.8.1
+Version: 0.8.2
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
 Group: Network/Daemons
 License: ASL 2.0
-URL: https://engineering.redhat.com/trac/Libra
-Source0: %{name}-%{version}.tar.gz
+URL: https://openshift.redhat.com
+Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
-
-Obsoletes: rhc-cartridge-postgresql-8.4
 
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
@@ -74,6 +72,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Fix typo "immediately". (ramr@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (ramr@redhat.com)
+- Fix for bugz 813934 - immediate shutdown to close all sessions if graceful
+  shutdown times out. (ramr@redhat.com)
+- remove old obsoletes (dmcphers@redhat.com)
+- clean specs (whearn@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.8.1-1
 - bumping spec versions (admiller@redhat.com)
 

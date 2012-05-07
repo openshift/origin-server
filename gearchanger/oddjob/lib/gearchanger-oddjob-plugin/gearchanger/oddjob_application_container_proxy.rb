@@ -14,6 +14,10 @@ module GearChanger
     def self.find_one_impl(node_profile=nil)
       OddJobApplicationContainerProxy.new('localhost')
     end
+    
+    def self.valid_gear_sizes_impl(user)    
+      return ["small"]
+    end
 
     def self.blacklisted_in_impl?(name)
       false

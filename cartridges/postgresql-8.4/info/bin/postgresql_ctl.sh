@@ -54,16 +54,24 @@ function _service_stop() {
    fi
 
    if [ -n "$pid" ]; then
-      /bin/kill $pid
-      ret=$?
-      if [ $ret -eq 0 ]; then
-         TIMEOUT="$STOPTIMEOUT"
-         while [ $TIMEOUT -gt 0 ]  &&   \
-               [ -f "$CART_INSTANCE_DIR/pid/postgres.pid" ]; do
-            /bin/kill -0 "$pid" >/dev/null 2>&1 || break
-            sleep 1
-            let TIMEOUT=${TIMEOUT}-1
-         done
+      # Fix for bugz 813934: Postgres gets into a bad state after a deploy
+      pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
+      pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m fast -w -t 30 >> $pglogfile 2>&1
+      sleep 1
+      if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
+         /bin/kill $pid
+         ret=$?
+         if [ $ret -eq 0 ]; then
+            TIMEOUT="$STOPTIMEOUT"
+            while [ $TIMEOUT -gt 0 ]  &&  _is_service_running; do
+               /bin/kill -0 "$pid" >/dev/null 2>&1 || break
+               sleep 1
+               let TIMEOUT=${TIMEOUT}-1
+            done
+            if `pgrep -x postgres -u $(id -u) > /dev/null 2>&1`; then
+               pg_ctl stop -D "$CART_INSTANCE_DIR/data" -m immediate -w >> $pglogfile 2>&1
+            fi
+         fi
       fi
    else
       if `pgrep -x postgres -u $(id -u)  > /dev/null 2>&1`; then

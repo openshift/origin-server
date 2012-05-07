@@ -14,7 +14,6 @@
 # limitations under the License.
 #++
 
-
 require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
@@ -33,13 +32,14 @@ module StickShift
   # Represents a user account on the system.
   class UnixUser < Model
     include StickShift::Utils::ShellExec
-    attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid, :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
-    attr_accessor :debug
+    attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
+        :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
 
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
     #fixme: set debug to false
-    def initialize(application_uuid, container_uuid, user_uid=nil, app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
+    def initialize(application_uuid, container_uuid, user_uid=nil,
+        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -69,6 +69,16 @@ module StickShift
       @uuid
     end
     
+    # Public: Create an empty gear.
+    #
+    # Examples
+    #
+    #   create
+    #   # => nil
+    #   # a user
+    #   # Setup permissions
+    #
+    # Returns nil on Success or raises on Failure
     def create
       skel_dir = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
       shell    = @config.get("GEAR_SHELL")     || "/bin/bash"
@@ -76,7 +86,8 @@ module StickShift
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
       
-      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do |lock|
+      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do
+            | lock |
         lock.flock(File::LOCK_EX)
         
         unless @uid
@@ -87,9 +98,17 @@ module StickShift
           @homedir = File.join(basedir,@uuid)
         end
         
-        cmd = "useradd -u #{@uid} -d #{@homedir} -s #{shell} -c '#{gecos}' -m -k #{skel_dir} #{@uuid}"
+        cmd = %{useradd -u #{@uid} \
+                -d #{@homedir} \
+                -s #{shell} \
+                -c '#{gecos}' \
+                -m \
+                -k #{skel_dir} \
+                #{@uuid}}
         out,err,rc = shellCmd(cmd)
-        raise UserCreationException.new("ERROR: unable to create user account #{@uuid}, #{cmd}") unless rc == 0
+        raise UserCreationException.new(
+                "ERROR: unable to create user account #{@uuid}, #{cmd}"
+                ) unless rc == 0
         
         FileUtils.chown("root", @uuid, @homedir)
         FileUtils.chmod 0o0750, @homedir
@@ -98,11 +117,23 @@ module StickShift
       initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
     end
     
+    # Public: Destroys a gear stopping all processes and removing all files
+    #
+    # Examples
+    #
+    #   destroy
+    #   # => nil
+    #
+    # Returns nil on Success or raises on Failure
     def destroy
-      raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") if @uid.nil? || @homedir.nil? || @uuid.nil?
+      raise UserDeletionException.new(
+            "ERROR: unable to destroy user account #{@uuid}"
+            ) if @uid.nil? || @homedir.nil? || @uuid.nil?
       notify_observers(:before_unix_user_destroy)
       
-      cmd = "/bin/ps -U \"#{@uuid}\" -o pid | /bin/grep -v PID | xargs kill -9 2> /dev/null"
+      cmd = %{/bin/ps -U '#{@uuid}' -o pid | \
+              /bin/grep -v PID | \
+              xargs kill -9 2> /dev/null}
       (1..10).each do |i|
         out,err,rc = shellCmd(cmd)
         break unless rc == 0
@@ -119,11 +150,26 @@ module StickShift
       FileUtils.rm(conf_file) if File.exist? conf_file
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
-      raise UserDeletionException.new("ERROR: unable to destroy user account #{@uuid}") unless rc == 0
-
+      raise UserDeletionException.new(
+            "ERROR: unable to destroy user account #{@uuid}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
-    
+
+
+    # Public: Append an SSH key to a users authorized_keys file
+    #
+    # key - The String value of the ssh key.
+    # key_type - The String value of the key type ssh-(rsa|dss)).
+    # comment - The String value of the comment to append to the key.
+    #
+    # Examples
+    #
+    #   add_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+    #               'ssh-rsa',
+    #               'example@example.com')
+    #   # => nil
+    #
+    # Returns nil on Success or raises on Failure
     def add_ssh_key(key, key_type=nil, comment=nil)
       self.class.notify_observers(:before_add_ssh_key, self, key)
       ssh_dir = File.join(@homedir, ".ssh")
@@ -136,7 +182,8 @@ module StickShift
       cmd_entry = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{cloud_name}-#{@uuid}#{comment}\n"
       FileUtils.mkdir_p ssh_dir
       FileUtils.chmod(0o0750,ssh_dir)
-      File.open(authorized_keys_file, File::WRONLY|File::APPEND|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file,
+        File::WRONLY|File::APPEND|File::CREAT, 0o0440) do | file |
         file.write(cmd_entry)
       end
       FileUtils.chmod 0o0440, authorized_keys_file
@@ -144,15 +191,28 @@ module StickShift
       self.class.notify_observers(:after_add_ssh_key, self, key)
     end
     
+    # Public: Remove an SSH key from a users authorized_keys file.
+    #
+    # key - The String value of the ssh key.
+    # comment - The String value of the comment associated with the key.
+    #
+    # Examples
+    #
+    #   remove_ssh_key('AAAAB3NzaC1yc2EAAAADAQABAAABAQDE0DfenPIHn5Bq/...',
+    #               'example@example.com')
+    #   # => nil
+    #
+    # Returns nil on Success or raises on Failure
     def remove_ssh_key(key, comment=nil)
       self.class.notify_observers(:before_remove_ssh_key, self, key)
-      ssh_dir = File.join(@homedir, ".ssh")
-      authorized_keys_file = File.join(ssh_dir,"authorized_keys")
+      ssh_dir = File.join(@homedir, '.ssh')
+      authorized_keys_file = File.join(ssh_dir,'authorized_keys')
       
       FileUtils.mkdir_p ssh_dir
       FileUtils.chmod(0o0750,ssh_dir)
       keys = []
-      File.open(authorized_keys_file, File::RDONLY|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file, File::RDONLY|File::CREAT, 0o0440) do
+            | file |
         keys = file.readlines
       end
       
@@ -163,22 +223,38 @@ module StickShift
       end
       keys.map!{ |k| k.strip }
       
-      File.open(authorized_keys_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0440) do |file|
+      File.open(authorized_keys_file, File::WRONLY|File::TRUNC|File::CREAT,
+                0o0440) do |file|
         file.write(keys.join("\n"))
         file.write("\n")
       end
       
       FileUtils.chmod 0o0440, authorized_keys_file
-      FileUtils.chown("root",@uuid,ssh_dir)
+      FileUtils.chown('root', @uuid, ssh_dir)
       self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
-    
+
+    # Public: Add an environment variable to a given gear.
+    #
+    # key - The String value of target environment variable.
+    # value - The String value to place inside the environment variable.
+    # prefix_cloud_name - The String value to append in front of key.
+    #
+    # Examples
+    #
+    #  add_env_var('OPENSHIFT_DB_TYPE',
+    #               'mysql-5.3')
+    #  # => 36
+    #
+    # Returns the Integer value for how many bytes got written or raises on 
+    # failure.
     def add_env_var(key, value, prefix_cloud_name = false, &blk)
-      env_dir = File.join(@homedir,".env")
+      env_dir = File.join(@homedir,'.env/')
       if prefix_cloud_name
-        key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
+        key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
       end
-      File.open(File.join(env_dir, key),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(env_dir, key),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write "export #{key}='#{value}'"
       end
 
@@ -187,32 +263,67 @@ module StickShift
       end
     end
     
+    # Public: Remove an environment variable from a given gear.
+    #
+    # key - String name of the environment variable to remove.
+    # prefix_cloud_name - String prefix to append to key.
+    #
+    # Examples
+    #
+    #   remove_env_var('OPENSHIFT_DB_TYPE')
+    #   # => nil
+    #
+    # Returns an nil on success and false on failure.
     def remove_env_var(key, prefix_cloud_name=false)
       env_dir = File.join(@homedir,".env")
       if prefix_cloud_name
         key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
       end
-      FileUtils.rm_f File.join(env_dir, key)
+      env_file_path = File.join(env_dir, key)
+      FileUtils.rm_f env_file_path
+      File.exists?(env_file_path) ? false : true
     end
     
+    # Public: Add broker authorization keys so gear can communicate with 
+    #         broker.
+    #
+    # iv - A String value for the IV file.
+    # token - A String value for the token file.
+    #
+    # Examples
+    #   add_broker_auth('ivvalue', 'tokenvalue')
+    #   # => ["/var/lib/stickshift/UUID/.auth/iv",
+    #         "/var/lib/stickshift/UUID/.auth/token"]
+    #
+    # Returns An Array of Strings for the newly created auth files
     def add_broker_auth(iv,token)
-      broker_auth_dir=File.join(@homedir,".auth")
+      broker_auth_dir=File.join(@homedir,'.auth')
       FileUtils.mkdir_p broker_auth_dir
-      File.open(File.join(broker_auth_dir,"iv"),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(broker_auth_dir, 'iv'),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write iv
       end
-      File.open(File.join(broker_auth_dir,"token"),File::WRONLY|File::TRUNC|File::CREAT) do |file|
+      File.open(File.join(broker_auth_dir, 'token'),
+            File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write token
       end
       
-      FileUtils.chown_R("root",@uuid,broker_auth_dir)
-      FileUtils.chmod(0o0750,broker_auth_dir)
-      FileUtils.chmod(0o0640,Dir.glob("#{broker_auth_dir}/*"))
+      FileUtils.chown_R("root", @uuid,broker_auth_dir)
+      FileUtils.chmod(0o0750, broker_auth_dir)
+      FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
     end
-    
+
+    # Public: Remove broker authentication keys from gear.
+    #
+    # Examples
+    #   remove_broker_auth
+    #   # => nil
+    #
+    # Returns nil on Success and false on Failure
     def remove_broker_auth
-      broker_auth_dir=File.join(@homedir,".auth")
+      broker_auth_dir=File.join(@homedir, '.auth')
       FileUtils.rm_rf broker_auth_dir
+      File.exists?(broker_auth_dir) ? false : true
     end
 
     def run_as(&block)
@@ -228,6 +339,18 @@ module StickShift
     
     #private
     
+    # Private: Create and populate the users home dir.
+    #
+    # Examples
+    #   initialize_homedir
+    #   # => nil
+    #   # Creates:
+    #   # ~
+    #   # ~/.tmp/
+    #   # ~/.env/
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR
+    #
+    # Returns nil on Success and raises on Failure.
     def initialize_homedir(basedir, homedir, cart_basedir)
       @homedir = homedir
       notify_observers(:before_initialize_homedir)
@@ -289,6 +412,15 @@ module StickShift
       notify_observers(:after_initialize_homedir)
     end
     
+    # Private: Determine next available user id.  This is usually determined
+    #           and provided by the broker but is auto determined if not
+    #           provided.
+    #
+    # Examples:
+    #   next_uid =>
+    #   # => 504
+    #
+    # Returns Integer value for next available uid.
     def next_uid
       uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
       gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }

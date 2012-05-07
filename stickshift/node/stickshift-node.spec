@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.10.2
+Version: 0.10.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -97,6 +97,30 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
+- Updating gem versions (admiller@redhat.com)
+- Fix to use Open4 -- merge from previous checkin changed it to Open5.
+  (ramr@redhat.com)
+- fixing merge conflicts wrt code cleanup (mmcgrath@redhat.com)
+- Moved logic up from scripts to library. (mpatel@redhat.com)
+- Merge pull request #9 from drnic/add_env_var (dan.mcpherson@gmail.com)
+- exit status of connectors should be passed along properly
+  (rchopra@redhat.com)
+- pass the two uuid fields through to StickShift::ApplicationContainer
+  (drnicwilliams@gmail.com)
+- corrected syntax error (mmcgrath@redhat.com)
+- syle changes (mmcgrath@redhat.com)
+- better coding syle and comments (mmcgrath@redhat.com)
+- removing tabs, they are the devil (mmcgrath@redhat.com)
+- more code style cleanup and comments (mmcgrath@redhat.com)
+- style cleanup and comments (mmcgrath@redhat.com)
+- Added style cleanup, comments (mmcgrath@redhat.com)
+- Corrected some ruby style, added comments (mmcgrath@redhat.com)
+- Better ruby style and commenting (mmcgrath@redhat.com)
+- added better ruby styling (mmcgrath@redhat.com)
+- Added better styling and help menu (mmcgrath@redhat.com)
+- update gem versions (dmcphers@redhat.com)
+
 * Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.10.2-1
 - Updating login prompt script to work with mongo and mysql shell
   (kraman@gmail.com)
