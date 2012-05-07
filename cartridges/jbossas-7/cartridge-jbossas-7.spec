@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version:   0.92.2
+Version:   0.92.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.3-1
+- Add support for pre/post start/stop hooks to both web application service and
+  embedded cartridges.   Include the cartridge name in the calling hook to
+  avoid conflicts when typeless gears are implemented. (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.2-1
 - US2113 (bdecoste@gmail.com)
 - US2113 (bdecoste@gmail.com)

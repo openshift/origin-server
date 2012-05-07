@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version:   0.92.3
+Version:   0.92.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -124,6 +124,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
+- Add support for pre/post start/stop hooks to both web application service and
+  embedded cartridges.   Include the cartridge name in the calling hook to
+  avoid conflicts when typeless gears are implemented. (rmillner@redhat.com)
+- changed git config within spec files to operate on local repo instead of
+  changing global values (kraman@gmail.com)
+
 * Thu May 03 2012 Dan McPherson <dmcphers@redhat.com> 0.92.3-1
 - Adding obsoletes for machines that may have cartridge with old name already
   installed. (kraman@gmail.com)
