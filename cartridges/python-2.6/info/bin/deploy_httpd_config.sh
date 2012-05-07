@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cartridge_type="python-2.6"
 source "/etc/stickshift/stickshift-node.conf"
 source "/etc/stickshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -9,18 +10,18 @@ uuid="$2"
 IP="$3"
 
 APP_HOME="$GEAR_BASE_DIR/$uuid"
-APP_DIR=`echo $APP_HOME/$application | tr -s /`
+PYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
-cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
-ServerRoot "$APP_DIR"
+cat <<EOF > "$PYCART_INSTANCE_DIR/conf.d/stickshift.conf"
+ServerRoot "$PYCART_INSTANCE_DIR"
 DocumentRoot "$OPENSHIFT_REPO_DIR/wsgi"
 Listen $IP:8080
 User $uuid
 Group $uuid
 
-ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
+ErrorLog "|/usr/sbin/rotatelogs $PYCART_INSTANCE_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $PYCART_INSTANCE_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
  
 <Directory $OPENSHIFT_REPO_DIR/wsgi>
   AllowOverride all
@@ -29,7 +30,7 @@ CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rot
 
 WSGIScriptAlias / "$OPENSHIFT_REPO_DIR/wsgi/application"
 Alias /static "$OPENSHIFT_REPO_DIR/wsgi/static/"
-WSGIPythonPath "$OPENSHIFT_REPO_DIR/libs:$OPENSHIFT_REPO_DIR/wsgi:$APP_DIR/virtenv/lib/python2.6/"
+WSGIPythonPath "$OPENSHIFT_REPO_DIR/libs:$OPENSHIFT_REPO_DIR/wsgi:$PYCART_INSTANCE_DIR/virtenv/lib/python2.6/"
 WSGIPassAuthorization On
 
 # TODO: Adjust from ALL to more conservative values

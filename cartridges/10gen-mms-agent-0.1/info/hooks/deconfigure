@@ -29,7 +29,6 @@ setup_embedded_deconfigure "$1" $2 $3
 
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
-APP_DIR=`echo $APP_HOME/${application} | tr -s /` # ensure that there aren't double /'s
 
 #
 # Stop app

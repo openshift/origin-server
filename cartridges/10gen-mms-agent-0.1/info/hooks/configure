@@ -30,7 +30,6 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
 
-APP_DIR=`echo $APP_HOME/${application} | tr -s /` # ensure that there aren't double /'s
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
@@ -60,7 +59,7 @@ fi
 if [ ! -f "${APP_REPO_DIR}/.openshift/mms/settings.py" ]
 then
     client_error ""
-    client_error "Missing settings.py file:  $APP_DIR/.openshift/mms/settings.py"
+    client_error "Missing settings.py file:  $APP_REPO_DIR/.openshift/mms/settings.py"
     client_error "This file is part of the agent zip file: 10gen-mms-agent-<group-name>.zip"
     client_error "The zip file is available to download from https://mms.10gen.com/ after you register with their service. "
     client_error "It contains your 10gen MMS credentials and is required for running the agent."

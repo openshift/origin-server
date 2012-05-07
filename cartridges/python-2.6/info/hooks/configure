@@ -30,7 +30,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
 
-check_app_dir_doesnt_exist
+check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
 # Repo
@@ -65,7 +65,7 @@ create_app_ctl_script
 populate_repo_dir
 
 secure_app_dir
-chown $user_id.$group_id -R $APP_DIR/virtenv $APP_DIR/.python-eggs || error "Failed to chown new virtenv space.  Please contact support" 124
+chown $user_id.$group_id -R $PYCART_INSTANCE_DIR/virtenv $PYCART_INSTANCE_DIR/.python-eggs || error "Failed to chown new virtenv space.  Please contact support" 124
 
 secure_conf_dirs
 
@@ -79,7 +79,7 @@ create_standard_network_env_vars
 create_standard_repo_dir_env_var
 create_standard_path_env_var
 
-create_custom_uservars_var PYTHON_EGG_CACHE "$APP_DIR/.python-eggs/"
+create_custom_uservars_var PYTHON_EGG_CACHE "$PYCART_INSTANCE_DIR/.python-eggs/"
 
 #
 # Start the server

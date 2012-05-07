@@ -32,7 +32,7 @@ function setup_haproxy_as_a_service() {
     [ $# -eq 4 -o $# -eq 3 ] || print_help
 
     setup_configure "$1" $2 $3 $4
-    check_app_dir_doesnt_exist
+    check_cartridge_dir_doesnt_exist
     unobfuscate_app_home $uuid $namespace $application
 
     # Source the original application name if any.

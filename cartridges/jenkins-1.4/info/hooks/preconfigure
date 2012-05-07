@@ -35,7 +35,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3
 
-check_app_dir_doesnt_exist
+check_cartridge_dir_doesnt_exist
 
 #
 # Setup the base of the application

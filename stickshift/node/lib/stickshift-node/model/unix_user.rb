@@ -371,7 +371,8 @@ module StickShift
       FileUtils.chmod(0o0750, env_dir)
       FileUtils.chown(nil, @uuid, env_dir)
 
-      geardir = File.join(homedir, "app", "/")
+      geardir = File.join(homedir, @app_name, "/")
+      gearappdir = File.join(homedir, "app", "/")
 
       add_env_var("APP_DNS",
                   "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
@@ -379,7 +380,7 @@ module StickShift
       add_env_var("APP_NAME", @app_name, true)
       add_env_var("APP_UUID", @application_uuid, true)
 
-      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v|
+      add_env_var("DATA_DIR", File.join(gearappdir, "data", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
       }
 
@@ -401,18 +402,18 @@ module StickShift
                   "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
                   false)
 
-      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v|
+      add_env_var("REPO_DIR", File.join(gearappdir, "repo", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
       }
       
       add_env_var("TMP_DIR", "/tmp/", true)
 
       # Update all directory entries ~/app and children
-      FileUtils.chmod_R(0o0750, geardir, :verbose => @debug)
-      FileUtils.chown_R(@uuid, @uuid, geardir, :verbose => @debug)
-      raise "Failed to instantiate gear: missing application directory (#{geardir})" unless File.exist?(geardir)
+      FileUtils.chmod_R(0o0750, gearappdir, :verbose => @debug)
+      FileUtils.chown_R(@uuid, @uuid, gearappdir, :verbose => @debug)
+      raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
-      state_file = File.join(geardir, ".state")
+      state_file = File.join(gearappdir, ".state")
       File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
         file.write "new\n"
       }
