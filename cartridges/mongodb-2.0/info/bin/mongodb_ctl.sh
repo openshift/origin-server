@@ -5,6 +5,9 @@ then
     exit 1
 fi
 
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
 # Import Environment Variables
 for f in ~/.env/*
 do
