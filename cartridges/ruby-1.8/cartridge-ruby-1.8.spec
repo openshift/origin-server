@@ -56,10 +56,10 @@ Provides ruby support to OpenShift
 rm -rf git_template
 cp -r template/ git_template/
 cd git_template
-git config --global user.email "builder@example.com"
-git config --global user.name "Template builder"
 git init
 git add -f .
+git config user.email "builder@example.com"
+git config user.name "Template builder"
 git commit -m 'Creating template'
 cd ..
 git clone --bare git_template git_template.git
