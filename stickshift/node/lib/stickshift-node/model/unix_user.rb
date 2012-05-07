@@ -373,23 +373,37 @@ module StickShift
 
       geardir = File.join(homedir, "app", "/")
 
-      add_env_var("APP_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
+      add_env_var("APP_DNS",
+                  "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
+                  true)
       add_env_var("APP_NAME", @app_name, true)
       add_env_var("APP_UUID", @application_uuid, true)
 
-      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
+      add_env_var("DATA_DIR", File.join(geardir, "data", "/"), true) {|v|
+        FileUtils.mkdir_p(v, :verbose => @debug)
+      }
 
-      add_env_var("GEAR_DIR", geardir, true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
-      add_env_var("GEAR_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
+      add_env_var("GEAR_DIR", geardir, true) {|v|
+        FileUtils.mkdir_p(v, :verbose => @debug)
+      }
+      add_env_var("GEAR_DNS",
+                  "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
+                  true)
       add_env_var("GEAR_NAME", @app_name, true) 
       add_env_var("GEAR_UUID", @container_uuid, true)
-      add_env_var("GEAR_CTL_SCRIPT", File.join(geardir, @app_name + "_ctl.sh"), true)
+      add_env_var("GEAR_CTL_SCRIPT",
+                  File.join(geardir, @app_name + "_ctl.sh"),
+                  true)
 
       add_env_var("HOMEDIR", homedir, true)
 
-      add_env_var("PATH", "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH", false)
+      add_env_var("PATH",
+                  "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
+                  false)
 
-      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v| FileUtils.mkdir_p(v, :verbose => @debug) }
+      add_env_var("REPO_DIR", File.join(geardir, "repo", "/"), true) {|v|
+        FileUtils.mkdir_p(v, :verbose => @debug)
+      }
       
       add_env_var("TMP_DIR", "/tmp/", true)
 
@@ -399,7 +413,9 @@ module StickShift
       raise "Failed to instantiate gear: missing application directory (#{geardir})" unless File.exist?(geardir)
 
       state_file = File.join(geardir, ".state")
-      File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file| file.write "new\n" }
+      File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
+        file.write "new\n"
+      }
       FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
 
       token = "#{@uuid}_#{@namespace}_#{@app_name}"
