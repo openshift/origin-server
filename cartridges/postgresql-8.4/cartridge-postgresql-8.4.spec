@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.8.2
+Version: 0.8.3
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Add support for pre/post start/stop hooks to both web application service and
+  embedded cartridges.   Include the cartridge name in the calling hook to
+  avoid conflicts when typeless gears are implemented. (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Fix typo "immediately". (ramr@redhat.com)
 - Merge branch 'master' of github.com:openshift/crankcase (ramr@redhat.com)
