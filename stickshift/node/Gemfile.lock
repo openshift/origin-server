@@ -40,3 +40,4 @@ DEPENDENCIES
   mocha
   rake
   rspec
+  rcov
