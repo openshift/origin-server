@@ -51,16 +51,13 @@ module Swingshift
     end
     
     def authenticate(request, login, password)
-      begin
-        encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
-        hash = db.collection(@collection).find_one({"_id" => login})
-        if hash && !hash.empty? && (hash["password"] == encoded_password)
-          return {:username => login, :auth_method => :login}
-        end
-      rescue Exception => e
-        Rails.logger.error "MongoAuthService::authenticate exception: #{e.message}"
+      encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
+      hash = db.collection(@collection).find_one({"_id" => login})
+      if hash && !hash.empty? && (hash["password"] == encoded_password)
+        return {:username => login, :auth_method => :login}
+      else
+        raise StickShift::AccessDeniedException
       end
-      return nil
     end
     
     def login(request, params, cookies)
