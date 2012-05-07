@@ -15,7 +15,7 @@ class GearGroupsController < BaseController
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
     else
-      gear_states = app.show_states()
+      gear_states = app.show_state()
       group_instances = app.group_instances.map{ |group_inst| RestGearGroup.new(group_inst, gear_states)}
       @reply = RestReply.new(:ok, "gear_groups", group_instances)
       respond_with @reply, :status => @reply.status

@@ -43,7 +43,7 @@ opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT]
 )
 
-args = {}--with-container-uuid"
+args = {}
 begin
     opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e

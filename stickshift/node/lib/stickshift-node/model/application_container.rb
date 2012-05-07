@@ -54,11 +54,11 @@ module StickShift
     # Returns app state as string on Success and 'unknown' on Failure
     def get_app_state
       env = load_env
-      app_state_file=File.join(env[:OPENSHIFT_GEAR_DIR], '.state')
+      app_state_file=File.join(env[:OPENSHIFT_GEAR_DIR], '/runtime/.state')
       
       if File.exists?(app_state_file)
         app_state = nil
-        File.open(f) { |input| app_state = input.read.chomp }
+        File.open(app_state_file) { |input| app_state = input.read.chomp }
       else
         app_state = 'unknown'
       end
@@ -70,7 +70,7 @@ module StickShift
     # Examples
     #
     #   load_env
-    #   # => {"OPENSHIFT_APP_DIR"=>"/var/lib/UUID/mysql-5.3",
+    #   # => {"OPENSHIFT_GEAR_DIR"=>"/var/lib/UUID/mysql-5.3",
     #         "OPENSHIFT_APP_NAME"=>"myapp"}
     #
     # Returns env Array
@@ -78,7 +78,7 @@ module StickShift
       env = {}
       # Load environment variables into a hash
       
-      Dir["#{@user.homedir}/.env/*"].each { | f |
+      Dir["#{user.homedir}/.env/*"].each { | f |
         next if File.directory?(f)
         contents = nil
         File.open(f) {|input|
