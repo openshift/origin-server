@@ -34,12 +34,13 @@ module StickShift
     include StickShift::Utils::ShellExec
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
+    attr_accessor :debug
 
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
     #fixme: set debug to false
     def initialize(application_uuid, container_uuid, user_uid=nil,
-        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
+        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -348,7 +349,11 @@ module StickShift
     #   # ~
     #   # ~/.tmp/
     #   # ~/.env/
-    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
+    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
+    #   # ~/app
+    #   # ~/app/data
+    #   # ~/app/repo
     #
     # Returns nil on Success and raises on Failure.
     def initialize_homedir(basedir, homedir, cart_basedir)
@@ -388,6 +393,7 @@ module StickShift
       
       add_env_var("TMP_DIR", "/tmp/", true)
 
+      # Update all directory entries ~/app and children
       FileUtils.chmod_R(0o0750, geardir, :verbose => @debug)
       FileUtils.chown_R(@uuid, @uuid, geardir, :verbose => @debug)
       raise "Failed to instantiate gear: missing application directory (#{geardir})" unless File.exist?(geardir)
@@ -399,6 +405,7 @@ module StickShift
       token = "#{@uuid}_#{@namespace}_#{@app_name}"
       path = File.join(basedir, ".httpd.d", token)
 
+      # path can only exist as a turd from failed app destroy
       FileUtils.rm_rf(path) if File.exist?(path)
       FileUtils.mkdir_p(path)
 
