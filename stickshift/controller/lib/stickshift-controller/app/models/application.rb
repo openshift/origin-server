@@ -957,29 +957,31 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
-  def update_namespace(new_ns, old_ns)
+  def prepare_namespace_update(dns_service, new_ns, old_ns)
     updated = true
     begin
-      result = self.container.update_namespace(self, self.framework, new_ns, old_ns)
-      if result.is_a?(Array)
-        # result is an Array of Gear when the domain is altered with a scalable app. 
-        # There are no cart commands for a domain alter for scalable app. So doing nothing here.
-        result.each { |r|
-#          process_cartridge_commands(r.cart_commands)
-          updated = updated and (r.exitcode == 0)
-        }
-      else
-        # For a jenkins app (jenkins is non-scalable), the JENKINS_URL environment variable is updated
-        process_cartridge_commands(result.cart_commands)
-        updated = result.exitcode == 0
+      self.gears.each do |gear|
+        result = gear.prepare_namespace_update(dns_service, new_ns, old_ns)
+        updated = false unless result
       end
     rescue Exception => e
       updated = false
       Rails.logger.debug "Exception caught updating namespace #{e.message}"
       Rails.logger.debug "DEBUG: Exception caught updating namespace #{e.message}"
       Rails.logger.debug e.backtrace
+    end 
+    return updated
+  end
+  
+  def complete_namespace_update(new_ns, old_ns)
+    self.embedded.each_key do |framework|
+      if self.embedded[framework].has_key?('info')
+        info = self.embedded[framework]['info']
+        info.gsub!(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+        self.embedded[framework]['info'] = info
+      end
     end
-    return updated 
+    self.save
   end
   
   def add_alias(server_alias)

@@ -181,4 +181,51 @@ class Gear < StickShift::UserModel
   def remove_broker_auth_key
     get_proxy.remove_broker_auth_key(app, self)    
   end
+  
+  def prepare_namespace_update(dns_service, new_ns, old_ns)
+    results = []
+    gi = self.app.group_instance_map[self.group_instance_name]
+    updated = true
+    contains_proxy = false
+    contains_framework = false    
+    gi.component_instances.each do |cname|
+      ci = self.app.comp_instance_map[cname]
+      contains_proxy = true if ci.parent_cart_name == self.app.proxy_cartridge
+      contains_framework = true if ci.parent_cart_name == self.app.framework  
+    end
+      
+    if self.app.scalable
+      if contains_proxy
+        #proxy gear gets public dns          
+        dns_service.deregister_application(self.app.name, old_ns)
+        public_hostname = get_proxy.get_public_hostname
+        dns_service.register_application(self.app.name, new_ns, public_hostname)
+      else
+        #non-proxy gear gets gear specific dns
+        dns_service.deregister_application(self.name, old_ns)
+        public_hostname = get_proxy.get_public_hostname
+        dns_service.register_application(self.name, new_ns, public_hostname)
+      end
+    
+      if contains_proxy
+        result = get_proxy.update_namespace(app, self, self.app.proxy_cartridge, new_ns, old_ns)
+        updated = false if result.exitcode != 0
+      end
+       
+      if contains_framework
+        result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
+        updated = false if result.exitcode != 0
+      end
+    else
+      dns_service.deregister_application(self.app.name, old_ns)
+      public_hostname = get_proxy.get_public_hostname
+      dns_service.register_application(self.app.name, new_ns, public_hostname)
+       
+      if contains_framework
+        result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
+        updated = false if result.exitcode != 0
+      end
+    end
+    return updated
+  end
 end
