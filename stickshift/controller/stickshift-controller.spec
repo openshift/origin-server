@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.3
+Version: 0.10.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,29 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.4-1
+- Merge pull request #25 from abhgupta/abhgupta-dev (kraman@gmail.com)
+- adding cucumber tests for gear groups rest api (abhgupta@redhat.com)
+- additional changes for showing gear states in gear_groups rest api
+  (abhgupta@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- minor fix in domain logging (lnader@redhat.com)
+- Merge pull request #23 from kraman/dev/kraman/bug/819443
+  (dmcphers@redhat.com)
+- Bugfix 819443 (kraman@gmail.com)
+- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- adding gear state to gear_groups rest api (abhgupta@redhat.com)
+- Merge pull request #18 from kraman/dev/kraman/bug/814444
+  (dmcphers@redhat.com)
+- Updated embedded cart controller to only return a single message.
+  (kraman@gmail.com)
+- Adding a seperate message for errors returned by cartridge when trying to add
+  them. Fixing CLIENT_RESULT error in node Removing tmp editor file
+  (kraman@gmail.com)
+- Bug 815554 (lnader@redhat.com)
+- Bug 815554 (lnader@redhat.com)
+- Bug 815554 (lnader@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
 - Revert "BugZ 818896. Making app name search case in-sensitive"
   (kraman@gmail.com)
