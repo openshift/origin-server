@@ -90,7 +90,7 @@ module StickShift
         begin
           cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
           if cart.name == cart_name
-            output << "CLIENT RESULT: "
+            output << "CLIENT_RESULT: "
             output << cart.to_descriptor.to_json
             cart_found = true
             break
@@ -109,7 +109,7 @@ module StickShift
           begin
             cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
             if cart.name == cart_name
-              output << "CLIENT RESULT: "
+              output << "CLIENT_RESULT: "
               output << cart.to_descriptor.to_json
               break
             end

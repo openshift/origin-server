@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.7.1
+Version:   0.7.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -38,10 +38,10 @@ rm -rf git_template
 cp -r template/ git_template/
 cp info/configuration/npm_global_module_list git_template
 cd git_template
-git config --global user.email "builder@example.com"
-git config --global user.name "Template builder"
 git init
 git add -f .
+git config user.email "builder@example.com"
+git config user.name "Template builder"
 git commit -m 'Creating template'
 cd ..
 git clone --bare git_template git_template.git
@@ -111,6 +111,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.7.2-1
+- remove old obsoletes (dmcphers@redhat.com)
+- clean specs (whearn@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.7.1-1
 - bumping spec versions (admiller@redhat.com)
 

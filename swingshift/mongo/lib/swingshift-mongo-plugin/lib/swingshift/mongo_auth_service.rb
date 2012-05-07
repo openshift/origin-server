@@ -4,7 +4,7 @@ require 'stickshift-controller'
 
 module Swingshift
   class MongoAuthService < StickShift::AuthService
-
+  
     def initialize(auth_info = nil)
       if auth_info != nil
         # no-op
@@ -13,7 +13,7 @@ module Swingshift
       else
         raise Exception.new("Mongo DataStore service is not inilialized")
       end
-
+    
       @replica_set  = auth_info[:mongo_replica_sets]
       @host_port    = auth_info[:mongo_host_port]
       @user         = auth_info[:mongo_user]
@@ -22,7 +22,7 @@ module Swingshift
       @collection   = auth_info[:mongo_collection]
       @salt         = auth_info[:salt]
     end
-
+    
     def db
       if @replica_set
         con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary})
@@ -30,7 +30,7 @@ module Swingshift
         con = Mongo::Connection.new(@host_port[0], @host_port[1])
       end
       user_db = con.db(@db)
-      user_db.authenticate(@user, @password)
+      user_db.authenticate(@user, @password) unless @user.nil?
       user_db
     end
     
@@ -43,26 +43,23 @@ module Swingshift
       hash = db.collection(@collection).find_one({"_id" => login})
       !hash.nil?
     end
-
+    
     def generate_broker_key(app)
       iv = Base64::encode64(app.name)
       token = Base64::encode64(app.user.login)
       [iv, token]
     end
-
+    
     def authenticate(request, login, password)
-      begin
-        encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
-        hash = db.collection(@collection).find_one({"_id" => login})
-        if hash && !hash.empty? && (hash["password"] == encoded_password)
-          return {:username => login, :auth_method => :login}
-        end
-      rescue Exception => e
-        Rails.logger.error "MongoAuthService::authenticate exception: #{e.message}"
+      encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
+      hash = db.collection(@collection).find_one({"_id" => login})
+      if hash && !hash.empty? && (hash["password"] == encoded_password)
+        return {:username => login, :auth_method => :login}
+      else
+        raise StickShift::AccessDeniedException
       end
-      return nil
     end
-
+    
     def login(request, params, cookies)
       if params['broker_auth_key'] && params['broker_auth_iv']
         return {:username => Base64::decode64(params['broker_auth_key']), :auth_method => :broker_auth}

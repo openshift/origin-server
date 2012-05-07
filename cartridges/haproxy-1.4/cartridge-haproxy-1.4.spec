@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version:   0.9.1
+Version:   0.9.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -34,10 +34,10 @@ Provides haproxy balancer support to OpenShift
 rm -rf git_template
 cp -r template/ git_template/
 cd git_template
-git config --global user.email "builder@example.com"
-git config --global user.name "Template builder"
 git init
 git add -f .
+git config user.email "builder@example.com"
+git config user.name "Template builder"
 git commit -m 'Creating template'
 cd ..
 git clone --bare git_template git_template.git
@@ -100,6 +100,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.9.2-1
+- remove old obsoletes (dmcphers@redhat.com)
+- clean specs (whearn@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bumping spec versions (admiller@redhat.com)
 

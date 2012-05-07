@@ -116,7 +116,11 @@ class EmbCartController < BaseController
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
       if e.class==StickShift::NodeException 
-        message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}. Details : \n#{e.resultIO}", e.code)
+        if !e.resultIO.nil? && !e.resultIO.errorIO.nil?
+          message = Message.new(:error, e.resultIO.errorIO.string.strip, e.code, "cartridge")
+        else
+          message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
+        end
       elsif e.class==StickShift::UserException
         message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
       else

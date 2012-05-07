@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version:   0.92.1
+Version:   0.92.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.2-1
+- remove old obsoletes (dmcphers@redhat.com)
+- clean specs (whearn@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.92.1-1
 - bumping spec versions (admiller@redhat.com)
 
