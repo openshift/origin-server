@@ -7,12 +7,12 @@
           = session[:login]
         %ul.dropdown-menu
           %li= link_to "My Account", account_path
-          %li= link_to "Sign Out", logout_path
+          %li= link_to "Sign Out", logout_path, :class => "sign_out"
 
     %ul.navbar-text.pull-right#utility-nav
-      %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'btn btn-warning btn-small', :style => 'display:none;'
-      %li= link_to "Community", community_url
-      %li= link_to "Developer Center", developers_url
+      %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'btn btn-warning btn-small status', :style => 'display:none;'
+      %li= link_to "Community", community_url, :class => 'community'
+      %li= link_to "Developer Center", developers_url, :class => 'developer'
 
     .brand
       = link_to root_path do
