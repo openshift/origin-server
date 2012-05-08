@@ -3,8 +3,7 @@
 
     %ul#identity.pull-right
       %li.dropdown.username
-        %a{ :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', :href => '#' }
-          = session[:login]
+        = link_to logged_in_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
         %ul.dropdown-menu
           %li= link_to "My Account", account_path
           %li= link_to "Sign Out", logout_path, :class => "sign_out"
