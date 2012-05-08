@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.4
+Version: 0.10.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
+- Merge pull request #27 from kraman/dev/kraman/bug/806935
+  (dmcphers@redhat.com)
+- Bugz806935. Print application deletion message even if cartridges return
+  information. (kraman@gmail.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.4-1
 - Merge pull request #25 from abhgupta/abhgupta-dev (kraman@gmail.com)
 - adding cucumber tests for gear groups rest api (abhgupta@redhat.com)
