@@ -29,7 +29,7 @@ persist between pushes of your repo.
 
 Environment Variables
 =====================
-OpenShift Express provides several environment variables to reference for ease
+OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
     process.env.OPENSHIFT_GEAR_NAME  - Application name
     process.env.OPENSHIFT_GEAR_DIR   - Application dir

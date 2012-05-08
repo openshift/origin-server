@@ -14,7 +14,7 @@ pom.xml - Maven build file
 
 Details about layout and deployment options
 ==================
-There are two options for deploying content to the JBoss Application Server within OpenShift Express:
+There are two options for deploying content to the JBoss Application Server within OpenShift:
 
 1) (Preferred) You can upload your content in a Maven src structure as is this sample project and on 
 git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
@@ -126,7 +126,7 @@ The relevant marker file types are:
 Environment Variables
 =====================
 
-OpenShift Express provides several environment variables to reference for ease
+OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
     System.getenv("OPENSHIFT_GEAR_NAME")  - Application name
