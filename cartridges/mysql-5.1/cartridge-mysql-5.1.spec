@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.26.3
+Version: 0.26.4
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.26.4-1
+- Additional scripts not sourcing util. (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.26.3-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
