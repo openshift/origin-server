@@ -197,9 +197,7 @@ EOF
     fi
 
 
-    cat <<EOF > "$APP_DIR/${application}_ctl.sh"
-#!/bin/bash -e
-
+    cat <<EOF >> "$APP_DIR/${application}_ctl.sh"
 # Import Environment Variables
 for f in ~/.env/*
 do
