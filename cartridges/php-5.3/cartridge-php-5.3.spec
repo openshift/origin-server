@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version:   0.92.4
+Version:   0.92.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.92.5-1
+- Bug 819739 (dmcphers@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
