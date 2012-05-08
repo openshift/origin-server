@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version:   0.92.5
+Version:   0.92.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.92.6-1
+- Bug 819739 (dmcphers@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.5-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Some of the ctl script were not sourcing util from abstract.
