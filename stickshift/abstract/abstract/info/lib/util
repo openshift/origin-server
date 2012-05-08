@@ -202,12 +202,13 @@ chmod +x "$APP_DIR/${application}_ctl.sh" || \
 }
 
 function secure_app_dir {
-    chown $user_id.$group_id -R $APP_DIR || \
+    cinstancedir=$(get_cartridge_instance_dir)
+    chown $user_id.$group_id -R $cinstancedir || \
         error "Failed to chown new application space." 123
-    #chown root.root "$APP_DIR"
-    if [ -f $APP_DIR/${application}_ctl.sh ]
+    #chown root.root "$cinstancedir"
+    if [ -f $cinstancedir/${application}_ctl.sh ]
     then
-      chown root.root "$APP_DIR/${application}_ctl.sh"
+      chown root.root "$cinstancedir/${application}_ctl.sh"
     fi
 }
 
@@ -565,8 +566,10 @@ IFS="
 }
 
 function observe_setup_app_and_git_dirs {
+    cinstancedir=$(get_cartridge_instance_dir)
     observe_setup_var_lib_dir "$APP_HOME/git/"
-    observe_setup_var_lib_dir "$APP_DIR"
+    observe_setup_var_lib_dir "$cinstancedir"
+    observe_setup_var_lib_file "$APP_DIR"
     # observe_setup_app_env_uservars_dir
 }
 
