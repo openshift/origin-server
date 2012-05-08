@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version:   0.92.4
+Version:   0.92.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -124,6 +124,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.5-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Some of the ctl script were not sourcing util from abstract.
+  (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
