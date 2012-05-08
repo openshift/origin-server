@@ -53,8 +53,6 @@ rm_unobfuscated_app_home $namespace $application
 #
 rm_httpd_proxy $uuid $namespace $application
 
-client_result "Successfully destroyed application: $application"
-
 remove_env_var "JENKINS_URL"
 remove_env_var "JENKINS_USERNAME"
 remove_env_var "JENKINS_PASSWORD"
