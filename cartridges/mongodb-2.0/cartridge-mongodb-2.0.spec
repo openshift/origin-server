@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.19.3
+Version: 0.19.4
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -61,6 +61,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.19.4-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Some of the ctl script were not sourcing util from abstract.
+  (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.19.3-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
