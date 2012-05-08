@@ -258,7 +258,7 @@ class LegacyBrokerController < ApplicationController
     when 'deconfigure'
       app = get_app_from_request(user)      
       @reply.append app.cleanup_and_delete
-      @reply.resultIO << "Successfully destroyed application: #{app.name}" if @reply.resultIO.length == 0
+      @reply.resultIO << "Successfully destroyed application: #{app.name}"
     when 'start'
       app = get_app_from_request(user)
       @reply.append app.start(app.framework)
