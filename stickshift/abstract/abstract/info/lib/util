@@ -225,7 +225,10 @@ EOF
 
 function secure_app_dir {
     chown $user_id.$group_id $APP_DIR || \
+        error "Failed to chown new cartridge space." 123
+    chown -R $user_id.$group_id "$APP_HOME/app" || \
         error "Failed to chown new application space." 123
+    observe_setup_var_lib_dir "$APP_HOME/app"
     #chown root.root "$APP_DIR"
 }
 
