@@ -33,8 +33,9 @@ class Application < StickShift::Cartridge
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
-    unless StickShift::ApplicationContainerProxy.valid_gear_sizes(record.user).include? val
-      record.errors.add attribute, {:message => "Invalid Profile.  Must be: (jumbo|exlarge|large|medium|micro|small)", :exit_code => 134}
+    allowed_sizes=StickShift::ApplicationContainerProxy.valid_gear_sizes(record.user)
+    unless allowed_sizes.include? val
+      record.errors.add attribute, {:message => "Invalid Size: #{val}.  Must be: #{allowed_sizes.join(', ')}.  Please contact support for access to additional sizes.", :exit_code => 134}
     end
   end
 
