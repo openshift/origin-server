@@ -6,7 +6,7 @@
 .console-head.clearfix.base
   %h1.span4= @application.name
   .pull-right
-    %a.btn.btn-danger{:href => delete_application_path(@application.name), :style => 'margin-right:25px; margin-top: 5px;'} Delete
+    %a.btn{:href => delete_application_path(@application.name), :style => 'margin-right:25px; margin-top: 5px;'} Delete
 -#
   .emblem.span
     %img{:src => '/app/images/console/gear-bars.png'}
