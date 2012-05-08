@@ -384,17 +384,18 @@ module StickShift
         FileUtils.mkdir_p(v, :verbose => @debug)
       }
 
-      add_env_var("GEAR_DIR", geardir, true) {|v|
-        FileUtils.mkdir_p(v, :verbose => @debug)
-      }
+      add_env_var("GEAR_DIR", geardir, true)
+      # add_env_var("GEAR_DIR", geardir, true) {|v|
+      #   FileUtils.mkdir_p(v, :verbose => @debug)
+      # }
       add_env_var("GEAR_DNS",
                   "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)
       add_env_var("GEAR_NAME", @app_name, true) 
       add_env_var("GEAR_UUID", @container_uuid, true)
-      add_env_var("GEAR_CTL_SCRIPT",
-                  File.join(geardir, @app_name + "_ctl.sh"),
-                  true)
+      # add_env_var("GEAR_CTL_SCRIPT",
+      #             File.join(geardir, @app_name + "_ctl.sh"),
+      #             true)
 
       add_env_var("HOMEDIR", homedir, true)
 
