@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version:   0.9.2
+Version:   0.9.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -100,6 +100,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.9.3-1
+- Add support for pre/post start/stop hooks to both web application service and
+  embedded cartridges.   Include the cartridge name in the calling hook to
+  avoid conflicts when typeless gears are implemented. (rmillner@redhat.com)
+- changed git config within spec files to operate on local repo instead of
+  changing global values (kraman@gmail.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.9.2-1
 - remove old obsoletes (dmcphers@redhat.com)
 - clean specs (whearn@redhat.com)

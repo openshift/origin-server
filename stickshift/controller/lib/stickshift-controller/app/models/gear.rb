@@ -38,18 +38,6 @@ class Gear < StickShift::UserModel
     return ret
   end
   
-  def expose_port(comp_inst)
-    get_proxy.expose_port(app,self,comp_inst.parent_cart_name)
-  end
-
-  def conceal_port(comp_inst)
-    get_proxy.conceal_port(app,self,comp_inst.parent_cart_name)
-  end
-  
-  def show_port(comp_inst)
-    get_proxy.show_port(app,self,comp_inst.parent_cart_name)
-  end
-  
   def configure(comp_inst, template_git_url=nil)
     r = ResultIO.new
     return r if self.configured_components.include?(comp_inst.name)
@@ -101,6 +89,10 @@ class Gear < StickShift::UserModel
     get_proxy.status(app,self,comp_inst.parent_cart_name)    
   end
   
+  def show_state()
+    get_proxy.show_state(app, self)
+  end
+
   def tidy(comp_inst)
     get_proxy.tidy(app,self,comp_inst.parent_cart_name)    
   end
@@ -118,11 +110,11 @@ class Gear < StickShift::UserModel
   end
  
   def threaddump(comp_inst)
-    get_proxy.threaddump(app,self,comp_inst.parent_cart_name)    
+    get_proxy.threaddump(app,self,comp_inst.parent_cart_name)
   end
   
   def system_messages(comp_inst)
-    get_proxy.system_messages(app,self,comp_inst.parent_cart_name)    
+    get_proxy.system_messages(app,self,comp_inst.parent_cart_name)
   end
   
   def add_alias(server_alias)
@@ -141,6 +133,11 @@ class Gear < StickShift::UserModel
   
   def add_env_var(key, value)
     get_proxy.add_env_var(app, self, key, value)
+  end
+  
+  def app_state_job_show()
+    job = get_proxy.get_show_state_job(app, self)
+    job
   end
   
   def env_var_job_add(key, value)

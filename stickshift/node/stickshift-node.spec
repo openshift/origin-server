@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.10.3
+Version: 0.10.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -19,6 +19,7 @@ Requires:       rubygem(parseconfig)
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
+Requires:       rubygem(rcov)
 Requires:       python
 
 BuildRequires:  ruby
@@ -97,6 +98,20 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.4-1
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #24 from rmillner/master (dmcphers@redhat.com)
+- Merge pull request #25 from abhgupta/abhgupta-dev (kraman@gmail.com)
+- additional changes for showing gear states in gear_groups rest api
+  (abhgupta@redhat.com)
+- Add rcov testing to stickshift-node via "rake rcov". (rmillner@redhat.com)
+- adding gear state to gear_groups rest api (abhgupta@redhat.com)
+- Merge pull request #18 from kraman/dev/kraman/bug/814444
+  (dmcphers@redhat.com)
+- Adding a seperate message for errors returned by cartridge when trying to add
+  them. Fixing CLIENT_RESULT error in node Removing tmp editor file
+  (kraman@gmail.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
 - Updating gem versions (admiller@redhat.com)
 - Fix to use Open4 -- merge from previous checkin changed it to Open5.

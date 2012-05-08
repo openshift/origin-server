@@ -5,6 +5,9 @@ then
     exit 1
 fi
 
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
 # Import Environment Variables
 for f in ~/.env/*
 do
@@ -52,7 +55,9 @@ repair() {
 start() {
     if ! isrunning
     then
+        src_user_hook pre_start_mongodb-2.0
         /usr/bin/mongod --auth --nojournal --smallfiles --quiet -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
+        run_user_hook post_start_mongodb-2.0
     else
         echo "MongoDB already running" 1>&2
     fi
@@ -64,6 +69,7 @@ stop() {
     fi
 
     if [ -n "$pid" ]; then
+        src_user_hook pre_stop_mongodb-2.0
         /bin/kill $pid
         ret=$?
         if [ $ret -eq 0 ]; then
@@ -74,6 +80,7 @@ stop() {
                 let TIMEOUT=${TIMEOUT}-1
             done
         fi
+        run_user_hook post_stop_mongodb-2.0
     else
         if `pgrep -x mongod > /dev/null 2>&1`
         then

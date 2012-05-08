@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Control application's embedded job scheduling service (cron)
 SERVICE_NAME=cron
@@ -44,21 +45,25 @@ function _cronjobs_status() {
 
 
 function _cronjobs_enable() {
-   if _are_cronjobs_enabled; then
-      echo "$SERVICE_NAME scheduling service is already enabled" 1>&2
-   else
-      touch "$CART_INSTANCE_DIR/run/jobs.enabled"
-   fi
+    if _are_cronjobs_enabled; then
+        src_user_hook pre_start_cron-1.4
+        echo "$SERVICE_NAME scheduling service is already enabled" 1>&2
+        run_user_hook post_start_cron-1.4
+    else
+        touch "$CART_INSTANCE_DIR/run/jobs.enabled"
+    fi
 
 }  #  End of function  _cronjobs_enable.
 
 
 function _cronjobs_disable() {
-   if _are_cronjobs_enabled; then
-      rm -f $CART_INSTANCE_DIR/run/jobs.enabled
-   else
-      echo "$SERVICE_NAME scheduling service is already disabled" 1>&2
-   fi
+    if _are_cronjobs_enabled; then
+        src_user_hook pre_stop_cron-1.4
+        rm -f $CART_INSTANCE_DIR/run/jobs.enabled
+        run_user_hook post_stop_cron-1.4
+    else
+        echo "$SERVICE_NAME scheduling service is already disabled" 1>&2
+    fi
 
 }  #  End of function  _cronjobs_disable.
 

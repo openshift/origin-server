@@ -66,6 +66,9 @@ class Domain < StickShift::UserModel
     begin
       dns_service.deregister_namespace(self.namespace)
       dns_service.publish
+      Rails.logger.debug "notifying the domain observer of domain delete"
+      notify_observers(:after_domain_destroy) 
+      Rails.logger.debug "done notifying the domain observer"
     ensure
       dns_service.close
     end
@@ -132,6 +135,9 @@ class Domain < StickShift::UserModel
         app.domain.namespace = self.namespace
         app.save
       end
+      Rails.logger.debug "notifying domain observer of domain update"
+      notify_observers(:after_domain_update) 
+      #Rails.logger.debug "done notifying the domain observers"
     rescue StickShift::SSException => e
       Rails.logger.error "Exception caught updating namespace: #{e.message}"
       Rails.logger.debug e.backtrace
@@ -143,7 +149,6 @@ class Domain < StickShift::UserModel
     ensure
       dns_service.close
     end
-    
     resultIO
   end
   def create
@@ -156,6 +161,9 @@ class Domain < StickShift::UserModel
         Rails.logger.debug "Attempting to add namespace '#{@namespace}'"
         dns_service.register_namespace(@namespace)
         dns_service.publish
+        Rails.logger.debug "notifying the domain observer of domain create"
+        notify_observers(:after_domain_create)
+        Rails.logger.debug "done notifying the domain observer"
       rescue Exception => e
         Rails.logger.debug e
         begin

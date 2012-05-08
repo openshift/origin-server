@@ -33,7 +33,7 @@ persist between pushes of your repo.
 Environment Variables
 =====================
 
-OpenShift Express provides several environment variables to reference for ease
+OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
     $_ENV['OPENSHIFT_INTERNAL_IP']  - IP Address assigned to the application

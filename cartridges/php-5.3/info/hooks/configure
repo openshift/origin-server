@@ -63,7 +63,7 @@ IP=`find_open_ip $uid $uuid`
 
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 
-create_app_ctl_script
+create_app_ctl_script "$app_type"
 
 # Pear requires a special pearrc file, this is that file:
 pear config-create "$PHPCART_INSTANCE_DIR"/phplib/pear/ "$APP_HOME"/.pearrc > /dev/null 2>&1

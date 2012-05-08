@@ -30,7 +30,7 @@ case "$1" in
             echo "Application is already running!  Use 'rhc app cartridge restart -a ${OPENSHIFT_GEAR_NAME} -c 10gen-mms-agent-0.1' to restart." 1>&2
             exit 0
         fi
-
+        src_user_hook pre_start_10gen_mms_agent-0.1
         #
         # Remove the compiled versions of the settings.py file and reset the mms credentials from the file in repo
         # This is required so that any user changes to credentials in this file can be picked up and recompiled
@@ -45,14 +45,17 @@ case "$1" in
 
         nohup python ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}mms-agent/${OPENSHIFT_GEAR_UUID}_agent.py > ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}logs/agent.log 2>&1 &
         echo $! > ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid
+        run_user_hook post_start_10gen_mms_agent-0.1
     ;;
 
     graceful-stop|stop)
         if [ -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid ]
         then
+            src_user_hook pre_stop_10gen_mms_agent-0.1
             mms_agent_pid=`cat ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid 2> /dev/null`
             kill -9 $mms_agent_pid > /dev/null
             rm -f ${OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR}run/mms-agent.pid > /dev/null
+            run_user_hook post_stop_10gen_mms_agent-0.1
         else
             if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
                 echo "Failed to stop 10gen-mms-agent-0.1 as the pid file is missing!" 1>&2

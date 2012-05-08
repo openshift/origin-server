@@ -1,6 +1,6 @@
 Name: nodejs-0.6
 Display-Name: Node v0.6 (noarch)
-Description: Cartridge packaging Node.js support for OpenShift Express
+Description: Cartridge packaging Node.js support for OpenShift
 Version: 0.6.10
 License: ASL 2.0
 Vendor:

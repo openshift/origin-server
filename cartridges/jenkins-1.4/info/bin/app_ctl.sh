@@ -34,6 +34,7 @@ isrunning() {
 }
 
 start_jenkins() {
+    src_user_hook pre_start_${CARTRIDGE_TYPE}
     set_app_state started
     /usr/lib/jvm/jre-1.6.0/bin/java \
         -Dcom.sun.akuma.Daemon=daemonized \
@@ -55,12 +56,17 @@ start_jenkins() {
         --handlerCountMaxIdle=20 \
         --httpListenAddress="$OPENSHIFT_INTERNAL_IP" &
     echo $! > /dev/null
+    if [ $? -eq 0 ]; then
+        run_user_hook post_start_${CARTRIDGE_TYPE}
+    fi
 }
 
 stop_jenkins() {
+    src_user_hook pre_stop_${CARTRIDGE_TYPE}
     set_app_state stopped
     kill -TERM $pid > /dev/null 2>&1
     wait_for_stop $pid
+    run_user_hook post_stop_${CARTRIDGE_TYPE}
 }
 
 case "$1" in

@@ -63,7 +63,7 @@ function setup_haproxy_as_a_service() {
     #
     IP=`find_open_ip $uid $uuid`
 
-    create_app_ctl_script
+    create_app_ctl_script "$app_type"
     populate_repo_dir
     secure_app_dir
     secure_cart_instance_dir
