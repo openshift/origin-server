@@ -141,7 +141,7 @@ class ApplicationType
       :name => "Jenkins Server",
       :description => RDiscount.new('Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  When you add Jenkins as an application you will enable your other applications to run complex builds whenever you push code. See [the Jenkins info page for more](/community/jenkins).'),
       :version => '1.4',
-      :categories => [],
+      :categories => [:framework],
       # nothing should be able to be embedded in a Jenkins app
       :blocks => [
         'mysql-5.1',

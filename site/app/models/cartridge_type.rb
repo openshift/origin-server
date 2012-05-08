@@ -186,7 +186,7 @@ class CartridgeType < RestApi::Base
       :version => 'Jenkins Client 1.4',
       :license => 'MIT',
       :license_url => 'http://www.opensource.org/licenses/mit-license.php',
-      :categories => [:embedded, :blacklist],
+      :categories => [:embedded],
       :description => RDiscount.new("The Jenkins client connects to your Jenkins application and enables builds and testing of your application.\n\nRequires the Jenkins Application to be [created via the new application page](/app/console/application_types)."),
       :website => 'https://jenkins-ci.org/',
       :requires => [],
