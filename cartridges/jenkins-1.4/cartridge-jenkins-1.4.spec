@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version:   0.92.3
+Version:   0.92.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
+- Merge pull request #27 from kraman/dev/kraman/bug/806935
+  (dmcphers@redhat.com)
+- Removing redundant application destruction message from jenkins cartridge
+  (kraman@gmail.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.3-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
