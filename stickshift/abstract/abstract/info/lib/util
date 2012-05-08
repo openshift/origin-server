@@ -93,15 +93,12 @@ function source_if_exists {
 }
 
 function get_cartridge_instance_dir {
-    cart_type=${1:-"$cartridge_type"}
-    echo "$APP_HOME/$cart_type"
-}
-
-function get_app_type {
-    source /etc/stickshift/stickshift-node.conf
-    [ -z "$OPENSHIFT_GEAR_TYPE" ]  && \
-        source_if_exists "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_GEAR_TYPE"
-    echo "$OPENSHIFT_GEAR_TYPE"
+    carttype=${1:-$cartridge_type}
+    if [ -n "$carttype" ]; then
+        echo "$APP_HOME/$carttype"
+    else
+        error "${application}. Cartridge type '$carttype' not set." 142
+    fi
 }
 
 function is_a_scalable_app {
@@ -174,7 +171,12 @@ function create_standard_app_dirs {
 }
 
 function create_cartridge_instance_dir {
-    mkdir -p "$APP_HOME/$1"
+    carttype=${1:-$cartridge_type}
+    if [ -n "$carttype" ]; then
+        mkdir -p "$APP_HOME/$carttype"
+    else
+        error "${application}. Cartridge type '$carttype' not set." 141
+    fi
 }
 
 function create_app_dir_symlink {
@@ -196,12 +198,18 @@ done
 app_ctl.sh \$1
 EOF
 
-chmod +x "$APP_DIR/${application}_ctl.sh" || \
+    chmod +x "$APP_DIR/${application}_ctl.sh" || \
         error "Failed to chmod new application scripts" 122
 
 }
 
 function secure_app_dir {
+    chown $user_id.$group_id $APP_DIR || \
+        error "Failed to chown new application space." 123
+    #chown root.root "$APP_DIR"
+}
+
+function secure_cart_instance_dir {
     cinstancedir=$(get_cartridge_instance_dir)
     chown $user_id.$group_id -R $cinstancedir || \
         error "Failed to chown new application space." 123
@@ -566,11 +574,13 @@ IFS="
 }
 
 function observe_setup_app_and_git_dirs {
-    cinstancedir=$(get_cartridge_instance_dir)
     observe_setup_var_lib_dir "$APP_HOME/git/"
-    observe_setup_var_lib_dir "$cinstancedir"
     observe_setup_var_lib_file "$APP_DIR"
     # observe_setup_app_env_uservars_dir
+}
+
+function observe_setup_cart_instance_dir {
+    observe_setup_var_lib_dir "$(get_cartridge_instance_dir)"
 }
 
 function observe_setup_app_env_uservars_dir {

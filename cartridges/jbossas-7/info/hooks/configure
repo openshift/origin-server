@@ -181,10 +181,12 @@ popd > /dev/null
 
 chmod +x "$APP_JBOSS_BIN_DIR/standalone.sh" || error "Failed to chmod new application scripts" 122
 secure_app_dir
+secure_cart_instance_dir
 # Secure script and config dirs.
 chown $user_id.$group_id -R "$JBOSS_INSTANCE_DIR/${jboss_version}/standalone"
 chown -R $user_id.$group_id $M2_DIR
 observe_setup_app_and_git_dirs
+observe_setup_cart_instance_dir
 chown -R $user_id.$group_id $JAVA_PREFS_DIR
 
 #

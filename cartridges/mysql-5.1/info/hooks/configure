@@ -46,7 +46,9 @@ function setup_mysql_as_a_service() {
     create_app_ctl_script
     populate_repo_dir
     secure_app_dir
+    secure_cart_instance_dir
     observe_setup_app_and_git_dirs
+    observe_setup_cart_instance_dir
 
     #
     # Create environment variables

@@ -65,11 +65,16 @@ create_app_ctl_script
 populate_repo_dir
 
 secure_app_dir
+
+secure_cart_instance_dir
+
 chown $user_id.$group_id -R $PYCART_INSTANCE_DIR/virtenv $PYCART_INSTANCE_DIR/.python-eggs || error "Failed to chown new virtenv space.  Please contact support" 124
 
 secure_conf_dirs
 
 observe_setup_app_and_git_dirs
+
+observe_setup_cart_instance_dir
 
 #
 # Create environment variables
