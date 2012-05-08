@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.10.4
+Version: 0.10.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
+- Fixing bugs related to user hooks. (rmillner@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.10.4-1
 - Add support for pre/post start/stop hooks to both web application service and
   embedded cartridges.   Include the cartridge name in the calling hook to
