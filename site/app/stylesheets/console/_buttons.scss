@@ -49,8 +49,6 @@
 .btn[disabled] {
   cursor: default;
   background-image: none;
-  background-color: darken($white, 10%);
-  @include opacity(65);
   @include box-shadow(none);
 }
 
@@ -91,8 +89,8 @@
 
 // Set text color
 // -------------------------
-.btn-primary,
-.btn-primary:hover,
+.btn,
+.btn:hover,
 .btn-warning,
 .btn-warning:hover,
 .btn-danger,
@@ -103,12 +101,15 @@
 .btn-info:hover,
 .btn-inverse,
 .btn-inverse:hover {
-  text-shadow: -1px 0px 1px rgba(0, 0, 0, 0.5); //tweaked
-  color: $white;
+  text-shadow: -1px 1px 1px rgba(0, 0, 0, 0.5); //tweaked
+  color: $white !important;
 }
 .btn-primary,
-.btn-primary:hover {
-	color: $grayDark;
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+	color: $grayDark !important;
 	text-shadow: 0 1px 0 rgba(255,255,255,.7);
 }
 // Provide *some* extra contrast for those who can get it
