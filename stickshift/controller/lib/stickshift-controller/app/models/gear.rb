@@ -193,41 +193,29 @@ class Gear < StickShift::UserModel
       contains_proxy = true if ci.parent_cart_name == self.app.proxy_cartridge
       contains_framework = true if ci.parent_cart_name == self.app.framework  
     end
-      
-    if self.app.scalable
-      if contains_proxy
-        #proxy gear gets public dns          
-        dns_service.deregister_application(self.app.name, old_ns)
-        public_hostname = get_proxy.get_public_hostname
-        dns_service.register_application(self.app.name, new_ns, public_hostname)
-      else
-        #non-proxy gear gets gear specific dns
-        dns_service.deregister_application(self.name, old_ns)
-        public_hostname = get_proxy.get_public_hostname
-        dns_service.register_application(self.name, new_ns, public_hostname)
-      end
-    
-      if contains_proxy
-        result = get_proxy.update_namespace(app, self, self.app.proxy_cartridge, new_ns, old_ns)
-        self.app.process_cartridge_commands(result.cart_commands)
-        updated = false if result.exitcode != 0
-      end
-       
-      if contains_framework
-        result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
-        self.app.process_cartridge_commands(result.cart_commands)        
-        updated = false if result.exitcode != 0
-      end
-    else
+
+    if contains_proxy || self.app.scalable
+      #proxy gear gets public dns          
       dns_service.deregister_application(self.app.name, old_ns)
       public_hostname = get_proxy.get_public_hostname
       dns_service.register_application(self.app.name, new_ns, public_hostname)
-       
-      if contains_framework
-        result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
-        self.app.process_cartridge_commands(result.cart_commands)        
-        updated = false if result.exitcode != 0
-      end
+    else
+      #non-proxy gear gets gear specific dns
+      dns_service.deregister_application(self.name, old_ns)
+      public_hostname = get_proxy.get_public_hostname
+      dns_service.register_application(self.name, new_ns, public_hostname)
+    end
+
+    if contains_proxy && self.app.scalable
+      result = get_proxy.update_namespace(app, self, self.app.proxy_cartridge, new_ns, old_ns)
+      self.app.process_cartridge_commands(result.cart_commands)
+      updated = false if result.exitcode != 0
+    end
+
+    if contains_framework
+      result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
+      self.app.process_cartridge_commands(result.cart_commands)        
+      updated = false if result.exitcode != 0
     end
     return updated
   end
