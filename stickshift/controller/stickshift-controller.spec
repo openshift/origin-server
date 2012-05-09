@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.6
+Version: 0.10.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,19 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 09 2012 Adam Miller <admiller@redhat.com> 0.10.7-1
+- Merge pull request #34 from kraman/dev/kraman/bug/819984 (kraman@gmail.com)
+- Bugfix for scaled applications (kraman@gmail.com)
+- Merge pull request #30 from kraman/dev/kraman/bug/819984
+  (dmcphers@redhat.com)
+- Adding logic to handle mysql gear. Executing domain-update hook on every
+  gear. (kraman@gmail.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rchopra@redhat.com)
+- fix for bug#820024 (rchopra@redhat.com)
+- Simplifying some reduntant code blocks (kraman@gmail.com)
+- Adding back cartridge command processing (kraman@gmail.com)
+- Update gear dns entried when app namespace is updated (kraman@gmail.com)
+
 * Wed May 09 2012 Adam Miller <admiller@redhat.com> 0.10.6-1
 - Report back the allowed sizes for the specific user and mention contacting
   support for access to additional sizes. (rmillner@redhat.com)
