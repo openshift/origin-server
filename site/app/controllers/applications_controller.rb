@@ -94,16 +94,7 @@ class ApplicationsController < ConsoleController
     @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
 
-    # we get here from the details page or applications list page
-    # be safe by redirecting the cancel button to the referer
-    # only if it comes from the same domain (defaults to
-    # application_details_path if referer isn't set)
-    server_name = request.env['SERVER_NAME']
-    http_referer = request.env['HTTP_REFERER']
-    if !http_referer.nil?
-      http_referer = URI(http_referer)
-      @referer = http_referer.path if http_referer.host == server_name
-    end
+    @referer = application_path(@application)
   end
 
   def new
@@ -124,12 +115,12 @@ class ApplicationsController < ConsoleController
     @domain = Domain.find :first, :as => session_user
     unless @domain
       @domain = Domain.create :name => @application.domain_name, :as => session_user
-      Rails.logger.debug "Unable to create domain, #{@domain.errors.inspect}"
       unless @domain.persisted?
+        logger.debug "Unable to create domain, #{@domain.errors.inspect}"
         @application.valid? # set any errors on the application object
         #FIXME: Ideally this should be inferred via associations between @domain and @application
         @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
-        Rails.logger.debug "Found errors during domain creation #{@application.errors.inspect}"
+        logger.debug "Found errors during domain creation #{@application.errors.inspect}"
         return render 'application_types/show'
       end
     end
