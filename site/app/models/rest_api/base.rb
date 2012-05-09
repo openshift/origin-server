@@ -394,6 +394,11 @@ module RestApi
       end
     end
 
+    #FIXME may be refactored
+    def remote_results
+      (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'] }.compact
+    end
+
     class << self
       def on_exit_code(code, handles=nil, &block)
         (@exit_code_conditions ||= {})[code] = handles || block

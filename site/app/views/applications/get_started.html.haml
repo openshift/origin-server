@@ -3,11 +3,14 @@
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
   %h1.invisible Get Started
+  = flashes
   %p Your application has been created. If you're new to OpenShift check out these tips for where to go next.
 
 - else
   %h1 Get Started
+  = flashes
   %p Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
+
 
 .row
   .span7

@@ -29,7 +29,21 @@ module LayoutHelper
   #
   def flashes
     return if @flashed_once || flash.nil?; @flashed_once = true
-    render :partial => 'layouts/flashes', :locals => {:flash => flash}
+    tags = []
+    flash.each do |key, value|
+      next if value.nil?
+      tags << content_tag(flash_element_for(key), value, :class => alert_class_for(key))
+    end
+    content_tag(:div, tags.join.html_safe, :id => 'flash') unless tags.empty?
+  end
+
+  def flash_element_for(key)
+    case key
+    when :info_pre
+      :pre
+    else
+      :div
+    end
   end
 
   def alert_class_for(key)
@@ -42,6 +56,8 @@ module LayoutHelper
       'alert alert-error'
     when :info
       'alert alert-info'
+    when :info_pre
+      'cli'
     else
       Rails.logger.debug "Handling alert key #{key.inspect}"
       'alert'

@@ -7,11 +7,7 @@
 - else
   %h1 Next Steps
 
-- if @cartridge_message
-  %pre.cli
-    = preserve do
-      :escaped
-        #{@cartridge_message}
+= flashes
 
 .row
   .span7

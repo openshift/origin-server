@@ -28,13 +28,9 @@ class CartridgesController < ConsoleController
 
     if @cartridge.save
       @wizard = true
-      messages = @cartridge.attributes[:messages]
-      @cartridge_message = ""
 
-      unless messages.nil?
-        result = messages.find { |m| m[:field] == "result" }
-        @cartridge_message = result[:text] if result.respond_to?(:has_key?) && result.has_key?(:text)
-      end
+      message = @cartridge.remote_results
+      flash.now[:info_pre] = message
 
       render :next_steps
     else

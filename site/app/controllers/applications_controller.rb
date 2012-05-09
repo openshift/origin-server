@@ -138,9 +138,10 @@ class ApplicationsController < ConsoleController
     @application.cartridge = @application_type.cartridge || @application_type.id
 
     if @application.save
-      redirect_to get_started_application_path(@application, :wizard => true)
+      message = @application.remote_results
+      redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => message}
     else
-      Rails.logger.debug @application.errors.inspect
+      logger.debug @application.errors.inspect
       render 'application_types/show'
     end
   end
