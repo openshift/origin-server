@@ -32,12 +32,30 @@ def gen_small_uuid()
     %x[/usr/bin/uuidgen].gsub('-', '').strip
 end
 
+def gen_unique_login_and_namespace(namespace=nil)
+  if !namespace
+    chars = ("1".."9").to_a
+    namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
+  end
+  login = "cucumber-test+#{namespace}@example.com"
+  [ login, namespace ]
+end
+
+def gen_unique_app_name
+  chars = ("1".."9").to_a
+  "app" + Array.new(4, '').collect{chars[rand(chars.size)]}.join
+end
+
 Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |namespace, name|
   # generate a random account name and use the stock SSH keys
   # generate a random UUID and use the stock keys
   acctname = gen_small_uuid
+  login, namespace = gen_unique_login_and_namespace(namespace)
   @account = {
     'accountname' => acctname,
+    'login' => login,
+    'namespace' => namespace,
+    'appnames' => [ name ],
   }
 
   command = $controller_config_format % [acctname, namespace, name]
@@ -51,11 +69,16 @@ Given /^a new guest account$/ do
   # generate a random account name and use the stock SSH keys
   # generate a random UUID and use the stock keys
   acctname = gen_small_uuid
+  login, namespace = gen_unique_login_and_namespace
+  appname = gen_unique_app_name
   @account = {
     'accountname' => acctname,
+    'login' => login,
+    'namespace' => namespace,
+    'appnames' => [ appname ],
   }
 
-  command = $controller_config_format % [acctname, '', '']
+  command = $controller_config_format % [acctname, namespace, appname]
   run command
 
   # get and store the account UID's by name
@@ -71,11 +94,16 @@ When /^I create a guest account$/ do
   # generate a random account name and use the stock SSH keys
   # generate a random UUID and use the stock keys
   acctname = gen_small_uuid
+  login, namespace = gen_unique_login_and_namespace
+  appname = gen_unique_app_name
   @account = {
-      'accountname' => acctname,
-    }
+    'accountname' => acctname,
+    'login' => login,
+    'namespace' => namespace,
+    'appnames' => [ appname ],
+  }
 
-  command = $controller_config_format % [acctname, '', '']
+  command = $controller_config_format % [acctname, namespace, appname]
   run command
 
   # get and store the account UID's by name
@@ -91,18 +119,24 @@ When /^I delete the guest account$/ do
 end
 
 When /^I create a new namespace$/ do
-  ec = run("#{$rhc_domain_script} create -n vuvuzuzufukuns -l vuvuzuzufuku -p fakepw -d")
+  acctname = gen_small_uuid
+  login, namespace = gen_unique_login_and_namespace
+  @account = {
+    'accountname' => acctname,
+    'login' => login,
+    'namespace' => namespace,
+  }
+  ec = run("#{$rhc_domain_script} create -n #{namespace} -l #{login} -p fakepw -d")
 end
 
 When /^I delete the namespace$/ do
-  ec = run("#{$rhc_domain_script} destroy -n vuvuzuzufukuns -l vuvuzuzufuku -p fakepw -d")
-  # FIXME: Need to fix this test to work w/ mongo -- need unique name per run.
-  #ec.should be == 0
+  ec = run("#{$rhc_domain_script} destroy -n #{@account['namespace']} -l #{@account['login']} -p fakepw -d")
+  ec.should be == 0
 end
 
 Then /^a namespace should get deleted$/ do
-  ec = run("host vuvuzuzufukuns.dev.rhcloud.com | grep \"not found\"")
-  #ec.should be == 0
+  ec = run("host #{@account['namespace']}.dev.rhcloud.com | grep \"not found\"")
+  ec.should be == 0
 end
 
 Then /^an account password entry should( not)? exist$/ do |negate|

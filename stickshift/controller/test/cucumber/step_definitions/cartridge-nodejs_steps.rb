@@ -22,8 +22,8 @@ $libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
 
 When /^I configure a nodejs application$/ do
   account_name = @account['accountname']
-  namespace = "ns1"
-  app_name = "app1"
+  namespace = @account['namespace']
+  app_name = @account['appnames'][0]
   @app = {
     'name' => app_name,
     'namespace' => namespace
@@ -125,8 +125,8 @@ end
 
 Given /^a new nodejs application$/ do
   account_name = @account['accountname']
-  app_name = 'app1'
-  namespace = 'ns1'
+  app_name = @account['appnames'][0]
+  namespace = @account['namespace']
   @app = {
     'namespace' => namespace,
     'name' => app_name
