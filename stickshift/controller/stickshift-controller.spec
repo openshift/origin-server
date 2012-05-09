@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.5
+Version: 0.10.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 09 2012 Adam Miller <admiller@redhat.com> 0.10.6-1
+- Report back the allowed sizes for the specific user and mention contacting
+  support for access to additional sizes. (rmillner@redhat.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
 - Merge pull request #27 from kraman/dev/kraman/bug/806935
   (dmcphers@redhat.com)
