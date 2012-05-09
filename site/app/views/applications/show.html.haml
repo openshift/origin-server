@@ -6,7 +6,7 @@
 .console-head.clearfix.base
   %h1.span4= @application.name
   .pull-right
-    %a.btn{:href => delete_application_path(@application.name), :style => 'margin-right:25px; margin-top: 5px;'} Delete
+    = link_to 'Delete', delete_application_path(@application), :style => 'margin-right:25px;', :class => 'btn btn-small'
 -#
   .emblem.span
     %img{:src => '/app/images/console/gear-bars.png'}
@@ -90,9 +90,9 @@
       %i.icon-add
 
 %aside#secondary.span3
-  #app-unique-info
-    %h5 Visibility
-    %ul.unstyled
+  %section#app-unique-info
+    -#%h5 Visibility
+    -#%ul.unstyled
       %li External
     %h5 URL
     %ul.unstyled
@@ -105,13 +105,21 @@
         - alias_scheme = @application.web_url.split(':').first
         - @application.aliases.each do |a|
           %li= link_to a, "#{alias_scheme}://#{a}"
+
+
   #assistance
-    %h5 Client Tools Help
+    %h5 New to OpenShift?
+    %ul.unstyled
+      %li= link_to 'See the getting started tips for this app →', get_started_application_path(@application)
+
+    %h5 Need Help?
+    %ul.unstyled
+      %li= link_to 'OpenShift User Guide', user_guide_url
+      %li= link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
+
+  -# %h5 Need Help? #restore later
     %ul.unstyled
       %li
-        = link_to 'OpenShift User Guide', user_guide_url
-      %li
-        = link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
       - if @application_type.help_topics and not @application_type.help_topics.empty?
         %h5= @application.framework_name + ' Help'
         %ul.unstyled

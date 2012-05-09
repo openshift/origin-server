@@ -359,6 +359,7 @@ figure {
   margin-left: 26px;
   font-size: 32px;
   font-weight:normal;
+  text-transform: capitalize;
 	}
 	.console-head .emblem {
 		}
@@ -763,14 +764,10 @@ section#app-cartridges .cartridge-block {
 		margin: 0 0 3px 0;
 		text-transform: uppercase;
 		}
-	#secondary #assistance ul, #secondary #app-unique-info ul {
+	#secondary #assistance ul,
+  #secondary #app-unique-info ul {
 		margin-bottom: 25px;
 		}
-#secondary #app-unique-info {
-  border: 0;
-  margin-bottom: 50px;
-  padding: 0;
-  }	
 	#app-unique-info h5 {	
 		border-bottom: 1px solid #222222;
 		}

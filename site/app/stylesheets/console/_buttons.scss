@@ -180,3 +180,8 @@ input[type="submit"].btn {
 .btn-toolbar > img {
   vertical-align: middle;
   }
+
+// Large important buttons are given more heft
+.btn-large.btn-primary {
+  text-transform: uppercase;
+}
