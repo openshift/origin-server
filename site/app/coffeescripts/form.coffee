@@ -14,7 +14,7 @@ $ ->
       ($ loading_match, body).hide()
       ($ 'input[type=submit][disabled]').removeAttr('disabled')
     ($ this).closest('form').bind 'submit', ->
-      if ($ 'input.error').length == 0
+      if ($ '.control-group.error-client').length == 0
         ($ loading_match, this).show()
         ($ 'input[type=submit]', this).attr('disabled','disabled')
         true
@@ -31,9 +31,10 @@ $ ->
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
-      $(find_control_group_parent(element)).addClass('error').removeClass(validClass)
+      $(find_control_group_parent(element)).addClass('error').addClass('error-client').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
       $el = $(find_control_group_parent(element))
+      $el.removeClass('error-client')
       if typeof($el.attr('data-server-error')) == 'undefined'
         $el.removeClass('error')
 
