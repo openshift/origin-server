@@ -523,7 +523,13 @@ figure {
   .status-important {
   	background-color: #900;
   }
-  
+#utility-nav .alert {
+  color: #333;
+
+  &:hover {
+    color: black;
+  }
+}
 
 .nav {
 	margin-bottom: 6px;
