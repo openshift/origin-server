@@ -45,7 +45,7 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: node_profile" do
-    ["jumbo","exlarge","large","micro","medium","small"].each do |n|
+    ["small"].each do |n|
       req = LegacyRequest.new.from_json("{\"node_profile\": \"#{n}\"}")
       assert req.valid?
     end
