@@ -196,7 +196,7 @@ class Gear < StickShift::UserModel
       contains_mysql = true if ci.parent_cart_name == "mysql-5.1"  
     end
 
-    if contains_proxy || self.app.scalable
+    if contains_proxy || !self.app.scalable
       #proxy gear gets public dns
       register_application(dns_service, old_ns, new_ns, self.app.name)
     else

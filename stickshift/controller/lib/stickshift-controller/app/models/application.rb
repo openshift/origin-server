@@ -981,6 +981,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.embedded[framework]['info'] = info
       end
     end
+    self.domain.namespace = new_ns
     self.save
   end
   
