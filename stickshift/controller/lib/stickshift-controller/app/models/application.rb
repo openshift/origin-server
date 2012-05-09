@@ -1264,6 +1264,34 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
   end
   
+  def process_cartridge_commands(commands)
+    result = ResultIO.new
+    commands.each do |command_item|
+      case command_item[:command]
+      when "SYSTEM_SSH_KEY_ADD"
+        key = command_item[:args][0]
+        self.user.add_system_ssh_key(self.name, key)
+      when "SYSTEM_SSH_KEY_REMOVE"
+        self.user.remove_system_ssh_key(self.name)
+      when "ENV_VAR_ADD"
+        key = command_item[:args][0]
+        value = command_item[:args][1]
+        self.user.add_env_var(key,value)
+      when "ENV_VAR_REMOVE"
+        key = command_item[:args][0]
+        self.user.remove_env_var(key)
+      when "BROKER_KEY_ADD"
+        iv, token = StickShift::AuthService.instance.generate_broker_key(self)
+        self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
+      when "BROKER_KEY_REMOVE"
+        self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])
+      end
+    end
+    if user.save_jobs
+      user.save
+    end
+    result
+  end
 private
 
   def cleanup_deleted_components
@@ -1392,34 +1420,5 @@ private
     end
     
     return successful_runs, failed_runs
-  end
-  
-  def process_cartridge_commands(commands)
-    result = ResultIO.new
-    commands.each do |command_item|
-      case command_item[:command]
-      when "SYSTEM_SSH_KEY_ADD"
-        key = command_item[:args][0]
-        self.user.add_system_ssh_key(self.name, key)
-      when "SYSTEM_SSH_KEY_REMOVE"
-        self.user.remove_system_ssh_key(self.name)
-      when "ENV_VAR_ADD"
-        key = command_item[:args][0]
-        value = command_item[:args][1]
-        self.user.add_env_var(key,value)
-      when "ENV_VAR_REMOVE"
-        key = command_item[:args][0]
-        self.user.remove_env_var(key)
-      when "BROKER_KEY_ADD"
-        iv, token = StickShift::AuthService.instance.generate_broker_key(self)
-        self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
-      when "BROKER_KEY_REMOVE"
-        self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])
-      end
-    end
-    if user.save_jobs
-      user.save
-    end
-    result
   end
 end

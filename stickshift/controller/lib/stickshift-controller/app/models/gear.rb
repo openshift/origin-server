@@ -209,11 +209,13 @@ class Gear < StickShift::UserModel
     
       if contains_proxy
         result = get_proxy.update_namespace(app, self, self.app.proxy_cartridge, new_ns, old_ns)
+        self.app.process_cartridge_commands(result.cart_commands)
         updated = false if result.exitcode != 0
       end
        
       if contains_framework
         result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
+        self.app.process_cartridge_commands(result.cart_commands)        
         updated = false if result.exitcode != 0
       end
     else
@@ -223,6 +225,7 @@ class Gear < StickShift::UserModel
        
       if contains_framework
         result = get_proxy.update_namespace(app, self, self.app.framework, new_ns, old_ns)
+        self.app.process_cartridge_commands(result.cart_commands)        
         updated = false if result.exitcode != 0
       end
     end
