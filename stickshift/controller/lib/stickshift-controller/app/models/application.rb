@@ -957,29 +957,31 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
-  def update_namespace(new_ns, old_ns)
+  def prepare_namespace_update(dns_service, new_ns, old_ns)
     updated = true
     begin
-      result = self.container.update_namespace(self, self.framework, new_ns, old_ns)
-      if result.is_a?(Array)
-        # result is an Array of Gear when the domain is altered with a scalable app. 
-        # There are no cart commands for a domain alter for scalable app. So doing nothing here.
-        result.each { |r|
-#          process_cartridge_commands(r.cart_commands)
-          updated = updated and (r.exitcode == 0)
-        }
-      else
-        # For a jenkins app (jenkins is non-scalable), the JENKINS_URL environment variable is updated
-        process_cartridge_commands(result.cart_commands)
-        updated = result.exitcode == 0
+      self.gears.each do |gear|
+        result = gear.prepare_namespace_update(dns_service, new_ns, old_ns)
+        updated = false unless result
       end
     rescue Exception => e
       updated = false
       Rails.logger.debug "Exception caught updating namespace #{e.message}"
       Rails.logger.debug "DEBUG: Exception caught updating namespace #{e.message}"
       Rails.logger.debug e.backtrace
+    end 
+    return updated
+  end
+  
+  def complete_namespace_update(new_ns, old_ns)
+    self.embedded.each_key do |framework|
+      if self.embedded[framework].has_key?('info')
+        info = self.embedded[framework]['info']
+        info.gsub!(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+        self.embedded[framework]['info'] = info
+      end
     end
-    return updated 
+    self.save
   end
   
   def add_alias(server_alias)
@@ -1262,6 +1264,34 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
   end
   
+  def process_cartridge_commands(commands)
+    result = ResultIO.new
+    commands.each do |command_item|
+      case command_item[:command]
+      when "SYSTEM_SSH_KEY_ADD"
+        key = command_item[:args][0]
+        self.user.add_system_ssh_key(self.name, key)
+      when "SYSTEM_SSH_KEY_REMOVE"
+        self.user.remove_system_ssh_key(self.name)
+      when "ENV_VAR_ADD"
+        key = command_item[:args][0]
+        value = command_item[:args][1]
+        self.user.add_env_var(key,value)
+      when "ENV_VAR_REMOVE"
+        key = command_item[:args][0]
+        self.user.remove_env_var(key)
+      when "BROKER_KEY_ADD"
+        iv, token = StickShift::AuthService.instance.generate_broker_key(self)
+        self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
+      when "BROKER_KEY_REMOVE"
+        self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])
+      end
+    end
+    if user.save_jobs
+      user.save
+    end
+    result
+  end
 private
 
   def cleanup_deleted_components
@@ -1390,34 +1420,5 @@ private
     end
     
     return successful_runs, failed_runs
-  end
-  
-  def process_cartridge_commands(commands)
-    result = ResultIO.new
-    commands.each do |command_item|
-      case command_item[:command]
-      when "SYSTEM_SSH_KEY_ADD"
-        key = command_item[:args][0]
-        self.user.add_system_ssh_key(self.name, key)
-      when "SYSTEM_SSH_KEY_REMOVE"
-        self.user.remove_system_ssh_key(self.name)
-      when "ENV_VAR_ADD"
-        key = command_item[:args][0]
-        value = command_item[:args][1]
-        self.user.add_env_var(key,value)
-      when "ENV_VAR_REMOVE"
-        key = command_item[:args][0]
-        self.user.remove_env_var(key)
-      when "BROKER_KEY_ADD"
-        iv, token = StickShift::AuthService.instance.generate_broker_key(self)
-        self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
-      when "BROKER_KEY_REMOVE"
-        self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])
-      end
-    end
-    if user.save_jobs
-      user.save
-    end
-    result
   end
 end

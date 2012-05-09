@@ -189,4 +189,49 @@ class Gear < StickShift::UserModel
   def remove_broker_auth_key
     get_proxy.remove_broker_auth_key(app, self)    
   end
+  
+  def prepare_namespace_update(dns_service, new_ns, old_ns)
+    results = []
+    gi = self.app.group_instance_map[self.group_instance_name]
+    contains_proxy = false
+    contains_framework = false    
+    contains_mysql = false
+    
+    gi.component_instances.each do |cname|
+      ci = self.app.comp_instance_map[cname]
+      contains_proxy = true if ci.parent_cart_name == self.app.proxy_cartridge
+      contains_framework = true if ci.parent_cart_name == self.app.framework  
+      contains_mysql = true if ci.parent_cart_name == "mysql-5.1"  
+    end
+
+    if contains_proxy || self.app.scalable
+      #proxy gear gets public dns
+      register_application(dns_service, old_ns, new_ns, self.app.name)
+    else
+      #non-proxy gear gets gear specific dns
+      register_application(dns_service, old_ns, new_ns, self.name)
+    end
+
+    if contains_framework
+      return call_update_namespace_hook(self.app.framework, new_ns, old_ns)
+    elsif contains_mysql
+      return call_update_namespace_hook("mysql-5.1", new_ns, old_ns)
+    else
+      raise StickShift::NodeException.new("Error updating gear #{self.uuid} for app #{self.app.name}. Unable to find framework or mysql cartridges on gear.")
+    end
+  end
+
+private
+
+  def call_update_namespace_hook(cart_name, new_ns, old_ns)
+    result = get_proxy.update_namespace(self.app, self, cart_name, new_ns, old_ns)
+    self.app.process_cartridge_commands(result.cart_commands)
+    return (result.exitcode == 0)
+  end
+
+  def register_application(dns_service, old_ns, new_ns, name)
+    dns_service.deregister_application(name, old_ns)
+    public_hostname = get_proxy.get_public_hostname
+    dns_service.register_application(name, new_ns, public_hostname)
+  end
 end
