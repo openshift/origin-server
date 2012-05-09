@@ -26,7 +26,15 @@ class Gear < StickShift::UserModel
       self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
       self.server_identity = self.container.id
       self.uid = self.container.reserve_uid
-      ret = self.container.create(app,self)
+      ret = nil
+      begin
+        ret = self.container.create(app,self)
+      rescue Exception=>e
+        Rails.logger.debug e.message
+        Rails.logger.debug e.backtrace.join("\n")
+        ret = ResultIO.new
+        ret.exitcode = 5
+      end
       self.app.ngears += 1
       return ret
     end
