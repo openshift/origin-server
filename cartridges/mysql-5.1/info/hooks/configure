@@ -54,9 +54,12 @@ function setup_mysql_as_a_service() {
     # Create environment variables
     #
     create_standard_env_vars
+    create_standard_env_uservars
     create_standard_network_env_vars
     create_standard_repo_dir_env_var
     create_standard_path_env_var
+
+    observe_setup_env_uservars_dir
 
     # And prepend to path variable so that mysql app_ctl.sh script is called.
     sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH

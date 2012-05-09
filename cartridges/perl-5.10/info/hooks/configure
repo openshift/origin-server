@@ -81,9 +81,12 @@ observe_setup_cart_instance_dir
 # Create environment variables
 #
 create_standard_env_vars
+create_standard_env_uservars
 create_standard_network_env_vars
 create_standard_repo_dir_env_var
 create_standard_path_env_var
+
+observe_setup_env_uservars_dir
 
 #
 # Start the server

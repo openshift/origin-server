@@ -44,6 +44,7 @@ Then /^the file permissions are correct/ do
   mcs = libra_mcs_level(uid)
   # Configure files (relative to app_home)
   configure_files = { "#{@app['name']}" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                     "php-5.3/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/#{@app['name']}_ctl.sh" => ['root', 'root', '100755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     ".pearrc" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/conf/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
@@ -54,7 +55,8 @@ Then /^the file permissions are correct/ do
                     "app/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/logs/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/phplib/pear/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "app/repo/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/data/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/repo/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/run/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "app/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],

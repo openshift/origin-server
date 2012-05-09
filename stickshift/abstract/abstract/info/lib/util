@@ -145,11 +145,15 @@ function create_standard_env_vars {
     #echo "export OPENSHIFT_GEAR_NAME='$application'" > $APP_HOME/.env/OPENSHIFT_GEAR_NAME
     echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
     echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
+}
+
+function create_standard_env_uservars {
     create_env_uservars_dir
     create_env_uservars_script
 }
 
 function create_standard_network_env_vars {
+    cinstancedir=$(get_cartridge_instance_dir)
     echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
     echo "export OPENSHIFT_INTERNAL_PORT='8080'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
     echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
@@ -222,18 +226,17 @@ EOF
 }
 
 function secure_app_dir {
-    chown -R $user_id.$group_id $APP_DIR $APP_HOME/app || \
+    chown -R $user_id.$group_id "$APP_HOME/app" || \
         error "Failed to chown new application space." 123
-    observe_setup_var_lib_dir "$APP_HOME/app"
-    #chown root.root "$APP_DIR"
+    chown root.root "$APP_DIR"
 }
 
 function secure_cart_instance_dir {
     cinstancedir=$(get_cartridge_instance_dir)
-    chown $user_id.$group_id -R $cinstancedir || \
+    chown $user_id.$group_id -R "$cinstancedir" || \
         error "Failed to chown new application space." 123
-    #chown root.root "$cinstancedir"
-    if [ -f $cinstancedir/${application}_ctl.sh ]
+    chown root.root "$cinstancedir"
+    if [ -f "$cinstancedir/${application}_ctl.sh" ]
     then
       chown root.root "$cinstancedir/${application}_ctl.sh"
     fi
@@ -595,15 +598,14 @@ IFS="
 function observe_setup_app_and_git_dirs {
     observe_setup_var_lib_dir "$APP_HOME/git/"
     observe_setup_var_lib_dir "$APP_HOME/app/"
-    observe_setup_var_lib_file "$APP_DIR"
-    # observe_setup_app_env_uservars_dir
+    observe_setup_var_lib_dir "$APP_DIR"
 }
 
 function observe_setup_cart_instance_dir {
     observe_setup_var_lib_dir "$(get_cartridge_instance_dir)"
 }
 
-function observe_setup_app_env_uservars_dir {
+function observe_setup_env_uservars_dir {
     observe_setup_var_lib_dir "$APP_HOME/.env/.uservars"
 }
 
