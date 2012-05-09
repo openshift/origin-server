@@ -20,16 +20,20 @@ class Application < RestApi::Base
   has_many :aliases
   has_many :cartridges
   has_many :gears
+  has_many :gear_groups
 
   def find_cartridge(name)
-    Cartridge.find name, { :params => { :domain_id => domain_id, :application_name => self.name }, :as => as}
+    Cartridge.find name, child_options
   end
 
   def cartridges
-    Cartridge.find :all, { :params => { :domain_id => domain_id, :application_name => self.name }, :as => as }
+    Cartridge.find :all, child_options
   end
   def gears
-    get :gears
+    Gear.find :all, child_options
+  end
+  def gear_groups
+    GearGroup.find :all, child_options
   end
 
   def web_url
@@ -47,4 +51,9 @@ class Application < RestApi::Base
     def url_authority
       "#{name}-#{domain_id}.#{Rails.configuration.base_domain}"
     end
+    def child_options
+      { :params => { :domain_id => domain_id, :application_name => self.name},
+        :as => as }
+    end
+
 end
