@@ -139,7 +139,7 @@ Then /^the jenkins application directory tree will( not)? be populated$/ do |neg
 
   path_list =  []
   ['repo', 'data'].each { |d| path_list.push File.join(gear_home, "app", d) }
-  ['run', 'tmp'].each { |d| path_list.push File.path.join(gear_home, "jenkins-1.4", d) }
+  ['run', 'tmp'].each {|d| path_list.push File.join(gear_home,"jenkins-1.4",d) }
 
   path_list.each do |file_path| 
     file_exists = File.exists? file_path

@@ -45,6 +45,7 @@ fi
 #
 
 create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
 PYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$PYCART_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs

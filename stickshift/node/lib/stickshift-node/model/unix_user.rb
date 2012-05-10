@@ -140,7 +140,7 @@ module StickShift
         break unless rc == 0
       end
       
-      #FileUtils.rm_rf(@homedir)
+      FileUtils.rm_rf(@homedir)
 
       basedir = @config.get("GEAR_BASE_DIR")
       token = "#{@uuid}_#{@namespace}_#{@app_name}"

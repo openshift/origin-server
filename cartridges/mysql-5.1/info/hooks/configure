@@ -34,6 +34,7 @@ function setup_mysql_as_a_service() {
     #
     create_cartridge_instance_dir "$cartridge_type"
     create_app_dir_symlink "$cartridge_type"
+    MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
     pushd "$MYSQL_DIR" > /dev/null
     create_standard_app_dirs
     popd > /dev/null
@@ -92,15 +93,14 @@ cartridge_type="$CART_NAME-$CART_VERSION"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-
-if [ ! -d "$APP_DIR" ]; then
+if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
     #  This gear is dedicated to running mysql - configure it as such.
     setup_mysql_as_a_service "$@"
 fi
 
 setup_embedded_configure "$1" $2 $3
 
+MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 

@@ -261,7 +261,12 @@ function check_app_dir_exists {
 }
 
 function rm_app_dir {
-    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR"
+    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR" "$APP_HOME/app"
+}
+
+function rm_cartridge_instance_dir {
+    ctype=${1:-$cartridge_type}
+    [ -n "$ctype" ]  &&  runcon -l s0-s0:c0.c1023 rm -rf "$APP_HOME/$ctype"
 }
 
 function load_resource_limits_conf {
