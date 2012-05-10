@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.14.0
+Version: 0.14.1
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - Bug 819739 (dmcphers@redhat.com)
 
