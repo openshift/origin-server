@@ -105,6 +105,7 @@ class LegacyBrokerController < ApplicationController
     if (!domain or not domain.hasFullAccess?(cloud_user)) && (@req.alter || @req.delete)
       Rails.logger.debug "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.\n"
       @reply.resultIO << "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.\n"
+      @reply.exitcode = 106
       render :json => @reply, :status => :bad_request
       return
     end

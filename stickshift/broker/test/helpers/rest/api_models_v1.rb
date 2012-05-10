@@ -288,6 +288,7 @@ class RestApplication_V1 < BaseObj_V1
       "GET" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}"),
       "GET_DESCRIPTOR" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}/descriptor"),
       "GET_GEARS" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}/gears"),
+      "GET_GEAR_GROUPS" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}/gear_groups"),      
       "START" => Link_V1.new("POST", "domains/#{domain_id}/applications/#{name}/events",
         [ Param_V1.new("event", "string", "start") ]),
       "STOP" => Link_V1.new("POST", "domains/#{domain_id}/applications/#{name}/events",
@@ -327,5 +328,15 @@ class RestGear_V1 < BaseObj_V1
     self.uuid = nil
     self.components = components
     self.git_url = nil
+  end
+end
+
+class RestGearGroup_V1 < BaseObj_V1
+  attr_accessor :name, :gears, :cartridges
+
+  def initialize(name=nil)
+    self.name = name
+    self.gears = nil
+    self.cartridges = nil
   end
 end
