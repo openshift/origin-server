@@ -69,6 +69,10 @@ class RestApi_V1 < RestApi
       when 'gear'
         obj = RestGear_V1.to_obj(data)
         self.response.compare(obj)
+      when 'gear_groups'
+        data.each do |gear_group_hash|
+          obj = RestGearGroup_V1.to_obj(gear_group_hash)
+        end
       when 'gears'
         data.each do |gear_hash|
           obj = RestGear_V1.to_obj(gear_hash)
@@ -223,6 +227,9 @@ app_show_port_post_v1.response_type = "application"
 app_gear_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gears")
 app_gear_get_v1.response_type = 'gears'
 
+app_gear_groups_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gear_groups")
+app_gear_groups_get_v1.response_type = 'gear_groups'
+
 app_conceal_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
 app_conceal_port_post_v1.request = { 'event' => 'conceal-port' }
 app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
@@ -297,6 +304,7 @@ REST_CALLS_V1 = [
                   app_expose_port_post_v1, 
                   app_show_port_post_v1,
                   app_gear_get_v1, 
+                  app_gear_groups_get_v1,
                   app_conceal_port_post_v1,
                   app_cart_list_get_v1, 
                   app_cart_get_v1,
