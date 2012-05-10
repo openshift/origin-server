@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.13.4
+Version: 0.14.0
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
