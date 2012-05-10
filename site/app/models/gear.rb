@@ -7,7 +7,7 @@ class Gear < RestApi::Base
   belongs_to :application
 
   def state
-    (super || :unknown).to_s
+    (super || :unknown).to_sym
   end
 
   def components
