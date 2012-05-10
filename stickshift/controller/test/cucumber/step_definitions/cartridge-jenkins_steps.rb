@@ -6,6 +6,8 @@ require 'open4'
 require 'pp'
 require 'rest-client'
 
+$temp = "/tmp/rhc/jenkins-build"
+
 include AppHelper
 
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
@@ -335,10 +337,16 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
       raise "Failed to create domain: #{@app}"
     end
 
-    output = `awk </tmp/rhc/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
     @jenkins_user = output[-3]
+    @jenkins_user.should_not be_nil
+
     @jenkins_password = output[-2]
+    @jenkins_password.should_not be_nil
+
     @jenkins_url = output[-1]
+    @jenkins_url.should_not be_nil
+
     $logger.debug "@jenkins_url = #{@jenkins_url}\n@jenkins_user = #{@jenkins_user}\n@jenkins_password = #{@jenkins_password}"
 
     @jenkins_job_command = "curl -ksS -X GET #{@jenkins_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"
@@ -355,7 +363,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 end
 
 When /^I push an update to the diy application$/ do
-    output = `awk </tmp/rhc/cucumber.log '/^git url:.*diy.git.$/ {print $3}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^git url:.*diy.git.$/ {print $3}'`.split("\n")
     @diy_git_url = output[-1]
 
     FileUtils.rm_rf 'diy' if File.exists? 'diy'
