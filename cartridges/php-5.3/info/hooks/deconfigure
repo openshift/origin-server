@@ -42,6 +42,8 @@ confirm_log_files_inactive "$PHPCART_INSTANCE_DIR/logs"
 
 rm_app_dir
 
+rm_cartridge_instance_dir "$cartridge_type"
+
 rm_unobfuscated_app_home $namespace $application
 
 #

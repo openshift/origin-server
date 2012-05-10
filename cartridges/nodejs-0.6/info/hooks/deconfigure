@@ -48,6 +48,7 @@ confirm_log_files_inactive "$NODEJS_INSTANCE_DIR/logs"
 
 # Blow away the directories.
 rm_app_dir
+rm_cartridge_instance_dir "$cartridge_type"
 rm_unobfuscated_app_home $namespace $application
 
 # And finally, remove virtualhost definition added to Apache.

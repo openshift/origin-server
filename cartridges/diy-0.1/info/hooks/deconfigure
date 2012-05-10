@@ -36,6 +36,8 @@ stop_app
 
 rm_app_dir
 
+rm_cartridge_instance_dir "$cartridge_type"
+
 rm_unobfuscated_app_home $namespace $application
 
 #

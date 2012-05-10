@@ -46,6 +46,8 @@ confirm_pid_gone "${JBOSS_INSTANCE_DIR}/run/jboss.pid"
 
 rm_app_dir
 
+rm_cartridge_instance_dir "$cartridge_type"
+
 rm_unobfuscated_app_home $namespace $application
 
 # remove the Maven repository.
