@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.10.0
+Version: 0.10.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -69,6 +69,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
+- bump spec version (dmcphers@redhat.com)
+- bumping spec versions (admiller@redhat.com)
+
 * Thu Apr 26 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bumping spec versions (admiller@redhat.com)
 
