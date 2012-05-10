@@ -39,6 +39,8 @@ OPTIONS="-C 'Include /var/www/stickshift/broker/httpd/broker.conf' -f /var/www/s
 # when not running is also a failure.  So we just do it the way init scripts
 # are expected to behave here.
 start() {
+        echo -n $"Updating gemfile for $prog"
+        pushd /var/www/stickshift/broker/ && bundle install && chown apache:apache Gemfile.lock && popd
         echo -n $"Starting $prog: "
         LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
         RETVAL=$?

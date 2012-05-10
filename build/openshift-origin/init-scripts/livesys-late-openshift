@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# live: Late init script for live image
+#
+# chkconfig: 345 99 01
+# description: Late init script for configuring image
+
+
+echo "initialize mongodb"
+service mongod start
+
+#wait for "[initandlisten] waiting for connections"
+WAIT=1
+while [ 1 -eq $WAIT ] ; do /bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log && WAIT=$? ; echo "Waiting for mongo to initialize ...\n" ; tail -5 /var/log/mongodb/mongodb.log ; sleep 1 ; done
+
+/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'
+
+# get the first resolver from /etc/resolv.conf
+FORWARDER=`grep nameserver /etc/resolv.conf | head -1 | cut -d' ' -f2`
+
+# insert localhost before the first nameserver line
+sed -i -e '1,/nameserver/ { /nameserver/ i\
+nameserver 127.0.0.1
+}' /etc/resolv.conf
+
+# Set up the initial forwarder
+echo "forwarders { ${FORWARDER} ; } ;" > /var/named/forwarders.conf
+
+# set SELinux label for forwarders file
+/sbin/restorecon -v /var/named/forwarders.conf
+
+grep -l NM_CONTROLLED /etc/sysconfig/network-scripts/ifcfg-* | xargs perl -p -i -e '/NM_CONTROLLED/ && s/yes/no/i'
+
+#Register admin user
+mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'
+
+service httpd restart
+service sshd restart
+service named restart
+service oddjobd restart
