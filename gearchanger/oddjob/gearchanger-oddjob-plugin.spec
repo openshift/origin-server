@@ -16,7 +16,10 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       oddjob
 Requires:       rubygem(stickshift-common)
+Requires:       rubygem(stickshift-broker)
 Requires:       rubygem(json)
+Requires:  		selinux-policy-targeted
+Requires:  		policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems

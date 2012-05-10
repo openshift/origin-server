@@ -16,6 +16,9 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
+Requires:       rubygem(stickshift-broker)
+Requires:  		selinux-policy-targeted
+Requires:  		policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -56,11 +59,29 @@ rm -rf %{buildroot}%{gemdir}/bin
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
+mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
+cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
+Broker::Application.configure do
+  config.auth = {
+    :salt => "ClWqe5zKtEW4CJEMyjzQ",
+    
+    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
+    :mongo_replica_sets => false,
+    :mongo_host_port => ["localhost", 27017],
+  
+    :mongo_user => "stickshift",
+    :mongo_password => "mooo",
+    :mongo_db => "stickshift_broker_dev",
+    :mongo_collection => "auth_user"
+  }
+end
+EOF
+
+
 %clean
 rm -rf %{buildroot}
 
 %post
-
 echo "The following variables need to be set in your rails config to use swingshift-mongo-plugin:"
 echo "auth[:salt]                    - salt for the password hash"
 echo "auth[:mongo_replica_sets]      - List of replica servers or false if replicas is disabled eg: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]"
@@ -79,6 +100,8 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_bindir}/*
+
+%attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

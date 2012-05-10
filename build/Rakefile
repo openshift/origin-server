@@ -1,0 +1,73 @@
+require 'rake'
+
+basedir = File.dirname(File.dirname(__FILE__))
+#srpmdir = "#{basedir}/rpmbuild/SRPMS"
+srpmdir = "/build/tito/srpms"
+rpmdir = "/build/tito/rpms"
+
+def build_srpm(specs, srpmdir, test_build=true)
+  specs.each do |spec|
+    dir = File.dirname(spec)
+    spec_file = File.basename(spec)
+    if test_build
+      sh "cd #{dir} && tito build --test --srpm -o #{srpmdir} #{spec_file} 2>&1"
+    else
+      sh "cd #{dir} && tito build --srpm -o #{srpmdir} #{spec_file} 2>&1"
+    end
+  end
+end
+
+def build_rpm(specs, test_build=true)
+  if test_build
+    specs.each do |spec|
+      dir = File.dirname(spec)
+      spec_file = File.basename(spec)
+      sh "cd #{dir} && tito build --test --rpm -o #{rpmdir} #{spec_file} 2>&1"
+    end
+  else
+    sh "mock -r fedora-16-x86_64 --resultdir=#{rpmdir} #{srpmdir}/*.src.rpm"
+  end
+end
+
+task :default => [:test_build] do
+end
+
+task :build_setup do
+  sh "sudo yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig"
+end
+
+task :test_build do
+  specs   = Dir.glob("#{basedir}/**/*.spec")
+  spec_revisions = {}
+  specs.delete_if do |spec|
+    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+    spec_name = File.basename(spec)[0..-6]
+    Dir.glob("#{srpmdir}/*#{spec_name}*#{revinfo}.fc16.src.rpm").length > 0
+  end
+  
+  build_srpm(specs, srpmdir, true)
+end
+
+task :build do
+  specs   = Dir.glob("#{basedir}/**/*.spec")
+  spec_revisions = {}
+  specs.delete_if do |spec|
+    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+    spec_name = File.basename(spec)[0..-6]
+    tags    = `git tag -l --contains #{revinfo} *#{spec_name}*`.split("\n")
+    if tags.length == 0
+      print "WARNING: #{spec} needs to be tagged!\n"
+      false
+    else
+      print "searching for : #{tags[-1]}\n\n\n"
+      Dir.glob("#{srpmdir}/#{tags[-1].strip}*.fc16.src.rpm").length > 0
+    end
+  end
+  
+  build_srpm(specs, srpmdir, false)
+end
+
+task :clean do
+  sh "rm -rf #{srpmdir}/*"
+  sh "rm -rf #{rpmdir}/*"
+end
