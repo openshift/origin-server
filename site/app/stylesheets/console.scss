@@ -217,15 +217,19 @@ ol.wizard {
 	display: block;
 	}
 ol.wizard li {
- background-position: 0 -84px;
-    background-repeat: no-repeat;
-    display: inline-block;
-    font-size: 115%;
-    line-height: 25px;
-    list-style-position: inside;
-    list-style-type: none;
-    margin: 0 60px 10px 0;
-    padding: 10px 0 10px 45px;
+ 	background-position: 0 -84px;
+  background-repeat: no-repeat;
+  display: inline-block;
+  font-size: 110%;
+  line-height: 25px;
+  list-style-position: inside;
+  list-style-type: none;
+  margin: 0 50px 10px 0;
+  padding: 10px 0 10px 45px;
+  
+  &:last-child {
+  	margin-right:0;
+  }
 }
 ol.wizard li span {
 	height: 40px;
@@ -237,13 +241,13 @@ ol.wizard li span {
 		background: #222;
     border-radius: 30px;
     font-style: normal;
-    height: 35px;
+    height: 33px;
     left: -51px;
-    line-height: 35px;
+    line-height: 33px;
     position: absolute;
     text-align: center;
     top: -13px;
-    width: 35px;
+    width: 33px;
     font-weight: bold;
 		}
 ol.wizard li.active {

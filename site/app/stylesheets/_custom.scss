@@ -222,7 +222,7 @@ textarea:focus {
   .navbar .nav > li {
     float: none;
   	}
-	.navbar .nav > li > a, .navbar .dropdown-menu a {
+	.navbar .nav > li > a {
     padding: 6px 15px 8px;
     font-weight: bold;
     color: #999999;
@@ -240,7 +240,7 @@ textarea:focus {
     cursor: default;
     text-decoration: none;
 		}
-  .navbar .nav > li > a:hover, .navbar .dropdown-menu a:hover {
+  .navbar .nav > li > a:hover {
     background-color: #1a1a1a;
   	}
 }
@@ -249,7 +249,7 @@ textarea:focus {
 	.nav-collapse.collapse {
     height: auto !important;
   	}
-  .navbar .nav > li > a, .navbar .dropdown-menu a {
+  .navbar .nav > li > a {
   	-webkit-border-radius: 6px 6px 0 0;
   		 -moz-border-radius: 6px 6px 0 0;
   			    border-radius: 6px 6px 0 0;

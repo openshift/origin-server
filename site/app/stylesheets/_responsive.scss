@@ -279,42 +279,6 @@
     color: $navbarText;
     text-shadow: none;
   }
-  // Nav and dropdown links in navbar
-  .navbar .nav > li > a,
-  .navbar .dropdown-menu a {
-    padding: 6px 15px;
-    font-weight: bold;
-    color: $navbarLinkColor;
-    @include border-radius(3px);
-  }
-  .navbar .dropdown-menu li + li a {
-    margin-bottom: 2px;
-  }
-  .navbar .nav > li > a:hover,
-  .navbar .dropdown-menu a:hover {
-    background-color: $navbarBackground;
-  }
-  // Dropdowns in the navbar
-  .navbar .dropdown-menu {
-    position: static;
-    top: auto;
-    left: auto;
-    float: none;
-    display: none;
-    max-width: none;
-    padding: 0;
-    background-color: transparent;
-    border: none;
-    @include border-radius(0);
-    @include box-shadow(none);
-  }
-  .navbar .dropdown-menu:before,
-  .navbar .dropdown-menu:after {
-    display: none;
-  }
-  .navbar .dropdown-menu .divider {
-    display: none;
-  }
   // Forms in navbar
   .navbar-form,
   .navbar-search {
