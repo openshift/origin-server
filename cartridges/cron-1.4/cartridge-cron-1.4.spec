@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
-Version: 0.7.0
+Version: 0.7.1
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -84,6 +84,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.7.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.6.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Some of the ctl script were not sourcing util from abstract.

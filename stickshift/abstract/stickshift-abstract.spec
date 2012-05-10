@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.0
+Version: 0.11.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
 - Fixing bugs related to user hooks. (rmillner@redhat.com)
 

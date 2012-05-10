@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.93.0
+Version: 0.93.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.93.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
 - Merge pull request #27 from kraman/dev/kraman/bug/806935
   (dmcphers@redhat.com)

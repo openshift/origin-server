@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.9.0
+Version: 0.9.1
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.8.4-1
 - Additional scripts not sourcing util. (rmillner@redhat.com)
 
