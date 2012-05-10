@@ -64,9 +64,6 @@ class LegacyRequest < StickShift::Model
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /\A(small|medium)\z/)
-      record.errors.add attribute, {:message => "Invalid Profile: #{val}.  Must be: (medium|small)", :exit_code => 1}
-    end
   end
   
   validates_each :debug, :alter, :delete, :allow_nil =>true do |record, attribute, val|
