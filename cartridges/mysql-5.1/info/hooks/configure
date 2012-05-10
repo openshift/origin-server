@@ -44,7 +44,7 @@ function setup_mysql_as_a_service() {
     #
     IP=`find_open_ip $uid $uuid`
 
-    create_app_ctl_script "$app_type"
+    create_app_ctl_script "$cartridge_type"
     populate_repo_dir
     secure_app_dir
     secure_cart_instance_dir

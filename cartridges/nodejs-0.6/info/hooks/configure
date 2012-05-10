@@ -63,7 +63,7 @@ popd > /dev/null
 #
 IP=`find_open_ip $uid $uuid`
 
-create_app_ctl_script "$app_type"
+create_app_ctl_script "$cartridge_type"
 
 populate_repo_dir
 
