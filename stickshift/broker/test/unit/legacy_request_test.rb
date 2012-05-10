@@ -49,9 +49,6 @@ class LegacyRequestTest < ActiveSupport::TestCase
       req = LegacyRequest.new.from_json("{\"node_profile\": \"#{n}\"}")
       assert req.valid?
     end
-    
-    req = LegacyRequest.new.from_json('{"node_profile": "other"}')
-    assert req.invalid?
   end
   
   test "Request validation: cartridge" do
