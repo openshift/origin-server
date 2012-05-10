@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.8.4
+Version: 0.9.0
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
