@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.7.4
+Version:   0.7.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 09 2012 Adam Miller <admiller@redhat.com> 0.7.5-1
+- Bug 820033 (dmcphers@redhat.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.7.4-1
 - Bug 819739 (dmcphers@redhat.com)
 

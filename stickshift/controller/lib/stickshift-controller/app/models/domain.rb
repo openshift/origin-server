@@ -99,22 +99,19 @@ class Domain < StickShift::UserModel
       dns_service.deregister_namespace(old_namespace)
       cloud_user = self.user
       update_namespace_failures = []
+      
       cloud_user.applications.each do |app|
         Rails.logger.debug "App's domain #{app.domain.uuid}"
         if app.domain.uuid == self.uuid
           Rails.logger.debug "Updating namespace to #{self.namespace} for app: #{app.name}"
-          dns_service.deregister_application(app.name, old_namespace)
-          public_hostname = app.container.get_public_hostname
-          dns_service.register_application(app.name, self.namespace, public_hostname)
+          result = app.prepare_namespace_update(dns_service, self.namespace, old_namespace)
+          update_namespace_failures.push(app.name) unless result
         end
       end
       
-      
       cloud_user.applications.each do |app|
         if app.domain.uuid == self.uuid
-          Rails.logger.debug "DEBUG: Updating namespace for app: #{app.name}"
-          result = app.update_namespace(self.namespace, old_namespace)
-          update_namespace_failures.push(app.name) unless result
+          app.complete_namespace_update(self.namespace, old_namespace)
         end
       end
 
@@ -123,18 +120,7 @@ class Domain < StickShift::UserModel
       else
         raise StickShift::NodeException.new("Error updating apps: #{update_namespace_failures.pretty_inspect.chomp}.  Updates will not be completed until all apps can be updated successfully.  If the problem persists please contact support.",143)
       end
-      
-      cloud_user.applications.each do |app|
-        app.embedded.each_key do |framework|
-          if app.embedded[framework].has_key?('info')
-            info = app.embedded[framework]['info']
-            info.gsub!(/-#{old_namespace}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{self.namespace}.#{Rails.configuration.ss[:domain_suffix]}")
-            app.embedded[framework]['info'] = info
-          end
-        end
-        app.domain.namespace = self.namespace
-        app.save
-      end
+
       Rails.logger.debug "notifying domain observer of domain update"
       notify_observers(:after_domain_update) 
       #Rails.logger.debug "done notifying the domain observers"
