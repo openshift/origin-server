@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.10.7
+Version: 0.10.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.10.8-1
+- We already validate the gear size elswhere based on the user information.
+  Remove the hard-coded list of node types.  As a side effect; we can't check
+  invalid gear sizes in unit tests. (rmillner@redhat.com)
+
 * Wed May 09 2012 Adam Miller <admiller@redhat.com> 0.10.7-1
 - Merge pull request #34 from kraman/dev/kraman/bug/819984 (kraman@gmail.com)
 - Bugfix for scaled applications (kraman@gmail.com)
