@@ -5,7 +5,7 @@ require 'open4'
 require 'stickshift-node'
 
 encoded_command = ARGV.shift
-return if encoded_command.nil?
+exit if encoded_command.nil?
 
 begin
   command_data = JSON.parse(encoded_command)

@@ -8,11 +8,11 @@ module GearChanger
   class OddJobApplicationContainerProxy < StickShift::ApplicationContainerProxy
     attr_accessor :id
     def self.find_available_impl(node_profile=nil)
-      OddJobApplicationContainerProxy.new('localhost')
+      OddJobApplicationContainerProxy.new('node.example.com')
     end
 
     def self.find_one_impl(node_profile=nil)
-      OddJobApplicationContainerProxy.new('localhost')
+      OddJobApplicationContainerProxy.new('node.example.com')
     end
     
     def self.valid_gear_sizes_impl(user)    
@@ -144,7 +144,7 @@ module GearChanger
     end
 
     def get_public_hostname
-      "localhost"
+      "node.example.com"
     end
 
     def execute_connector(app, gear, cart, connector_name, input_args)
