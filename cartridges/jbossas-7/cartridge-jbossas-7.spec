@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version:   0.92.4
+Version:   0.92.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 11 2012 Adam Miller <admiller@redhat.com> 0.92.5-1
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+
 * Tue May 08 2012 Adam Miller <admiller@redhat.com> 0.92.4-1
 - Bug 819739 (dmcphers@redhat.com)
 
