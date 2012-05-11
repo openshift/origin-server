@@ -24,45 +24,21 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+setup_app_dir_vars
+setup_user_vars
+
+export CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/haproxy-1.4/info
+
 vhost="${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}.conf"
-if [ -f "$vhost" ]; then
-   #  Already have a vhost - just add haproxy routing to it.
-   cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/000000_haproxy.conf"
-  ProxyPass /haproxy-status/ http://$IP2:8080/ status=I
-  ProxyPassReverse /haproxy-status/ http://$IP2:8080/
-EOF
-   exit $?
+if [ ! -f "$vhost" ]; then
+   ${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy_httpd_proxy.sh "$@"
 fi
 
-cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/00000_default.conf"
-  ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
-  ServerAdmin mmcgrath@redhat.com
-  DocumentRoot /var/www/html
-  DefaultType None
-
+#  Already have a vhost - just add haproxy routing to it.
+cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/000000_haproxy.conf"
   ProxyPass /health !
-  Alias /health ${CARTRIDGE_BASE_PATH}/haproxy-1.4/info/configuration/health.html
-
+  Alias /health ${CART_INFO_DIR}/configuration/health.html
   ProxyPass /haproxy-status/ http://$IP2:8080/ status=I
   ProxyPassReverse /haproxy-status/ http://$IP2:8080/
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
 EOF
 
-cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}.conf"
-<VirtualHost *:80>
-  RequestHeader append X-Forwarded-Proto "http"
-
-  Include ${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/*.conf
-
-</VirtualHost>
-
-<VirtualHost *:443>
-  RequestHeader append X-Forwarded-Proto "https"
-
-$(/bin/cat ${CARTRIDGE_BASE_PATH}/haproxy-1.4/info/configuration/node_ssl_template.conf)
-
-  Include ${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/*.conf
-
-</VirtualHost>
-EOF
