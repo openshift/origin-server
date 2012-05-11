@@ -69,6 +69,10 @@
     bottom: 100%;
     margin-bottom: 2px;
   }
+  
+  li {
+  	list-style:none;
+  }
 
   // Dividers (basically an hr) within the dropdown
   .divider {
