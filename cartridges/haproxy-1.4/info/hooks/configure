@@ -76,7 +76,7 @@ function setup_haproxy_as_a_service() {
     create_standard_path_env_var
 
     export IP2=`embedded_find_open_ip $uid "$APP_HOME/"`
-    echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
+    echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP2'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
     $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
     mkdir $APP_HOME/.openshift
     chown ${uuid} $APP_HOME/.openshift
@@ -156,7 +156,7 @@ IP=$OPENSHIFT_INTERNAL_IP
 unset OPENSHIFT_INTERNAL_IP
 
 export IP2=`embedded_find_open_ip $uid "$APP_HOME"`
-echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
+echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP2'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 mkdir -p $APP_HOME/.openshift
 chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db

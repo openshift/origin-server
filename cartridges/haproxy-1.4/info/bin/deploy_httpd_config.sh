@@ -9,7 +9,9 @@ application="$1"
 uuid="$2"
 IP="$3"
 
-APP_HOME="${GEAR_BASE_DIR}/$uuid"
+setup_app_dir_vars
+setup_user_vars
+
 HAPROXY_DIR=`echo $APP_HOME/haproxy-1.4 | tr -s /`
 [ -d "$HAPROXY_DIR" ]  ||   HAPROXY_DIR=`echo $APP_HOME/$application | tr -s /`
 
