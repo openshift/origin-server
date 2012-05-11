@@ -48,7 +48,7 @@ isrunning() {
 # Check if the server http port is up
 function ishttpup() {
     let count=0
-    while [ ${count} -lt 10 ]
+    while [ ${count} -lt 30 ]
     do
         if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_INTERNAL_IP}:8080" | grep "(LISTEN)" > /dev/null; then
             echo "Found ${OPENSHIFT_INTERNAL_IP}:8080 listening port"
