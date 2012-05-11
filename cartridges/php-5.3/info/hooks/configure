@@ -94,15 +94,15 @@ create_standard_path_env_var
 observe_setup_env_uservars_dir
 
 #
-# Start the server
-#
-start_app
-
-#
 # Create virtualhost definition for apache
 #
 export CART_INFO_DIR
 $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+
+#
+# Start the server
+#
+start_app
 
 restart_httpd_graceful
 
