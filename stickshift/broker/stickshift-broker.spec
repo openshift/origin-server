@@ -30,6 +30,7 @@ Requires:  rubygem(stickshift-controller)
 Requires:  rubygem(stickshift-node)
 Requires:  rubygem(passenger)
 Requires:  rubygem-passenger-native
+Requires:  rubygem(rcov)
 Requires:  stickshift-abstract
 Requires:  selinux-policy-targeted
 Requires:  policycoreutils-python

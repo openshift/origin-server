@@ -17,6 +17,7 @@ Requires:       rubygems
 Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(mongo)
+Requires:       rubygem(rcov)
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
