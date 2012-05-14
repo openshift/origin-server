@@ -107,7 +107,7 @@ class ApplicationType
       :id => 'diy-0.1',
       :name => 'Do-It-Yourself',
 #      :version => '1.0',
-      :categories => [:framework, :experimental],
+      :categories => [:framework, :experimental, :custom],
       :description => 'The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
       #:website => 'http://perl.apache.org/start/index.html'
     }
@@ -139,9 +139,9 @@ class ApplicationType
     {
       :id   => 'jenkins-1.4',
       :name => "Jenkins Server",
-      :description => RDiscount.new('Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  When you add Jenkins as an application you will enable your other applications to run complex builds whenever you push code. See [the Jenkins info page for more](/community/jenkins).'),
+      :description => RDiscount.new('Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  When you add Jenkins as an application you will enable your other applications to run complex builds whenever you push code. See [the Jenkins info page for more](/community/jenkins).').html_safe,
       :version => '1.4',
-      :categories => [:framework],
+      :categories => [:framework, :productivity],
       # nothing should be able to be embedded in a Jenkins app
       :blocks => [
         'mysql-5.1',

@@ -29,6 +29,10 @@ class CartridgeType < RestApi::Base
     (e = @attributes[:type]).is_a?(String) ? [e.to_sym] : e
   end
 
+  def categories
+    @categories || []
+  end
+
   def persisted?
     true
   end
@@ -42,7 +46,7 @@ class CartridgeType < RestApi::Base
       :version => 'MongoDB 2.0',
       :license => 'ASL 2.0 and AGPLv3',
       :license_url => 'http://www.mongodb.org/display/DOCS/Licensing',
-      :categories => [:cartridge],
+      :categories => [:embedded, :database],
       :description => 'MongoDB is a scalable, high-performance, open source NoSQL database.',
       :website => 'http://www.mongodb.org/',
       :requires => [],
@@ -58,7 +62,7 @@ class CartridgeType < RestApi::Base
       :version => 'MySQL 5.1',
       :license => 'GPLv2 with exceptions',
       :license_url => 'http://www.mysql.com/about/legal/licensing/index.html',
-      :categories => [:embedded],
+      :categories => [:embedded, :database],
       :description => 'MySQL is a multi-user, multi-threaded SQL database server.',
       :website => 'http://www.mysql.com/',
       :requires => [],
@@ -74,7 +78,7 @@ class CartridgeType < RestApi::Base
       :version => 'PostgreSQL 8.4',
       :license => 'PostgreSQL',
       :license_url => "http://www.postgresql.org/about/licence/",
-      :categories => [:embedded],
+      :categories => [:embedded, :database],
       :description => 'PostgreSQL is an advanced Object-Relational database management system',
       :website => 'http://www.postgresql.org/',
       :requires => [],
@@ -106,7 +110,7 @@ class CartridgeType < RestApi::Base
       :version => '10gen MMS Agent 0.1',
       :license => nil,
       :license_url => nil,
-      :categories => [:embedded, :blacklist],
+      :categories => [:embedded, :blacklist, :administration],
       :description => 'This cartridge provides the agent for connecting to 10gen\'s MongoDB Monitoring Service.  MongoDB Monitoring Service is a publicly available SaaS solution for proactive monitoring of your MongoDB cluster.  You must install the MongoDB cartridge before installing 10gen MMS Agent.',
       :website => 'http://www.10gen.com/mongodb-monitoring-service',
       :requires => [],
@@ -122,7 +126,7 @@ class CartridgeType < RestApi::Base
       :version => 'phpMyAdmin 3.4',
       :license => 'GPLv2',
       :license_url => 'http://www.phpmyadmin.net/home_page/license.php',
-      :categories => [:embedded],
+      :categories => [:embedded, :administration],
       :description => 'Web based MySQL admin tool.  Requires the MySQL cartridge to be installed first.',
       :website => 'http://www.phpmyadmin.net/',
       :requires => ['mysql-5.1'],
@@ -154,7 +158,7 @@ class CartridgeType < RestApi::Base
       :version => 'phpMoAdmin 1.0',
       :license => 'GPL v3',
       :license_url => 'http://www.gnu.org/licenses/gpl-3.0.html',
-      :categories => [:embedded],
+      :categories => [:embedded, :administration],
       :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
       :website => 'http://www.phpmoadmin.com/',
       :requires => ['mongodb-2.0'],
@@ -170,7 +174,7 @@ class CartridgeType < RestApi::Base
       :version => 'RockMongo 1.1',
       :license => 'BSD',
       :license_url => 'http://www.opensource.org/licenses/bsd-license.php',
-      :categories => [:embedded],
+      :categories => [:embedded, :administration],
       :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
       :website => 'http://code.google.com/p/rock-php/wiki/rock_mongo',
       :requires => ['mongodb-2.0'],
@@ -186,8 +190,8 @@ class CartridgeType < RestApi::Base
       :version => 'Jenkins Client 1.4',
       :license => 'MIT',
       :license_url => 'http://www.opensource.org/licenses/mit-license.php',
-      :categories => [:embedded],
-      :description => RDiscount.new("The Jenkins client connects to your Jenkins application and enables builds and testing of your application.\n\nRequires the Jenkins Application to be [created via the new application page](/app/console/application_types)."),
+      :categories => [:embedded, :productivity],
+      :description => RDiscount.new("The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be [created via the new application page](/app/console/application_types).").html_safe,
       :website => 'https://jenkins-ci.org/',
       :requires => [],
       :conflicts => [],
