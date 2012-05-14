@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for oddjob service
 Name:           rubygem-%{gemname}
-Version:        0.8.4
+Version:        0.8.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -105,6 +105,13 @@ popd
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon May 14 2012 Krishna Raman <kraman@gmail.com> 0.8.5-1
+- Adding livecd build scripts (kraman@gmail.com)
+- Update gear dns entried when app namespace is updated (kraman@gmail.com)
+- adding gear state to gear_groups rest api (abhgupta@redhat.com)
+- BugZ 817170. Add ability to get valid gear size options from the
+  ApplicationContainerProxy (kraman@gmail.com)
+
 * Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
 - Update oddjob plugin dependencies to include oddjob (kraman@gmail.com)
 - Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
