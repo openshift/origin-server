@@ -89,6 +89,7 @@ GEM
       rdoc
       thor
     rake (0.8.7)
+    rcov (1.0.0)
     rdoc (3.7)
     regin (0.3.7)
     state_machine (1.1.2)
@@ -111,5 +112,6 @@ DEPENDENCIES
   parseconfig
   rack
   rails (~> 3.0.10)
+  rcov
   regin
   xml-simple

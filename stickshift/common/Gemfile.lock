@@ -20,10 +20,12 @@ GEM
     json (1.4.6)
     mongo (1.5.2)
       bson (= 1.5.2)
+    rcov (1.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   stickshift-common!
+  rcov
 
