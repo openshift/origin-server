@@ -240,7 +240,7 @@
 
 // Input grid system
 // -------------------------
-/*
+
 @mixin inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $columns) {
   width: (($gridColumnWidth) * $columns) + ($gridGutterWidth * ($columns - 1)) - 10;
 }
@@ -262,7 +262,6 @@
     &.span12    { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 12); }
   }
 }
-*/
 
 // Make a Grid
 // -------------------------
