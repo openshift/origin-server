@@ -167,6 +167,10 @@ module CommandHelper
       # Short circuit DNS to speed up the tests by adding a host entry and skipping the DNS validation
       if use_hosts
         run("echo '127.0.0.1 #{app.name}-#{app.namespace}.#{$domain}  # Added by cucumber' >> /etc/hosts")
+        run("mkdir -m 700 -p ~/.ssh")
+        run("test -f ~/.ssh/known_hosts && awk 1 ~/.ssh/known_hosts > ~/.ssh/known_hosts- && mv -f ~/.ssh/known_hosts- ~/.ssh/known_hosts")
+        run("ssh-keyscan '#{app.name}-#{app.namespace}.#{$domain}' >> ~/.ssh/known_hosts")
+        run("chmod 644 ~/.ssh/known_hosts")
         cmd << " --no-dns"
       end
 
