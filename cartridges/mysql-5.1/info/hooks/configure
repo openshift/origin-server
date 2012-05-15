@@ -113,11 +113,12 @@ IP=$OPENSHIFT_INTERNAL_IP
 # Create the core of the application
 #
 
-if [ -d "$MYSQL_DIR" ]
-then
-    client_error "Embedded MySQL-5.1 already attached to $application"
-    exit 132
-fi
+#todo: review! check remove to allow embedded cartridge for mysql... /jwh
+#if [ -d "$MYSQL_DIR" ]
+#then
+#    client_error "Embedded MySQL-5.1 already attached to $application"
+#    exit 132
+#fi
 
 if [ -f $APP_HOME/.env/OPENSHIFT_DB_TYPE ]; then
     source $APP_HOME/.env/OPENSHIFT_DB_TYPE
@@ -143,12 +144,12 @@ ln -s $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
 # Setup Permissions
 # 
 
-chmod +x "$MYSQL_DIR/"*.sh || error "Failed to chmod new application scripts" 122
-chown $user_id.$group_id -R $MYSQL_DIR/ || error "Failed to chown new application space.  Please contact support" 123
+secure_app_dir
+secure_cart_instance_dir
 # Secure script and root dir (so they can't chown the script"
-chown root.root "$MYSQL_DIR" "$MYSQL_DIR"/*.sh
+chmod +x "$MYSQL_DIR/"*.sh || error "Failed to chmod new application scripts" 122
+observe_setup_app_and_git_dirs
 observe_setup_var_lib_dir "$MYSQL_DIR"
-
 
 start_mysql
 
