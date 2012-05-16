@@ -215,10 +215,13 @@ class Gear < StickShift::Model
 
     if contains_framework
       return call_update_namespace_hook(self.app.framework, new_ns, old_ns)
-    elsif contains_mysql
-      return call_update_namespace_hook("mysql-5.1", new_ns, old_ns)
     else
-      raise StickShift::NodeException.new("Error updating gear #{self.uuid} for app #{self.app.name}. Unable to find framework or mysql cartridges on gear.")
+    #  elseif contains_mysql
+       #  Yikes: contains_mysql ... making it more generic.
+       #  We could also probably always call update-namespace on the abstract
+       #  cartridge directly instead of app.framework above since all
+       #  cartridges symlink it from abstract anyway.
+      return call_update_namespace_hook("abstract", new_ns, old_ns)
     end
   end
 
