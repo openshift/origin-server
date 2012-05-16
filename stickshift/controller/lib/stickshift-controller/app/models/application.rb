@@ -1,4 +1,5 @@
 require 'state_machine'
+require 'syslog'
 
 class Application < StickShift::Cartridge
   attr_accessor :user, :creation_time, :uuid, :aliases, :cart_data, 
@@ -1295,12 +1296,15 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def track_gear_usage(gear, event)
-    if Rails.configuration.usage_tracking[:enabled]
+    if Rails.configuration.usage_tracking[:datastore_enabled]
       self.gear_usage = [] unless gear_usage
       self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event)
     end
+    if Rails.configuration.usage_tracking[:syslog_enabled]
+      Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+    end
   end
-  
+
 private
 
   def cleanup_deleted_components

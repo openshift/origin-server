@@ -45,7 +45,8 @@ Broker::Application.configure do
   }
   
   config.usage_tracking = {
-    :enabled => false
+    :datastore_enabled => false,
+    :syslog_enabled => false
   }
 
   ############################################
