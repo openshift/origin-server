@@ -40,8 +40,11 @@ function wait_to_start() {
    while ( ! curl "http://$ep/haproxy-status/;csv" &> /dev/null )  && [ $i -lt 10 ]; do
        sleep 1
        i=$(($i + 1))
-       echo "`date`: Retrying haproxy-status check - attempt #$((i+1)) ... "
    done
+
+   if [ $i -ge 10 ]; then
+      echo "`date`: haproxy-status check - max retries ($i) exceeded" 1>&2
+   fi
 }
 
 start() {
@@ -106,7 +109,7 @@ function _reload_haproxy_service() {
 function _reload_service() {
     [ -f $HAPROXY_PID ]  &&  zpid=$( /bin/cat "${HAPROXY_PID}" )
     i=0
-    while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 120 ]; do
+    while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 60 ]; do
         sleep 2
         i=$(($i + 1))
         echo "`date`: Retrying haproxy service reload - attempt #$((i+1)) ... "
@@ -119,9 +122,8 @@ reload() {
     if ! isrunning; then
        start
     else
-       echo "`date`: Gracefully reloading haproxy without service interruption" 1>&2
+       echo "`date`: Reloading haproxy service " 1>&2
        _reload_service
-       # wait_to_start
     fi
     haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
     haproxy_ctld_daemon start > /dev/null 2>&1
