@@ -127,10 +127,10 @@ end
 
 task :createrepo do
   sh "createrepo #{rpmdir}/noarch"
-  File.open("#{remix_dir}/ss.repo", 'w') do |out|
+  File.open("#{rpmdir}/ss.repo", 'w') do |out|
     out << repo_string(rpmdir)
   end
-  sh "sudo cp #{remix_dir}/ss.repo /etc/yum.repos.d/"
+  sh "sudo cp #{rpmdir}/ss.repo /etc/yum.repos.d/"
 end
 
 task :install do
