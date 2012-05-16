@@ -20,7 +20,8 @@ FORWARD_CONF=${FORWARD_CONF:="/var/named/forwarders.conf"}
 if [ -n "$new_domain_name_servers" ]
 then
   # remove the localhost reference if it's provided
-  NAME_SERVER_LIST=`echo ${new_domain_name_servers} | sed -e 's/127.0.0.1 *// ; s/ / ; /g'`
+  NAME_SERVER_LIST=`echo ${new_domain_name_servers} | sed -e 's/127.0.0.1 *//g ; s/ */ ; /g'`
+  NAME_SERVER_LIST="8.8.8.8 ; ${NAME_SERVER_LIST}"
 
   cat > ${FORWARD_CONF} <<EOF
 // created by /etc/dhcp/dhclient-up-hooks
