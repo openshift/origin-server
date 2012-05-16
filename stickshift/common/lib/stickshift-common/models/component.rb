@@ -1,5 +1,5 @@
 module StickShift
-  class Component < StickShift::UserModel
+  class Component < StickShift::Model
     attr_accessor :name, :publish_name_map, :subscribe_name_map, :generated, :depends, :depends_service
     exclude_attributes :publish_name_map, :subscribe_name_map
     include_attributes :publishes, :subscribes    

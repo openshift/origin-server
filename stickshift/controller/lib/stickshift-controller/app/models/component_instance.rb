@@ -1,4 +1,4 @@
-class ComponentInstance < StickShift::UserModel
+class ComponentInstance < StickShift::Model
   attr_accessor :state, :parent_cart_name, :parent_cart_profile, :parent_component_name, :parent_cart_group,
                 :name, :dependencies, :group_instance_name, :exec_order, :cart_data
 

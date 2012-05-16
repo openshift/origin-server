@@ -1,4 +1,4 @@
-class GroupInstance < StickShift::UserModel
+class GroupInstance < StickShift::Model
   attr_accessor :app, :gears, :node_profile, :component_instances, 
     :name, :cart_name, :profile_name, :group_name, :reused_by
   exclude_attributes :app
@@ -64,7 +64,7 @@ class GroupInstance < StickShift::UserModel
     unless create_result.exitcode == 0
       begin
         gear.destroy
-      rescue
+      rescue Exception => e
       end
       raise StickShift::NodeException.new("Unable to create gear on node", "-100", create_result)
     end
@@ -96,7 +96,7 @@ class GroupInstance < StickShift::UserModel
       else
         gear = Gear.new(@app,self)
         gear.attributes=hash
-      @gears.push gear
+        @gears.push gear
       end                             
     end                               
   end

@@ -1,5 +1,5 @@
 module StickShift
-  class Profile < StickShift::UserModel
+  class Profile < StickShift::Model
     validates_presence_of :name, :groups
     attr_accessor :name, :provides, :component_name_map, :group_name_map, :group_overrides,
                   :connection_name_map, :property_overrides, :service_overrides,

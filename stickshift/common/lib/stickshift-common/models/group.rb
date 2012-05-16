@@ -1,5 +1,5 @@
 module StickShift
-  class Group < StickShift::UserModel
+  class Group < StickShift::Model
     attr_accessor :name, :component_ref_name_map, :scaling, :generated
     exclude_attributes :component_ref_name_map
     include_attributes :component_refs

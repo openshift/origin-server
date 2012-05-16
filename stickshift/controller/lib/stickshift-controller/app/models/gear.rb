@@ -1,4 +1,4 @@
-class Gear < StickShift::UserModel
+class Gear < StickShift::Model
   attr_accessor :uuid, :uid, :server_identity, :group_instance_name, :node_profile, :container, :app, :configured_components, :name
   primary_key :uuid
   exclude_attributes :container, :app
@@ -36,12 +36,14 @@ class Gear < StickShift::UserModel
         ret.exitcode = 5
       end
       self.app.ngears += 1
+      self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin])
       return ret
     end
   end
 
   def destroy
     self.app.ngears -= 1
+    self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
     ret = get_proxy.destroy(app,self)
     return ret
   end

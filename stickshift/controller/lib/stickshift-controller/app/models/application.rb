@@ -5,7 +5,7 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map, 
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -1293,6 +1293,14 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     result
   end
+  
+  def track_gear_usage(gear, event)
+    if Rails.configuration.usage_tracking[:enabled]
+      self.gear_usage = [] unless gear_usage
+      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event)
+    end
+  end
+  
 private
 
   def cleanup_deleted_components

@@ -43,6 +43,10 @@ Broker::Application.configure do
     :db => "stickshift_broker",
     :collections => {:user => "user"}
   }
+  
+  config.usage_tracking = {
+    :enabled => false
+  }
 
   ############################################
   # OpenShift Configuration Below this point #
