@@ -1,4 +1,5 @@
 @internals
+@internals1
 @node
 Feature: JBossAS Application
 

@@ -14,7 +14,6 @@ class Application < StickShift::Cartridge
   include_attributes :comp_instances, :group_instances
 
   APP_NAME_MAX_LENGTH = 32
-  NAMESPACE_MAX_LENGTH = 16
   DEFAULT_NODE_PROFILE = "small"
   UNSCALABLE_FRAMEWORKS = ["jenkins-1.4", "diy-0.1"]
   SCALABLE_EMBEDDED_CARTS = ["mysql-5.1", "jenkins-client-1.4"]

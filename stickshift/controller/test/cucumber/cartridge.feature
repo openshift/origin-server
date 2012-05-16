@@ -1,4 +1,5 @@
 @verify
+@verify2
 @broker
 Feature: Cartridge Verification Tests
   Scenario Outline: Application Creation
@@ -9,7 +10,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
-    |     1     |  php-5.3     |
+    |     1     |  python-2.6  |
     |     1     |  jbossas-7   |
     |     1     |  ruby-1.8    |
     |     1     |  nodejs-0.6  |
@@ -22,7 +23,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Server Alias Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
 
   Scenario Outline: Application Submodule Addition
     Given an existing <type> application
@@ -32,7 +33,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Submodule Addition Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
 
   Scenario Outline: Application Change Namespace
     Given an existing <type> application
@@ -41,7 +42,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Change Namespace Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
     |   jenkins-1.4 |
 
   Scenario Outline: Application Snapshot
@@ -53,7 +54,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Snapshot Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
     |   jbossas-7   |
     |   nodejs-0.6  |
 
@@ -64,7 +65,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Tidy Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
     |   jbossas-7   |
     |   ruby-1.8    |
     |   nodejs-0.6  |
@@ -76,7 +77,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Destroying Scenarios
     |      type     |
-    |   php-5.3     |
+    |   python-2.6  |
     |   jbossas-7   |
     |   ruby-1.8    |
     |   nodejs-0.6  |

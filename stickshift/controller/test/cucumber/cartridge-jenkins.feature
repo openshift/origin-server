@@ -1,4 +1,5 @@
 @internals
+@internals2
 @node
 @jenkins
 Feature: Jenkins Application

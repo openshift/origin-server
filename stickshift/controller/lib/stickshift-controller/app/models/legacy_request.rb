@@ -2,8 +2,8 @@ class LegacyRequest < StickShift::Model
   attr_accessor :namespace, :rhlogin, :ssh, :app_uuid, :app_name, :node_profile, :debug, :alter, :delete, :cartridge, :api, :cart_type, :action, :server_alias, :api, :key_name, :key_type
   attr_reader   :invalid_keys
   
-  APP_NAME_MAX_LENGTH = 32
-  NAMESPACE_MAX_LENGTH = 16
+  APP_MAX_LENGTH = 32
+  NS_MAX_LENGTH = 16
 
   def initialize
     @invalid_keys = []
@@ -37,8 +37,8 @@ class LegacyRequest < StickShift::Model
     if !(val =~ /\A[A-Za-z0-9]+\z/)
       record.errors.add attribute, {:message => "Invalid namespace: #{val}", :exit_code => 106}
     end
-    if val and val.length > NAMESPACE_MAX_LENGTH
-      record.errors.add attribute, {:message => "The namespace you entered (#{val}) is not available for use.  Please choose another one.", :exit_code => 106}
+    if val and val.length > NS_MAX_LENGTH
+      record.errors.add attribute, {:message => "The supplied namespace '#{val}' is longer than the allowed length of #{NS_MAX_LENGTH} characters.", :exit_code => 106}
     end
   end
   
@@ -46,8 +46,8 @@ class LegacyRequest < StickShift::Model
     if !(val =~ /\A[A-Za-z0-9]+\z/)
       record.errors.add attribute, {:message => "Invalid #{attribute} specified: #{val}", :exit_code => 105}
     end
-    if val and val.length > APP_NAME_MAX_LENGTH
-      record.errors.add attribute, {:message => "The supplied application name '#{val}' is not allowed", :exit_code => 105}
+    if val and val.length > APP_MAX_LENGTH
+      record.errors.add attribute, {:message => "The supplied application name '#{val}' is longer than the allowed length of #{APP_MAX_LENGTH} characters.", :exit_code => 105}
     end
   end
   
