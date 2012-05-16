@@ -138,7 +138,7 @@ task :install do
   sh "sudo service stickshift-broker stop"
   sh "sudo yum erase -y stickshift-* rubygem-stickshift-*"
   sh "sudo yum clean metadata"
-  sh "sudo yum install -y openshift-origin"
+  sh "sudo yum install -y openshift-origin cartridge-* --skip-broken"
   sh "sudo service httpd start"
   sh "sudo service stickshift-broker start"
   sh "sudo service dbus restart"

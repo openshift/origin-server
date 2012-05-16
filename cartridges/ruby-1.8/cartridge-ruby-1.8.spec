@@ -31,13 +31,20 @@ Requires:  ruby-mysql
 Requires:  rubygem-bson_ext
 Requires:  mysql-devel
 Requires:  ruby-devel
-Requires:  ruby-nokogiri
 Requires:  libxml2
 Requires:  libxml2-devel
 Requires:  libxslt
 Requires:  libxslt-devel
 Requires:  gcc-c++
 Requires:  js
+
+%if 0%{?rhel}
+Requires:  ruby-nokogiri
+%endif
+
+%if 0%{?fedora}
+Requires:  rubygem-nokogiri
+%endif
 
 Obsoletes: cartridge-ruby-1.1
 
