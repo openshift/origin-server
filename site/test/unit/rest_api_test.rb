@@ -5,8 +5,7 @@ require File.expand_path('../../test_helper', __FILE__)
 # and simple server/client interactions via HttpMock
 #
 class RestApiTest < ActiveSupport::TestCase
-  def setup
-  end
+  setup { Rails.cache.clear }
 
   def setup
     RestApi::Base.site = "https://mock.test/broker/rest"
@@ -687,7 +686,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_cartridge_type_find
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
@@ -704,15 +703,101 @@ class RestApiTest < ActiveSupport::TestCase
     assert '1.4', type.version
   end
 
-  def test_cartridge_type_find_throws
+  class CacheableRestApi < RestApi::Base
+    include RestApi::Cacheable
+
+    @count = 0
+    def self.find_single(*args)
+      #puts "find_single: #{caller.join("\n  ")}"
+      @count += 1
+    end
+    cache_method :find_single, lambda{ |id, *args| [CacheableRestApi.name, :item, id] }
+
+    def self.find_every(*args)
+      #puts "find_every: #{caller.join("\n  ")}"
+      @count += 1
+    end
+    cache_method :find_every, [CacheableRestApi.name, :find_every]
+
+    def self.count
+      @count
+    end
+  end
+  class UncacheableRestApi < RestApi::Base
+  end
+
+  def test_cacheable_resource
+    Rails.cache.clear
+
+    assert CacheableRestApi.respond_to? :cached
+    cached = CacheableRestApi.cached
+    assert !CacheableRestApi.equal?(cached)
+    assert cached < CacheableRestApi
+    assert_equal CacheableRestApi.name, cached.name
+    assert_equal [:find_every, :find_single], cached.send(:cache_options)[:caches].keys.map(&:to_s).sort.map(&:to_sym)
+
+    assert_same cached, cached.cached
+
+    assert_equal 0, CacheableRestApi.count
+    cached.find 1, :as => @user
+    assert_equal 1, CacheableRestApi.count
+    cached.find 1, :as => @user
+    assert_equal 1, CacheableRestApi.count
+
+    cached.all :as => @user
+    assert_equal 2, CacheableRestApi.count
+    cached.all :as => @user
+    assert_equal 2, CacheableRestApi.count
+    cached.all :as => RestApi::Authorization.new('different')
+    assert_equal 2, CacheableRestApi.count
+
+    assert !UncacheableRestApi.respond_to?(:cached)
+  end
+
+  def test_cacheable_key_for
+    assert_equal [CacheableRestApi.name, :item, 1], CacheableRestApi.send(:cache_key_for, :find_single, 1)
+    assert_equal [CacheableRestApi.name, :item, 2], CacheableRestApi.send(:cache_key_for, :find_single, 2)
+    assert_equal [CacheableRestApi.name, :find_every], CacheableRestApi.send(:cache_key_for, :find_every)
+  end
+
+  def test_cartridge_type_find_invalid
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
-    assert_raise(ActiveResource::ResourceNotFound) do
-      CartridgeType.find 'haproxy-1.5', :as => @user
+
+    type = CartridgeType.new :name => 'haproxy-1.5', :as => @user
+    assert_equal 'haproxy-1.5', type.name
+    assert_equal 'haproxy-1.5', type.display_name
+  end
+
+  def test_cartridge_delegate_type
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges.json', json_header, [
+        {:name => 'haproxy-1.4'},
+      ].to_json
     end
+
+    cart = Cartridge.new :name => 'haproxy-1.4', :as => @user
+    assert_equal cart.display_name, CartridgeType.find(cart.name, :as => @user).display_name
+    assert cart.instance_variable_get(:@cartridge_type)
+
+    cart = Cartridge.new :name => 'haproxy-1.5', :as => @user
+    assert_equal 'haproxy-1.5', cart.display_name
+  end
+
+  def test_dup
+    d = Domain.new :id => 1, :as => @user
+    d2 = d.dup
+    assert_same d.send(:as), d2.send(:as)
+    assert_same d.id, d2.id
+  end
+
+  def test_clone
+    d = Domain.new :id => 1, :as => @user
+    d2 = d.clone
+    assert_same d.send(:as), d2.send(:as)
   end
 
   def test_custom_id_must_be_valid
@@ -721,19 +806,363 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id nil } }
   end
 
+  def test_cartridge_type_category_sort
+    [
+      [ 1,  [:database],  [:web]],
+      [ 1,  [:foo],       [:web]],
+      [ 1,  [:foo],       [:database]],
+      [ 0,  [:web],       [:web]],
+      [ 0,  [:database],  [:database]],
+      [ 0,  [:foo],       [:bar]],
+      [-1,  [:web],       [:database]],
+      [-1,  [:web],       [:foo]],
+    ].each do |val, a, b|
+      assert_equal val, CartridgeType.category_compare(a, b)
+    end
+  end
+
+  def test_cartridge_compare
+    mock_types
+
+    ruby = CartridgeType.new :name => 'ruby-1.8'
+    php = CartridgeType.new :name => 'php-5.3'
+    mongo = CartridgeType.new :name => 'mongodb-2.0'
+    cron = CartridgeType.new :name => 'cron-1.4'
+    jenkins = CartridgeType.new :name => 'jenkins-client-1.4'
+
+    assert cron > ruby
+    assert ruby < cron
+
+    assert mongo < cron
+    assert cron > mongo
+
+    assert ruby < mongo
+    assert mongo > ruby
+
+    assert php < ruby
+    assert ruby > php
+
+    assert php < jenkins
+    assert ruby < jenkins
+  end
+
   def test_cartridge_type_embedded
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges/embedded.json', json_header, [
-        {:name => 'haproxy-1.4'},
+      mock.get '/broker/rest/cartridges.json', json_header, [
+        {:name => 'haproxy-1.4', :type => 'embedded'},
       ].to_json
     end
 
     types = CartridgeType.embedded :as => @user
 
+    assert_equal 1, types.length
+
+    assert types.none?(&:standalone?)
+    assert types.all?(&:embedded?)
+
     assert type = types.find {|t| t.name == 'haproxy-1.4'}
-    assert_equal [:embedded], type.type
+    assert_equal :embedded, type.type
+    assert type.embedded?
+    assert !type.standalone?
     assert_equal '1.4', type.version
     assert_equal CartridgeType.new(:name => 'haproxy-1.4'), type
     assert_equal 'haproxy-1.4', type.to_param
+  end
+
+  def test_cartridge_type_embedded_cached
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges.json', json_header, [
+        {:name => 'haproxy-1.4'},
+      ].to_json
+    end
+
+    Rails.cache.clear
+    key = CartridgeType.send(:cache_key_for, :all)
+    assert_nil Rails.cache.read(key)
+
+    types = CartridgeType.embedded :as => @user
+    assert_nil Rails.cache.read(key), "Having the regular call fill the cache may be desirable"
+
+    types = CartridgeType.cached.embedded :as => @user
+    assert cached = Rails.cache.read(key)
+
+    ActiveResource::HttpMock.reset!
+    assert type = CartridgeType.cached.find('haproxy-1.4')
+    assert_equal 'haproxy-1.4', type.name
+    assert_nil type.send(:as)
+  end
+
+  def test_application_types
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges.json', json_header, [
+        {:name => 'haproxy-1.4', :type => 'standalone'},
+        {:name => 'php-5.3', :type => 'standalone', :categories => [:framework]},
+        {:name => 'blacklist', :type => 'standalone', :categories => [:framework, :blacklist]},
+      ].to_json
+    end
+    types = ApplicationType.find :all, :as => @user
+    assert_equal 2, types.length
+    types.each do |type|
+      assert a = ApplicationType.find(type.id, :as => @user)
+      assert_equal type.id, a.id
+      assert_equal type.description, a.description
+      assert_equal type.categories, a.categories
+    end
+
+    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist', :as => @user) }
+  end
+
+  def test_application_job_url
+    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test\n"}}
+    assert_equal 'https://test/test', a.build_job_url
+    assert a.builds?
+
+    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test"}}
+    assert_equal 'https://test/test', a.build_job_url
+    assert a.builds?
+
+    a = Application.new :embedded => {'jenkins-client-1.4' => {}}
+    assert_nil a.build_job_url
+    assert !a.builds?
+
+    a = Application.new :embedded => {}
+    assert_nil a.build_job_url
+    assert !a.builds?
+
+    a = Application.new
+    assert_nil a.build_job_url
+    assert !a.builds?
+  end
+
+  def test_get_gear_groups
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
+        {:name => '@@app/comp-web/php-5.3', :gears => [
+          {:id => 1, :state => 'started'}
+        ], :cartridges => [
+          {:name => 'php-5.3'},
+        ]},
+        {:name => '@@app/comp-proxy/php-5.3', :gears => [
+          {:id => 2, :state => 'started'},
+        ], :cartridges => [
+          {:name => 'php-5.3'},
+          {:name => 'haproxy-1.4'},
+        ]},
+        {:name => '@@app/comp-mysql/mysql-5.0', :gears => [
+          {:id => 3, :state => 'started'},
+        ], :cartridges => [
+          {:name => 'my-sql-5.0'},
+        ]},
+      ].to_json
+    end
+    mock_types
+
+    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
+    assert groups = app.gear_groups
+    assert_equal 2, groups.length # collapsed by simplify
+    assert_same @user, groups[0].send(:as)
+    assert_same @user, groups[1].send(:as)
+    assert_same @user, groups[0].cartridges[0].send(:as)
+
+    assert_equal app.git_url, groups[0].cartridges[0].git_url
+
+    assert groups[0].cartridges[0].scales?
+    assert groups[0].cartridges[0].scales
+    assert_equal 'haproxy-1.4', groups[0].cartridges[0].scales.with
+    assert_equal '@@app/comp-proxy/php-5.3', groups[0].cartridges[0].scales.on
+
+    assert !groups[1].cartridges[0].scales?
+    assert groups[1].cartridges[0].scales
+    assert_nil groups[1].cartridges[0].scales.with
+    assert_nil groups[1].cartridges[0].scales.on
+  end
+
+  def test_cartridge_buildable
+    t = CartridgeType.new :name => 'test', :categories => []
+    c = Cartridge.new :name => 'test', :as => @user
+    c.instance_variable_set(:@cartridge_type, t)
+    assert !c.buildable?
+    t.categories.push(:web)
+    assert !c.buildable?
+    c.git_url = 'https://localhost'
+    assert c.buildable?
+    t.categories.clear
+    assert !c.buildable?
+  end
+
+  def test_get_gear_groups_with_jenkins
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
+        {:name => '@@app/comp-web/php-5.3', :gears => [
+          {:id => 1, :state => 'started'}
+        ], :cartridges => [
+          {:name => 'php-5.3'},
+        ]},
+        {:name => '@@app/comp-proxy/php-5.3', :gears => [
+          {:id => 2, :state => 'started'},
+        ], :cartridges => [
+          {:name => 'jenkins-client-1.4'},
+          {:name => 'haproxy-1.4'},
+          {:name => 'php-5.3'},
+        ]},
+      ].to_json
+    end
+    mock_types
+
+    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
+    assert groups = app.gear_groups
+    assert_equal 1, groups.length # collapsed by simplify
+    assert_same @user, groups[0].send(:as)
+    assert_same @user, groups[0].cartridges[0].send(:as)
+
+    assert_equal app.git_url, groups[0].cartridges[0].git_url
+
+    assert_equal 'php-5.3', groups[0].cartridges[0].name
+    assert_equal 1, groups[0].cartridges.length
+    assert groups[0].cartridges[0].builds?, groups.pretty_inspect
+    assert groups[0].cartridges[0].builds
+    assert groups[0].cartridges[0].buildable?
+    assert_equal 'jenkins-client-1.4', groups[0].cartridges[0].builds.with.name
+    assert_equal '@@app/comp-proxy/php-5.3', groups[0].cartridges[0].builds.on
+
+    assert groups[0].cartridges[0].scales?
+    assert groups[0].cartridges[0].scales
+    assert_equal 'haproxy-1.4', groups[0].cartridges[0].scales.with
+    assert_equal '@@app/comp-proxy/php-5.3', groups[0].cartridges[0].scales.on
+  end
+
+  def test_gear_group_merge
+    gear1 = Gear.new :id => 1, :state => 'started'
+    gear2 = Gear.new :id => 2, :state => 'started'
+    gear3 = Gear.new :id => 3, :state => 'started'
+    cart_a = Cartridge.new :name => 'a'
+    cart_b = Cartridge.new :name => 'b'
+    cart_c = Cartridge.new :name => 'c'
+    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]})
+    orig1  = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]})
+    group2 = GearGroup.new({:name => 'group2', :gears => [gear2, gear3], :cartridges => [cart_b, cart_c]})
+
+    assert group1.equal?(group1)
+    assert group1.merge(group1)
+    assert_equal orig1.cartridges, group1.cartridges
+    assert_equal orig1.gears, group1.gears
+
+    group1.merge(group2)
+    assert_equal [cart_a, cart_b, cart_c], group1.cartridges
+    assert_equal [gear1, gear2, gear3], group1.gears
+  end
+
+  def test_gear_group_move_features
+    mock_types
+
+    gear1 = Gear.new :id => 1, :state => 'started'
+    cart_build = Cartridge.new :name => 'jenkins-client-1.4'
+    cart_web = Cartridge.new :name => 'php-5.3'
+    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_build]}, :as => @user)
+
+    group2 = GearGroup.new(:cartridges => [cart_web])
+
+    assert !group1.send(:move_features, group1)
+
+    assert group1.send(:move_features, group2)
+    assert group1.gears.empty?
+    assert group1.cartridges.empty?
+    assert_equal 1, group2.gears.length
+    assert group2.cartridges[0].builds?
+    assert group2.cartridges[0].builds
+    assert_equal cart_build, group2.cartridges[0].builds.with
+    assert_equal group1.name, group2.cartridges[0].builds.on
+
+    assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
+  end
+
+  def test_gear_group_simplify
+    mock_types
+
+    gear1 = Gear.new :id => 1, :state => 'started'
+    cart_a = Cartridge.new :name => 'a'
+    groups = [
+      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
+    ]
+    app = Application.new :git_url => 'http://localhost'
+    new_groups = GearGroup.simplify(groups, app)
+
+    assert_equal 1, new_groups.length
+    assert_equal [gear1], new_groups[0].gears
+    assert_equal [cart_a], new_groups[0].cartridges
+  end
+
+  def test_gear_group_simplify_scaled
+    mock_types
+
+    gear1 = Gear.new :id => 1, :state => 'started'
+    gear2 = Gear.new :id => 2, :state => 'started'
+    gear3 = Gear.new :id => 3, :state => 'started'
+    cart_a = Cartridge.new :name => 'a'
+    cart_b = Cartridge.new :name => 'php-5.3' #only cartridges with category :web scale
+    cart_c = Cartridge.new :name => 'c'
+    cart_proxy = Cartridge.new :name => 'haproxy-1.4'
+    groups = [
+      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
+      GearGroup.new({:name => 'group2', :gears => [gear2], :cartridges => [cart_b, cart_proxy]}),
+      GearGroup.new({:name => 'group3', :gears => [gear3], :cartridges => [cart_c]}),
+    ]
+    app = Application.new :git_url => 'http://localhost'
+    new_groups = GearGroup.simplify(groups, app)
+
+    scaled = GearGroup.new({:name => 'group2', :gears => [gear2], :cartridges => [cart_b.clone, cart_proxy.clone]})
+    assert scaled.scales?
+    assert scaled.cartridges.map(&:name).include?('haproxy-1.4')
+    scaled.send(:merge_scaling_cart, [cart_b.name], 'unknown')
+    assert scaled.scales?
+    assert !scaled.cartridges.map(&:name).include?('haproxy-1.4')
+    assert scaled.cartridges[0].scales?
+    assert_equal cart_proxy.name, scaled.cartridges[0].scales.with
+    assert_equal 'unknown', scaled.cartridges[0].scales.on
+
+    assert_equal 3, new_groups.length, new_groups.pretty_inspect
+    assert_equal scaled, new_groups[0]
+    assert new_groups[0].scales?
+    assert_equal groups[0], new_groups[1]
+    assert_equal groups[2], new_groups[2]
+    assert_equal app.git_url, new_groups[0].cartridges[0].git_url
+    assert_nil new_groups[1].cartridges[0].git_url
+  end
+
+  #
+  # Prime the cartridge type cache so lookups are valid.  Call after 
+  # HttpMock.respond_to or use respond_to(false).
+  #
+  def mock_types
+    types = CartridgeType.send(:known_types).map{ |t| {:name => t[:name]} }
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.get '/broker/rest/cartridges.json', json_header, types.to_json
+    end
+    types = CartridgeType.cached.all :as => @user
+    assert types.length > 0
+    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :all))
+    types
+  end
+
+  def test_gear_group_simplify_reorders
+    mock_types
+    gear1 = Gear.new :id => 1, :state => 'started'
+    gear2 = Gear.new :id => 2, :state => 'started'
+    gear3 = Gear.new :id => 3, :state => 'started'
+    cart_db1 = Cartridge.new :name => 'mongodb-2.0'
+    cart_db2 = Cartridge.new :name => 'mysql-5.1'
+    cart_web = Cartridge.new :name => 'php-5.3'
+    groups = [
+      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_db1]}),
+      GearGroup.new({:name => 'group2', :gears => [gear2], :cartridges => [cart_db2]}),
+      GearGroup.new({:name => 'group3', :gears => [gear3], :cartridges => [cart_web]}),
+    ]
+    app = Application.new :git_url => 'http://localhost'
+    new_groups = GearGroup.simplify(groups, app)
+
+    assert_equal 3, new_groups.length, new_groups.pretty_inspect
+    assert_equal cart_web.name, new_groups[0].cartridges[0].name
+    assert_equal cart_db1.name, new_groups[1].cartridges[0].name
+    assert_equal cart_db2.name, new_groups[2].cartridges[0].name
   end
 end

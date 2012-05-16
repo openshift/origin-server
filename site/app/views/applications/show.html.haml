@@ -36,7 +36,7 @@
         Add Cartridge
         %span.sprite
 
-  .cartridge-block
+  -#.cartridge-block
     .row
       .span4
         %h2.indent-left= @application.framework_name
@@ -64,24 +64,54 @@
           %pre.command-line.git_url
             = @application.git_url
 
-  - @application.cartridges.each do |cartridge|
-    .cartridge-block
-      .row
-        .span4
-          %h2.indent-left= cartridge.name
-        .span5
-          %ul.unstyled-flat.bits.indent-right
-            -#
-              %li
-                %h6 Status
-                %span.data
-                  normal
-            %li
-              %h6 Type
-              %span.data= cartridge.type
-            -#
-              %li
-                %img{:src => "/app/images/console/gear-sm.png"}
+  - @gear_groups.each_with_index do |group,g|
+    .gear-group
+      - group.cartridges.each_with_index do |cartridge,c|
+        .cartridge-block
+          .row
+            .span4
+              %h2.indent-left= cartridge.display_name
+            .span5
+              %ul.unstyled-flat.bits.indent-right
+                - if c == 0
+                  %li
+                    %h6 Status
+                    %span.data= gear_group_state(group.states)
+                  %li
+                    %h6 Gears
+                    %span.data= "#{group.gears.length} #{group.gear_profile.to_s.humanize.downcase}"
+                - else
+                  %li
+                    %h6 Gears
+                    %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
+
+                -#%li
+                  %h6 Type
+                  %span.data= cartridge.type
+                -#
+                  %li
+                    %img{:src => "/app/images/console/gear-sm.png"}
+          - if cartridge.git_url
+            .indent-left.indent-right
+              %h6 Git Repository
+              %input#application_git_url.git-url{:readonly => 'readonly', :value => cartridge.git_url, :title => 'The code for your application will be available through this Git repository.'}
+              - content_for :javascripts do
+                :javascript
+                  $('#application_git_url').focus(function() {this.select()}).click(function() {this.select()});
+
+          - if cartridge.scales? || cartridge.builds?
+            .embedded
+              .indent-left
+                - if cartridge.builds?
+                  .embedded-cart
+                    = link_to 'Builds with Jenkins', @application.build_job_url
+                -# elsif cartridge.buildable?
+                  .embedded-cart
+                    = link_to "Enable builds", link_to_wizard_for_builds
+
+                - if cartridge.scales?
+                  .embedded-cart
+                    Scales with HAProxy
 
   .base.right.btn-toolbar
     = link_to application_cartridge_types_path(@application), :class => 'btn btn-primary btn-large' do

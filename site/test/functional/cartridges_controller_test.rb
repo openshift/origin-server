@@ -7,7 +7,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     @domain.reload.applications.each {|app| app.destroy}
 
-    @application_type = ApplicationType.find 'ruby-1.8'
+    @application_type = ApplicationType.find 'ruby-1.8', :as => @user
     @app = Application.new :name => "cart#{uuid}", :as => @user
     @app.cartridge = @application_type.cartridge || @application_type.id
     @app.domain = @domain

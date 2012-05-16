@@ -6,40 +6,15 @@ class CartridgeTypesController < ConsoleController
     @application = @domain.find_application params[:application_id]
     installed_carts = @application.cartridges
 
-    types = CartridgeType.embedded :as => session_user
+    types = CartridgeType.cached.embedded :as => session_user
 
-    @installed = []
-    installed_carts.each do |cart|
-      installed_cart_type = types.find { |t| t.name == cart.name }
-      if !installed_cart_type.nil?
-        installed_cart_type.categories.push :installed
-      end
-    end
+    @blocked = []
 
-    # TODO: further categorization
-    @framework = ApplicationType.find(@application.framework)
-    if @framework.blocks
-      @blocked, types = types.partition { |t| @framework.blocks.include?(t.name)}
-    else
-      @blocked = []
-    end
+    @installed, types = types.partition{ |t| installed_carts.any?{ |c| c.name == t.name } }
+    @blacklist, types = types.partition{ |t| t.categories.include?(:blacklist) }
 
-    @installed, types = types.partition { |t| t.categories.include?(:installed) }
-    @blacklist, types = types.partition { |t| t.categories.include?(:blacklist) }
-
-    @conflicts, types = types.partition do |t|
-      conflicts = conflicts? t
-      t.categories.push('inactive') if conflicts
-
-      conflicts
-    end
-
-    @requires, types = types.partition do |t|
-      requires = requires? t
-      t.categories.push('inactive') if requires
-
-      requires
-    end
+    @conflicts, types = types.partition{ |t| conflicts? t }
+    @requires, types  = types.partition{ |t| requires? t }
 
     @carts = types
   end
@@ -48,7 +23,7 @@ class CartridgeTypesController < ConsoleController
     @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:application_id]
 
-    @cartridge_type = CartridgeType.find params[:id], :as => session_user
+    @cartridge_type = CartridgeType.cached.find params[:id], :as => session_user
     @cartridge = Cartridge.new :as => session_user
   end
 

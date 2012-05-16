@@ -5,8 +5,9 @@ class Application < RestApi::Base
   schema do
     string :name, :creation_time
     string :uuid, :domain_id
+    string :git_url, :app_url
     string :server_identity
-    string :gear_profile
+    string :gear_profile, :scale
   end
 
   custom_id :name
@@ -16,6 +17,7 @@ class Application < RestApi::Base
 
   belongs_to :domain
   alias_attribute :domain_name, :domain_id
+  alias_attribute :scalable, :scale
 
   has_many :aliases
   has_many :cartridges
@@ -33,24 +35,33 @@ class Application < RestApi::Base
     Gear.find :all, child_options
   end
   def gear_groups
-    GearGroup.find :all, child_options
+    GearGroup.simplify(GearGroup.find(:all, child_options), self)
   end
 
   def web_url
-    'http://' << url_authority
-  end
-  def git_url
-    "ssh://#{uuid}@#{url_authority}/~/git/#{name}.git/"
+    app_url
   end
 
   def framework_name
-    ApplicationType.find(framework).name rescue framework
+    @framework_name ||= CartridgeType.cached.find(framework, :as => as).display_name rescue framework
+  end
+
+  def embedded
+    @attributes[:embedded]
+  end
+
+  def scales?
+    scale
+  end
+
+  def build_job_url
+    embedded.jenkins_build_url if embedded
+  end
+  def builds?
+    build_job_url.present?
   end
 
   protected
-    def url_authority
-      "#{name}-#{domain_id}.#{Rails.configuration.base_domain}"
-    end
     def child_options
       { :params => { :domain_id => domain_id, :application_name => self.name},
         :as => as }

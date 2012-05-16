@@ -34,11 +34,8 @@
           %label Version:
           %span= cartridge_type.version
 
-  - if not (inactive and cartridge_type.categories.include? :installed) and cartridge_type.description
-    - if cartridge_type.description.respond_to? :to_html
-      = cartridge_type.description.to_html.html_safe
-    - else
-      %p= cartridge_type.description
+  - if not (inactive and reason == :installed) and cartridge_type.description.present?
+    %p= cartridge_type.description
 
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
