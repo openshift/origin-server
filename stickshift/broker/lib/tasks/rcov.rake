@@ -9,7 +9,8 @@ namespace :rcov do
     rm_rf "test/coverage"
     rm_rf "test/coverage.data"
     Rcov = "cd test && rcov --rails --aggregate coverage.data -Ilib \
-            	        --text-summary -x 'bundler/*,gems/*'"
+                        --text-summary -x 'bundler/*,gems/*' \
+                        -i 'openshift/*,stickshift/*,gearchanger/*,swingshift/*,uplift/*'"
   end
 
   desc 'Coverage analysis of unit tests'
