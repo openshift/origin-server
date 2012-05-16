@@ -1,13 +1,13 @@
 module StickShift
   class DnsService
-    @dns_provider = StickShift::DnsService
+    @ss_dns_provider = StickShift::DnsService
 
     def self.provider=(provider_class)
-      @dns_provider = provider_class
+      @ss_dns_provider = provider_class
     end
 
     def self.instance
-      @dns_provider.new
+      @ss_dns_provider.new
     end
 
     def initialize
