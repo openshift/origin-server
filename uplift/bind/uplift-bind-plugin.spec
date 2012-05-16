@@ -18,6 +18,9 @@ Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
 Requires:       bind
 Requires:       bind-utils
+Requires:       stickshift-broker
+Requires:  		selinux-policy-targeted
+Requires:  		policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -41,6 +44,43 @@ Provides a Bind DNS service based plugin
 %build
 
 %post
+pushd /usr/share/selinux/packages/rubygem-uplift-bind-plugin/ && make -f /usr/share/selinux/devel/Makefile ; popd
+semodule -i /usr/share/selinux/packages/rubygem-uplift-bind-plugin/dhcpnamedforward.pp
+
+# preserve the existing named config
+if [ ! -f /etc/named.conf.orig ]
+then
+  mv /etc/named.conf /etc/named.conf.orig
+fi
+
+# install the local server named
+cp /usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/named.conf /etc/named.conf
+chown root:named /etc/named.conf
+/usr/bin/chcon system_u:object_r:named_conf_t:s0 -v /etc/named.conf
+
+echo "copy example.com. keys in place for bind"
+mkdir -p /var/named
+cp /usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/Kexample.com.* /var/named
+KEY=$( grep Key: /var/named/Kexample.com.*.private | cut -d' ' -f 2 )
+
+
+mkdir -p /var/named/dynamic
+cp /usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/example.com.db /var/named/dynamic/
+/sbin/restorecon -v -R /var/named/dynamic/
+
+echo "Enable and start local named"
+/sbin/chkconfig named on
+/sbin/chkconfig NetworkManager off
+/sbin/chkconfig network on
+
+echo "Setup dhcp update hooks"
+cat <<EOF > /etc/dhcp/dhclient.conf
+# prepend localhost for DNS lookup in dev and test
+prepend domain-name-servers 127.0.0.1 ;
+EOF
+
+cp /usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/dhclient-up-hooks /etc/dhcp/dhclient-up-hooks
+
 echo " The uplift-bind-plugin requires the following config entries to be present:"
 echo " * dns[:server]              - The Bind server IP"
 echo " * dns[:port]                - The Bind server Port"
@@ -66,6 +106,35 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
+# Compile SELinux policy
+mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin
+cp %{buildroot}/usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
+
+mkdir -p %{buildroot}/var/named
+cp %{buildroot}/usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/Kexample.com.* %{buildroot}/var/named/
+KEY=$( grep Key: %{buildroot}/var/named/Kexample.com.*.private | cut -d' ' -f 2 )
+
+mkdir -p %{buildroot}/var/named
+cat <<EOF > %{buildroot}/var/named/example.com.key
+  key example.com {
+    algorithm HMAC-MD5 ;
+    secret "${KEY}" ;
+  } ;
+EOF
+
+mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
+cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
+Broker::Application.configure do
+  config.dns = {
+    :server => "127.0.0.1",
+    :port => 53,
+    :keyname => "example.com",
+    :keyvalue => "${KEY}",
+    :zone => "example.com"
+  }
+end
+EOF
+
 %clean
 rm -rf %{buildroot}                                
 
@@ -78,6 +147,11 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
+/usr/share/selinux/packages/rubygem-uplift-bind-plugin
+%attr(0750,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
+/var/named/example.com.key
+/var/named/Kexample.com.*.key
+/var/named/Kexample.com.*.private
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
