@@ -15,6 +15,7 @@ class Application < StickShift::Cartridge
 
   APP_NAME_MAX_LENGTH = 32
   NAMESPACE_MAX_LENGTH = 16
+  DEFAULT_NODE_PROFILE = "small"
   UNSCALABLE_FRAMEWORKS = ["jenkins-1.4", "diy-0.1"]
   SCALABLE_EMBEDDED_CARTS = ["mysql-5.1", "jenkins-client-1.4"]
   
@@ -52,7 +53,7 @@ class Application < StickShift::Cartridge
   def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil)
     self.user = user
     self.domain = domain
-    self.node_profile = node_profile
+    self.node_profile = node_profile || DEFAULT_NODE_PROFILE
     self.creation_time = DateTime::now().strftime
     self.uuid = uuid || StickShift::Model.gen_uuid
     self.scalable = will_scale
