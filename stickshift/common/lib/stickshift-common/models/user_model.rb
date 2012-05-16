@@ -68,7 +68,7 @@ module StickShift
     protected
     
     def extract_value(changed_attrs, key, value)
-      if value.is_a?(Array) && value.length > 0 && value[0].kind_of?(StickShift::Model)
+      if value.is_a?(Array) && value.length > 0 && value.first.kind_of?(StickShift::Model)
         value.map! do |model|
           model.attributes(true)
         end
