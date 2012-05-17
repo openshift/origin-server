@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.1
+Version: 0.10.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
+- Fix for bugz 822476. Make the isrunning check more resilient.
+  (ramr@redhat.com)
+- Add a haproxy log file, so that there's some additional info.
+  (ramr@redhat.com)
+- Add update namespace support for scalable apps. (ramr@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge pull request #36 from rmillner/master (kraman@gmail.com)
+- Add sample user pre/post hooks. (rmillner@redhat.com)
+- Fix for bugz 820051 - Allow scalable gears to be moved. (ramr@redhat.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
 - bumping spec versions (admiller@redhat.com)
 
