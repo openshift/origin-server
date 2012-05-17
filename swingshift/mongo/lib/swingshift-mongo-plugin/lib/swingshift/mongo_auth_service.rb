@@ -51,6 +51,7 @@ module Swingshift
     end
     
     def authenticate(request, login, password)
+      raise StickShift::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
       encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
       hash = db.collection(@collection).find_one({"_id" => login})
       if hash && !hash.empty? && (hash["password"] == encoded_password)
