@@ -142,7 +142,7 @@ When /^I deconfigure the ruby application$/ do
   namespace = @app['namespace']
   app_name = @app['name']
   command = $ruby_deconfig_format % [app_name, namespace, account_name]
-  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 20
+  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 25
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
 
