@@ -1,5 +1,5 @@
 @verify
-@verify1
+@verify3
 @broker
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario Outline: Application Creation
