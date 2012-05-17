@@ -31,6 +31,19 @@ function mv_symlink {
     fi
 }
 
+function get_list_of_cartridges_on_gear {
+    cartlist=()
+    for f in `ls $OPENSHIFT_HOMEDIR/`; do
+        if [[ -d "$OPENSHIFT_HOMEDIR/$f"  &&
+              ( -d "$CARTRIDGE_BASE_PATH/$f"  ||
+                -d "CARTRIDGE_BASE_PATH/embedded/$f" ) ]]; then
+            cartlist=("${cartlist[@]}" "$f")
+        fi
+    done
+
+    echo ${cartlist[@]}
+}
+
 [ $# -eq 4 ] || print_help
 
 new_namespace=`basename $2`
@@ -40,6 +53,7 @@ uuid=$4
 
 setup_basic_vars
 
+. $APP_HOME/.env/OPENSHIFT_HOMEDIR
 . $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
 
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info
@@ -65,7 +79,10 @@ then
   restart_httpd_graceful
 fi
 
-if [ -f $CART_INFO_DIR/bin/update_namespace.sh ]
-then
-  $CART_INFO_DIR/bin/update_namespace.sh $application $new_namespace $old_namespace $uuid
-fi
+for cart in $OPENSHIFT_GEAR_TYPE $(get_list_of_cartridges_on_gear); do
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cart/info
+    if [ -f $CART_INFO_DIR/bin/update_namespace.sh ]; then
+        # Parameters: $application $new_namespace $old_namespace $uuid
+        $CART_INFO_DIR/bin/update_namespace.sh "$@"
+    fi
+done

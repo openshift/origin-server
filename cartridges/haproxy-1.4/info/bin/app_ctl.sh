@@ -25,9 +25,11 @@ validate_run_as_user
 
 isrunning() {
     if [ -f "${HAPROXY_PID}" ]; then
-        haproxy_pid=`$HAPROXY_PID 2> /dev/null`
-        if `ps --pid $haproxy_pid > /dev/null 2>&1` || `pgrep -x haproxy > /dev/null 2>&1`
-        then
+        haproxy_pid=`cat $HAPROXY_PID 2> /dev/null`
+        [ -z "$haproxy_pid" ]  &&  return 1
+        current_user=`id -u`
+        if `ps --pid $haproxy_pid > /dev/null 2>&1` ||     \
+           `pgrep -x haproxy -u $current_user > /dev/null 2>&1`; then
             return 0
         fi
     fi
@@ -40,8 +42,11 @@ function wait_to_start() {
    while ( ! curl "http://$ep/haproxy-status/;csv" &> /dev/null )  && [ $i -lt 10 ]; do
        sleep 1
        i=$(($i + 1))
-       echo "`date`: Retrying haproxy-status check - attempt #$((i+1)) ... "
    done
+
+   if [ $i -ge 10 ]; then
+      echo "`date`: haproxy-status check - max retries ($i) exceeded" 1>&2
+   fi
 }
 
 start() {
@@ -49,7 +54,7 @@ start() {
     if ! isrunning
     then
         src_user_hook pre_start_${CARTRIDGE_TYPE}
-        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > /dev/null 2>&1
+        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/haproxy-1.4/logs/haproxy.log 2>&1
         haproxy_ctld_daemon stop > /dev/null 2>&1  || :
         haproxy_ctld_daemon start > /dev/null 2>&1
         wait_to_start
@@ -106,7 +111,7 @@ function _reload_haproxy_service() {
 function _reload_service() {
     [ -f $HAPROXY_PID ]  &&  zpid=$( /bin/cat "${HAPROXY_PID}" )
     i=0
-    while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 120 ]; do
+    while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 60 ]; do
         sleep 2
         i=$(($i + 1))
         echo "`date`: Retrying haproxy service reload - attempt #$((i+1)) ... "
@@ -119,9 +124,8 @@ reload() {
     if ! isrunning; then
        start
     else
-       echo "`date`: Gracefully reloading haproxy without service interruption" 1>&2
+       echo "`date`: Reloading haproxy service " 1>&2
        _reload_service
-       # wait_to_start
     fi
     haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
     haproxy_ctld_daemon start > /dev/null 2>&1
