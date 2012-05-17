@@ -14,16 +14,7 @@ Color palette
 205  32  44    cd202c     Primary Red
 161   0  12    a1000c     Dark Red
  
-Grayscale based on 9a9b9c - Cool Gray 7 (light -> dark)
----------------------------------------------------------------------------------------------------------------------------------
- ________________________________________________                                ________________________________________________
-|                  Usage: FONTS                  |                              |              Usage: BACKGROUNDS               |
-	fafbfc	eaebec	dadbdc	cacbcc	babbbc	9a9b9c	8a8b8c	9a9b9c	7a7b7c	6a6b6c	5a5b5c	4a4b4c	3a3b3c	2a2b2c	1a1b1c	0a0b0c
-		1				2				3				4				5				6				7				8				9				10			11			12			13			14			15			16
-			f2f3f4	e2e3e4	d2d3d4	c2c3c4	b2b3b4																					525354	424344	323334	222324	121314
-				1.5			2.5			3.5			4.5			5.5																							11.5		12.5		13.5		14.5		15.5		
-----------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------- */
+*/
 
 // Defaults before partials
 // -----------------------------------------------------
@@ -66,10 +57,14 @@ a:hover,a:active {color:#b1e5f2;}
   @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;
+  width:100%;
   float: none;
   border:none;
   @include border-radius($radius: 0 0 3px 3px);
-  }
+}
+@media (max-width:767px) {
+	.dropdown-menu {position:absolute;}
+}
 .dropdown-menu a {
   color: #cacbcc;
 }
@@ -90,13 +85,12 @@ a:hover,a:active {color:#b1e5f2;}
 .dropdown-toggle {
 	background-color: #444;
   background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  padding: 3px 20px 3px 10px;
+  padding: 3px 25px 3px 10px;
   color: #CACBCC;
   text-decoration: none !important;
   display: inline-block;
   @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
   @include border-radius($radius: 3px);
-  
   
   &:hover, &:active {
   	color: #fff;
@@ -150,7 +144,7 @@ a:hover,a:active {color:#b1e5f2;}
 /* changes to bootstrap */
 @media (max-width: 480px) {
 	input[class*="span"], select[class*="span"], textarea[class*="span"], .uneditable-input {
-    min-height: 36px;
+    min-height: 28px;
 	}
 }
 
@@ -174,7 +168,7 @@ a:hover,a:active {color:#b1e5f2;}
 	
 input, textarea {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
-  background: #c4c4c4;
+  background: $consoleFormFieldBackground;
   border: 1px solid #222;
 	}
   input:focus, textarea:focus {
@@ -187,7 +181,7 @@ input, textarea {
     border: 1px solid #222;
     }
     .input-prepend-append input, .input-prepend-append .add-on-middle {
-    	background: #c4c4c4;
+    	background: $consoleFormFieldBackground;
     	border-top: 1px solid #222;
     	border-bottom: 1px solid #222;
     	color: #000;
@@ -936,16 +930,15 @@ section#app-cartridges .cartridge-block {
 }
 @media (min-width: 980px) {
 }
-
-
+  
 .form-search {
   position: relative;
   > .search-query {
-    padding-left: 13px;
-    padding-right: 30px;
+  	padding-left:10px;
+  	padding-right:30px;
     border-radius: 3px;
-    width: inherit;
-    width: -moz-available;
+  	// width:83%;
+    // width: -moz-available;
   }
   > .search {
     position: absolute;

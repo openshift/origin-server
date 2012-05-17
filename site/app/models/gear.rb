@@ -1,10 +1,14 @@
 class Gear < RestApi::Base
   schema do
-    string :uuid, :gear_profile
+    string :id, :gear_profile, :state
   end
-  custom_id :uuid
+  #custom_id :id
 
   belongs_to :application
+
+  def state
+    (super || :unknown).to_sym
+  end
 
   def components
     @attributes[:components]

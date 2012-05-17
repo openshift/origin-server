@@ -86,7 +86,6 @@
   margin: 15px -8px 0 0;
   line-height: 40px;
   color: #999;
-  font-weight: 200;
 	}
 .navbar .navbar-text a {
 	color: #999;
@@ -158,12 +157,9 @@
 	} 
 
 #identity {
-	//border: 1px solid #383838;
   @include border-radius(3px);
   color: #999999;
   font-size: 11px;
-  //background-color: #222;
-  //background: rgba(50, 50, 50, 0.8) url("../images/console/arrow-down.png") 97% .75em no-repeat;
   position: absolute;
   right: 0;
   top: 35px;
@@ -171,9 +167,8 @@
   margin-left: 0;
 }
 #identity .username {
-  max-width: 175px;
-  overflow: hidden;
   white-space: nowrap;
+  list-style:none;
 }
 
 #utility-nav {
