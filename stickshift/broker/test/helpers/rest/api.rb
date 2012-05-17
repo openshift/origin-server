@@ -10,7 +10,7 @@ $end_point = "https://localhost/broker/rest"
 $user = 'test-user' + gen_uuid[0..9]
 $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")
-$default_timeout = 60 # 1 min
+$default_timeout = 120 # 120 secs
 
 def register_user
   cmd = "ss-register-user -u #{$user} -p #{$password}"

@@ -58,6 +58,18 @@ function generate_ssh_keys {
     observe_setup_var_lib_dir "$APP_HOME/app/data/.ssh/"
 }
 
+function generate_ssh_keys {
+    /bin/mkdir -p $APP_DIR/data/.ssh/
+    /usr/bin/ssh-keygen -N '' -f $APP_DIR/data/.ssh/jenkins_id_rsa > /dev/null
+
+    /bin/chown root.$uuid -R "$APP_DIR/data/.ssh/"
+    chmod 0750 "$APP_DIR/data/.ssh/"
+    chmod 0640 "$APP_DIR/data/.ssh/jenkins_id_rsa"
+    chmod 0640 "$APP_DIR/data/.ssh/jenkins_id_rsa.pub"
+    observe_setup_var_lib_dir "$APP_DIR/data/.ssh/"
+}
+
+
 while getopts 'd' OPTION
 do
     case $OPTION in
