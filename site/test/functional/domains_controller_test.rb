@@ -44,7 +44,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
+    assert_equal 1, domain.errors[:name].length
     assert_template :new
   end
 
@@ -118,7 +118,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
+    assert_equal 1, domain.errors[:name].length
     assert_template :edit
   end
 
