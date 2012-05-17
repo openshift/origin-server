@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.1
+Version: 0.11.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,31 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Add update namespace support for scalable apps. (ramr@redhat.com)
+- more shuffling of tests (dmcphers@redhat.com)
+- increase a couple of timeouts (dmcphers@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- better test balancing (dmcphers@redhat.com)
+- get tests running faster (dmcphers@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
+- Fix for bug# 812060 (rpenta@redhat.com)
+- Merge pull request #38 from markllama/ss-dns-provider (kraman@gmail.com)
+- App creation: set default node profile to 'small' if not specified
+  (rpenta@redhat.com)
+- allow syslog output for gear usage (dmcphers@redhat.com)
+- proper usage of StickShift::Model and beginnings of usage tracking
+  (dmcphers@redhat.com)
+- The rhc tools still require ~/.openshift/express.conf.  Create the file as a
+  precursor to using them. (rmillner@redhat.com)
+- made dns_service @ss_dns_provider consistent with uplift-bind-plugin
+  (mlamouri@redhat.com)
+- Merge pull request #36 from rmillner/master (kraman@gmail.com)
+- Bugz# 804937. REST api was returning exitcode 143 instead of the cartridge
+  specific error code. (kraman@gmail.com)
+- Add rcov testing to the Stickshift broker, common and controller.
+  (rmillner@redhat.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
 - Merge pull request #28 from abhgupta/abhgupta-dev2 (dmcphers@redhat.com)
 - Merge pull request #35 from rmillner/master (dmcphers@redhat.com)
