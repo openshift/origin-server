@@ -90,9 +90,6 @@ module StickShift
     def show_state(app, gear)
     end
 
-    def preconfigure_cartridge(app, gear, cart)
-    end
-
     def configure_cartridge(app, gear, cart, template_git_url=nil)
     end
 

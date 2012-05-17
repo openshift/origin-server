@@ -1,7 +1,7 @@
 @verify
 @verify2
 @broker
-Feature: Cartridge Verification Tests
+Feature: Cartridge Lifecycle JBossAS Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
     And an accepted node
@@ -10,41 +10,54 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
-    |     1     |  python-2.6  |
     |     1     |  jbossas-7   |
-    |     1     |  ruby-1.8    |
-    |     1     |  nodejs-0.6  |
-    |     1     |  jenkins-1.4 |
 
-  Scenario Outline: Server Alias
+  Scenario Outline: Application Modification
     Given an existing <type> application
-    When the application is aliased
-    Then the application should respond to the alias
-
-  Scenarios: Server Alias Scenarios
-    |      type     |
-    |   python-2.6  |
-
-  Scenario Outline: Application Submodule Addition
-    Given an existing <type> application
-    When the submodule is added
-    Then the submodule should be deployed successfully
+    When the application is changed
+    Then it should be updated successfully
     And the application should be accessible
 
-  Scenarios: Application Submodule Addition Scenarios
+  Scenarios: Application Modification Scenarios
     |      type     |
-    |   python-2.6  |
+    |   jbossas-7   |
 
-  Scenario Outline: Application Change Namespace
+  Scenario Outline: Application Stopping
     Given an existing <type> application
-    When the application namespace is updated
+    When the application is stopped
+    Then the application should not be accessible
+
+  Scenarios: Application Stopping Scenarios
+    |      type     |
+    |   jbossas-7   |
+
+  Scenario Outline: Application Starting
+    Given an existing <type> application
+    When the application is started
     Then the application should be accessible
 
-  Scenarios: Application Change Namespace Scenarios
+  Scenarios: Application Starting Scenarios
     |      type     |
-    |   python-2.6  |
-    |   jenkins-1.4 |
+    |   jbossas-7   |
+    
+  Scenario Outline: Application Restarting
+    Given an existing <type> application
+    When the application is restarted
+    Then the application should be accessible
 
+  Scenarios: Application Restart Scenarios
+    |      type     |
+    |   jbossas-7   |
+    
+  Scenario Outline: Application Tidy
+    Given an existing <type> application
+    When I tidy the application
+    Then the application should be accessible
+
+  Scenarios: Application Tidy Scenarios
+    |      type     |
+    |   jbossas-7   |
+    
   Scenario Outline: Application Snapshot
     Given an existing <type> application
     When I snapshot the application
@@ -54,21 +67,7 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Snapshot Scenarios
     |      type     |
-    |   python-2.6  |
     |   jbossas-7   |
-    |   nodejs-0.6  |
-
-  Scenario Outline: Application Tidy
-    Given an existing <type> application
-    When I tidy the application
-    Then the application should be accessible
-
-  Scenarios: Application Tidy Scenarios
-    |      type     |
-    |   python-2.6  |
-    |   jbossas-7   |
-    |   ruby-1.8    |
-    |   nodejs-0.6  |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application
@@ -77,8 +76,4 @@ Feature: Cartridge Verification Tests
 
   Scenarios: Application Destroying Scenarios
     |      type     |
-    |   python-2.6  |
     |   jbossas-7   |
-    |   ruby-1.8    |
-    |   nodejs-0.6  |
-    |   jenkins-1.4 |

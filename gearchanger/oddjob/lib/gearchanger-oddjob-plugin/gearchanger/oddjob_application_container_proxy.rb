@@ -103,17 +103,6 @@ module GearChanger
       parse_result(reply)
     end
 
-    def preconfigure_cartridge(app, gear, cart)
-      Rails.logger.debug("Inside preconfigure_cartridge :: application: #{app.name} :: cartridge name: #{cart}")
-
-      if framework_carts.include? cart
-        run_cartridge_command(cart, app, gear, "preconfigure")
-      else
-        #no-op
-        ResultIO.new
-      end
-    end
-
     def configure_cartridge(app, gear, cart, template_git_url=nil)
       Rails.logger.debug("Inside configure_cartridge :: application: #{app.name} :: cartridge name: #{cart}")
 

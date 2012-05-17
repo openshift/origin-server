@@ -1,7 +1,7 @@
 @verify
 @verify1
 @broker
-Feature: Cartridge Lifecycle Verification Tests
+Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
     And an accepted node
@@ -10,21 +10,7 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
-    |     1     |  php-5.3     |
-    |     1     |  jbossas-7   |
     |     1     |  ruby-1.8    |
-    |     1     |  nodejs-0.6  |
-    |     1     |  jenkins-1.4 |
-
-  Scenario Outline: Application Creation diy
-    Given the libra client tools
-    And an accepted node
-    When <app_count> <type> applications are created
-    Then the applications should be temporarily unavailable
-
-  Scenarios: Application Creation diy Scenarios
-    | app_count |     type     |
-    |     1     |  diy-0.1     |
 
   Scenario Outline: Application Modification
     Given an existing <type> application
@@ -34,10 +20,7 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Modification Scenarios
     |      type     |
-    |   php-5.3     |
-    |   jbossas-7   |
     |   ruby-1.8    |
-    |   nodejs-0.6  |
 
   Scenario Outline: Application Stopping
     Given an existing <type> application
@@ -46,11 +29,7 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Stopping Scenarios
     |      type     |
-    |   php-5.3     |
-    |   jbossas-7   |
     |   ruby-1.8    |
-    |   nodejs-0.6  |
-    |   jenkins-1.4 |
 
   Scenario Outline: Application Starting
     Given an existing <type> application
@@ -59,11 +38,7 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Starting Scenarios
     |      type     |
-    |   php-5.3     |
-    |   jbossas-7   |
     |   ruby-1.8    |
-    |   nodejs-0.6  |
-    |   jenkins-1.4 |
     
   Scenario Outline: Application Restarting
     Given an existing <type> application
@@ -72,11 +47,16 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Restart Scenarios
     |      type     |
-    |   php-5.3     |
-    |   jbossas-7   |
     |   ruby-1.8    |
-    |   nodejs-0.6  |
-    |   jenkins-1.4 |
+    
+  Scenario Outline: Application Tidy
+    Given an existing <type> application
+    When I tidy the application
+    Then the application should be accessible
+
+  Scenarios: Application Tidy Scenarios
+    |      type     |
+    |   ruby-1.8    |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application
@@ -85,9 +65,4 @@ Feature: Cartridge Lifecycle Verification Tests
 
   Scenarios: Application Destroying Scenarios
     |      type     |
-    |   php-5.3     |
-    |   jbossas-7   |
     |   ruby-1.8    |
-    |   nodejs-0.6  |
-    |   jenkins-1.4 |
-    |   diy-0.1     |
