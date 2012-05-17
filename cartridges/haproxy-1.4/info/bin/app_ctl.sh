@@ -52,7 +52,7 @@ start() {
     if ! isrunning
     then
         src_user_hook pre_start_${CARTRIDGE_TYPE}
-        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > /dev/null 2>&1
+        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/haproxy-1.4/logs/haproxy.log 2>&1
         haproxy_ctld_daemon stop > /dev/null 2>&1  || :
         haproxy_ctld_daemon start > /dev/null 2>&1
         wait_to_start
