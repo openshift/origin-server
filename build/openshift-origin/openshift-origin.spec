@@ -70,6 +70,7 @@ ln -s /usr/bin/sssh /usr/bin/rhcsh
 
 lokkit --service=ssh
 lokkit --service=https
+lokkit --service=http
 lokkit --service=dns
 
 sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'swingshift-mongo-plugin'\n/" /var/www/stickshift/broker/Gemfile
