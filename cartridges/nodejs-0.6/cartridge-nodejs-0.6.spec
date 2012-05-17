@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.1
+Version: 0.8.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -110,6 +110,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Add sample user pre/post hooks. (rmillner@redhat.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.8.1-1
 - bumping spec versions (admiller@redhat.com)
 
