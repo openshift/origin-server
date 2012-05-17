@@ -1,4 +1,5 @@
 @verify
+@verify1
 @broker
 Feature: Descriptor parsing and elaboration tests
 

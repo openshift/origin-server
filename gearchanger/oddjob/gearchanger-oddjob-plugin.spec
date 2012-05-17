@@ -16,7 +16,10 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       oddjob
 Requires:       rubygem(stickshift-common)
+Requires:       stickshift-broker
 Requires:       rubygem(json)
+Requires:  		selinux-policy-targeted
+Requires:  		policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -78,16 +81,10 @@ popd
 /usr/sbin/semanage fcontext -a -e /home /var/lib/stickshift
 /sbin/restorecon -R /var/lib/stickshift /usr/bin/ss-exec-command || :
 
-service dbus restart
-service oddjobd restart
-
 %postun
 /usr/sbin/semodule -r gearchanger-oddjob
 /usr/sbin/semanage fcontext -d /var/lib/stickshift
 /sbin/restorecon -R /var/lib/stickshift /usr/bin/ss-exec-command || :
-
-service dbus restart
-service oddjobd restart
 
 %files
 %defattr(-,root,root,-)

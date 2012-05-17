@@ -1,5 +1,5 @@
  class CloudUser < StickShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs
+  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage
   primary_key :login
   exclude_attributes :applications, :auth_method, :save_jobs
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains

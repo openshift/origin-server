@@ -30,6 +30,7 @@ Requires:  rubygem(stickshift-controller)
 Requires:  rubygem(stickshift-node)
 Requires:  rubygem(passenger)
 Requires:  rubygem-passenger-native
+Requires:  rubygem(rcov)
 Requires:  stickshift-abstract
 Requires:  selinux-policy-targeted
 Requires:  policycoreutils-python
@@ -141,6 +142,8 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
+/sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
+/sbin/restorecon -rv %{brokerdir}/tmp
 
 %postun
 /usr/sbin/semodule -e passenger -r stickshift-broker

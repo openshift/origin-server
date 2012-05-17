@@ -1,4 +1,5 @@
 @verify
+@verify2
 @broker
 Feature: Cartridge Verification Tests
   Scenario Outline: Application Creation OLD

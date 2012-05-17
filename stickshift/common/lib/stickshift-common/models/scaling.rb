@@ -1,5 +1,5 @@
 module StickShift
-  class Scaling < StickShift::UserModel
+  class Scaling < StickShift::Model
     attr_accessor :min, :max
     
     def initialize

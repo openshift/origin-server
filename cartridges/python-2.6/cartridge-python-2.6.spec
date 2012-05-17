@@ -21,6 +21,7 @@ Requires:  pymongo
 Requires:  pymongo-gridfs
 Requires:  python-psycopg2
 Requires:  python-virtualenv
+Requires:  python-magic
 Requires:  libjpeg
 Requires:  libjpeg-devel
 Requires:  libcurl

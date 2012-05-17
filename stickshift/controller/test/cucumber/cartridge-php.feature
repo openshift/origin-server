@@ -1,4 +1,5 @@
 @internals
+@internals2
 @node
 Feature: PHP Application
 

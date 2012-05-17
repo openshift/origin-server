@@ -1,0 +1,150 @@
+require 'rake'
+
+basedir = File.dirname(File.dirname(__FILE__))
+rpmdir = "#{File.dirname(__FILE__)}/rpms"
+remix_dir = "#{File.dirname(__FILE__)}/remix"
+
+def repo_string(rpmdir)
+  <<-EOF
+[local_build]
+name    = local_build
+baseurl = file://#{rpmdir}/noarch
+gpgcheck= 0
+enabled = 1
+
+[openshift_origin]
+name    = openshift_origin
+baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
+gpgcheck= 0
+enabled = 1
+
+[fedora_ruby]
+name    = openshift_origin
+baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
+gpgcheck= 0
+enabled = 1
+  EOF
+end
+
+def build_srpm(specs, rpmdir, test_build=true)
+  specs.each do |spec|
+    dir = File.dirname(spec)
+    spec_file = File.basename(spec)
+    if test_build
+      sh "cd #{dir} && tito build --test --srpm -o #{rpmdir} #{spec_file} 2>&1"
+    else
+      sh "cd #{dir} && tito build --srpm -o #{rpmdir} #{spec_file} 2>&1"
+    end
+  end
+end
+
+def build_rpm(specs, rpmdir, test_build=true)
+  if test_build
+    specs.each do |spec|
+      dir = File.dirname(spec)
+      spec_file = File.basename(spec)
+      sh "cd #{dir} && tito build --test --rpm -o #{rpmdir} #{spec_file} 2>&1"
+    end
+  else
+    sh "mock -r fedora-16-x86_64 --resultdir=#{rpmdir}/noarch #{rpmdir}/*.src.rpm"
+  end
+end
+
+task :default => [:build] do
+end
+
+task :build_setup do
+  sh "sudo yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock"
+  sh "sudo usermod -a -G mock #{Etc.getlogin} && newgrp mock"
+end
+
+task :build do
+  mkdir_p "#{rpmdir}/noarch"
+  
+  specs   = Dir.glob("#{basedir}/**/*.spec")
+  spec_revisions = {}
+  specs.delete_if do |spec|
+    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+    spec_name = File.basename(spec)[0..-6]
+    Dir.glob("#{rpmdir}/*#{spec_name}*#{revinfo}.fc16.src.rpm").length > 0
+  end
+
+  build_rpm(specs, rpmdir, true)
+  Rake::Task[:createrepo].invoke
+end
+
+task :prodbuild do
+  mkdir_p "#{rpmdir}/noarch"
+
+  need_tags = false
+  specs   = Dir.glob("#{basedir}/**/*.spec")
+  spec_revisions = {}
+  specs.delete_if do |spec|
+    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+    spec_name = File.basename(spec)[0..-6]
+    tags    = `git tag -l --contains #{revinfo} *#{spec_name}*`.split("\n")
+    if tags.length == 0
+      print "WARNING: #{spec} needs to be tagged!\n"
+      need_tags = true
+      false
+    else
+      Dir.glob("#{rpmdir}/#{tags[-1].strip}*.fc16.src.rpm").length > 0
+    end
+  end
+  exit(-1) if need_tags
+  
+  build_srpm(specs, rpmdir, false)
+  build_rpm(specs, rpmdir, false) 
+  createrepo
+end
+
+task :prodcd => [:clean, :prodbuild, :livecd] do
+end
+
+task :prodinstall => [:clean, :prodbuild, :install] do
+end
+
+task :devcd => [:build, :livecd] do
+end
+
+task :devinstall => [:build, :install] do
+end
+
+task :livecd do
+  mkdir_p remix_dir
+  remix_ks = "openshift-origin-remix.ks"
+  unless File.exist? "#{remix_dir}/#{remix_ks}"
+    ks_data = File.read("#{basedir}/build/openshift-origin/kickstart/#{remix_ks}").gsub(/#ADDITIONAL REPOS/, "repo --name=local-build --baseurl=file://#{rpmdir}/noarch")
+    File.open("#{remix_dir}/#{remix_ks}", 'w') do |out|
+      out << ks_data
+    end
+  end
+  
+  sh "sudo setenforce 0"
+  sh "cd #{remix_dir} && sudo livecd-creator -c openshift-origin-remix.ks -f openshift_origin --cache=cache -d -v --logfile=livecd.log"
+  sh "sudo setenforce 1"
+end
+
+task :createrepo do
+  sh "createrepo #{rpmdir}/noarch"
+  File.open("#{rpmdir}/ss.repo", 'w') do |out|
+    out << repo_string(rpmdir)
+  end
+  sh "sudo cp #{rpmdir}/ss.repo /etc/yum.repos.d/"
+end
+
+task :install do
+  sh "sudo service httpd stop"
+  sh "sudo service stickshift-broker stop"
+  sh "sudo yum erase -y stickshift-* rubygem-stickshift-*"
+  sh "sudo yum clean metadata"
+  sh "sudo yum install -y openshift-origin"
+  sh "sudo service httpd start"
+  sh "sudo service stickshift-broker start"
+  sh "sudo service dbus restart"
+end
+
+task :clean do
+  sh "rm -rf #{rpmdir}/*"
+  sh "sudo rm -rf /etc/yum.repos.d/ss.repo #{remix_dir}/cache/local-build #{remix_dir}/livecd.log #{remix_dir}/openshift_origin.iso"
+end

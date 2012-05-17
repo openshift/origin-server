@@ -39,17 +39,16 @@ module StickShift
           changed_attrs = {}
           unless changes.empty?
             changes.each do |key, value|
-              changed_attrs[key] = value[1] unless self.class.excludes_attributes.include? key.to_sym
+              value = value[1]
+              unless self.class.excludes_attributes.include? key.to_sym
+                extract_value(changed_attrs, key, value)
+              end
             end
           end
           self.class.requires_update_attributes.each do |key|
             key = key.to_s
             value = instance_variable_get("@#{key}")
-            if value.kind_of?(StickShift::Model)
-              changed_attrs[key] = value.attributes(true)
-            else
-              changed_attrs[key] = value
-            end
+            extract_value(changed_attrs, key, value)
           end
           DataStore.instance.save(self.class.name, login, instance_variable_get("@#{id_var}"), changed_attrs) unless changed_attrs.empty?
         else
@@ -67,6 +66,19 @@ module StickShift
     end
 
     protected
+    
+    def extract_value(changed_attrs, key, value)
+      if value.is_a?(Array) && value.length > 0 && value.first.kind_of?(StickShift::Model)
+        value.map! do |model|
+          model.attributes(true)
+        end
+      end
+      if value.kind_of?(StickShift::Model)
+        changed_attrs[key] = value.attributes(true)
+      else
+        changed_attrs[key] = value
+      end
+    end
 
     def self.json_to_obj(json)
       obj = self.new.from_json(json)

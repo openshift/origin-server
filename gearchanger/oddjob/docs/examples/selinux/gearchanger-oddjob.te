@@ -2,7 +2,7 @@ policy_module(gearchanger-oddjob, 1.0)
 
 gen_require(`
 	type httpd_t;
-        type stickshift_t;
+    type stickshift_t;
 	type stickshift_exec_t;
 
 	type systemd_logind_t;

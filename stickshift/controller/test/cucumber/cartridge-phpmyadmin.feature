@@ -1,4 +1,5 @@
 @internals
+@internals2
 @node
 Feature: phpMyAdmin Embedded Cartridge
 

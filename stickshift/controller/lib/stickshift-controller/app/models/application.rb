@@ -1,11 +1,12 @@
 require 'state_machine'
+require 'syslog'
 
 class Application < StickShift::Cartridge
   attr_accessor :user, :creation_time, :uuid, :aliases, :cart_data, 
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map, 
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -13,7 +14,7 @@ class Application < StickShift::Cartridge
   include_attributes :comp_instances, :group_instances
 
   APP_NAME_MAX_LENGTH = 32
-  NAMESPACE_MAX_LENGTH = 16
+  DEFAULT_NODE_PROFILE = "small"
   UNSCALABLE_FRAMEWORKS = ["jenkins-1.4", "diy-0.1"]
   SCALABLE_EMBEDDED_CARTS = ["mysql-5.1", "jenkins-client-1.4"]
   
@@ -51,7 +52,7 @@ class Application < StickShift::Cartridge
   def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil)
     self.user = user
     self.domain = domain
-    self.node_profile = node_profile
+    self.node_profile = node_profile || DEFAULT_NODE_PROFILE
     self.creation_time = DateTime::now().strftime
     self.uuid = uuid || StickShift::Model.gen_uuid
     self.scalable = will_scale
@@ -1293,6 +1294,17 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     result
   end
+  
+  def track_gear_usage(gear, event)
+    if Rails.configuration.usage_tracking[:datastore_enabled]
+      self.gear_usage = [] unless gear_usage
+      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event)
+    end
+    if Rails.configuration.usage_tracking[:syslog_enabled]
+      Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+    end
+  end
+
 private
 
   def cleanup_deleted_components

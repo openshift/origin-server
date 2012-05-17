@@ -43,6 +43,11 @@ Broker::Application.configure do
     :db => "stickshift_broker_dev",
     :collections => {:user => "user"}
   }
+  
+  config.usage_tracking = {
+    :datastore_enabled => false,
+    :syslog_enabled => false
+  }
 
 
   ############################################

@@ -43,6 +43,11 @@ Broker::Application.configure do
     :db => "openshift_broker_dev",
     :collections => {:user => "user_test"}
   }
+  
+  config.usage_tracking = {
+    :datastore_enabled => false,
+    :syslog_enabled => false
+  }
 
   ############################################
   # OpenShift Configuration Below this point #
