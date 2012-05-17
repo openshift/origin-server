@@ -51,8 +51,7 @@ class Gear < StickShift::Model
   def configure(comp_inst, template_git_url=nil)
     r = ResultIO.new
     return r if self.configured_components.include?(comp_inst.name)
-    r.append get_proxy.preconfigure_cartridge(app,self,comp_inst.parent_cart_name)
-    result_io,cart_data = get_proxy.configure_cartridge(app,self,comp_inst.parent_cart_name, template_git_url)
+    result_io, cart_data = get_proxy.configure_cartridge(app, self, comp_inst.parent_cart_name, template_git_url)
     r.append result_io
     comp_inst.process_cart_data(cart_data)
     self.configured_components.push(comp_inst.name)

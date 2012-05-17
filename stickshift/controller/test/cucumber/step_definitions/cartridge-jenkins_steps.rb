@@ -13,9 +13,7 @@ $jenkins_version = "jenkins-1.4"
 $jenkins_cartridge = "#{$cartridge_root}/#{$jenkins_version}"
 $jenkins_hooks = "#{$jenkins_cartridge}/info/hooks"
 $jenkins_config_path = "#{$jenkins_hooks}/configure"
-$jenkins_preconfig_path = "#{$jenkins_hooks}/preconfigure"
 # app_name namespace acct_name
-$jenkins_preconfig_format = "#{$jenkins_preconfig_path} '%s' '%s' '%s'"
 $jenkins_config_format = "#{$jenkins_config_path} '%s' '%s' '%s'"
 $jenkins_deconfig_path = "#{$jenkins_hooks}/deconfigure"
 $jenkins_deconfig_format = "#{$jenkins_deconfig_path} '%s' '%s' '%s'"
@@ -37,7 +35,7 @@ When /^I configure a jenkins application$/ do
     'name' => app_name,
     'namespace' => namespace
   }
-  command_formats = [$jenkins_preconfig_format, $jenkins_config_format]
+  command_formats = [$jenkins_config_format]
   command_formats.each do |command_format|
     command = command_format % [app_name, namespace, account_name]
     buffer = []
@@ -54,7 +52,7 @@ Given /^a new jenkins application$/ do
     'namespace' => namespace,
     'name' => app_name
   }
-  command_formats = [$jenkins_preconfig_format, $jenkins_config_format]
+  command_formats = [$jenkins_config_format]
   command_formats.each do |command_format|
     command = command_format % [app_name, namespace, account_name]
     runcon command, $selinux_user, $selinux_role, $selinux_type
