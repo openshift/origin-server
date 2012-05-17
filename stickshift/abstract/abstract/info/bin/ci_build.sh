@@ -12,7 +12,6 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 if [ -n "$JENKINS_URL" ]
 then
-	#REPO_LINK=${OPENSHIFT_GEAR_DIR}/runtime/repo
 	REPO_LINK=${OPENSHIFT_REPO_DIR%/}
   rm -rf $REPO_LINK
   ln -s ~/$WORKSPACE $REPO_LINK

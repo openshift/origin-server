@@ -50,6 +50,3 @@ git archive --format=tar HEAD | (cd ${dest_dir} && tar --warning=no-timestamp -x
 [ -f ${dest_dir}/.gitmodules ] && extract_submodules
 
 popd
-
-#uid_gid=$(ls -nd $dest_dir |awk '{printf "%s:%s\n", $3, $4}' |uniq |tail -1)
-#chown -R "$uid_gid" $dest_dir
