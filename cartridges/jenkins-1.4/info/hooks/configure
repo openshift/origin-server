@@ -48,16 +48,15 @@ function obfuscate_password {
 }
 
 function generate_ssh_keys {
-    /bin/mkdir -p $APP_DIR/data/.ssh/
-    /usr/bin/ssh-keygen -N '' -f $APP_DIR/data/.ssh/jenkins_id_rsa > /dev/null
+    /bin/mkdir -p $APP_HOME/app/data/.ssh/
+    /usr/bin/ssh-keygen -N '' -f $APP_HOME/app/data/.ssh/jenkins_id_rsa > /dev/null
 
-    /bin/chown root.$uuid -R "$APP_DIR/data/.ssh/"
-    chmod 0750 "$APP_DIR/data/.ssh/"
-    chmod 0640 "$APP_DIR/data/.ssh/jenkins_id_rsa"
-    chmod 0640 "$APP_DIR/data/.ssh/jenkins_id_rsa.pub"
-    observe_setup_var_lib_dir "$APP_DIR/data/.ssh/"
+    /bin/chown root.$uuid -R "$APP_HOME/app/data/.ssh/"
+    chmod 0750 "$APP_HOME/app/data/.ssh/"
+    chmod 0640 "$APP_HOME/app/data/.ssh/jenkins_id_rsa"
+    chmod 0640 "$APP_HOME/app/data/.ssh/jenkins_id_rsa.pub"
+    observe_setup_var_lib_dir "$APP_HOME/app/data/.ssh/"
 }
-
 
 while getopts 'd' OPTION
 do
@@ -73,16 +72,18 @@ done
 
 setup_configure "$1" $2 $3 $4
 
-check_app_dir_doesnt_exist
+check_cartridge_dir_doesnt_exist
 
 unobfuscate_app_home $uuid $namespace $application
 
 #
 # Setup the base of the application
 #
+create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
+JENKINS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-mkdir -p "$APP_DIR"
-pushd "$APP_DIR" > /dev/null
+pushd "$JENKINS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir logs
 popd > /dev/null
@@ -92,7 +93,7 @@ popd > /dev/null
 #
 generate_ssh_keys
 
-public_key=$(cat $APP_DIR/data/.ssh/jenkins_id_rsa.pub)
+public_key=$(cat $APP_HOME/app/data/.ssh/jenkins_id_rsa.pub)
 set -- $public_key
 add_ssh_key "$2"
 
