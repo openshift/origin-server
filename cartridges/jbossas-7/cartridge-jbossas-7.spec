@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.1
+Version: 0.93.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.93.2-1
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- bug821960 (bdecoste@gmail.com)
+- Add sample user pre/post hooks. (rmillner@redhat.com)
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.93.1-1
 - bumping spec versions (admiller@redhat.com)
 
