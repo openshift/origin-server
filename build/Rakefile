@@ -141,7 +141,6 @@ task :install do
   sh "sudo yum install -y openshift-origin cartridge-* --skip-broken"
   sh "sudo service httpd start"
   sh "sudo service stickshift-broker start"
-  sh "sudo service dbus restart"
 end
 
 task :clean do
