@@ -25,9 +25,11 @@ validate_run_as_user
 
 isrunning() {
     if [ -f "${HAPROXY_PID}" ]; then
-        haproxy_pid=`$HAPROXY_PID 2> /dev/null`
-        if `ps --pid $haproxy_pid > /dev/null 2>&1` || `pgrep -x haproxy > /dev/null 2>&1`
-        then
+        haproxy_pid=`cat $HAPROXY_PID 2> /dev/null`
+        [ -z "$haproxy_pid" ]  &&  return 1
+        current_user=`id -u`
+        if `ps --pid $haproxy_pid > /dev/null 2>&1` ||     \
+           `pgrep -x haproxy -u $current_user > /dev/null 2>&1`; then
             return 0
         fi
     fi
