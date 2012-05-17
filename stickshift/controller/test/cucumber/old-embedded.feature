@@ -1,4 +1,5 @@
-@verify2
+@verify
+@verify1
 @broker
 Feature: Embedded Cartridge Verification Tests OLD
   Scenario: MySQL Embedded Usage
