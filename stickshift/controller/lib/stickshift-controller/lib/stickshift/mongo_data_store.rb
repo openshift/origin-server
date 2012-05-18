@@ -88,7 +88,6 @@ module StickShift
     end
     
     def create(obj_type, user_id, id, obj_attrs)
-      Rails.logger.debug "MongoDataStore.create(#{obj_type}, #{user_id}, #{id}, #{obj_attrs.pretty_inspect})\n\n"
       Rails.logger.debug "MongoDataStore.create(#{obj_type}, #{user_id}, #{id}, #hidden)\n\n"      
       case obj_type
       when "CloudUser"
