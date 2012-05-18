@@ -32,7 +32,7 @@ When /^I configure a php application$/ do
     'namespace' => namespace
   }
   command = $php_config_format % [app_name, namespace, account_name]
-  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 10
+  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 15
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
 
@@ -172,7 +172,7 @@ Given /^a new php application$/ do
     'name' => app_name
   }
   command = $php_config_format % [app_name, namespace, account_name]
-  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 10
+  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 15
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 
 end
