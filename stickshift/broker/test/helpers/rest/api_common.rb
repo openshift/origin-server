@@ -25,7 +25,7 @@ class RestApi < BaseObj
     self.uri = uri
     self.method = method
     self.request = {}
-    self.request_timeout = 60  # 1 min
+    self.request_timeout = 120  # 120 secs
 
     self.response = nil
     self.response_type = nil

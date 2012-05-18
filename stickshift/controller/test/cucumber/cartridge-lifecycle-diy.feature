@@ -1,5 +1,5 @@
 @verify
-@verify3
+@verify2
 @broker
 Feature: Cartridge Lifecycle DIY Verification Tests
   Scenario Outline: Application Creation

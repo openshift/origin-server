@@ -1,5 +1,5 @@
 @verify
-@verify1
+@verify3
 @broker
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
@@ -19,24 +19,6 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
     And the application should be accessible
 
   Scenarios: Application Modification Scenarios
-    |      type     |
-    |   ruby-1.8    |
-
-  Scenario Outline: Application Stopping
-    Given an existing <type> application
-    When the application is stopped
-    Then the application should not be accessible
-
-  Scenarios: Application Stopping Scenarios
-    |      type     |
-    |   ruby-1.8    |
-
-  Scenario Outline: Application Starting
-    Given an existing <type> application
-    When the application is started
-    Then the application should be accessible
-
-  Scenarios: Application Starting Scenarios
     |      type     |
     |   ruby-1.8    |
     
