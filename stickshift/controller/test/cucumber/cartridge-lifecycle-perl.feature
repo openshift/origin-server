@@ -22,24 +22,6 @@ Feature: Cartridge Lifecycle Perl Verification Tests
     |      type     |
     |   perl-5.10   |
 
-  Scenario Outline: Application Stopping
-    Given an existing <type> application
-    When the application is stopped
-    Then the application should not be accessible
-
-  Scenarios: Application Stopping Scenarios
-    |      type     |
-    |   perl-5.10   |
-
-  Scenario Outline: Application Starting
-    Given an existing <type> application
-    When the application is started
-    Then the application should be accessible
-
-  Scenarios: Application Starting Scenarios
-    |      type     |
-    |   perl-5.10   |
-    
   Scenario Outline: Application Restarting
     Given an existing <type> application
     When the application is restarted

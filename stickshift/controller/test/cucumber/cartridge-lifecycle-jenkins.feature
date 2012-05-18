@@ -11,24 +11,6 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
     |     1     |  jenkins-1.4 |
-
-  Scenario Outline: Application Stopping
-    Given an existing <type> application
-    When the application is stopped
-    Then the application should not be accessible
-
-  Scenarios: Application Stopping Scenarios
-    |      type     |
-    |   jenkins-1.4 |
-
-  Scenario Outline: Application Starting
-    Given an existing <type> application
-    When the application is started
-    Then the application should be accessible
-
-  Scenarios: Application Starting Scenarios
-    |      type     |
-    |   jenkins-1.4 |
     
   Scenario Outline: Application Restarting
     Given an existing <type> application
