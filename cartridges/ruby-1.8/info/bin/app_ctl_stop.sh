@@ -19,17 +19,20 @@ for i in {1..20}
 do
     if `ps --pid $httpd_pid > /dev/null 2>&1` || `pgrep Passenger.* > /dev/null 2>&1`
     then
-        #if [ $i -gt 8 ]
-        #then
-            #if `ps --pid $httpd_pid > /dev/null 2>&1`
-            #then
-            #    /bin/kill -9 $httpd_pid
-            #fi
-            #if `pgrep Passenger.* > /dev/null 2>&1`
-            #then
-            #    pkill -9 Passenger.*
-            #fi
-        #fi
+        if [ $i -gt 4 ]
+        then
+            if `ps --pid $httpd_pid > /dev/null 2>&1`
+            then
+                if [ $i -gt 16 ]
+                then
+                    /bin/kill -9 $httpd_pid
+                fi
+            elif `pgrep Passenger.* > /dev/null 2>&1`
+            then
+                pkill -9 Passenger.*
+                break
+            fi
+        fi
         echo "Waiting for stop to finish"
         sleep .5
     else

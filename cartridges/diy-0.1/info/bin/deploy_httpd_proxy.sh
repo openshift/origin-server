@@ -51,6 +51,16 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
   RequestHeader append X-Forwarded-Proto "http"
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
+
+  Alias /health $CART_INFO_DIR/configuration/health.html
+  Alias /errors $CART_INFO_DIR/configuration
+
+  ProxyPass /health !
+  ProxyPass /errors !
+  ProxyPass / http://$IP:8080/ status=I
+  ProxyPassReverse / http://$IP:8080/
+  ProxyErrorOverride On
+  ErrorDocument 503 /errors/503.html
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -59,5 +69,15 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
 $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
+
+  Alias /health $CART_INFO_DIR/configuration/health.html
+  Alias /errors $CART_INFO_DIR/configuration
+
+  ProxyPass /health !
+  ProxyPass /errors !
+  ProxyPass / http://$IP:8080/ status=I
+  ProxyPassReverse / http://$IP:8080/
+  ProxyErrorOverride On
+  ErrorDocument 503 /errors/503.html
 </VirtualHost>
 EOF
