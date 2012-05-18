@@ -16,7 +16,7 @@ class Application < StickShift::Cartridge
   APP_NAME_MAX_LENGTH = 32
   DEFAULT_NODE_PROFILE = "small"
   UNSCALABLE_FRAMEWORKS = ["jenkins-1.4", "diy-0.1"]
-  SCALABLE_EMBEDDED_CARTS = ["mysql-5.1", "jenkins-client-1.4"]
+  SCALABLE_EMBEDDED_CARTS = ["mysql-5.1", "mongodb-2.0", "jenkins-client-1.4"]
   
   validate :extended_validator
   

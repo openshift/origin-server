@@ -24,7 +24,7 @@ function stop_mysql {
 
 function control_mysql_on_dbgear {
    gear_user_and_host="$OPENSHIFT_DB_GEAR_UUID@$OPENSHIFT_DB_GEAR_DNS"
-   ssh $gear_user_and_host rhcsh $OPENSHIFT_DB_CTL_ONGEAR_SCRIPT start
+   ssh $gear_user_and_host rhcsh $OPENSHIFT_DB_CTL_ONGEAR_SCRIPT $1
 }
 
 function start_mysql_as_user {
