@@ -30,6 +30,9 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
+  set-nosql-db-connection-info:
+    Type: "NET_TCP:nosqldb:connection-info"
+    Required: false
   set-proxy-path:
     Type: "STRING:proxy-path"
   set-mysql-connection-info:
