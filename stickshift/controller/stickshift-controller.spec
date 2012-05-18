@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.2
+Version: 0.11.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri May 18 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- test simplification (dmcphers@redhat.com)
+- test simplification (dmcphers@redhat.com)
+- more timeout tweaking (dmcphers@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - Add update namespace support for scalable apps. (ramr@redhat.com)
 - more shuffling of tests (dmcphers@redhat.com)
