@@ -40,7 +40,7 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
 
-  ProxyPass / http://$IP:8080/
+  ProxyPass / http://$IP:8080/ status=I
   ProxyPassReverse / http://$IP:8080/
 </VirtualHost>
 
@@ -51,7 +51,7 @@ $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
 
-  ProxyPass / http://$IP:8080/
+  ProxyPass / http://$IP:8080/ status=I
   ProxyPassReverse / http://$IP:8080/
 </VirtualHost>
 EOF
