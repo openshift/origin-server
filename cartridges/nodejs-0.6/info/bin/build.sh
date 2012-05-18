@@ -6,6 +6,23 @@ do
     . $f
 done
 
+function print_deprecation_warning() {
+       cat <<DEPRECATED
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  The use of deplist.txt is being deprecated and will soon
+  go away. For the short term, we will continue to support
+  installing the Node modules specified in the deplist.txt
+  file. But please be aware that this will soon go away.
+
+  It is highly recommended that you use the package.json
+  file to specify dependencies on other Node modules.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+DEPRECATED
+
+}
+
 function is_node_module_installed() {
     module_name=${1:-""}
     if [ -n "$module_name" ]; then
@@ -26,7 +43,9 @@ if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
 fi
 
 if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
-    for m in $(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt); do
+    mods=$(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt)
+    [ -n "$mods" ]  &&  print_deprecation_warning
+    for m in $mods; do
         echo "Checking npm module: $m"
         echo
         if is_node_module_installed "$m"; then
@@ -35,6 +54,10 @@ if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
             (cd "${OPENSHIFT_GEAR_DIR}"; npm install "$m")
         fi
     done
+fi
+
+if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
+    (cd "${OPENSHIFT_REPO_DIR}"; npm install -d)
 fi
 
 # Run user build

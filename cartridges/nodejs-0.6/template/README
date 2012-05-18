@@ -3,9 +3,8 @@ Feel free to change or remove this file, it is informational only.
 Repo layout
 ===========
 node_modules/                       - Any Node modules packaged with the app
-deplist.txt                         - List of npm modules to install
-.nodejs.env                         - Configuration file to setup environment
-                                      and pass command line parameters to Node
+deplist.txt                         - Deprecated.
+package.json                        - npm package descriptor.
 .openshift/                         - Location for openshift specific files
 .openshift/action_hooks/pre_build   - Script that gets run every git push before
                                       the build
