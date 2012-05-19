@@ -25,6 +25,8 @@ Profiles:
     Components:
       mongod:
         Publishes:
+          publish-nosql-db-connection-info:
+            Type: "NET_TCP:nosqldb:connection-info"
           get-db-connection-info:
             Type: "NET_TCP:db:connection-info"
           get-mongo-connection-info:

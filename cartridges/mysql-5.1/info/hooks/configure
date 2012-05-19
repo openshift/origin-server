@@ -213,8 +213,4 @@ fi
 
 client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 
-if is_a_scalable_app; then
-    set_app_info "Connection URL: mysql://$mysql_ip:$mysql_port/"
-else
-    set_app_info "Connection URL: mysql://$IP:3306/"
-fi
+set_app_info "Connection URL: mysql://$mysql_ip:$mysql_port/"
