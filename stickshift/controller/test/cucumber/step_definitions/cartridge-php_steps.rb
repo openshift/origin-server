@@ -1,5 +1,4 @@
 require 'etc'
-$temp="/tmp/rhc/cartridge-php/"
 # Controller cartridge command paths
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
 $php_cartridge = "#{$cartridge_root}/php-5.3"
