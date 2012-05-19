@@ -22,6 +22,24 @@ Feature: Cartridge Lifecycle NodeJS Verification Tests
     |      type     |
     |   nodejs-0.6  |
     
+  Scenario Outline: Application package.json Dependency Add
+    Given an existing <type> application
+    When I add dependencies to package.json on node modules <modules>
+    Then the application will have the <modules> node modules installed
+
+  Scenarios: Application package.json Dependency Add Scenarios
+    |      type     |  modules                        |
+    |   nodejs-0.6  |  async socket.io coffee-script  |
+
+  Scenario Outline: Application deplist.txt Dependency Add
+    Given an existing <type> application
+    When I add dependencies to deplist.txt on node modules <modules>
+    Then the application will have the <modules> node modules installed
+
+  Scenarios: Application deplist.txt Dependency Add Scenarios
+    |      type     |  modules                         |
+    |   nodejs-0.6  |  request optimist coffee-script  |
+
   Scenario Outline: Application Restarting
     Given an existing <type> application
     When the application is restarted
