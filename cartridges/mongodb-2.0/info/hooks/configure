@@ -184,7 +184,12 @@ client_result ""
 client_result "       Root User: admin"
 client_result "   Root Password: $password"
 client_result "   Database Name: $application"
-client_result "  Connection URL: mongodb://$IP:27017/"
+if is_a_scalable_app; then
+    source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST
+    client_result "  Connection URL: mongodb://$OPENSHIFT_NOSQL_DB_HOST:$mongodb_port/"
+else
+    client_result "  Connection URL: mongodb://$IP:$mongodb_port/"
+fi
 client_result ""
 client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 

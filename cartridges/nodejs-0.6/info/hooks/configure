@@ -47,7 +47,6 @@ NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$NODEJS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir conf node_modules logs sessions
-cp $CART_INFO_DIR/configuration/node.env  conf/
 popd > /dev/null
 
 # Link the globally installed npm modules in the app's home directory.
