@@ -96,7 +96,7 @@ module RestApi
     #
     self.format = :openshift_json
     self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
-    self.timeout = 60
+    self.timeout = 180
     unless Rails.env.production?
       self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
     end
@@ -160,6 +160,7 @@ module RestApi
                 resource = find_or_create_resource_for_collection(key)
                 value.map do |attrs|
                   if attrs.is_a?(Hash)
+                    attrs[:as] = as if resource.method_defined? :as=
                     resource.new(attrs)
                   else
                     attrs.duplicable? ? attrs.dup : attrs
@@ -167,6 +168,7 @@ module RestApi
                 end
               when Hash
                 resource = find_or_create_resource_for(key)
+                value[:as] = as if resource.method_defined? :as=
                 resource.new(value)
               else
                 value.dup rescue value
@@ -178,13 +180,26 @@ module RestApi
       self
     end
 
+    #
+    # Ensure user authorization info is duplicated
+    #
+    def dup
+      super.tap do |resource|
+        resource.as = @as
+      end
+    end
+    def clone
+      super.tap do |resource|
+        resource.as = @as
+      end
+    end
+
     # Track persistence state, merged from 
     # https://github.com/railsjedi/rails/commit/9333e0de7d1b8f63b19c99d21f5f65fef0ce38c3
     #
     def initialize(attributes = {}, persisted=false)
       @persisted = persisted
-      @as = attributes[:as]
-      attributes.delete :as
+      @as = attributes.delete :as
       super attributes
     end
 
@@ -504,9 +519,9 @@ module RestApi
         end
 
         def instantiate_record(record, as, prefix_options = {}) #changed
+          record[:as] = as # changed - called before new so that nested resources are created
           new(record, true).tap do |resource| #changed for persisted flag
             resource.prefix_options = prefix_options
-            resource.as = as #added
           end
         end
     end
@@ -553,6 +568,9 @@ module RestApi
       @login = login
       @ticket = ticket
       @password = password
+    end
+    def cache_key
+      login
     end
   end
 

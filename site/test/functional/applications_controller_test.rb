@@ -94,21 +94,40 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   test "should retrieve application details" do
-    post(:create, {:application => get_post_form})
-    app = assigns(:application)
-    assert app
-    assert app.errors.empty?
-
-    get :show, :id => 'test1'
+    get :show, :id => readable_app.name
     assert_response :success
-    app = assigns(:application)
-    app_framework = assigns(:application_type)
-    assert app
-    assert app_framework
-    assert_equal 'test1', app.name
-    assert_equal 'diy-0.1', app_framework.id
+    assert app = assigns(:application)
+    assert_equal readable_app.name, app.name
+    assert groups = assigns(:gear_groups)
+    assert_equal 1, groups.length
+    assert groups[0].cartridges.map(&:name).include? readable_app.cartridge
+    assert groups[0].cartridges[0].display_name
+    assert domain = assigns(:domain)
+  end
 
-    app.destroy
+  test "should retrieve scalable application details" do
+    get :show, :id => scalable_app.name
+    assert_response :success
+    assert app = assigns(:application)
+    assert_equal scalable_app.name, app.name
+    assert groups = assigns(:gear_groups)
+    assert_equal 1, groups.length
+    assert groups[0].cartridges.map(&:name).include? scalable_app.cartridge
+    assert domain = assigns(:domain)
+  end
+
+  test "should retrieve application get started page" do
+    get :get_started, :id => readable_app.name
+    assert_response :success
+    assert app = assigns(:application)
+    assert_equal readable_app.name, app.name
+  end
+
+  test "should retrieve application delete confirm page" do
+    get :delete, :id => readable_app.name
+    assert_response :success
+    assert app = assigns(:application)
+    assert_equal readable_app.name, app.name
   end
 
   test "should result in a not found error when retrieving and application that does not exist" do

@@ -20,7 +20,6 @@ Color palette
 // -----------------------------------------------------
 
 body {
-    font-family: "Helvetica Neue",Helvetica,"Liberation Sans",Arial,sans-serif;
 		font-weight: normal;
     }
 h1,h2,h3,h4,h5,h6 {
@@ -611,7 +610,7 @@ a.console-link {
     		background-position: 0 -54px;
     		}
 a.cap-link {
-	font-family: Overpass, Helvetica, Arial, sans-serif;
+	font-family: $headerFontFamily;
 	text-transform: uppercase;
 	padding: 8px 10px;
 	color: #555;
@@ -666,22 +665,25 @@ a.cap-link {
 .indent-right {
 	margin-right: 30px;
 	}
-section#app-cartridges .cartridge-block {
+#app-cartridges .cartridge-block {
 	background-color: #1d1d1d;
 		padding: 15px 0;
 		border-top: 3px solid #2a2a2a;
-		border-bottom: 3px solid #2a2a2a;
-		margin-top: 5px;
-		margin-bottom: 15px;
 	}
+#app-cartridges .gear-group {
+  margin-top: 5px;
+  margin-bottom: 15px;
+	border-bottom: 3px solid #2a2a2a;
+}
+
 	/*
-	section#app-cartridges .cartridge-block.warning {
+	#app-cartridges .cartridge-block.warning {
 		border-left: 2px dashed red;
 	}*/
-	section#app-cartridges .cartridge-block .bits {
+	#app-cartridges .cartridge-block .bits {
 		float: right;
 		}
-	section#app-cartridges .cartridge-block .bits li {
+	#app-cartridges .cartridge-block .bits li {
 		border-left: 1px dotted #444;
 		padding: 0 8px;
 		min-height: 37px;
@@ -689,10 +691,10 @@ section#app-cartridges .cartridge-block {
     font-weight: normal;
     text-transform: uppercase;
 		}
-		section#app-cartridges .cartridge-block .bits li img {
+		#app-cartridges .cartridge-block .bits li img {
 			vertical-align: text-top;
 			}
-		section#app-cartridges .cartridge-block .bits li:first-child {
+		#app-cartridges .cartridge-block .bits li:first-child {
 			border-left: 0;
 		}
 		.cartridge-block .warning {
@@ -733,10 +735,13 @@ section#app-cartridges .cartridge-block {
 		.cartridge-block .embedded .embedded-cart {
 			border: 1px solid #6b6b6b;
 			background: #242424;
-			width: 35px;
-			height: 35px;
 			float: left;
 			margin-right: 15px;
+      line-height: 35px;
+      //FIXME: embedded-cart should be more flexible
+      padding: 0 10px;
+			//width: 35px;
+			//height: 35px;
 			}
 		.cartridge-block .embedded .embedded-cart-add {
 			background-position:10px -50px;
@@ -753,6 +758,15 @@ section#app-cartridges .cartridge-block {
 				background-position:-26px -50px;
 				}
 			
+.cartridge-block input.git-url {
+  border: 1px dotted #444;
+  @include border-radius(0);
+  color: #BABBBC;
+  background-color: inherit;
+  //@include font-family-monospace();
+  cursor: inherit;
+  width: 100%;
+}
 			
 #secondary {
 	font-size: 90%;

@@ -2,12 +2,19 @@
 # The REST API model object representing a cartridge instance.
 #
 class Cartridge < RestApi::Base
+  include Comparable
+
   schema do
     string :name, 'type'
   end
   custom_id :name
 
+  attr_accessor :git_url
+
   belongs_to :application
+  has_one :cartridge_type
+
+  delegate :display_name, :categories, :priority, :to => :cartridge_type, :allow_nil => false
 
   def type
     @attributes[:type]
@@ -16,4 +23,55 @@ class Cartridge < RestApi::Base
   def type=(type)
     @attributes[:type]=type
   end
+
+  def scales
+    @scales || ScaleRelation::Null
+  end
+  def scales?
+    @scales.present?
+  end
+  def scales_with(cart, gear_group)
+    @scales = ScaleRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  end
+
+  def buildable?
+    git_url.present? and categories.include? :web
+  end
+  def builds
+    @builds || BuildRelation::Null
+  end
+  def builds?
+    @builds.present?
+  end
+  def builds_with(cart, gear_group)
+    @builds = BuildRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  end
+
+  def <=>(other)
+    return 0 if name == other.name
+    cartridge_type <=> other.cartridge_type
+  end
+
+  def cartridge_type
+    @cartridge_type ||= CartridgeType.cached.find(name, :as => as)
+  end
+end
+
+class Cartridge::ScaleRelation
+  attr_accessor :with, :on
+
+  def initialize(with, on)
+    @with, @on = with, on
+  end
+
+  Null = new(nil,nil)
+end
+class Cartridge::BuildRelation
+  attr_accessor :with, :on
+
+  def initialize(with, on)
+    @with, @on = with, on
+  end
+
+  Null = new(nil,nil)
 end

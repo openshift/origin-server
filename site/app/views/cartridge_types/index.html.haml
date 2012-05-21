@@ -3,12 +3,6 @@
 
 %h1.invisible Add a New Cartridge
 = cartridge_wizard_steps_create 0
-- if @framework.id == 'haproxy-1.4'
-  .alert 
-    Cartridges are currently unable to be embedded in a scaled application. 
-    We will be adding support shortly!
-    In the mean time, some are available as standalone applications.
--else
 
 %section.row
   - if @carts.empty?

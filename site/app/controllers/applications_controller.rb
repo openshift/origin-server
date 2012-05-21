@@ -98,13 +98,13 @@ class ApplicationsController < ConsoleController
   end
 
   def new
-    redirect_to application_type_path(ApplicationType.find_empty)
+    redirect_to application_types_path
   end
 
   def create
     app_params = params[:application]
 
-    @application_type = ApplicationType.find app_params[:application_type]
+    @application_type = ApplicationType.find app_params[:application_type], :as => session_user
 
     @application = Application.new app_params
     @application.as = session_user
@@ -140,7 +140,7 @@ class ApplicationsController < ConsoleController
   def show
     @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:id]
-    @application_type = ApplicationType.find @application.framework
+    @gear_groups = @application.gear_groups
   end
 
   def get_started

@@ -1,13 +1,13 @@
 class ApplicationTypesController < ConsoleController
 
   def index
-    types = ApplicationType.find :all
+    types = ApplicationType.all :as => session_user
     @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
     @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
   end
 
   def show
-    @application_type = ApplicationType.find params[:id]
+    @application_type = ApplicationType.find params[:id], :as => session_user
     @domain = Domain.find :first, :as => session_user
     @application = Application.new :as => session_user
 
