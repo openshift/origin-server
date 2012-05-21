@@ -81,6 +81,7 @@ done
 cartridge_type="mongodb-2.0"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
 gear_type="mongodb-2.0"
 
