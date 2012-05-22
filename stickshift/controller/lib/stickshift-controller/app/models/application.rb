@@ -1294,11 +1294,14 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     result
   end
-  
+
   def track_gear_usage(gear, event)
     if Rails.configuration.usage_tracking[:datastore_enabled]
+      now = Time.new
+      uuid = StickShift::Model.gen_uuid
+      self.class.notify_observers(:track_gear_usage, {:gear => gear, :event => event, :time => now, :uuid => uuid})
       self.gear_usage = [] unless gear_usage
-      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event)
+      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event, now, uuid)
     end
     if Rails.configuration.usage_tracking[:syslog_enabled]
       Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
