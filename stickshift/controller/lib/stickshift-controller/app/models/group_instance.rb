@@ -35,7 +35,7 @@ class GroupInstance < StickShift::Model
       self.gears = [] if self.gears.nil?
       @gears += ginst.gears
     end
-    self.min, self.max = self.merge_min_max(self.min, self.max, ginst.min, ginst.max)
+    self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, ginst.min, ginst.max)
   end
 
   def merge(cartname, profname, groupname, path, comp_instance_list=nil)
@@ -122,8 +122,8 @@ class GroupInstance < StickShift::Model
       app.working_comp_inst_hash[cpath] = ci
       comp_groups = ci.elaborate(app)
       c_comp,c_prof,c_cart = ci.get_component_definition(app)
-      c_group = c_prof[ci.parent_group_name]
-      self.min, self.max = self.merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
+      c_group = c_prof.groups(ci.parent_cart_group)
+      self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
       group_inst_hash[comp_ref.name] = comp_groups
     }
     
