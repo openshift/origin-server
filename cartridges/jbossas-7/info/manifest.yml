@@ -43,6 +43,9 @@ Profiles:
           set-db-connection-info:
             Type: "NET_TCP:db:connection-info"
             Required: false
+          set-nosql-db-connection-info:
+            Type: "NET_TCP:nosqldb:connection-info"
+            Required: false
           set-jdbc-info:
             Type: "NET_TCP:jdbc"
           set_jboss_cluster:

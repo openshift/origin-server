@@ -12,6 +12,59 @@ function print_help {
     exit 1
 }
 
+function prepare_gear_for_standalone_mongodb() {
+    [ $# -eq 4 -o $# -eq 3 ] || print_help
+
+    setup_configure "$1" $2 $3 $4
+    check_app_dir_doesnt_exist
+    unobfuscate_app_home $uuid $namespace $application
+
+    # Source the original application name if any.
+    source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
+
+    # Repo
+    if [ ! -d $git_url ]; then
+        clone_external_git_repo $application $user_id $group_id $uuid $git_url
+    else
+        clone_git_repo $application $user_id $group_id $uuid "MongoDB 2.0"
+    fi
+
+    #
+    # Create the core of the application
+    #
+    mkdir -p "$APP_DIR"
+    pushd "$APP_DIR" > /dev/null
+    create_standard_app_dirs
+    popd > /dev/null
+
+    #
+    # Find an open localhost IP
+    #
+    IP=`find_open_ip $uid $uuid`
+
+    create_app_ctl_script "$app_type"
+    populate_repo_dir
+    secure_app_dir
+    observe_setup_app_and_git_dirs
+
+    #
+    # Create environment variables
+    #
+    create_standard_env_vars
+    create_standard_network_env_vars
+    create_standard_repo_dir_env_var
+    create_standard_path_env_var
+
+    # And prepend to path variable so that mongodb app_ctl.sh script is called.
+    sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH
+
+    #  Add apache vhost configuration.
+    export CART_INFO_DIR
+    import_env_vars
+    $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+    restart_httpd_graceful
+}
+
 while getopts 'd' OPTION
 do
     case $OPTION in
@@ -30,6 +83,12 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
 
 app_type="mongodb-2.0"
+
+if [ -z "$(get_app_type $3)" ]; then
+    #  This gear is dedicated to running mongodb - configure it as such.
+    prepare_gear_for_standalone_mongodb "$@"
+fi
+
 setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
@@ -94,17 +153,29 @@ echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE='$CART_INFO_DIR/bin/mongodb_r
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.0'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
 
 ## Setup user
+source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
+DB_NAME=${OPENSHIFT_APP_NAME:-$application}
 echo "use admin
       db.addUser(\"admin\", \"${password}\")
       db.auth(\"admin\", \"${password}\")
       db.system.users.find()
-      use $application
-      db.openshift.save({application: \"$application\", dbhost: \"$IP\" })
+      use $DB_NAME
+      db.openshift.save({application: \"$DB_NAME\", dbhost: \"$IP\" })
       db.addUser(\"admin\", \"${password}\")
       exit
      "  | mongo $IP
 rm -f /tmp/.dbshell
 
+mongodb_ip="$IP"
+mongodb_port="27017"
+if is_a_scalable_app; then
+   if $(dirname "$0")/expose-port "$@"; then
+       source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
+       source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PROXY_PORT
+       mongodb_ip=${OPENSHIFT_GEAR_DNS:-"$IP"}
+       mongodb_port=${OPENSHIFT_NOSQL_DB_PROXY_PORT:-27017}
+   fi
+fi
 
 client_result ""
 client_result "MongoDB 2.0 database added.  Please make note of these credentials:"
@@ -112,8 +183,13 @@ client_result ""
 client_result "       Root User: admin"
 client_result "   Root Password: $password"
 client_result "   Database Name: $application"
-client_result "  Connection URL: mongodb://$IP:27017/"
+if is_a_scalable_app; then
+    source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST
+    client_result "  Connection URL: mongodb://$OPENSHIFT_NOSQL_DB_HOST:$mongodb_port/"
+else
+    client_result "  Connection URL: mongodb://$IP:$mongodb_port/"
+fi
 client_result ""
 client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 
-set_app_info "Connection URL: mongodb://$IP:27017/"
+set_app_info "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
