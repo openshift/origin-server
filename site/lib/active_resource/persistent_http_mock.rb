@@ -1,3 +1,8 @@
+#
+# When this module is included it will prevent normal ActiveResource calls from being made.  Be sure to
+# use ActiveSupport::Testing::Isolation and require this module in the setup method if you want to use
+# ActiveResource::HttpMock in the same test suite that hits the server.
+#
 require 'active_resource/http_mock'
 
 # Duplicate of ActiveResource::HttpMock method

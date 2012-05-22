@@ -10,6 +10,7 @@ class Cartridge < RestApi::Base
   custom_id :name
 
   attr_accessor :git_url
+  attr_reader :gears
 
   belongs_to :application
   has_one :cartridge_type
@@ -24,14 +25,24 @@ class Cartridge < RestApi::Base
     @attributes[:type]=type
   end
 
+  def runs_on(new_gears)
+    gears.concat(new_gears)
+  end
+  def gears
+    @gears ||= []
+  end
+  def gear_count
+    @gears.length
+  end
+
   def scales
     @scales || ScaleRelation::Null
   end
   def scales?
     @scales.present?
   end
-  def scales_with(cart, gear_group)
-    @scales = ScaleRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  def scales_with(cart, gear_group, times)
+    @scales = ScaleRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name, times
   end
 
   def buildable?
@@ -58,13 +69,13 @@ class Cartridge < RestApi::Base
 end
 
 class Cartridge::ScaleRelation
-  attr_accessor :with, :on
+  attr_accessor :with, :on, :times
 
-  def initialize(with, on)
-    @with, @on = with, on
+  def initialize(with, on, times)
+    @with, @on, @times = with, on, times
   end
 
-  Null = new(nil,nil)
+  Null = new(nil,nil,1)
 end
 class Cartridge::BuildRelation
   attr_accessor :with, :on

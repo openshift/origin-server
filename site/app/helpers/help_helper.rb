@@ -82,6 +82,10 @@ module HelpHelper
   def events_url
     community_base_url 'events/'
   end
+  
+  def jenkins_help_url
+    community_base_url 'jenkins'
+  end
 
   def forums_url
     community_base_url 'forums/openshift'
@@ -129,6 +133,10 @@ module HelpHelper
 
   def mongodb_resources_url
     community_base_url 'developers/mongodb'
+  end
+
+  def scaling_help_url
+    community_base_url 'developers/scaling'
   end
 
   def user_guide_url
