@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.93.2
+Version: 0.93.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -31,7 +31,7 @@ Requires: php-pear
 Requires: php-imap
 Requires: php-pecl-apc
 Requires: php-mcrypt
-
+Requires: php-soap
 
 %description
 Provides php support to OpenShift
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.93.3-1
+- Adding php-soap dep (mmcgrath@redhat.com)
+- Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.93.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Add sample user pre/post hooks. (rmillner@redhat.com)

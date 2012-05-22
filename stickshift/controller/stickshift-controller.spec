@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.3
+Version: 0.11.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.11.4-1
+- add usage observer (dmcphers@redhat.com)
+- Cucumber tests for US2135 - package.json support. (ramr@redhat.com)
+- stop setting global temp dir from php test (dmcphers@redhat.com)
+- Merge pull request #41 from mrunalp/master (smitram@gmail.com)
+- Minor fix. (mpatel@redhat.com)
+- remove too verbose debug (dmcphers@redhat.com)
+- Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
+
 * Fri May 18 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
 - test simplification (dmcphers@redhat.com)
 - test simplification (dmcphers@redhat.com)
