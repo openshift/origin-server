@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.27.2
+Version: 0.27.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.27.3-1
+- Merge pull request #41 from mrunalp/master (smitram@gmail.com)
+- missing status=I from several carts (dmcphers@redhat.com)
+- Changes to descriptors/specs to execute the new connector.
+  (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.27.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 
