@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.2
+Version: 0.8.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Add support for package.json - US2135. (ramr@redhat.com)
+- Changes to descriptors/specs to execute the new connector.
+  (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Add sample user pre/post hooks. (rmillner@redhat.com)

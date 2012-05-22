@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.93.2
+Version: 0.93.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.93.3-1
+- Changes to descriptors/specs to execute the new connector.
+  (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.93.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Adding python-magic as a req for bz 813700 (mmcgrath@redhat.com)

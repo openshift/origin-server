@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.2
+Version: 0.11.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Merge pull request #41 from mrunalp/master (smitram@gmail.com)
+- missing status=I from several carts (dmcphers@redhat.com)
+- Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - Add update namespace support for scalable apps. (ramr@redhat.com)
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
