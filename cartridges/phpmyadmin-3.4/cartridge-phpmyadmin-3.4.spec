@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.14.2
+Version: 0.14.3
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,19 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.14.3-1
+- Automatic commit of package [cartridge-phpmyadmin-3.4] release [0.14.2-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Automatic commit of package [cartridge-phpmyadmin-3.4] release [0.13.4-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
 - silence the overlaping alias issues (mmcgrath@redhat.com)
 
