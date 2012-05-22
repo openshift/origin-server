@@ -1087,7 +1087,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
   def scaling_limits(dependency=nil)
     if dependency.nil?
-      if app.scalable
+      if self.scalable
         dependency = "web" 
       else
         dependency = self.framework
