@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.3
+Version: 0.93.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,39 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Old backups will have data directory in the wrong place.  Allow either to
+  exist in the tar file and transform the location on extraction without tar
+  spitting out an error from providing non-existent path on the command line.
+  (rmillner@redhat.com)
+- Data directory moved to ~/app (rmillner@redhat.com)
+- Automatic commit of package [cartridge-jbossas-7] release [0.93.2-1].
+  (admiller@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+- bug 820822 - increased timeout (bdecoste@gmail.com)
+- Revert to cartridge type -- no app types any more. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Use a utility function to remove the cartridge instance dir.
+  (ramr@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Automatic commit of package [cartridge-jbossas-7] release [0.92.4-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Add and use cartridge instance specific functions. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+- Breakout HTTP configuration/proxy (jhonce@redhat.com)
+- For US2109, fixup usage of repo and logs in cartridges. (ramr@redhat.com)
+
 * Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.93.3-1
 - Changes to descriptors/specs to execute the new connector.
   (mpatel@redhat.com)
