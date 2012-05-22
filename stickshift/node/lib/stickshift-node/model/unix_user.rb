@@ -18,6 +18,7 @@ require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
+require 'syslog'
 
 module StickShift
   class UserCreationException < Exception
@@ -33,11 +34,13 @@ module StickShift
     include StickShift::Utils::ShellExec
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files
-    
+    attr_accessor :debug
+
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
+    #fixme: set debug to false
     def initialize(application_uuid, container_uuid, user_uid=nil,
-        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil)
+        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -47,6 +50,8 @@ module StickShift
       @namespace = namespace
       @quota_blocks = quota_blocks
       @quota_files = quota_files
+      @debug = debug
+
       begin
         user_info = Etc.getpwnam(@uuid)
         @uid = user_info.uid
@@ -110,7 +115,7 @@ module StickShift
         FileUtils.chmod 0o0750, @homedir
       end
       notify_observers(:after_unix_user_create)
-      initialize_homedir
+      initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
     end
     
     # Public: Destroys a gear stopping all processes and removing all files
@@ -136,6 +141,14 @@ module StickShift
       end
       
       FileUtils.rm_rf(@homedir)
+
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      path = File.join(basedir, ".httpd.d", token)
+      conf_file = path + ".conf"
+
+      FileUtils.rm_rf(path)   if File.exist? path
+      FileUtils.rm(conf_file) if File.exist? conf_file
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
       raise UserDeletionException.new(
@@ -236,7 +249,7 @@ module StickShift
     #
     # Returns the Integer value for how many bytes got written or raises on 
     # failure.
-    def add_env_var(key, value, prefix_cloud_name=false)
+    def add_env_var(key, value, prefix_cloud_name = false, &blk)
       env_dir = File.join(@homedir,'.env/')
       if prefix_cloud_name
         key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
@@ -244,6 +257,10 @@ module StickShift
       File.open(File.join(env_dir, key),
             File::WRONLY|File::TRUNC|File::CREAT) do |file|
         file.write "export #{key}='#{value}'"
+      end
+
+      if block_given?
+        blk.call(value)
       end
     end
     
@@ -321,7 +338,7 @@ module StickShift
       Process.wait  
     end
     
-    private
+    #private
     
     # Private: Create and populate the users home dir.
     #
@@ -332,27 +349,78 @@ module StickShift
     #   # ~
     #   # ~/.tmp/
     #   # ~/.env/
-    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
+    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
+    #   # ~/app
+    #   # ~/app/data
+    #   # ~/app/repo
     #
     # Returns nil on Success and raises on Failure.
-    def initialize_homedir
+    def initialize_homedir(basedir, homedir, cart_basedir)
+      @homedir = homedir
       notify_observers(:before_initialize_homedir)
+      homedir = homedir.end_with?('/') ? homedir : homedir + '/'
       
-      tmp_dir = File.join(@homedir,".tmp")
+      tmp_dir = File.join(homedir, ".tmp")
       # Required for polyinstantiated tmp dirs to work
       FileUtils.mkdir_p tmp_dir
-      FileUtils.chmod(0o0000,tmp_dir)
+      FileUtils.chmod(0o0000, tmp_dir)
             
-      env_dir = File.join(@homedir,".env")
+      env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
-      FileUtils.chmod(0o0750,env_dir)
-      FileUtils.chown(nil,@uuid,env_dir)
+      FileUtils.chmod(0o0750, env_dir)
+      FileUtils.chown(nil, @uuid, env_dir)
 
-      add_env_var("APP_UUID", @application_uuid, true)
-      add_env_var("GEAR_UUID", @container_uuid, true)
+      geardir = File.join(homedir, @app_name, "/")
+      gearappdir = File.join(homedir, "app", "/")
+
+      add_env_var("APP_DNS",
+                  "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
+                  true)
       add_env_var("APP_NAME", @app_name, true)
-      add_env_var("APP_DNS", "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}", true)
-      add_env_var("HOMEDIR", @homedir.end_with?('/') ? @homedir : @homedir + '/', true)
+      add_env_var("APP_UUID", @application_uuid, true)
+
+      add_env_var("DATA_DIR", File.join(gearappdir, "data", "/"), true) {|v|
+        FileUtils.mkdir_p(v, :verbose => @debug)
+      }
+
+      add_env_var("GEAR_DIR", geardir, true)
+      add_env_var("GEAR_DNS",
+                  "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
+                  true)
+      add_env_var("GEAR_NAME", @app_name, true) 
+      add_env_var("GEAR_UUID", @container_uuid, true)
+
+      add_env_var("HOMEDIR", homedir, true)
+
+      add_env_var("PATH",
+                  "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
+                  false)
+
+      add_env_var("REPO_DIR", File.join(gearappdir, "repo", "/"), true) {|v|
+        FileUtils.mkdir_p(v, :verbose => @debug)
+      }
+      
+      add_env_var("TMP_DIR", "/tmp/", true)
+
+      # Update all directory entries ~/app and children
+      FileUtils.chmod_R(0o0750, gearappdir, :verbose => @debug)
+      FileUtils.chown_R(@uuid, @uuid, gearappdir, :verbose => @debug)
+      raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
+
+      state_file = File.join(gearappdir, ".state")
+      File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
+        file.write "new\n"
+      }
+      FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
+
+      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      path = File.join(basedir, ".httpd.d", token)
+
+      # path can only exist as a turd from failed app destroy
+      FileUtils.rm_rf(path) if File.exist?(path)
+      FileUtils.mkdir_p(path)
+
       notify_observers(:after_initialize_homedir)
     end
     

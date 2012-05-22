@@ -27,11 +27,11 @@ Given /^a settings.py file exists$/ do
   namespace = @app['namespace']
   app_name = @app['name']
 
-  system("mkdir -p /var/lib/stickshift/#{acct_name}/#{app_name}/repo/.openshift/mms > /dev/null")
-  system("cp /usr/local/share/mms-agent/settings.py /var/lib/stickshift/#{acct_name}/#{app_name}/repo/.openshift/mms/settings.py > /dev/null")
-  system("chown -R #{acct_name}:#{acct_name} /var/lib/stickshift/#{acct_name}/#{app_name}/repo/.openshift/mms/")
+  system("mkdir -p /var/lib/stickshift/#{acct_name}/app/repo/.openshift/mms > /dev/null")
+  system("cp /usr/local/share/mms-agent/settings.py /var/lib/stickshift/#{acct_name}/app/repo/.openshift/mms/settings.py > /dev/null")
+  system("chown -R #{acct_name}:#{acct_name} /var/lib/stickshift/#{acct_name}/app/repo/.openshift/mms/")
 
-  filepath = "/var/lib/stickshift/#{acct_name}/#{app_name}/repo/.openshift/mms/settings.py"
+  filepath = "/var/lib/stickshift/#{acct_name}/app/repo/.openshift/mms/settings.py"
   settingsfile = File.new filepath
   settingsfile.should be_a(File)
 end

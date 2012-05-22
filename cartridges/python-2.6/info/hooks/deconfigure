@@ -22,9 +22,9 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="python-2.6"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-
 
 setup_deconfigure "$1" $2 $3
 
@@ -34,11 +34,14 @@ destroy_git_repo $application $uuid
 
 stop_app
 
-confirm_pid_gone "${APP_DIR}/run/httpd.pid"
+PYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+confirm_pid_gone "${PYCART_INSTANCE_DIR}/run/httpd.pid"
 
-confirm_log_files_inactive "$APP_DIR/logs"
+confirm_log_files_inactive "$PYCART_INSTANCE_DIR/logs"
 
 rm_app_dir
+
+rm_cartridge_instance_dir "$cartridge_type"
 
 rm_unobfuscated_app_home $namespace $application
 

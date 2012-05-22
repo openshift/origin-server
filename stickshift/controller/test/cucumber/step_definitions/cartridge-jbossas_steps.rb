@@ -20,8 +20,8 @@ $jbossas_status_format = "#{$jbossas_status_path} '%s' '%s' '%s'"
 
 When /^I configure a jbossas application$/ do
   account_name = @account['accountname']
-  namespace = "ns1"
-  app_name = "app1"
+  namespace = @account['namespace']
+  app_name = @account['appnames'][0]
   @app = {
     'name' => app_name,
     'namespace' => namespace
@@ -42,8 +42,8 @@ end
 
 Given /^a new jbossas application$/ do
   account_name = @account['accountname']
-  app_name = 'app1'
-  namespace = 'ns1'
+  app_name = @account['appnames'][0]
+  namespace = @account['namespace']
   @app = {
     'namespace' => namespace,
     'name' => app_name
@@ -123,14 +123,14 @@ Then /^a jbossas application directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  status = (File.exists? app_root and File.directory? app_root) 
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  status = (File.exists? cart_instance_dir and File.directory? cart_instance_dir) 
   # TODO - need to check permissions and SELinux labels
 
   if not negate
-    status.should be_true "#{app_root} does not exist or is not a directory"
+    status.should be_true "#{cart_instance_dir} does not exist or is not a directory"
   else
-    status.should be_false "file #{app_root} exists and is a directory.  it should not"
+    status.should be_false "file #{cart_instance_dir} exists and is a directory.  it should not"
   end
 end
 
@@ -139,7 +139,7 @@ Then /^the jbossas application directory tree will( not)? be populated$/ do |neg
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  cart_instance_root = "#{$home_root}/#{acct_name}/jbossas-7"
 
   file_list =  ['repo', 'run', 'tmp', 'data', $jbossas_version, 
                 "#{$jbossas_version}/bin",  
@@ -147,7 +147,7 @@ Then /^the jbossas application directory tree will( not)? be populated$/ do |neg
                ]
 
   file_list.each do |file_name| 
-    file_path = app_root + "/" + file_name
+    file_path = cart_instance_root + "/" + file_name
     file_exists = File.exists? file_path
     unless negate
       file_exists.should be_true "file #{file_path} does not exist"
@@ -161,8 +161,8 @@ Then /^the jbossas server and module files will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  jboss_root = app_root + "/" + $jbossas_version
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  jboss_root = cart_instance_dir + "/" + $jbossas_version
 
   file_list = [ "#{jboss_root}/jboss-modules.jar", "#{jboss_root}/modules" ]
 
@@ -182,8 +182,8 @@ Then /^the jbossas server configuration files will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  jboss_root = app_root + "/" + $jbossas_version
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  jboss_root = cart_instance_dir + "/" + $jbossas_version
   jboss_conf_dir = jboss_root + "/standalone/configuration"
   file_list = ["#{jboss_conf_dir}/standalone.xml", 
                "#{jboss_conf_dir}/logging.properties"
@@ -203,8 +203,8 @@ Then /^the jbossas standalone scripts will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  jboss_root = app_root + "/" + $jbossas_version
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  jboss_root = cart_instance_dir + "/" + $jbossas_version
   jboss_bin_dir = jboss_root + "/bin"
   file_name = "#{jboss_bin_dir}/standalone.sh"
   file_exists = File.exists? file_name
@@ -253,7 +253,7 @@ Then /^a jbossas deployments directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  app_root = "#{$home_root}/#{acct_name}/app"
   deploy_root = Dir.new "#{app_root}/repo/deployments"
   
   deploy_contents = ['ROOT.war']
@@ -321,8 +321,8 @@ Then /^a jbossas service startup script will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  app_ctrl_script = "#{app_root}/#{app_name}_ctl.sh"
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  app_ctrl_script = "#{cart_instance_dir}/#{app_name}_ctl.sh"
 
   file_exists = File.exists? app_ctrl_script
   unless negate
@@ -337,7 +337,7 @@ Then /^a jbossas source tree will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  app_root = "#{$home_root}/#{acct_name}/app"
   repo_root_path = "#{app_root}/repo"
 
   unless negate

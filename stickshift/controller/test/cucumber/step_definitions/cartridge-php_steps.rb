@@ -24,8 +24,8 @@ $libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
 
 When /^I configure a php application$/ do
   account_name = @account['accountname']
-  namespace = "ns1"
-  app_name = "app1"
+  namespace = @account['namespace']
+  app_name = @account['appnames'][0]
   @app = {
     'name' => app_name,
     'namespace' => namespace
@@ -43,24 +43,24 @@ Then /^the file permissions are correct/ do
   mcs = libra_mcs_level(uid)
   # Configure files (relative to app_home)
   configure_files = { "#{@app['name']}" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/#{@app['name']}_ctl.sh" => ['root', 'root', '100755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                     "php-5.3/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/#{@app['name']}_ctl.sh" => ['root', 'root', '100755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     ".pearrc" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/conf/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/conf/php.ini" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/conf/magic" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/conf.d/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/conf.d/stickshift.conf" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/conf/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/conf/php.ini" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/conf/magic" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/conf.d/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/conf.d/stickshift.conf" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/logs/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/phplib/pear/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/repo/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/runtime/repo/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/runtime/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/run/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/runtime/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/sessions/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "#{@app['name']}/tmp/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"]
+                    "php-5.3/phplib/pear/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/data/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/repo/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/run/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/sessions/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "php-5.3/tmp/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"]
                     }
   configure_files.each do | file, permissions |
     raise "Invalid permissions for #{file}" unless mode?("#{app_home}/#{file}", permissions[2])
@@ -164,8 +164,8 @@ end
 
 Given /^a new php application$/ do
   account_name = @account['accountname']
-  app_name = 'app1'
-  namespace = 'ns1'
+  app_name = @account['appnames'][0]
+  namespace = @account['namespace']
   @app = {
     'namespace' => namespace,
     'name' => app_name

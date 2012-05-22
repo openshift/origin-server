@@ -22,6 +22,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="jenkins-1.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -43,6 +44,8 @@ stop_app
 force_kill $jenkins_pid
 
 rm_app_dir
+
+rm_cartridge_instance_dir "$cartridge_type"
 
 remove_ssh_key
 

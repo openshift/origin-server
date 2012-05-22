@@ -6,6 +6,8 @@ require 'open4'
 require 'pp'
 require 'rest-client'
 
+$temp = "/tmp/rhc/jenkins-build"
+
 include AppHelper
 
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
@@ -29,8 +31,8 @@ $jenkins_status_format = "#{$jenkins_status_path} '%s' '%s' '%s'"
 
 When /^I configure a jenkins application$/ do
   account_name = @account['accountname']
-  namespace = "ns1"
-  app_name = "app1"
+  namespace = @account['namespace']
+  app_name = @account['appnames'][0]
   @app = {
     'name' => app_name,
     'namespace' => namespace
@@ -46,8 +48,8 @@ end
 
 Given /^a new jenkins application$/ do
   account_name = @account['accountname']
-  app_name = 'app1'
-  namespace = 'ns1'
+  app_name = @account['appnames'][0]
+  namespace = @account['namespace']
   @app = {
     'namespace' => namespace,
     'name' => app_name
@@ -119,7 +121,7 @@ Then /^a jenkins application directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  app_root = "#{$home_root}/#{acct_name}/jenkins-1.4"
   status = (File.exists? app_root and File.directory? app_root) 
   # TODO - need to check permissions and SELinux labels
 
@@ -133,14 +135,13 @@ end
 Then /^the jenkins application directory tree will( not)? be populated$/ do |negate|
   # This directory should contain specfic elements:
   acct_name = @account['accountname']
-  app_name = @app['name']
+  gear_home = "#{$home_root}/#{acct_name}"
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  path_list =  []
+  ['repo', 'data'].each { |d| path_list.push File.join(gear_home, "app", d) }
+  ['run', 'tmp'].each {|d| path_list.push File.join(gear_home,"jenkins-1.4",d) }
 
-  file_list =  ['repo', 'run', 'tmp', 'data']
-
-  file_list.each do |file_name| 
-    file_path = app_root + "/" + file_name
+  path_list.each do |file_path| 
     file_exists = File.exists? file_path
     unless negate
       file_exists.should be_true "file #{file_path} does not exist"
@@ -218,23 +219,22 @@ Then /^a jenkins service startup script will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
-  app_ctrl_script = "#{app_root}/#{app_name}_ctl.sh"
+  cart_instance_root = "#{$home_root}/#{acct_name}/jenkins-1.4"
+  app_ctrl_script = "#{cart_instance_root}/#{app_name}_ctl.sh"
 
   file_exists = File.exists? app_ctrl_script
   unless negate
     file_exists.should be_true "file #{app_ctrl_script} should exist and does not"
     File.executable?(app_ctrl_script).should be_true "file #{app_ctrl_script} should be executable and is not"
   else
-    file_exists.should be_false "file #{file_name} should not exist and does"
+    file_exists.should be_false "file #{app_ctrl_script} should not exist and does"
   end
 end
 
 Then /^a jenkins source tree will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
-  app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  app_root = "#{$home_root}/#{acct_name}/app"
   repo_root_path = "#{app_root}/repo"
 
   unless negate
@@ -312,7 +312,7 @@ Then /^the jenkins daemon log files will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  log_dir = "#{$home_root}/#{acct_name}/#{app_name}/logs"
+  log_dir = "#{$home_root}/#{acct_name}/jenkins-1.4/logs"
   log_list = ["jenkins.log"]
 
   log_list.each do |file_name|
@@ -335,10 +335,16 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
       raise "Failed to create domain: #{@app}"
     end
 
-    output = `awk </tmp/rhc/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
     @jenkins_user = output[-3]
+    @jenkins_user.should_not be_nil
+
     @jenkins_password = output[-2]
+    @jenkins_password.should_not be_nil
+
     @jenkins_url = output[-1]
+    @jenkins_url.should_not be_nil
+
     $logger.debug "@jenkins_url = #{@jenkins_url}\n@jenkins_user = #{@jenkins_user}\n@jenkins_password = #{@jenkins_password}"
 
     @jenkins_job_command = "curl -ksS -X GET #{@jenkins_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"
@@ -355,7 +361,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 end
 
 When /^I push an update to the diy application$/ do
-    output = `awk </tmp/rhc/cucumber.log '/^git url:.*diy.git.$/ {print $3}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^git url:.*diy.git.$/ {print $3}'`.split("\n")
     @diy_git_url = output[-1]
 
     FileUtils.rm_rf 'diy' if File.exists? 'diy'
@@ -420,7 +426,7 @@ Then /^the application will be updated$/ do
     end while job['color'] != 'blue' && 0 < delay
     job['color'].should be == 'blue' 
 
-    path = "/var/lib/stickshift/#{@app.name}-#{@app.namespace}/#{@app.name}/runtime/repo/#{@app.name}/index.html"
+    path = "/var/lib/stickshift/#{@app.name}-#{@app.namespace}/app/repo/#{@app.name}/index.html"
     $logger.debug "jenkins built application path = #{path}"
     `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_s.should be == "0"

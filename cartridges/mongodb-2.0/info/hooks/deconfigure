@@ -22,29 +22,29 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="mongodb-2.0"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
 
-app_type="mongodb-2.0"
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 setup_embedded_deconfigure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-MONGODB_DIR="$APP_HOME/mongodb-2.0/"
+MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Teardown port proxy (ignore failures or missing hook)
 #
 ( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
 
+stop_mongodb
+
+confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
+
 #
 # Remove environment variables
 #
 /bin/rm -f $APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST $APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT $APP_HOME/.env/OPENSHIFT_NOSQL_DB_SOCKET $APP_HOME/.env/OPENSHIFT_NOSQL_DB_URL $APP_HOME/.env/OPENSHIFT_NOSQL_DB_CTL_SCRIPT $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
-
-stop_mongodb
-
-confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 
 runcon -l s0-s0:c0.c1023 rm -rf "$MONGODB_DIR" "$MONGODB_DIR/${application}_mongodb_ctl.sh"

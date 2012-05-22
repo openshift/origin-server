@@ -25,13 +25,13 @@ done
 
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
+cartridge_type="diy-0.1"
 source "/etc/stickshift/stickshift-node.conf"
-app_type="diy-0.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
 
-check_app_dir_doesnt_exist
+check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
 # Repo
@@ -45,8 +45,10 @@ fi
 # Create the core of the application
 #
 
-mkdir -p "$APP_DIR"
-pushd "$APP_DIR" > /dev/null
+create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
+DIY_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+pushd "$DIY_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir logs
 popd > /dev/null
@@ -58,19 +60,26 @@ populate_repo_dir
 #
 IP=`find_open_ip $uid $uuid`
 
-create_app_ctl_script "$app_type"
+create_app_ctl_script "$cartridge_type"
 
 secure_app_dir
 
+secure_cart_instance_dir
+
 observe_setup_app_and_git_dirs
+
+observe_setup_cart_instance_dir
 
 #
 # Create environment variables
 #
 create_standard_env_vars
+create_standard_env_uservars
 create_standard_network_env_vars
 create_standard_repo_dir_env_var
 echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$PATH" > $APP_HOME/.env/PATH
+
+observe_setup_env_uservars_dir
 
 #
 # Start app

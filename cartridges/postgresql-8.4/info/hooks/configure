@@ -25,15 +25,15 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="postgresql-8.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="postgresql-8.4"
 setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-PSQL_DIR="$APP_HOME/postgresql-8.4/"
+PSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Detect IP
@@ -58,7 +58,8 @@ fi
 touch $APP_HOME/.psql_history
 touch $APP_HOME/.pgpass
 chmod 0600 $APP_HOME/.pgpass
-mkdir -p "$PSQL_DIR"
+
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$PSQL_DIR" > /dev/null
 mkdir -p log etc data socket pid run
 chmod go-rwx data
@@ -85,8 +86,6 @@ observe_setup_var_lib_file $APP_HOME/.pgpass
 pushd "$PSQL_DIR" > /dev/null
 observe_setup_var_lib_dir "$PSQL_DIR"
 tar -zxf $CART_INFO_DIR/configuration/data/pgdata-template.tar.gz -C data/
-#mkdir data/pg_log
-#chmod go-rwx data/pg_log
 chown -R $user_id.$group_id data/ || error "Failed to chown data/ directory. Please contact support" 126
 observe_setup_var_lib_dir "$PSQL_DIR"
 sed "s,RHC_PSQLDIR,$PSQL_DIR," $CART_ETC_DIR/postgresql.conf > $PSQL_DIR/data/postgresql.conf
@@ -103,8 +102,6 @@ start_postgresql
 # Create user/role for uuid and initialize database.
 #
 PGPASSWORD=admin psql -h $IP -U admin postgres -c "CREATE USER \"$uuid\" with SUPERUSER CREATEDB CREATEROLE;"  || error "Failed to create database user $uuid" 124
-# Alternatively try: /bin/su -s /bin/sh "$uuid"  \
-#     -c "/usr/bin/createuser -d -r -s  -h $IP -U admin $uuid"
 /bin/su -s /bin/sh "$uuid" -c "/usr/bin/createdb \"$application\"" || error "Failed to create default database" 125
 
 # Generate a password with no o's O's or 0's

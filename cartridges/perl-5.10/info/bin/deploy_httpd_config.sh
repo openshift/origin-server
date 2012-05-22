@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cartridge_type="perl-5.10"
 source "/etc/stickshift/stickshift-node.conf"
 source "/etc/stickshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -11,18 +12,19 @@ uuid="$2"
 IP="$3"
 
 APP_HOME="$GEAR_BASE_DIR/$uuid"
-APP_DIR=`echo $APP_HOME/$application | tr -s /`
+PERL_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
-cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
-ServerRoot "$APP_DIR"
-DocumentRoot "$APP_DIR/repo/perl"
+cat <<EOF > "$PERL_INSTANCE_DIR/conf.d/stickshift.conf"
+ServerRoot "$PERL_INSTANCE_DIR"
+DocumentRoot "$OPENSHIFT_REPO_DIR/perl"
 Listen $IP:8080
 User $uuid
 Group $uuid
-ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
+ErrorLog "|/usr/sbin/rotatelogs $PERL_INSTANCE_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $PERL_INSTANCE_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
 
-<Directory $APP_DIR/repo/perl/>
+<Directory $OPENSHIFT_REPO_DIR/perl/>
     AddHandler perl-script .pl
     AddHandler cgi-script .cgi
     PerlResponseHandler ModPerl::Registry
