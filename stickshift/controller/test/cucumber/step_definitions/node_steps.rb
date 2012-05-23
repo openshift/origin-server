@@ -10,7 +10,7 @@ require 'dnsruby'
 # Controller cartridge command paths
 $cartridge_root = '/usr/libexec/stickshift/cartridges'
 $controller_config_path = "ss-app-create"
-$controller_config_format = "#{$controller_config_path} -c '%s' --with-namespace '%s' --named '%s'"
+$controller_config_format = "#{$controller_config_path} -c '%s' --with-namespace '%s' --with-app-name '%s'"
 $controller_deconfig_path = "ss-app-destroy"
 $controller_deconfig_format = "#{$controller_deconfig_path} -c '%s'"
 $home_root = "/var/lib/stickshift"
