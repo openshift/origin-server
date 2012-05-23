@@ -7,13 +7,15 @@ skip_specs = [ "jbosseap" ]
 
 def sudo(cmd)
   if STDIN.tty?
-    sh "sudo #{cmd}"
+    sh "sudo bash -c '#{cmd}'"
   else
     sh "su -c '#{cmd}'"
   end
 end
 
 def repo_string(rpmdir)
+redhat_release = File.open("/etc/redhat-release").read
+  if redhat_release.match(/Fedora/)
   <<-EOF
 [local_build]
 name    = local_build
@@ -33,6 +35,21 @@ baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
 gpgcheck= 0
 enabled = 1
   EOF
+  else
+  <<-EOF
+[local_build]
+name    = local_build
+baseurl = file://#{rpmdir}/noarch
+gpgcheck= 0
+enabled = 1
+
+[openshift_origin]
+name    = openshift_origin
+baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
+gpgcheck= 0
+enabled = 1
+  EOF
+  end
 end
 
 def build_srpm(specs, rpmdir, test_build=true)
@@ -63,14 +80,36 @@ task :default => [:build] do
 end
 
 task :build_setup do
-  sudo "yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock"
-  sudo "usermod -a -G mock #{Etc.getlogin}"
+  print "Setting up basic requirements\n"
+  sudo "yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
+  Rake::Task[:createrepo].invoke
+
+  print "Setting up local express.conf\n"
+  sh "mkdir -p ~/.openshift/"
+  sh "echo 'libra_server=localhost' >> ~/.openshift/express.conf"
+  sh "echo 'default_rhlogin=admin' >> ~/.openshift/express.conf"
+  sudo "/usr/sbin/usermod -a -G mock #{Etc.getlogin}"
+
+  print "Going through each spec file and pre-installing required packages"
+  specs   = Dir.glob("#{basedir}/**/*.spec")
+  requires = []
+  specs.delete_if do |spec|
+     skip_specs.select { |s| spec.match(s) }.length > 0
+  end
+
+  packages = specs.map do |spec|
+     lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
+  end
+  packages.flatten!
+  packages.delete_if { |req| req.match(/stickshift|cartridge|swingshift|gearchanger|uplift/) }
+  packages = packages.join(" ").gsub("\n","").gsub("(","-").gsub(")","")
+  sudo "yum install -y --skip-broken #{packages}"
 end
 
 task :build do
   mkdir_p "#{rpmdir}/noarch"
   
-  specs   = Dir.glob("#{basedir}/**/*.spec")
+  specs = Dir.glob("#{basedir}/**/*.spec")
   spec_revisions = {}
   specs.delete_if do |spec|
     if skip_specs.select { |s| spec.match(s) }.length > 0
@@ -118,20 +157,35 @@ end
 task :prodcd => [:clean, :prodbuild, :livecd] do
 end
 
-task :prodinstall => [:clean, :prodbuild, :install] do
+task :prodinstall => [:clean, :prodbuild, :install_broker, :install_node] do
 end
 
 task :devcd => [:build, :livecd] do
 end
 
-task :devinstall => [:build, :install] do
+task :devbroker => [:build, :install_broker] do
+end
+
+task :devnode => [:build, :install_node] do
 end
 
 task :livecd do
   mkdir_p remix_dir
   remix_ks = "openshift-origin-remix.ks"
-  unless File.exist? "#{remix_dir}/#{remix_ks}"
-    ks_data = File.read("#{basedir}/build/openshift-origin/kickstart/#{remix_ks}").gsub(/#ADDITIONAL REPOS/, "repo --name=local-build --baseurl=file://#{rpmdir}/noarch")
+  git_rev = `git log --pretty="format:%H %cd" -1`
+
+  sh "rm -f #{remix_dir}/#{remix_ks}"
+
+  ks_data = File.read("#{basedir}/build/openshift-origin-broker/kickstart/#{remix_ks}").gsub(/#ADDITIONAL REPOS/, "repo --name=local-build --baseurl=file://#{rpmdir}/noarch\n#ADDITIONAL REPOS")
+  ks_data.gsub!(/#GIT_REV#/,git_rev)
+  File.open("#{remix_dir}/#{remix_ks}", 'w') do |out|
+    out << ks_data
+  end
+
+  if File.exist?("#{basedir}/build/extras")
+    sh "createrepo #{basedir}/build/extras"
+    ks_data = File.read("#{remix_dir}/#{remix_ks}").gsub(/#ADDITIONAL REPOS/, "repo --name=local-extras --baseurl=file://#{basedir}/build/extras\n#ADDITIONAL REPOS")
+    ks_data.gsub!(/#cartridge/,"cartridge")
     File.open("#{remix_dir}/#{remix_ks}", 'w') do |out|
       out << ks_data
     end
@@ -143,6 +197,7 @@ task :livecd do
 end
 
 task :createrepo do
+  sh "mkdir -p #{rpmdir}/noarch"
   sh "createrepo #{rpmdir}/noarch"
   File.open("#{rpmdir}/ss.repo", 'w') do |out|
     out << repo_string(rpmdir)
@@ -150,14 +205,16 @@ task :createrepo do
   sudo "cp #{rpmdir}/ss.repo /etc/yum.repos.d/"
 end
 
-task :install do
-  sudo "service httpd stop"
-  sudo "service stickshift-broker stop"
+task :install_broker do
   sudo "yum erase -y stickshift-* rubygem-stickshift-*"
   sudo "yum clean metadata"
-  sudo "yum install -y openshift-origin cartridge-* --skip-broken"
-  sudo "service httpd start"
-  sudo "service stickshift-broker start"
+  sudo "yum install -y openshift-origin-broker openshift-origin-node cartridge-* --skip-broken"
+end
+
+task :install_node do
+  sudo "yum erase -y openshift-origin-node cartridge-* rubygem-stickshift-node rubygem-stickshift-abstract rubygem-stickshift-common"
+  sudo "yum clean metadata"
+  sudo "yum install -y openshift-origin-node cartridge-* --skip-broken"
 end
 
 task :clean do

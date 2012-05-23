@@ -10,3 +10,6 @@ apache_bandwidtherror="510"
 #
 rotatelogs_interval=86400
 rotatelogs_format="-%Y%m%d-%H%M%S-%Z"
+
+node_profile=small
+max_active_apps=1000

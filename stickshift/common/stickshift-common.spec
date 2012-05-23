@@ -18,6 +18,8 @@ Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(mongo)
 Requires:       rubygem(rcov)
+Requires:       selinux-policy-targeted
+Requires:       policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -44,6 +46,12 @@ This contains the Cloud Development Common packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
+
+#selinux policy
+cp doc/selinux/stickshift.te %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/stickshift.fc %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/stickshift.if %{buildroot}/usr/share/selinux/packages/%{name}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -64,10 +72,17 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
+/usr/share/selinux/packages/%{name}/
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
 %{ruby_sitelib}/%{gemname}.rb
+
+%post
+pushd /usr/share/selinux/packages/%{name}
+rm -f stickshift.pp
+make -f /usr/share/selinux/devel/Makefile
+popd
 
 %changelog
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1

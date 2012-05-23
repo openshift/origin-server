@@ -41,6 +41,7 @@ TOKEN: Token to add
 USAGE
 end
 
+require 'rubygems'
 require 'stickshift-node'
 require 'stickshift-node/utils/shell_exec'
 opts = GetoptLong.new(

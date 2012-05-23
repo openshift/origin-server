@@ -40,6 +40,7 @@ SSH_KEY: The ssh key to add
 USAGE
 end
 
+require 'rubygems'
 require 'stickshift-node'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
