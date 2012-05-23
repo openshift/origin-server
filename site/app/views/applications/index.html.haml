@@ -19,9 +19,11 @@
           = link_to 'Check out the forum', post_to_forum_url, :target => '_blank'
           %p Our community is what makes OpenShift strong
 
-.console-head.clearfix.base
-  %h1.span4
-    All Applications
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right
+      %h1 All Applications
+
 -#
   .emblem.span
     %img{:src => '/app/images/console/gear-bars.png'}
@@ -44,26 +46,21 @@
 
 %section#app-list.span7
   %header
-    %h3.invisible 
-      Application list
-  - @applications.each do |application|
-    .app-block.base
-      .row
-        %a{:href => application_path(application)}
-          -#%span.span1
-            &nbsp;
-            -# app type icon placeholder
-          %span.span4
-            %h2= application.name
-            .app-full-path
-              = application.web_url
-          %span.span2
+    %h3.invisible Application list
+  .row.tile-dark
+    - @applications.each do |application|
+      .grid-wrapper.tile-click
+        .span7.application-info
+          %h2.name= link_to application.name, application_path(application)
+          .url
+            %strong @
+            = link_to application.web_url, application.web_url
+          -#%span.span2
             -#.emblem
               %img{:src => "/app/images/console/gear-bars.png"}
               %span.gear-numbers
                 -# gear number placeholder
-            %span.sprite.app-arrow
-              &nbsp;
+          %i.sprite.tile-arrow
 
   .btn-toolbar.base.right
     = link_to application_types_path, :class => 'btn btn-primary btn-large' do
@@ -120,3 +117,11 @@
       %a.thumbnail{:href => '#'}
         %figure
           %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
+
+-# FIXME: Refactor me into an unobtrusive javascript function
+- content_for :javascripts do
+  :javascript
+    jQuery('.tile-click').click(function() {
+      a = $('h2 > a', this)[0];
+      window.location = a.href
+    });

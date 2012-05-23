@@ -61,7 +61,7 @@
 
 @media (max-width: 767px) {
   .row > .ribbon {
-    padding: 1px;
+    //padding: 1px;
     @include expand_for_phone();
   }
 }

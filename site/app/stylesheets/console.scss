@@ -47,55 +47,10 @@ a:hover,a:active {color:#b1e5f2;}
 @import "console/breadcrumbs";
 @import "console/ribbon";
 @import "console/buttons";
-
-
-
-.dropdown-menu {
-	background-color: #444;
-  background-color:rgba(70, 70, 70, 0.75);
-  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
-  position: relative;
-  min-width: 1px;
-  width:100%;
-  float: none;
-  border:none;
-  @include border-radius($radius: 0 0 3px 3px);
-}
-@media (max-width:767px) {
-	.dropdown-menu {position:absolute;}
-}
-.dropdown-menu a {
-  color: #cacbcc;
-}
-.dropdown-menu > li > a:hover {
-  border-radius: 0px;
-  background-color: #5a5b5c;
-}
-.dropdown.open .dropdown-toggle {
-  color: #CACBCC;
-	background-color: #444;
-  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  @include border-radius($radius: 3px 3px 0 0);
-  
-  &:hover, &:active {
-  	color: #fff;
-  }
-}
-.dropdown-toggle {
-	background-color: #444;
-  background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  padding: 3px 25px 3px 10px;
-  color: #CACBCC;
-  text-decoration: none !important;
-  display: inline-block;
-  @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
-  @include border-radius($radius: 3px);
-  
-  &:hover, &:active {
-  	color: #fff;
-  }
-}
-
+@import "bootstrap/dropdowns";
+@import "console/dropdowns";
+@import "console/tile";
+@import "console/application";
 
 .alert {
   word-wrap: break-word;
@@ -114,26 +69,6 @@ a:hover,a:active {color:#b1e5f2;}
 	font-size: 250%;
 	margin-top: 20px;
 	}
-/* I think this is from initial console release and can be removed
-.app-block {
-   background: #f0f0f0;
-   margin-bottom: 15px;
-   }
-.app-block > .row > ul > li {
-  margin-top: 10px;
-  margin-bottom: 10px;
-	}
-.app-block > .row > ul > li:first-child {
-  margin-left: 40px;
-  margin-right: -10px;
-  }
-.app-block > .row > ul > li:last-child > a {
-  margin-right: 10px;
-  }
-*/
-.app-block h2 {
-  word-wrap: break-word;
-  }
 
 .icon-loading {
 	background: transparent url('../images/loader-dark.gif') 0 0 no-repeat;
@@ -337,44 +272,23 @@ figure {
 	background-repeat: no-repeat;
 	}
 
-.console-head {
+.section-header {
 	background: #262626;
 	border-bottom: 3px solid #2f2f2f;
-	padding: 15px 0 10px 0;
-	margin: 0 -25px 0 5px;
-	}
-.console-head:first-child {
-  margin-top: 3px;
+  margin: 5px 0 3px;
+
+  margin-left: 5px;
+  position: relative;
+
+  > nav {
+    position: relative;
+    left: -5px;
+    margin-right: -10px;
+
+    padding-top: 15px;
+  }
+
 }
-.console-head.active {
-	border-left: 2px dashed red;
-	}
-.console-head h1 {
-	white-space: nowrap;
-	margin-bottom: 10px;
-  margin-top: 2px;
-  margin-left: 26px;
-  font-size: 32px;
-  font-weight:normal;
-  text-transform: capitalize;
-	}
-	.console-head .emblem {
-		}
-	.console-head .emblem img {
-		vertical-align: middle;
-		margin-right: 13px;
-		margin-bottom: 3px;
-		}
-	.total-cost {	
-		font-size: 32px;
-		font-weight: 200;
-		margin-top: 10px;
-		padding-right: 30px;
-    text-align: right;
-		}
-.console-head * {
-	color: #dadbdc;
-	}
 
 #footer-nav {
   background: #070707;
@@ -409,72 +323,23 @@ figure {
     padding-top: 0;
   }
   .section-console-light { background: #292929; }
+
+  .section-header {
+    margin-left: 0;
+  }
+  .row > .section-header {
+    margin-top: 3px;
+    @include expand_for_phone();
+  }
 }
 
-.app-block {
-	background: #131313;
-	margin-bottom: 3px;
-	position: relative;
-	}
-	.app-block:hover  {
-		background: #000;
-	}
 
-.app-block.warning {
-	border-left: 2px dashed #bb161c;
-	}
-	
-.app-block h2 {
-	margin-bottom: 0; /*.*/
-	color:#c0c0c0;
-	}
-.app-block a {
-	vertical-align: middle;
-	height: 90px;
-	color: #333;
-	display: table-cell;
-	text-decoration: none !important;
-	}
-	.app-block:hover h2 {
-		color: #f0f0f0;
-		}
-	.gear-numbers {
-		color: #bcbdbc;
-	}
-.app-block .emblem {
-	vertical-align: middle;
-	padding: 2px 0;
-	}
-.app-block .emblem img {
-		margin-right: 7px;
-	}
-.app-block .emblem {
-	margin-right: 15px;
-	margin-top: 6px;
-	}
-	.app-block .emblem img {
-		vertical-align: middle;
-		}
-.app-arrow {
-	background-position: 0 0;
-	position: absolute;
-	overflow: hidden;
-	display: block;
-	height: 20px;
-	width: 10px;
-	right: 5px;
-  top: 40%;
-  width: 25px;
-	}
-	.app-block:hover .app-arrow {
-		background-position: 0 -30px;
-		}
-    .digest-bg {
-    	background-color: #212121;
-    	border-bottom: 3px solid #2a2a2a;
-    	margin: 0 -25px;
-    	padding: 20px 25px;
-    	}
+.digest-bg {
+  background-color: #212121;
+  border-bottom: 3px solid #2a2a2a;
+  margin: 0 -25px;
+  padding: 20px 25px;
+}
 
 #app-list, #account-digest {
  margin-top: 0;
@@ -798,34 +663,6 @@ a.cap-link {
 	color: #eaebec;
 	}
 
-.tile {
-  padding: 9px 35px 10px 21px; 
-  margin-bottom: 20px; 
-  background-color: #222;
-  color: #b0b0b0
-}
-.tile-click {
-  cursor: pointer;
-}
-.tile-click:hover,
-.tile-click:hover {
-  background-color: #151515;
-}
-.tile-click:hover h3 {
-  color: #f0f0f0;
-}
-.tile-click:active {
-  background-color: #333;
-  color: white
-}
-.tile > ul.meta > li > label, {
-  display: inline;
-}
-
-.tile.cartridge_type .warning {
-  color: $orange;
-}
-
 .cartridge_type.installed,
 .cartridge_type.inactive,
 .section-console-light .cartridge_type.installed > h3, 
@@ -870,19 +707,11 @@ a.cap-link {
     margin: 0;
     width: auto;
 	}
-	.console-head {
-    margin-right: 0;
-  }
-  .console-head h1 {
-  	float: none;
-  }
+
   .total-cost {
-	font-size: 23px;
-	float: left;
-	margin-left: 28px;
-	}
-	.app-block .emblem {
-	margin-right: 7px;
+    font-size: 23px;
+    float: left;
+    margin-left: 28px;
 	}
   .digest-bg {
     margin: 0;
@@ -911,9 +740,6 @@ a.cap-link {
 }
 	
 @media (min-width: 768px) and (max-width: 979px) {
-	.console-head {
-    margin-right: -15px;
-  }
 	.total-cost {
 		font-size: 23px;
 	}
@@ -930,9 +756,6 @@ a.cap-link {
 }
 
 @media (min-width: 980px) and (max-width: 1199px) {
-	.console-head {
-    margin-right: -23px;
-  }
   .digest-bg {
   	margin: 0 -23px;
   }

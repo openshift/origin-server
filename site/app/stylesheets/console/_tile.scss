@@ -1,0 +1,73 @@
+.tile {
+  padding: 9px 35px 10px 21px; 
+  margin-bottom: 20px; 
+  background-color: #222;
+  color: #b0b0b0
+}
+.tile-click {
+  cursor: pointer;
+}
+.tile-click:hover {
+  background-color: #151515;
+}
+.tile-click:hover h3 {
+  color: #f0f0f0;
+}
+.tile-click:active {
+  background-color: #333;
+  color: white
+}
+.tile > ul.meta > li > label, {
+  display: inline;
+}
+
+.tile.cartridge_type .warning {
+  color: $orange;
+}
+
+.tile-dark > .tile-click {
+	background: #131313;
+  position: relative;
+
+	margin-bottom: 3px;
+
+  a {
+    color:#c0c0c0;
+  }
+
+  &:hover  {
+		background: #000;
+
+    a {
+  		color: #f0f0f0;
+    }
+    i.tile-arrow {
+      background-position: 0 -30px;
+    }
+  }
+
+  i.tile-arrow {
+    background-position: 0 0;
+    position: absolute;
+    overflow: hidden;
+    display: block;
+    height: 20px;
+    width: 10px;
+    right: 5px;
+    top: 40%;
+    width: 25px;
+	}
+}
+
+.section-body .tile-dark > .tile-click {
+  margin-left: 5px;
+  > div {
+    margin-right: -5px;
+  }
+}
+
+@media (max-width: 767px) {
+  .section-body .row > .tile-click {
+    @include expand_for_phone();
+  }
+}

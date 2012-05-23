@@ -23,7 +23,8 @@
                   - if content_for? :breadcrumbs
                     %nav
                       = yield :breadcrumbs
-              .grid-wrapper
+              = yield :top
+              .grid-wrapper.section-body
                 = flashes
                 = yield
 
@@ -36,6 +37,7 @@
                       = yield :breadcrumbs
                   - else
                     &nbsp;
+              = yield :top
               .column-content.grid-wrapper
                 .span12
                   = flashes

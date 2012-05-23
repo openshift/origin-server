@@ -3,10 +3,15 @@
 
 - breadcrumb_for_application @application
 
-.console-head.clearfix.base
-  %h1.span4= @application.name
-  .pull-right
-    = link_to 'Delete', delete_application_path(@application), :style => 'margin-right:25px;', :class => 'btn btn-small'
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right.application-info
+      .pull-right= link_to 'Delete', delete_application_path(@application), :class => 'btn btn-small'
+      %h1.name= @application.name
+      .url
+        %strong @
+        = link_to @application.web_url, @application.web_url
+
 -#
   .emblem.span
     %img{:src => '/app/images/console/gear-bars.png'}
@@ -124,9 +129,6 @@
     -#%h5 Visibility
     -#%ul.unstyled
       %li External
-    %h5 URL
-    %ul.unstyled
-      %li= link_to @application.web_url, @application.web_url
     %h5 Aliases
     %ul.unstyled
       - if @application.aliases.empty?
