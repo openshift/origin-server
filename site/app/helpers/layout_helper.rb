@@ -31,7 +31,7 @@ module LayoutHelper
     return if @flashed_once || flash.nil?; @flashed_once = true
     tags = []
     flash.each do |key, value|
-      next if value.nil?
+      next if value.blank?
       tags << content_tag(flash_element_for(key), value, :class => alert_class_for(key))
     end
     content_tag(:div, tags.join.html_safe, :id => 'flash') unless tags.empty?
