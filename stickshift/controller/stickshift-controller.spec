@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.5
+Version: 0.11.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.11.6-1
+- The grep should return not found since the namespace was deleted.
+  (rmillner@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.5-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)

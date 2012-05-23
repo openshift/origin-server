@@ -171,7 +171,7 @@ Given /^a new php application$/ do
     'name' => app_name
   }
   command = $php_config_format % [app_name, namespace, account_name]
-  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 15
+  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 45
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 
 end
@@ -181,7 +181,7 @@ When /^I deconfigure the php application$/ do
   namespace = @app['namespace']
   app_name = @app['name']
   command = $php_deconfig_format % [app_name, namespace, account_name]
-  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 15
+  exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 45
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
 

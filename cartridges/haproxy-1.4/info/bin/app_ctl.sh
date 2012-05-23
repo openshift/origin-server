@@ -36,6 +36,14 @@ isrunning() {
     return 1
 }
 
+function ping_server_gears() {
+    #  Ping the server gears and wake 'em up on startup.
+    gear_registry=$OPENSHIFT_HOMEDIR/haproxy-1.4/conf/gear-registry.db
+    for geardns in $(cut -f 2 -d ';' "$gear_registry"); do
+        [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
+    done
+}
+
 function wait_to_start() {
    ep=$(grep "listen stats" $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg | sed 's#listen\s*stats\s*\(.*\)#\1#')
    i=0
@@ -54,6 +62,7 @@ start() {
     if ! isrunning
     then
         src_user_hook pre_start_${CARTRIDGE_TYPE}
+        ping_server_gears
         /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/haproxy-1.4/logs/haproxy.log 2>&1
         haproxy_ctld_daemon stop > /dev/null 2>&1  || :
         haproxy_ctld_daemon start > /dev/null 2>&1
@@ -103,6 +112,7 @@ function restart() {
 function _reload_haproxy_service() {
     [ -n "$1" ]  &&  zopts="-sf $1"
     src_user_hook pre_start_${CARTRIDGE_TYPE}
+    ping_server_gears
     /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
     run_user_hook post_start_${CARTRIDGE_TYPE}
 

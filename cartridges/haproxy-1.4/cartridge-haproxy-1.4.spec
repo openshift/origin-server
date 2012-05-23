@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.3
+Version: 0.10.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.10.4-1
+- Fix for bugz 82087 -- app gear of a scalable app doesn't waken up from idled
+  status. (ramr@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.10.3-1
 - Automatic commit of package [cartridge-haproxy-1.4] release [0.10.2-1].
   (admiller@redhat.com)
