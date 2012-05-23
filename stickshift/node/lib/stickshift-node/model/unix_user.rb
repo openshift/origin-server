@@ -19,6 +19,7 @@ require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
 require 'syslog'
+require 'fcntl'
 
 module StickShift
   class UserCreationException < Exception
@@ -87,8 +88,8 @@ module StickShift
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
       
-      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do
-            | lock |
+      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do | lock |
+        lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC) 
         lock.flock(File::LOCK_EX)
         
         unless @uid

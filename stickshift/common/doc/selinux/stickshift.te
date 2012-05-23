@@ -1,0 +1,778 @@
+policy_module(stickshift, 1.0)
+
+########################################
+#
+# Declarations
+#
+
+type mcollectived_t;
+type mcollectived_exec_t;
+init_daemon_domain(mcollectived_t, mcollectived_exec_t)
+init_ranged_daemon_domain(mcollectived_t, mcollectived_exec_t, s0 - mcs_systemhigh)
+
+type mcollectived_log_t;
+logging_log_file(mcollectived_log_t)
+
+type mcollectived_tmp_t;
+files_tmp_file(mcollectived_tmp_t)
+
+type mcollectived_var_run_t;
+files_pid_file(mcollectived_var_run_t)
+
+type mcollectived_lock_t;
+files_lock_file(mcollectived_lock_t)
+
+type stickshift_t;
+type stickshift_exec_t;
+application_domain(stickshift_t, stickshift_exec_t)
+role system_r types stickshift_t;
+
+type stickshift_tmp_t;
+files_tmp_file(stickshift_tmp_t)
+
+mcs_process_set_categories(stickshift_t)
+
+type stickshift_file_t;
+files_type(stickshift_file_t)
+
+########################################
+#
+# mcollectived local policy
+#
+#permissive stickshift_t;
+unconfined_domain(stickshift_t)
+
+allow stickshift_t self:capability { setuid audit_write dac_override sys_nice chown fsetid setgid fowner sys_ptrace };
+allow stickshift_t self:process { execmem getcap setpgid setsched signal_perms setexec setfscreate };
+allow stickshift_t self:fifo_file rw_fifo_file_perms;
+allow stickshift_t self:key write;
+allow stickshift_t self:netlink_audit_socket { nlmsg_relay create };
+allow stickshift_t self:sem create_sem_perms;
+allow stickshift_t self:shm create_shm_perms;
+allow stickshift_t self:tcp_socket create_stream_socket_perms;
+allow stickshift_t self:udp_socket create_socket_perms;
+allow stickshift_t self:unix_dgram_socket create_socket_perms;
+allow stickshift_t self:unix_stream_socket { connectto create_stream_socket_perms};
+
+kernel_read_kernel_sysctls(stickshift_t)
+kernel_read_system_state(stickshift_t)
+
+manage_dirs_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_sock_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_lnk_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+files_tmp_filetrans(stickshift_t, stickshift_tmp_t, { file dir sock_file })
+can_exec(stickshift_t, stickshift_tmp_t)
+
+manage_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_sock_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_dirs_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+can_exec(stickshift_t, stickshift_file_t)
+
+corecmd_exec_bin(stickshift_t)
+corecmd_exec_shell(stickshift_t)
+corecmd_exec_all_executables(stickshift_t)
+
+corenet_tcp_bind_all_ports(stickshift_t)
+corenet_tcp_connect_all_ports(stickshift_t)
+
+dev_read_kmsg(stickshift_t)
+dev_read_rand(stickshift_t)
+dev_read_raw_memory(stickshift_t)
+dev_read_urand(stickshift_t)
+dev_getattr_all_blk_files(stickshift_t)
+dev_getattr_all_chr_files(stickshift_t)
+
+term_getattr_all_ptys(stickshift_t)
+term_getattr_all_ttys(stickshift_t)
+
+domain_read_all_domains_state(stickshift_t)
+domain_getattr_all_sockets(stickshift_t)
+domain_getattr_all_pipes(stickshift_t)
+
+files_getattr_all_sockets(stickshift_t)
+files_getattr_all_files(stickshift_t)
+files_getattr_all_pipes(stickshift_t)
+files_read_etc_files(stickshift_t)
+files_read_etc_runtime_files(stickshift_t)
+files_read_usr_files(stickshift_t)
+files_read_var_lib_files(stickshift_t)
+
+application_exec_all(stickshift_t)
+
+auth_use_nsswitch(stickshift_t)
+
+logging_send_syslog_msg(stickshift_t)
+
+init_stream_connect(stickshift_t)
+
+miscfiles_read_localization(stickshift_t)
+miscfiles_read_fonts(stickshift_t)
+
+selinux_compute_access_vector(stickshift_t)
+
+optional_policy(`
+    abrt_stream_connect(stickshift_t)
+')
+
+optional_policy(`
+    apache_exec_modules(stickshift_t)
+    apache_list_modules(stickshift_t)
+    apache_read_config(stickshift_t)
+')
+
+optional_policy(`
+    colord_read_lib_files(stickshift_t)
+')
+
+optional_policy(`
+    cups_stream_connect(stickshift_t)
+')
+
+optional_policy(`
+    dbus_system_bus_client(stickshift_t)
+')
+
+optional_policy(`
+    mysql_read_config(stickshift_t)
+')
+
+optional_policy(`
+    setroubleshoot_stream_connect(stickshift_t)
+')
+
+optional_policy(`
+    systemd_dbus_chat_logind(stickshift_t)
+    systemd_write_inherited_logind_sessions_pipes(stickshift_t)
+')
+
+########################################
+#
+# stickshift local policy
+#
+permissive mcollectived_t;
+allow mcollectived_t self:capability { chown dac_override fsetid kill };
+allow mcollectived_t self:process { signal_perms setcap setexec };
+allow mcollectived_t self:fifo_file rw_fifo_file_perms;
+allow mcollectived_t self:unix_stream_socket { connectto create_stream_socket_perms };
+allow mcollectived_t self:tcp_socket create_stream_socket_perms;
+allow mcollectived_t self:udp_socket create_socket_perms;
+
+#for testing
+domtrans_pattern(unconfined_t, stickshift_exec_t, stickshift_t) 
+allow unconfined_t stickshift_t:process { signull signal sigkill };
+
+domtrans_pattern(mcollectived_t, stickshift_exec_t, stickshift_t) 
+allow mcollectived_t stickshift_t:process { signull signal sigkill };
+
+manage_dirs_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_sock_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+
+manage_files_pattern(mcollectived_t, mcollectived_log_t, mcollectived_log_t)
+manage_dirs_pattern(mcollectived_t, mcollectived_log_t, mcollectived_log_t)
+manage_lnk_files_pattern(mcollectived_t, mcollectived_log_t, mcollectived_log_t)
+logging_log_filetrans(mcollectived_t, mcollectived_log_t, { file dir })
+
+manage_files_pattern(mcollectived_t, mcollectived_tmp_t, mcollectived_tmp_t)
+manage_dirs_pattern(mcollectived_t, mcollectived_tmp_t, mcollectived_tmp_t)
+manage_lnk_files_pattern(mcollectived_t, mcollectived_tmp_t, mcollectived_tmp_t)
+files_tmp_filetrans(mcollectived_t, mcollectived_tmp_t, { file dir })
+
+manage_files_pattern(mcollectived_t, mcollectived_lock_t, mcollectived_lock_t)
+manage_dirs_pattern(mcollectived_t, mcollectived_lock_t, mcollectived_lock_t)
+manage_lnk_files_pattern(mcollectived_t, mcollectived_lock_t, mcollectived_lock_t)
+files_lock_filetrans(mcollectived_t, mcollectived_lock_t, { file dir })
+
+manage_files_pattern(mcollectived_t, mcollectived_var_run_t, mcollectived_var_run_t)
+manage_dirs_pattern(mcollectived_t, mcollectived_var_run_t, mcollectived_var_run_t)
+manage_lnk_files_pattern(mcollectived_t, mcollectived_var_run_t, mcollectived_var_run_t)
+files_pid_filetrans(mcollectived_t, mcollectived_var_run_t, { file dir })
+
+kernel_getattr_message_if(stickshift_t)
+kernel_read_network_state(stickshift_t)
+kernel_read_software_raid_state(stickshift_t)
+kernel_read_kernel_sysctls(mcollectived_t)
+kernel_read_system_state(mcollectived_t)
+
+corecmd_exec_bin(mcollectived_t)
+corecmd_exec_shell(mcollectived_t)
+corecmd_bin_entry_type(stickshift_t)
+
+corenet_tcp_connect_amqp_port(mcollectived_t)
+
+dev_read_urand(mcollectived_t)
+
+domain_use_interactive_fds(mcollectived_t)
+
+files_read_etc_files(mcollectived_t)
+files_read_etc_runtime_files(mcollectived_t)
+
+miscfiles_read_localization(mcollectived_t)
+
+selinux_set_parameters(mcollectived_t)
+selinux_validate_context(mcollectived_t)
+
+usermanage_domtrans_useradd(mcollectived_t)
+
+logging_send_syslog_msg(mcollectived_t)
+
+sysnet_read_config(mcollectived_t)
+
+domain_read_all_domains_state(mcollectived_t)
+
+require {
+    type useradd_t;
+}
+
+manage_dirs_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
+manage_files_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
+
+optional_policy(`
+    gen_require(`
+        type dontdoit_t;
+        type httpd_passenger_helper_t;
+            type http_cache_port_t;
+        type httpd_t;
+    ')
+
+    allow httpd_passenger_helper_t self:capability dac_override;
+    allow httpd_passenger_helper_t http_cache_port_t:tcp_socket name_connect;
+    manage_dirs_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
+    manage_files_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
+    manage_lnk_files_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
+')
+
+gen_require(`
+    type sshd_t;
+')
+read_files_pattern(sshd_t, stickshift_file_t, stickshift_file_t)
+
+#for proxy server to find applications to serve
+gen_require(`
+    type httpd_t;
+    class dir search;
+')
+
+allow httpd_t stickshift_file_t:dir search;
+
+#for ssh login
+require {
+    type unconfined_t;
+    type stickshift_t;
+    class process transition;
+}
+
+#============= unconfined_t ==============
+allow unconfined_t stickshift_t:process transition;
+
+#DHCP networking==========================
+require {
+    type ephemeral_port_t;
+    type dhcpc_t;
+    class udp_socket name_bind;
+}
+
+allow dhcpc_t ephemeral_port_t:udp_socket name_bind;
+
+#============ dont audits ================
+
+require {
+	class blk_file getattr;
+	class capability { setuid audit_write setgid };
+	class capability { sys_nice sys_resource sys_ptrace fowner sys_chroot };
+	class chr_file { getattr append };
+	class dbus send_msg;
+	class dir { search read create write getattr rmdir remove_name open add_name };
+	class dir { write getattr read remove_name search add_name };
+	class fifo_file getattr;
+	class file { execute read create ioctl execute_no_trans write getattr unlink open };
+	class file { ioctl write getattr read create unlink open execute execute_no_trans };
+	class filesystem getattr;
+	class key write;
+	class lnk_file read;
+	class netlink_audit_socket { nlmsg_relay getattr create };
+	class netlink_kobject_uevent_socket getattr;
+	class netlink_route_socket { getattr setopt bind create nlmsg_read };
+	class netlink_selinux_socket getattr;
+	class netlink_socket getattr;
+	class packet_socket getattr;
+	class process { fork setsched signal signull };
+	class process { signal setfscreate setrlimit };
+	class sock_file getattr;
+	class sock_file { rename create unlink link };
+	class tcp_socket { name_bind getattr node_bind };
+	class tcp_socket { read create name_connect getattr };
+	class udp_socket { create getattr };
+	class udp_socket getattr;
+	class unix_dgram_socket getattr;
+	class unix_stream_socket getattr;
+	type abrt_dump_oops_exec_t;
+	type abrt_exec_t;
+	type abrt_t;
+	type accountsd_exec_t;
+	type accountsd_t;
+	type anacron_exec_t;
+	type audisp_exec_t;
+	type audisp_t;
+	type auditd_exec_t;
+	type auditd_log_t;
+	type auditd_t;
+	type autofs_device_t;
+	type avahi_exec_t;
+	type avahi_t;
+	type avahi_var_run_t;
+	type boot_t;
+	type cache_home_t;
+	type cert_t;
+	type chronyd_exec_t;
+	type chronyd_t;
+	type colord_exec_t;
+	type colord_t;
+	type colord_var_lib_t;
+	type configfs_t;
+	type config_home_t;
+	type consolekit_exec_t;
+	type consolekit_t;
+	type consoletype_exec_t;
+	type crond_exec_t;
+	type crond_t;
+	type crond_var_run_t;
+	type cupsd_exec_t;
+	type cupsd_t;
+	type cupsd_var_run_t;
+	type data_home_t;
+	type dbusd_exec_t;
+	type devicekit_disk_exec_t;
+	type devicekit_disk_t;
+	type devicekit_power_exec_t;
+	type devicekit_power_t;
+	type dhcpc_exec_t;
+	type dhcpc_state_t;
+	type dhcpc_t;
+	type ephemeral_port_t;
+	type etc_t;
+	type event_device_t;
+	type fcoemon_exec_t;
+	type fcoemon_t;
+	type fcoemon_var_run_t;
+	type file_context_t;
+	type fixed_disk_device_t;
+	type fonts_cache_t;
+	type fonts_t;
+	type fprintd_t;
+	type fs_t;
+	type fuse_device_t;
+	type fusefs_t;
+	type gkeyringd_exec_t;
+	type gpg_exec_t;
+	type home_root_t;
+	type http_cache_port_t;
+	type httpd_config_t;
+	type httpd_exec_t;
+	type httpd_initrc_exec_t;
+	type httpd_modules_t;
+	type httpd_passwd_exec_t;
+	type httpd_rotatelogs_exec_t;
+	type httpd_suexec_exec_t;
+	type httpd_t;
+	type httpd_tmp_t;
+	type httpd_var_run_t;
+	type hugetlbfs_t;
+	type ifconfig_exec_t;
+	type initctl_t;
+	type init_exec_t;
+	type initrc_exec_t;
+	type initrc_t;
+	type initrc_var_run_t;
+	type init_var_run_t;
+	type irqbalance_exec_t;
+	type iscsid_exec_t;
+	type iscsid_t;
+	type iscsi_var_run_t;
+	type java_exec_t;
+	type keyboardd_exec_t;
+	type kmsg_device_t;
+	type krb5_conf_t;
+	type ldconfig_t;
+	type lldpad_exec_t;
+	type lldpad_t;
+	type lldpad_var_run_t;
+	type lvm_var_run_t;
+	type mcelog_exec_t;
+	type mcelog_t;
+	type mcelog_var_run_t;
+	type mcollectived_t;
+	type memory_device_t;
+	type mongod_exec_t;
+	type mongod_t;
+	type mongod_tmp_t;
+	type mongod_var_lib_t;
+	type mqueue_spool_t;
+	type mtrr_device_t;
+	type named_cache_t;
+	type named_exec_t;
+	type named_t;
+	type named_zone_t;
+	type netcontrol_device_t;
+	type node_t;
+	type null_device_t;
+	type policykit_exec_t;
+	type policykit_t;
+	type proc_kmsg_t;
+	type proc_mdstat_t;
+	type proc_net_t;
+	type ptmx_t;
+	type pulseaudio_exec_t;
+	type pulseaudio_home_t;
+	type qpidd_exec_t;
+	type qpidd_t;
+	type qpidd_var_lib_t;
+	type random_device_t;
+	type removable_t;
+	type restorecond_exec_t;
+	type root_t;
+	type rpm_exec_t;
+	type rpm_t;
+	type rtkit_daemon_exec_t;
+	type rtkit_daemon_t;
+	type semanage_store_t;
+	type sendmail_exec_t;
+	type sendmail_t;
+	type sendmail_var_run_t;
+	type setroubleshootd_t;
+	type setroubleshoot_var_run_t;
+	type sound_device_t;
+	type ssh_agent_exec_t;
+	type sshd_exec_t;
+	type sshd_t;
+	type ssh_keygen_exec_t;
+	type stickshift_file_t;
+	type stickshift_t;
+	type sudo_exec_t;
+	type su_exec_t;
+	type sysctl_net_t;
+	type syslogd_exec_t;
+	type syslogd_t;
+	type system_cronjob_t;
+	type system_cron_spool_t;
+	type system_dbusd_t;
+	type system_dbusd_var_run_t;
+	type systemd_logind_exec_t;
+	type systemd_logind_sessions_t;
+	type systemd_logind_t;
+	type system_mail_t;
+	type telepathy_mission_control_exec_t;
+	type tmp_t;
+	type udev_exec_t;
+	type udev_t;
+	type udev_var_run_t;
+	type unconfined_dbusd_t;
+	type unconfined_java_t;
+	type unconfined_t;
+	type unlabeled_t;
+	type unreserved_port_t;
+	type user_cron_spool_t;
+	type user_home_dir_t;
+	type user_home_t;
+	type user_tmpfs_t;
+	type user_tmp_t;
+	type usr_t;
+	type var_lib_t;
+	type var_lock_t;
+	type var_run_t;
+	type xdm_exec_t;
+	type xdm_t;
+	type xdm_tmp_t;
+	type xdm_var_run_t;
+	type xserver_exec_t;
+	type xserver_log_t;
+	type xserver_misc_device_t;
+	type xserver_t; 
+}
+
+#============= mcollectived_t ==============
+dontaudit mcollectived_t abrt_dump_oops_exec_t:file getattr;
+dontaudit mcollectived_t abrt_exec_t:file getattr;
+dontaudit mcollectived_t abrt_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t abrt_t:unix_stream_socket getattr;
+dontaudit mcollectived_t accountsd_exec_t:file getattr;
+dontaudit mcollectived_t accountsd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t audisp_exec_t:file getattr;
+dontaudit mcollectived_t audisp_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t audisp_t:unix_stream_socket getattr;
+dontaudit mcollectived_t auditd_exec_t:file getattr;
+dontaudit mcollectived_t auditd_log_t:file getattr;
+dontaudit mcollectived_t auditd_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t auditd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t auditd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t autofs_device_t:chr_file getattr;
+dontaudit mcollectived_t avahi_exec_t:file getattr;
+dontaudit mcollectived_t avahi_t:fifo_file getattr;
+dontaudit mcollectived_t avahi_t:netlink_route_socket getattr;
+dontaudit mcollectived_t avahi_t:udp_socket getattr;
+dontaudit mcollectived_t avahi_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t avahi_t:unix_stream_socket getattr;
+dontaudit mcollectived_t avahi_var_run_t:dir search;
+dontaudit mcollectived_t avahi_var_run_t:sock_file getattr;
+dontaudit mcollectived_t boot_t:dir getattr;
+dontaudit mcollectived_t cache_home_t:dir getattr;
+dontaudit mcollectived_t cache_home_t:file getattr;
+dontaudit mcollectived_t cert_t:file getattr;
+dontaudit mcollectived_t chronyd_exec_t:file getattr;
+dontaudit mcollectived_t chronyd_t:udp_socket getattr;
+dontaudit mcollectived_t chronyd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t colord_exec_t:file getattr;
+dontaudit mcollectived_t colord_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t colord_t:unix_stream_socket getattr;
+dontaudit mcollectived_t colord_var_lib_t:file getattr;
+dontaudit mcollectived_t config_home_t:file getattr;
+dontaudit mcollectived_t configfs_t:dir getattr;
+dontaudit mcollectived_t consolekit_exec_t:file getattr;
+dontaudit mcollectived_t consolekit_t:fifo_file getattr;
+dontaudit mcollectived_t consolekit_t:unix_stream_socket getattr;
+dontaudit mcollectived_t consoletype_exec_t:file { read execute open execute_no_trans };
+dontaudit mcollectived_t crond_exec_t:file getattr;
+dontaudit mcollectived_t crond_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t crond_var_run_t:file getattr;
+dontaudit mcollectived_t cupsd_exec_t:file getattr;
+dontaudit mcollectived_t cupsd_t:fifo_file getattr;
+dontaudit mcollectived_t cupsd_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t cupsd_t:tcp_socket getattr;
+dontaudit mcollectived_t cupsd_t:udp_socket getattr;
+dontaudit mcollectived_t cupsd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t cupsd_var_run_t:dir search;
+dontaudit mcollectived_t cupsd_var_run_t:sock_file getattr;
+dontaudit mcollectived_t data_home_t:file getattr;
+dontaudit mcollectived_t dbusd_exec_t:file getattr;
+dontaudit mcollectived_t devicekit_disk_exec_t:file getattr;
+dontaudit mcollectived_t devicekit_disk_t:fifo_file getattr;
+dontaudit mcollectived_t devicekit_disk_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t devicekit_disk_t:unix_stream_socket getattr;
+dontaudit mcollectived_t devicekit_power_exec_t:file getattr;
+dontaudit mcollectived_t devicekit_power_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t devicekit_power_t:unix_stream_socket getattr;
+dontaudit mcollectived_t dhcpc_exec_t:file getattr;
+dontaudit mcollectived_t dhcpc_state_t:file getattr;
+dontaudit mcollectived_t dhcpc_t:packet_socket getattr;
+dontaudit mcollectived_t dhcpc_t:udp_socket getattr;
+dontaudit mcollectived_t dhcpc_t:unix_dgram_socket getattr;
+#!!!! The source type 'mcollectived_t' can write to a 'dir' of the following types:
+# var_run_t, var_log_t, stickshift_file_t, var_lock_t, tmp_t, mcollectived_var_run_t, mcollectived_tmp_t, mcollectived_log_t, mcollectived_lock_t, root_t
+
+dontaudit mcollectived_t etc_t:dir { write add_name };
+dontaudit mcollectived_t etc_t:file { write create };
+dontaudit mcollectived_t event_device_t:chr_file getattr;
+dontaudit mcollectived_t fcoemon_exec_t:file getattr;
+dontaudit mcollectived_t fcoemon_t:netlink_route_socket getattr;
+dontaudit mcollectived_t fcoemon_t:netlink_socket getattr;
+dontaudit mcollectived_t fcoemon_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t fcoemon_var_run_t:dir search;
+dontaudit mcollectived_t fcoemon_var_run_t:sock_file getattr;
+dontaudit mcollectived_t fixed_disk_device_t:blk_file getattr;
+dontaudit mcollectived_t fonts_cache_t:file getattr;
+dontaudit mcollectived_t fonts_t:file getattr;
+dontaudit mcollectived_t fs_t:filesystem getattr;
+dontaudit mcollectived_t fuse_device_t:chr_file getattr;
+dontaudit mcollectived_t fusefs_t:dir getattr;
+dontaudit mcollectived_t gkeyringd_exec_t:file getattr;
+dontaudit mcollectived_t home_root_t:dir getattr;
+dontaudit mcollectived_t http_cache_port_t:tcp_socket name_connect;
+#!!!! The source type 'mcollectived_t' can write to a 'dir' of the following types:
+# stickshift_file_t, mcollectived_var_run_t, mcollectived_tmp_t, mcollectived_log_t, mcollectived_lock_t
+
+dontaudit mcollectived_t httpd_config_t:dir { read create write getattr rmdir remove_name open add_name };
+#!!!! The source type 'mcollectived_t' can write to a 'file' of the following types:
+# stickshift_file_t, mcollectived_var_run_t, mcollectived_tmp_t, mcollectived_log_t, mcollectived_lock_t, root_t
+
+dontaudit mcollectived_t httpd_config_t:file { write getattr read create unlink open };
+dontaudit mcollectived_t httpd_config_t:lnk_file read;
+dontaudit mcollectived_t httpd_exec_t:file { read execute open getattr execute_no_trans };
+dontaudit mcollectived_t httpd_initrc_exec_t:file { execute getattr read open ioctl execute_no_trans };
+dontaudit mcollectived_t httpd_modules_t:dir search;
+dontaudit mcollectived_t httpd_modules_t:file { read getattr open execute };
+dontaudit mcollectived_t httpd_modules_t:lnk_file read;
+dontaudit mcollectived_t httpd_passwd_exec_t:file getattr;
+dontaudit mcollectived_t httpd_suexec_exec_t:file { read getattr execute };
+dontaudit mcollectived_t httpd_t:fifo_file getattr;
+dontaudit mcollectived_t httpd_t:process { signal signull };
+dontaudit mcollectived_t httpd_t:tcp_socket getattr;
+dontaudit mcollectived_t httpd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t httpd_tmp_t:sock_file getattr;
+dontaudit mcollectived_t httpd_var_run_t:dir search;
+dontaudit mcollectived_t httpd_var_run_t:file { read open };
+dontaudit mcollectived_t hugetlbfs_t:dir getattr;
+dontaudit mcollectived_t init_exec_t:file getattr;
+dontaudit mcollectived_t init_var_run_t:sock_file getattr;
+dontaudit mcollectived_t initctl_t:fifo_file getattr;
+dontaudit mcollectived_t initrc_exec_t:file { ioctl execute read open getattr execute_no_trans };
+dontaudit mcollectived_t initrc_t:netlink_socket getattr;
+dontaudit mcollectived_t initrc_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t initrc_var_run_t:file getattr;
+dontaudit mcollectived_t irqbalance_exec_t:file getattr;
+dontaudit mcollectived_t iscsi_var_run_t:file getattr;
+dontaudit mcollectived_t iscsid_exec_t:file getattr;
+dontaudit mcollectived_t iscsid_t:netlink_socket getattr;
+dontaudit mcollectived_t iscsid_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t iscsid_t:unix_stream_socket getattr;
+dontaudit mcollectived_t java_exec_t:file getattr;
+dontaudit mcollectived_t keyboardd_exec_t:file getattr;
+dontaudit mcollectived_t kmsg_device_t:chr_file getattr;
+dontaudit mcollectived_t lldpad_exec_t:file getattr;
+dontaudit mcollectived_t lldpad_t:netlink_route_socket getattr;
+dontaudit mcollectived_t lldpad_t:packet_socket getattr;
+dontaudit mcollectived_t lldpad_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t lldpad_var_run_t:file getattr;
+dontaudit mcollectived_t lvm_var_run_t:fifo_file getattr;
+dontaudit mcollectived_t mcelog_exec_t:file getattr;
+dontaudit mcollectived_t mcelog_t:unix_stream_socket getattr;
+dontaudit mcollectived_t mcelog_var_run_t:sock_file getattr;
+dontaudit mcollectived_t memory_device_t:chr_file getattr;
+dontaudit mcollectived_t mongod_exec_t:file getattr;
+dontaudit mcollectived_t mongod_t:tcp_socket getattr;
+dontaudit mcollectived_t mongod_t:unix_stream_socket getattr;
+dontaudit mcollectived_t mongod_tmp_t:sock_file getattr;
+dontaudit mcollectived_t mongod_var_lib_t:dir search;
+dontaudit mcollectived_t mongod_var_lib_t:file getattr;
+dontaudit mcollectived_t mqueue_spool_t:dir getattr;
+dontaudit mcollectived_t mtrr_device_t:file getattr;
+dontaudit mcollectived_t named_cache_t:file getattr;
+dontaudit mcollectived_t named_exec_t:file getattr;
+dontaudit mcollectived_t named_t:fifo_file getattr;
+dontaudit mcollectived_t named_t:tcp_socket getattr;
+dontaudit mcollectived_t named_t:udp_socket getattr;
+dontaudit mcollectived_t named_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t named_zone_t:dir getattr;
+dontaudit mcollectived_t netcontrol_device_t:chr_file getattr;
+dontaudit mcollectived_t policykit_exec_t:file getattr;
+dontaudit mcollectived_t policykit_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t policykit_t:unix_stream_socket getattr;
+dontaudit mcollectived_t proc_kmsg_t:file getattr;
+dontaudit mcollectived_t proc_mdstat_t:file getattr;
+dontaudit mcollectived_t proc_net_t:file { read getattr open };
+dontaudit mcollectived_t ptmx_t:chr_file getattr;
+dontaudit mcollectived_t pulseaudio_exec_t:file getattr;
+dontaudit mcollectived_t pulseaudio_home_t:dir search;
+dontaudit mcollectived_t pulseaudio_home_t:file getattr;
+dontaudit mcollectived_t pulseaudio_home_t:lnk_file read;
+dontaudit mcollectived_t qpidd_exec_t:file getattr;
+dontaudit mcollectived_t qpidd_t:fifo_file getattr;
+dontaudit mcollectived_t qpidd_t:tcp_socket getattr;
+dontaudit mcollectived_t qpidd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t qpidd_var_lib_t:dir getattr;
+dontaudit mcollectived_t qpidd_var_lib_t:file getattr;
+dontaudit mcollectived_t random_device_t:chr_file getattr;
+dontaudit mcollectived_t removable_t:dir getattr;
+dontaudit mcollectived_t restorecond_exec_t:file getattr;
+dontaudit mcollectived_t rpm_exec_t:file getattr;
+dontaudit mcollectived_t rpm_t:unix_stream_socket getattr;
+dontaudit mcollectived_t rtkit_daemon_exec_t:file getattr;
+dontaudit mcollectived_t rtkit_daemon_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t rtkit_daemon_t:unix_stream_socket getattr;
+dontaudit mcollectived_t self:capability { setuid setgid audit_write };
+dontaudit mcollectived_t self:key write;
+dontaudit mcollectived_t self:netlink_audit_socket { nlmsg_relay create };
+dontaudit mcollectived_t self:netlink_route_socket { bind create getattr nlmsg_read setopt };
+dontaudit mcollectived_t self:process setsched;
+dontaudit mcollectived_t sendmail_exec_t:file getattr;
+dontaudit mcollectived_t sendmail_t:tcp_socket getattr;
+dontaudit mcollectived_t sendmail_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t sendmail_var_run_t:file getattr;
+dontaudit mcollectived_t setroubleshoot_var_run_t:dir search;
+dontaudit mcollectived_t setroubleshoot_var_run_t:sock_file getattr;
+dontaudit mcollectived_t setroubleshootd_t:fifo_file getattr;
+dontaudit mcollectived_t setroubleshootd_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t setroubleshootd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t setroubleshootd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t sound_device_t:chr_file getattr;
+dontaudit mcollectived_t ssh_agent_exec_t:file getattr;
+dontaudit mcollectived_t sshd_exec_t:file getattr;
+dontaudit mcollectived_t sshd_t:tcp_socket getattr;
+dontaudit mcollectived_t su_exec_t:file getattr;
+dontaudit mcollectived_t sudo_exec_t:file getattr;
+dontaudit mcollectived_t syslogd_exec_t:file getattr;
+dontaudit mcollectived_t syslogd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t system_cron_spool_t:file getattr;
+dontaudit mcollectived_t system_cronjob_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t system_dbusd_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t system_dbusd_t:netlink_selinux_socket getattr;
+dontaudit mcollectived_t system_dbusd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t system_dbusd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t system_dbusd_var_run_t:dir search;
+dontaudit mcollectived_t system_dbusd_var_run_t:sock_file getattr;
+dontaudit mcollectived_t systemd_logind_exec_t:file getattr;
+dontaudit mcollectived_t systemd_logind_sessions_t:fifo_file getattr;
+dontaudit mcollectived_t systemd_logind_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t systemd_logind_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t systemd_logind_t:unix_stream_socket getattr;
+dontaudit mcollectived_t telepathy_mission_control_exec_t:file getattr;
+dontaudit mcollectived_t tmp_t:file getattr;
+dontaudit mcollectived_t udev_exec_t:file getattr;
+dontaudit mcollectived_t udev_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t udev_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t udev_t:unix_stream_socket getattr;
+dontaudit mcollectived_t udev_var_run_t:file getattr;
+dontaudit mcollectived_t unconfined_dbusd_t:netlink_selinux_socket getattr;
+dontaudit mcollectived_t unconfined_dbusd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t unconfined_dbusd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t unconfined_java_t:tcp_socket getattr;
+dontaudit mcollectived_t unconfined_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t unconfined_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t unconfined_t:tcp_socket getattr;
+dontaudit mcollectived_t unconfined_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t user_cron_spool_t:dir getattr;
+dontaudit mcollectived_t user_home_dir_t:dir { search getattr };
+dontaudit mcollectived_t user_tmp_t:sock_file getattr;
+dontaudit mcollectived_t user_tmpfs_t:file getattr;
+dontaudit mcollectived_t usr_t:file getattr;
+dontaudit mcollectived_t var_lib_t:file getattr;
+dontaudit mcollectived_t var_run_t:file getattr;
+dontaudit mcollectived_t xdm_exec_t:file getattr;
+dontaudit mcollectived_t xdm_t:netlink_audit_socket getattr;
+dontaudit mcollectived_t xdm_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t xdm_t:unix_stream_socket getattr;
+dontaudit mcollectived_t xdm_tmp_t:sock_file getattr;
+dontaudit mcollectived_t xdm_var_run_t:file getattr;
+dontaudit mcollectived_t xserver_exec_t:file getattr;
+dontaudit mcollectived_t xserver_log_t:dir getattr;
+dontaudit mcollectived_t xserver_misc_device_t:chr_file getattr;
+dontaudit mcollectived_t xserver_t:netlink_kobject_uevent_socket getattr;
+dontaudit mcollectived_t xserver_t:unix_stream_socket getattr;
+dontaudit mcollectived_t anacron_exec_t:file getattr;
+dontaudit mcollectived_t config_home_t:dir search;
+dontaudit mcollectived_t ephemeral_port_t:tcp_socket name_bind;
+dontaudit mcollectived_t file_context_t:dir search;
+dontaudit mcollectived_t file_context_t:file { read getattr open };
+dontaudit mcollectived_t fprintd_t:fifo_file getattr;
+dontaudit mcollectived_t fprintd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t gpg_exec_t:file execute;
+dontaudit mcollectived_t httpd_rotatelogs_exec_t:file getattr;
+dontaudit mcollectived_t httpd_tmp_t:file getattr;
+dontaudit mcollectived_t ifconfig_exec_t:file { read getattr open execute execute_no_trans };
+dontaudit mcollectived_t initrc_t:process signal;
+dontaudit mcollectived_t initrc_t:tcp_socket getattr;
+dontaudit mcollectived_t initrc_t:udp_socket getattr;
+dontaudit mcollectived_t initrc_var_run_t:file { read unlink open };
+dontaudit mcollectived_t krb5_conf_t:file { read getattr open };
+dontaudit mcollectived_t node_t:tcp_socket node_bind;
+dontaudit mcollectived_t self:capability { sys_nice sys_chroot sys_resource sys_ptrace fowner };
+dontaudit mcollectived_t self:process { setfscreate setrlimit };
+dontaudit mcollectived_t semanage_store_t:file getattr;
+dontaudit mcollectived_t ssh_keygen_exec_t:file { read execute open execute_no_trans };
+dontaudit mcollectived_t sshd_t:unix_dgram_socket getattr;
+dontaudit mcollectived_t sshd_t:unix_stream_socket getattr;
+dontaudit mcollectived_t sysctl_net_t:dir search;
+dontaudit mcollectived_t system_cron_spool_t:dir getattr;
+dontaudit mcollectived_t unreserved_port_t:tcp_socket name_bind;
+dontaudit mcollectived_t user_home_t:dir getattr;
+dontaudit mcollectived_t usr_t:file { read ioctl open };
+dontaudit mcollectived_t usr_t:lnk_file read;
+dontaudit mcollectived_t var_lib_t:dir { write remove_name add_name };
+dontaudit mcollectived_t var_lib_t:sock_file { rename create unlink link };
+dontaudit mcollectived_t var_lock_t:file getattr;
+
+#============= qpidd_t ==============
+dontaudit qpidd_t proc_net_t:file read;
