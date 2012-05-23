@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.2
+Version: 0.10.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,39 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.10.4-1
+- Fix for bugz 82087 -- app gear of a scalable app doesn't waken up from idled
+  status. (ramr@redhat.com)
+
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.10.3-1
+- Automatic commit of package [cartridge-haproxy-1.4] release [0.10.2-1].
+  (admiller@redhat.com)
+- Fix for bugz 822476. Make the isrunning check more resilient.
+  (ramr@redhat.com)
+- Add a haproxy log file, so that there's some additional info.
+  (ramr@redhat.com)
+- Add update namespace support for scalable apps. (ramr@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Fix for bugz 820051 - Allow scalable gears to be moved. (ramr@redhat.com)
+- Bug fix to get scalable apps working. (ramr@redhat.com)
+- Revert to cartridge type -- no app types any more. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Use a utility function to remove the cartridge instance dir.
+  (ramr@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Add and use cartridge instance specific functions. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+- Breakout HTTP configuration/proxy (jhonce@redhat.com)
+- For US2109, fixup usage of repo and logs in cartridges. (ramr@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
 - Fix for bugz 822476. Make the isrunning check more resilient.
   (ramr@redhat.com)

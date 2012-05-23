@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.3
+Version: 0.11.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,59 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.11.6-1
+- The grep should return not found since the namespace was deleted.
+  (rmillner@redhat.com)
+
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.5-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Automatic commit of package [rubygem-stickshift-controller] release
+  [0.11.2-1]. (admiller@redhat.com)
+- Add update namespace support for scalable apps. (ramr@redhat.com)
+- more shuffling of tests (dmcphers@redhat.com)
+- increase a couple of timeouts (dmcphers@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- The rhc tools still require ~/.openshift/express.conf.  Create the file as a
+  precursor to using them. (rmillner@redhat.com)
+- Updated jenkins_steps to reflect new testing methods (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- adding test cases for gear_groups rest api and changing tag from cartridge to
+  cartridges as it is a list (abhgupta@redhat.com)
+- fixing file permissions - controller should not have execute permission
+  (abhgupta@redhat.com)
+- fix for bug 811221 - when deleting a non-existent domain name, the exit code
+  was being returned as 0 (abhgupta@redhat.com)
+- adding link to get gear groups in the application object rest response
+  (abhgupta@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Bug fixes to get tests running - mysql and python fixes, delete user dirs
+  otherwise rhc-accept-node fails and tests fail. (ramr@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Report back the allowed sizes for the specific user and mention contacting
+  support for access to additional sizes. (rmillner@redhat.com)
+- Automatic commit of package [rubygem-stickshift-controller] release
+  [0.10.5-1]. (admiller@redhat.com)
+- Bugz806935. Print application deletion message even if cartridges return
+  information. (kraman@gmail.com)
+- Fix up cuke tests for first round of typeless gear changes. (ramr@redhat.com)
+
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.11.4-1
+- add usage observer (dmcphers@redhat.com)
+- Cucumber tests for US2135 - package.json support. (ramr@redhat.com)
+- stop setting global temp dir from php test (dmcphers@redhat.com)
+- Merge pull request #41 from mrunalp/master (smitram@gmail.com)
+- Minor fix. (mpatel@redhat.com)
+- remove too verbose debug (dmcphers@redhat.com)
+- Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
+
 * Fri May 18 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
 - test simplification (dmcphers@redhat.com)
 - test simplification (dmcphers@redhat.com)

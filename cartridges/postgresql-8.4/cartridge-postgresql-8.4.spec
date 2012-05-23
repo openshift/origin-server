@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.9.1
+Version: 0.9.2
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.9.2-1
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bumping spec versions (admiller@redhat.com)
 

@@ -34,6 +34,7 @@ fi
 setup_basic_vars
 
 . $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+cartridge_type=$OPENSHIFT_GEAR_TYPE
 
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info
 
@@ -41,6 +42,7 @@ unobfuscate_app_home $uuid $namespace $application
 
 observe_setup_app_home
 observe_setup_app_and_git_dirs
+observe_setup_cart_instance_dir
 
 #
 # Find an open localhost IP

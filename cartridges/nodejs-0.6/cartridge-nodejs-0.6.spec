@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.2
+Version: 0.8.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,40 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.8.4-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Fixup from merge (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Automatic commit of package [cartridge-nodejs-0.6] release [0.8.2-1].
+  (admiller@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Revert to cartridge type -- no app types any more. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Use a utility function to remove the cartridge instance dir.
+  (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Automatic commit of package [cartridge-nodejs-0.6] release [0.7.4-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Add and use cartridge instance specific functions. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+- For US2109, fixup usage of repo and logs in cartridges. (ramr@redhat.com)
+
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.8.3-1
+- Add support for package.json - US2135. (ramr@redhat.com)
+- Changes to descriptors/specs to execute the new connector.
+  (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Add sample user pre/post hooks. (rmillner@redhat.com)

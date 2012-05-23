@@ -42,7 +42,7 @@ function prepare_gear_for_standalone_mongodb() {
     #
     IP=`find_open_ip $uid $uuid`
 
-    create_app_ctl_script "$app_type"
+    create_app_ctl_script "$gear_type"
     populate_repo_dir
     secure_app_dir
     observe_setup_app_and_git_dirs
@@ -78,13 +78,14 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="mongodb-2.0"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
-app_type="mongodb-2.0"
+gear_type="mongodb-2.0"
 
-if [ -z "$(get_app_type $3)" ]; then
+if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
     #  This gear is dedicated to running mongodb - configure it as such.
     prepare_gear_for_standalone_mongodb "$@"
 fi
@@ -93,7 +94,7 @@ setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-MONGODB_DIR="$APP_HOME/mongodb-2.0/"
+MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Detect IP
@@ -109,7 +110,8 @@ then
     client_error "Embedded mongodb-2.0 already attached to $application"
     exit 132
 fi
-mkdir -p "$MONGODB_DIR"
+
+create_cartridge_instance_dir "$cartridge_type"
 pushd "$MONGODB_DIR" > /dev/null
 mkdir -p log etc data socket pid run
 sed "s,RHC_MONGODIR,$MONGODB_DIR," $CART_ETC_DIR/mongodb.conf > $MONGODB_DIR/etc/mongodb.conf
@@ -183,7 +185,12 @@ client_result ""
 client_result "       Root User: admin"
 client_result "   Root Password: $password"
 client_result "   Database Name: $application"
-client_result "  Connection URL: mongodb://$IP:27017/"
+if is_a_scalable_app; then
+    source $APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST
+    client_result "  Connection URL: mongodb://$OPENSHIFT_NOSQL_DB_HOST:$mongodb_port/"
+else
+    client_result "  Connection URL: mongodb://$IP:$mongodb_port/"
+fi
 client_result ""
 client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 

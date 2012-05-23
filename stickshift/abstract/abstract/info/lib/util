@@ -92,11 +92,18 @@ function start_dbs {
     done
 }
 
-function get_app_type {
-    source /etc/stickshift/stickshift-node.conf
-    [ -z "$OPENSHIFT_GEAR_TYPE" ]  && \
-        source_if_exists "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_GEAR_TYPE"
-    echo "$OPENSHIFT_GEAR_TYPE"
+function source_if_exists {
+    [ -f "$1" ]  &&  source "$1"
+    return 0
+}
+
+function get_cartridge_instance_dir {
+    carttype=${1:-$cartridge_type}
+    if [ -n "$carttype" ]; then
+        echo "$APP_HOME/$carttype"
+    else
+        error "${application}. Cartridge type '$carttype' not set." 142
+    fi
 }
 
 function is_a_scalable_app {
@@ -130,40 +137,31 @@ EOF
 }
 
 function create_standard_env_vars {
-    echo "export OPENSHIFT_GEAR_DIR='$APP_DIR/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_GEAR_DIR
     echo "export OPENSHIFT_LOG_DIR='$APP_DIR/logs/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_LOG_DIR
-    echo "export OPENSHIFT_DATA_DIR='$APP_DIR/data/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_DATA_DIR
-    echo "export OPENSHIFT_TMP_DIR='/tmp/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_TMP_DIR
+                                      $APP_HOME/.env/OPENSHIFT_LOG_DIR
     echo "export OPENSHIFT_RUN_DIR='$APP_DIR/run/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_RUN_DIR
-    echo "export OPENSHIFT_GEAR_NAME='$application'" > \
-                                        $APP_HOME/.env/OPENSHIFT_GEAR_NAME
-    echo "export OPENSHIFT_GEAR_TYPE='$app_type'" > \
-                                        $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+                                      $APP_HOME/.env/OPENSHIFT_RUN_DIR
+    echo "export OPENSHIFT_GEAR_TYPE='$cartridge_type'" > \
+                                      $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
     echo "export OPENSHIFT_RUNTIME_DIR='$APP_DIR/runtime/'" > \
-                                        $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
+                                      $APP_HOME/.env/OPENSHIFT_RUNTIME_DIR
+}
+
+function create_standard_env_uservars {
     create_env_uservars_dir
     create_env_uservars_script
 }
 
 function create_standard_network_env_vars {
-    echo "export OPENSHIFT_INTERNAL_IP='$IP'" > \
-                $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-    echo "export OPENSHIFT_INTERNAL_PORT='8080'" > \
-                $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
-    echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$APP_DIR/${application}_ctl.sh'" > \
-                $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
-    echo "export OPENSHIFT_GEAR_DNS='${application}-${namespace}.${CLOUD_DOMAIN}'" > \
-                $APP_HOME/.env/OPENSHIFT_GEAR_DNS
+    cinstancedir=$(get_cartridge_instance_dir)
+    echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
+    echo "export OPENSHIFT_INTERNAL_PORT='8080'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
+    echo "export OPENSHIFT_GEAR_CTL_SCRIPT='$cinstancedir/${application}_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_GEAR_CTL_SCRIPT
 }
 
 function create_standard_repo_dir_env_var {
-    echo "export OPENSHIFT_REPO_DIR='$APP_DIR/repo/'" > \
-                $APP_HOME/.env/OPENSHIFT_REPO_DIR
+    # see model/unix_user.rb
+    true
 }
 
 function create_standard_path_env_var {
@@ -175,8 +173,22 @@ function create_custom_uservars_var {
 }
 
 function create_standard_app_dirs {
-	mkdir -p run tmp data ci runtime/repo
-	ln -s runtime/repo repo
+    mkdir -p run tmp ci
+    ln -s ../app/repo repo
+    ln -s ../app/data data
+}
+
+function create_cartridge_instance_dir {
+    carttype=${1:-$cartridge_type}
+    if [ -n "$carttype" ]; then
+        mkdir -p "$APP_HOME/$carttype"
+    else
+        error "${application}. Cartridge type '$carttype' not set." 141
+    fi
+}
+
+function create_app_dir_symlink {
+    ln -s "$1" "$APP_DIR"
 }
 
 # Create simple application start / stop script
@@ -207,42 +219,53 @@ done
 app_ctl.sh \$1
 EOF
 
-chmod +x "$APP_DIR/${application}_ctl.sh" || \
+    chmod +x "$APP_DIR/${application}_ctl.sh" || \
         error "Failed to chmod new application scripts" 122
 
 }
 
 function secure_app_dir {
-    chown $user_id.$group_id -R $APP_DIR || \
+    chown -R $user_id.$group_id "$APP_HOME/app" || \
         error "Failed to chown new application space." 123
     chown root.root "$APP_DIR"
-    if [ -f $APP_DIR/${application}_ctl.sh ]
+}
+
+function secure_cart_instance_dir {
+    cinstancedir=$(get_cartridge_instance_dir)
+    chown $user_id.$group_id -R "$cinstancedir" || \
+        error "Failed to chown new application space." 123
+    chown root.root "$cinstancedir"
+    if [ -f "$cinstancedir/${application}_ctl.sh" ]
     then
-      chown root.root "$APP_DIR/${application}_ctl.sh"
+      chown root.root "$cinstancedir/${application}_ctl.sh"
     fi
 }
 
 function secure_conf_dirs {
-    chown root:root -R "$APP_DIR/conf" "$APP_DIR/conf.d"
+    cinstancedir=$(get_cartridge_instance_dir)
+    chown root:root -R "$cinstancedir/conf" "$cinstancedir/conf.d"
 }
 
-function check_app_dir_doesnt_exist {
-    if [ -d "$APP_DIR" ] 
-    then
-        error "${application}.  Please destroy then recreate, or pick a new name: $APP_DIR" 132
+function check_cartridge_dir_doesnt_exist {
+    if [ -d "$APP_HOME/$cartridge_type" ]; then
+        error "${application}. Cartridge directory $APP_HOME/$cartridge_type already exists." 132
     fi
 }
 
 function check_app_dir_exists {
-    if [ ! -d "$APP_DIR" ]
+    if [ ! -d "$APP_HOME/app" ]
     then
-        error "${application}.  Application directory doesn't exist:  $APP_DIR" 125
+        error "${application}.  Application directory doesn't exist:  $APP_HOME/app" 125
     fi
 }
 
 function rm_app_dir {
-    #rm -rf "$APP_DIR"
-    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR"
+    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR" "$APP_HOME/app"
+}
+
+function rm_cartridge_instance_dir {
+    ctype=${1:-$cartridge_type}
+    [ -n "$ctype" ]  &&  runcon -l s0-s0:c0.c1023 rm -rf "$APP_HOME/$ctype"
 }
 
 function load_resource_limits_conf {
@@ -322,8 +345,8 @@ function setup_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$app_type/info
+	
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
     load_resource_limits_conf
@@ -360,7 +383,7 @@ function setup_embedded_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$app_type/info
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$cartridge_type/info
     CART_ETC_DIR=$CART_INFO_DIR/configuration/etc
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
@@ -380,7 +403,7 @@ function setup_embedded_deconfigure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
-    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$app_type/info
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$cartridge_type/info
 
     application="$1"
     namespace=$2
@@ -406,6 +429,8 @@ function setup_basic_vars {
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$application | tr -s /`
+    APP_REPO_DIR="$APP_HOME/app/repo"
+    APP_DATA_DIR="$APP_HOME/app/data"
 }
 
 function force_kill {
@@ -576,11 +601,15 @@ IFS="
 
 function observe_setup_app_and_git_dirs {
     observe_setup_var_lib_dir "$APP_HOME/git/"
+    observe_setup_var_lib_dir "$APP_HOME/app/"
     observe_setup_var_lib_dir "$APP_DIR"
-    # observe_setup_app_env_uservars_dir
 }
 
-function observe_setup_app_env_uservars_dir {
+function observe_setup_cart_instance_dir {
+    observe_setup_var_lib_dir "$(get_cartridge_instance_dir)"
+}
+
+function observe_setup_env_uservars_dir {
     observe_setup_var_lib_dir "$APP_HOME/.env/.uservars"
 }
 
@@ -633,11 +662,7 @@ function validate_run_as_user {
 }
 
 function openshift_state_dir {
-  if [ -z "$OPENSHIFT_RUNTIME_DIR" ]; then
-    echo "${APP_DIR:-$OPENSHIFT_GEAR_DIR}/runtime/"
-  else
-    echo "$OPENSHIFT_RUNTIME_DIR"
-  fi
+  echo "${APP_HOME:-$OPENSHIFT_HOMEDIR}/app"
 }
 
 function get_app_state {
@@ -653,7 +678,7 @@ function get_cartridge_state {
   fi
 }
 
-# expected values: building, deploying, started, idle, stopped, or unknown
+# expected values: building, deploying, started, idle, new, stopped, or unknown
 function set_app_state {
   set_cartridge_state `openshift_state_dir` $1
 }

@@ -15,8 +15,8 @@ Feature: Account Management
     Then an account password entry should not exist
     And an account home directory should not exist
     
- Scenario: Delete One Namespace
-    Given an accepted node
-    When I create a new namespace
-    And I delete the namespace
-    Then a namespace should get deleted
+# Scenario: Delete One Namespace
+#    Given an accepted node
+#    When I create a new namespace
+#    And I delete the namespace
+#    Then a namespace should get deleted

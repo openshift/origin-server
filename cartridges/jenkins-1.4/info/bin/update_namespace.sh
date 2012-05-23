@@ -33,19 +33,19 @@ echo "export JENKINS_URL='https://${application}-${new_namespace}.${CLOUD_DOMAIN
 . $APP_HOME/.env/JENKINS_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_DATA_DIR
 
-if ls $APP_DIR/data/jobs/*/config.xml > /dev/null 2>&1
+if ls $APP_HOME/app/data/jobs/*/config.xml > /dev/null 2>&1
 then
-    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_DIR/data/jobs/*/config.xml
+    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/app/data/jobs/*/config.xml
 fi
 
-if [ -f $APP_DIR/data/config.xml ]
+if [ -f $APP_HOME/app/data/config.xml ]
 then
-    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_DIR/data/config.xml
+    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/app/data/config.xml
 fi
 
-if [ -f $APP_DIR/data/hudson.tasks.Mailer.xml ]
+if [ -f $APP_HOME/app/data/hudson.tasks.Mailer.xml ]
 then
-    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_DIR/data/hudson.tasks.Mailer.xml
+    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/app/data/hudson.tasks.Mailer.xml
 fi
 
 add_env_var "JENKINS_URL=https://${application}-${new_namespace}.${CLOUD_DOMAIN}/"

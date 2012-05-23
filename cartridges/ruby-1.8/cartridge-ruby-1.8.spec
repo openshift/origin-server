@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.93.2
+Version: 0.93.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,40 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.93.5-1
+- .state file in new location (jhonce@redhat.com)
+
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Automatic commit of package [cartridge-ruby-1.8] release [0.93.2-1].
+  (admiller@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Fixing ruby spec for fedora installs. ruby-nokogiri -> rubygem-nokogiri
+  (kraman@neptune.localdomain)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Revert to cartridge type -- no app types any more. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Use a utility function to remove the cartridge instance dir.
+  (ramr@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Automatic commit of package [cartridge-ruby-1.8] release [0.92.6-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Add and use cartridge instance specific functions. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.93.3-1
+- Merge pull request #41 from mrunalp/master (smitram@gmail.com)
+- Handle passenger not stopping more forcefully (dmcphers@redhat.com)
+- Changes to descriptors/specs to execute the new connector.
+  (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.93.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Fixing ruby spec for fedora installs. ruby-nokogiri -> rubygem-nokogiri

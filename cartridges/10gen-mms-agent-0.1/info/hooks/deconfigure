@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Destroys rockmongo instance
+# Destroys 10gen-mms-agent instance
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
@@ -21,15 +21,14 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="10gen-mms-agent-0.1"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="10gen-mms-agent-0.1"
 setup_embedded_deconfigure "$1" $2 $3
 
-MMS_DIR=`echo $APP_HOME/10gen-mms-agent-0.1 | tr -s /` # ensure that there aren't double /'s
+MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
-APP_DIR=`echo $APP_HOME/${application} | tr -s /` # ensure that there aren't double /'s
 
 #
 # Stop app
@@ -47,4 +46,3 @@ confirm_log_files_inactive "$MMS_DIR/logs"
 
 # Remove 10gen mms agent dir. This MUST be after stopping the agent as the CTL script relies on these.
 runcon -l s0-s0:c0.c1023 rm -rf "$MMS_DIR"
-runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR/.openshift"

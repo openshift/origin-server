@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.93.2
+Version: 0.93.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -31,7 +31,7 @@ Requires: php-pear
 Requires: php-imap
 Requires: php-pecl-apc
 Requires: php-mcrypt
-
+Requires: php-soap
 
 %description
 Provides php support to OpenShift
@@ -112,6 +112,37 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- remove preconfigure and more work making tests faster (dmcphers@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Updated PHP cartridge to setup Apache proxy before starting application
+  (jhonce@redhat.com)
+- Revert to cartridge type -- no app types any more. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Use a utility function to remove the cartridge instance dir.
+  (ramr@redhat.com)
+- Cleanup and restore custom env vars support and fixup permissions.
+  (ramr@redhat.com)
+- Automatic commit of package [cartridge-php-5.3] release [0.92.5-1].
+  (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Add and use cartridge instance specific functions. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+- For US2109, fixup usage of repo and logs in cartridges. (ramr@redhat.com)
+- Refactor unix_user model to create gear TA1975 (jhonce@redhat.com)
+
+* Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.93.3-1
+- Adding php-soap dep (mmcgrath@redhat.com)
+- Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.93.2-1
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Add sample user pre/post hooks. (rmillner@redhat.com)
