@@ -4,6 +4,7 @@ class EstimatesController < BaseController
 
   # GET /estimates
   def index
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_ESTIMATES")
     @reply = RestReply.new(:ok, "estimates", RestEstimates.new(get_url))
     respond_with @reply, :status => @reply.status
   end
@@ -13,6 +14,7 @@ class EstimatesController < BaseController
     obj = params[:id]
     descriptor = params[:descriptor]
     if obj != "application"
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid estimate object '#{obj}'")
       @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "Invalid estimate object. Estimats only valid for objects: 'application'", 130, "estimates")
       @reply.messages.push(message)
@@ -24,6 +26,7 @@ class EstimatesController < BaseController
         # Parse given application descriptor
         descriptor.gsub!('\n', "\n")
         descriptor_hash = YAML.load(descriptor)
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid application descriptor") unless descriptor_hash
         raise Exception.new("Invalid application descriptor.") unless descriptor_hash
      
         # Find app framework
@@ -36,6 +39,8 @@ class EstimatesController < BaseController
         end if descriptor_hash.has_key?('Requires')
         app_name = descriptor_hash['Name'] || nil
         scalable = descriptor_hash['Scalable'] || false
+
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Application name or framework not found in the descriptor") if !framework or !app_name
         raise Exception.new("Application name or framework not found in the descriptor.") if !framework or !app_name
 
         # Elaborate app descriptor
@@ -62,8 +67,10 @@ class EstimatesController < BaseController
           end
         end if app.group_instance_map
 
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE")
         @reply = RestReply.new(:ok, "application_estimates", groups)
       rescue Exception => e
+         log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Failed to estimate application's gear usage: #{e.message}")
         Rails.logger.error e
         Rails.logger.debug e.backtrace.inspect
         @reply = RestReply.new(:internal_server_error)

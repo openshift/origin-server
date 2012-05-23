@@ -49,6 +49,11 @@ Broker::Application.configure do
     :syslog_enabled => false
   }
 
+  config.user_action_logging = {
+    :logging_enabled => true,
+    :log_filepath => "/var/log/openshift/user_action.log"
+  }
+
   ############################################
   # OpenShift Configuration Below this point #
   ############################################

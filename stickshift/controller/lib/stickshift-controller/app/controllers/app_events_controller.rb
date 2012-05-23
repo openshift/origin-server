@@ -11,6 +11,7 @@ class AppEventsController < BaseController
     server_alias = params[:alias]
     application = Application.find(@cloud_user,id)
     if application.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "APPLICATION_EVENT", false, "Application '#{id}' not found while processing event '#{event}'")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -18,6 +19,7 @@ class AppEventsController < BaseController
       return
     end
     if ['add-alias', 'remove-alias'].include?(event) && server_alias.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Alias not specified for application '#{id}'")
       @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "Alias must be specified for adding or removing application alias.", 126, "event")
       @reply.messages.push(message)
@@ -49,6 +51,7 @@ class AppEventsController < BaseController
         when "scale-down"
           application.scaledown
         else
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "APPLICATION_EVENT", false, "Invalid application event '#{event}' specified")
           @reply = RestReply.new(:unprocessable_entity)
           message = Message.new(:error, "Invalid event.  Valid events are start, stop, restart, force-stop, expose-port, conceal-port, show-port, scale-up, scale-down, add-alias, remove-alias", 126, "event")
           @reply.messages.push(message)
@@ -57,13 +60,16 @@ class AppEventsController < BaseController
         end
     rescue Exception => e
       Rails.logger.error e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Application event '#{event}' failed: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
       message = Message.new(:error, "Failed to add event #{event} to application #{id} due to: #{e.message}", e.code) 
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
     end
-    
+
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", true, "Application event '#{event}' successful")
+        
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url)
     @reply = RestReply.new(:ok, "application", app)
