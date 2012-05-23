@@ -38,7 +38,7 @@ function restore_from_mongodb_snapshot() {
    fi
 
    #  Restore from the "dump".
-   creds="-u $OPENSHIFT_NOSQL_DB_USERNAME -p \"$OPENSHIFT_NOSQL_DB_PASSWORD\""
+   creds="-u $OPENSHIFT_NOSQL_DB_USERNAME -p \"$OPENSHIFT_NOSQL_DB_PASSWORD\" --port $OPENSHIFT_NOSQL_DB_PORT"
    if ! mongorestore -h $OPENSHIFT_NOSQL_DB_HOST $creds --directoryperdb --drop; then
       popd > /dev/null
       /bin/rm -rf /tmp/mongodump.$$
