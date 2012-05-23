@@ -1,6 +1,6 @@
 class GroupInstance < StickShift::Model
   attr_accessor :app, :gears, :node_profile, :component_instances, 
-    :name, :cart_name, :profile_name, :group_name, :reused_by
+    :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max
   exclude_attributes :app
 
   def initialize(app, cartname=nil, profname=nil, groupname=nil, path=nil)
@@ -13,6 +13,8 @@ class GroupInstance < StickShift::Model
     self.reused_by = []
     self.gears = []
     self.node_profile = app.node_profile
+    self.min = 1
+    self.max = -1
   end
 
   def merge_inst(ginst)
@@ -33,6 +35,7 @@ class GroupInstance < StickShift::Model
       self.gears = [] if self.gears.nil?
       @gears += ginst.gears
     end
+    self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, ginst.min, ginst.max)
   end
 
   def merge(cartname, profname, groupname, path, comp_instance_list=nil)
@@ -78,6 +81,7 @@ class GroupInstance < StickShift::Model
 
   def fulfil_requirements(app)
     result_io = ResultIO.new
+    return result_io if not app.scalable
     cart = CartridgeCache::find_cartridge(self.cart_name)
     profile = cart.profiles(self.profile_name)
     group = profile.groups(self.group_name)
@@ -86,6 +90,7 @@ class GroupInstance < StickShift::Model
       result, new_gear = add_gear(app)
       result_io.append result
     end
+    result_io
   end
 
   def gears=(data)
@@ -118,6 +123,9 @@ class GroupInstance < StickShift::Model
       app.comp_instance_map[cpath] = ci
       app.working_comp_inst_hash[cpath] = ci
       comp_groups = ci.elaborate(app)
+      c_comp,c_prof,c_cart = ci.get_component_definition(app)
+      c_group = c_prof.groups(ci.parent_cart_group)
+      self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
       group_inst_hash[comp_ref.name] = comp_groups
     }
     
@@ -134,4 +142,26 @@ class GroupInstance < StickShift::Model
     self.component_instances.delete_if { |cpath| app.working_comp_inst_hash[cpath].nil? }
     new_components
   end
+
+  def self.merge_min_max(min1, max1, min2, max2)
+    newmin = min1>min2 ? min1 : min2
+
+    if max1 < max2 
+      if max1 >= 0
+        newmax = max1
+      else
+        newmax = max2
+      end
+    elsif max2 >= 0
+      newmax = max2
+    else
+      newmax = max1
+    end
+
+    if newmin > newmax and newmax >= 0
+      newmin = newmax  
+    end
+    return newmin,newmax
+  end
+
 end
