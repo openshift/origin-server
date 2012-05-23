@@ -269,7 +269,7 @@ class RestKey_V1 < BaseObj_V1
 end
 
 class RestApplication_V1 < BaseObj_V1
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
 
   def initialize(name=nil, framework=nil, domain_id=nil, scalable=nil)
     self.name = name
@@ -283,6 +283,8 @@ class RestApplication_V1 < BaseObj_V1
     self.git_url = nil
     self.app_url = nil
     self.scalable = scalable
+    self.scale_min = 1
+    self.scale_max = -1
     self.health_check_path = nil
     self.links = {
       "GET" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}"),

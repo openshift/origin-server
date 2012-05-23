@@ -199,6 +199,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     apps
   end
   
+  def self.find_by_gear_uuid(gear_uuid)
+    hash = StickShift::DataStore.instance.find_by_gear_uuid(gear_uuid)
+    return nil unless hash
+    user = CloudUser.hash_to_obj hash
+    user.applications.each do |next_app|
+      next_app.gears.each do |gear|
+        if gear.uuid == gear_uuid
+          return next_app,gear
+        end
+      end
+    end
+    return nil
+  end
+
   def self.find_by_uuid(uuid)
     hash = StickShift::DataStore.instance.find_by_uuid(self.name,uuid)
     return nil unless hash
@@ -330,6 +344,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
+    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length==ginst.max
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -349,7 +364,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::NodeException.new("Cannot scale below one gear", "-100", result_io) if ginst.gears.length == 1
+    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length == ginst.min
 
     gear = ginst.gears.first
 
@@ -1083,6 +1098,22 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     return nil unless group_instance
     
     return group_instance.gears.first
+  end
+
+  def scaling_limits(dependency=nil)
+    if dependency.nil?
+      if self.scalable
+        dependency = "web" 
+      else
+        dependency = self.framework
+      end
+    end
+    prof = @profile_name_map[@default_profile]
+    cinst = ComponentInstance::find_component_in_cart(prof, self, dependency, self.get_name_prefix)
+    raise StickShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", "-101", result_io) if cinst.nil?
+
+    ginst = self.group_instance_map[cinst.group_instance_name]
+    return ginst.min,ginst.max
   end
   
   # Get the ApplicationContainerProxy object for the first gear the application is running on
