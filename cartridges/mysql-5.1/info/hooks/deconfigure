@@ -44,7 +44,8 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
 
 
 # For non-embedded (dedicated) mysql gear, destroy the git repo and stop app.
-if [ "$MYSQL_DIR" -ef  "$APP_DIR" ]; then
+APPLICATION_DIR=`readlink -fn "$APP_DIR"`
+if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
    remove_all_proxy_ports $uuid
 
    # Destroy git repo and stop app.
@@ -66,7 +67,7 @@ fi
 rm_cartridge_instance_dir "$cartridge_type"
 
 # For non-embedded (dedicated) mysql gear, destroy the gear.
-if [ "$MYSQL_DIR" -ef  "$APP_DIR" ]; then
+if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
     # Blow away the directories.
     rm_app_dir
     rm_unobfuscated_app_home $namespace $application
