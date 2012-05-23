@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.27.4
+Version: 0.27.5
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.27.5-1
+- resolve symlink before testing for inode (jhonce@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.27.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
