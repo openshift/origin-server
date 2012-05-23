@@ -26,13 +26,15 @@ done
 
 [ $# -ge 3 ] || print_help
 
-
+cartridge_type="haproxy-1.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3
 
 import_env_vars
+
+HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 # Remove the first 3 args and process all the remaining args of the form k=v.
 # The values are the db environment variable name-value pairs.
@@ -50,7 +52,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ! -f "$OPENSHIFT_DB_CTL_SCRIPT" ]; then
-   cat <<CTLEOF > "$APP_DIR/${application}_remote_db_ctl.sh"
+   cat <<CTLEOF > "$HAPROXY_DIR/${application}_remote_db_ctl.sh"
 #!/bin/bash -e
 
 # Import Environment Variables
@@ -63,6 +65,6 @@ gear_user_and_host="\$OPENSHIFT_DB_GEAR_UUID@\$OPENSHIFT_DB_GEAR_DNS"
 ssh \$gear_user_and_host rhcsh \$OPENSHIFT_DB_CTL_ONGEAR_SCRIPT \$1
 CTLEOF
 
-   chmod 755 "$APP_DIR/${application}_remote_db_ctl.sh"
-   echo "$APP_DIR/${application}_remote_db_ctl.sh" > "$APP_HOME/.env/.uservars/OPENSHIFT_DB_CTL_SCRIPT"
+   chmod 755 "$HAPROXY_DIR/${application}_remote_db_ctl.sh"
+   echo "$HAPROXY_DIR/${application}_remote_db_ctl.sh" > "$APP_HOME/.env/.uservars/OPENSHIFT_DB_CTL_SCRIPT"
 fi

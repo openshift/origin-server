@@ -22,17 +22,18 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="mongodb-2.0"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
 
-app_type="mongodb-2.0"
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 setup_embedded_deconfigure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-MONGODB_DIR="$APP_HOME/mongodb-2.0/"
+MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 

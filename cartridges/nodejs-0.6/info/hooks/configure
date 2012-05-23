@@ -22,13 +22,13 @@ done
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
 
+cartridge_type="nodejs-0.6"
 source "/etc/stickshift/stickshift-node.conf"
-app_type="nodejs-0.6"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
 
-check_app_dir_doesnt_exist
+check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
 # Repo
@@ -41,8 +41,10 @@ fi
 #
 # Create the core of the application
 #
-mkdir -p "$APP_DIR"
-pushd "$APP_DIR" > /dev/null
+create_cartridge_instance_dir "$cartridge_type"
+create_app_dir_symlink "$cartridge_type"
+NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+pushd "$NODEJS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir conf node_modules logs sessions
 popd > /dev/null
@@ -60,13 +62,17 @@ popd > /dev/null
 #
 IP=`find_open_ip $uid $uuid`
 
-create_app_ctl_script "$app_type"
+create_app_ctl_script "$cartridge_type"
 
 populate_repo_dir
 
 secure_app_dir
 
+secure_cart_instance_dir
+
 observe_setup_app_and_git_dirs
+
+observe_setup_cart_instance_dir
 
 # npm keeps per-user config in ~/.npmrc and cache in ~/.npm/
 # Create files/directories, change ownership and SELinux file security context.
@@ -78,9 +84,12 @@ chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc
 # Create environment variables
 #
 create_standard_env_vars
+create_standard_env_uservars
 create_standard_network_env_vars
 create_standard_repo_dir_env_var
 create_standard_path_env_var
+
+observe_setup_env_uservars_dir
 
 # And prepend to path variable so that Node app_ctl.sh script is called.
 sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH

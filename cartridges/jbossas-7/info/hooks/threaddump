@@ -25,15 +25,21 @@ done
 
 [ $# -eq 3 ] || print_help
 
+# Load the jboss_version and jboss_home settings
+. `dirname $0`/jboss.version
+cartridge_type="${jboss_version}"
+
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
 
+JBOSS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+
 #
 # Get the thread dump
 #
-run_as_user "$APP_DIR/${application}_ctl.sh threaddump"
+run_as_user "$JBOSS_INSTANCE_DIR/${application}_ctl.sh threaddump"
 
 client_result "Success"
 client_result ""

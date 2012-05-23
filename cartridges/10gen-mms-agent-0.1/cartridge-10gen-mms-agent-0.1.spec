@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
 
 Name: cartridge-10gen-mms-agent-0.1
-Version: 1.10.1
+Version: 1.10.2
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -56,6 +56,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 1.10.2-1
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Typeless gears - create app/ dir, rollback logs, manage repo, data and state.
+  (ramr@redhat.com)
+- For US2109, fixup usage of repo and logs in cartridges. (ramr@redhat.com)
+
 * Thu May 10 2012 Adam Miller <admiller@redhat.com> 1.10.1-1
 - bumping spec versions (admiller@redhat.com)
 

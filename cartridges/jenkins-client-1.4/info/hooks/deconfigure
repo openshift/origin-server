@@ -22,16 +22,18 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="jenkins-client-1.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="jenkins-client-1.4"
 setup_embedded_deconfigure "$1" $2 $3
+
+JENKINS_CLIENT_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Remove environment variables
 #
-/bin/rm -rf $APP_HOME/.env/OPENSHIFT_CI_TYPE $APP_HOME/.env/PATH_JENKINS_CLIENT "$OPENSHIFT_HOMEDIR/jenkins-client-1.4/"
+/bin/rm -rf $APP_HOME/.env/OPENSHIFT_CI_TYPE $APP_HOME/.env/PATH_JENKINS_CLIENT "$JENKINS_CLIENT_DIR"
 
 . $APP_HOME/.env/OPENSHIFT_HOMEDIR
 . $APP_HOME/.env/OPENSHIFT_GEAR_NAME

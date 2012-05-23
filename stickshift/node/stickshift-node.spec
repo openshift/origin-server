@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.11.3
+Version: 0.11.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -98,6 +98,30 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.4-1
+- Updating gem versions (dmcphers@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' into US2109 (rmillner@redhat.com)
+- clean up comments etc (jhonce@redhat.com)
+- Automatic commit of package [rubygem-stickshift-node] release [0.11.2-1].
+  (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge branch 'master' into US2109 (jhonce@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Bug fixes to get tests running - mysql and python fixes, delete user dirs
+  otherwise rhc-accept-node fails and tests fail. (ramr@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Don't create gear dir (symlink for short term to the 'framework') and don't
+  set the gear ctl script in unix user. (ramr@redhat.com)
+- Change to use cartridge instance dir in lieu of app_dir and correct use of
+  app and $gear-name directories. (ramr@redhat.com)
+- Updated code to meet coding standards (jhonce@redhat.com)
+- Updated documentation after refactor. Corrected merge (jhonce@redhat.com)
+- Merge branch 'master' into US2109 (ramr@redhat.com)
+- Breakout HTTP configuration/proxy (jhonce@redhat.com)
+- Refactor unix_user model to create gear TA1975 (jhonce@redhat.com)
+
 * Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
 - Updating gem versions (admiller@redhat.com)
 - Remove mongodb duplicate entry. (mpatel@redhat.com)

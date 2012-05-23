@@ -29,7 +29,7 @@ function _control_cron_service() {
 
 
 function _enable_cron_service() {
-   rm -f "$CART_INSTANCE_DIR/run/stop_lock"
+   rm -f "$CRON_INSTANCE_DIR/run/stop_lock"
    _control_cron_service "enable"
 
 }  #  End of function  _enable_cron_service.
@@ -37,13 +37,13 @@ function _enable_cron_service() {
 
 function _disable_cron_service() {
    _control_cron_service "disable"
-   touch "$CART_INSTANCE_DIR/run/stop_lock"
+   touch "$CRON_INSTANCE_DIR/run/stop_lock"
 
 }  #  End of function  _disable_cron_service.
 
 
 function _reenable_cron_service() {
-   rm -f "$CART_INSTANCE_DIR/run/stop_lock"
+   rm -f "$CRON_INSTANCE_DIR/run/stop_lock"
    _control_cron_service "reenable"
 
 }  #  End of function  _reenable_cron_service.
@@ -58,9 +58,7 @@ function _move_cron_service() {
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
    
-   CRON_DIR="$APP_HOME/cron-1.4/"
-   
-   observe_setup_var_lib_dir "$CRON_DIR"
+   observe_setup_var_lib_dir "$CRON_INSTANCE_DIR"
 
 }  #  End of function  _move_cron_service.
 
@@ -104,8 +102,9 @@ done
 setup_basic_hook "$1" $2 $3
 
 # Setup instance directory and control script name.
-CART_INSTANCE_DIR="$APP_HOME/$CART_DIRNAME"
-CTL_SCRIPT="$CART_INSTANCE_DIR/${application}_${CART_NAME}_ctl.sh"
+cartridge_type=${CART_NAME}-$CART_VERSION
+CRON_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+CTL_SCRIPT="$CRON_INSTANCE_DIR/${application}_${CART_NAME}_ctl.sh"
 
 cmd=$(basename "$0")
 case "$cmd" in

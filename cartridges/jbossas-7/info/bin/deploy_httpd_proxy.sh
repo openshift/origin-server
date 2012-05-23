@@ -24,9 +24,12 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"
-
-mkdir "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_proxy.conf"
+  ProxyPass /swydws/ http://$IP:18001/swydws/ status=I
+  ProxyPassReverse /swydws/ http://$IP:18001/swydws/
+  ProxyPass / http://$IP:8080/ status=I
+  ProxyPassReverse / http://$IP:8080/
+EOF
 
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
@@ -39,11 +42,6 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
   RequestHeader append X-Forwarded-Proto "http"
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
-
-  ProxyPass /swydws/ http://$IP:18001/swydws/ status=I
-  ProxyPassReverse /swydws/ http://$IP:18001/swydws/
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -52,10 +50,5 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
 $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
-
-  ProxyPass /swydws/ http://$IP:18001/swydws/ status=I
-  ProxyPassReverse /swydws/ http://$IP:18001/swydws/
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
 </VirtualHost>
 EOF

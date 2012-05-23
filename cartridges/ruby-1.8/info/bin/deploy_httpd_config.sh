@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cartridge_type="ruby-1.8"
 source "/etc/stickshift/stickshift-node.conf"
 source "/etc/stickshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -9,7 +10,8 @@ uuid="$2"
 IP="$3"
 
 APP_HOME="${GEAR_BASE_DIR}/$uuid"
-APP_DIR=`echo $APP_HOME/$application | tr -s /`
+RUBY_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
 # FIXME: Remove this after PassengerSpawnIPAddress change is upstreamed.
 LINUX_DISTRO=$(</etc/redhat-release)
@@ -21,21 +23,21 @@ then
     SPAWN_IP="PassengerSpawnIPAddress $IP"
 fi
 
-cat <<EOF > "$APP_DIR/conf.d/stickshift.conf"
-ServerRoot "$APP_DIR"
-DocumentRoot "$APP_DIR/repo/public"
+cat <<EOF > "$RUBY_INSTANCE_DIR/conf.d/stickshift.conf"
+ServerRoot "$RUBY_INSTANCE_DIR"
+DocumentRoot "$OPENSHIFT_REPO_DIR/public"
 Listen $IP:8080
 User $uuid
 Group $uuid
 
-ErrorLog "|/usr/sbin/rotatelogs $APP_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
-CustomLog "|/usr/sbin/rotatelogs $APP_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
+ErrorLog "|/usr/sbin/rotatelogs $RUBY_INSTANCE_DIR/logs/error_log$rotatelogs_format $rotatelogs_interval"
+CustomLog "|/usr/sbin/rotatelogs $RUBY_INSTANCE_DIR/logs/access_log$rotatelogs_format $rotatelogs_interval" combined
 
 PassengerUser $uuid
 PassengerPreStart http://$IP:8080/
 $SPAWN_IP
 PassengerUseGlobalQueue off
-<Directory $APP_DIR/repo/public>
+<Directory $OPENSHIFT_REPO_DIR/public>
   AllowOverride all
   Options -MultiViews
 </Directory>

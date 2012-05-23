@@ -118,5 +118,5 @@ EOF
 
 function populate_repo_dir {
     CART_BIN_DIR="${CARTRIDGE_BASE_PATH}/abstract/info/bin"
-    $CART_BIN_DIR/deploy_git_dir.sh ${GIT_DIR} "${APP_DIR}/runtime/repo"
+    $CART_BIN_DIR/deploy_git_dir.sh ${GIT_DIR} "$APP_REPO_DIR"
 }

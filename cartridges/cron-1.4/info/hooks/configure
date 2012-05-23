@@ -25,15 +25,15 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="cron-1.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-app_type="cron-1.4"
 setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
 
-CRON_DIR="$APP_HOME/cron-1.4/"
+CRON_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 #
 # Detect IP
@@ -44,13 +44,13 @@ IP=$OPENSHIFT_INTERNAL_IP
 # Create the core of the application
 #
 
-if [ -d "$CRON_DIR" ]; then
+if [ -d "$CRON_INSTANCE_DIR" ]; then
     client_error "Embedded cron-1.4 already attached to $application"
     exit 132
 fi
 
-mkdir -p "$CRON_DIR"
-pushd "$CRON_DIR" > /dev/null
+create_cartridge_instance_dir "$cartridge_type"
+pushd "$CRON_INSTANCE_DIR" > /dev/null
 mkdir -p log etc data pid run
 chmod go-rwx data
 popd > /dev/null
@@ -58,22 +58,22 @@ popd > /dev/null
 #
 # Create simple job scheduling service control script.
 #
-ln -s $CART_INFO_DIR/bin/cron_ctl.sh $CRON_DIR/${application}_cron_ctl.sh
+ln -s $CART_INFO_DIR/bin/cron_ctl.sh $CRON_INSTANCE_DIR/${application}_cron_ctl.sh
 
 
 #
 # Create links to the jobs directory and the run jobs script.
 #
-ln -s $APP_HOME/${application}/repo/.openshift/cron $CRON_DIR/jobs
-ln -s $CART_INFO_DIR/bin/cron_runjobs.sh $CRON_DIR/cron_runjobs.sh
+ln -s $APP_REPO_DIR/.openshift/cron $CRON_INSTANCE_DIR/jobs
+ln -s $CART_INFO_DIR/bin/cron_runjobs.sh $CRON_INSTANCE_DIR/cron_runjobs.sh
 
 #
 # Setup Permissions
 #
-chmod +x "$CRON_DIR/"*.sh || error "Failed to chmod new application scripts" 122
-chown $user_id.$group_id -R "$CRON_DIR/" || error "Failed to chown new application space.  Please contact support" 123
-chown root.root "$CRON_DIR" "$CRON_DIR"/*.sh
-observe_setup_var_lib_dir "$CRON_DIR"
+chmod +x "$CRON_INSTANCE_DIR/"*.sh || error "Failed to chmod new application scripts" 122
+chown $user_id.$group_id -R "$CRON_INSTANCE_DIR/" || error "Failed to chown new application space.  Please contact support" 123
+chown root.root "$CRON_INSTANCE_DIR" "$CRON_INSTANCE_DIR"/*.sh
+observe_setup_var_lib_dir "$CRON_INSTANCE_DIR"
 
 #
 # Enable job scheduling service (cronjobs).
@@ -84,7 +84,7 @@ enable_cronjobs
 # Setup Environment Variables
 #
 echo "export OPENSHIFT_BATCH_TYPE='cron'" > $APP_HOME/.env/OPENSHIFT_BATCH_TYPE
-echo "export OPENSHIFT_BATCH_CTL_SCRIPT='$CRON_DIR/${application}_cron_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_BATCH_CTL_SCRIPT
+echo "export OPENSHIFT_BATCH_CTL_SCRIPT='$CRON_INSTANCE_DIR/${application}_cron_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_BATCH_CTL_SCRIPT
 echo "export OPENSHIFT_BATCH_CRON_14_EMBEDDED_TYPE='cron-1.4'" > $APP_HOME/.env/OPENSHIFT_BATCH_CRON_14_EMBEDDED_TYPE
 
 frequencies=$(cat $CART_INFO_DIR/configuration/frequencies | tr '\n' ',')
