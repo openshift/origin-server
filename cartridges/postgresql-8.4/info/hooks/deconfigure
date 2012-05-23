@@ -27,6 +27,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
+disable_cgroups
 
 source ${CART_INFO_DIR}/lib/util
 
@@ -51,4 +52,4 @@ if [ "$OPENSHIFT_DB_TYPE" = "postgresql" ]; then
 fi
 
 runcon -l s0-s0:c0.c1023 rm -rf "$PSQL_DIR" "$PSQL_DIR/${application}_postgresql_ctl.sh"
-
+enable_cgroups

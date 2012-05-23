@@ -125,7 +125,7 @@ if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
 fi
 
 setup_embedded_configure "$1" $2 $3
-
+disable_cgroups
 stop_app
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -189,3 +189,4 @@ if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
 fi
 
 restart_httpd_graceful
+enable_cgroups

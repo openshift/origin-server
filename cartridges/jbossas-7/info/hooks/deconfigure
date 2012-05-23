@@ -30,6 +30,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type="${jboss_version}"
 setup_deconfigure "$1" $2 $3
+disable_cgroups
 
 JBOSS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
@@ -60,3 +61,4 @@ runcon -l s0-s0:c0.c1023 rm -rf "$JAVA_PREFS_DIR"
 # Remove virtualhost definition for apache
 #
 rm_httpd_proxy $uuid $namespace $application
+enable_cgroups

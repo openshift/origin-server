@@ -28,6 +28,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 
 setup_embedded_deconfigure "$1" $2 $3
+disable_cgroups
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
@@ -75,4 +76,4 @@ if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
 fi
 
 rm_cartridge_instance_dir "$cartridge_type"
-
+enable_cgroups
