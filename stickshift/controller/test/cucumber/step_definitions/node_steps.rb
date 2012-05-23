@@ -136,7 +136,7 @@ end
 
 Then /^a namespace should get deleted$/ do
   ec = run("host #{@account['namespace']}.dev.rhcloud.com | grep \"not found\"")
-  ec.should be == 1
+  ec.should be == 0
 end
 
 Then /^an account password entry should( not)? exist$/ do |negate|
