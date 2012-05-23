@@ -90,7 +90,7 @@ class Gear_scale_ctl
     env = {}
     # Load environment variables into a hash
     
-    Dir["/var/lib/stickshift/#{opts['uuid']}/.env/OPENSHIFT_DATA_DIR"].each { | f |
+    Dir["/var/lib/stickshift/#{opts['uuid']}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
       File.open(f) {|input|
