@@ -87,6 +87,32 @@
 
   .span5
 
+    -# cartridges
+    %h2 Adding capabilities
+    %p
+      Cartridges are the components of an OpenShift application, and include databases, build systems,
+      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong>
+      to an application provides the desired capability without forcing you to administrate or update that feature.
+    %p
+      To run a PHP application with MySQL (the M and P in LAMP) you 
+      %strong embed
+      the MySQL cartridge into your application. OpenShift gives your PHP code access to your new MySQL database, but
+      manages the database server for you.
+    %p
+      You can see the 
+      = link_to "list of available cartridges online", cartridge_list_url
+      or from the command line with
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge list
+    %p
+      You may also add a cartridge to your application by running
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge add -a #{@application.name} -c <cart_id>
+
     -# client
     %h2 Managing your application
     %p 
@@ -99,31 +125,5 @@
     %p
       After installing the command line tool follow our User Guide 
       #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }
-
-    -# cartridges
-    %h2 Adding capabilities
-    %p
-      Cartridges are the components of an OpenShift application, and include databases, build systems,
-      and management capabilities. #{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}
-      to an application provides the desired capability without forcing you to administrate or update that feature.
-    %p
-      To run a PHP application with MySQL (the M and P in LAMP) you 
-      %strong embed
-      the MySQL cartridge into your application. OpenShift gives your PHP code access to your new MySQL database, but
-      manages the database server for you.
-    %p
-      You can see the 
-      = link_to "list of available cartridges online", manage_cartridges_user_guide_topic_url
-      or from the command line with
-    %pre.cli
-      = preserve do
-        :escaped
-          rhc app cartridge list
-    %p
-      You may also add a cartridge to your application by running
-    %pre.cli
-      = preserve do
-        :escaped
-          rhc app cartridge add -a #{@application.name} -c <cart_id>
 
     -# tech specific

@@ -27,6 +27,10 @@ module HelpHelper
     user_guide_topic_url 'sect-User_Guide-Adding_and_Managing_Database_Instances.html#form-User_Guide-Adding_Database_Back_Ends_to_Your_Applications-Command_Options_for_Controlling_Cartridges'
   end
   
+  def cartridge_list_url
+    community_base_url 'developers/technologies'
+  end
+
   def git_user_guide_topic_url
     user_guide_topic_url 'sect-User_Guide-OpenShift_Web_Interface-Editing_and_Deploying_Applications.html'
   end
