@@ -5,7 +5,7 @@
 #require 'etc'
 
 require 'open4'
-
+require 'dnsruby'
 
 # Controller cartridge command paths
 $cartridge_root = '/usr/libexec/stickshift/cartridges'
@@ -135,8 +135,35 @@ When /^I delete the namespace$/ do
 end
 
 Then /^a namespace should get deleted$/ do
-  ec = run("host #{@account['namespace']}.dev.rhcloud.com | grep \"not found\"")
-  ec.should be == 0
+  res = Dnsruby::Resolver.new
+  begin
+    maxttl=300
+    minretry=5
+    Timeout::timeout(maxttl + 20) do
+      while true
+        Dnsruby::PacketSender.clear_caches
+        ret = res.query("#{@account['namespace']}.dev.rhcloud.com", Dnsruby::Types.TXT)
+        if ret.answer.length >= 1
+          if ret.answer[0].ttl > maxttl
+            retryin = maxttl
+          elsif ret.answer[0].ttl < minretry
+            retryin = minretry
+          else
+            retryin = ret.answer[0].ttl
+          end
+        else
+          retryin = maxttl
+        end
+        $logger.debug "The domain is still resolvable.  Waiting for the TTL to expire in #{retryin} seconds."
+        sleep(retryin)
+      end
+    end
+  rescue Timeout::Error
+    $logger.warn "Timed out while waiting for the domain name to disappear."
+    raise
+  rescue Dnsruby::NXDomain
+    true
+  end
 end
 
 Then /^an account password entry should( not)? exist$/ do |negate|

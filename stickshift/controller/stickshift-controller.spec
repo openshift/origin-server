@@ -25,6 +25,7 @@ Requires:       rubygem(dnsruby)
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
+Requires:       rubygem(dnsruby)
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
