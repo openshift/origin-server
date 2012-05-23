@@ -6,8 +6,6 @@ require 'open4'
 require 'pp'
 require 'rest-client'
 
-$temp = "/tmp/rhc/jenkins-build"
-
 include AppHelper
 
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
