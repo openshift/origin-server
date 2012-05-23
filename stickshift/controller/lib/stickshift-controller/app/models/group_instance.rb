@@ -81,6 +81,7 @@ class GroupInstance < StickShift::Model
 
   def fulfil_requirements(app)
     result_io = ResultIO.new
+    return result_io if not app.scalable
     cart = CartridgeCache::find_cartridge(self.cart_name)
     profile = cart.profiles(self.profile_name)
     group = profile.groups(self.group_name)
@@ -89,6 +90,7 @@ class GroupInstance < StickShift::Model
       result, new_gear = add_gear(app)
       result_io.append result
     end
+    result_io
   end
 
   def gears=(data)
@@ -143,10 +145,21 @@ class GroupInstance < StickShift::Model
 
   def self.merge_min_max(min1, max1, min2, max2)
     newmin = min1>min2 ? min1 : min2
-    newmax = max1<max2 ? max1 : max2
 
-    if newmin > newmax
-      newmin = newmax unless newmax == -1
+    if max1 < max2 
+      if max1 >= 0
+        newmax = max1
+      else
+        newmax = max2
+      end
+    elsif max2 >= 0
+      newmax = max2
+    else
+      newmax = max1
+    end
+
+    if newmin > newmax and newmax >= 0
+      newmin = newmax  
     end
     return newmin,newmax
   end
