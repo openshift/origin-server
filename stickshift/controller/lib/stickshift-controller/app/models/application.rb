@@ -199,6 +199,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     apps
   end
   
+  def self.find_by_gear_uuid(gear_uuid)
+    hash = StickShift::DataStore.instance.find_by_gear_uuid(gear_uuid)
+    return nil unless hash
+    user = CloudUser.hash_to_obj hash
+    user.applications.each do |next_app|
+      next_app.gears.each do |gear|
+        if gear.uuid == gear_uuid
+          return next_app,gear
+        end
+      end
+    end
+    return nil
+  end
+
   def self.find_by_uuid(uuid)
     hash = StickShift::DataStore.instance.find_by_uuid(self.name,uuid)
     return nil unless hash
