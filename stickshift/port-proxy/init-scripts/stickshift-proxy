@@ -1,0 +1,253 @@
+#!/bin/bash
+#
+# stickshift-proxy
+#
+# chkconfig:   345 85 15
+# description: Stickshift proxy
+# processname: haproxy
+# config:      /etc/stickshift/stickshift-proxy.cfg
+# pidfile:     /var/run/stickshift-proxy.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+[ -e /etc/sysconfig/stickshift-proxy ] && source /etc/sysconfig/stickshift-proxy
+
+exec=/usr/sbin/haproxy
+prog=haproxy
+lockfile=/var/lock/subsys/stickshift-proxy
+pidfile=/var/run/stickshift-proxy.pid
+cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
+
+
+getaddr() {
+    ip -4 addr show dev eth0 scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+fixaddr() {
+    # Fix eth0's address in case it was changed by the cloud provider
+    baddr=$(getaddr)
+    sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
+}
+
+
+rollcfg() {
+  # If proxy is running, roll the configuration and block till done
+    if [ -f $lockfile ]; then
+
+        $exec -c -q -f $cfgfile
+        if [ $? -ne 0 ]; then
+            echo "Error: Proxy configuration is corrupt."
+            return 1
+        fi
+
+        oldpid=$( cat $pidfile )
+
+        if ! [ "$(readlink /proc/$oldpid/exe)" == "$exec" -o "$(readlink /proc/$oldpid/exe)" == "$exec (deleted)" ]; then
+            echo "stickshift-proxy has crashed."
+            return 1
+        fi
+
+        $exec -D -f $cfgfile -p $pidfile -sf "$oldpid"
+        retv=$?
+        if [ $retv != 0 ]; then
+            echo "stickshift-proxy failed to start"
+            return 1
+        fi
+
+        while [ "$(readlink /proc/$oldpid/exe)" == "$exec" -o "$(readlink /proc/$oldpid/exe)" == "$exec (deleted)" ]; do
+            usleep 500000
+        done
+
+        newpid=$( cat $pidfile )
+        if [ $newpid == $oldpid ]; then
+            echo "stickshift-proxy failed to update"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+
+lockwrap() {
+    lockfile ${cfgfile}.lock
+    oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+    "$@"
+    retcode=$?
+    if [ $retcode != 0 ]; then
+        echo "Error: Bad proxy configuration."
+    else
+        newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+        if [ $oldsum != $newsum ]; then
+            rollcfg
+            retcode=$?
+        fi
+    fi
+    rm -f ${cfgfile}.lock
+    return $retcode
+}
+
+setproxy() {
+  # Set a proxy entry (either add or delete)
+    proxport="$1"
+    target="$2"
+
+    if ! [ "$proxport" -ge 16384 -a "$proxport" -le 65535 ]; then
+        echo "Proxy port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if [ "$target" == "delete" -o "$target" == "del" ]; then
+        sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+        return $?
+    fi
+
+    ipbytes=( $(echo "$target" | cut -f 1 -d : | sed -e 's/\./ /g') )
+    if [ ${#ipbytes[@]} -ne 4 ]; then
+        echo "Dest addr must be a valid IP address."
+        return 1
+    fi
+
+    for byt in "${ipbytes[@]}"; do
+        if ! [ "$byt" -ge 0 -a "$byt" -le 255 ]; then
+            echo "Dest addr must be a valid IP address."
+            return 1
+        fi
+    done
+
+    port=$(echo $target | cut -f 2 -d :)
+    if ! [ "$port" -ge 1 -a "$port" -le 65535 ]; then
+        echo "Dest port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if grep -q "^listen $proxport:$target" $cfgfile; then
+        return 0
+    fi
+
+    baddr=$(getaddr)
+
+    sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+
+    cat <<EOF >> $cfgfile
+listen $proxport:$target
+    mode tcp
+    bind $baddr:$proxport
+    server $proxport $target
+# End $proxport:$target
+EOF
+
+    return $?
+}
+
+setproxies() {
+    while [ "$1" ]; do
+        setproxy "$1" "$2"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed at $1 $2"
+            return 1
+        fi
+        shift; shift
+    done
+    return 0
+}
+
+
+showproxies() {
+    sedexp=""
+    for proxport in "$@"; do
+        sedexp="${sedexp};"'s/^listen \('"$proxport"'\):\(.*\)$/\1 \2/'
+    done
+    sedexp="${sedexp}; T; p"
+    sed -n -e "${sedexp}" $cfgfile
+    return 0
+}
+
+start() {
+    fixaddr
+    if $exec -c -q -f $cfgfile; then
+        echo -n $"Starting stickshift-proxy: "
+        daemon --pidfile $pidfile $exec -D -f $cfgfile -p $pidfile
+        retval=$?
+        echo
+        [ $retval -eq 0 ] && touch $lockfile
+        return $retval
+    else
+        echo "Configuration error."
+        return 1
+    fi
+}
+
+stop() {
+    echo -n $"Stopping stickshift-proxy: "
+    killproc -p $pidfile $prog 
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    if $exec -c -q -f $cfgfile
+    then
+        stop
+        start
+    else
+        echo "Configuration error."
+        return 1
+    fi
+}
+
+reload() {
+    if $exec -c -q -f $cfgfile; then
+        echo -n $"Reloading stickshift-proxy: "
+        $exec -D -f $cfgfile -p $pidfile -sf $(cat $pidfile)
+        retval=$?
+        echo
+        return $retval
+    else
+        echo "Configuration error."
+        return 1
+    fi  
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    reload)
+        reload
+        ;;
+    status)
+        status -p $pidfile $prog
+        ;;
+    condrestart|try-restart)
+  	if [ -f $lockfile ] 
+        then
+            restart
+        fi
+	;;
+    setproxy)
+        shift
+        lockwrap setproxies "$@"
+        ;;
+    showproxy)
+        shift
+        lockwrap showproxies "$@"
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload|setproxy [proxport] [ip:port]|showproxy [proxport]}"
+        exit 2
+esac

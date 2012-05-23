@@ -1,6 +1,5 @@
 %define htmldir %{_localstatedir}/www/html
 %define brokerdir %{_localstatedir}/www/stickshift/broker
-%define appdir %{_localstatedir}/lib/stickshift
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
@@ -15,7 +14,6 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:  httpd
 Requires:  bind
 Requires:  mod_ssl
-Requires:  oddjob
 Requires:  mod_passenger
 Requires:  mongodb-server
 Requires:  rubygem(rails)
@@ -27,14 +25,11 @@ Requires:  rubygem(parseconfig)
 Requires:  rubygem(json)
 Requires:  rubygem(multimap)
 Requires:  rubygem(stickshift-controller)
-Requires:  rubygem(stickshift-node)
 Requires:  rubygem(passenger)
-Requires:  rubygem-passenger-native
 Requires:  rubygem(rcov)
 Requires:  stickshift-abstract
-Requires:  selinux-policy-targeted
-Requires:  policycoreutils-python
-
+Requires:  rubygem-passenger-native
+Requires:  rubygem-passenger-native-libs
 BuildArch: noarch
 
 %description
@@ -62,15 +57,7 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/cache
 mkdir -p %{buildroot}%{brokerdir}/tmp/pids
 mkdir -p %{buildroot}%{brokerdir}/tmp/sessions
 mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
-mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
-ln -sf %{_var}/lib/stickshift/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
-mkdir -p %{buildroot}%{_var}/lib/stickshift/.httpd.d
-mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d
-mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-mkdir -p %{buildroot}%{_bindir}
-mkdir -p %{buildroot}%{_var}/lib/stickshift
-mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
 
 cp -r . %{buildroot}%{brokerdir}
 mv %{buildroot}%{brokerdir}/init.d/* %{buildroot}%{_initddir}
@@ -81,10 +68,11 @@ touch %{buildroot}%{brokerdir}/log/development.log
 ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_stickshift_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
-cp %{buildroot}%{brokerdir}/doc/selinux/stickshift-broker.te %{buildroot}/usr/share/selinux/packages/%{name}/
 
 mkdir -p %{buildroot}%{_localstatedir}/log/stickshift
 touch %{buildroot}%{_localstatedir}/log/stickshift/user_action.log
+
+cp script/ss-* %{buildroot}%{_bindir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -100,7 +88,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{brokerdir}/tmp/pids
 %attr(0750,-,-) %{brokerdir}/tmp/sessions
 %attr(0750,-,-) %{brokerdir}/tmp/sockets
-%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
 %{brokerdir}
 %{htmldir}/broker
 %config(noreplace) %{brokerdir}/config/environments/production.rb
@@ -110,12 +97,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0640,root,root,0750)
 %{_initddir}/stickshift-broker
 %attr(0750,-,-) %{_initddir}/stickshift-broker
-%attr(0755,-,-) %{_var}/lib/stickshift
+%attr(0700,-,-) %{_bindir}/ss-*
 
 %doc %{brokerdir}/COPYRIGHT
 %doc %{brokerdir}/LICENSE
-
-/usr/share/selinux/packages/%{name}/
 
 %post
 /bin/touch %{brokerdir}/log/production.log
@@ -126,11 +111,7 @@ rm -rf $RPM_BUILD_ROOT
 
 #selinux updated
 systemctl --system daemon-reload
-chkconfig stickshift-broker on
 
-pushd /usr/share/selinux/packages/stickshift-broker
-make -f /usr/share/selinux/devel/Makefile
-popd
 semanage -i - <<_EOF
 boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
@@ -142,7 +123,6 @@ fcontext -a -t httpd_log_t '%{brokerdir}/httpd/logs(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/log(/.*)?'
 fcontext -a -t httpd_log_t '%{_localstatedir}/log/stickshift/user_action.log'
 _EOF
-semodule -i /usr/share/selinux/packages/stickshift-broker/stickshift-broker.pp -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
 
 chcon -R -t httpd_log_t %{brokerdir}/httpd/logs %{brokerdir}/log
 chcon -R -t httpd_tmp_t %{brokerdir}/httpd/run
@@ -152,11 +132,10 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 /sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
-/sbin/restorecon -rv %{_sysconfdir}/httpd/conf.d/stickshift
-/sbin/restorecon -rv %{_localstatedir}/log/stickshift/user_action.log
+/sbin/restorecon -v '%{_localstatedir}/log/stickshift/user_action.log'
 
 %postun
-/usr/sbin/semodule -e passenger -r stickshift-broker
+/usr/sbin/semodule -e passenger -r stickshift-common
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run

@@ -20,17 +20,20 @@ FORWARD_CONF=${FORWARD_CONF:="/var/named/forwarders.conf"}
 if [ -n "$new_domain_name_servers" ]
 then
   # remove the localhost reference if it's provided
-  NAME_SERVER_LIST=`echo ${new_domain_name_servers} | sed -e 's/127.0.0.1 *//g ; s/ */ ; /g'`
-  NAME_SERVER_LIST="8.8.8.8 ; ${NAME_SERVER_LIST}"
-
+  NAME_SERVER_LIST=`echo ${new_domain_name_servers} | sed -e 's/127.0.0.1 *//g'`
+  logmessage "NAME_SERVER_LIST ${NAME_SERVER_LIST}"
+  FORWARDERS=""
+  for i in $NAME_SERVER_LIST; do
+    FORWARDERS="${FORWARDERS} $i ; "
+  done
+  FORWARDERS="${FORWARDERS} 8.8.8.8 ; 8.8.4.4 ;"
+  logmessage "set forwarders: ${FORWARDERS}"
   cat > ${FORWARD_CONF} <<EOF
 // created by /etc/dhcp/dhclient-up-hooks
 // set named forwarders from the DHCP supplied name server list
-forwarders { ${NAME_SERVER_LIST} ; } ;
+forwarders { ${FORWARDERS} } ;
 EOF
 
-  logmessage "set forwarders: ${NAME_SERVER_LIST}"
-  
   # reload the named configuration if needed
   if service named status 2>&1 >/dev/null
   then
