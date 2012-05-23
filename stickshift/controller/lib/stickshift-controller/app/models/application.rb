@@ -6,7 +6,7 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map, 
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -239,6 +239,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def save
     super(user.login)
     self.ngears = 0
+    self.gear_usage_records = nil
   end
   
   # Deletes the application object from the datastore
@@ -1299,9 +1300,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.new
       uuid = StickShift::Model.gen_uuid
+      self.gear_usage_records = [] unless gear_usage_records
+      self.gear_usage_records << GearUsageRecord.new(gear.uuid, gear.node_profile, event, user, now, uuid)
       self.class.notify_observers(:track_gear_usage, {:gear => gear, :event => event, :time => now, :uuid => uuid})
-      self.gear_usage = [] unless gear_usage
-      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event, now, uuid)
     end
     if Rails.configuration.usage_tracking[:syslog_enabled]
       Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }

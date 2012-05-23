@@ -84,6 +84,8 @@ module StickShift
         put_app(user_id, id, obj_attrs)
       when "Domain"
         put_domain(user_id, id, obj_attrs)
+      when "GearUsageRecord"
+        put_gear_usage_record(user_id, id, obj_attrs)
       end
     end
     
@@ -111,8 +113,16 @@ module StickShift
       when "Domain"
         delete_domain(user_id, id)
       when "ApplicationTemplate"
-        delete_application_template(id)       
+        delete_application_template(id)
+      when "GearUsageRecord"
+        delete_gear_usage_record(user_id, id)
       end
+    end
+    
+    def delete_gear_usage_record_by_gear_uuid(user_id, gear_uuid)
+      Rails.logger.debug "MongoDataStore.delete_gear_usage_record_by_gear_uuid(#{user_id}, #{gear_uuid})\n\n"
+      update({ "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}})
     end
 
     def db
@@ -317,7 +327,7 @@ module StickShift
       changed_user_attrs.delete("apps")
       changed_user_attrs.delete("domains")
       changed_user_attrs.delete("consumed_gears")
-      changed_user_attrs.delete("gear_usage")
+      changed_user_attrs.delete("gear_usage_records")
 
       update({ "_id" => user_id }, { "$set" => changed_user_attrs })
     end
@@ -335,12 +345,15 @@ module StickShift
       ngears = app_attrs["ngears"]
       ngears = ngears.to_i
       app_attrs.delete("ngears")
-      gear_usage = app_attrs["gear_usage"]
-      app_attrs.delete("gear_usage")
+      gear_usage_records = app_attrs["gear_usage_records"]
+      app_attrs.delete("gear_usage_records")
 
-      updates = { "$set" => { "apps.$" => app_attrs }, "$inc" => { "consumed_gears" => ngears}}
-      if gear_usage
-        updates["$push"] = { "gear_usage" => gear_usage }
+      updates = { "$set" => { "apps.$" => app_attrs } }
+      if gear_usage_records
+        updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
+      end
+      if ngears != 0
+        updates["$inc"] = { "consumed_gears" => ngears } 
       end
 
       if ngears > 0
@@ -354,7 +367,7 @@ module StickShift
                :update => updates })
         raise StickShift::UserException.new("Application gears already at zero for '#{user_id}'", 135) if hash == nil
       else
-        update({ "_id" => user_id, "apps.name" => id}, { "$set" => { "apps.$" => app_attrs }} )
+        update({ "_id" => user_id, "apps.name" => id}, updates )
       end
     end
 
@@ -363,12 +376,12 @@ module StickShift
       ngears = app_attrs["ngears"]
       ngears = ngears.to_i
       app_attrs.delete("ngears")
-      gear_usage = app_attrs["gear_usage"]
-      app_attrs.delete("gear_usage")
+      gear_usage_records = app_attrs["gear_usage_records"]
+      app_attrs.delete("gear_usage_records")
       
       updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
-      if gear_usage
-        updates["$push"]["gear_usage"] = gear_usage
+      if gear_usage_records
+        updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
       end
 
       hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
@@ -398,6 +411,15 @@ module StickShift
     def delete_app(user_id, id)
       update({ "_id" => user_id, "apps.name" => id},
              { "$pull" => { "apps" => {"name" => id }}})
+    end
+    
+    def put_gear_usage_record(user_id, id, gear_usage_attrs)
+      update({ "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
+    end
+    
+    def delete_gear_usage_record(user_id, id)
+      update({ "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"uuid" => id }}})
     end
 
     def app_attrs_to_internal(app_attrs)
