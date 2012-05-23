@@ -34,7 +34,7 @@ class Gear_scale_ctl
         'broker_auth_key' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/token"),
         'broker_auth_iv' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/iv")
     }
-    return if not check_scalability(params, action)
+    return if not check_scalability(params, action, opts)
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
@@ -49,9 +49,10 @@ class Gear_scale_ctl
     end
   end
 
-  def check_scalability(params, action)
-    env = load_env
-    scale_file = env[OPENSHIFT_DATA_DIR]
+  def check_scalability(params, action, opts)
+    env = load_env(opts)
+    data_dir = env['OPENSHIFT_DATA_DIR']
+    scale_file = "#{data_dir}/scale_limits.txt"
     min = 1
     max = -1
     if not File.exists? scale_file
@@ -66,13 +67,16 @@ class Gear_scale_ctl
       end
       response_object = JSON.parse(response)
       min = response_object["data"]["scale_min"]
-      max = response_object["data"]["scale-max"]
-      File.write(scale_file, "scale_min=#{min}\nscale_max=#{max}")
+      max = response_object["data"]["scale_max"]
+      f = File.open(scale_file, 'w')
+      f.write("scale_min=#{min}\nscale_max=#{max}")
+      f.close
     else
       scale_data = File.read(scale_file)
+      scale_hash = {}
       scale_data.split("\n").each { |s| 
         line = s.split("=")
-        scale_hash = { line[0] => line[1] }
+        scale_hash[line[0]] = line[1] 
       }
       min = scale_hash["scale_min"].to_i
       max = scale_hash["scale_max"].to_i
@@ -81,12 +85,17 @@ class Gear_scale_ctl
     gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
     current_gear_count = `wc -l #{gear_registry_db}`
     current_gear_count = current_gear_count.split(' ')[0].to_i
-    return false if action=='add-gear' and current_gear_count == max
-    return false if action=='remove-gear' and current_gear_count == min
+    if action=='add-gear' and current_gear_count == max
+      puts "Cannot add gear because max limit '#{max}' reached."
+      return false
+    elsif action=='remove-gear' and current_gear_count == min
+      puts "Cannot remove gear because min limit '#{min}' reached."
+      return false
+    end
     return true
   end
 
-  def load_env
+  def load_env(opts)
     env = {}
     # Load environment variables into a hash
     
@@ -100,7 +109,7 @@ class Gear_scale_ctl
         contents = contents[/'(.*)'/, 1] if contents.start_with?("'")
         contents = contents[/"(.*)"/, 1] if contents.start_with?('"')
       }
-      env[File.basename(f).intern] =  contents
+      env[File.basename(f)] =  contents
     }
     env
   end
