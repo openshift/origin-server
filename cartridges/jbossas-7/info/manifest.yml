@@ -56,4 +56,7 @@ Profiles:
       app-servers:
         Components:
           jbossas-server: jbossas-server
+        Scaling:
+          Min: 2
+          Max: -1
 Default-Profile: standalone
