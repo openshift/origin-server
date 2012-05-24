@@ -30,6 +30,7 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 setup_embedded_deconfigure "$1" $2 $3
+disable_cgroups
 
 source ${CART_INFO_DIR}/lib/util
 
@@ -73,3 +74,4 @@ if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
     # Remove apache vhost configuration.
     rm_httpd_proxy $uuid $namespace $application
 fi
+enable_cgroups

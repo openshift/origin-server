@@ -29,6 +29,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
+disable_cgroups
 
 PHPMYADMIN_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 PHPMYADMIN_CTL_SCRIPT="$PHPMYADMIN_DIR/${application}_phpmyadmin_ctl.sh"
@@ -135,3 +136,4 @@ client_result ""
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
 set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
+enable_cgroups

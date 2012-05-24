@@ -29,6 +29,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
+disable_cgroups
 
 check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
@@ -105,4 +106,4 @@ $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $names
 start_app
 
 restart_httpd_graceful
-
+enable_cgroups

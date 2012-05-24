@@ -734,8 +734,16 @@ function run_user_hook {
     fi
 }
 
+function enable_cgroups {
+    return 0
+}
+
+function disable_cgroups {
+    return 0
+}
 
 if [ -f /usr/libexec/stickshift/lib/util_ext ]
 then
     source /usr/libexec/stickshift/lib/util_ext
 fi
+# DON'T PUT ANYTHING BELOW UTIL_EXT CHECK

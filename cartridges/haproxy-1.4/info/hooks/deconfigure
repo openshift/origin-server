@@ -30,6 +30,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 
 setup_deconfigure "$1" $2 $3
+disable_cgroups
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
@@ -94,4 +95,4 @@ fi
 # Got here if its haproxy embedded and got removed - so start up all apps with
 # the new path (IE: without haproxy)
 start_app
-
+enable_cgroups

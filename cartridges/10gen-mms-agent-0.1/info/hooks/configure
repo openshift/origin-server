@@ -29,6 +29,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
+disable_cgroups
 
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
 MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
@@ -115,3 +116,4 @@ client_result ""
 client_result "Monitoring URL: https://mms.10gen.com/"
 
 set_app_info "Monitoring URL: https://mms.10gen.com/"
+enable_cgroups

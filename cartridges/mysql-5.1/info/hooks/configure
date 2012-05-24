@@ -99,6 +99,7 @@ if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
 fi
 
 setup_embedded_configure "$1" $2 $3
+disable_cgroups
 
 MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -214,3 +215,4 @@ fi
 client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 
 set_app_info "Connection URL: mysql://$mysql_ip:$mysql_port/"
+enable_cgroups
