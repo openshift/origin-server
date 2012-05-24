@@ -71,20 +71,6 @@ $ ->
         required: true
         email: true
 
- # Validate application name
-  $.validator.addClassRules
-    domain_name:
-      required: true
-      alpha_numeric: true
-    application_name:
-      required: true
-      alpha_numeric: true
-
-  # /app/account
-  # /app/account/domain/edit
-  $("#new_domain form").validate
-    errorLabelContainer: '#app-errors'
-    errorContainer: '#app-errors'
 
   $("[data-unhide]").click (event) ->
     src = $(this)
