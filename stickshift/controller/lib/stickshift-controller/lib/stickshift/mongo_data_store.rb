@@ -393,7 +393,12 @@ module StickShift
     
     def put_domain(user_id, id, domain_attrs)
       domain_attrs_to_internal(domain_attrs)
-      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
+      domain_updates = {}
+      domain_attrs.each do |k, v|
+        domain_updates["domains.$.#{k}"] = v
+        domain_updates["apps.$.domain.#{k}"] = v
+      end
+      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
     end
 
     def add_domain(user_id, id, domain_attrs)
@@ -410,7 +415,7 @@ module StickShift
 
     def delete_app(user_id, id)
       update({ "_id" => user_id, "apps.name" => id},
-             { "$pull" => { "apps" => {"name" => id }}})
+             { "$pull" => { "apps" => {"name" => id }}, "$inc" => { "consumed_gears" => -1 }})
     end
     
     def put_gear_usage_record(user_id, id, gear_usage_attrs)
