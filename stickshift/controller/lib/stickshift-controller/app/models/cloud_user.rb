@@ -1,7 +1,7 @@
  class CloudUser < StickShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage
+  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records
   primary_key :login
-  exclude_attributes :applications, :auth_method, :save_jobs
+  exclude_attributes :applications, :auth_method, :save_jobs, :gear_usage_records
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
   private :login=, :uuid=, :save_jobs=
 
@@ -177,6 +177,14 @@
       end
       hash.delete("apps")
     end
+    gear_usage_records = []
+    if hash["gear_usage_records"]
+      hash["gear_usage_records"].each do |gear_usage_hash|
+        gear_usage_record = GearUsageRecord.hash_to_obj(gear_usage_hash)
+        gear_usage_records.push(gear_usage_record)
+      end
+      hash.delete("gear_usage_records")
+    end
     user = super(hash)
     user.applications = apps
     apps.each do |app|
@@ -188,6 +196,12 @@
     domains.each do |domain|
       domain.user = user
     end
+
+    user.gear_usage_records = gear_usage_records
+    gear_usage_records.each do |gear_usage_record|
+      gear_usage_record.user = user
+    end
+
     user
   end
   

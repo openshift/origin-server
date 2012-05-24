@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.6
+Version: 0.11.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -25,6 +25,7 @@ Requires:       rubygem(dnsruby)
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
+Requires:       rubygem(dnsruby)
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -77,6 +78,32 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.9-1
+- 
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+- 
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Waiting on bugzilla ticket 824312 (rmillner@redhat.com)
+- [mpatel+ramr] Fix issues where app_name is not the same as gear_name - fixup
+  for typeless gears. (ramr@redhat.com)
+- enable gear usage syncing (dmcphers@redhat.com)
+- stop setting global temp dir (dmcphers@redhat.com)
+- The test was fixed in commit a7afa77. (rmillner@redhat.com)
+- Any test which waits for a DNS name to be created or deleted must take
+  caching into account.  While checking for a record to disappear; you may have
+  to wait up till the TTL of the record for caches to expire.
+  (rmillner@redhat.com)
+- App creation time has been steadily increasing so that we are sometimes
+  hitting the old limit. (rmillner@redhat.com)
+- This test relies on DNS but ignores record TTL causing false failures.
+  (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Revert "The grep should return not found since the namespace was deleted."
+  (rmillner@redhat.com)
+
 * Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.11.6-1
 - The grep should return not found since the namespace was deleted.
   (rmillner@redhat.com)
