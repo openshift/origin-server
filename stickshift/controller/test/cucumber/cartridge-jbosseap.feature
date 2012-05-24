@@ -28,7 +28,7 @@ Feature: JBossEAP Application
      Then a jbosseap application directory will not exist
      And a jbosseap git repo will not exist
      And a jbosseap source tree will not exist
-     And the maven repository will not exist
+     And the jbosseap maven repository will not exist
      #And the openshift environment variable files will not exist
      And a jbosseap daemon will not be running     
 
