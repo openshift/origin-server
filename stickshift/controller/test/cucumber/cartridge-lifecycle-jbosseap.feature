@@ -1,7 +1,7 @@
 @verify
 @verify2
 @broker
-Feature: Cartridge Lifecycle JBossAS Verification Tests
+Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
     And an accepted node
