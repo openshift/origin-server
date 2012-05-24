@@ -149,7 +149,7 @@
     background-color: #2C2C2C;
     @include gradient-vertical($startColor: #404040, $endColor: #2f2f2f);
     background-repeat: repeat-x;
-    margin: 3px 20px 0;
+    margin: 3px 0 0 3px;
   	padding: 7px 13px;
   	border:0;
   	color: #c8c8c8;
@@ -205,6 +205,7 @@
   margin: 0;
   position: absolute;
   right: 0;
+  z-index: 9999 !important;
 
   li {
   	display: block;
@@ -308,7 +309,7 @@
   .navbar .brand {
   	float: left;
   	position: static;
-  	font-size: 13px;
+  	font-size: 14px;
   }
   .brand-text {
   	

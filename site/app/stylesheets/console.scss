@@ -552,12 +552,22 @@ figure {
   .status-important {
   	background-color: #900;
   }
-#utility-nav .alert {
-  color: #333;
+#utility-nav .alert, .navbar .alert {
+  color: #333333;
+  float: right;
+  line-height: 18px;
+  margin: 0;
+  padding: 7px;
 
   &:hover {
     color: black;
   }
+}
+#utility-nav .alert {
+ margin: -5px 0 0;
+}
+.navbar .alert {
+	margin: 3px 0 0 10px;
 }
 
 .nav {
