@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.9
+Version: 0.11.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.10-1
+- Revert "Broke the build, the tests have not been update to reflect this
+  changeset." (ramr@redhat.com)
+- Broke the build, the tests have not been update to reflect this changeset.
+  (admiller@redhat.com)
+
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.9-1
 - 
 
