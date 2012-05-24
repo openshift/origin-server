@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.7
+Version: 0.11.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+- 
+
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Waiting on bugzilla ticket 824312 (rmillner@redhat.com)
