@@ -1,17 +1,13 @@
-#new_domain
-  = semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
-    = f.semantic_errors
-    .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
-      .controls
-        .input-prepend-append
-          %span.add-on-first> http://applicationname&ndash;
-          = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
-          %span.add-on-last> .rhcloud.com
-          = f.inline_errors_for :name
-        .row.control-group.error
-          #app-errors.span
-        .help-block Your namespace must be letters or numbers with no spaces or symbols.
-    = f.buttons do
-      = link_to "Cancel", account_path, :class => 'btn'
-      = f.commit_button :label => domain.persisted? ? 'Save' : 'Create'
-      = f.loading
+= semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
+  = f.semantic_errors :name
+  .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
+    .controls
+      .input-prepend-append
+        %span.add-on-first> http://applicationname&ndash;
+        = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
+        %span.add-on-last> .rhcloud.com
+      .help-block Your namespace must be letters or numbers with no spaces or symbols.
+  = f.buttons do
+    = link_to "Cancel", account_path, :class => 'btn'
+    = f.commit_button :label => domain.persisted? ? 'Save' : 'Create'
+    = f.loading
