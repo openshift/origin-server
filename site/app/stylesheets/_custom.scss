@@ -1,4 +1,4 @@
-/** Twitter Bootstrap Customizations
+/* Twitter Bootstrap Customizations
 ------------------------------------------------ 
 Colors
 CC0000, CD1E25 -> reds -> danger/important
@@ -10,10 +10,6 @@ ABB64C -> green -> success
 
 .column-content {
   padding-top: 25px;
-  h1 {
-    margin-bottom: 25px;
-  }
-
   section {
     margin-bottom: 25px;
   }
@@ -142,18 +138,6 @@ textarea:focus {
   @include formFieldState($successBackground, $successBackground, $successBackground);
 }
 
-#footer-nav {
-  padding: 35px 0;
-  }
- 	#footer-nav a {
- 		color: #666;
- 		}
-#copyright {
-  padding: 20px;
-  }
-  #copyright > .container > div {
-    margin-top: 15px;
-    }
 
 
 /* Print styles */
@@ -164,7 +148,7 @@ textarea:focus {
   a[href]:after { content: " (" attr(href) ")"; }
   abbr[title]:after { content: " (" attr(title) ")"; }
   .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
-  pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
+  pre, blockquote footer nav
   thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
   tr, img { page-break-inside: avoid; }
   img { max-width: 100% !important; }
@@ -190,17 +174,6 @@ textarea:focus {
 	.hero-unit h1 {
 		font-size: 26px;
 		}
-	/*FIXME revisit with better names*/
-	.link-column {margin-bottom: 15px !important;}
-  .link-column > header { display: inline; }
-  .link-column ul { margin-bottom: 5px; }
-  .link-column h3,
-  .link-column h4,
-  .link-column h5 { display: inline; font-size: 14px; }
-  .link-column ul { margin: 0; padding: 0; display: inline; }
-  .link-column li { margin: 0; padding: 0; display: inline; list-style-image: none; list-style: none; }
-  .link-column a { margin-left: 5px; text-decoration: underline; white-space: nowrap}
-  .link-column > header a { margin-left: 0; }
 }
 
 @media (min-width: 768px) and (max-width: 980px) {
@@ -213,7 +186,7 @@ textarea:focus {
 	 	}
 	.navbar .nav-collapse {
     clear: left;
-    height: auto; /* override js toggle */
+    // height: auto; /* override js toggle */
   	}
   .navbar .nav {
     float: none;
@@ -246,9 +219,6 @@ textarea:focus {
 }
 	  
 @media (min-width: 980px) {
-	.nav-collapse.collapse {
-    height: auto !important;
-  	}
   .navbar .nav > li > a {
   	-webkit-border-radius: 6px 6px 0 0;
   		 -moz-border-radius: 6px 6px 0 0;
