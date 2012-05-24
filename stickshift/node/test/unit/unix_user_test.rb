@@ -32,10 +32,12 @@ class TestUnixUserModel < Test::Unit::TestCase
     gear_uuid = Process.euid.to_s
     user_uid = Process.euid.to_s
     app_name = 'UnixUserTestCase'
+    gear_name = app_name
     namespace = 'jwh201204301647'
 
     FileUtils.rm_rf("/tmp/homedir")
-    o = StickShift::UnixUser.new(gear_uuid, gear_uuid, user_uid, app_name, namespace)
+    o = StickShift::UnixUser.new(gear_uuid, gear_uuid, user_uid, app_name,
+                                 gear_name, namespace)
     assert_not_nil o
 
     o.initialize_homedir("/tmp/", "/tmp/homedir/", "stickshift/abstract/")
