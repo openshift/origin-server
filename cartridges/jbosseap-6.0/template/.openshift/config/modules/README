@@ -1,0 +1,3 @@
+Place your jboss-eap6.0 modules in this directory. This directory is added to the
+module path of the jboss-eap6.0 server associated with your application. It has the
+same structure as the jboss-eap6.0/modules directory.

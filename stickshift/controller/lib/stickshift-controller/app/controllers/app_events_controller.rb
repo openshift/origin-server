@@ -46,16 +46,8 @@ class AppEventsController < BaseController
           application.remove_alias(server_alias)
         when "scale-up"
           application.scaleup
-#          if application.web_cart=="jbossas-7"
-#            Rails.logger.debug "Restarting JBoss cluster"
-#            application.restart
-#          end
         when "scale-down"
           application.scaledown
-#          if application.web_cart=="jbossas-7"
-#            Rails.logger.debug "Restarting JBoss cluster"
-#            application.restart
-#          end
         else
           @reply = RestReply.new(:unprocessable_entity)
           message = Message.new(:error, "Invalid event.  Valid events are start, stop, restart, force-stop, expose-port, conceal-port, show-port, scale-up, scale-down, add-alias, remove-alias", 126, "event")
