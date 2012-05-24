@@ -1,5 +1,3 @@
-@internals
-@internals1
 @node
 Feature: JBossEAP Application
 
