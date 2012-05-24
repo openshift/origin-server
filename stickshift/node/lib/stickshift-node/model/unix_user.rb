@@ -40,13 +40,14 @@ module StickShift
 
     #fixme: set debug to false
     def initialize(application_uuid, container_uuid, user_uid=nil,
-        app_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
+        app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
       @application_uuid = application_uuid
       @uuid = container_uuid
       @app_name = app_name
+      @container_name = container_name
       @namespace = namespace
       @quota_blocks = quota_blocks
       @quota_files = quota_files
@@ -143,7 +144,7 @@ module StickShift
       FileUtils.rm_rf(@homedir)
 
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      token = "#{@uuid}_#{@namespace}_#{@container_name}"
       path = File.join(basedir, ".httpd.d", token)
       conf_file = path + ".conf"
 
@@ -371,7 +372,7 @@ module StickShift
       FileUtils.chmod(0o0750, env_dir)
       FileUtils.chown(nil, @uuid, env_dir)
 
-      geardir = File.join(homedir, @app_name, "/")
+      geardir = File.join(homedir, @container_name, "/")
       gearappdir = File.join(homedir, "app", "/")
 
       add_env_var("APP_DNS",
@@ -386,9 +387,9 @@ module StickShift
 
       add_env_var("GEAR_DIR", geardir, true)
       add_env_var("GEAR_DNS",
-                  "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
+                  "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)
-      add_env_var("GEAR_NAME", @app_name, true) 
+      add_env_var("GEAR_NAME", @container_name, true)
       add_env_var("GEAR_UUID", @container_uuid, true)
 
       add_env_var("HOMEDIR", homedir, true)
@@ -414,7 +415,7 @@ module StickShift
       }
       FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
 
-      token = "#{@uuid}_#{@namespace}_#{@app_name}"
+      token = "#{@uuid}_#{@namespace}_#{@container_name}"
       path = File.join(basedir, ".httpd.d", token)
 
       # path can only exist as a turd from failed app destroy
