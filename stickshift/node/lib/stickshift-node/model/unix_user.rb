@@ -153,7 +153,7 @@ module StickShift
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
       raise UserDeletionException.new(
-            "ERROR: unable to destroy user account #{@uuid}") unless rc == 0
+            "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
 
