@@ -47,7 +47,7 @@ module GearChanger
     end
 
     def create(app, gear)
-      args = "--with-app-uuid '#{app.uuid}' --named '#{app.name}' --with-container-uuid '#{gear.uuid}' --with-namespace '#{app.domain.namespace}'"
+      args = "--with-app-uuid '#{app.uuid}' --with-app-name '#{app.name}' --with-container-name '#{gear.name}' --with-container-uuid '#{gear.uuid}' --with-namespace '#{app.domain.namespace}'"
       reply = exec_command("stickshift","app-create", args)
       parse_result(reply)
     end

@@ -59,6 +59,7 @@ class GroupInstance < StickShift::Model
     else
       # For non scalable app's, gear's uuid is the app uuid.
       gear.uuid = app.uuid
+      gear.name = app.name
     end
     create_result = gear.create
     unless create_result.exitcode == 0
