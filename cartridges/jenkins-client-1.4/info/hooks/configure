@@ -30,7 +30,6 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
-disable_cgroups
 
 #
 # Create the core of the application
@@ -118,4 +117,3 @@ client_result ""
 client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_GEAR_NAME"
 
 set_app_info "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
-enable_cgroups

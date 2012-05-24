@@ -27,7 +27,6 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
-disable_cgroups
 
 JENKINS_CLIENT_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
@@ -64,4 +63,3 @@ then
   client_result ""
 fi
 client_result "Jenkins client 1.4 has been removed from: $OPENSHIFT_GEAR_NAME"
-enable_cgroups
