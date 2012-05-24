@@ -81,8 +81,8 @@ ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_stickshift_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 cp %{buildroot}%{brokerdir}/doc/selinux/stickshift-broker.te %{buildroot}/usr/share/selinux/packages/%{name}/
 
-mkdir -p %{buildroot}%{_localstatedir}/log/openshift
-touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
+mkdir -p %{buildroot}%{_localstatedir}/log/stickshift
+touch %{buildroot}%{_localstatedir}/log/stickshift/user_action.log
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -91,7 +91,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0640,apache,apache,0750)
 %attr(0666,-,-) %{brokerdir}/log/production.log
 %attr(0666,-,-) %{brokerdir}/log/development.log
-%attr(0666,-,-) %{_localstatedir}/log/openshift/user_action.log
+%attr(0666,-,-) %{_localstatedir}/log/stickshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -120,7 +120,7 @@ rm -rf $RPM_BUILD_ROOT
 /bin/touch %{brokerdir}/log/development.log
 /bin/touch %{brokerdir}/httpd/logs/error_log
 /bin/touch %{brokerdir}/httpd/logs/access_log
-/bin/touch %{_localstatedir}/log/openshift/user_action.log
+/bin/touch %{_localstatedir}/log/stickshift/user_action.log
 
 #selinux updated
 systemctl --system daemon-reload

@@ -51,7 +51,7 @@ Broker::Application.configure do
 
   config.user_action_logging = {
     :logging_enabled => true,
-    :log_filepath => "/var/log/openshift/user_action.log"
+    :log_filepath => "/var/log/stickshift/user_action.log"
   }
 
   ############################################
