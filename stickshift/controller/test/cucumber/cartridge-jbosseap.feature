@@ -16,7 +16,7 @@ Feature: JBossEAP Application
      And the jbosseap git hooks will exist
      And a jbosseap source tree will exist
      And a jbosseap deployments directory will exist
-     And the maven repository will exist
+     And the jbosseap maven repository will exist
      #And the openshift environment variable files will exist
      And a jbosseap service startup script will exist
      And a jbosseap application http proxy file will exist
