@@ -28,7 +28,7 @@ Feature: JBossAS Application
      Then a jbossas application directory will not exist
      And a jbossas git repo will not exist
      And a jbossas source tree will not exist
-     And the maven repository will not exist
+     And the jbossas maven repository will not exist
      #And the openshift environment variable files will not exist
      And a jbossas daemon will not be running     
 
