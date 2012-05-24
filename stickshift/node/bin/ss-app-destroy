@@ -42,7 +42,7 @@ opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
-    ["--named",                     GetoptLong::OPTIONAL_ARGUMENT],
+    ["--with-app-name",             GetoptLong::OPTIONAL_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
