@@ -344,7 +344,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
-    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length==ginst.max
+    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length>=ginst.max
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -364,7 +364,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length == ginst.min
+    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.first
 

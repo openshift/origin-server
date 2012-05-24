@@ -199,10 +199,12 @@ class Haproxy
         #       actually issue a remove_gear
 
 
+        min, max = get_scaling_limits
+
         # If active capacity is greater then gear_up pct. Add a gear
         if @session_capacity_pct >= @gear_up_pct
             @remove_count = 0
-            self.add_gear
+            self.add_gear if @gear_count < max
         elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
             # If active capacity is less then gear remove percentage
             # *AND* the last gear up happened longer then
@@ -214,7 +216,7 @@ class Haproxy
 
             if self.last_scale_up_time_seconds.to_i > @flap_protection_time_seconds
                 if @remove_count >= @remove_count_threshold
-                    self.remove_gear
+                    self.remove_gear if @gear_count > min
                     @remove_count = 0
                 else
                     self.print_gear_stats if debug
@@ -226,6 +228,28 @@ class Haproxy
             @remove_count = 0
             self.print_gear_stats if debug
         end
+    end
+
+    def get_scaling_limits
+      data_dir = ENV['OPENSHIFT_DATA_DIR']
+      scale_file = "#{data_dir}/scale_limits.txt"
+      min = 1
+      max = -1
+      if File.exists? scale_file
+        scale_data = File.read(scale_file)
+        scale_hash = {}
+        scale_data.split("\n").each { |s| 
+          line = s.split("=")
+          scale_hash[line[0]] = line[1] 
+        }
+        begin
+          min = scale_hash["scale_min"].to_i
+          max = scale_hash["scale_max"].to_i
+        rescue Exception => e
+          @@log.error("Unable to get gear's min/max scaling limits because of #{e.message}")
+        end
+      end
+      return min, max
     end
 
     def stats()
