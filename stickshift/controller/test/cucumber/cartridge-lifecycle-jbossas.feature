@@ -40,16 +40,16 @@ Feature: Cartridge Lifecycle JBossAS Verification Tests
     |      type     |
     |   jbossas-7   |
     
-  Scenario Outline: Application Snapshot
-    Given an existing <type> application
-    When I snapshot the application
-    Then the application should be accessible
-    When I restore the application
-    Then the application should be accessible
-
-  Scenarios: Application Snapshot Scenarios
-    |      type     |
-    |   jbossas-7   |
+#  Scenario Outline: Application Snapshot
+#    Given an existing <type> application
+#    When I snapshot the application
+#    Then the application should be accessible
+#    When I restore the application
+#    Then the application should be accessible
+#
+#  Scenarios: Application Snapshot Scenarios
+#    |      type     |
+#    |   jbossas-7   |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application
