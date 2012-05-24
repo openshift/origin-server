@@ -899,9 +899,48 @@ class RestApiTest < ActiveSupport::TestCase
         {:name => 'php-5.3', :type => 'standalone', :categories => [:framework]},
         {:name => 'blacklist', :type => 'standalone', :categories => [:framework, :blacklist]},
       ].to_json
+
+      mock.get '/broker/rest/application_template.json', json_header, [
+      ].to_json
     end
     types = ApplicationType.find :all, :as => @user
     assert_equal 2, types.length
+    types.each do |type|
+      assert a = ApplicationType.find(type.id, :as => @user)
+      assert_equal type.id, a.id
+      assert_equal type.description, a.description
+      assert_equal type.categories, a.categories
+    end
+
+    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist', :as => @user) }
+  end
+
+  def test_application_templates
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/cartridges.json', json_header, [
+      ].to_json
+
+      mock.get '/broker/rest/application_template.json', json_header, [
+        { :name => 'blacklist', :tags => [:framework, :blacklist] },
+        {
+          :name => 'rails',
+          :tags => [:framework, :ruby, :rails],
+          :descriptor_yaml => YAML.dump({
+            'Name' => "rails"
+          }),
+          :metadata => {
+            :attributes => {
+            }.to_json
+          },
+          :display_name => "Ruby on Rails",
+          :uuid => '1234'
+        }
+      ].to_json
+    end
+
+    types = ApplicationType.find :all, :as => @user
+    assert_equal 2, types.length
+
     types.each do |type|
       assert a = ApplicationType.find(type.id, :as => @user)
       assert_equal type.id, a.id

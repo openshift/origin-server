@@ -12,6 +12,7 @@ class ApplicationType
   attr_accessor :categories, :learn_more_url
   attr_accessor :help_topics
   attr_accessor :blocks
+  attr_accessor :template
 
   def initialize(attributes={})
     attributes.each do |name,value|
@@ -72,11 +73,19 @@ class ApplicationType
         find_every(*arguments).find{ |t| t.id == id } or raise NotFound, id
       end
       def find_every(opts={})
-        CartridgeType.cached.standalone(:as => opts[:as]).select do |t|
+        cartridges = CartridgeType.cached.standalone(:as => opts[:as]).select do |t|
           t.categories.include?(:framework) and not t.categories.include?(:blacklist)
         end.map do |t|
           t.to_application_type
-        end.concat(@default_types)
+        end
+
+        templates = ApplicationTemplate.cached.all(:as => opts[:as]).select do |t|
+          t.categories.include?(:framework) and not t.categories.include?(:blacklist)
+        end.map do |t|
+          t.to_application_type
+        end
+
+        templates.concat(cartridges).concat(@default_types)
       end
   end
 end

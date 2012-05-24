@@ -8,7 +8,7 @@ class CartridgesController < ConsoleController
   def show
     @domain = Domain.find :one, :as => session_user
     @application = @domain.find_application params[:application_id]
-    @application_type = ApplicationType.find @application.framework
+    @application_type = ApplicationType.find @application.framework, :as => session_user
     Rails.logger.debug @application.cartridges
     @cartridge = @application.find_cartridge params[:id]
   end
