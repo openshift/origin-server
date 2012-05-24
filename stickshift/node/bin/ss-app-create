@@ -27,14 +27,13 @@ ss-app-create: Creates a new application container.
 ss-app-create   --with-app-uuid e335712492e011e1bae700262df50034 \\
                 --with-container-uuid 1c3a5f7a92e111e188d800262df50034 \\
                 --with-namespace mydomain \\
-                --with-app-name myapp
+                --name myapp
 
 == List of arguments
   -a|--with-app-uuid        app_uuid    Unique application identifier (required)
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
-    |--with-app-name        name        Name of the application (required)
+    |--name                 name        Name of the application (required)
     |--with-namespace       namespace   Namespace of the application (required)
-    |--with-container-name  gear_name   Name of the gear
   -i|--with-uid             uid         User ID to use (will create a user with
                                             this uid in /etc/passwd
     |--with-quota-blocks    blocks      Number of blocks to allow
@@ -52,12 +51,11 @@ opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-uid",            "-i", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-app-name",             GetoptLong::REQUIRED_ARGUMENT],
     ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
     ["--with-quota-blocks",         GetoptLong::REQUIRED_ARGUMENT],
     ["--with-quota-files",          GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
-    ["--with-container-name",       GetoptLong::OPTIONAL_ARGUMENT],
+    ["--named",                     GetoptLong::OPTIONAL_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
@@ -77,28 +75,25 @@ if args["--help"]
 end
 
 app_uuid = args['--with-app-uuid']
-gear_uuid = args['--with-container-uuid']
+uuid = args['--with-container-uuid']
 uid = args['--with-uid']
 uid = nil if uid && uid.empty?
 quota_blocks = args['--with-quota-blocks']
 quota_files = args['--with-quota-files']
-app_name = args['--with-app-name']
-gear_name = args['--with-container-name']
-gear_name = app_name if (gear_name && gear_name.empty?) || !gear_name
+name = args['--named']
 namespace = args['--with-namespace']
 $dry_run = true if args['--dry-run']
 $ss_debug = true if args['--debug']
 $porcelin = args['--porcelain'] ? true : false
 
-unless gear_uuid
+unless uuid
   usage
   exit -100
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, uid,
-                        app_name, gear_name, namespace, quota_blocks,
-                        quota_files)
+  container = StickShift::ApplicationContainer.new(uuid, uuid, uid, name,
+                        namespace, quota_blocks, quota_files)
   container.create
 rescue StickShift::UserCreationException => e
   $stderr.puts(e.message)
