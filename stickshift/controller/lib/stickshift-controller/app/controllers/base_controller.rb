@@ -13,6 +13,8 @@ class BaseController < ActionController::Base
   before_filter :check_version, :only => :show
   API_VERSION = "1.0"
   SUPPORTED_API_VERSIONS = ["1.0"]
+
+  include UserActionLogger
   
   def show
     links = {
@@ -47,7 +49,7 @@ class BaseController < ActionController::Base
         login = u
         password = p
       }
-    end
+    end      
     begin
       auth = StickShift::AuthService.instance.authenticate(request, login, password)
       @login = auth[:username]
@@ -60,6 +62,7 @@ class BaseController < ActionController::Base
         @cloud_user.save
       end
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
+      @request_id = gen_req_uuid
     rescue StickShift::AccessDeniedException
       request_http_basic_authentication
     end
@@ -106,4 +109,12 @@ class BaseController < ActionController::Base
       return
     end
   end
+
+  def gen_req_uuid
+    # The request id can be generated differently to make it a bit more meaningful
+    File.open("/proc/sys/kernel/random/uuid", "r") do |file|
+      file.gets.strip.gsub("-","")
+    end
+  end
+
 end
