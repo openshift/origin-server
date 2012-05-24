@@ -1,11 +1,11 @@
 .navbar {
-	height: 90px;
-	margin: 0/*.*/;
-
+	margin: 0;
 	background: black url("../images/stars.png") left top repeat-x;
 	border-bottom: 2px solid #383838;
 }
-
+.navbar .navbar-inner {
+	min-height: 84px;
+}
 .navbar .nav {
   position: relative;
   left: 0;
@@ -33,17 +33,6 @@
   color: #ffffff;
   text-decoration: none;
 	}
-.navbar .nav .active > a, 
-.navbar .nav .active > a:hover {
-  color: #ffffff;
-  text-decoration: none;
-  background-color: #111;
-  border-left: 1px solid #444;
-  border-right: 1px solid #444;
-  border-top: 1px solid #444;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5) inset;
-  cursor: default;
-	}
 
 .navbar .brand {	
   font-size: 15px;
@@ -54,7 +43,7 @@
   text-transform: uppercase;
 
   position: absolute;
-  top: 18px;
+  top: 16px;
   margin: 0;
   padding: 0;
   white-space: nowrap;
@@ -64,11 +53,13 @@
     background: url('../images/logo-24-inside.png') no-repeat left;
     height: 32px;
     width: 40px;
+    margin-top: -3px;
     vertical-align: middle;
   }
 
   a {
     display: inline-block;
+    text-decoration:none;
     color: white;
   }
 
@@ -78,6 +69,7 @@
 
     &:before {
       content: ' | ';
+      color: #555555;
     }
   }
 }
@@ -95,11 +87,11 @@
 /* nav overwrite bootstrap */		
 .navbar .nav > li > a {
   @include border-radius(3px 3px 0 0);
-  margin: 2px;
+  margin: 0 0 1px;
   color: #999999;
   float: none;
   line-height: 19px;
-  padding: 3px 13px;
+  padding: 5px 13px;
   text-decoration: none;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
 }
@@ -112,6 +104,7 @@
   @include box-shadow(none);
   border:0;
   color: #FFFFFF;
+  background-color: #262626;
   cursor: pointer;
   text-decoration: none;
 }		
@@ -132,8 +125,12 @@
   border-top-right-radius: 6px;
   border-top-left-radius: 6px;
   float: none;
-  left: 91px;
-  margin: 61px 0 0 0;
+  left: 0;
+  margin: 53px 0 -4px;
+	background: #000;
+  padding-left: 1px;
+  padding-right: 1px;
+  padding-top: 1px;
   position: relative;
 }
 .navbar .nav > li {
@@ -147,7 +144,40 @@
   display: block;
   float: left;
 }
-		
+
+.navbar .btn-navbar {
+    background-color: #2C2C2C;
+    @include gradient-vertical($startColor: #404040, $endColor: #2f2f2f);
+    background-repeat: repeat-x;
+    margin: 3px 20px 0;
+  	padding: 7px 13px;
+  	border:0;
+  	color: #c8c8c8;
+    display: none;
+    float: right;
+    
+    &:hover {
+  	color:#eee;
+  	background-color:#505050;
+  	background-image:none;
+  	.icon-bar {
+    	background-color: #eee;
+    }
+  }
+  
+  .icon-bar {
+    background-color: #c8c8c8;
+    border-radius: 1px 1px 1px 1px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    display: block;
+    height: 2px;
+    margin: 2px 0;
+    width: 38px;
+    float:right;
+    clear:both;   
+	}
+}	
+	
 .navbar .container {
 	position: relative;
 	}
@@ -160,9 +190,8 @@
   @include border-radius(3px);
   color: #999999;
   font-size: 11px;
-  position: absolute;
+  position: static;
   right: 0;
-  top: 35px;
   padding: 0;
   margin-left: 0;
 }
@@ -172,14 +201,16 @@
 }
 
 #utility-nav {
-  background: #000;
-  margin: 0 -10px 0 0;
   font-size: 11px;
+  margin: 0;
+  position: absolute;
+  right: 0;
 
   li {
   	display: block;
     float: left;
     margin-left: 5px;
+    line-height: 24px;
 
     a {
       color: #999999;
@@ -193,19 +224,16 @@
   }
 }
 
-@media (max-width: 767px) {
+
+@media (max-width: 480px) {
 	.navbar {
     height: auto;
     border: 0;
+		background-image:none;
+		background-color:#000;
 	}
 	.navbar .brand {
-		position: static;
-    margin-top: 30px;
     white-space: normal;
-
-    .navbar-text:before {
-      content: none;
-    }
 	}
 	.navbar .nav {
 		display: block;
@@ -213,34 +241,79 @@
 		border: 0;
 		left: 0;
 	}
-	.navbar .nav > li {
-    display: inline-block;
-    margin-right: 4px;
-	}
 	.navbar .nav > li > a {
 		@include border-radius(3px);
 	}
 	.navbar .nav > li:last-child {
 		margin-right: 0;
 	}
-	.navbar .nav .active > a, 
-  .navbar .nav .active > a:hover {
-    background-color: #333;
-    border: 0;
-    color: #FFFFFF;
-    cursor: default;
-    text-decoration: none;
-    box-shadow: none;
-	}
-
-	#identity {
-    position: static;
-  }
-	#utility-nav {
-    margin: 0 5px 0 0;
-	}
 }
 
+
+@media (max-width: 767px) { 
+	.navbar .btn-navbar {
+    display: block;
+	}
+	.nav-collapse {
+    clear: both;
+  	padding-top: 3px;
+  }
+  .nav-collapse .nav {
+    float: none;
+    margin: 0 0 6px;
+    padding-top: 6px;
+    display: block;
+    float: none;
+    left: 0;
+    @include border-radius(0);
+    border-left: 0;
+    border-right: 0;
+    border-top: 1px solid #2a2b2c;
+  }
+  .nav-collapse .nav:first-child {
+  	border: 0;
+  }
+  .nav-collapse .nav > li {
+    float: none;
+    text-align: left;
+  }
+  .navbar .nav > li > a:hover {
+  	background-color: #1a1b1c;
+  	color: #fff;
+  }
+  .nav-collapse .nav > li > a {
+    margin-bottom: 2px;
+    @include border-radius(0);
+  }
+  .nav-collapse.in .btn-group {
+    padding: 0;
+    margin-top: 5px;
+  }
+  .navbar {
+  	position:static;
+  	background: #000;
+  	border-bottom: 0;
+  }
+  .navbar .navbar-inner {
+  	padding-bottom: 0;
+    min-height: 45px;
+    padding-top: 8px;
+  }
+  .nav-collapse,
+  .nav-collapse.collapse {
+    height: 0;
+    //height:auto;
+    overflow: hidden;
+  }
+  .navbar .brand {
+  	float: left;
+  	position: static;
+  	font-size: 13px;
+  }
+  .brand-text {
+  	
+  }
+}
 
 @media (min-width: 768px) and (max-width: 979px) {
 	.navbar .nav > li {

@@ -88,8 +88,8 @@ $errorText:               white;
 $errorBackground:         #CD1E25;
 $errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
 
-$successText:             #95a321;
-$successBackground:       $genericLightGreen;
+$successText:             #222;
+$successBackground:       #A6C911;
 $successBorder:           darken(adjust-hue($successBackground, -10), 5%);
 
 $infoText:                #222;

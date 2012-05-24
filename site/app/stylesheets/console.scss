@@ -51,9 +51,9 @@ a:hover,a:active {color:#b1e5f2;}
 
 
 
-.dropdown-menu {
+#utility-nav .dropdown-menu {
 	background-color: #444;
-  background-color:rgba(70, 70, 70, 0.75);
+  background-color:rgba(70, 70, 70, 0.5);
   @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;
@@ -63,34 +63,41 @@ a:hover,a:active {color:#b1e5f2;}
   @include border-radius($radius: 0 0 3px 3px);
 }
 @media (max-width:767px) {
-	.dropdown-menu {position:absolute;}
+	#utility-nav .dropdown-menu {position:absolute;}
 }
-.dropdown-menu a {
+
+#utility-nav .dropdown-menu a {
   color: #cacbcc;
+  padding: 3px 15px;
 }
-.dropdown-menu > li > a:hover {
+#utility-nav .dropdown-menu > li {
+	display: block;
+  float: none;
+  margin: 0;
+}
+#utility-nav .dropdown-menu > li > a:hover {
   border-radius: 0px;
   background-color: #5a5b5c;
 }
-.dropdown.open .dropdown-toggle {
+#utility-nav .dropdown.open .dropdown-toggle {
   color: #CACBCC;
 	background-color: #444;
-  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  @include border-radius($radius: 3px 3px 0 0);
+  background:rgba(70, 70, 70, 0.5) url("../images/console/arrow-down.png") 95% 1em no-repeat;
+  @include border-radius($radius: 0);
   
   &:hover, &:active {
   	color: #fff;
   }
 }
-.dropdown-toggle {
+#utility-nav .dropdown-toggle {
 	background-color: #444;
   background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  padding: 3px 25px 3px 10px;
+  padding: 0 25px 3px 10px;
   color: #CACBCC;
   text-decoration: none !important;
   display: inline-block;
   @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
-  @include border-radius($radius: 3px);
+  @include border-radius($radius: 0 0 3px 3px);
   
   &:hover, &:active {
   	color: #fff;
@@ -165,7 +172,10 @@ a:hover,a:active {color:#b1e5f2;}
 .section-console label {
 	color: #cfcfcf;
 	}
-	
+
+
+// Forms
+// ----------------------------------------	
 input, textarea {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
   background: $consoleFormFieldBackground;
@@ -196,6 +206,27 @@ input:-moz-placeholder, textarea:-moz-placeholder {
  color: #777;
 	}
 
+
+// Disabled and read-only inputs
+input[disabled],
+select[disabled],
+textarea[disabled],
+input[readonly],
+select[readonly],
+textarea[readonly] {
+  background-color: #444;
+  border-color: #111;
+  cursor: not-allowed;
+  width: 100%;
+  color:#ccc;
+}
+
+input[type="radio"], input[type="checkbox"],input[type="image"] {
+	width: auto;
+}
+
+::-moz-selection {background: #f0f392;color: black;}
+::-selection {background: #f0f392;color: black;}
 
 .well {
   background-color: #242424 /*.*/;
@@ -345,7 +376,7 @@ figure {
 	margin: 0 -25px 0 5px;
 	}
 .console-head:first-child {
-  margin-top: 3px;
+  margin-top: 0 0 8px;
 }
 .console-head.active {
 	border-left: 2px dashed red;
@@ -413,7 +444,7 @@ figure {
 }
 
 .app-block {
-	background: #131313;
+	//background: #131313; none until left margin fixed
 	margin-bottom: 3px;
 	position: relative;
 	}

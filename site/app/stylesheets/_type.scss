@@ -11,7 +11,7 @@ p {
 h1 {
   font-size: 30px;
   line-height: 36px;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 h2 {
   font-size: 22px;
@@ -31,6 +31,14 @@ h5 {
 }
 h6 {
   font-size: 11px;
+}
+
+@media (max-width:480px) {
+	h1 {font-size:24px;}
+	h2 {font-size: 19.5px;}
+	h3 {font-size: 16.5px;}
+	h4 {font-size: 14px;}
+	h5 {font-size: 13px;}
 }
 
 footer h3 {
