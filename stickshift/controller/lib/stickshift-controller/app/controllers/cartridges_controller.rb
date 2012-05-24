@@ -10,6 +10,7 @@ class CartridgesController < BaseController
   # GET /cartridges
   def index
     type = params[:id]
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_CARTRIDGES", true, "List #{type.nil? ? 'all' : type} cartridges")
     
     cartridges = Array.new
     if type.nil? or type == "standalone"
@@ -40,4 +41,3 @@ class CartridgesController < BaseController
     respond_with @reply, :status => @reply.status
   end
 end
-

@@ -10,6 +10,7 @@ class EmbCartController < BaseController
     Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
     application = Application.find(@cloud_user,id)
     if application.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APP_CARTRIDGES", false, "Application '#{id}' not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -23,6 +24,7 @@ class EmbCartController < BaseController
         cartridges.push(cartridge)
       end
     end
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APP_CARTRIDGES", true, "Listing cartridges for application #{id} under domain #{domain_id}")
     @reply = RestReply.new(:ok, "cartridges", cartridges)
     respond_with @reply, :status => @reply.status
   end
@@ -35,6 +37,7 @@ class EmbCartController < BaseController
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
     application = Application.find(@cloud_user,application_id)
     if application.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", false, "Application '#{id}' not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -45,6 +48,7 @@ class EmbCartController < BaseController
     unless application.embedded.nil?
       application.embedded.each do |key, value|
         if key == id
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
           cartridge = RestCartridge.new("embedded", key, application, get_url)
           @reply = RestReply.new(:ok, "cartridge", cartridge)
           respond_with @reply, :status => @reply.status
@@ -52,6 +56,7 @@ class EmbCartController < BaseController
         end
       end
     end
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", false, "Cartridge #{id} not found for application #{application_id}")
     @reply = RestReply.new(:not_found)
     message = Message.new(:error, "Cartridge not found for application #{application_id}.", 129)
     @reply.messages.push(message)
@@ -74,6 +79,7 @@ class EmbCartController < BaseController
 
     application = Application.find(@cloud_user,id)
     if(application.nil?)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Application #{id} not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -84,6 +90,7 @@ class EmbCartController < BaseController
       #container = StickShift::ApplicationContainerProxy.find_available(application.server_identity)
       container = StickShift::ApplicationContainerProxy.find_available(nil)
       if not check_cartridge_type(name, container, "embedded")
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Invalid cartridge '#{name}'")
         @reply = RestReply.new( :bad_request)
         carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
         Application.get_available_cartridges("embedded")}
@@ -93,12 +100,14 @@ class EmbCartController < BaseController
         return
       end
     rescue StickShift::NodeException => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. NodeException: #{e.message}")
       @reply = RestReply.new(:service_unavailable)
       message = Message.new(:error, e.message, e.code) 
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
     rescue Exception => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
       message = Message.new(:error, e.message) 
       @reply.messages.push(message)
@@ -126,6 +135,7 @@ class EmbCartController < BaseController
       else
         message = Message.new(:error, "Failed to add #{name} to application #{id} due to #{e.message}.")
       end
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{message[:text]}")
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -136,6 +146,7 @@ class EmbCartController < BaseController
     unless application.embedded.nil?
       application.embedded.each do |key, value|
         if key == name
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", true, "Embedded cartridge #{name} in application #{id}")
           cartridge = RestCartridge.new("embedded", key, application, get_url)
           @reply = RestReply.new(:created, "cartridge", cartridge)
           message = Message.new(:info, "Added #{name} to application #{id}")
@@ -150,6 +161,7 @@ class EmbCartController < BaseController
         end
       end
     end
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Cartridge #{name} not embedded within application #{id}")
   end
 
   # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
@@ -159,6 +171,7 @@ class EmbCartController < BaseController
     cartridge = params[:id]
     application = Application.find(@cloud_user,id)
     if(application.nil?)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Application #{id} not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -170,6 +183,7 @@ class EmbCartController < BaseController
     end
     
     if application.embedded.nil? or not application.embedded.has_key?(cartridge)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Cartridge #{cartridge} not embedded within application #{id}")
       @reply = RestReply.new( :bad_request)
       message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
       @reply.messages.push(message)
@@ -184,7 +198,7 @@ class EmbCartController < BaseController
       Rails.logger.debug "Removing #{cartridge} from application #{id}"
       application.remove_dependency(cartridge)
     rescue Exception => e
-      Rails.logger.error "Failed to Remove #{cartridge} from application #{id}: #{e.message}"
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Failed to remove cartridge #{cartridge} from application #{id}: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
       message = Message.new(:error, "Failed to remove #{cartridge} from application #{id} due to:#{e.message}", e.code) 
       @reply.messages.push(message)
@@ -195,6 +209,7 @@ class EmbCartController < BaseController
       return
     end
       
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", true, "Cartridge #{cartridge} removed from application #{id}")
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url)
     @reply = RestReply.new(:ok, "application", app)

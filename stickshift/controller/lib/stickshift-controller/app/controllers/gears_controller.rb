@@ -10,6 +10,7 @@ class GearsController < BaseController
     app = Application.find(@cloud_user,app_id)
     
     if app.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEARS", false, "Application '#{app_id}' for domain '#{domain_id}' not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -60,6 +61,7 @@ class GearsController < BaseController
         app_gears_info.push gear_info
       end
 
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEARS", true, "Showing gears for application '#{app_id}' for domain '#{domain_id}'")
       @reply = RestReply.new(:ok, "gears", app_gears_info)
       respond_with @reply, :status => @reply.status
     end
