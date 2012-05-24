@@ -267,7 +267,7 @@ Then /^a jbosseap deployments directory will( not)? exist$/ do |negate|
   end
 end
 
-Then /^the maven repository will( not)? exist$/ do |negate|
+Then /^the jbosseap maven repository will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
