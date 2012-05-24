@@ -12,6 +12,7 @@ class EmbCartEventsController < BaseController
 
     application = Application.find(@cloud_user,id)
     if(application.nil?)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Application '#{id}' not found while processing event '#{event}' for cartridge '#{cartridge}'")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -19,6 +20,7 @@ class EmbCartEventsController < BaseController
       return
     end
     if application.embedded.nil? or not application.embedded.has_key?(cartridge)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Cartridge #{cartridge} not embedded within application '#{id}'")
       @reply = RestReply.new( :bad_request)
       message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
       @reply.messages.push(message)
@@ -37,6 +39,7 @@ class EmbCartEventsController < BaseController
         when 'reload'
           application.reload(cartridge)
         else
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'")
           @reply = RestReply.new(:bad_request)
           message = Message.new(:error, "Invalid event.  Valid values are start, stop, restart and reload.", 126)
           @reply.messages.push(message)
@@ -44,6 +47,7 @@ class EmbCartEventsController < BaseController
           return
       end
     rescue Exception => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Failed to add event #{event} on cartridge #{cartridge} for application #{id}: #{e.message}")
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
       message = Message.new(:error, "Failed to add event #{event} on cartridge #{cartridge} for application #{id} due to:#{e.message}", e.code) 
@@ -52,6 +56,7 @@ class EmbCartEventsController < BaseController
       return
     end
     
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", true, "Added event #{event} on cartridge #{cartridge} for application #{id}")
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url)
     @reply = RestReply.new(:ok, "application", app)
