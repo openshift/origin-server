@@ -32,7 +32,7 @@ class TestUnixUserModel < Test::Unit::TestCase
     gear_uuid = Process.euid.to_s
     user_uid = Process.euid.to_s
     app_name = 'UnixUserTestCase'
-    gear_name = 'gear9876543210'
+    gear_name = app_name
     namespace = 'jwh201204301647'
 
     FileUtils.rm_rf("/tmp/homedir")
