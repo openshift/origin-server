@@ -1,0 +1,56 @@
+Name: jbosseap-6.0
+Display-Name: JBoss Enterprise Application Platform 6.0.0 (noarch)
+Description: JBoss Application Server - Java EE Application Server
+Version: 6.0.0
+License: ASL 2.0
+Vendor:  jboss.com
+Provides:
+  - "jbosseap"
+  - "jbosseap(version) = 6.0.0"
+  - "jbosseap(version) >= 6.0"
+  - "jboss-eap6.0"
+  - "jboss-eap6.0.0"
+Requires:
+Conflicts:
+Native-Requires:
+  - java-1.6.0
+  - maven3
+Architecture: noarch
+Reservations:
+  - MEM >= 100MB
+Profiles:
+  standalone:
+    Provides: jbosseap-standalone, jboss-eap6.0-standalone, jboss-eap6.0.0-standalone
+    Reservations:
+      - MEM >= 100MB
+    Components:
+      jbosseap-server:
+        &jbosseap-server-component
+        Publishes:
+          get-doc-root:
+            Type: "FILESYSTEM:doc-root"
+          get-internal-uri:
+            Type: "NET_TCP:http"
+          publish-http-url:
+            Type: "NET_TCP:httpd-proxy-info"
+          publish_jboss_cluster:
+            Type: "NET_TCP:jbosseap-cluster-info"
+          publish_jboss_remoting:
+            Type: "NET_TCP:jbosseap-remoting-info"
+          publish-gear-endpoint:
+            Type: "NET_TCP:gear-endpoint-info"
+        Subscribes:
+          set-db-connection-info:
+            Type: "NET_TCP:db:connection-info"
+            Required: false
+          set-jdbc-info:
+            Type: "NET_TCP:jdbc"
+          set_jboss_cluster:
+            Type: "NET_TCP:jbosseap-cluster-info"
+          set_jboss_remoting:
+            Type: "NET_TCP:jbosseap-remoting-info"
+    Groups:
+      app-servers:
+        Components:
+          jbosseap-server: jbosseap-server
+Default-Profile: standalone
