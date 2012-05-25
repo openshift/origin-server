@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.10
+Version: 0.11.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,29 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.11-1
+- Merge pull request #55 from pravisankar/master (dmcphers@redhat.com)
+- -Fixes:  save domain: Changes to domain must update both user.domains and
+  user.apps.domain in the mongo database.  delete app: Must decrement
+  consumed_gears for the user in mongo db. (rpenta@redhat.com)
+- US2307 - disabled eap cucumber tests (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/crankcase
+  (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge pull request #47 from abhgupta/agupta-dev (kraman@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/crankcase
+  (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- changes for logging user actions to a separate log file (abhgupta@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- throw a failure when creation isn't functioning (mmcgrath@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.10-1
 - Revert "Broke the build, the tests have not been update to reflect this
   changeset." (ramr@redhat.com)
