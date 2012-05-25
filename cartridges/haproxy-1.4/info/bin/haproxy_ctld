@@ -204,7 +204,7 @@ class Haproxy
         # If active capacity is greater then gear_up pct. Add a gear
         if @session_capacity_pct >= @gear_up_pct
             @remove_count = 0
-            self.add_gear if @gear_count < max
+            self.add_gear if @gear_count < max and max > 0
         elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
             # If active capacity is less then gear remove percentage
             # *AND* the last gear up happened longer then
