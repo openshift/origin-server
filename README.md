@@ -1,5 +1,5 @@
 Openshift Origin - CrankCase
-==============
+============================
 
 CrankCase contains the core server components of the OpenShift service
 released under the [OpenShift Origin source
