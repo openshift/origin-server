@@ -62,7 +62,8 @@ class AppEventsController < BaseController
       Rails.logger.error e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Application event '#{event}' failed: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, "Failed to add event #{event} to application #{id} due to: #{e.message}", e.code) 
+      error_code = e.respond_to?('code') ? e.code : 1
+      message = Message.new(:error, "Failed to add event #{event} to application #{id} due to: #{e.message}", error_code) 
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return

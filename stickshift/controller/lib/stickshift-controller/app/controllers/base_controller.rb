@@ -38,6 +38,8 @@ class BaseController < ActionController::Base
   def authenticate
     login = nil
     password = nil
+    @request_id = gen_req_uuid
+
     if request.headers['User-Agent'] == "StickShift"
       if params['broker_auth_key'] && params['broker_auth_iv']
         login = params['broker_auth_key']
@@ -62,8 +64,8 @@ class BaseController < ActionController::Base
         @cloud_user.save
       end
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
-      @request_id = gen_req_uuid
     rescue StickShift::AccessDeniedException
+      log_action(@request_id, 'nil', login, "AUTHENTICATE", false, "Access denied")
       request_http_basic_authentication
     end
   end
