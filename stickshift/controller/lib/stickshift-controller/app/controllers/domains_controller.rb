@@ -241,7 +241,7 @@ class DomainsController < BaseController
       domain.delete
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", true, "Domain '#{id}' deleted")
       @reply = RestReply.new(:no_content)
-      @reply.messages.push(Message.new(:info, "Damain deleted."))
+      @reply.messages.push(Message.new(:info, "Domain deleted."))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
