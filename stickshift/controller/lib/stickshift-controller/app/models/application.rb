@@ -998,6 +998,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.embedded[framework]['info'] = info
       end
     end
+    # elaborate descriptor again to execute connections, because connections need to be renewed
+    self.elaborate_descriptor
+    self.execute_connections
     self.domain.namespace = new_ns
     self.save
   end
