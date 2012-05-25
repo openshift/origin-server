@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.15
+Version: 0.11.16
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.11.16-1
+- fix for bug#822080 and jboss cartridge now has a scaling minimum of 1
+  (rchopra@redhat.com)
+- Merge pull request #46 from rajatchopra/master (kraman@gmail.com)
+- max limit check should guard against -1 as a valid limit (rchopra@redhat.com)
+- logic to check on scaling limits copied to haproxy_ctld (rchopra@redhat.com)
+- code for min_gear setting (rchopra@redhat.com)
+
 * Fri May 25 2012 Dan McPherson <dmcphers@redhat.com> 0.11.15-1
 - fix build (dmcphers@redhat.com)
 
