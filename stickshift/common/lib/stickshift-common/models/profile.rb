@@ -125,6 +125,9 @@ module StickShift
         self.components.each do |c|
           group.add_component_ref(ComponentRef.new(c.name).from_descriptor(c.name))
         end
+        if spec_hash.has_key?("Scaling")
+          group.scaling = Scaling.new.from_descriptor(spec_hash["Scaling"])
+        end
         group.generated = true
         add_group(group)
       end
@@ -164,7 +167,9 @@ module StickShift
         end
       end
       
-      unless self.groups.length == 1 && self.groups.first.generated
+      if self.groups.length == 1 && self.groups.first.generated
+        h["Scaling"] = self.groups.first.scaling.to_descriptor
+      else
         h["Groups"] = {}
         self.groups.each do |v|
           h["Groups"][v.name] = v.to_descriptor
