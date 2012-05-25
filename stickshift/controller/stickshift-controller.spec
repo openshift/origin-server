@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.12
+Version: 0.11.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.13-1
+- Merge pull request #57 from pravisankar/master (admiller@redhat.com)
+- Disable mongodb put_domain change (rpenta@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.12-1
 - Merge pull request #56 from pravisankar/master (admiller@redhat.com)
 - Rollback change: update consumed_gears during delete app We are not updating
