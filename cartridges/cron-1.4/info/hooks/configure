@@ -32,6 +32,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_embedded_configure "$1" $2 $3
 
 source ${CART_INFO_DIR}/lib/util
+disable_cgroups
 
 CRON_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
@@ -101,3 +102,4 @@ client_result "         will be executed once every hour."
 client_result "         Similarly, a script .openshift/cron/weekly/chronograph added"
 client_result "         to your application will be executed once every week."
 client_result ""
+enable_cgroups

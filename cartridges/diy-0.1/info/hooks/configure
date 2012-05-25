@@ -30,6 +30,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4
+disable_cgroups
 
 check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
@@ -96,3 +97,4 @@ $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 restart_httpd_graceful
 
 client_result "Disclaimer: This is an experimental cartridge that provides a way to try unsupported languages, frameworks, and middleware on Openshift."
+enable_cgroups

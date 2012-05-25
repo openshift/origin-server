@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.9.2
+Version: 0.9.3
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.9.3-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.9.2-1
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)

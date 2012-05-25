@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.20.4
+Version: 0.20.7
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,22 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.20.7-1
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.20.6-1
+- Revert "Broke the build, the tests have not been update to reflect this
+  changeset." (ramr@redhat.com)
+- Broke the build, the tests have not been update to reflect this changeset.
+  (admiller@redhat.com)
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.20.5-1
+- [mpatel+ramr] Fix issues where app_name is not the same as gear_name - fixup
+  for typeless gears. (ramr@redhat.com)
+- Fixes to snapshot/restore. (mpatel@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.20.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)

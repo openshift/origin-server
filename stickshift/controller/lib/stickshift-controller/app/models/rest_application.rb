@@ -1,5 +1,5 @@
 class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
   include LegacyBrokerHelper
   
   def initialize(app, url)
@@ -12,6 +12,7 @@ class RestApplication < StickShift::Model
     self.domain_id = app.domain.namespace
     self.gear_profile = app.node_profile
     self.scalable = app.scalable
+    self.scale_min,self.scale_max = app.scaling_limits
     self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/~/git/#{@name}.git/"
     self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
     self.health_check_path = app.health_check_path

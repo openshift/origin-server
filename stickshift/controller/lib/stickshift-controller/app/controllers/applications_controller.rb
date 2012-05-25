@@ -7,8 +7,8 @@ class ApplicationsController < BaseController
   def index
     domain_id = params[:domain_id]
     domain = get_domain(domain_id)
-     if not domain or not domain.hasAccess?(@cloud_user)
-       Rails.logger.debug "Domain #{domain_id}"
+    if not domain or not domain.hasAccess?(@cloud_user)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APPLICATIONS", false, "Domain '#{domain_id}' not found")
       @reply = RestReply.new(:not_found)
       @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
@@ -25,6 +25,7 @@ class ApplicationsController < BaseController
         end
       end
     end
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APPLICATIONS", true, "Found #{apps.length} applications for domain '#{domain_id}'")
     @reply = RestReply.new(:ok, "applications", apps)
     respond_with @reply, :status => @reply.status
   end
@@ -35,8 +36,8 @@ class ApplicationsController < BaseController
     id = params[:id]
     
     domain = get_domain(domain_id)
-     if not domain or not domain.hasAccess?(@cloud_user)
-      Rails.logger.debug "Domain #{domain_id}"
+    if not domain or not domain.hasAccess?(@cloud_user)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APPLICATION", false, "Domain '#{domain_id}' not found")
       @reply = RestReply.new(:not_found)
       @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
@@ -46,11 +47,13 @@ class ApplicationsController < BaseController
     application = Application.find(@cloud_user,id)
     
     if application.nil? or application.domain.uuid != domain.uuid
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APPLICATION", false, "Application '#{id}' not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
     else
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APPLICATION", true, "Application '#{id}' found")
       app = RestApplication.new(application, get_url)
       @reply = RestReply.new(:ok, "application", app)
       respond_with @reply, :status => @reply.status
@@ -62,8 +65,8 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     
     domain = get_domain(domain_id)
-     if not domain or not domain.hasAccess?(@cloud_user)
-       Rails.logger.debug "Domain #{domain_id}"
+    if not domain or not domain.hasAccess?(@cloud_user)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Domain '#{domain_id}' not found")
       @reply = RestReply.new(:not_found)
       @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
       respond_with @reply, :status => @reply.status
@@ -89,6 +92,7 @@ class ApplicationsController < BaseController
     end
 
     if app_name.nil? or app_name.empty?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Application name is required and cannot be blank")
       @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "Application name is required and cannot be blank", 105, "name") 
       @reply.messages.push(message)
@@ -98,6 +102,7 @@ class ApplicationsController < BaseController
 
     application = Application.find(@cloud_user,app_name)
     if not application.nil?
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "An application with name '#{app_name}' already exists")
       @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "The supplied application name '#{app_name}' already exists", 100, "name") 
       @reply.messages.push(message)
@@ -106,6 +111,7 @@ class ApplicationsController < BaseController
     end
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached application limit of #{@cloud_user.max_gears}")
       @reply = RestReply.new(:forbidden)
       message = Message.new(:error, "#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
       @reply.messages.push(message)
@@ -117,6 +123,7 @@ class ApplicationsController < BaseController
     if not template_id.nil?
       template = ApplicationTemplate.find(params[:template])
       if template.nil?
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Invalid template #{template_id}")
         @reply = RestReply.new(:unprocessable_entity)
         message = Message.new(:error, "Invalid template.", 125, "template") 
         @reply.messages.push(message)
@@ -125,6 +132,7 @@ class ApplicationsController < BaseController
       application = Application.new(@cloud_user, app_name, nil, node_profile, nil, template, scale, domain)
     else
       if cartridge.nil? or not CartridgeCache.cartridge_names('standalone').include?(cartridge)
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Invalid cartridge #{cartridge}")
         @reply = RestReply.new(:unprocessable_entity)
         carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
         message = Message.new(:error, "Invalid cartridge.  Valid values are (#{carts.join(', ')})", 109, "cartridge") 
@@ -152,6 +160,7 @@ class ApplicationsController < BaseController
           Rails.logger.debug "Creating dns"
           application.create_dns
         rescue Exception => e
+            log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
             Rails.logger.error e
             application.destroy_dns
             @reply = RestReply.new(:internal_server_error)
@@ -166,7 +175,7 @@ class ApplicationsController < BaseController
             return
         end
       rescue Exception => e
-        Rails.logger.debug e.message
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create application #{application.name}: #{e.message}")
         Rails.logger.debug e.backtrace.inspect
         application.deconfigure_dependencies
         application.destroy
@@ -183,6 +192,7 @@ class ApplicationsController < BaseController
       # application.stop
       # application.start
       
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", true, "Created application #{application.name}")
       app = RestApplication.new(application, get_url)
       @reply = RestReply.new( :created, "application", app)
       message = Message.new(:info, "Application #{application.name} was created.")
@@ -193,13 +203,16 @@ class ApplicationsController < BaseController
       end
       respond_with @reply, :status => @reply.status
     else
+      validation_errors = []
       @reply = RestReply.new(:unprocessable_entity)
       application.errors.keys.each do |key|
         error_messages = application.errors.get(key)
         error_messages.each do |error_message|
           @reply.messages.push(Message.new(:error, error_message[:message], error_message[:exit_code], key))
+          validation_errors.push(error_message[:message])
         end
       end
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "#{validation_errors.join('. ')}")
       respond_with @reply, :status => @reply.status
     end
   end
@@ -209,7 +222,8 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     
     domain = get_domain(domain_id)
-     if not domain or not domain.hasAccess?(@cloud_user)
+    if not domain or not domain.hasAccess?(@cloud_user)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Domain #{domain_id} not found")
       Rails.logger.debug "Domain #{domain_id}"
       @reply = RestReply.new(:not_found)
       @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
@@ -224,6 +238,7 @@ class ApplicationsController < BaseController
     
     application = Application.find(@cloud_user,id)
     if application.nil? or application.domain.uuid != domain.uuid
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Application #{id} not found")
       @reply = RestReply.new(:not_found)
       message = Message.new(:error, "Application not found.", 101)
       @reply.messages.push(message)
@@ -238,7 +253,7 @@ class ApplicationsController < BaseController
       Rails.logger.debug "Deleting application #{id}"
       application.cleanup_and_delete()
     rescue Exception => e
-      Rails.logger.error "Failed to Delete application #{id}: #{e.message}"
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Failed to delete application #{id}: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
       message = Message.new(:error, "Failed to delete application #{id} due to:#{e.message}", e.code) 
       @reply.messages.push(message)
@@ -249,6 +264,7 @@ class ApplicationsController < BaseController
       return
     end
  
+    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", true, "Deleted application #{id}")
     @reply = RestReply.new(:no_content)
     message = Message.new(:info, "Application #{id} is deleted.")
     @reply.messages.push(message)

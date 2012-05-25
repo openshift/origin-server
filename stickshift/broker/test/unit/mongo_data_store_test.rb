@@ -45,7 +45,7 @@
 #  
 #  test "find all cloud users" do
 #    ds = MongoDataStore.new
-#    (1..2).each do |i|
+#    2.times do
 #      cu = cloud_user
 #      user_id = cu["login"]
 #      ds.create("CloudUser", user_id, nil, cu)
@@ -84,7 +84,6 @@
 #    assert_equal(nil, cu)
 #  end
 #
-#=begin 
 #  test "save domain" do
 #    ds = MongoDataStore.new
 #    cu = cloud_user
@@ -101,14 +100,13 @@
 #    updated_dom = ds.find("Domain", user_id, dom_id)
 #    assert_equal(orig_dom, updated_dom)
 #  end
-#=end
 #  
 #  test "find all domains" do
 #    ds = MongoDataStore.new
 #    cu = cloud_user
 #    user_id = cu["login"]
 #    ds.create("CloudUser", user_id, nil, cu)
-#    (1..2).each do |i|
+#    2.times do
 #      orig_dom = domain
 #      dom_id = orig_dom["uuid"]
 #      ds.create("Domain", user_id, dom_id, orig_dom)
@@ -129,14 +127,14 @@
 #    
 #    orig_a = application
 #    a_uuid = orig_a['uuid']
+#    orig_a["ngears"] = 1
 #    ds.create("Application", user_id, orig_a["name"], orig_a)
+#    orig_a.delete("ngears")
 #    a = ds.find("Application", user_id, orig_a["name"])
 #    assert_equal(orig_a, a)
 #    
-## FIXME: Current workaround to update consumed_gears is done during gear craete/destroy
-##        but not directly in mongo datastore.
 #    cu = ds.find("CloudUser", user_id, nil)
-##    assert_equal(1, cu['consumed_gears'])
+#    assert_equal(1, cu['consumed_gears'])
 #      
 #    by_uuid_cu = ds.find_by_uuid("Application", a_uuid)
 #    assert_equal(cu, by_uuid_cu)
@@ -154,7 +152,9 @@
 #    
 #    orig_a = application
 #    orig_a["embedded"] = {"mysql-5.1" => {"info" => "Connection URL: mysql://..."}}
+#    orig_a["ngears"] = 1
 #    ds.create("Application", user_id, orig_a["name"], orig_a)
+#    orig_a.delete("ngears")
 #    a = ds.find("Application", user_id, orig_a["name"])
 #    assert_equal(orig_a, a)
 #    
@@ -163,9 +163,8 @@
 #    a = ds.find("Application", user_id, orig_a["name"])
 #    assert_equal(orig_a, a)
 #    
-## FIXME    
-##    cu = ds.find("CloudUser", user_id, nil)
-##    assert_equal(1, cu['consumed_gears'])
+#    cu = ds.find("CloudUser", user_id, nil)
+#    assert_equal(1, cu['consumed_gears'])
 #  end
 #  
 #  test "save application" do
@@ -179,10 +178,14 @@
 #    ds.create("Domain", user_id, dom_id, orig_dom)
 #    
 #    orig_a = application
+#    orig_a["ngears"] = 1
 #    ds.create("Application", user_id, orig_a["name"], orig_a)
+#    orig_a.delete("ngears")
 #    
 #    b = application
+#    b["ngears"] = 1
 #    ds.create("Application", user_id, b["name"], b)
+#    b.delete("ngears")
 #    
 #    orig_a["aliases"] = ["www.myalias.com"]
 #    ds.save("Application", user_id, orig_a["name"], orig_a)
@@ -196,9 +199,8 @@
 #    apps = ds.find_all("Application", user_id)
 #    assert_equal(2, apps.length)
 #    
-## FIXME    
-##    cu = ds.find("CloudUser", user_id, nil)
-##    assert_equal(2, cu['consumed_gears'])
+#    cu = ds.find("CloudUser", user_id, nil)
+#    assert_equal(2, cu['consumed_gears'])
 #  end
 #  
 #  test "delete application" do
@@ -212,9 +214,11 @@
 #    ds.create("Domain", user_id, dom_id, orig_dom)
 #    
 #    a = application
+#    a["ngears"] = 1
 #    ds.create("Application", user_id, a["name"], a)
 #      
 #    b = application
+#    b["ngears"] = 1
 #    ds.create("Application", user_id, b["name"], b)
 #    
 #    ds.delete("Application", user_id, a["name"])
@@ -224,9 +228,8 @@
 #    apps = ds.find_all("Application", user_id)
 #    assert_equal(1, apps.length)
 #
-## FIXME    
-##    cu = ds.find("CloudUser", user_id, nil)
-##    assert_equal(1, cu['consumed_gears'])
+#    cu = ds.find("CloudUser", user_id, nil)
+#    assert_equal(1, cu['consumed_gears'])
 #  end
 #  
 #  test "application limits" do
@@ -240,45 +243,45 @@
 #    ds.create("Domain", user_id, dom_id, orig_dom)
 #    
 #    a = nil
-#    (1..2).each do |i|
+#    default_max_gears = 3
+#    default_max_gears.times do
 #      a = application
+#      a["ngears"] = 1
 #      ds.create("Application", user_id, a["name"], a)
 #    end
 #        
 #    apps = ds.find_all("Application", user_id)
-#    assert_equal(2, apps.length)
+#    assert_equal(default_max_gears, apps.length)
 #
-## FIXME
-#=begin
 #    cu = ds.find("CloudUser", user_id, nil)
-#    assert_equal(2, cu['consumed_gears'])
+#    assert_equal(default_max_gears, cu['consumed_gears'])
 #      
 #    caught_exception = false
 #    begin
 #      b = application
+#      b["ngears"] = 1
 #      ds.create("Application", user_id, b["name"], b)
 #    rescue Exception => e
 #      caught_exception = true
 #    end
 #    assert(caught_exception)
-#=end
 #    
 #    ds.delete("Application", user_id, a["name"])
 #    a = ds.find("Application", user_id, a["name"])
 #    assert_equal(nil, a)
 #      
 #    apps = ds.find_all("Application", user_id)
-#    assert_equal(1, apps.length)
+#    assert_equal(default_max_gears-1, apps.length)
 #    
-## FIXME    
-##    cu = ds.find("CloudUser", user_id, nil)
-##    assert_equal(1, cu['consumed_gears'])
+#    cu = ds.find("CloudUser", user_id, nil)
+#    assert_equal(default_max_gears-1, cu['consumed_gears'])
 #      
 #    a = application
+#    a["ngears"] = 1
 #    ds.create("Application", user_id, a["name"], a)
 #      
 #    apps = ds.find_all("Application", user_id)
-#    assert_equal(2, apps.length)
+#    assert_equal(default_max_gears, apps.length)
 #  end
 # 
 #  def cloud_user
@@ -289,7 +292,7 @@
 #      "system_ssh_keys" => {},
 #      "env_vars" => {},
 #      "ssh_keys" => {},
-#      "max_gears" => 2,
+#      "max_gears" => 3,
 #      "consumed_gears" => 0,
 #      "vip" => false
 #    }

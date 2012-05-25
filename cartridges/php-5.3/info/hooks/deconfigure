@@ -27,6 +27,7 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_deconfigure "$1" $2 $3
+disable_cgroups
 
 PHPCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
@@ -50,3 +51,4 @@ rm_unobfuscated_app_home $namespace $application
 # Remove virtualhost definition for apache
 #
 rm_httpd_proxy $uuid $namespace $application
+enable_cgroups

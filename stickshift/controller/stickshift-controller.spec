@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.6
+Version: 0.11.15
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -25,6 +25,7 @@ Requires:       rubygem(dnsruby)
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
+Requires:       rubygem(dnsruby)
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -77,6 +78,79 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri May 25 2012 Dan McPherson <dmcphers@redhat.com> 0.11.15-1
+- fix build (dmcphers@redhat.com)
+
+* Thu May 24 2012 Dan McPherson <dmcphers@redhat.com> 0.11.14-1
+- Merge pull request #58 from pravisankar/master (dmcphers@redhat.com)
+- Incorrect rollback in my previous checkin (rpenta@redhat.com)
+- fix typo (dmcphers@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.13-1
+- Merge pull request #57 from pravisankar/master (admiller@redhat.com)
+- Disable mongodb put_domain change (rpenta@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.12-1
+- Merge pull request #56 from pravisankar/master (admiller@redhat.com)
+- Rollback change: update consumed_gears during delete app We are not updating
+  consumed_gears during delete_app, need to check if transactional integrity is
+  maintaned or not (rpenta@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.11-1
+- Merge pull request #55 from pravisankar/master (dmcphers@redhat.com)
+- -Fixes:  save domain: Changes to domain must update both user.domains and
+  user.apps.domain in the mongo database.  delete app: Must decrement
+  consumed_gears for the user in mongo db. (rpenta@redhat.com)
+- US2307 - disabled eap cucumber tests (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/crankcase
+  (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge pull request #47 from abhgupta/agupta-dev (kraman@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/crankcase
+  (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- changes for logging user actions to a separate log file (abhgupta@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- US2307 (bdecoste@gmail.com)
+- US2307 (bdecoste@gmail.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- throw a failure when creation isn't functioning (mmcgrath@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.10-1
+- Revert "Broke the build, the tests have not been update to reflect this
+  changeset." (ramr@redhat.com)
+- Broke the build, the tests have not been update to reflect this changeset.
+  (admiller@redhat.com)
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.9-1
+- 
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+- 
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Waiting on bugzilla ticket 824312 (rmillner@redhat.com)
+- [mpatel+ramr] Fix issues where app_name is not the same as gear_name - fixup
+  for typeless gears. (ramr@redhat.com)
+- enable gear usage syncing (dmcphers@redhat.com)
+- stop setting global temp dir (dmcphers@redhat.com)
+- The test was fixed in commit a7afa77. (rmillner@redhat.com)
+- Any test which waits for a DNS name to be created or deleted must take
+  caching into account.  While checking for a record to disappear; you may have
+  to wait up till the TTL of the record for caches to expire.
+  (rmillner@redhat.com)
+- App creation time has been steadily increasing so that we are sometimes
+  hitting the old limit. (rmillner@redhat.com)
+- This test relies on DNS but ignores record TTL causing false failures.
+  (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Revert "The grep should return not found since the namespace was deleted."
+  (rmillner@redhat.com)
+
 * Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.11.6-1
 - The grep should return not found since the namespace was deleted.
   (rmillner@redhat.com)

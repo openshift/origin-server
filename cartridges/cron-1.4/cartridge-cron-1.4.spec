@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
-Version: 0.7.2
+Version: 0.7.3
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -84,6 +84,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.7.3-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.7.2-1
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)

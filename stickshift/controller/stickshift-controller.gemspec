@@ -34,4 +34,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency('mocha')
   s.add_development_dependency('rcov')
   s.add_development_dependency('cucumber')
+  s.add_development_dependency('dnsruby')
 end

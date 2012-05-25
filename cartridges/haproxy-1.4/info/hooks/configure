@@ -125,7 +125,7 @@ if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
 fi
 
 setup_embedded_configure "$1" $2 $3
-
+disable_cgroups
 stop_app
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -166,7 +166,7 @@ echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP2'" > "$APP_HOME/.env/OPENSHIFT_HAP
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 mkdir -p $APP_HOME/.openshift
 chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
-observe_setup_var_lib_dir "$HAPROXY_DIR"
+observe_setup_cart_instance_dir
 
 # Alter PATH so that the haproxy app_ctl.sh script is called.
 sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
@@ -189,3 +189,4 @@ if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
 fi
 
 restart_httpd_graceful
+enable_cgroups

@@ -102,6 +102,7 @@ cartridge_type="${jboss_version}"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_configure "$1" $2 $3 $4
 
+disable_cgroups
 check_cartridge_dir_doesnt_exist
 unobfuscate_app_home $uuid $namespace $application
 
@@ -218,3 +219,4 @@ export CART_INFO_DIR=$JBOSS_CARTRIDGE_ROOT/info
 $JBOSS_CARTRIDGE_ROOT/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
 restart_httpd_graceful
+enable_cgroups

@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.11.5
+Version: 0.11.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -98,6 +98,24 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+- Updating gem versions (admiller@redhat.com)
+- Bug 824662 (dmcphers@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
+- Updating gem versions (admiller@redhat.com)
+- Fix up unix_user unit test. (ramr@redhat.com)
+- Fixup unit test parameters to match up call sign. (ramr@redhat.com)
+- Revert "Broke the build, the tests have not been update to reflect this
+  changeset." (ramr@redhat.com)
+- Broke the build, the tests have not been update to reflect this changeset.
+  (admiller@redhat.com)
+
+* Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.6-1
+- Updating gem versions (admiller@redhat.com)
+- [mpatel+ramr] Fix issues where app_name is not the same as gear_name - fixup
+  for typeless gears. (ramr@redhat.com)
+
 * Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.11.5-1
 - Updating gem versions (dmcphers@redhat.com)
 - .state file in new location (jhonce@redhat.com)

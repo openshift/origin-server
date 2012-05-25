@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.4
+Version: 0.10.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Wed May 23 2012 Dan McPherson <dmcphers@redhat.com> 0.10.4-1
 - Fix for bugz 82087 -- app gear of a scalable app doesn't waken up from idled
   status. (ramr@redhat.com)

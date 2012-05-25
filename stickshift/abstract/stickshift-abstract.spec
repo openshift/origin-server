@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.4
+Version: 0.11.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.5-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'US2109' of github.com:openshift/crankcase into US2109

@@ -6,7 +6,7 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map, 
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -199,6 +199,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     apps
   end
   
+  def self.find_by_gear_uuid(gear_uuid)
+    hash = StickShift::DataStore.instance.find_by_gear_uuid(gear_uuid)
+    return nil unless hash
+    user = CloudUser.hash_to_obj hash
+    user.applications.each do |next_app|
+      next_app.gears.each do |gear|
+        if gear.uuid == gear_uuid
+          return next_app,gear
+        end
+      end
+    end
+    return nil
+  end
+
   def self.find_by_uuid(uuid)
     hash = StickShift::DataStore.instance.find_by_uuid(self.name,uuid)
     return nil unless hash
@@ -239,6 +253,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def save
     super(user.login)
     self.ngears = 0
+    self.gear_usage_records = nil
   end
   
   # Deletes the application object from the datastore
@@ -329,6 +344,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
+    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length>=ginst.max and ginst.max>0
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -348,7 +364,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::NodeException.new("Cannot scale below one gear", "-100", result_io) if ginst.gears.length == 1
+    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.first
 
@@ -982,6 +998,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.embedded[framework]['info'] = info
       end
     end
+    # elaborate descriptor again to execute connections, because connections need to be renewed
+    self.elaborate_descriptor
+    self.execute_connections
     self.domain.namespace = new_ns
     self.save
   end
@@ -1082,6 +1101,22 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     return nil unless group_instance
     
     return group_instance.gears.first
+  end
+
+  def scaling_limits(dependency=nil)
+    if dependency.nil?
+      if self.scalable
+        dependency = "web" 
+      else
+        dependency = self.framework
+      end
+    end
+    prof = @profile_name_map[@default_profile]
+    cinst = ComponentInstance::find_component_in_cart(prof, self, dependency, self.get_name_prefix)
+    raise StickShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", "-101", result_io) if cinst.nil?
+
+    ginst = self.group_instance_map[cinst.group_instance_name]
+    return ginst.min,ginst.max
   end
   
   # Get the ApplicationContainerProxy object for the first gear the application is running on
@@ -1299,9 +1334,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.new
       uuid = StickShift::Model.gen_uuid
+      self.gear_usage_records = [] unless gear_usage_records
+      self.gear_usage_records << GearUsageRecord.new(gear.uuid, gear.node_profile, event, user, now, uuid)
       self.class.notify_observers(:track_gear_usage, {:gear => gear, :event => event, :time => now, :uuid => uuid})
-      self.gear_usage = [] unless gear_usage
-      self.gear_usage << GearUsageRecord.new(gear.uuid, gear.node_profile, event, now, uuid)
     end
     if Rails.configuration.usage_tracking[:syslog_enabled]
       Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
