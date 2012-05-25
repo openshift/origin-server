@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.27.6
+Version: 0.27.7
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.27.7-1
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.27.6-1
 - deconfigure script was deleting the directory it was using as a flag before
   testing it (jhonce@redhat.com)
