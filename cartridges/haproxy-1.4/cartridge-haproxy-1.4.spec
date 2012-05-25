@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.5
+Version: 0.10.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.10.6-1
+- Merge pull request #60 from ramr/master (mmcgrath+openshift@redhat.com)
+- Bug fix so that after a haproxy gear move the permissions are setup
+  correctly. (ramr@redhat.com)
+- Merge pull request #46 from rajatchopra/master (kraman@gmail.com)
+- check for -1 on max value (rchopra@redhat.com)
+- logic to check on scaling limits copied to haproxy_ctld (rchopra@redhat.com)
+- change scaling policies in manifest.yml so that jboss really takes 2 as
+  minimum (rchopra@redhat.com)
+- code for min_gear setting (rchopra@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
