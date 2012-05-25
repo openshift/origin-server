@@ -415,7 +415,7 @@ module StickShift
 
     def delete_app(user_id, id)
       update({ "_id" => user_id, "apps.name" => id},
-             { "$pull" => { "apps" => {"name" => id }}, "$inc" => { "consumed_gears" => -1 }})
+             { "$pull" => { "apps" => {"name" => id }} })
     end
     
     def put_gear_usage_record(user_id, id, gear_usage_attrs)
