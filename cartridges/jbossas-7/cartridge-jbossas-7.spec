@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.6
+Version: 0.93.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.93.7-1
+- Merge pull request #42 from ironcladlou/master
+  (mmcgrath+openshift@redhat.com)
+- fix for bug#822080 and jboss cartridge now has a scaling minimum of 1
+  (rchopra@redhat.com)
+- Merge pull request #46 from rajatchopra/master (kraman@gmail.com)
+- change scaling policies in manifest.yml so that jboss really takes 2 as
+  minimum (rchopra@redhat.com)
+- Implement update-namespace hook in jbossas-7 cart (dmace@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
 - Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
