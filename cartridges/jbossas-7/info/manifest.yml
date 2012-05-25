@@ -57,6 +57,6 @@ Profiles:
         Components:
           jbossas-server: jbossas-server
         Scaling:
-          Min: 2
+          Min: 1
           Max: -1
 Default-Profile: standalone
