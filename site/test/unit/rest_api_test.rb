@@ -1,5 +1,15 @@
 require File.expand_path('../../test_helper', __FILE__)
 
+# Duplicate of ActiveResource::HttpMock method
+class ActiveResource::PersistentConnection
+  private
+    silence_warnings do
+      def http
+        @http ||= ActiveResource::HttpMock.new(@site)
+      end
+    end
+end
+
 #
 # Mock tests only - should verify functionality of ActiveResource extensions
 # and simple server/client interactions via HttpMock
