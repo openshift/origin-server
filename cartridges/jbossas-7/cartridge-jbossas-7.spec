@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.5
+Version: 0.93.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
 - fix standalone.xml webservices wsdlHost (bdecoste@gmail.com)
 
