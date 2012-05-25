@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.13
+Version: 0.11.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 24 2012 Dan McPherson <dmcphers@redhat.com> 0.11.14-1
+- Merge pull request #58 from pravisankar/master (dmcphers@redhat.com)
+- Incorrect rollback in my previous checkin (rpenta@redhat.com)
+- fix typo (dmcphers@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.13-1
 - Merge pull request #57 from pravisankar/master (admiller@redhat.com)
 - Disable mongodb put_domain change (rpenta@redhat.com)
