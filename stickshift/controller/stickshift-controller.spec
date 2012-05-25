@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.11
+Version: 0.11.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.12-1
+- Merge pull request #56 from pravisankar/master (admiller@redhat.com)
+- Rollback change: update consumed_gears during delete app We are not updating
+  consumed_gears during delete_app, need to check if transactional integrity is
+  maintaned or not (rpenta@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.11-1
 - Merge pull request #55 from pravisankar/master (dmcphers@redhat.com)
 - -Fixes:  save domain: Changes to domain must update both user.domains and
