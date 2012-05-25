@@ -155,6 +155,7 @@ class ComponentInstance < StickShift::Model
 
     group_comp_refs = profile.groups.map { |g| g.component_refs }
     comp_refs = group_comp_refs.flatten
+    comp_inst = nil
     comp_refs.each { |comp_ref|
       name_prefix = comp_ref.get_name_prefix(profile)
       comp_inst = app.comp_instance_map[parent_path + name_prefix]
