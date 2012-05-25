@@ -393,12 +393,14 @@ module StickShift
     
     def put_domain(user_id, id, domain_attrs)
       domain_attrs_to_internal(domain_attrs)
-      domain_updates = {}
-      domain_attrs.each do |k, v|
-        domain_updates["domains.$.#{k}"] = v
-        domain_updates["apps.$.domain.#{k}"] = v
-      end
-      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
+#TODO: FIXME
+#      domain_updates = {}
+#      domain_attrs.each do |k, v|
+#        domain_updates["domains.$.#{k}"] = v
+#        domain_updates["apps.$.domain.#{k}"] = v
+#      end
+#      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
+      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_attrs } )
     end
 
     def add_domain(user_id, id, domain_attrs)
