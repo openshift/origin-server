@@ -135,7 +135,7 @@ class EmbCartController < BaseController
       else
         message = Message.new(:error, "Failed to add #{name} to application #{id} due to #{e.message}.")
       end
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{message[:text]}")
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{message.text}")
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
