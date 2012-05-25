@@ -1077,6 +1077,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.embedded = {} unless self.embedded
         
     raise StickShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 101) unless self.embedded.include? dep
+    raise StickShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 101) if (self.scalable and self.proxy_cartridge==dep)
     remove_from_requires_feature(dep)
     reply.append self.configure_dependencies
     self.class.notify_observers(:after_remove_dependency, {:application => self, :dependency => dep, :reply => reply})
