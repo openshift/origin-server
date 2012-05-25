@@ -26,6 +26,9 @@ Requires:  libjpeg
 Requires:  libjpeg-devel
 Requires:  libcurl
 Requires:  libcurl-devel
+Requires:  numpy
+Requires:  numpy-f2py
+Requires:  gcc-gfortran
 
 Obsoletes: cartridge-python-3.2
 
