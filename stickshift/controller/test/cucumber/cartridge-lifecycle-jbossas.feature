@@ -1,5 +1,3 @@
-@verify
-@verify2
 @broker
 Feature: Cartridge Lifecycle JBossAS Verification Tests
   Scenario Outline: Application Creation
