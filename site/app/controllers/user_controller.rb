@@ -75,7 +75,7 @@ class UserController < SiteController
                               :only_path => false,
                               :protocol => 'https')
 
-    @user.register(confirmationUrl)
+    @user.register(confirmationUrl, @user.promo_code)
 
     logger.debug "Confirmation URL: #{confirmationUrl}"
 

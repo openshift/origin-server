@@ -1,32 +1,48 @@
 .navbar
-  .container
-
-    %ul#identity.pull-right
-      %li.dropdown.username
-        = link_to logged_in_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
-        %ul.dropdown-menu
+  .navbar-inner
+    .container
+	  
+      %ul.navbar-text.pull-right.hidden-phone#utility-nav
+        %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
+        %li= link_to "Community", community_url, :class => 'community'
+        %li= link_to "Developer Center", developers_url, :class => 'developer'
+        %li.dropdown.username
+          = link_to logged_in_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
+          %ul.dropdown-menu
+            %li= link_to "My Account", account_path
+            %li= link_to "Sign Out", logout_path, :class => "sign_out"
+            
+      %a
+        = link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
+      
+      %a.btn.btn-navbar{'data-target' => '.nav-collapse', 'data-toggle' => 'collapse'}
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+      
+      .brand
+        = link_to root_path do
+          %span.brand-image
+          %span.brand-text.headline
+            %strong> Open
+            Shift
+	  
+        %span.navbar-text.headline 
+          Management Console
+	  
+      .nav-collapse.collapse
+        = navigation_tabs do
+          = navigation_tab :applications, :action => :index, :name => "My Applications"
+          = navigation_tab :application_types, :name => "Create Application"
+          = navigation_tab :console, :action => :help, :name => "Help"
+          -#= navigation_tab :help, :show
+          
+        %ul.nav.visible-phone
+          %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
           %li= link_to "My Account", account_path
           %li= link_to "Sign Out", logout_path, :class => "sign_out"
-
-    %ul.navbar-text.pull-right#utility-nav
-      %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
-      %li= link_to "Community", community_url, :class => 'community'
-      %li= link_to "Developer Center", developers_url, :class => 'developer'
-
-    .brand
-      = link_to root_path do
-        %span.brand-image
-        %span.brand-text.headline
-          %strong> Open
-          Shift
-
-      %span.navbar-text.headline 
-        Management Console
-
-    .nav-collapse
-      = navigation_tabs do
-        = navigation_tab :applications, :action => :index, :name => "My Applications"
-        = navigation_tab :application_types, :name => "Create Application"
-        = navigation_tab :console, :action => :help, :name => "Help"
-        = navigation_tab :user, :action => :show, :name => "My Account"
-        -#= navigation_tab :help, :show
+          
+        %ul.nav.visible-phone
+          %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
+          %li= link_to "Community", community_url, :class => 'community'
+          %li= link_to "Developer Center", developers_url, :class => 'developer'
