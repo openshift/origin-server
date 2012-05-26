@@ -200,7 +200,8 @@ class EmbCartController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Failed to remove cartridge #{cartridge} from application #{id}: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, "Failed to remove #{cartridge} from application #{id} due to:#{e.message}", e.code) 
+      error_code = e.respond_to?('code') ? e.code : 1
+      message = Message.new(:error, "Failed to remove #{cartridge} from application #{id} due to:#{e.message}", error_code) 
       @reply.messages.push(message)
       respond_with(@reply) do |format|
          format.xml { render :xml => @reply, :status => @reply.status }
@@ -221,3 +222,4 @@ class EmbCartController < BaseController
       end
   end
 end
+

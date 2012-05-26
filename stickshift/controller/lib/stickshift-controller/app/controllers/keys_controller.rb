@@ -99,7 +99,8 @@ class KeysController < BaseController
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_KEY", false, "Failed to create SSH key #{name} of type #{type}: #{e.message}")
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, "Failed to create SSH key for user #{@login} due to:#{e.message}", e.code) )
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, "Failed to create SSH key for user #{@login} due to:#{e.message}", error_code) )
       respond_with @reply, :status => @reply.status
     return
     end
@@ -158,7 +159,8 @@ class KeysController < BaseController
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_KEY", false, "Failed to update SSH key #{id}: #{e.message}")
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, "Failed to update SSH key #{id} for user #{@login} due to:#{e.message}", e.code) )
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, "Failed to update SSH key #{id} for user #{@login} due to:#{e.message}", error_code) )
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
@@ -194,7 +196,8 @@ class KeysController < BaseController
     rescue Exception => e
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, "Failed to delete SSH key #{id} for user #{@login} due to:#{e.message}", e.code) )
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, "Failed to delete SSH key #{id} for user #{@login} due to:#{e.message}", error_code) )
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_KEY", false, "Failed to delete SSH key #{id}: #{e.message}")
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }

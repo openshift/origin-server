@@ -255,7 +255,8 @@ class ApplicationsController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Failed to delete application #{id}: #{e.message}")
       @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, "Failed to delete application #{id} due to:#{e.message}", e.code) 
+      error_code = e.respond_to?('code') ? e.code : 1
+      message = Message.new(:error, "Failed to delete application #{id} due to:#{e.message}", error_code) 
       @reply.messages.push(message)
       respond_with(@reply) do |format|
          format.xml { render :xml => @reply, :status => @reply.status }
