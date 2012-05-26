@@ -18,8 +18,11 @@ module UserActionLogger
     action_logger = get_action_logger()
 
     if not action_logger.nil?
-      result = success ? "SUCCESS" : "FAILED"
-      action_logger.info("#{result} ACTION=#{action} REQ_ID=#{request_id} USER_ID=#{user_id} LOGIN=#{login} #{description}")
+      result = success ? "SUCCESS" : "FAILURE"
+      time_obj = Time.new
+      date = time_obj.strftime("%Y-%m-%d")
+      time = time_obj.strftime("%H:%M:%S")
+      action_logger.info("#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{request_id} USER_ID=#{user_id} LOGIN=#{login} #{description}")
     end
     
     # Using a block prevents the message in the block from being executed 
