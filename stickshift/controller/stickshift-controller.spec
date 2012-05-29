@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.18
+Version: 0.11.19
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.11.19-1
+- This broke the build. BZ 824312 is being revisited. (admiller@redhat.com)
+
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.11.18-1
 - Bugzilla ticket 824312 has been resolved. (rmillner@redhat.com)
 
