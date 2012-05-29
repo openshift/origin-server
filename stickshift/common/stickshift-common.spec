@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.10.2
+Version: 0.10.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
+- code for min_gear setting (rchopra@redhat.com)
+
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
 - nit (dmcphers@redhat.com)
 - proper usage of StickShift::Model and beginnings of usage tracking
