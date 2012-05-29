@@ -5,6 +5,7 @@
 # Exit on any errors
 set -e
 
+cartridge_type="haproxy-1.4"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
@@ -33,7 +34,7 @@ fi
 
 setup_basic_vars
 
-CART_INFO_DIR=$CARTRIDGE_BASE_PATH/haproxy-1.4/info
+CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
 
 unobfuscate_app_home $uuid $namespace $application
 
