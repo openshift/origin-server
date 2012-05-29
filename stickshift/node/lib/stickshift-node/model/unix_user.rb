@@ -383,6 +383,9 @@ module StickShift
 
       add_env_var("DATA_DIR", File.join(gearappdir, "data", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
+        
+        # FIXME: remove link when all code refactored to not use relative paths to data directory
+        FileUtils.ln_s('app/data', File.join(homedir, 'data'), :verbose => true)
       }
 
       add_env_var("GEAR_DIR", geardir, true)
