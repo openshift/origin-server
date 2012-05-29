@@ -29,4 +29,6 @@ Subscribes:
   set-db-connection-info:
     Type: "NET_TCP:db:connection-info"
     Required: false
-
+Scaling:
+  Min: 1
+  Max: 1

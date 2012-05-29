@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.93.3
+Version: 0.93.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.4-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.3-1
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Hand merged preconfigure being pulled into configure (jhonce@redhat.com)

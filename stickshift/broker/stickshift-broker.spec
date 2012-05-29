@@ -138,6 +138,7 @@ fcontext -a -t httpd_var_run_t '%{brokerdir}/httpd/run(/.*)?'
 fcontext -a -t httpd_tmp_t '%{brokerdir}/tmp(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/httpd/logs(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/log(/.*)?'
+fcontext -a -t httpd_log_t '%{_localstatedir}/log/stickshift/user_action.log'
 _EOF
 semodule -i /usr/share/selinux/packages/stickshift-broker/stickshift-broker.pp -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
 

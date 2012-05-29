@@ -4,6 +4,7 @@ require 'rubygems'
 require 'rest-client'
 require 'stickshift-node'
 require 'pp'
+require 'json'
 
 #$create_url='curl -k -X POST -H "Accept: application/xml" --user "%s:%s" https://%s/broker/rest/domains/%s/applications'
 #$scale_url="#{$create_url}/%s/events"
@@ -33,6 +34,8 @@ class Gear_scale_ctl
         'broker_auth_key' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/token"),
         'broker_auth_iv' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/iv")
     }
+    return if not check_scalability(params, action, opts)
+
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
     request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 120,
@@ -45,6 +48,72 @@ class Gear_scale_ctl
       raise response
     end
   end
+
+  def check_scalability(params, action, opts)
+    env = load_env(opts)
+    data_dir = env['OPENSHIFT_DATA_DIR']
+    scale_file = "#{data_dir}/scale_limits.txt"
+    min = 1
+    max = -1
+    if not File.exists? scale_file
+      gear_info_url = "#{$base_url % opts["server"]}#{$create_url % opts['namespace']}/#{opts['app']}"
+      request = RestClient::Request.new(:method => :get, :url => gear_info_url, :timeout => 120,
+          :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
+          :payload => params
+          )
+      response = request.execute()
+      if 300 <= response.code
+        return false
+      end
+      response_object = JSON.parse(response)
+      min = response_object["data"]["scale_min"]
+      max = response_object["data"]["scale_max"]
+      f = File.open(scale_file, 'w')
+      f.write("scale_min=#{min}\nscale_max=#{max}")
+      f.close
+    else
+      scale_data = File.read(scale_file)
+      scale_hash = {}
+      scale_data.split("\n").each { |s| 
+        line = s.split("=")
+        scale_hash[line[0]] = line[1] 
+      }
+      min = scale_hash["scale_min"].to_i
+      max = scale_hash["scale_max"].to_i
+    end
+    haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
+    gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
+    current_gear_count = `wc -l #{gear_registry_db}`
+    current_gear_count = current_gear_count.split(' ')[0].to_i
+    if action=='add-gear' and current_gear_count == max
+      puts "Cannot add gear because max limit '#{max}' reached."
+      return false
+    elsif action=='remove-gear' and current_gear_count == min
+      puts "Cannot remove gear because min limit '#{min}' reached."
+      return false
+    end
+    return true
+  end
+
+  def load_env(opts)
+    env = {}
+    # Load environment variables into a hash
+    
+    Dir["/var/lib/stickshift/#{opts['uuid']}/.env/*"].each { | f |
+      next if File.directory?(f)
+      contents = nil
+      File.open(f) {|input|
+        contents = input.read.chomp
+        index = contents.index('=')
+        contents = contents[(index + 1)..-1]
+        contents = contents[/'(.*)'/, 1] if contents.start_with?("'")
+        contents = contents[/"(.*)"/, 1] if contents.start_with?('"')
+      }
+      env[File.basename(f)] =  contents
+    }
+    env
+  end
+
 end
 
 def usage

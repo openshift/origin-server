@@ -81,7 +81,8 @@ class DomainsController < BaseController
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", false, "Failed to create domain '#{namespace}': #{e.message}")
       Rails.logger.error e.backtrace
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, e.message, e.code))
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with @reply, :status => @reply.status
     return
     end
@@ -161,7 +162,8 @@ class DomainsController < BaseController
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, e.message)
       Rails.logger.error "Failed to update domain #{e.message} #{e.backtrace}"
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, e.message, e.code))
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
@@ -241,7 +243,7 @@ class DomainsController < BaseController
       domain.delete
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", true, "Domain '#{id}' deleted")
       @reply = RestReply.new(:no_content)
-      @reply.messages.push(Message.new(:info, "Damain deleted."))
+      @reply.messages.push(Message.new(:info, "Domain deleted."))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
@@ -250,7 +252,8 @@ class DomainsController < BaseController
       #Rails.logger.error "Failed to delete domain #{e.message}"
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", false, "Failed to delete domain '#{id}': #{e.message}")
       @reply = RestReply.new(:internal_server_error)
-      @reply.messages.push(Message.new(:error, e.message, e.code))
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }

@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.93.4
+Version: 0.93.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -26,6 +26,9 @@ Requires:  libjpeg
 Requires:  libjpeg-devel
 Requires:  libcurl
 Requires:  libcurl-devel
+Requires:  numpy
+Requires:  numpy-f2py
+Requires:  gcc-gfortran
 
 Obsoletes: cartridge-python-3.2
 
@@ -112,6 +115,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
+- Add numpy, numpy-f2py and gcc-gfortran for scientific py libraries support.
+  (ramr@redhat.com)
+
+* Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
+- disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
+
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)

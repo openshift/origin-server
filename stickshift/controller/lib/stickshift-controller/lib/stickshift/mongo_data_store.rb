@@ -60,6 +60,13 @@ module StickShift
         end
       end
     end
+
+    def find_by_gear_uuid(gear_uuid)
+      Rails.logger.debug "MongoDataStore.find_by_gear_uuid(#{gear_uuid})\n\n"
+      hash = find_one({ "apps.group_instances.gears.uuid" => gear_uuid })
+      return nil unless hash
+      user_hash_to_ret(hash)
+    end
     
     def find_by_uuid(obj_type_of_uuid, uuid)
       Rails.logger.debug "MongoDataStore.find_by_uuid(#{obj_type_of_uuid}, #{uuid})\n\n"
@@ -393,6 +400,13 @@ module StickShift
     
     def put_domain(user_id, id, domain_attrs)
       domain_attrs_to_internal(domain_attrs)
+#TODO: FIXME
+#      domain_updates = {}
+#      domain_attrs.each do |k, v|
+#        domain_updates["domains.$.#{k}"] = v
+#        domain_updates["apps.$.domain.#{k}"] = v
+#      end
+#      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
       update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
     end
 
