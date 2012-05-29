@@ -31,7 +31,7 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00
   ErrorDocument 503 /errors/503.html
 EOF
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_proxy.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/zzzzz_proxy.conf"
   ProxyPass /health !
   ProxyPass /errors !
   ProxyPass / http://$IP:8080/ status=I

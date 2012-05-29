@@ -49,6 +49,7 @@ create_cartridge_instance_dir "$cartridge_type"
 create_app_dir_symlink "$cartridge_type"
 RUBYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
+# FIXME Old directory should no longer be required
 mkdir -p /s
 chmod 751 /s
 #"/s/$(echo \"${uuid}_${application}\" | md5sum | cut -d ' ' -f1)"
@@ -57,7 +58,7 @@ create_standard_app_dirs
 mkdir conf conf.d logs $APP_REPO_DIR/public $APP_REPO_DIR/tmp
 ln -s /usr/lib64/httpd/modules modules
 ln -s /etc/httpd/conf/magic conf/magic
-ln -s ../../app/repo/log/production.log logs/production.log
+ln -s ../../app-root/runtime/repo/log/production.log logs/production.log
 
 popd > /dev/null
 

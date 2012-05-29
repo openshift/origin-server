@@ -51,14 +51,14 @@ Then /^the file permissions are correct/ do
                     "php-5.3/conf/magic" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/conf.d/" => ['root', 'root', '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/conf.d/stickshift.conf" => ['root', 'root', '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "app/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app-root/data/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "#{@app['name']}/logs/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/phplib/pear/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "app/data/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "app/repo/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app-root/data/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app-root/repo/" => [gear_uuid, gear_uuid, '40750', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/run/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
-                    "app/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
+                    "app-root/repo/php/index.php" => [gear_uuid, gear_uuid, '100664', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/sessions/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"],
                     "php-5.3/tmp/" => [gear_uuid, gear_uuid, '40755', "unconfined_u:object_r:libra_var_lib_t:#{mcs}"]
                     }

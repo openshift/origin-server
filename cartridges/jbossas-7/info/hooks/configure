@@ -166,7 +166,7 @@ fi
 
 # Create a link from the repo/deployments directory to the standalone/deployments content
 mkdir -p "$APP_REPO_DIR"/deployments
-ln -s ../../../app/repo/deployments "$APP_JBOSS"/standalone/deployments
+ln -s ../../../app-root/repo/deployments "$APP_JBOSS"/standalone/deployments
 
 # Create a link from the standalone/log directory to ${APP_DIR}/logs for rhc app tail
 ln -s ${jboss_version}/standalone/log "$JBOSS_INSTANCE_DIR"/logs
