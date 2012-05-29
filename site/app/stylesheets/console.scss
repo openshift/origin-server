@@ -145,7 +145,6 @@ textarea[readonly] {
   background-color: #444;
   border-color: #111;
   cursor: not-allowed;
-  width: 100%;
   color:#ccc;
 }
 
@@ -408,19 +407,16 @@ figure {
 #utility-nav .alert, .navbar .alert {
   color: #333333;
   float: right;
-  line-height: 18px;
+  line-height: 30px;
   margin: 0;
-  padding: 7px;
+  padding: 0 10px;
 
   &:hover {
     color: black;
   }
 }
-#utility-nav .alert {
- margin: -5px 0 0;
-}
 .navbar .alert {
-	margin: 3px 0 0 10px;
+	margin: 3px -5px 0 7px;
 }
 
 .nav {
