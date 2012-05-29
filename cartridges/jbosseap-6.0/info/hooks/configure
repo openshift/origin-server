@@ -206,11 +206,18 @@ echo "export PATH=$JBOSS_CARTRIDGE_ROOT/info/bin/:$CARTRIDGE_BASE_PATH/abstract/
 
 observe_setup_env_uservars_dir
 
-#
-# Start the server
-#
-cd $JBOSS_INSTANCE_DIR
-start_app
+if [ ! -d $git_url ]; then
+    #
+    # Resolve app dependencies for template
+    #
+    resolve_application_dependencies $uuid $application &
+else
+    #
+    # Start the server
+    #
+    cd $JBOSS_INSTANCE_DIR
+    start_app
+fi
 
 #
 # Create virtualhost definition for apache
