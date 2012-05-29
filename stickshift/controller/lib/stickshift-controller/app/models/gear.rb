@@ -25,11 +25,11 @@ class Gear < StickShift::Model
     if server_identity.nil?
       ret = nil
       begin
+        self.app.ngears += 1
         self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
         ret = self.container.create(app,self)
-        self.app.ngears += 1
         self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin])
       rescue Exception=>e
         Rails.logger.debug e.message
