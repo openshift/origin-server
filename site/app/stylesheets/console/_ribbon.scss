@@ -62,6 +62,7 @@
 @media (max-width: 767px) {
   .row > .ribbon {
     @include expand_for_phone();
+    min-height: 26px;
   }
 }
 /* The ribbon should tuck in on very narrow windows */
