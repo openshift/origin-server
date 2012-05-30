@@ -1,5 +1,5 @@
 class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
   include LegacyBrokerHelper
   
   def initialize(app, url)
@@ -8,6 +8,7 @@ class RestApplication < StickShift::Model
     self.creation_time = app.creation_time
     self.uuid = app.uuid
     self.aliases = app.aliases || Array.new
+    self.gear_count = (app.gears.nil?) ? 0 : app.gears.length
     self.embedded = app.embedded
     self.domain_id = app.domain.namespace
     self.gear_profile = app.node_profile
