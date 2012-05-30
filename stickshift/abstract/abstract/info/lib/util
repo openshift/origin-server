@@ -383,7 +383,8 @@ function setup_deconfigure {
     application="$1"
     uuid=$3
 
-    setup_basic_vars
+    setup_app_dir_vars
+    setup_user_vars
 }
 
 function setup_embedded_configure {
