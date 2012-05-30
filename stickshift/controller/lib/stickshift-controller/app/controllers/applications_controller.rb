@@ -75,14 +75,8 @@ class ApplicationsController < BaseController
     
     app_name = params[:name]
     cartridge = params[:cartridge]
-    scale_str = params[:scale]
+    scale = get_bool(params[:scale])
     
-    if not scale_str.nil? and scale_str.upcase == "TRUE"
-      scale = true
-    else
-      scale = false
-    end
-
     template_id = params[:template]
     node_profile = params[:gear_profile]
     if not node_profile 
