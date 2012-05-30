@@ -136,7 +136,7 @@ Then /^the jenkins application directory tree will( not)? be populated$/ do |neg
   gear_home = "#{$home_root}/#{acct_name}"
 
   path_list =  []
-  ['repo', 'data'].each { |d| path_list.push File.join(gear_home, "app", d) }
+  ['repo', 'data'].each { |d| path_list.push File.join(gear_home, "app-root", d) }
   ['run', 'tmp'].each {|d| path_list.push File.join(gear_home,"jenkins-1.4",d) }
 
   path_list.each do |file_path| 
@@ -232,7 +232,7 @@ end
 Then /^a jenkins source tree will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
 
-  app_root = "#{$home_root}/#{acct_name}/app"
+  app_root = "#{$home_root}/#{acct_name}/app-root"
   repo_root_path = "#{app_root}/repo"
 
   unless negate
@@ -424,7 +424,7 @@ Then /^the application will be updated$/ do
     end while job['color'] != 'blue' && 0 < delay
     job['color'].should be == 'blue' 
 
-    path = "/var/lib/stickshift/#{@app.name}-#{@app.namespace}/app/repo/#{@app.name}/index.html"
+    path = "/var/lib/stickshift/#{@app.name}-#{@app.namespace}/app-root/repo/#{@app.name}/index.html"
     $logger.debug "jenkins built application path = #{path}"
     `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_s.should be == "0"

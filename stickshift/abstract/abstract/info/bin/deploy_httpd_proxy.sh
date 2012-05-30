@@ -24,7 +24,7 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_proxy.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/zzzzz_proxy.conf"
   ProxyPass / http://$IP:8080/ status=I
   ProxyPassReverse / http://$IP:8080/
 EOF

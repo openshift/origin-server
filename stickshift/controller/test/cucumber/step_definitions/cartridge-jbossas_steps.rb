@@ -253,7 +253,7 @@ Then /^a jbossas deployments directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/app"
+  app_root = "#{$home_root}/#{acct_name}/app-root"
   deploy_root = Dir.new "#{app_root}/repo/deployments"
   
   deploy_contents = ['ROOT.war']
@@ -337,7 +337,7 @@ Then /^a jbossas source tree will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/app"
+  app_root = "#{$home_root}/#{acct_name}/app-root"
   repo_root_path = "#{app_root}/repo"
 
   unless negate
