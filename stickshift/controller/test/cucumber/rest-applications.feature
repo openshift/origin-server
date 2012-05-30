@@ -160,6 +160,8 @@ Feature: applications
     Then the response should be "200"
     When I send a POST request to "/domains/cucumber<random>/applications/app/events" with the following:"event=remove-alias&alias=app-cucumber.foobar.com"
     Then the response should be "200"
+    When I send a POST request to "/domains/cucumber<random>/applications/app/events" with the following:"event=add-alias&alias=app-@#$cucumber.foobar.com"
+    Then the response should be "422"
     When I send a DELETE request to "/domains/cucumber<random>/applications/app"
     Then the response should be "204"
     
