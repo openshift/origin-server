@@ -243,6 +243,12 @@ ol.wizard li a {
 	}
 }
 
+@media (max-width: 480px) {
+	ol.wizard li {
+		display:block;
+	}
+}
+
 
 #copyright {
 	color: #666;
@@ -404,20 +410,6 @@ figure {
   .status-important {
   	background-color: #900;
   }
-#utility-nav .alert, .navbar .alert {
-  color: #333333;
-  float: right;
-  line-height: 30px;
-  margin: 0;
-  padding: 0 10px;
-
-  &:hover {
-    color: black;
-  }
-}
-.navbar .alert {
-	margin: 3px -5px 0 7px;
-}
 
 .nav {
 	margin-bottom: 6px;

@@ -2,12 +2,13 @@
 * Customizations
 */
 
-#utility-nav li.dropdown {
+#utility-nav > li.dropdown,
+#utility-nav > li:last-child {
 	margin-left: 15px;
 }
 #utility-nav .dropdown-menu {
-	background-color: #444;
-  background-color:rgba(70, 70, 70, 0.75);
+	background-color: #333;
+  background-color:rgba(60, 60, 60, 0.9);
   @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;

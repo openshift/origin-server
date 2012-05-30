@@ -213,7 +213,20 @@
   }
 }
 
+#utility-nav .alert, .navbar .alert {
+  color: #333333;
+  float: right;
+  line-height: 30px;
+  margin: 0;
+  padding: 0 10px;
 
+  &:hover {
+    color: black;
+  }
+}
+.navbar .alert {
+	margin: 3px -5px 0 7px;
+}
 
 @media (max-width: 480px) {
 	.navbar {
@@ -323,9 +336,21 @@
   	margin-bottom: 5px;
     margin-top: 6px;
   }
-  .brand-text {
-  	
+
+	#utility-nav {
+    position: static;
+    
+    li:last-child {
+    	margin-left: 10px;
+		}
+		
+		.alert, .navbar .alert {
+	    line-height: 31px;
+	    margin: 1px 0 0;
+	    padding: 0 10px;
+		}
   }
+
 }
 
 @media (min-width: 768px) and (max-width: 979px) {

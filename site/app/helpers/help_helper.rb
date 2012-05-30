@@ -104,7 +104,7 @@ module HelpHelper
   end
 
   def jboss_resources_url
-    community_base_url 'page/jboss-resources'
+    community_base_url 'developers/jboss'
   end
 
   def videos_url
@@ -120,7 +120,7 @@ module HelpHelper
   end
 
   def mongodb_resources_url
-    community_base_url 'page/mongodb-resources'
+    community_base_url 'developers/mongodb'
   end
 
   def user_guide_url
