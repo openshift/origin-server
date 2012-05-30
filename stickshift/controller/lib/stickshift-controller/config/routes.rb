@@ -21,7 +21,7 @@ Rails.application.routes.draw do
         resource :descriptor, :only => [:show]
         resource :gears, :only => [:show]
         resource :gear_groups, :only => [:show]
-        resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :destroy], :constraints => { :id => /([\w\-\d]+(\.[\d]+)+)/ } do
+        resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :destroy], :constraints => { :id => /([\w\-]+(-)([\d]+(\.[\d]+)*)+)/ } do
             resources :events, :controller => :emb_cart_events, :only => [:create]
         end
         resources :events, :controller => :app_events, :only => [:create]
