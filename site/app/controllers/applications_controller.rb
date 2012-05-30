@@ -127,7 +127,7 @@ class ApplicationsController < ConsoleController
 
     @application.domain = @domain
     if @application_type.template
-      @application.template = @application_type.template.uuid
+      @application.template = @application_type.template
     else
       @application.cartridge = @application_type.cartridge || @application_type.id
     end
