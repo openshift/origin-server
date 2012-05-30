@@ -38,9 +38,8 @@ module StickShift
 
     DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
 
-    #fixme: set debug to false
     def initialize(application_uuid, container_uuid, user_uid=nil,
-        app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=true)
+        app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -403,11 +402,9 @@ module StickShift
       add_env_var("REPO_DIR", File.join(gearappdir, "runtime", "repo", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
         FileUtils.cd gearappdir do |d|
-          puts "directory #{d}"
           FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
         end
         FileUtils.cd File.join(gearappdir, "runtime") do |d|
-          puts "directory #{d}"
           FileUtils.ln_s("../data", "data", :verbose => @debug)
         end
       }
