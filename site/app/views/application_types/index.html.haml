@@ -14,6 +14,10 @@
   to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
 
 .row
+  - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
+    .span6
+      = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
+.row
   - @framework_types.each_slice((@framework_types.length/2.0).ceil).each do |types|
     .span6
       = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
