@@ -55,11 +55,11 @@ class BaseController < ActionController::Base
     begin
       auth = StickShift::AuthService.instance.authenticate(request, login, password)
       @login = auth[:username]
-      @auth_method = auth[:auth_method]      
+      @auth_method = auth[:auth_method]
 
-      Rails.logger.debug "Adding user #{@login}...inside base_controller"
       @cloud_user = CloudUser.find @login
       if @cloud_user.nil?
+        Rails.logger.debug "Adding user #{@login}...inside base_controller"
         @cloud_user = CloudUser.new(@login)
         @cloud_user.save
       end
