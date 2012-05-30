@@ -30,7 +30,6 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type="${jboss_version}"
 setup_deconfigure "$1" $2 $3
-disable_cgroups
 
 JBOSS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
@@ -39,17 +38,25 @@ remove_all_proxy_ports $uuid
 M2_DIR="$APP_HOME/.m2" # maven dir
 JAVA_PREFS_DIR="$APP_HOME/.java" # Java preferences dir
 
-destroy_git_repo $application $uuid
+if [ ! -d "$APP_HOME/app-root" ]
+then
+    echo "${application}.  Application directory doesn't exist:  $APP_HOME/app-root"
+else
 
-stop_app
+    disable_cgroups
 
-confirm_pid_gone "${JBOSS_INSTANCE_DIR}/run/jboss.pid"
+    destroy_git_repo $application $uuid
 
-rm_app_dir
+    stop_app
 
-rm_cartridge_instance_dir "$cartridge_type"
+    confirm_pid_gone "${JBOSS_INSTANCE_DIR}/run/jboss.pid"
 
-rm_unobfuscated_app_home $namespace $application
+    rm_app_dir
+
+    rm_cartridge_instance_dir "$cartridge_type"
+    
+    enable_cgroups
+fi
 
 # remove the Maven repository.
 runcon -l s0-s0:c0.c1023 rm -rf "$M2_DIR"
@@ -57,8 +64,9 @@ runcon -l s0-s0:c0.c1023 rm -rf "$M2_DIR"
 # remove the Java preferences dir
 runcon -l s0-s0:c0.c1023 rm -rf "$JAVA_PREFS_DIR"
 
+rm_unobfuscated_app_home $namespace $application
+
 #
 # Remove virtualhost definition for apache
 #
 rm_httpd_proxy $uuid $namespace $application
-enable_cgroups
