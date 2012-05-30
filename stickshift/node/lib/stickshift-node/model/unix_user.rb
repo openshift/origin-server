@@ -352,9 +352,11 @@ module StickShift
     #   # ~/.env/
     #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
     #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
-    #   # ~/app
-    #   # ~/app/data
-    #   # ~/app/repo
+    #   # ~/app-root
+    #   # ~/app-root/data
+    #   # ~/app-root/runtime/repo
+    #   # ~/app-root/repo -> runtime/repo
+    #   # ~/app-root/runtime/data -> ../data
     #
     # Returns nil on Success and raises on Failure.
     def initialize_homedir(basedir, homedir, cart_basedir)
@@ -373,7 +375,7 @@ module StickShift
       FileUtils.chown(nil, @uuid, env_dir)
 
       geardir = File.join(homedir, @container_name, "/")
-      gearappdir = File.join(homedir, "app", "/")
+      gearappdir = File.join(homedir, "app-root", "/")
 
       add_env_var("APP_DNS",
                   "#{@app_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
@@ -383,9 +385,6 @@ module StickShift
 
       add_env_var("DATA_DIR", File.join(gearappdir, "data", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
-        
-        # FIXME: remove link when all code refactored to not use relative paths to data directory
-        FileUtils.ln_s('app/data', File.join(homedir, 'data'), :verbose => true)
       }
 
       add_env_var("GEAR_DIR", geardir, true)
@@ -401,18 +400,29 @@ module StickShift
                   "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
                   false)
 
-      add_env_var("REPO_DIR", File.join(gearappdir, "repo", "/"), true) {|v|
+      add_env_var("REPO_DIR", File.join(gearappdir, "runtime", "repo", "/"), true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
+        FileUtils.cd gearappdir do |d|
+          puts "directory #{d}"
+          FileUtils.ln_s("runtime/repo", "repo", :verbose => @debug)
+        end
+        FileUtils.cd File.join(gearappdir, "runtime") do |d|
+          puts "directory #{d}"
+          FileUtils.ln_s("../data", "data", :verbose => @debug)
+        end
       }
-      
+
       add_env_var("TMP_DIR", "/tmp/", true)
 
-      # Update all directory entries ~/app and children
-      FileUtils.chmod_R(0o0750, gearappdir, :verbose => @debug)
-      FileUtils.chown_R(@uuid, @uuid, gearappdir, :verbose => @debug)
+      # Update all directory entries ~/app-root/*
+      Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|
+        FileUtils.chmod_R(0o0750, e, :verbose => @debug)
+        FileUtils.chown_R(@uuid, @uuid, e, :verbose => @debug)
+      }
+      FileUtils.chown(nil, @uuid, gearappdir, :verbose => @debug)
       raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
-      state_file = File.join(gearappdir, ".state")
+      state_file = File.join(gearappdir, "runtime", ".state")
       File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
         file.write "new\n"
       }

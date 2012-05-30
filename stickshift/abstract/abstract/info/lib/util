@@ -174,8 +174,9 @@ function create_custom_uservars_var {
 
 function create_standard_app_dirs {
     mkdir -p run tmp ci
-    ln -s ../app/repo repo
-    ln -s ../app/data data
+    [ -e repo ] || ln -s ../app-root/repo repo
+    [ -e data ] || ln -s ../app-root/data data
+    [ -e runtime ] || ln -s ../app-root/runtime runtime
 }
 
 function create_cartridge_instance_dir {
@@ -225,8 +226,14 @@ EOF
 }
 
 function secure_app_dir {
-    chown -R $user_id.$group_id "$APP_HOME/app" || \
+    # set ownership for all the sub-directories even with dot names to User
+    chown -R $user_id.$group_id "$APP_HOME/app-root" || \
         error "Failed to chown new application space." 123
+
+    # reserve ownership of app-root for OpenShift
+    chown root.$group_id "$APP_HOME/app-root" || \
+        error "Failed to chown new application root." 123
+
     chown root.root "$APP_DIR"
 }
 
@@ -253,14 +260,14 @@ function check_cartridge_dir_doesnt_exist {
 }
 
 function check_app_dir_exists {
-    if [ ! -d "$APP_HOME/app" ]
+    if [ ! -d "$APP_HOME/app-root" ]
     then
-        error "${application}.  Application directory doesn't exist:  $APP_HOME/app" 125
+        error "${application}.  Application directory doesn't exist:  $APP_HOME/app-root" 125
     fi
 }
 
 function rm_app_dir {
-    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR" "$APP_HOME/app"
+    runcon -l s0-s0:c0.c1023 rm -rf "$APP_DIR" "$APP_HOME/app-root"
 }
 
 function rm_cartridge_instance_dir {
@@ -429,8 +436,8 @@ function setup_basic_vars {
 function setup_app_dir_vars {
     APP_HOME="$GEAR_BASE_DIR/$uuid/"
     APP_DIR=`echo $APP_HOME/$application | tr -s /`
-    APP_REPO_DIR="$APP_HOME/app/repo"
-    APP_DATA_DIR="$APP_HOME/app/data"
+    APP_REPO_DIR="$APP_HOME/app-root/repo"
+    APP_DATA_DIR="$APP_HOME/app-root/data"
 }
 
 function force_kill {
@@ -601,7 +608,7 @@ IFS="
 
 function observe_setup_app_and_git_dirs {
     observe_setup_var_lib_dir "$APP_HOME/git/"
-    observe_setup_var_lib_dir "$APP_HOME/app/"
+    observe_setup_var_lib_dir "$APP_HOME/app-root/"
     observe_setup_var_lib_dir "$APP_DIR"
 }
 
@@ -662,7 +669,7 @@ function validate_run_as_user {
 }
 
 function openshift_state_dir {
-  echo "${APP_HOME:-$OPENSHIFT_HOMEDIR}/app"
+  echo "${APP_HOME:-$OPENSHIFT_HOMEDIR}/app-root/runtime"
 }
 
 function get_app_state {
