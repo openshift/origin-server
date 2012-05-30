@@ -73,6 +73,8 @@ if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
    rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
 fi
 
+remove_ssh_key
+
 # Got here if its haproxy embedded and got removed - so start up all apps with
 # the new path (IE: without haproxy)
 start_app
