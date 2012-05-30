@@ -3,6 +3,7 @@ require 'rake'
 basedir = File.dirname(File.dirname(__FILE__))
 rpmdir = "#{File.dirname(__FILE__)}/rpms"
 remix_dir = "#{File.dirname(__FILE__)}/remix"
+skip_specs = [ "jbosseap" ]
 
 def repo_string(rpmdir)
   <<-EOF
@@ -64,9 +65,13 @@ task :build do
   specs   = Dir.glob("#{basedir}/**/*.spec")
   spec_revisions = {}
   specs.delete_if do |spec|
-    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
-    spec_name = File.basename(spec)[0..-6]
-    Dir.glob("#{rpmdir}/*#{spec_name}*#{revinfo}.fc16.src.rpm").length > 0
+    if skip_specs.select { |s| spec.match(s) }.length > 0
+      true
+    else
+      revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+      spec_name = File.basename(spec)[0..-6]
+      Dir.glob("#{rpmdir}/*#{spec_name}*#{revinfo}.fc16.src.rpm").length > 0
+    end
   end
 
   build_rpm(specs, rpmdir, true)
@@ -80,15 +85,19 @@ task :prodbuild do
   specs   = Dir.glob("#{basedir}/**/*.spec")
   spec_revisions = {}
   specs.delete_if do |spec|
-    revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
-    spec_name = File.basename(spec)[0..-6]
-    tags    = `git tag -l --contains #{revinfo} *#{spec_name}*`.split("\n")
-    if tags.length == 0
-      print "WARNING: #{spec} needs to be tagged!\n"
-      need_tags = true
-      false
+    if skip_specs.select { |s| spec.match(s) }.length > 0
+      true
     else
-      Dir.glob("#{rpmdir}/#{tags[-1].strip}*.fc16.src.rpm").length > 0
+      revinfo = `git log -1 --oneline #{File.dirname(spec)}`.split()[0]
+      spec_name = File.basename(spec)[0..-6]
+      tags    = `git tag -l --contains #{revinfo} \\*#{spec_name}\\*`.split("\n")
+      if tags.length == 0
+        print "WARNING: #{spec} needs to be tagged!\n"
+        need_tags = true
+        false
+      else
+        Dir.glob("#{rpmdir}/#{tags[-1].strip}*.fc16.src.rpm").length > 0
+      end
     end
   end
   exit(-1) if need_tags
