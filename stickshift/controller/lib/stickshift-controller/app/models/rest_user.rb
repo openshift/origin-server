@@ -1,8 +1,9 @@
 class RestUser < StickShift::Model
-  attr_accessor :login, :links
+  attr_accessor :login, :consumed_gears, :links
   
   def initialize(cloud_user, url)
     self.login = cloud_user.login
+    self.consumed_gears = cloud_user.consumed_gears
     @links = {
       "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
       "ADD_KEY" => Link.new("Add new SSH key", "POST", URI::join(url, "user/keys"), [
