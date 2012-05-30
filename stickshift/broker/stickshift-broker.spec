@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.5
+Version:   0.6.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -158,6 +158,67 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.6.6-1
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Merge pull request #66 from abhgupta/agupta-dev (dmcphers@redhat.com)
+- Fix for Bugz 825366, 825340. SELinux changes to allow access to
+  user_action.log file. Logging authentication failures and user creation for
+  OpenShift Origin (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #46 from rajatchopra/master (kraman@gmail.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #56 from pravisankar/master (admiller@redhat.com)
+- disable mongo unit tests temporarily to avoid build issues
+  (rpenta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Fixed mongo data store unit tests (rpenta@redhat.com)
+- changing user action log file path (abhgupta@redhat.com)
+- changes for logging user actions to a separate log file (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- fixup gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- code for min_gear setting (rchopra@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- more timeout tweaking (dmcphers@redhat.com)
+- try a bigger timeout (dmcphers@redhat.com)
+- try a bigger timeout (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #40 from kraman/dev/kraman/features/livecd
+  (admiller@redhat.com)
+- Re-include all OpenShift components in rcov run. (rmillner@redhat.com)
+- Adding livecd build scripts Adding a text only minimal version of livecd
+  Added ability to access livecd dns from outside VM (kraman@gmail.com)
+- allow syslog output for gear usage (dmcphers@redhat.com)
+- proper usage of StickShift::Model and beginnings of usage tracking
+  (dmcphers@redhat.com)
+- Add rcov testing to the Stickshift broker, common and controller.
+  (rmillner@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #28 from abhgupta/abhgupta-dev2 (dmcphers@redhat.com)
+- adding test cases for gear_groups rest api and changing tag from cartridge to
+  cartridges as it is a list (abhgupta@redhat.com)
+- We already validate the gear size elswhere based on the user information.
+  Remove the hard-coded list of node types.  As a side effect; we can't check
+  invalid gear sizes in unit tests. (rmillner@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Small is the only gear size guaranteed to be accepted by the broker.
+  (rmillner@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- BugZ 817170. Add ability to get valid gear size options from the
+  ApplicationContainerProxy (kraman@gmail.com)
+- update gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+
 * Wed Apr 25 2012 Krishna Raman <kraman@gmail.com> 0.6.5-1
 - Updating gem versions (admiller@redhat.com)
 - fix gem version (dmcphers@redhat.com)
