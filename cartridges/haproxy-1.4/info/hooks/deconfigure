@@ -92,6 +92,8 @@ if [ "$APP_DIR" -ef "$HAPROXY_DIR" ]; then
     exit 0
 fi
 
+remove_ssh_key
+
 # Got here if its haproxy embedded and got removed - so start up all apps with
 # the new path (IE: without haproxy)
 start_app
