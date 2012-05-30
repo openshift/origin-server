@@ -112,6 +112,16 @@ class BaseController < ActionController::Base
     end
   end
 
+  def get_bool(param_value)
+    if param_value.is_a? TrueClass or param_value.is_a? FalseClass
+      return param_value
+    else if param_value.is_a? String and param_value.upcase == "TRUE"
+      return true
+    else
+      return false
+    end
+  end
+
   def gen_req_uuid
     # The request id can be generated differently to make it a bit more meaningful
     File.open("/proc/sys/kernel/random/uuid", "r") do |file|
