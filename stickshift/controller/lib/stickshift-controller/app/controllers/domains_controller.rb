@@ -185,12 +185,7 @@ class DomainsController < BaseController
   # DELETE /domains/<id>
   def destroy
     id = params[:id]
-    force_str = params[:force]
-    if not force_str.nil? and force_str.upcase == "TRUE"
-    force = true
-    else
-    force = false
-    end
+    force = get_bool(params[:force])
 
     domain = get_domain(id)
     if not domain or not domain.hasAccess?@cloud_user
