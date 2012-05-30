@@ -64,7 +64,16 @@ class GroupInstance < StickShift::Model
       gear.uuid = app.uuid
       gear.name = app.name
     end
-    create_result = gear.create
+
+    # create the gear
+    create_result = nil
+    begin
+      create_result = gear.create
+    rescue Exception => e
+      create_result = ResultIO.new
+      create_result.exitcode = 5
+    end
+
     unless create_result.exitcode == 0
       begin
         gear.destroy
