@@ -742,6 +742,21 @@ function disable_cgroups {
     return 0
 }
 
+function resolve_application_dependencies {
+    uuid=$1
+    application=$2
+
+    for env_var in ${GEAR_BASE_DIR}/${uuid}/.env/*
+    do
+        . $env_var
+    done
+
+    pushd "${GEAR_BASE_DIR}/${uuid}/git/$application.git"
+    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/pre-receive 2>&1 | tee /dev/null"
+    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/post-receive 2>&1 | tee /dev/null"
+    popd
+}
+
 if [ -f /usr/libexec/stickshift/lib/util_ext ]
 then
     source /usr/libexec/stickshift/lib/util_ext
