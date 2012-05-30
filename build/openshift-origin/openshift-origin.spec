@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin
 Name:           openshift-origin
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -129,6 +129,11 @@ rm -rf %{buildroot}
 %attr(0555,-,-)  /etc/stickshift/resource_limits.conf
 
 %changelog
+* Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.0.3-1
+- Adding http to list of ports to open. Required when CLI tools try to confirm
+  that app is available. (kraman@gmail.com)
+- Adding license info to new package (kraman@gmail.com)
+
 * Wed May 16 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
 - new package built with tito
 
