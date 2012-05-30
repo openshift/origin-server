@@ -38,10 +38,12 @@ class TestUnixUserModel < Test::Unit::TestCase
     app_name = 'UnixUserTestCase'
     gear_name = app_name
     namespace = 'jwh201204301647'
+    verbose = false
 
-    FileUtils.rm_rf("/tmp/homedir", :verbose => true) if File.directory?("/tmp/homedir")
+    FileUtils.rm_rf("/tmp/homedir", :verbose => verbose) if File.directory?("/tmp/homedir")
     o = StickShift::UnixUser.new(gear_uuid, gear_uuid, user_uid, app_name,
-                                 gear_name, namespace)
+                                 gear_name, namespace,
+                                 nil, nil, verbose)
     assert_not_nil o
 
     o.initialize_homedir("/tmp/", "/tmp/homedir/", "stickshift/abstract/")
