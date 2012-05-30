@@ -63,7 +63,9 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/pids
 mkdir -p %{buildroot}%{brokerdir}/tmp/sessions
 mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
 mkdir -p %{buildroot}%{appdir}
-mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
+mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
+ln -sf %{_var}/lib/stickshift/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
+mkdir -p %{buildroot}%{_var}/lib/stickshift/.httpd.d
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
 mkdir -p %{buildroot}%{_bindir}
@@ -150,6 +152,8 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 /sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
+/sbin/restorecon -rv %{_sysconfdir}/httpd/conf.d/stickshift
+/sbin/restorecon -rv %{_localstatedir}/log/stickshift/user_action.log
 
 %postun
 /usr/sbin/semodule -e passenger -r stickshift-broker
