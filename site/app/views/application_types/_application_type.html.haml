@@ -6,6 +6,7 @@
   %h3= application_type.name
 
   - if defined? extra_info
+
     %ul.unstyled.meta
 
       -# if application_type.license
@@ -41,6 +42,8 @@
         - application_type.provides.each do |provided|
           %li= provided
 
+  - if defined? extra_info and application_type.template
+    = render :partial => application_type.template
+
   - unless defined? hide_link
     = link_to "Select »", application_type_path(application_type), :class => 'btn'
-
