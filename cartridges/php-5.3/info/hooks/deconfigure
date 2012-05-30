@@ -27,23 +27,32 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_deconfigure "$1" $2 $3
-disable_cgroups
 
 PHPCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 remove_all_proxy_ports $uuid
 
-destroy_git_repo $application $uuid
+if [ ! -d "$APP_HOME/app-root" ]
+then
+    echo "${application}.  Application directory doesn't exist:  $APP_HOME/app-root"
+else
 
-stop_app
+    disable_cgroups
 
-confirm_pid_gone "${PHPCART_INSTANCE_DIR}/run/httpd.pid"
+    destroy_git_repo $application $uuid
 
-confirm_log_files_inactive "$PHPCART_INSTANCE_DIR/logs"
+    stop_app
 
-rm_app_dir
+    confirm_pid_gone "${PHPCART_INSTANCE_DIR}/run/httpd.pid"
 
-rm_cartridge_instance_dir "$cartridge_type"
+    confirm_log_files_inactive "$PHPCART_INSTANCE_DIR/logs"
+
+    rm_app_dir
+
+    rm_cartridge_instance_dir "$cartridge_type"
+    
+    enable_cgroups
+fi
 
 rm_unobfuscated_app_home $namespace $application
 
@@ -51,4 +60,3 @@ rm_unobfuscated_app_home $namespace $application
 # Remove virtualhost definition for apache
 #
 rm_httpd_proxy $uuid $namespace $application
-enable_cgroups

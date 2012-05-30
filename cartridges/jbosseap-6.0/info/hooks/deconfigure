@@ -32,21 +32,27 @@ remove_all_proxy_ports $uuid
 M2_DIR="$APP_HOME/.m2" # maven dir
 JAVA_PREFS_DIR="$APP_HOME/.java" # Java preferences dir
 
-destroy_git_repo $application $uuid
+if [ ! -d "$APP_HOME/app-root" ]
+then
+    echo "${application}.  Application directory doesn't exist:  $APP_HOME/app-root"
+else
 
-stop_app
+    destroy_git_repo $application $uuid
 
-confirm_pid_gone "${APP_DIR}/run/jboss.pid"
+    stop_app
 
-rm_app_dir
+    confirm_pid_gone "${APP_DIR}/run/jboss.pid"
 
-rm_unobfuscated_app_home $namespace $application
+    rm_app_dir
+fi
 
 # remove the Maven repository.
 runcon -l s0-s0:c0.c1023 rm -rf "$M2_DIR"
 
 # remove the Java preferences dir
 runcon -l s0-s0:c0.c1023 rm -rf "$JAVA_PREFS_DIR"
+    
+rm_unobfuscated_app_home $namespace $application
 
 #
 # Remove virtualhost definition for apache
