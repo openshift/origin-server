@@ -4,7 +4,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.6
+Version:   0.6.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -162,6 +162,13 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.6.7-1
+- Fixing /etc/httpd/conf.d/stickshift link to be conpatible with typeless gears
+  change Fixing context of action log file (kraman@gmail.com)
+- Merge pull request #75 from abhgupta/bz817172 (mmcgrath+openshift@redhat.com)
+- Fix for bug 817172 - adding gear profile on gear_groups rest call
+  (abhgupta@redhat.com)
+
 * Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.6.6-1
 - Updating gem versions (admiller@redhat.com)
 - Updating gem versions (admiller@redhat.com)
