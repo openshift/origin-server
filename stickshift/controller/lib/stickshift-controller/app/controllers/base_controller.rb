@@ -115,7 +115,7 @@ class BaseController < ActionController::Base
   def get_bool(param_value)
     if param_value.is_a? TrueClass or param_value.is_a? FalseClass
       return param_value
-    else if param_value.is_a? String and param_value.upcase == "TRUE"
+    elsif param_value.is_a? String and param_value.upcase == "TRUE"
       return true
     else
       return false
