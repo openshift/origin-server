@@ -1006,6 +1006,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def add_alias(server_alias)
+    if !(server_alias =~ /\A[\w\-\.]+\z/) or (server_alias =~ /#{Rails.configuration.ss[:domain_suffix]}$/)
+      raise StickShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105) 
+    end
+    
     self.aliases = [] unless self.aliases
     raise StickShift::UserException.new("Alias '#{server_alias}' already exists for '#{@name}'", 255) if self.aliases.include? server_alias
     reply = ResultIO.new

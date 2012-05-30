@@ -58,6 +58,13 @@ class AppEventsController < BaseController
           respond_with @reply, :status => @reply.status   
           return
         end
+    rescue StickShift::UserException => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Application event '#{event}' failed: #{e.message}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "Failed to add event #{event} to application #{id} due to: #{e.message}", e.code) 
+      @reply.messages.push(message)
+      respond_with @reply, :status => @reply.status
+      return
     rescue Exception => e
       Rails.logger.error e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Application event '#{event}' failed: #{e.message}")
