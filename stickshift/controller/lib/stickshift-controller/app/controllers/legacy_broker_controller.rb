@@ -7,14 +7,12 @@ class LegacyBrokerController < ApplicationController
   include UserActionLogger
   
   def user_info_post
-    user = CloudUser.find(@login)
-    if user
-      user.auth_method = @auth_method
-      user_info = user.as_json
+    if @cloud_user
+      user_info = @cloud_user.as_json
       #FIXME: This is redundant, for now keeping it for backward compatibility
-      key_info = user.get_ssh_key
+      key_info = @cloud_user.get_ssh_key
       if key_info
-        user_info["ssh_key"] = key_info['key'] 
+        user_info["ssh_key"] = key_info['key']
         user_info["ssh_type"] = key_info['type']
       else
         user_info["ssh_key"] = ""
@@ -24,12 +22,12 @@ class LegacyBrokerController < ApplicationController
       user_info["rhlogin"] = user_info["login"]
       user_info.delete("login") 
       # this is to support old version of client tools
-      if user.domains and user.domains.length > 0
-        user_info["namespace"] = user.domains.first.namespace
+      if @cloud_user.domains and @cloud_user.domains.length > 0
+        user_info["namespace"] = @cloud_user.domains.first.namespace
       end
       user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
       app_info = {}
-      user.applications.each do |app|
+      @cloud_user.applications.each do |app|
         app_info[app.name] = {
           "framework" => app.framework,
           "creation_time" => app.creation_time,
@@ -39,7 +37,7 @@ class LegacyBrokerController < ApplicationController
         }
       end
       
-      log_action(@request_id, user.uuid, @login, "LEGACY_USER_INFO")
+      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_USER_INFO")
       @reply.data = {:user_info => user_info, :app_info => app_info}.to_json
       render :json => @reply
     else
@@ -53,34 +51,32 @@ class LegacyBrokerController < ApplicationController
   end
   
   def ssh_keys_post
-    user = CloudUser.find(@login)
-    if user
-      user.auth_method = @auth_method    
+    if @cloud_user    
       case @req.action
       when "add-key"
         raise StickShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
-        if user.ssh_keys
-          raise StickShift::UserKeyException.new("Key with name #{@req.key_name} already exists.  Please choose a different name", 120) if user.ssh_keys.has_key?(@req.key_name)
+        if @cloud_user.ssh_keys
+          raise StickShift::UserKeyException.new("Key with name #{@req.key_name} already exists.  Please choose a different name", 120) if @cloud_user.ssh_keys.has_key?(@req.key_name)
         end
-        user.add_ssh_key(@req.key_name, @req.ssh, @req.key_type)
-        user.save
+        @cloud_user.add_ssh_key(@req.key_name, @req.ssh, @req.key_type)
+        @cloud_user.save
       when "remove-key"
         raise StickShift::UserKeyException.new("Missing key name", 119) if @req.key_name.nil?
-        user.remove_ssh_key(@req.key_name)
-        user.save
+        @cloud_user.remove_ssh_key(@req.key_name)
+        @cloud_user.save
       when "update-key"
         raise StickShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
-        user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
-        user.save
+        @cloud_user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
+        @cloud_user.save
       when "list-keys"
         #FIXME: when client tools are updated
-        if user.ssh_keys.nil? || user.ssh_keys.empty?
+        if @cloud_user.ssh_keys.nil? || @cloud_user.ssh_keys.empty?
           @reply.data = {:keys => {}, :ssh_key => "", :ssh_type => ""}.to_json
         else
-          other_keys = user.ssh_keys.reject {|k, v| k == CloudUser::DEFAULT_SSH_KEY_NAME }
-          if user.ssh_keys.has_key?(CloudUser::DEFAULT_SSH_KEY_NAME)
-            default_key = user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['key'] 
-            default_key_type = user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['type']
+          other_keys = @cloud_user.ssh_keys.reject {|k, v| k == CloudUser::DEFAULT_SSH_KEY_NAME }
+          if @cloud_user.ssh_keys.has_key?(CloudUser::DEFAULT_SSH_KEY_NAME)
+            default_key = @cloud_user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['key'] 
+            default_key_type = @cloud_user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['type']
           else
             default_key = default_key_type = ""            
           end
@@ -101,12 +97,10 @@ class LegacyBrokerController < ApplicationController
   end
   
   def domain_post
-    cloud_user = CloudUser.find(@login)
-    cloud_user.auth_method = @auth_method unless cloud_user.nil?
-    domain = get_domain(cloud_user, @req.namespace)
-    domain = cloud_user.domains.first if !domain && @req.alter
+    domain = get_domain(@cloud_user, @req.namespace)
+    domain = @cloud_user.domains.first if !domain && @req.alter
     
-    if (!domain or not domain.hasFullAccess?(cloud_user)) && (@req.alter || @req.delete)
+    if (!domain or not domain.hasFullAccess?(@cloud_user)) && (@req.alter || @req.delete)
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", false, "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.")
       @reply.resultIO << "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.\n"
       @reply.exitcode = 106
@@ -133,24 +127,24 @@ class LegacyBrokerController < ApplicationController
       end
 
       if @req.ssh
-        cloud_user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
-        cloud_user.save
+        @cloud_user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
+        @cloud_user.save
         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Updated SSH key '#{@req.key_name}' for domain #{domain.namespace}")
       end
     elsif @req.delete
-       if not domain.hasFullAccess?(cloud_user)
+       if not domain.hasFullAccess?(@cloud_user)
          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", false, "Domain #{domain.namespace} is not associated with user")
-         @reply.resultIO << "Cannot remove namespace #{@req.namespace}. This namespace is not associated with login: #{cloud_user.login}\n"
+         @reply.resultIO << "Cannot remove namespace #{@req.namespace}. This namespace is not associated with login: #{@cloud_user.login}\n"
          @reply.exitcode = 106
          render :json => @reply, :status => :bad_request
          return
        end
-       if not cloud_user.applications.empty?
-         cloud_user.applications.each do |app|
+       if not @cloud_user.applications.empty?
+         @cloud_user.applications.each do |app|
            if app.domain.uuid == domain.uuid
              log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", false, "Domain #{domain.namespace} contains applications")
              @reply.resultIO << "Cannot remove namespace #{@namespace}. Remove existing app(s) first: "
-             @reply.resultIO << cloud_user.applications.map{|a| a.name}.join("\n")
+             @reply.resultIO << @cloud_user.applications.map{|a| a.name}.join("\n")
              @reply.exitcode = 106 
              render :json => @reply, :status => :bad_request
          return
@@ -158,15 +152,13 @@ class LegacyBrokerController < ApplicationController
          end
        end
        @reply.append domain.delete
-       #@reply.append cloud_user.delete
        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Deleted domain #{@req.namespace}")
        render :json => @reply
        return
     else
       raise StickShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if StickShift::ApplicationContainerProxy.blacklisted? @req.namespace
-      raise StickShift::UserException.new("User already has a domain associated. Update the domain to modify.", 102) if !cloud_user.domains.empty?
+      raise StickShift::UserException.new("User already has a domain associated. Update the domain to modify.", 102) if !@cloud_user.domains.empty?
 
-      #cloud_user = CloudUser.new(@login, @req.ssh, @req.namespace, @req.key_type)
       key = Key.new(CloudUser::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
       if key.invalid?
          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", false, "Failed to create domain #{@req.namespace}: #{key.errors.first[1][:message]}")
@@ -175,16 +167,16 @@ class LegacyBrokerController < ApplicationController
          render :json => @reply, :status => :bad_request 
          return
       end
-      cloud_user.add_ssh_key(CloudUser::DEFAULT_SSH_KEY_NAME, @req.ssh, @req.key_type)
-      domain = Domain.new(@req.namespace, cloud_user)
+      @cloud_user.add_ssh_key(CloudUser::DEFAULT_SSH_KEY_NAME, @req.ssh, @req.key_type)
+      domain = Domain.new(@req.namespace, @cloud_user)
       @reply.append domain.save
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Created domain #{@req.namespace}")
     end
 
-    @reply.append cloud_user.save
+    @reply.append @cloud_user.save
     @reply.data = {
-      :rhlogin    => cloud_user.login,
-      :uuid       => cloud_user.uuid,
+      :rhlogin    => @cloud_user.login,
+      :uuid       => @cloud_user.uuid,
       :rhc_domain => Rails.configuration.ss[:domain_suffix]
     }.to_json
       
@@ -212,18 +204,16 @@ class LegacyBrokerController < ApplicationController
   
   def cartridge_post
     @req.node_profile ||= "small"
-    user = CloudUser.find(@login)
-    raise StickShift::UserException.new("Invalid user", 99) if user.nil?
-    user.auth_method = @auth_method
+    raise StickShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
     
     case @req.action
     when 'configure'    #create app and configure framework
-      apps = user.applications
-      domain = user.domains.first
-      app = Application.new(user, @req.app_name, nil, @req.node_profile, @req.cartridge, nil, false, domain)
+      apps = @cloud_user.applications
+      domain = @cloud_user.domains.first
+      app = Application.new(@cloud_user, @req.app_name, nil, @req.node_profile, @req.cartridge, nil, false, domain)
       check_cartridge_type(@req.cartridge, "standalone")
-      if (user.consumed_gears >= user.max_gears)
-        raise StickShift::UserException.new("#{@login} has already reached the application limit of #{user.max_gears}", 104)
+      if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+        raise StickShift::UserException.new("#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
       end
       raise StickShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if StickShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
@@ -271,50 +261,50 @@ class LegacyBrokerController < ApplicationController
         return
       end
     when 'deconfigure'
-      app = get_app_from_request(user)      
+      app = get_app_from_request(@cloud_user)
       @reply.append app.cleanup_and_delete
       @reply.resultIO << "Successfully destroyed application: #{app.name}"
     when 'start'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.start(app.framework)
     when 'stop'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.stop(app.framework)
     when 'restart'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.restart(app.framework)
     when 'force-stop'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.force_stop(app.framework)
     when 'reload'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.reload(app.framework)
     when 'status'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.status(app.framework)
     when 'tidy'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.tidy(app.framework)
     when 'add-alias'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.add_alias @req.server_alias
     when 'remove-alias'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.remove_alias @req.server_alias
     when 'threaddump'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.threaddump(app.framework)
     when 'expose-port'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.expose_port(app.framework)
     when 'conceal-port'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.conceal_port(app.framework)
     when 'show-port'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.show_port(app.framework)
     when 'system-messages'
-      app = get_app_from_request(user)
+      app = get_app_from_request(@cloud_user)
       @reply.append app.system_messages
     else
       raise StickShift::UserException.new("Invalid action #{@req.action}", 111)
@@ -326,11 +316,9 @@ class LegacyBrokerController < ApplicationController
   end
   
   def embed_cartridge_post
-    user = CloudUser.find(@login)
-    raise StickShift::UserException.new("Invalid user", 99) if user.nil?
-    user.auth_method = @auth_method
+    raise StickShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
     
-    app = get_app_from_request(user)    
+    app = get_app_from_request(@cloud_user)    
     check_cartridge_type(@req.cartridge, "embedded")
 
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
@@ -400,17 +388,18 @@ class LegacyBrokerController < ApplicationController
     @request_id = gen_req_uuid
     begin
       auth = StickShift::AuthService.instance.login(request, params, cookies)
-  
+
       if auth  
         @login = auth[:username]
         @auth_method = auth[:auth_method]
-        
-        Rails.logger.debug "Adding user #{@login}...inside legacy_controller"
+
         @cloud_user = CloudUser.find @login
         if @cloud_user.nil?
+          Rails.logger.debug "Adding user #{@login}...inside legacy_controller"
           @cloud_user = CloudUser.new(@login)
           @cloud_user.save
         end
+        @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
       end
       unless @login
         log_action('nil','nil', 'nil', "LEGACY_BROKER", false, "Authentication failed: Invalid user credentials")
@@ -425,7 +414,7 @@ class LegacyBrokerController < ApplicationController
       render :json => @reply, :status => :unauthorized
     end
   end
-  
+
   def exception_handler(e)
     status = :internal_server_error
     

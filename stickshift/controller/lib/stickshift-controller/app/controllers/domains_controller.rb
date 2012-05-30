@@ -175,7 +175,7 @@ class DomainsController < BaseController
     @reply = RestReply.new(:ok, "domain", domain)
 
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", true, "Updated domain #{id} to #{new_namespace}")
-    
+
     respond_with(@reply) do |format|
       format.xml { render :xml => @reply, :status => @reply.status }
       format.json { render :json => @reply, :status => @reply.status }
