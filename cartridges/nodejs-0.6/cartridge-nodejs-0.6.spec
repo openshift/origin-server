@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.5
+Version: 0.8.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
+- Bug 825354 (dmcphers@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.8.5-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
