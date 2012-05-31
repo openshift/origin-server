@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.6
+Version: 0.11.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu May 31 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
+- Bugzilla 826819: redeploy_repo_dir assumed . was the git repo and that
+  assumption had changed.  Bugzilla 827111: Add safety around rm -rf
+  (rmillner@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.6-1
 - Bug 825354 (dmcphers@redhat.com)
 - Merge pull request #81 from rajatchopra/master
