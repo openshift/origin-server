@@ -26,17 +26,12 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_alias.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html
-  Alias /errors $CART_INFO_DIR/configuration
-
-  ErrorDocument 503 /errors/503.html
 EOF
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_proxy.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/zzzzz_proxy.conf"
   ProxyPass /health !
-  ProxyPass /errors !
   ProxyPass / http://$IP:8080/ status=I
   ProxyPassReverse / http://$IP:8080/
-  ProxyErrorOverride On
 EOF
 
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"

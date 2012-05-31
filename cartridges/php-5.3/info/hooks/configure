@@ -94,16 +94,24 @@ create_standard_path_env_var
 
 observe_setup_env_uservars_dir
 
+
+if [ ! -d $git_url ]; then
+    #
+    # Resolve app dependencies for template
+    #
+    resolve_application_dependencies $uuid $application &
+else
+    #
+    # Start the server
+    #
+    start_app
+fi
+
 #
 # Create virtualhost definition for apache
 #
 export CART_INFO_DIR
 $CARTRIDGE_BASE_PATH/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
-
-#
-# Start the server
-#
-start_app
 
 restart_httpd_graceful
 enable_cgroups

@@ -6,7 +6,7 @@ Feature: Cartridge Lifecycle DIY Verification Tests
     Given the libra client tools
     And an accepted node
     When <app_count> <type> applications are created
-    Then the applications should be temporarily unavailable
+    Then the applications should be accessible
 
   Scenarios: Application Creation diy Scenarios
     | app_count |     type     |

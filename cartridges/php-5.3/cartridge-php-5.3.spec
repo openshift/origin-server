@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.93.5
+Version: 0.93.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
+- Bug 825354 (dmcphers@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 

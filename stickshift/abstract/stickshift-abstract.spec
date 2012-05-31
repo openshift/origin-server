@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.5
+Version: 0.11.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,18 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.6-1
+- Bug 825354 (dmcphers@redhat.com)
+- Merge pull request #81 from rajatchopra/master
+  (mmcgrath+openshift@redhat.com)
+- Rename ~/app to ~/app-root to avoid application name conflicts and additional
+  links and fixes around testing US2109. (jhonce@redhat.com)
+- fix for several bugs.. first 3 args should be shifted before connection info
+  is processed (rchopra@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.5-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 

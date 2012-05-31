@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.93.4
+Version: 0.93.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
+- Bug 825354 (dmcphers@redhat.com)
+- Rename ~/app to ~/app-root to avoid application name conflicts and additional
+  links and fixes around testing US2109. (jhonce@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.4-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
