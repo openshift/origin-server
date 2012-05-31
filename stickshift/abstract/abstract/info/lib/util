@@ -172,6 +172,28 @@ function create_custom_uservars_var {
     echo "$2" > "$APP_HOME/.env/.uservars/$1"
 }
 
+#example usage: sed -i $(getSedExpression_replaceEnvVariables) path/to/file.conf
+function getSedExpression_replaceEnvVariables {
+        pathToEnvFolder="${OPENSHIFT_HOMEDIR}.env"
+
+        variableFiles=`find ${pathToEnvFolder} -type f -print`
+
+        sedCmd=""
+
+        for variableFile in $variableFiles
+        do
+                arrVarFile=(`echo $variableFile | tr "/" "\n"`)
+                arrSize=${#arrVarFile[@]}
+                #use file name as variable name
+                variableName=${arrVarFile[$arrSize - 1]}
+                variableVal=(`echo ${!variableName//\//\\\/}`)
+
+                sedCmd="${sedCmd} -e s/\${env.${variableName}}/${variableVal}/g"
+        done
+        
+        printf "%s\n" "$sedCmd"
+}
+
 function create_standard_app_dirs {
     mkdir -p run tmp ci
     [ -e repo ] || ln -s ../app-root/repo repo
