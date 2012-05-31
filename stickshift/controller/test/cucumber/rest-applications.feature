@@ -250,10 +250,10 @@ Feature: applications
     Then the response should be "201"
     When I send a POST request to "/domains/cucumber<random>/applications" with the following:"name=app&cartridge=php-5.3"
     Then the response should be "201"
-    When I send a POST request to "/domains/cucumber<random>/applications/app/cartridges" with the following:"cartridge=postgresql-8.4"
+    When I send a POST request to "/domains/cucumber<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
     Then the response should be "201"
-	When I send a GET request to "/domains/cucumber<random>/applications/app/descriptor"
-    Then the response descriptor should have "php-5.3,postgresql-8.4" as dependencies
+    When I send a GET request to "/domains/cucumber<random>/applications/app/descriptor"
+    Then the response descriptor should have "php-5.3,mysql-5.1" as dependencies
     When I send a DELETE request to "/domains/cucumber<random>/applications/app"
     Then the response should be "204"
     
