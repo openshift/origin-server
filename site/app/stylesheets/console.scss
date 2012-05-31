@@ -13,7 +13,7 @@ Color palette
 234   0  17    ea0011     Bright Red
 205  32  44    cd202c     Primary Red
 161   0  12    a1000c     Dark Red
- 
+
 */
 
 // Defaults before partials
@@ -33,7 +33,7 @@ a:hover,a:active {color:#b1e5f2;}
 	}
 
 
-// import partials 
+// import partials
 // ------------------------------------------------------
 
 @import "variables";
@@ -103,7 +103,7 @@ a:hover,a:active {color:#b1e5f2;}
 
 
 // Forms
-// ----------------------------------------	
+// ----------------------------------------
 input, textarea {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
   background: $consoleFormFieldBackground;
@@ -178,7 +178,7 @@ ol.wizard li {
   list-style-type: none;
   margin: 0 50px 10px 0;
   padding: 10px 0 10px 45px;
-  
+
   &:last-child {
   	margin-right:0;
   }
@@ -208,12 +208,12 @@ ol.wizard li.active {
 ol.wizard li a {
 	color: inherit;
 	}
-	
+
 @media (max-width: 767px) {
 	ol.wizard {
 		display:block;
 		margin: 0 0 15px;
-		
+
 		li {
 			background-position: 0 -84;
 			background-repeat: no-repeat;
@@ -224,7 +224,7 @@ ol.wizard li a {
     	list-style-type: none;
     	margin: 0;
     	padding:0 30px 10px 25px;
-    	
+
     	span i {
     		background:none;
     		border:none;
@@ -262,18 +262,18 @@ ol.wizard li a {
 }
 
 .section-console {
-	  background-color: #1f1f1f; 
+	  background-color: #1f1f1f;
 	  background-image:
-	    url('../images/mts.png'), 
+	    url('../images/mts.png'),
 	    -moz-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
 	  background-image:
-	    url('../images/mts.png'), 
+	    url('../images/mts.png'),
 	    -webkit-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
 	  background-image:
-	    url('../images/mts.png'), 
+	    url('../images/mts.png'),
 	    -ms-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
 	  background-image:
-	    url('../images/mts.png'), 
+	    url('../images/mts.png'),
 	    repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
 	  background-repeat:
 	    repeat-x,
@@ -284,7 +284,7 @@ ol.wizard li a {
 		}
 
 .ie9 .section-console {
-	background-color: #1f1f1f; 
+	background-color: #1f1f1f;
 	  background-image:
 	    url('../images/mts.png');
 	  background-repeat:
@@ -328,9 +328,13 @@ figure {
 .section-console-light .row-console > .row {
 	background: none repeat scroll 0 0 #292929;
  	color: #dadada;
-	
+
 	h1, h2, h3, h4, h5, h6 {
    	color: #dadada;
+	}
+
+	h3.divide {
+		border-bottom: 2px solid #555;
 	}
 }
 
@@ -343,7 +347,7 @@ figure {
 }
 
 @media (max-width: 767px) {
-  .section-console { 
+  .section-console {
     background: #010101;
     padding-bottom: 0;
     padding-top: 0;
@@ -393,7 +397,7 @@ figure {
   tbody tr:hover th {
   	background-color:transparent;
   }
-  
+
 }
 
 .line-item-title {
@@ -433,9 +437,9 @@ figure {
   margin-top: 2px;
   margin-bottom: 2px;
   -webkit-border-radius: 0;
-  -moz-border-radius: 0;  
-  border-radius: 0; 
-  color: #bebebe; 
+  -moz-border-radius: 0;
+  border-radius: 0;
+  color: #bebebe;
   font-size: 12px;
   }
   	.nav-pills.console-overview > li > a:hover {
@@ -464,7 +468,7 @@ figure {
     margin-top: 18px;
     padding: 17px 20px 18px;
 }
-	
+
 .application_type {
 	margin-bottom: 30px;
 	}
@@ -582,7 +586,7 @@ a.cap-link {
 		}
 		.cartridge-block .warning {
 				color: #EB0011;
-				}	
+				}
 		.cartridge-block .embedded {
 			background: #131313;
 			margin: 15px 30px 0 30px;
@@ -609,12 +613,12 @@ a.cap-link {
     				height: 20px;
     				margin-left: 10px;
     				position: absolute;
-    				width: 20px;						
+    				width: 20px;
 						}
 						.cartridge-block .embedded .view-cart-details:hover span.sprite {
 							background: url('../images/sprite-vert.png') 0 -55px no-repeat;
 							}
-						
+
 		.cartridge-block .embedded .embedded-cart {
 			border: 1px solid #6b6b6b;
 			background: #242424;
@@ -640,7 +644,7 @@ a.cap-link {
 				background-color: #b1e5f2;
 				background-position:-26px -50px;
 				}
-			
+
 .cartridge-block input.git-url {
   border: 1px dotted #444;
   @include border-radius(0);
@@ -650,7 +654,7 @@ a.cap-link {
   cursor: inherit;
   width: 100%;
 }
-			
+
 #secondary {
 	font-size: 90%;
 	}
@@ -669,7 +673,7 @@ a.cap-link {
   #secondary #app-unique-info ul {
 		margin-bottom: 25px;
 		}
-	#app-unique-info h5 {	
+	#app-unique-info h5 {
 		border-bottom: 1px solid #222222;
 		}
 .section-console h6 {
@@ -683,7 +687,7 @@ a.cap-link {
 
 .cartridge_type.installed,
 .cartridge_type.inactive,
-.section-console-light .cartridge_type.installed > h3, 
+.section-console-light .cartridge_type.installed > h3,
 .section-console-light .cartridge_type.inactive > h3 {
   color: #888;
   }
@@ -740,7 +744,7 @@ a.cap-link {
   #my-apps li h2 {
 		float: right;
 		}
-	section#console-mast .row ul.unstyled-flat li.span7.right { text-align: left; } 
+	section#console-mast .row ul.unstyled-flat li.span7.right { text-align: left; }
 	.form-horizontal .controls {
 		margin-left: 0;
 		}
@@ -756,7 +760,7 @@ a.cap-link {
     font-size: inherit;
    	}
 }
-	
+
 @media (min-width: 768px) and (max-width: 979px) {
 	.total-cost {
 		font-size: 23px;
@@ -777,7 +781,7 @@ a.cap-link {
   .digest-bg {
   	margin: 0 -23px;
   }
-}	 
+}
 
 @media (min-width: 1200px) {
 }
@@ -785,7 +789,7 @@ a.cap-link {
 }
 @media (min-width: 980px) {
 }
-  
+
 .form-search {
   position: relative;
   > .search-query {

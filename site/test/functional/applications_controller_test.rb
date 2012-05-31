@@ -16,6 +16,29 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_redirected_to applications_path
   end
 
+  test "should be able to find templates" do
+    types = ApplicationType.all :as => @user
+    (templates,) = types.partition{|t| t.template}
+    assert_not_equal 0, templates.length, "There should be templates to test against"
+  end
+
+  #TODO: more intelligently specify templates to test
+  %w(rails drupal wordpress kitchensink).each do |type|
+    test "should be able to create application based on #{type} template" do
+      create_and_destroy(type)
+    end
+  end
+
+  def create_and_destroy(type)
+    post(:create, {:application => get_post_form(type)})
+
+    assert app = assigns(:application)
+    assert app.errors.empty?, app.errors.inspect
+
+    delete :destroy, :id => app.id
+    assert_redirected_to applications_path
+  end
+
   test "should assign errors on empty name" do
     app_params = get_post_form
     app_params[:name] = ''
@@ -152,8 +175,8 @@ class ApplicationsControllerTest < ActionController::TestCase
 #    assert_template
 #  end
 
-  def get_post_form
-    {:name => 'test1', :application_type => 'diy-0.1'}
+  def get_post_form(name = 'diy-0.1')
+    {:name => 'test1', :application_type => name}
   end
 
   def get_filter_form

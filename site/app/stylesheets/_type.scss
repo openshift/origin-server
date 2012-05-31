@@ -8,6 +8,9 @@ h1, h2, h3, h4, h5 {
 p {
   margin: 5px 0 13px;
 }
+p + h2, p + h3, p + h4 {
+	padding-top: 15px;
+}
 h1 {
   font-size: 30px;
   line-height: 36px;

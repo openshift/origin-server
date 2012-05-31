@@ -9,10 +9,18 @@
 = app_wizard_steps_create 0
 -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
 %p
-  Choose a web programming framework for your application. After you create the application you can add
+  Choose a web programming framework or template for your application. After you create the application you can add
   %strong cartridges
   to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
 
+%h3.divide Templates
+%p
+  These templates contain a framework, any other required cartridges (such as a database), as well as all of the code needed to get you up and running quickly!
+.row
+  - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
+    .span6
+      = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
+%h3.divide Frameworks
 .row
   - @framework_types.each_slice((@framework_types.length/2.0).ceil).each do |types|
     .span6

@@ -2,6 +2,7 @@ class ApplicationTypesController < ConsoleController
 
   def index
     types = ApplicationType.all :as => session_user
+    @template_types, types = types.partition{|t| t.template}
     @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
     @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
   end
