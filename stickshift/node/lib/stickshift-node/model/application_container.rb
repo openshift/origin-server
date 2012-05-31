@@ -54,7 +54,7 @@ module StickShift
     # Returns app state as string on Success and 'unknown' on Failure
     def get_app_state
       env = load_env
-      app_state_file=File.join(env[:OPENSHIFT_HOMEDIR], 'app', '.state')
+      app_state_file=File.join(env[:OPENSHIFT_HOMEDIR], 'app-root', 'runtime', '.state')
       
       if File.exists?(app_state_file)
         app_state = nil

@@ -34,24 +34,32 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Deconfigure app.
 setup_deconfigure "$1" $2 $3
-disable_cgroups
 
 remove_all_proxy_ports $uuid
 
-# Destroy git repo and stop app.
-destroy_git_repo $application $uuid
-stop_app
+if [ ! -d "$APP_HOME/app-root" ]
+then
+    echo "${application}.  Application directory doesn't exist:  $APP_HOME/app-root"
+else
+    disable_cgroups
 
-# Confirm stop + no activity in logs.
-NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-confirm_pid_gone "$NODEJS_INSTANCE_DIR/run/nodejs.pid"
-confirm_log_files_inactive "$NODEJS_INSTANCE_DIR/logs"
+    # Destroy git repo and stop app.
+    destroy_git_repo $application $uuid
+    stop_app
 
-# Blow away the directories.
-rm_app_dir
-rm_cartridge_instance_dir "$cartridge_type"
+    # Confirm stop + no activity in logs.
+    NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+    confirm_pid_gone "$NODEJS_INSTANCE_DIR/run/nodejs.pid"
+    confirm_log_files_inactive "$NODEJS_INSTANCE_DIR/logs"
+
+    # Blow away the directories.
+    rm_app_dir
+    rm_cartridge_instance_dir "$cartridge_type"
+    
+    enable_cgroups
+fi
+
 rm_unobfuscated_app_home $namespace $application
 
 # And finally, remove virtualhost definition added to Apache.
 rm_httpd_proxy $uuid $namespace $application
-enable_cgroups

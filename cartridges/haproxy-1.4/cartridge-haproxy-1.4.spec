@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.7
+Version: 0.10.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.10.8-1
+- Bug 825354 (dmcphers@redhat.com)
+- Fix for bz 816171 (mpatel@redhat.com)
+
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.10.7-1
 - Fix for bugz 824423 - fail to git push after haproxy gear move. Abstract
   expects cartridge_type as a result of typeless gears - set that.

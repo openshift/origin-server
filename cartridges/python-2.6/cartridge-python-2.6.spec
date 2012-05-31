@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.93.6
+Version: 0.93.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.7-1
+- Bug 825354 (dmcphers@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
 - Add numpy, numpy-f2py and gcc-gfortran for scientific py libraries support.
   (ramr@redhat.com)

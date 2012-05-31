@@ -149,10 +149,11 @@ class BaseApi_V1 < BaseObj_V1
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :links                                                                         
+  attr_accessor :login, :consumed_gears, :links                                                                         
                                                                                                        
   def initialize
     self.login = nil
+    self.consumed_gears = 0
     self.links = {                                                                                         
       "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
       "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
@@ -269,7 +270,7 @@ class RestKey_V1 < BaseObj_V1
 end
 
 class RestApplication_V1 < BaseObj_V1
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
 
   def initialize(name=nil, framework=nil, domain_id=nil, scalable=nil)
     self.name = name
@@ -278,6 +279,7 @@ class RestApplication_V1 < BaseObj_V1
     self.uuid = nil
     self.embedded = nil
     self.aliases = nil
+    self.gear_count = nil
     self.domain_id = domain_id
     self.gear_profile = nil
     self.git_url = nil
@@ -334,10 +336,11 @@ class RestGear_V1 < BaseObj_V1
 end
 
 class RestGearGroup_V1 < BaseObj_V1
-  attr_accessor :name, :gears, :cartridges
+  attr_accessor :name, :gear_profile, :gears, :cartridges
 
   def initialize(name=nil)
     self.name = name
+    self.gear_profile = nil
     self.gears = nil
     self.cartridges = nil
   end

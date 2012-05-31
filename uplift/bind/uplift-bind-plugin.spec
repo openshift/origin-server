@@ -5,7 +5,7 @@
 
 Summary:        Uplift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.4
+Version:        0.8.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -158,6 +158,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.8.5-1
+- Adding livecd build scripts Adding a text only minimal version of livecd
+  Added ability to access livecd dns from outside VM (kraman@gmail.com)
+
 * Fri Apr 27 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
 - cleaning up spec files (dmcphers@redhat.com)
 

@@ -17,8 +17,8 @@ else
   stop_app.sh 1>&2
 fi
 
-echo "Removing old data dir: ~/${OPENSHIFT_GEAR_NAME}/app/data/*" 1>&2
-/bin/rm -rf ~/${OPENSHIFT_GEAR_NAME}/app/data/* ~/${OPENSHIFT_GEAR_NAME}/app/data/.[^.]*
+echo "Removing old data dir: ~/${OPENSHIFT_GEAR_NAME}/app-root/data/*" 1>&2
+/bin/rm -rf ~/${OPENSHIFT_GEAR_NAME}/app-root/data/* ~/${OPENSHIFT_GEAR_NAME}/app-root/data/.[^.]*
 
 restore_tar.sh $include_git
 

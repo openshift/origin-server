@@ -34,6 +34,9 @@ import_env_vars
 
 # Remove the first 3 args and process all the remaining args of the form k=v.
 # The values are the db environment variable name-value pairs.
+shift
+shift
+shift
 while [ $# -gt 0 ]; do
     arg=$1
     shift

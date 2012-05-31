@@ -29,7 +29,7 @@ source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 
-setup_deconfigure "$1" $2 $3
+setup_embedded_deconfigure "$1" $2 $3
 disable_cgroups
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -44,9 +44,6 @@ HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 # Teardown port proxy (ignore failures or missing hook)
 #
 ( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
-
-# For non-embedded (dedicated) haproxy gear, remove all the proxy ports.
-[ "$APP_DIR" -ef "$HAPROXY_DIR" ]  &&  remove_all_proxy_ports $uuid
 
 # Remove PATH override
 OLD_PATH=$PATH
@@ -76,21 +73,7 @@ if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
    rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
 fi
 
-if [ "$APP_DIR" -ef "$HAPROXY_DIR" ]; then
-    # For non-embedded (dedicated) haproxy gear, destroy the gear.
-
-    # Destroy git repo.
-    destroy_git_repo $application $uuid
-
-    # Blow away the directories.
-    rm_app_dir
-    rm_unobfuscated_app_home $namespace $application
-
-    # Remove apache vhost configuration.
-    rm_httpd_proxy $uuid $namespace $application
-
-    exit 0
-fi
+remove_ssh_key
 
 # Got here if its haproxy embedded and got removed - so start up all apps with
 # the new path (IE: without haproxy)

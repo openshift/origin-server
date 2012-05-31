@@ -44,18 +44,18 @@ function create_repo {
 
 function obfuscate_password {
     password="$1"
-    java -classpath "${APP_HOME}/app/data/war/WEB-INF/lib/acegi-security-1.0.5.jar:${APP_HOME}/app/data/war/WEB-INF/lib/commons-codec-1.4.jar:${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
+    java -classpath "${APP_HOME}/app-root/data/war/WEB-INF/lib/acegi-security-1.0.5.jar:${APP_HOME}/app-root/data/war/WEB-INF/lib/commons-codec-1.4.jar:${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
 }
 
 function generate_ssh_keys {
-    /bin/mkdir -p $APP_HOME/app/data/.ssh/
-    /usr/bin/ssh-keygen -N '' -f $APP_HOME/app/data/.ssh/jenkins_id_rsa > /dev/null
+    /bin/mkdir -p $APP_HOME/app-root/data/.ssh/
+    /usr/bin/ssh-keygen -N '' -f $APP_HOME/app-root/data/.ssh/jenkins_id_rsa > /dev/null
 
-    /bin/chown root.$uuid -R "$APP_HOME/app/data/.ssh/"
-    chmod 0750 "$APP_HOME/app/data/.ssh/"
-    chmod 0640 "$APP_HOME/app/data/.ssh/jenkins_id_rsa"
-    chmod 0640 "$APP_HOME/app/data/.ssh/jenkins_id_rsa.pub"
-    observe_setup_var_lib_dir "$APP_HOME/app/data/.ssh/"
+    /bin/chown root.$uuid -R "$APP_HOME/app-root/data/.ssh/"
+    chmod 0750 "$APP_HOME/app-root/data/.ssh/"
+    chmod 0640 "$APP_HOME/app-root/data/.ssh/jenkins_id_rsa"
+    chmod 0640 "$APP_HOME/app-root/data/.ssh/jenkins_id_rsa.pub"
+    observe_setup_var_lib_dir "$APP_HOME/app-root/data/.ssh/"
 }
 
 function generate_ssh_keys {
@@ -105,7 +105,7 @@ popd > /dev/null
 #
 generate_ssh_keys
 
-public_key=$(cat $APP_HOME/app/data/.ssh/jenkins_id_rsa.pub)
+public_key=$(cat $APP_HOME/app-root/data/.ssh/jenkins_id_rsa.pub)
 set -- $public_key
 add_ssh_key "$2"
 
@@ -114,14 +114,14 @@ add_broker_auth_key
 admin_password=$(generate_password)
 system_builder_password=$(generate_password)
 
-cp -ad "$CART_INFO_DIR/configuration/jenkins-pre-deploy/"* "$APP_HOME/app/data/"
+cp -ad "$CART_INFO_DIR/configuration/jenkins-pre-deploy/"* "$APP_HOME/app-root/data/"
 openshift_server=`echo "${BROKER_HOST}" | sed -e "s/\/*$//" `
-sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "$APP_HOME/app/data/config.xml"
-unzip -q /usr/lib/jenkins/jenkins.war -d "$APP_HOME/app/data/war/"
+sed -i "s,OPENSHIFT_SERVER,$openshift_server,g" "$APP_HOME/app-root/data/config.xml"
+unzip -q /usr/lib/jenkins/jenkins.war -d "$APP_HOME/app-root/data/war/"
 admin_password_hash=`obfuscate_password $admin_password`
-sed -i "s,PASSWORD,$admin_password_hash,g" "$APP_HOME/app/data/users/admin/config.xml"
+sed -i "s,PASSWORD,$admin_password_hash,g" "$APP_HOME/app-root/data/users/admin/config.xml"
 system_builder_password_hash=`obfuscate_password $system_builder_password`
-sed -i "s,PASSWORD,$system_builder_password_hash,g" "$APP_HOME/app/data/users/system_builder/config.xml"
+sed -i "s,PASSWORD,$system_builder_password_hash,g" "$APP_HOME/app-root/data/users/system_builder/config.xml"
 echo $system_builder_password > $APP_HOME/.jenkins_password
 
 export JENKINS_USERNAME=system_builder
