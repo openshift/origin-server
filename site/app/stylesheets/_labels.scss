@@ -30,3 +30,10 @@
 
 .label-info             { background-color: $infoBackground; }
 .label-info:hover       { background-color: darken($infoBackground, 10%); }
+
+// Margins between labels
+.labels {
+  .label {
+    margin-left: 4px;
+  }
+}
