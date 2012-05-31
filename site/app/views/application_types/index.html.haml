@@ -20,6 +20,14 @@
   - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
     .span6
       = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
+
+%h5 Didn't Find What You Were Looking for?
+%p
+  If you would like to try something else, more quickstarts are available
+  = link_to 'here', get_started_quickstart_url, :target => '_blank'
+  \. We will be migrating the most popular quickstarts to templates shortly.
+  %br
+  If there is another application you would like to see as a quickstart, please request one!
 %h3.divide Frameworks
 .row
   - @framework_types.each_slice((@framework_types.length/2.0).ceil).each do |types|

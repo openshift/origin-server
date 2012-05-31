@@ -51,6 +51,10 @@ module HelpHelper
     community_base_url 'developers/get-involved'
   end
 
+  def get_started_quickstart_url
+    community_base_url 'developers/get-started'
+  end
+
   def developers_url
     community_base_url 'developers'
   end
