@@ -137,9 +137,9 @@ task :livecd do
     end
   end
   
-  sudo "setenforce 0"
+  sudo "/usr/sbin/setenforce 0"
   sudo "cd #{remix_dir} && livecd-creator -c openshift-origin-remix.ks -f openshift_origin --cache=cache -d -v --logfile=livecd.log"
-  sudo "setenforce 1"
+  sudo "/usr/sbin/setenforce 1"
 end
 
 task :createrepo do
