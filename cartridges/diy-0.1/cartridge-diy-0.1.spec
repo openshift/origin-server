@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.27.5
+Version: 0.27.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.27.6-1
+- Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)
+- Bug 825354 (dmcphers@redhat.com)
+- Support for customizing error pages in diy. (mpatel@redhat.com)
+- Rename ~/app to ~/app-root to avoid application name conflicts and additional
+  links and fixes around testing US2109. (jhonce@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.27.5-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
