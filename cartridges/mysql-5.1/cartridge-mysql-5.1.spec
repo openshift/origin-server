@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.0
+Version: 0.28.1
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
+- bumping spec versions (admiller@redhat.com)
+- BZ827585 (jhonce@redhat.com)
+
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.27.8-1
 - Fix for bugz 825077 - mysql added to a scalable app is not accessible via
   environment variables - OPENSHIFT_DB_HOST variable was incorrectly set.
