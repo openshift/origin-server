@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.28.0
+Version: 0.28.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
+- bumping spec versions (admiller@redhat.com)
+- BZ827585 (jhonce@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.27.6-1
 - Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)
 - Bug 825354 (dmcphers@redhat.com)
