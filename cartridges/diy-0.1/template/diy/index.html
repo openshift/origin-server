@@ -121,22 +121,25 @@
     <div class="brand-text"><strong>Open</strong>Shift</div>
   </a>
   <h1>
-    Welcome to OpenShift
+    Welcome to Openshift Do-It-Yourself cartridge
   </h1>
-  <p>
-    Place your application here
+      Do-It-Yourself is an experimental cartridge that provides a way to try unsupported languages, frameworks, and middleware on Openshift.
   </p>
   <p>
-    In order to commit to your new project, go to your projects git repo (created with the rhc app create command).  Make your changes, then run:
+      To get started, add your framework of choice and modify .openshift/action_hooks/{start, stop}
+      to start and stop your application.
+  </p>
+  <p>
+      The only restriction is that your application should bind to $OPENSHIFT_INTERNAL_IP:8080
+  </p>
+  <p>
+      Don't forget to stop the existing server that is running before you push your stop file.
   </p>
   <pre>
     git commit -a -m 'Some commit message'
     git push
   </pre>
-  <p>
-    Then reload this page.
-  </p>
-  
+
   <h2>
     What's next?
   </h2>

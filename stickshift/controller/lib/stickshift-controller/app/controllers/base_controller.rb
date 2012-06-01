@@ -55,11 +55,11 @@ class BaseController < ActionController::Base
     begin
       auth = StickShift::AuthService.instance.authenticate(request, login, password)
       @login = auth[:username]
-      @auth_method = auth[:auth_method]      
+      @auth_method = auth[:auth_method]
 
-      Rails.logger.debug "Adding user #{@login}...inside base_controller"
       @cloud_user = CloudUser.find @login
       if @cloud_user.nil?
+        Rails.logger.debug "Adding user #{@login}...inside base_controller"
         @cloud_user = CloudUser.new(@login)
         @cloud_user.save
       end
@@ -109,6 +109,16 @@ class BaseController < ActionController::Base
         format.json { render :json => @reply, :status => @reply.status }
       end
       return
+    end
+  end
+
+  def get_bool(param_value)
+    if param_value.is_a? TrueClass or param_value.is_a? FalseClass
+      return param_value
+    elsif param_value.is_a? String and param_value.upcase == "TRUE"
+      return true
+    else
+      return false
     end
   end
 

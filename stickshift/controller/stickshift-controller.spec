@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.17
+Version: 0.11.20
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,57 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.20-1
+- Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)
+- Merge pull request #89 from abhgupta/bz822722 (dmcphers@redhat.com)
+- Support for customizing error pages in diy. (mpatel@redhat.com)
+- Merge pull request #85 from abhgupta/bz823675 (mmcgrath+openshift@redhat.com)
+- Merge pull request #84 from abhgupta/bz820337 (mmcgrath+openshift@redhat.com)
+- Typo: used else if vs elsif (abhgupta@redhat.com)
+- Fix for bug 822722 - Handling boolean as well as string input values for
+  boolean parameters in rest controllers (abhgupta@redhat.com)
+- Merge pull request #82 from kraman/dev/kraman/bugs/801923
+  (mmcgrath+openshift@redhat.com)
+- More strict regular expression to match cartridge names (kraman@gmail.com)
+- Fix for bug 823675 - Exposing gear count in application and consumed gears in
+  user object via rest calls (abhgupta@redhat.com)
+- added cucumber test case for testing invalid application server alias
+  (abhgupta@redhat.com)
+- handling user exceptions separately and returning 400 instead of 500 HTTP
+  response code (abhgupta@redhat.com)
+- Fix for bug 820337 - validating against invalid server alias in the
+  application model (abhgupta@redhat.com)
+- Rename ~/app to ~/app-root to avoid application name conflicts and additional
+  links and fixes around testing US2109. (jhonce@redhat.com)
+- Merge pull request #80 from kraman/dev/kraman/bugs/801923
+  (mmcgrath+openshift@redhat.com)
+- Fixed id constraint to account for period characters in cartridge name.
+  (kraman@gmail.com)
+- Merge pull request #75 from abhgupta/bz817172 (mmcgrath+openshift@redhat.com)
+- Merge pull request #77 from rajatchopra/master
+  (mmcgrath+openshift@redhat.com)
+- Merge pull request #70 from kraman/dev/kraman/bugs/824521
+  (mmcgrath+openshift@redhat.com)
+- fix for bug#826002 (rchopra@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+- Bug 821299 (dmcphers@redhat.com)
+- Merge pull request #74 from rajatchopra/master (dmcphers@redhat.com)
+- add extra catch on gear.create to handle any exception that might get thrown
+  by future piece of code (rchopra@redhat.com)
+- Fix for bug 817172 - adding gear profile on gear_groups rest call
+  (abhgupta@redhat.com)
+- addition to the earlier fix - in the corner case where ngears does not get
+  incremented on create but gets decremented on destroy (rchopra@redhat.com)
+- fix for bug#821972 (rchopra@redhat.com)
+
+* Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.11.19-1
+- This broke the build. BZ 824312 is being revisited. (admiller@redhat.com)
+
+* Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.11.18-1
+- Bugzilla ticket 824312 has been resolved. (rmillner@redhat.com)
+
 * Fri May 25 2012 Dan McPherson <dmcphers@redhat.com> 0.11.17-1
 - Merge pull request #66 from abhgupta/agupta-dev (dmcphers@redhat.com)
 - haproxy should not be allowed to be removed from a scalable app

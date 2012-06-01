@@ -175,7 +175,7 @@ class DomainsController < BaseController
     @reply = RestReply.new(:ok, "domain", domain)
 
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", true, "Updated domain #{id} to #{new_namespace}")
-    
+
     respond_with(@reply) do |format|
       format.xml { render :xml => @reply, :status => @reply.status }
       format.json { render :json => @reply, :status => @reply.status }
@@ -185,12 +185,7 @@ class DomainsController < BaseController
   # DELETE /domains/<id>
   def destroy
     id = params[:id]
-    force_str = params[:force]
-    if not force_str.nil? and force_str.upcase == "TRUE"
-    force = true
-    else
-    force = false
-    end
+    force = get_bool(params[:force])
 
     domain = get_domain(id)
     if not domain or not domain.hasAccess?@cloud_user

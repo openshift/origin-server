@@ -82,10 +82,17 @@ echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$P
 
 observe_setup_env_uservars_dir
 
-#
-# Start app
-#
-start_app
+if [ ! -d $git_url ]; then
+    #
+    # Resolve app dependencies for template
+    #
+    resolve_application_dependencies $uuid $application &
+else
+    #
+    # Start the server
+    #
+    start_app
+fi
 
 #
 # Create virtualhost definition for apache

@@ -38,16 +38,16 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     |      type     |
     |   jbosseap-6.0   |
     
-#  Scenario Outline: Application Snapshot
-#    Given an existing <type> application
-#    When I snapshot the application
-#    Then the application should be accessible
-#    When I restore the application
-#    Then the application should be accessible
-#
-#  Scenarios: Application Snapshot Scenarios
-#    |      type     |
-#    |   jbosseap-6.0   |
+  Scenario Outline: Application Snapshot
+    Given an existing <type> application
+    When I snapshot the application
+    Then the application should be accessible
+    When I restore the application
+    Then the application should be accessible
+
+  Scenarios: Application Snapshot Scenarios
+    |      type     |
+    |   jbosseap-6.0   |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application

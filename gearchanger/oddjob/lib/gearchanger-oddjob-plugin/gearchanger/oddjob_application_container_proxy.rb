@@ -259,7 +259,7 @@ module GearChanger
     end
 
     def update_namespace(app, gear, cart, new_ns, old_ns)
-      reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
+      reply = exec_command(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
       parse_result(reply)
     end
 

@@ -5,7 +5,7 @@
 
 Summary:        SwingShift plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.4
+Version:        0.8.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,28 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.8.5-1
+- Fix for Bugz 825366, 825340. SELinux changes to allow access to
+  user_action.log file. Logging authentication failures and user creation for
+  OpenShift Origin (abhgupta@redhat.com)
+- Raise auth exception when no user/password is provided by web browser. Bug
+  815971 (kraman@gmail.com)
+- Adding livecd build scripts Adding a text only minimal version of livecd
+  Added ability to access livecd dns from outside VM (kraman@gmail.com)
+- Merge pull request #19 from kraman/dev/kraman/bug/815971
+  (dmcphers@redhat.com)
+- Fix bug in mongo auth service where auth failure is returning nil instead of
+  Exception (kraman@gmail.com)
+- Adding a seperate message for errors returned by cartridge when trying to add
+  them. Fixing CLIENT_RESULT error in node Removing tmp editor file
+  (kraman@gmail.com)
+- Added tests (kraman@gmail.com)
+- BugZ# 817957. Adding rest api for creating a user in the mongo auth service.
+  Rest API will be accessabel only from local host and will require login/pass
+  of an existing user. (kraman@gmail.com)
+- moving broker auth key and iv encoding/decoding both into the plugin
+  (abhgupta@redhat.com)
+
 * Thu Apr 26 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
 - Added README for SwingShift-mongo plugin (rpenta@redhat.com)
 - cleaning up spec files (dmcphers@redhat.com)

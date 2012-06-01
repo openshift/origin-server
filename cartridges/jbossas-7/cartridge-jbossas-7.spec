@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.7
+Version: 0.93.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.8-1
+- Bug 825354 (dmcphers@redhat.com)
+- Rename ~/app to ~/app-root to avoid application name conflicts and additional
+  links and fixes around testing US2109. (jhonce@redhat.com)
+- Adding a dependency resolution step (using post-recieve hook) for all
+  applications created from templates. Simplifies workflow by not requiring an
+  additional git pull/push step Cucumber tests (kraman@gmail.com)
+
 * Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.93.7-1
 - Merge pull request #42 from ironcladlou/master
   (mmcgrath+openshift@redhat.com)
