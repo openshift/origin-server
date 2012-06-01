@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.21.0
+Version: 0.21.1
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.21.1-1
+- bumping spec versions (admiller@redhat.com)
+- Fix BZ827585 (jhonce@redhat.com)
+
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.20.8-1
 - Bugzilla 825714: Show connection info when mongo is embedded.
   (mpatel@redhat.com)
