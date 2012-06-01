@@ -5,6 +5,14 @@ rpmdir = "#{File.dirname(__FILE__)}/rpms"
 remix_dir = "#{File.dirname(__FILE__)}/remix"
 skip_specs = [ "jbosseap" ]
 
+def sudo(cmd)
+  if STDIN.tty?
+    sh "sudo #{cmd}"
+  else
+    sh "su -c '#{cmd}'"
+  end
+end
+
 def repo_string(rpmdir)
   <<-EOF
 [local_build]
@@ -55,8 +63,8 @@ task :default => [:build] do
 end
 
 task :build_setup do
-  sh "sudo yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock"
-  sh "sudo usermod -a -G mock #{Etc.getlogin} && newgrp mock"
+  sudo "yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock"
+  sudo "usermod -a -G mock #{Etc.getlogin}"
 end
 
 task :build do
@@ -129,9 +137,9 @@ task :livecd do
     end
   end
   
-  sh "sudo setenforce 0"
-  sh "cd #{remix_dir} && sudo livecd-creator -c openshift-origin-remix.ks -f openshift_origin --cache=cache -d -v --logfile=livecd.log"
-  sh "sudo setenforce 1"
+  sudo "/usr/sbin/setenforce 0"
+  sudo "cd #{remix_dir} && livecd-creator -c openshift-origin-remix.ks -f openshift_origin --cache=cache -d -v --logfile=livecd.log"
+  sudo "/usr/sbin/setenforce 1"
 end
 
 task :createrepo do
@@ -139,20 +147,20 @@ task :createrepo do
   File.open("#{rpmdir}/ss.repo", 'w') do |out|
     out << repo_string(rpmdir)
   end
-  sh "sudo cp #{rpmdir}/ss.repo /etc/yum.repos.d/"
+  sudo "cp #{rpmdir}/ss.repo /etc/yum.repos.d/"
 end
 
 task :install do
-  sh "sudo service httpd stop"
-  sh "sudo service stickshift-broker stop"
-  sh "sudo yum erase -y stickshift-* rubygem-stickshift-*"
-  sh "sudo yum clean metadata"
-  sh "sudo yum install -y openshift-origin cartridge-* --skip-broken"
-  sh "sudo service httpd start"
-  sh "sudo service stickshift-broker start"
+  sudo "service httpd stop"
+  sudo "service stickshift-broker stop"
+  sudo "yum erase -y stickshift-* rubygem-stickshift-*"
+  sudo "yum clean metadata"
+  sudo "yum install -y openshift-origin cartridge-* --skip-broken"
+  sudo "service httpd start"
+  sudo "service stickshift-broker start"
 end
 
 task :clean do
-  sh "rm -rf #{rpmdir}/*"
-  sh "sudo rm -rf /etc/yum.repos.d/ss.repo #{remix_dir}/cache/local-build #{remix_dir}/livecd.log #{remix_dir}/openshift_origin.iso"
+  sudo "rm -rf #{rpmdir}/*"
+  sudo "rm -rf /etc/yum.repos.d/ss.repo #{remix_dir}/cache/local-build #{remix_dir}/livecd.log #{remix_dir}/openshift_origin.iso"
 end

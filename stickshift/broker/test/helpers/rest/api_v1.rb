@@ -38,7 +38,9 @@ class RestApi_V1 < RestApi
           obj = RestApplicationEstimate_V1.to_obj(gear_hash)
         end
       when 'application_templates'
-        obj = RestApplicationTemplate_V1.to_obj(data)
+        data.each do |template_hash|
+          obj = RestApplicationTemplate_V1.to_obj(template_hash)
+        end
       when 'descriptor'
         # no-op
       when 'domain'
