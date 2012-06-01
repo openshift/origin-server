@@ -24,7 +24,7 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_alias.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/mysql-5.1.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html
   Alias / $CART_INFO_DIR/configuration/index.html
 EOF
