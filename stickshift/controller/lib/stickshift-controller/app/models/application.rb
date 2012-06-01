@@ -976,18 +976,21 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     updated = true
+    result_io = ResultIO.new
     begin
       self.gears.each do |gear|
-        result = gear.prepare_namespace_update(dns_service, new_ns, old_ns)
-        updated = false unless result
+        gear_result_io = gear.prepare_namespace_update(dns_service, new_ns, old_ns)
+        updated = false unless gear_result_io.exitcode == 0
+        result_io.append gear_result_io
       end
     rescue Exception => e
+      result_io.append e.resultIO if e.respond_to?('resultIO')
       updated = false
       Rails.logger.debug "Exception caught updating namespace #{e.message}"
       Rails.logger.debug "DEBUG: Exception caught updating namespace #{e.message}"
       Rails.logger.debug e.backtrace
     end 
-    return updated
+    return { :success => updated, :result_io => result_io }
   end
   
   def complete_namespace_update(new_ns, old_ns)
