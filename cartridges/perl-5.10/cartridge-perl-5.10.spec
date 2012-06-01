@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.25.0
+Version: 0.25.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.25.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.24.6-1
 - Bug 825354 (dmcphers@redhat.com)
 - Adding a dependency resolution step (using post-recieve hook) for all
