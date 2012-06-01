@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.93.7
+Version: 0.94.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

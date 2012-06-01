@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
-Version: 0.7.3
+Version: 0.8.0
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 

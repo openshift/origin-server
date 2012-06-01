@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.93.7
+Version: 0.94.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

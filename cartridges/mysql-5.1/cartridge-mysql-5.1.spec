@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.27.8
+Version: 0.28.0
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
