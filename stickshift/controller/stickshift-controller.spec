@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.20
+Version: 0.11.21
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.21-1
+- Merge pull request #101 from kraman/dev/kraman/bugs/827359
+  (dmcphers@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.20-1
 - Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)
 - Merge pull request #89 from abhgupta/bz822722 (dmcphers@redhat.com)
