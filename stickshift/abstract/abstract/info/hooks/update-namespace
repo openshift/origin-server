@@ -79,7 +79,7 @@ then
   restart_httpd_graceful
 fi
 
-for cart in $OPENSHIFT_GEAR_TYPE $(get_list_of_cartridges_on_gear); do
+for cart in $(get_list_of_cartridges_on_gear); do
     CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cart/info
     if [ -f $CART_INFO_DIR/bin/update_namespace.sh ]; then
         # Parameters: $application $new_namespace $old_namespace $uuid
