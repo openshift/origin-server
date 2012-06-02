@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.7
+Version: 0.11.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+-  Fix update-namespace.sh called twice due to typeless gear dir name changes.
+  Just do it once -- don't need gear type anymore. (ramr@redhat.com)
+
 * Thu May 31 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
 - Bugzilla 826819: redeploy_repo_dir assumed . was the git repo and that
   assumption had changed.  Bugzilla 827111: Add safety around rm -rf
