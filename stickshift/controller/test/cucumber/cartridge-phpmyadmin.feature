@@ -20,8 +20,10 @@ Feature: phpMyAdmin Embedded Cartridge
     And phpmyadmin is stopped
     When I start phpmyadmin
     Then a phpmyadmin httpd will be running
+    And the phpmyadmin web console url will be accessible
     When I restart phpmyadmin
     Then a phpmyadmin httpd will be running
+    And the phpmyadmin web console url will be accessible
 
     When I deconfigure phpmyadmin
     Then a phpmyadmin http proxy file will not exist
