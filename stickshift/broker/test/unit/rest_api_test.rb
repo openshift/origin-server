@@ -12,7 +12,7 @@ class RestApiTest < ActiveSupport::TestCase
 #        puts "RSP => #{response}"
         if response.to_s.length != 0
           response_json = JSON.parse(response)
-          rest_api.compare(response_json) 
+          rest_api.compare(response_json)
         end
       end
     end
