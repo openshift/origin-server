@@ -19,7 +19,7 @@ module ActiveResource
       :head => 'Accept'
     }
 
-    attr_reader :site, :user, :password, :auth_type, :timeout, :proxy, :ssl_options
+    attr_reader :site, :user, :password, :auth_type, :timeout, :proxy, :ssl_options, :connection_name
     attr_accessor :format
 
     class << self
@@ -30,7 +30,7 @@ module ActiveResource
 
     # Override to change the Persistent slot
     def connection_name
-      'active_resource'
+      @connection_name || 'active_resource'
     end
 
     # The +site+ parameter is required and will set the +site+
@@ -83,6 +83,11 @@ module ActiveResource
     # Hash of options applied to Net::HTTP instance when +site+ protocol is 'https'.
     def ssl_options=(opts={})
       @ssl_options = opts
+    end
+
+    # Name for this group of requests, passed to Net::HTTP::Persistent
+    def connection_name=(name)
+      @connection_name = name
     end
 
     # Executes a GET request.
@@ -181,10 +186,10 @@ module ActiveResource
         end
       end
 
-      # Creates new Net::HTTP instance for communication with the
+      # Get or create Net::HTTP::Persistent instance for communication with the
       # remote service and resources.
       def http
-        configure_http(new_http)
+        @http ||= configure_http(new_http)
       end
 
       def new_http

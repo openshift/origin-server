@@ -461,11 +461,15 @@ module RestApi
       # Make connection specific to the instance, and aware of user context
       #
       def connection(options = {}, refresh = false)
-        if options[:as]
-          update_connection(UserAwareConnection.new(site, format, options[:as]))
+        c = if defined?(@connection) || superclass == Object || superclass == ActiveResource::Base
+          @connection = update_connection(ActiveResource::PersistentConnection.new(site, format)) if refresh || @connection.nil?
+          @connection
         else
-          raise MissingAuthorizationError
+          superclass.connection(options, refresh)
         end
+
+        raise MissingAuthorizationError unless options[:as]
+        UserAwareConnection.new(c, options[:as])
       end
 
       protected
@@ -506,6 +510,7 @@ module RestApi
           connection.timeout = timeout if timeout
           connection.idle_timeout = idle_timeout if idle_timeout
           connection.ssl_options = ssl_options if ssl_options
+          connection.connection_name = 'rest_api'
           connection
         end
 
@@ -576,14 +581,11 @@ module RestApi
   class UserAwareConnection < ActiveResource::PersistentConnection
 
     # The authorization context
-    attr :as
+    attr_reader :as
 
-    def connection_name
-      'rest_api'
-    end
-
-    def initialize(url, format, as)
-      super url, format
+    def initialize(connection, as)
+      super connection.site, connection.format
+      @connection = connection
       @as = as
       @user = @as.login if @as.respond_to? :login
       @password = @as.password if @as.respond_to? :password
@@ -597,14 +599,10 @@ module RestApi
       headers
     end
 
-    def new_http
-      http = super
-      if RestApi::Base.debug?
-        Rails.logger.debug "Got HTTP #{http.inspect}"
-        http.set_debug_output $stderr
-      end
-      http
+    def http
+      @connection.send(:http)
     end
+
     #
     # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
     # make GET consistent with other verbs (return response)

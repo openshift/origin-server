@@ -261,9 +261,29 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_create_cookie
-    connection = RestApi::UserAwareConnection.new 'http://localhost', :xml, RestApi::Authorization.new('test1', '1234')
+    base_connection = ActiveResource::PersistentConnection.new 'http://localhost', :xml
+    connection = RestApi::UserAwareConnection.new base_connection, RestApi::Authorization.new('test1', '1234')
     headers = connection.authorization_header(:post, '/something')
     assert_equal 'rh_sso=1234', headers['Cookie']
+  end
+
+  def test_reuse_connection
+    auth1 = RestApi::Authorization.new('test1', '1234', 'pass1')
+    auth2 = RestApi::Authorization.new('test2', '12345', 'pass2')
+
+    assert connection = RestApi::Base.connection(:as => auth1)
+    assert connection1 = RestApi::Base.connection(:as => auth1)
+    assert connection2 = RestApi::Base.connection(:as => auth2)
+
+    assert_same connection.send(:http), connection1.send(:http)
+    assert_same connection.send(:http), connection2.send(:http)
+
+    assert_equal 'test1', connection.user
+    assert_equal 'test1', connection1.user
+    assert_equal 'test2', connection2.user
+
+    assert_equal auth1.password, connection1.password
+    assert_equal auth2.password, connection2.password
   end
 
   def test_load_returns_self
