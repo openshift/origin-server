@@ -4,6 +4,7 @@ require 'active_resource/associations'
 require 'active_resource/reflection'
 require 'active_support/concern'
 require 'active_model/dirty'
+require 'active_resource/persistent_connection'
 
 module ActiveResource
   module Formats
@@ -91,21 +92,6 @@ module RestApi
     # Exclude the root from JSON
     self.include_root_in_json = false
 
-  #
-    # Connection properties
-    #
-    self.format = :openshift_json
-    self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
-    self.timeout = 180
-    unless Rails.env.production?
-      self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
-    end
-    self.site = if defined?(Rails) && Rails.configuration.express_api_url
-      Rails.configuration.express_api_url + '/broker/rest'
-    else
-      'http://localhost/broker/rest'
-    end
-
     #
     # ActiveResource doesn't fully support alias_attribute
     #
@@ -133,6 +119,21 @@ module RestApi
       end
       def calculated_attributes
         @calculated_attributes ||= {}
+      end
+
+      # Sets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
+      def idle_timeout=(timeout)
+        @connection = nil
+        @idle_timeout = timeout
+      end
+
+      # Gets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
+      def idle_timeout
+        if defined?(@idle_timeout)
+          @idle_timeout
+        elsif superclass != Object && superclass.idle_timeout
+          superclass.idle_timeout
+        end
       end
     end
 
@@ -460,18 +461,15 @@ module RestApi
       # Make connection specific to the instance, and aware of user context
       #
       def connection(options = {}, refresh = false)
-        if options[:as]
-          update_connection(UserAwareConnection.new(site, format, options[:as]))
+        c = if defined?(@connection) || superclass == Object || superclass == ActiveResource::Base
+          @connection = update_connection(ActiveResource::PersistentConnection.new(site, format)) if refresh || @connection.nil?
+          @connection
         else
-          raise MissingAuthorizationError
+          superclass.connection(options, refresh)
         end
-        #elsif defined?(@connection) || superclass == Object
-        #  #'Accessing RestApi without a user object'
-        #  @connection = update_connection(ActiveResource::Connection.new(site, format)) if @connection.nil? || refresh
-        #  @connection
-        #else
-        #  superclass.connection
-        #end
+
+        raise MissingAuthorizationError unless options[:as]
+        UserAwareConnection.new(c, options[:as])
       end
 
       protected
@@ -510,7 +508,9 @@ module RestApi
           connection.password = password if password
           connection.auth_type = auth_type if auth_type
           connection.timeout = timeout if timeout
+          connection.idle_timeout = idle_timeout if idle_timeout
           connection.ssl_options = ssl_options if ssl_options
+          connection.connection_name = 'rest_api'
           connection
         end
 
@@ -530,7 +530,7 @@ module RestApi
       @connection = nil
       @as = as
     end
-    
+
     protected
       #
       # The user under whose context we will be accessing the remote server
@@ -578,13 +578,14 @@ module RestApi
   #
   # A connection class that contains an authorization object to connect as
   #
-  class UserAwareConnection < ActiveResource::Connection
+  class UserAwareConnection < ActiveResource::PersistentConnection
 
     # The authorization context
-    attr :as
+    attr_reader :as
 
-    def initialize(url, format, as)
-      super url, format
+    def initialize(connection, as)
+      super connection.site, connection.format
+      @connection = connection
       @as = as
       @user = @as.login if @as.respond_to? :login
       @password = @as.password if @as.respond_to? :password
@@ -598,13 +599,10 @@ module RestApi
       headers
     end
 
-    def new_http
-      http = super
-      if RestApi::Base.debug?
-        http.set_debug_output $stderr
-      end
-      http
+    def http
+      @connection.send(:http)
     end
+
     #
     # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
     # make GET consistent with other verbs (return response)
@@ -622,5 +620,23 @@ module RestApi
 
   # The server did not return the response we were expecting, possibly a server bug
   class BadServerResponseError < StandardError
+  end
+end
+
+class RestApi::Base
+  #
+  # Connection properties
+  #
+  self.format = :openshift_json
+  self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
+  self.timeout = 180
+  self.idle_timeout = 10
+  unless Rails.env.production?
+    self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
+  end
+  self.site = if defined?(Rails) && Rails.configuration.express_api_url
+    Rails.configuration.express_api_url + '/broker/rest'
+  else
+    'http://localhost/broker/rest'
   end
 end
