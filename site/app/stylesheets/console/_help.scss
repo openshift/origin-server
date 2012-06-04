@@ -12,6 +12,10 @@
   margin: 0;
   background-color: #070707;
   
+  ul li {
+	  list-style: none;
+  }
+  
   .container {
   	border-bottom:1px dotted #2a2b2c;
   }
@@ -31,24 +35,14 @@
   color: #EB0011;
   font-weight: 200;
 }
-/*#help ul li {
-  margin-left:0;
-  margin-right: 30px;
-  border-right: 1px dotted;
-}
-#help ul li:last-child {
-  border-right: 0;
-}*/
 
 
 @media (max-width: 767px) {
   #help ul li {
-/*    margin-left:0;
-    margin-right: 30px;
-    margin-bottom: 10px;
-    border-bottom: 1px dotted;
+    margin-left:0;
+    margin-bottom: 25px;
     border-right: 0;
     width: 100%;
-    float: none;*/
+    float: none;
   }
 }
