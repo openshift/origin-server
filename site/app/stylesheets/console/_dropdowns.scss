@@ -2,9 +2,13 @@
 * Customizations
 */
 
-.dropdown-menu {
-	background-color: #444;
-  background-color:rgba(70, 70, 70, 0.75);
+#utility-nav > li.dropdown,
+#utility-nav > li:last-child {
+	margin-left: 15px;
+}
+#utility-nav .dropdown-menu {
+	background-color: #333;
+  background-color:rgba(60, 60, 60, 0.9);
   @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;
@@ -14,32 +18,34 @@
   @include border-radius($radius: 0 0 3px 3px);
 }
 @media (max-width:767px) {
-	.dropdown-menu {position:absolute;}
+	#utility-nav .dropdown-menu {position:absolute;}
 }
-.dropdown-menu a {
+#utility-nav .dropdown-menu a {
   color: #cacbcc;
 }
-.dropdown-menu > li > a:hover {
+#utility-nav .dropdown-menu > li > a:hover {
   border-radius: 0px;
   background-color: #5a5b5c;
 }
-.dropdown.open .dropdown-toggle {
+#utility-nav .dropdown.open .dropdown-toggle {
   color: #CACBCC;
 	background-color: #444;
-  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 1em no-repeat;
+  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 15px no-repeat;
   @include border-radius($radius: 3px 3px 0 0);
   
   &:hover, &:active {
   	color: #fff;
   }
 }
-.dropdown-toggle {
+#utility-nav .dropdown-toggle {
 	background-color: #444;
-  background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 1em no-repeat;
-  padding: 3px 25px 3px 10px;
+  background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 15px no-repeat;
+  padding: 0 25px 0 10px;
   color: #CACBCC;
+  white-space: nowrap;
+	line-height: 30px;
   text-decoration: none !important;
-  display: inline-block;
+  display: block;
   @include box-shadow(0 1px rgba(255, 255, 255, 0.05) inset, 0 -1px rgba(255, 255, 255, 0.15) inset, 0 10px 20px rgba(255, 255, 255, 0.125) inset, 0 3px 1px rgba(0, 0, 0, 0.5) inset);
   @include border-radius($radius: 3px);
   

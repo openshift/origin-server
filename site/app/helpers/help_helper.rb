@@ -38,6 +38,10 @@ module HelpHelper
   def get_involved_url
     community_base_url 'get-involved'
   end
+  
+  def suggest_features_url
+    community_base_url 'ideas'
+  end
 
   def openshift_blog_url
     community_base_url 'blogs'
@@ -49,6 +53,10 @@ module HelpHelper
 
   def get_involved_developers_url
     community_base_url 'developers/get-involved'
+  end
+
+  def get_started_quickstart_url
+    community_base_url 'developers/get-started'
   end
 
   def developers_url
@@ -104,7 +112,7 @@ module HelpHelper
   end
 
   def jboss_resources_url
-    community_base_url 'page/jboss-resources'
+    community_base_url 'developers/jboss'
   end
 
   def videos_url
@@ -120,7 +128,7 @@ module HelpHelper
   end
 
   def mongodb_resources_url
-    community_base_url 'page/mongodb-resources'
+    community_base_url 'developers/mongodb'
   end
 
   def user_guide_url

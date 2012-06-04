@@ -7,19 +7,21 @@ class ApplicationTemplate < RestApi::Base
 
   attr_accessor :categories
 
-  alias_attribute :template, :uuid
-
   def descriptor
     YAML.load(descriptor_yaml)
   end
 
   def categories
-    tags.map{|t| t.to_sym}
+    tags.map{|t| t.to_sym} << :template
+  end
+
+  def template
+    self
   end
 
   def method_missing(method, *args, &block)
     # These attributes are defined in the metadata
-    metadata = [:description, :website, :version]
+    metadata = [:description, :website, :version, :git_url, :git_project_url]
 
     # These attributes are defined in the descriptor
     descriptor_map = {

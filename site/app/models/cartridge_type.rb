@@ -340,7 +340,7 @@ class CartridgeType < RestApi::Base
         :type => 'standalone',
         :display_name => 'Do-It-Yourself',
   #      :version => '1.0',
-        :categories => [:web, :framework, :experimental, :custom],
+        :categories => [:web, :framework, :custom],
         :description => 'The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
         #:website => 'http://perl.apache.org/start/index.html'
       },

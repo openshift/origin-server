@@ -35,15 +35,14 @@
 	}
 
 .navbar .brand {	
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 200;
 	color: white;
   text-shadow: 0 1px 2px #000000;
 	background: #000;
   text-transform: uppercase;
-
   position: absolute;
-  top: 16px;
+  top: 23px;
   margin: 0;
   padding: 0;
   white-space: nowrap;
@@ -76,7 +75,6 @@
 
 .navbar .navbar-text {
   margin: 15px -8px 0 0;
-  line-height: 40px;
   color: #999;
 	}
 .navbar .navbar-text a {
@@ -150,7 +148,7 @@
     @include gradient-vertical($startColor: #404040, $endColor: #2f2f2f);
     background-repeat: repeat-x;
     margin: 3px 0 0 3px;
-  	padding: 7px 13px;
+  	padding: 7px 10px;
   	border:0;
   	color: #c8c8c8;
     display: none;
@@ -186,37 +184,27 @@
 	margin: 0;
 	} 
 
-#identity {
-  @include border-radius(3px);
-  color: #999999;
-  font-size: 11px;
-  position: static;
-  right: 0;
-  padding: 0;
-  margin-left: 0;
-}
-#identity .username {
-  white-space: nowrap;
-  list-style:none;
-}
-
 #utility-nav {
   font-size: 11px;
   margin: 0;
   position: absolute;
   right: 0;
+  top: -5px;
   z-index: 9999 !important;
 
-  li {
+  > li {
   	display: block;
     float: left;
-    margin-left: 5px;
-    line-height: 24px;
+    line-height: inherit;
+    list-style: none;
+    margin-top: 2px;
 
-    a {
+    > a {
       color: #999999;
-      padding: 10px;
+      line-height: 30px;
+    	padding: 0 15px;
       text-decoration: none;
+      display:block;
 
       &:hover {
         color: #ffffff;
@@ -225,6 +213,20 @@
   }
 }
 
+#utility-nav .alert, .navbar .alert {
+  color: #333333;
+  float: right;
+  line-height: 30px;
+  margin: 0;
+  padding: 0 10px;
+
+  &:hover {
+    color: black;
+  }
+}
+.navbar .alert {
+	margin: 3px -5px 0 7px;
+}
 
 @media (max-width: 480px) {
 	.navbar {
@@ -232,10 +234,27 @@
     border: 0;
 		background-image:none;
 		background-color:#000;
+		
+		.brand {
+    	white-space: normal;
+    	
+    	.navbar-text {
+    		display: inline-block;
+    		padding-top: 4px;
+    		
+    		&:before {
+		  	  color: #555555;
+		  	  content: ' ';
+				}
+    	}
+    	
+    	a .brand-text {
+				display: inline-block;
+				margin-bottom: 10px;
+			}
+		}
 	}
-	.navbar .brand {
-    white-space: normal;
-	}
+
 	.navbar .nav {
 		display: block;
 		margin: 5px 0 0;
@@ -281,6 +300,10 @@
   .navbar .nav > li > a:hover {
   	background-color: #1a1b1c;
   	color: #fff;
+  	
+  	&:active {
+  		background-color: #444;
+  	}
   }
   .nav-collapse .nav > li > a {
     margin-bottom: 2px;
@@ -307,13 +330,27 @@
     overflow: hidden;
   }
   .navbar .brand {
-  	float: left;
+  	//float: left;
   	position: static;
   	font-size: 14px;
+  	margin-bottom: 5px;
+    margin-top: 6px;
   }
-  .brand-text {
-  	
+
+	#utility-nav {
+    position: static;
+    
+    li:last-child {
+    	margin-left: 10px;
+		}
+		
+		.alert, .navbar .alert {
+	    line-height: 31px;
+	    margin: 1px 0 0;
+	    padding: 0 10px;
+		}
   }
+
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
@@ -327,8 +364,6 @@
     cursor: default;
     text-decoration: none;
 	}
-	#identity {
-  }
 	#utility-nav {
   }
 }

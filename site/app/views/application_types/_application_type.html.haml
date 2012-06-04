@@ -1,11 +1,14 @@
 = div_for application_type, :class => defined?(classes) ? classes : nil do
-
-  - if application_type.categories.include? :new
-    %span.label.label-important.pull-right Recently Added
+  %span.labels
+    - if application_type.categories.include? :new
+      %span.label.label-important.pull-right Recently Added
+    - if application_type.categories.include? :experimental
+      %span.label.label-important.pull-right Experimental
 
   %h3= application_type.name
 
   - if defined? extra_info
+
     %ul.unstyled.meta
 
       -# if application_type.license
@@ -41,6 +44,8 @@
         - application_type.provides.each do |provided|
           %li= provided
 
+  - if defined? extra_info and application_type.template
+    = render :partial => application_type.template
+
   - unless defined? hide_link
     = link_to "Select »", application_type_path(application_type), :class => 'btn'
-

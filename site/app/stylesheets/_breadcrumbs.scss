@@ -22,3 +22,9 @@
     color: $breadcrumbTextColor;
   }
 }
+
+@media (max-width: 767px) {
+	.breadcrumb {
+    padding: 4px 0;
+	}
+}

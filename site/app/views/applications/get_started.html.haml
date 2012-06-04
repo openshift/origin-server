@@ -23,6 +23,11 @@
       - else
         If your application exposes services to the Internet they will be available at
 
+      - if @template
+        .alert.alert-info
+          Your application is currently being created. Preconfigured applications take a little longer to get ready.
+          If you try to access your application and get a 503 error, it means the deployment is in progress.
+
       %p.well.application-url.larger
         = link_to @application.web_url, @application.web_url
 

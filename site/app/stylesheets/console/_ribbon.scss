@@ -4,7 +4,7 @@
   position: relative;
   background-color: #333b3f;
   @include background-image(linear-gradient(color-stops(#333b3f, #1a2124)));
-  @include box-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  //@include box-shadow(0);
   color: #bcbdbc;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
   font-weight: 400;
@@ -61,8 +61,8 @@
 
 @media (max-width: 767px) {
   .row > .ribbon {
-    //padding: 1px;
     @include expand_for_phone();
+    min-height: 26px;
   }
 }
 /* The ribbon should tuck in on very narrow windows */

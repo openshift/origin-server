@@ -127,14 +127,14 @@ class ApplicationsController < ConsoleController
 
     @application.domain = @domain
     if @application_type.template
-      @application.template = @application_type.template
+      @application.template = @application_type.template.uuid
     else
       @application.cartridge = @application_type.cartridge || @application_type.id
     end
 
     if @application.save
       message = @application.remote_results
-      redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => message}
+      redirect_to get_started_application_path(@application, :wizard => true, :template => !@application_type.template.nil?), :flash => {:info_pre => message}
     else
       logger.debug @application.errors.inspect
       render 'application_types/show'
@@ -152,6 +152,7 @@ class ApplicationsController < ConsoleController
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
+    @template = !params[:template].nil?
     @has_keys = true if Key.first :as => session_user
   end
 end
