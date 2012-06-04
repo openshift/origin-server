@@ -26,6 +26,10 @@ module HelpHelper
   def manage_cartridges_user_guide_topic_url
     user_guide_topic_url 'sect-User_Guide-Adding_and_Managing_Database_Instances.html#form-User_Guide-Adding_Database_Back_Ends_to_Your_Applications-Command_Options_for_Controlling_Cartridges'
   end
+
+  def cli_on_windows_user_guide_topic_url
+    user_guide_topic_url 'sect-Getting_Started_Guide-Installing_on_Windows.html'
+  end
   
   def cartridge_list_url
     community_base_url 'developers/technologies'
