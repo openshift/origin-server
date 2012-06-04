@@ -35,7 +35,7 @@ class Application < RestApi::Base
     Gear.find :all, child_options
   end
   def gear_groups
-    GearGroup.simplify(GearGroup.find(:all, child_options), self)
+    @gear_groups ||= GearGroup.simplify(GearGroup.find(:all, child_options), self)
   end
 
   def web_url
@@ -59,6 +59,11 @@ class Application < RestApi::Base
   end
   def builds?
     build_job_url.present?
+  end
+
+  def reload
+    @gear_groups = nil
+    super
   end
 
   protected
