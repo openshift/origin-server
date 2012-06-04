@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.12.1
+Version: 0.12.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -98,6 +98,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- Updating gem versions (admiller@redhat.com)
+- fixes to cucumber tests to run under OpenShift Origin (abhgupta@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
 - Updating gem versions (admiller@redhat.com)
 - bumping spec versions (admiller@redhat.com)
