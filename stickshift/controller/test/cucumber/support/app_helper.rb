@@ -35,7 +35,7 @@ module AppHelper
         # Generate a random username
         chars = ("1".."9").to_a
         namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
-        login = "cucumber-test+#{namespace}@example.com"
+        login = "cucumber-test_#{namespace}@example.com"
         app = TestApp.new(namespace, login, type, name)
         unless app.reserved?
           app.persist
