@@ -198,13 +198,18 @@ class Haproxy
         # @remove_count_threshold - when remove_count meets remove_count_threshold
         #       actually issue a remove_gear
 
-
         min, max = get_scaling_limits
 
         # If active capacity is greater then gear_up pct. Add a gear
         if @session_capacity_pct >= @gear_up_pct
             @remove_count = 0
-            self.add_gear if @gear_count < max and max > 0
+            if @gear_count < max or max < 0
+              self.add_gear
+            else
+                @log.error("Cannot add gear, max gears already met")
+                @log.error("max: #{max} gearcount: #{@gear_count}")
+            end
+            self.print_gear_stats if debug
         elsif @session_capacity_pct < @gear_remove_pct and @gear_count > 1
             # If active capacity is less then gear remove percentage
             # *AND* the last gear up happened longer then
