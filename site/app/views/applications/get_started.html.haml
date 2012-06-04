@@ -25,9 +25,8 @@
 
       - if @template
         .alert.alert-info
-          Your application is currently being created. Templates take a little longer to get ready.
-          %br
-          If you try to access your application and get a 503 error, it means it is still being deployed.
+          Your application is currently being created. Preconfigured applications take a little longer to get ready.
+          If you try to access your application and get a 503 error, it means the deployment is in progress.
 
       %p.well.application-url.larger
         = link_to @application.web_url, @application.web_url

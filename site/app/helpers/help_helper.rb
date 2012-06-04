@@ -38,6 +38,10 @@ module HelpHelper
   def get_involved_url
     community_base_url 'get-involved'
   end
+  
+  def suggest_features_url
+    community_base_url 'ideas'
+  end
 
   def openshift_blog_url
     community_base_url 'blogs'
