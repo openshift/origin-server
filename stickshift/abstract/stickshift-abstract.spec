@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.8
+Version: 0.11.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jun 05 2012 Adam Miller <admiller@redhat.com> 0.11.9-1
+- Merge pull request #108 from rmillner/master (admiller@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
 -  Fix update-namespace.sh called twice due to typeless gear dir name changes.
   Just do it once -- don't need gear type anymore. (ramr@redhat.com)
