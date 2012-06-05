@@ -106,7 +106,7 @@ class ApplicationsController < BaseController
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached application limit of #{@cloud_user.max_gears}")
-      @reply = RestReply.new(:forbidden)
+      @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
@@ -177,8 +177,14 @@ class ApplicationsController < BaseController
           application.delete
         end
     
-        @reply = RestReply.new(:internal_server_error)
-        message = Message.new(:error, "Failed to create application #{application.name} due to:#{e.message}") 
+        if e.kind_of? StickShift::UserException
+          @reply = RestReply.new(:unprocessable_entity)
+        else
+          @reply = RestReply.new(:internal_server_error)
+        end
+        
+        error_code = e.respond_to?("code") ? e.code : 1
+        message = Message.new(:error, "Failed to create application #{application.name} due to:#{e.message}", error_code) 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
         return
