@@ -13,9 +13,6 @@ Publishes:
   get-internal-uri:
     Type: "NET_TCP:HTTP"
 Subscribes:
-  set-doc-root:
-    Type: "FILESYSTEM:doc-root"
-    Required: false
   set-proxy-url:
     Type: "STRING:proxy-path"
     Required: false

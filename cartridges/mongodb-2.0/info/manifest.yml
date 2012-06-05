@@ -47,8 +47,6 @@ Profiles:
         Subscribes:
           set-replicaset:
             Type: "NET_TCP:db:mongodb:replica-servers"
-          set-doc-root:  #  Best-practices: run router where appserver runs.
-            Type: "FILESYSTEM:doc-root"
       configsvr:
         Publishes:
           get-replicaset:

@@ -23,8 +23,6 @@ Reservations:
   - MEM >= 100MB
 Start-Order: php
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   get-php-ini:
     Type: "FILESYSTEM:php-ini"
   publish-http-url:

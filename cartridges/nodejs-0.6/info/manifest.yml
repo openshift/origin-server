@@ -19,8 +19,6 @@ Scaling:
   Min: 1
   Max: -1
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
