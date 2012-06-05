@@ -18,8 +18,6 @@ Reservations:
   - MEM >= 100MB
 Start-Order: rhc-cartridge-perl
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   get-proxy-url:
     Type: "STRING:proxy-path"
   publish-http-url:

@@ -26,8 +26,6 @@ Reservations:
   - MEM >= 100MB
 Start-Order: wsgi
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
