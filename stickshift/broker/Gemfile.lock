@@ -2,10 +2,10 @@ GEM
   remote: http://rubygems.org/
   specs:
     abstract (1.0.0)
-    actionmailer (3.0.10)
+    actionmailer (3.0.13)
       actionpack
       mail
-    actionpack (3.0.10)
+    actionpack (3.0.13)
       activemodel
       activesupport
       builder
@@ -16,19 +16,19 @@ GEM
       rack-test
       regin
       tzinfo
-    activemodel (3.0.10)
+    activemodel (3.0.13)
       activesupport
       builder
       i18n
-    activerecord (3.0.10)
+    activerecord (3.0.13)
       activemodel
       activesupport
       arel
       tzinfo
-    activeresource (3.0.10)
+    activeresource (3.0.13)
       activemodel
       activesupport
-    activesupport (3.0.10)
+    activesupport (3.0.13)
     arel (2.0.9)
     bson (1.5.2)
     builder (2.1.2)
@@ -74,7 +74,7 @@ GEM
       rack
     rack-test (0.6.1)
       rack
-    rails (3.0.10)
+    rails (3.0.13)
       actionmailer
       actionpack
       activerecord
@@ -82,7 +82,7 @@ GEM
       activesupport
       bundler
       railties
-    railties (3.0.10)
+    railties (3.0.13)
       actionpack
       activesupport
       rake
@@ -111,7 +111,7 @@ DEPENDENCIES
   open4
   parseconfig
   rack
-  rails (~> 3.0.10)
+  rails (~> 3.0.13)
   rcov
   regin
   xml-simple

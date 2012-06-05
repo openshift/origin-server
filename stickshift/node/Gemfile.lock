@@ -12,11 +12,11 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
-    activemodel (3.0.10)
+    activemodel (3.0.13)
       activesupport
       builder
       i18n
-    activesupport (3.0.10)
+    activesupport (3.0.13)
     builder (2.1.2)
     stickshift-common (0.11.1)
       activemodel

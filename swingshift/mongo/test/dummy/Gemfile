@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.10'
+gem 'rails', '3.0.13'
 gem 'swingshift-mongo-plugin'
 
 # Bundle edge Rails instead:
