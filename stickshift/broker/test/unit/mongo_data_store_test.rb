@@ -312,10 +312,10 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     application = {
       "framework" => "php-5.3", 
       "creation_time" => DateTime::now().strftime,
-      "uuid" => uuid, 
-      "embedded" => {}, 
-      "aliases" => [], 
-      "name" => "name#{uuid}", 
+      "uuid" => uuid,
+      "embedded" => {},
+      "aliases" => [],
+      "name" => "name#{uuid}",
       "server_identity" => "1234",
       "uid" => nil
     }

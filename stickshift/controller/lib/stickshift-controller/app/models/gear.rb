@@ -197,6 +197,7 @@ class Gear < StickShift::Model
     contains_proxy = false
     contains_framework = false    
     contains_mysql = false
+    result_io = ResultIO.new
     
     gi.component_instances.each do |cname|
       ci = self.app.comp_instance_map[cname]
@@ -214,15 +215,16 @@ class Gear < StickShift::Model
     end
 
     if contains_framework
-      return call_update_namespace_hook(self.app.framework, new_ns, old_ns)
+      result_io.append call_update_namespace_hook(self.app.framework, new_ns, old_ns)
     else
     #  elseif contains_mysql
        #  Yikes: contains_mysql ... making it more generic.
        #  We could also probably always call update-namespace on the abstract
        #  cartridge directly instead of app.framework above since all
        #  cartridges symlink it from abstract anyway.
-      return call_update_namespace_hook("abstract", new_ns, old_ns)
+      result_io.append call_update_namespace_hook("abstract", new_ns, old_ns)
     end
+    result_io
   end
 
 private
@@ -230,7 +232,7 @@ private
   def call_update_namespace_hook(cart_name, new_ns, old_ns)
     result = get_proxy.update_namespace(self.app, self, cart_name, new_ns, old_ns)
     self.app.process_cartridge_commands(result.cart_commands)
-    return (result.exitcode == 0)
+    return result
   end
 
   def register_application(dns_service, old_ns, new_ns, name)

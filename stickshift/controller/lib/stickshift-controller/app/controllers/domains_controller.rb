@@ -46,8 +46,8 @@ class DomainsController < BaseController
       Rails.logger.error "Domain is not valid"
       @reply = RestReply.new(:unprocessable_entity)
       domain.errors.keys.each do |key|
-        field = key
-        field = "id" if key == "namespace"
+        field = key.to_s
+        field = "id" if key.to_s == "namespace"
         error_messages = domain.errors.get(key)
         error_messages.each do |error_message|
           @reply.messages.push(Message.new(:error, error_message[:message], error_message[:exit_code], field))
@@ -99,6 +99,26 @@ class DomainsController < BaseController
     new_namespace = params[:id]
     domain = get_domain(id)
 
+    new_domain = Domain.new(new_namespace, @cloud_user)
+    if not new_domain.valid?
+      log_messages = []
+      @reply = RestReply.new(:unprocessable_entity)
+      new_domain.errors.keys.each do |key|
+        field = key.to_s
+        field = "id" if key.to_s == "namespace"
+        error_messages = new_domain.errors.get(key)
+        error_messages.each do |error_message|
+          @reply.messages.push(Message.new(:error, error_message[:message], error_message[:exit_code], field))
+          log_messages.push(error_message[:message])
+        end
+      end
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, log_messages.join(', '))
+      respond_with(@reply) do |format|
+        format.xml { render :xml => @reply, :status => @reply.status }
+        format.json { render :json => @reply, :status => @reply.status }
+      end
+    return
+    end
     if not domain or not domain.hasAccess?@cloud_user
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Domain '#{id}' not found")
       @reply = RestReply.new(:not_found)

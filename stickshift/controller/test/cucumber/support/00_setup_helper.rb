@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'logger'
+require 'etc'
 
 #
 # Define global variables
@@ -23,13 +24,13 @@ $selinux_type = nil
 
 # User registration flag and script
 $registration_required = true
-$user_register_script = "/usr/bin/ss-register-user"
+$user_register_script_format = "/usr/bin/ss-register-user -l admin -p admin --username %s --userpass %s"
 
 # Alternatie domain suffix for use in alias commands
 $alias_domain = "foobar.com"
 
 # Submodule repo directory for testing submodule addition test case
-$submodule_repo_dir = "~/submodule_test_repo"
+$submodule_repo_dir = "#{Etc.getpwuid.dir}/submodule_test_repo"
 
 #
 # Old RHC Client scripts

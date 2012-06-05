@@ -81,13 +81,16 @@ class Domain < StickShift::UserModel
     dns_service = StickShift::DnsService.instance
     return dns_service.namespace_available?(namespace)
   end
+
   def self.hash_to_obj(hash)
     domain = super(hash)
     domain
   end
+
   private
+
   def update
-    resultIO = ResultIO.new
+    result_io = ResultIO.new
     old_domain = Domain.find(self.user, self.uuid)
     old_namespace = old_domain.namespace
     Rails.logger.debug "Updating namespace for domain #{self.uuid} from #{old_namespace} to #{self.namespace}"
@@ -105,7 +108,8 @@ class Domain < StickShift::UserModel
         if app.domain.uuid == self.uuid
           Rails.logger.debug "Updating namespace to #{self.namespace} for app: #{app.name}"
           result = app.prepare_namespace_update(dns_service, self.namespace, old_namespace)
-          update_namespace_failures.push(app.name) unless result
+          update_namespace_failures.push(app.name) unless result[:success]
+          result_io.append result[:result_io]
         end
       end
       
@@ -135,8 +139,9 @@ class Domain < StickShift::UserModel
     ensure
       dns_service.close
     end
-    resultIO
+    result_io
   end
+
   def create
     Rails.logger.debug "Creating domain #{self.uuid} with namespace #{self.namespace} for user #{self.user.login}"
     resultIO = ResultIO.new

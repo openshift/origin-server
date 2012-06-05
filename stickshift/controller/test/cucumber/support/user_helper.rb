@@ -29,7 +29,7 @@ module UserHelper
   end
 
   def register_user(login, password)
-    command = "#{$user_register_script} -u #{login} -p #{password}"
+    command = $user_register_script_format % [login, password]
     run command
   end
 

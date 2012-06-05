@@ -11,7 +11,6 @@ module Rails
 end
 
 class ApplicationTest < ActiveSupport::TestCase
-=begin
   test "create" do
     observer_seq = sequence("observer_seq")
     cart = StickShift::Cartridge.new.from_descriptor({ 'Name' => 'dummy' } )
@@ -20,12 +19,10 @@ class ApplicationTest < ActiveSupport::TestCase
     Application.any_instance.stubs(:framework).returns('dummy')
     Application.any_instance.stubs(:add_dns).returns(nil)
     Application.any_instance.stubs(:add_node_settings).returns(nil)
-    Gear.any_instance.stubs(:get_proxy).returns(StickShift::ApplicationContainerProxy.instance("asldksd"))
     StickShift::ApplicationContainerProxy.any_instance.stubs(:get_public_hostname).returns("foo.bar")
-    
+
     user = mock("user")
     user.stubs(:applications).returns([])
-    # user.expects(:namespace).returns("dummy_namespace") 
     Application.expects(:notify_observers).with(:before_application_create, anything).in_sequence(observer_seq).once
     Application.expects(:notify_observers).with(:application_creation_success, anything).in_sequence(observer_seq).once
     Application.expects(:notify_observers).with(:after_application_create, anything).in_sequence(observer_seq).once
@@ -39,11 +36,9 @@ class ApplicationTest < ActiveSupport::TestCase
     user = mock("user")
     user.stubs(:save_jobs).returns(false)
     user.stubs(:applications).returns([])
-    # user.expects(:namespace).returns("dummy_namespace")
     Application.any_instance.stubs(:framework).returns('dummy')
     Application.any_instance.stubs(:add_dns).returns(nil)
     Application.any_instance.stubs(:add_node_settings).returns(nil)
-    Gear.any_instance.stubs(:get_proxy).returns(StickShift::ApplicationContainerProxy.instance("asldksd"))
     StickShift::ApplicationContainerProxy.any_instance.stubs(:get_public_hostname).returns("foo.bar")
     application = Application.new(user, "app_name", "app_uuid", "small", "dummy")
     
@@ -62,16 +57,14 @@ class ApplicationTest < ActiveSupport::TestCase
     application.create
     application.configure_dependencies
   end
-  
+ 
   test "deconfigure_dependencies" do
     user = mock("user")
     user.stubs(:save_jobs).returns(false)
     user.stubs(:applications).returns([])
-    # user.expects(:namespace).returns("dummy_namespace") 
     Application.any_instance.stubs(:framework).returns('dummy')
     Application.any_instance.stubs(:add_dns).returns(nil)
     Application.any_instance.stubs(:add_node_settings).returns(nil)
-    Gear.any_instance.stubs(:get_proxy).returns(StickShift::ApplicationContainerProxy.instance("asldksd"))
     StickShift::ApplicationContainerProxy.any_instance.stubs(:get_public_hostname).returns("foo.bar")
     application = Application.new(user, "app_name", "app_uuid", "small", "dummy")
     
@@ -109,25 +102,26 @@ class ApplicationTest < ActiveSupport::TestCase
 
   test "create_dns" do
     user = mock("user")    
-    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3")
+    domain = Domain.new("namespace")
+    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3", nil, false, domain)
     
     observer_seq = sequence("observer_seq")
     Application.expects(:notify_observers).with(:before_create_dns, anything).in_sequence(observer_seq).once
     Application.expects(:notify_observers).with(:after_create_dns, anything).in_sequence(observer_seq).once
     
-    user.expects(:namespace).returns("kraman")    
     StickShift::DnsService.instance.class.any_instance.expects(:register_application).once
     StickShift::DnsService.instance.class.any_instance.expects(:publish).once
     StickShift::DnsService.instance.class.any_instance.expects(:close).once    
-    application.expects(:container).returns(StickShift::ApplicationContainerProxy.instance("asldksd"))
+    application.expects(:container).returns(StickShift::ApplicationContainerProxy.new)
     StickShift::ApplicationContainerProxy.any_instance.stubs(:get_public_hostname).returns("foo.bar")
 
     application.create_dns
   end
-
+  
   test "destroy_dns" do
     user = mock("user")    
-    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3")
+    domain = Domain.new("namespace")
+    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3", nil, false, domain)
     
     observer_seq = sequence("observer_seq")
     Application.expects(:notify_observers).with(:before_destroy_dns, anything).in_sequence(observer_seq).once
@@ -136,14 +130,14 @@ class ApplicationTest < ActiveSupport::TestCase
     StickShift::DnsService.instance.class.any_instance.expects(:deregister_application).once
     StickShift::DnsService.instance.class.any_instance.expects(:publish).once
     StickShift::DnsService.instance.class.any_instance.expects(:close).once    
-    user.expects(:namespace).returns("kraman")    
 
     application.destroy_dns
   end
   
   test "recreate_dns" do    
     user = mock("user")    
-    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3")
+    domain = Domain.new("namespace")
+    application = Application.new(user, "app_name", "app_uuid", "small", "php-5.3", nil, false, domain)
     
     observer_seq = sequence("observer_seq")
     Application.expects(:notify_observers).with(:before_recreate_dns, anything).in_sequence(observer_seq).once
@@ -153,8 +147,7 @@ class ApplicationTest < ActiveSupport::TestCase
     StickShift::DnsService.instance.class.any_instance.expects(:register_application).once
     StickShift::DnsService.instance.class.any_instance.expects(:publish).once
     StickShift::DnsService.instance.class.any_instance.expects(:close).once    
-    user.expects(:namespace).returns("kraman").twice
-    application.expects(:container).returns(StickShift::ApplicationContainerProxy.instance("asldksd"))
+    application.expects(:container).returns(StickShift::ApplicationContainerProxy.new)
     StickShift::ApplicationContainerProxy.any_instance.stubs(:get_public_hostname).returns("foo.bar")
 
     application.recreate_dns
@@ -210,5 +203,4 @@ class ApplicationTest < ActiveSupport::TestCase
     
     application.remove_dependency("foo")    
   end
-=end
 end
