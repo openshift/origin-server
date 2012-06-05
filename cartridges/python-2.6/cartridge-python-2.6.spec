@@ -29,6 +29,7 @@ Requires:  libcurl-devel
 Requires:  numpy
 Requires:  numpy-f2py
 Requires:  gcc-gfortran
+Requires:  freetype-devel
 
 Obsoletes: cartridge-python-3.2
 
