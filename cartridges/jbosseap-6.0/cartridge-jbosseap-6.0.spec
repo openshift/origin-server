@@ -4,8 +4,8 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.1
-Release:   2%{?dist}
+Version:   0.1.2
+Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 05 2012 Dan McPherson <dmcphers@redhat.com> 0.1.2-1
+- new package built with tito
+
 * Wed May 16 2012 William DeCoste <wdecoste@redhat.com> 0.1.0
 - initial
 
