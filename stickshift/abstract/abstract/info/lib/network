@@ -63,8 +63,20 @@ function embedded_find_open_ip {
 
 
 function uid_to_portbegin {
-  uid=$1
-  echo $(($(($(($uid-${UID_BEGIN:-500}))*${PORTS_PER_USER:-5}))+${PORT_BEGIN:-35531}))
+    local uid
+    uid=$1
+
+    # Wrappping around the UIDs to manage a discrepency between the
+    # stg/prod and dev environment.  Dev should rarely exceed a few
+    # hundred uids.  Stg/Prod start allocating at 1000 and go to over
+    # 6500 (the wrap UID below) but will stop at 7000.
+    wrapuid=$(((65536-${PORT_BEGIN:-35531})/${PORTS_PER_USER:-5}+${UID_BEGIN:-500}))
+    while [ $uid -ge $wrapuid ]
+    do
+        uid=$(($uid - $wrapuid + ${UID_BEGIN:-500}))
+    done
+
+    echo $(($(($(($uid-${UID_BEGIN:-500}))*${PORTS_PER_USER:-5}))+${PORT_BEGIN:-35531}))
 }
 
 function uid_to_portend {
