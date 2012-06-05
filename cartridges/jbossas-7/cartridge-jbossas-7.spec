@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.8
+Version: 0.94.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- Disable restart of JBoss app on namespace alter (dmace@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.8-1
 - Bug 825354 (dmcphers@redhat.com)
 - Rename ~/app to ~/app-root to avoid application name conflicts and additional

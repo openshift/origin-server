@@ -200,3 +200,27 @@ Then /^the phpmyadmin control script will( not)? exist$/ do | negate |
     startfile.should be_nil
   end
 end
+
+# Pulls the reverse proxy destination from the proxy conf file and ensures
+# the path it forwards to is accessible via the external IP of the instance.
+Then /^the phpmyadmin web console url will be accessible$/ do
+  acct_name = @account['accountname']
+  app_name = @app['name']
+  namespace = @app['namespace']
+
+  conf_file_name = "#{acct_name}_#{namespace}_#{app_name}/phpmyadmin-#{$phpmyadmin_version}.conf"
+  conf_file_path = "#{$libra_httpd_conf_d}/#{conf_file_name}"
+
+  # The URL segment for the cart lives in the proxy conf
+  cart_path = `/bin/awk '/ProxyPassReverse/ {printf "%s", $2;}' #{conf_file_path}`
+
+  # Assemble a test URL for the cart. This seems pretty cheesy. I could query the root,
+  # but we'll get a 302 redirect, and I'm not sure if that's a good test.
+  conf_url = "https://127.0.0.1#{cart_path}/js/sql.js"
+
+  # Strip just the status code out of the response. Set the Host header to 
+  # simulate an external request, exercising the front-end httpd proxy.
+  res = `/usr/bin/curl -k -w %{http_code} -s -o /dev/null -H 'Host: #{app_name}-#{namespace}.dev.rhcloud.com' #{conf_url}`
+
+  raise "Expected 200 response from #{conf_url}, got #{res}" unless res == "200"
+end

@@ -12,7 +12,6 @@ Feature: PHP Application
     And a php application source tree will exist
     And a php application httpd will be running 
     And php application log files will exist
-    And the file permissions are correct
     When I deconfigure the php application
     Then a php application http proxy file will not exist
     And a php application git repo will not exist
@@ -48,4 +47,3 @@ Feature: PHP Application
     Then the php application will not be aliased 
     When I deconfigure the php application
     Then a php application http proxy file will not exist
-

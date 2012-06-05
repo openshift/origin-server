@@ -37,7 +37,7 @@ def gen_unique_login_and_namespace(namespace=nil)
     chars = ("1".."9").to_a
     namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
   end
-  login = "cucumber-test+#{namespace}@example.com"
+  login = "cucumber-test_#{namespace}@example.com"
   [ login, namespace ]
 end
 
@@ -124,13 +124,15 @@ When /^I create a new namespace$/ do
   @account = {
     'accountname' => acctname,
     'login' => login,
-    'namespace' => namespace,
+    'password' => 'xyz123',
+    'namespace' => namespace
   }
-  ec = run("#{$rhc_domain_script} create -n #{namespace} -l #{login} -p fakepw -d")
+  register_user(login, "xyz123") if $registration_required
+  ec = run("#{$rhc_domain_script} create -n #{namespace} -l #{login} -p #{@account['password']} -d")
 end
 
 When /^I delete the namespace$/ do
-  ec = run("#{$rhc_domain_script} destroy -n #{@account['namespace']} -l #{@account['login']} -p fakepw -d")
+  ec = run("#{$rhc_domain_script} destroy -n #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
   ec.should be == 0
 end
 
@@ -195,3 +197,4 @@ Then /^an account home directory should( not)? exist$/ do |negate|
     @homedir.should be_true
   end
 end
+

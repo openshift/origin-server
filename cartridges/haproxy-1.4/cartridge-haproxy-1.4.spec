@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.8
+Version: 0.11.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- fixing gearup bug (mmcgrath@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.10.8-1
 - Bug 825354 (dmcphers@redhat.com)
 - Fix for bz 816171 (mpatel@redhat.com)
