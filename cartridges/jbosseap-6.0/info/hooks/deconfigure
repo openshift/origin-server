@@ -22,10 +22,16 @@ done
 
 [ $# -eq 3 ] || print_help
 
+# Load the jboss_version and jboss_home settings
+. `dirname $0`/jboss.version
+
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+cartridge_type="${jboss_version}"
 setup_deconfigure "$1" $2 $3
+
+JBOSS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 remove_all_proxy_ports $uuid
 
@@ -37,13 +43,19 @@ then
     echo "${application}.  Application directory doesn't exist:  $APP_HOME/app-root"
 else
 
+    disable_cgroups
+
     destroy_git_repo $application $uuid
 
     stop_app
 
-    confirm_pid_gone "${APP_DIR}/run/jboss.pid"
+    confirm_pid_gone "${JBOSS_INSTANCE_DIR}/run/jboss.pid"
 
     rm_app_dir
+
+    rm_cartridge_instance_dir "$cartridge_type"
+    
+    enable_cgroups
 fi
 
 # remove the Maven repository.
@@ -51,7 +63,7 @@ runcon -l s0-s0:c0.c1023 rm -rf "$M2_DIR"
 
 # remove the Java preferences dir
 runcon -l s0-s0:c0.c1023 rm -rf "$JAVA_PREFS_DIR"
-    
+
 rm_unobfuscated_app_home $namespace $application
 
 #
