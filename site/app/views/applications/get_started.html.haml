@@ -3,13 +3,15 @@
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
   %h1.invisible Get Started
-  = flashes
-  %p Your application has been created. If you're new to OpenShift check out these tips for where to go next.
+  %section
+    = flashes
+    %p.larger Your application has been created. If you're new to OpenShift check out these tips for where to go next.
 
 - else
   %h1 Get Started
-  = flashes
-  %p Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
+  %section
+    = flashes
+    %p.larger Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
 
 
 %section.row
@@ -96,7 +98,8 @@
     %h2 Adding capabilities
     %p
       Cartridges are the components of an OpenShift application, and include databases, build systems,
-      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong>, such as MySQL or MongoDB,
+      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong> such as 
+      #{link_to 'MySQL', application_cartridge_type_path(@application, 'mysql-5.1')} or #{link_to 'MongoDB', application_cartridge_type_path(@application, 'mongodb-2.0')}
       to an application provides the desired capability without forcing you to administrate or update that feature.
     -#%p
       To run a PHP application with MySQL (the M and P in LAMP) you 
@@ -128,6 +131,6 @@
       on Linux, Mac OS X, or Windows.
     %p
       After installing the command line tool follow our User Guide 
-      #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }
+      #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }.
 
     -# tech specific

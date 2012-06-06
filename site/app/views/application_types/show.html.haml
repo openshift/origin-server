@@ -3,9 +3,10 @@
   .application_type > ul.meta > li {display: inline;}
   .application_type > ul.meta > li > label {display: inline;}
 
+%h1.invisible Configure New Application
 = app_wizard_steps_create 1
+= flashes
 
-%h1 Configure New Application
 = render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true, :classes => 'tile'}
 
 = semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|

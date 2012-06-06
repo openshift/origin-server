@@ -7,11 +7,14 @@
 
 %h1.invisible Create a New Application
 = app_wizard_steps_create 0
+= flashes
+
 -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
-%p
-  Choose a web programming cartridge (from scratch) or kick the tires with a preconfigured application. After you create the application you can add
-  %strong cartridges
-  to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
+%section
+  %p.larger
+    Choose a web programming cartridge (from scratch) or kick the tires with a preconfigured application. After you create the application you can add
+    %strong cartridges
+    to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
 
 %section
   %h3.divide Instant Applications

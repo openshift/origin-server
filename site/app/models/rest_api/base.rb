@@ -412,7 +412,7 @@ module RestApi
 
     #FIXME may be refactored
     def remote_results
-      (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'] }.compact
+      (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'].presence }.compact
     end
 
     class << self
