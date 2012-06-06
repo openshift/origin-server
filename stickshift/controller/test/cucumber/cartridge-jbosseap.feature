@@ -44,5 +44,7 @@ Feature: JBossEAP Application
      Then a jbosseap daemon will be running
      When I restart the jbosseap service
      Then a jbosseap daemon will be running
+     When I deconfigure the jbosseap application
+     Then a jbosseap daemon will not be running
      
 
