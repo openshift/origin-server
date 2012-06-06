@@ -96,24 +96,23 @@
     %h2 Adding capabilities
     %p
       Cartridges are the components of an OpenShift application, and include databases, build systems,
-      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong>
+      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong>, such as MySQL or MongoDB,
       to an application provides the desired capability without forcing you to administrate or update that feature.
-    %p
+    -#%p
       To run a PHP application with MySQL (the M and P in LAMP) you 
       %strong embed
       the MySQL cartridge into your application. OpenShift gives your PHP code access to your new MySQL database, but
       manages the database server for you.
-    %p
-      You can see the 
-      = link_to "list of available cartridges online", cartridge_list_url
-      or from the command line with
-    %pre.cli
+    %p 
+      = link_to "View our full list of available cartridges.", cartridge_list_url
+      -#or from the command line with
+    -#%pre.cli
       = preserve do
         :escaped
           rhc app cartridge list
-    %p
+    -#%p
       You may also add a cartridge to your application by running
-    %pre.cli
+    -#%pre.cli
       = preserve do
         :escaped
           rhc app cartridge add -a #{@application.name} -c <cart_id>

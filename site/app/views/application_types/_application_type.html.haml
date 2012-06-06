@@ -1,9 +1,9 @@
 = div_for application_type, :class => defined?(classes) ? classes : nil do
   %span.labels
     - if application_type.categories.include? :new
-      %span.label.label-important.pull-right Recently Added
+      %span.label.label-info.pull-right Recently Added
     - if application_type.categories.include? :experimental
-      %span.label.label-important.pull-right Experimental
+      %span.label.pull-right Experimental
 
   %h3= application_type.name
 
