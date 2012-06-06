@@ -64,7 +64,7 @@ class Application < StickShift::Cartridge
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
       else
-        from_descriptor({"Name"=>app_name, "Subscribes"=>{}})
+        from_descriptor({"Name"=>app_name, "Subscribes"=>{"doc-root"=>{"Type"=>"FILESYSTEM:doc-root"}}})
         self.requires_feature = []
         self.requires_feature << framework unless framework.nil?      
       end
@@ -120,9 +120,13 @@ Components:
   proxy:
     Dependencies: [#{framework}, \"haproxy-1.4\"]
     Subscribes:
+      doc-root:
+        Type: \"FILESYSTEM:doc-root\"
   web:
     Dependencies: [#{framework}]
     Subscribes:
+      doc-root:
+        Type: \"FILESYSTEM:doc-root\"
 Groups:
   proxy:
     Components:

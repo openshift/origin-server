@@ -11,6 +11,8 @@ Conflicts:
 Native-Requires:
 Architecture: noarch
 Publishes:
+  get-doc-root:
+    Type: "FILESYSTEM:doc-root"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:

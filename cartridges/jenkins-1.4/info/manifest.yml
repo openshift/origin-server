@@ -17,6 +17,8 @@ Architecture: noarch
 Reservations:
   - MEM >= 100MB
 Publishes:
+  get-doc-root:
+    Type: "FILESYSTEM:doc-root"
   get-interface-url:
     Type: "NET_TCP:jenkins:url"
 Scaling:

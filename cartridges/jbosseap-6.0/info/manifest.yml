@@ -27,6 +27,8 @@ Profiles:
       jbosseap-server:
         &jbosseap-server-component
         Publishes:
+          get-doc-root:
+            Type: "FILESYSTEM:doc-root"
           get-internal-uri:
             Type: "NET_TCP:http"
           publish-http-url:
