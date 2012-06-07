@@ -65,7 +65,8 @@ select,
 .uneditable-input {
   display: inline-block;
   width: 210px;
-  height: $baseLineHeight;
+  //height: $baseLineHeight;
+  min-height: $baseLineHeight;
   padding: 4px;
   margin-bottom: 9px;
   font-size: $baseFontSize;
