@@ -11,7 +11,7 @@ $ ->
   loading_match = '*[data-loading=true]'
   ($ 'form '+loading_match).each ->
     ($ window).bind 'pagehide', ->
-      ($ loading_match, body).hide()
+      ($ loading_match).hide()
       ($ 'input[type=submit][disabled]').removeAttr('disabled')
     ($ this).closest('form').bind 'submit', ->
       if ($ '.control-group.error-client').length == 0
