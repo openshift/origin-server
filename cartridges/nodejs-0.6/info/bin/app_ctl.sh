@@ -66,6 +66,10 @@ function _start_node_service() {
     #  Ensure we have script file.
     node_app=${node_app:-"server.js"}
 
+    if [ ! -h "$OPENSHIFT_REPO_DIR/../node_modules" ]; then
+       ln -s ../../nodejs-0.6/node_modules $OPENSHIFT_REPO_DIR/../node_modules
+    fi
+
     pushd "$OPENSHIFT_REPO_DIR" > /dev/null
     {
        echo "`date +"$FMT"`: Starting application '$OPENSHIFT_GEAR_NAME' ..."
