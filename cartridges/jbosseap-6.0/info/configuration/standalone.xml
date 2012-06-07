@@ -319,7 +319,7 @@
                     </netty-acceptor>
                     <in-vm-acceptor name="in-vm" server-id="0"/>
                 </acceptors>
-                <broadcast-groups>
+                <!--broadcast-groups>
                     <broadcast-group name="bg-group1">
                         <socket-binding>messaging-group</socket-binding>
                         <broadcast-period>5000</broadcast-period>
@@ -338,7 +338,7 @@
                         <connector-ref>netty</connector-ref>
                         <discovery-group-ref discovery-group-name="dg-group1"/>
                     </cluster-connection>
-                </cluster-connections>
+                </cluster-connections-->
                 <address-settings>
                     <!--default for catch all-->
                     <address-setting match="#">
@@ -484,7 +484,7 @@
         <socket-binding name="management-native" interface="management" port="9999"/>
         <socket-binding name="management-http" interface="management" port="9990"/>
         <socket-binding name="messaging" port="5445"/>
-        <socket-binding name="messaging-group" multicast-address="${jboss.messaging.group.address:231.7.7.7}" multicast-port="${jboss.messaging.group.port:9876}"/>
+        <!--socket-binding name="messaging-group" multicast-address="${jboss.messaging.group.address:231.7.7.7}" multicast-port="${jboss.messaging.group.port:9876}"/-->
         <socket-binding name="messaging-throughput" port="5455"/>
         <socket-binding name="osgi-http" interface="management" port="8090"/>
         <socket-binding name="remoting" port="4447"/>

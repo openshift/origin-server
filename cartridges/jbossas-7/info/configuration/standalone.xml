@@ -321,7 +321,7 @@
                     <in-vm-acceptor name="in-vm" server-id="0"/>
                 </acceptors>
 
-                <broadcast-groups>
+                <!--broadcast-groups>
                     <broadcast-group name="bg-group1">
                         <group-address>231.7.7.7</group-address>
                         <group-port>9876</group-port>
@@ -346,7 +346,7 @@
                         <connector-ref>netty</connector-ref>
                         <discovery-group-ref discovery-group-name="dg-group1"/>
                     </cluster-connection>
-                </cluster-connections>
+                </cluster-connections-->
 
                 <!--security-settings>
                     <security-setting match="#">
