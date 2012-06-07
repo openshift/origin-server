@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.7
+Version: 0.8.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.8.8-1
+- Merge pull request #110 from rmillner/master (admiller@redhat.com)
+
 * Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.8.7-1
 - Fix issue with node_modules resolution with GEAR_DIR movement. Node.js
   searches up the directory chain for node_modules, since we are now under app-
