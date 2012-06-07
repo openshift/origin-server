@@ -56,7 +56,7 @@ function prepare_gear_for_standalone_mongodb() {
     create_standard_path_env_var
 
     # And prepend to path variable so that mongodb app_ctl.sh script is called.
-    sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH
+    sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
     #  Add apache vhost configuration.
     export CART_INFO_DIR
