@@ -93,7 +93,7 @@ create_standard_path_env_var
 observe_setup_env_uservars_dir
 
 # And prepend to path variable so that Node app_ctl.sh script is called.
-sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH
+sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
 if [ ! -d $git_url ]; then
     #
