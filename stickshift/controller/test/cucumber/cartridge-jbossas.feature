@@ -44,5 +44,7 @@ Feature: JBossAS Application
      Then a jbossas daemon will be running
      When I restart the jbossas service
      Then a jbossas daemon will be running
+     When I deconfigure the jbossas application
+     Then a jbossas daemon will not be running
      
 

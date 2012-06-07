@@ -3,7 +3,7 @@
 @node
 Feature: JBossEAP Application
 
-   Scenario: Create Delete one JBoss AS Application
+   Scenario: Create Delete one JBoss EAP Application
      Given an accepted node
      And a new guest account
      When I configure a jbosseap application
@@ -32,7 +32,7 @@ Feature: JBossEAP Application
      #And the openshift environment variable files will not exist
      And a jbosseap daemon will not be running     
 
-   Scenario: Stop Start Restart a JBoss AS Application
+   Scenario: Stop Start Restart a JBoss EAP Application
      Given an accepted node
      And a new guest account
      And a new jbosseap application
@@ -44,5 +44,7 @@ Feature: JBossEAP Application
      Then a jbosseap daemon will be running
      When I restart the jbosseap service
      Then a jbosseap daemon will be running
+     When I deconfigure the jbosseap application
+     Then a jbosseap daemon will not be running
      
 
