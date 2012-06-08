@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.11.1
+Version: 0.11.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
 - bumping spec versions (admiller@redhat.com)
 
