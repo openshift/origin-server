@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.3
+Version: 0.12.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- change rest test to verify from internal (dmcphers@redhat.com)
+- Merge pull request #113 from lnader/master (dmcphers@redhat.com)
+- added mini test for REST API workflow with @internals and @internals1 tag
+  (lnader@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - registering users using ss-register-user in cucumber tests before creating
   domain/app (abhgupta@redhat.com)
