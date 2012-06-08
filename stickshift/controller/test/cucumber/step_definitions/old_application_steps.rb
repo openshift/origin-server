@@ -6,6 +6,7 @@ include AppHelper
 
 Given /^a new client created (.+) application OLD$/ do |type|
   @app = TestApp.create_unique(type)
+  register_user(@app.login, @app.password) if $registration_required
   if rhc_create_domain_old(@app)
     rhc_create_app_old(@app)
   end

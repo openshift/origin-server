@@ -326,6 +326,7 @@ end
 
 When /^I configure a hello_world diy application with jenkins enabled$/ do
     @app = TestApp.create_unique('diy-0.1', 'diy')
+    register_user(@app.login, @app.password) if $registration_required
     if rhc_create_domain(@app)
       @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=120')
       @diy_app.create_app_code.should be == 0
