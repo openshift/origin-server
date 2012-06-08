@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin Broker
 Name:           openshift-origin-broker
-Version:        0.0.0
+Version:        0.0.1
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -162,6 +162,9 @@ rm -rf %{buildroot}
 %attr(0700,-,-) /usr/bin/ss-register-dns
 
 %changelog
+* Fri Jun 08 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
 * Fri May 25 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
