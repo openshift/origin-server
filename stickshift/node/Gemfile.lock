@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stickshift-node (0.12.3)
+    stickshift-node (0.12.4)
       activemodel
       stickshift-common
       highline
