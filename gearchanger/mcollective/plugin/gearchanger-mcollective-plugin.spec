@@ -19,7 +19,7 @@ Requires:       mcollective-client
 Requires:       qpid-cpp-server
 Requires:       qpid-cpp-client
 Requires:       ruby-qpid
-Requires:       qpid-tools
+#Requires:       qpid-tools
 Requires:       rubygem(stickshift-common)
 Requires:       stickshift-broker
 Requires:       rubygem(json)
