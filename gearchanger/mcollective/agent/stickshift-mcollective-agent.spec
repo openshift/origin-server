@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version:        0.0.0
+Version:        0.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Fri Jun 08 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
 * Fri May 25 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
