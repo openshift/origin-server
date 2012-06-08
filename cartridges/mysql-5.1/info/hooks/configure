@@ -63,7 +63,7 @@ function setup_mysql_as_a_service() {
     observe_setup_env_uservars_dir
 
     # And prepend to path variable so that mysql app_ctl.sh script is called.
-    sed -i 's#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#' $APP_HOME/.env/PATH
+    sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
     #  Add apache vhost configuration.
     export CART_INFO_DIR

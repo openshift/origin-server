@@ -63,7 +63,7 @@ module StickShift
 
     def find_by_gear_uuid(gear_uuid)
       Rails.logger.debug "MongoDataStore.find_by_gear_uuid(#{gear_uuid})\n\n"
-      hash = find_one({ "apps.group_instances.gears.uuid" => gear_uuid })
+      hash = find_one( user_collection, { "apps.group_instances.gears.uuid" => gear_uuid } )
       return nil unless hash
       user_hash_to_ret(hash)
     end
@@ -128,8 +128,8 @@ module StickShift
     
     def delete_gear_usage_record_by_gear_uuid(user_id, gear_uuid)
       Rails.logger.debug "MongoDataStore.delete_gear_usage_record_by_gear_uuid(#{user_id}, #{gear_uuid})\n\n"
-      update({ "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}})
+      update( user_collection, { "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}} )
     end
 
     def db
@@ -143,35 +143,35 @@ module StickShift
       user_db
     end
 
-    def collection
+    def user_collection
       db.collection(@collections[:user])
     end
 
-    def find_one(*args)
+    def find_one(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.find_one(*args)
       end
     end
 
-    def find_and_modify(*args)
+    def find_and_modify(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.find_and_modify(*args)
       end
     end
 
-    def insert(*args)
+    def insert(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.insert(*args)
       end
     end
 
-    def update(*args)
+    def update(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.update(*args)
       end
     end
 
-    def remove(*args)
+    def remove(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.remove(*args)
       end
@@ -238,28 +238,28 @@ module StickShift
     end
 
     def get_user(user_id)
-      hash = find_one( "_id" => user_id )
+      hash = find_one( user_collection, "_id" => user_id )
       return nil unless hash && !hash.empty?
 
       user_hash_to_ret(hash)
     end
     
     def get_user_by_uuid(uuid)
-      hash = find_one( "uuid" => uuid )
+      hash = find_one( user_collection, "uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
     end
     
     def get_user_by_app_uuid(uuid)
-      hash = find_one( "apps.uuid" => uuid )
+      hash = find_one( user_collection, "apps.uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
     end
     
     def get_user_by_domain_uuid(uuid)
-      hash = find_one( "domains.uuid" => uuid )
+      hash = find_one( user_collection, "domains.uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
@@ -267,7 +267,7 @@ module StickShift
     
     def get_users
       MongoDataStore.rescue_con_failure do
-        mcursor = collection.find()
+        mcursor = user_collection.find()
         ret = []
         mcursor.each do |hash|
           ret.push(user_hash_to_ret(hash))
@@ -275,7 +275,7 @@ module StickShift
         ret
       end
     end
-    
+
     def user_hash_to_ret(hash)
       hash.delete("_id")
       if hash["apps"] 
@@ -288,7 +288,7 @@ module StickShift
     end
 
     def get_app(user_id, id)
-      hash = find_one({ "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
+      hash = find_one( user_collection, { "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
       return nil unless hash && !hash.empty?
 
       app_hash = nil
@@ -302,14 +302,14 @@ module StickShift
     end
   
     def get_apps(user_id)
-      hash = find_one({ "_id" => user_id }, :fields => ["apps"] )
+      hash = find_one( user_collection, { "_id" => user_id }, :fields => ["apps"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["apps"] && !hash["apps"].empty?
       apps_hash_to_apps_ret(hash["apps"])
     end
     
     def get_domain(user_id, id)
-      hash = find_one({ "_id" => user_id, "domains.uuid" => id }, :fields => ["domains"])
+      hash = find_one( user_collection, { "_id" => user_id, "domains.uuid" => id }, :fields => ["domains"] )
       return nil unless hash && !hash.empty?
 
       domain_hash = nil
@@ -323,7 +323,7 @@ module StickShift
     end
   
     def get_domains(user_id)
-      hash = find_one({ "_id" => user_id }, :fields => ["domains"] )
+      hash = find_one( user_collection, { "_id" => user_id }, :fields => ["domains"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["domains"] && !hash["domains"].empty?
       domains_hash_to_domains_ret(hash["domains"])
@@ -336,14 +336,14 @@ module StickShift
       changed_user_attrs.delete("consumed_gears")
       changed_user_attrs.delete("gear_usage_records")
 
-      update({ "_id" => user_id }, { "$set" => changed_user_attrs })
+      update( user_collection, { "_id" => user_id }, { "$set" => changed_user_attrs } )
     end
 
     def add_user(user_id, user_attrs)
       user_attrs["_id"] = user_id
       user_attrs.delete("apps")
       user_attrs.delete("domains")
-      insert(user_attrs)
+      insert(user_collection, user_attrs)
       user_attrs.delete("_id")
     end
 
@@ -364,17 +364,17 @@ module StickShift
       end
 
       if ngears > 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
+        hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => id,
                "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"},
                :update => updates })
         raise StickShift::UserException.new("Application limit has reached for '#{user_id}'", 104) if hash == nil
       elsif ngears < 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
+        hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => id,
                "$where" => "this.consumed_gears + #{ngears} >= 0"},
                :update => updates })
         raise StickShift::UserException.new("Application gears already at zero for '#{user_id}'", 135) if hash == nil
       else
-        update({ "_id" => user_id, "apps.name" => id}, updates )
+        update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
       end
     end
 
@@ -391,7 +391,7 @@ module StickShift
         updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
       end
 
-      hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
              "$where" => "((this.consumed_gears + #{ngears}) <= this.max_gears) && (this.domains.length > 0)"},
              :update => updates })
       raise StickShift::UserException.new("Failed: Either application limit has already reached or " +
@@ -406,34 +406,34 @@ module StickShift
 #        domain_updates["domains.$.#{k}"] = v
 #        domain_updates["apps.$.domain.#{k}"] = v
 #      end
-#      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
-      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
+#      update( user_collection, { "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
+      update( user_collection, { "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
     end
 
     def add_domain(user_id, id, domain_attrs)
       domain_attrs_to_internal(domain_attrs)
-      hash = find_and_modify({ :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
              :update => { "$push" => { "domains" => domain_attrs } } })
       #raise StickShift::UserException.new("#{user_id} has already reached the domain limit", 104) if hash == nil
     end
 
     def delete_user(user_id)
-      remove({ "_id" => user_id, "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, 
-             {"domains" => {"$exists" => false}}], "$where" => "this.consumed_gears == 0"})
+      remove( user_collection, { "_id" => user_id, "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, 
+             {"domains" => {"$exists" => false}}], "$where" => "this.consumed_gears == 0"} )
     end
 
     def delete_app(user_id, id)
-      update({ "_id" => user_id, "apps.name" => id},
+      update( user_collection, { "_id" => user_id, "apps.name" => id},
              { "$pull" => { "apps" => {"name" => id }}})
     end
     
     def put_gear_usage_record(user_id, id, gear_usage_attrs)
-      update({ "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
+      update( user_collection, { "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
     end
     
     def delete_gear_usage_record(user_id, id)
-      update({ "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"uuid" => id }}})
+      update( user_collection, { "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"uuid" => id }}} )
     end
 
     def app_attrs_to_internal(app_attrs)
@@ -451,7 +451,7 @@ module StickShift
     end
     
     def delete_domain(user_id, id)
-      hash = find_and_modify({ :query => { "_id" => user_id, "domains.uuid" => id,
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => id,
                                "$or" => [{"apps" => {"$exists" => true, "$size" => 0}}, 
                                          {"apps" => {"$exists" => false}}] },
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})

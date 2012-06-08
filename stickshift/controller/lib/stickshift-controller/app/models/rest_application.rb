@@ -19,8 +19,14 @@ class RestApplication < StickShift::Model
     self.health_check_path = app.health_check_path
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"
-    carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-      Application.get_available_cartridges("embedded")
+    
+    carts = nil
+    if app.scalable
+      carts = Application::SCALABLE_EMBEDDED_CARTS
+    else
+      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
+        Application.get_available_cartridges("embedded")
+      end
     end
 
     self.links = {
