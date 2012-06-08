@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.1
+Version: 0.28.2
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.28.2-1
+- Mismatched quotes (rmillner@redhat.com)
+- The single quotes cause CART_INFO_DIR to be embedded rather than its
+  expansion. (rmillner@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
 - bumping spec versions (admiller@redhat.com)
 - BZ827585 (jhonce@redhat.com)
