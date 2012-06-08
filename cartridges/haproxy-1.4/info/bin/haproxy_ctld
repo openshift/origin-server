@@ -8,6 +8,7 @@ require 'getoptlong'
 
 CONFIG_VALIDATION_CHECK_INTERVAL=300
 HAPROXY_CONF_DIR=File.join(ENV['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
+HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "run")
 GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 
@@ -80,14 +81,14 @@ class HaproxyUtils
 end
 
 class Haproxy
-    #ha=Haproxy.new("/tmp/stats")
+    #ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
     #gear_namespace=ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
     #gear_count = ha.stats['express'].count - 3.0 # Remove backend, frontend and 'filler'
     #sessions = ha.stats['express']['BACKEND'].scur.to_f
     #sessions_per_gear = sessions / gear_count
     #session_capacity_pct = (sessions_per_gear / @max_sessions_per_gear ) * 100
 
-    def initialize(stats_sock="/tmp/stats")
+    def initialize(stats_sock="#{HAPROXY_RUN_DIR}/stats")
         @stats_sock=stats_sock
         @last_scale_up_time=Time.now
         @flap_protection_time_seconds = 120 # number of seconds to ignore gear remove events since last up event
@@ -98,7 +99,7 @@ class Haproxy
         self.print_gear_stats
     end
 
-    def refresh(stats_sock="/tmp/stats")
+    def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
         @socket = UNIXSocket.open(@stats_sock)
         @socket.puts("show stat\n") 
         @max_sessions_per_gear=10.0
@@ -311,16 +312,16 @@ end
 
 
 if opt['up']
-    ha=Haproxy.new("/tmp/stats")
+    ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
    ha.add_gear
    exit 0
 elsif opt['down']
-    ha=Haproxy.new("/tmp/stats")
+    ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
     ha.remove_gear
     exit 0
 end
 
-ha=Haproxy.new("/tmp/stats")
+ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
 last_cfg_check_time=0
 while true
     ha.refresh()
