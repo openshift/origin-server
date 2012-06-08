@@ -1,5 +1,5 @@
-@internals
-@internals1
+@verify
+@verify2
 Feature: Rest Quick tests
   As an developer I want to make sure I didn't break anything that is going to prevent others from working
     
