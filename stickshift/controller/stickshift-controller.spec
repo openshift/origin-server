@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.2
+Version: 0.12.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,20 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- registering users using ss-register-user in cucumber tests before creating
+  domain/app (abhgupta@redhat.com)
+- generating new ssh keys for cucumber tests instead of storing them in the
+  repo (abhgupta@redhat.com)
+- Bug fixes (abhgupta@redhat.com)
+- allow helper methods to be used by all the code (dmcphers@redhat.com)
+- deconfigure jboss after cucumber scenario (bdecoste@gmail.com)
+- Revert "BZ824124 remove unused doc_root connector" (kraman@gmail.com)
+- BZ824124 remove unused doc_root connector (jhonce@redhat.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+- US2307 - update test scenario names (bdecoste@gmail.com)
+- US2307 - enable eap6 (bdecoste@gmail.com)
+
 * Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 - fixes to cucumber tests to run under OpenShift Origin (abhgupta@redhat.com)
 - add beginnings of broker integration tests (dmcphers@redhat.com)
