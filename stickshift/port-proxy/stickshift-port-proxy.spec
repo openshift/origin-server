@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version:       0.0.0
+Version:       0.0.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -57,3 +57,6 @@ fi
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Fri Jun 08 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
