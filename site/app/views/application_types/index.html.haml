@@ -12,24 +12,25 @@
 -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
 %section
   %p.larger
-    Choose a web programming cartridge (from scratch) or kick the tires with a preconfigured application. After you create the application you can add
+    Choose a web programming cartridge#{ %{ (from scratch) or kick the tires with a preconfigured application} unless @template_types.empty?}. After you create the application you can add
     %strong cartridges
     to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
 
-%section
-  %h3.divide Instant Applications
-  %p
-    The preconfigured applications below contain a web cartridge, any other required cartridges (such as a database), and all of the code needed to get you up and running in seconds.
-  .row
-    - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
-      .span6
-        = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
-
-  .indent-left.italics
-    %h5 Didn't Find What You Were Looking For?
+- unless @template_types.empty?
+  %section
+    %h3.divide Instant Applications
     %p
-      If you would like to try another framework, #{link_to 'more quickstarts are available here.', get_started_quickstart_url, :target => '_blank'}.
-      If there are another applications you would like to see here or as a quickstart, please #{link_to "suggest or vote for it", suggest_features_url}.
+      The preconfigured applications below contain a web cartridge, any other required cartridges (such as a database), and all of the code needed to get you up and running in seconds.
+    .row
+      - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
+        .span6
+          = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
+
+    .indent-left.italics
+      %h5 Didn't Find What You Were Looking For?
+      %p
+        If you would like to try another framework, #{link_to 'more quickstarts are available here.', get_started_quickstart_url, :target => '_blank'}.
+        If there are another applications you would like to see here or as a quickstart, please #{link_to "suggest or vote for it", suggest_features_url}.
 
 %section
   %h3.divide Web Cartridges
