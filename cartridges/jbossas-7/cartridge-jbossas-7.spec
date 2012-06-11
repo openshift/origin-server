@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.94.2
+Version: 0.94.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
+- 
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- updated jms deployment (bdecoste@gmail.com)
+- increased deployment timeout to 5mins (bdecoste@gmail.com)
+
 * Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
 - Disable restart of JBoss app on namespace alter (dmace@redhat.com)
 

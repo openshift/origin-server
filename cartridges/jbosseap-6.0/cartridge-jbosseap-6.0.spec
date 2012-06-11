@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.2
+Version:   0.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
+- updated jms deployment (bdecoste@gmail.com)
+- increased deployment timeout to 5mins (bdecoste@gmail.com)
+- sync eap manifest.yml (bdecoste@gmail.com)
+- Revert "BZ824124 remove unused doc_root connector" (kraman@gmail.com)
+- BZ824124 remove unused doc_root connector (jhonce@redhat.com)
+- US2307 - update deconfigure (bdecoste@gmail.com)
+
 * Tue Jun 05 2012 Dan McPherson <dmcphers@redhat.com> 0.1.2-1
 - new package built with tito
 
