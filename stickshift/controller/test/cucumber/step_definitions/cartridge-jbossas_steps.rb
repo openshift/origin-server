@@ -253,8 +253,10 @@ Then /^a jbossas deployments directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/app-root"
-  deploy_root = Dir.new "#{app_root}/repo/deployments"
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  jboss_root = cart_instance_dir + "/" + $jbossas_version
+
+  deploy_root = Dir.new "#{jboss_root}/standalone/deployments"
   
   deploy_contents = ['ROOT.war']
 
