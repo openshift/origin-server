@@ -993,6 +993,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def complete_namespace_update(new_ns, old_ns)
+    self.comp_instances.each do |comp_inst|
+      comp_inst.cart_properties.each do |prop_key, prop_value|
+        comp_inst.cart_properties[prop_key] = prop_value.gsub(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+      end
+    end
     self.embedded.each_key do |framework|
       if self.embedded[framework].has_key?('info')
         info = self.embedded[framework]['info']
@@ -1000,6 +1005,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.embedded[framework]['info'] = info
       end
     end
+
     # elaborate descriptor again to execute connections, because connections need to be renewed
     self.elaborate_descriptor
     self.execute_connections
@@ -1163,8 +1169,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     retval = {}
     self.comp_instance_map.values.each do |comp_inst|
       if embedded_carts.include?(comp_inst.parent_cart_name)
-        retval[comp_inst.parent_cart_name] = {}
-        retval[comp_inst.parent_cart_name] = {"info" => comp_inst.cart_data.first} unless comp_inst.cart_data.first.nil?
+        if comp_inst.cart_data.first.nil?
+          retval[comp_inst.parent_cart_name] = comp_inst.cart_properties
+        else
+          retval[comp_inst.parent_cart_name] = comp_inst.cart_properties.merge({"info" => comp_inst.cart_data.first})
+        end
       end
     end
     retval

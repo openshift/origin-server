@@ -171,11 +171,12 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links
+  attr_accessor :type, :name, :links, :properties
   
   def initialize(type=nil, name=nil)
     self.name = name
     self.type = type
+    self.properties = {}
     if type == "embedded"
       self.links = {
         "GET" => Link_V1.new("GET", "/cartridges/#{name}"),

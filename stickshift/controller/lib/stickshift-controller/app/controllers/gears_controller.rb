@@ -49,6 +49,11 @@ class GearsController < BaseController
                        'proxy_port' => proxy_port,
                        'internal_port' => internal_port
                       }
+          
+          if comp_inst.cart_properties and comp_inst.cart_properties.length > 0
+            comp_info = comp_inst.cart_properties.merge comp_info
+          end
+
           comp_list.push comp_info
         end
 

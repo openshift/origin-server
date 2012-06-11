@@ -54,6 +54,7 @@ class Gear < StickShift::Model
     result_io, cart_data = get_proxy.configure_cartridge(app, self, comp_inst.parent_cart_name, template_git_url)
     r.append result_io
     comp_inst.process_cart_data(cart_data)
+    comp_inst.process_cart_properties(result_io.cart_properties)
     self.configured_components.push(comp_inst.name)
     r
   end
