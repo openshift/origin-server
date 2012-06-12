@@ -9,7 +9,7 @@ class Cartridge < RestApi::Base
   end
   custom_id :name
 
-  attr_accessor :git_url
+  attr_accessor :git_url, :ssh_url, :ssh_string
   attr_reader :gears
 
   belongs_to :application

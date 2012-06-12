@@ -94,8 +94,12 @@ class GearGroup < RestApi::Base
     tiers.delete_if {|t| t.send(:move_features, tiers[0]) }
     tiers.each{ |t| t.cartridges.sort! }
 
-    tiers[0].cartridges[0].git_url = application.git_url if tiers[0]
-
+    if tiers[0]
+      cart = tiers[0].cartridges[0]
+      cart.git_url = application.git_url
+      cart.ssh_url = application.ssh_url
+      cart.ssh_string = application.ssh_string
+    end
     tiers
   end
 

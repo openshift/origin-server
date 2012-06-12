@@ -68,7 +68,6 @@
           %h6 Git Repository
           %pre.command-line.git_url
             = @application.git_url
-
   - @gear_groups.each_with_index do |group,g|
     .gear-group
       - group.cartridges.each_with_index do |cartridge,c|
@@ -103,7 +102,13 @@
               - content_for :javascripts do
                 :javascript
                   $('#application_git_url').focus(function() {this.select()}).click(function() {this.select()});
-
+          - if cartridge.ssh_string
+            .indent-left.indent-right
+              %h6 SSH Url
+              %input#application_ssh_url.git-url{:readonly => 'readonly', :value => cartridge.ssh_string, :title => 'Your app is accessable through this ssh url.'}
+              - content_for :javascripts do
+                :javascript
+                  $('#application_ssh_url').focus(function() {this.select()}).click(function() {this.select()});
           - if cartridge.scales? || cartridge.buildable?
             .embedded
               .indent-left
