@@ -23,29 +23,27 @@ class CartridgeCache
     get_cached("all_cartridges", :expires_in => 1.day) {StickShift::ApplicationContainerProxy.find_one().get_available_cartridges}
   end
 
-  #FIXME:  Keep ruby-1.9 commented for now.
-  #FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
-  #                        "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0",
-  #                        "perl-5.10", "nodejs-0.6"
-  #                       ]
-  FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0", "perl-5.10", "nodejs-0.6"]
-	def self.cartridge_names(cart_type=nil)
-	  cart_names = cartridges.map{|c| c.name}
+  FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
+                          "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0",
+                          "perl-5.10", "nodejs-0.6"
+                         ]
+  def self.cartridge_names(cart_type=nil)
+    cart_names = cartridges.map{|c| c.name}
 
-	  if cart_type == 'standalone'
+    if cart_type == 'standalone'
       return cart_names & FRAMEWORK_CART_NAMES
     elsif cart_type == 'embedded'
       return (cart_names - FRAMEWORK_CART_NAMES)
     else
       return cart_names
     end
-	end
+  end
 
-	def self.find_cartridge(capability)
-	  carts = self.cartridges
-	  carts.each do |cart|
-	    return cart if cart.all_capabilities.include?(capability)
-	    return cart if cart.name == capability
+  def self.find_cartridge(capability)
+    carts = self.cartridges
+    carts.each do |cart|
+      return cart if cart.all_capabilities.include?(capability)
+      return cart if cart.name == capability
     end
     return nil
   end
