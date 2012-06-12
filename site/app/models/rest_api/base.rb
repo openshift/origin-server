@@ -19,7 +19,7 @@ module ActiveResource
       def decode(json)
         decoded = super
         if decoded.is_a?(Hash) and decoded.has_key?('data')
-          decoded = decoded['data']
+          decoded = decoded['data'] || {}
         end
         if decoded.is_a?(Array)
           decoded.each { |i| i.delete 'links' }
@@ -414,13 +414,22 @@ module RestApi
     def remote_results
       (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'].presence }.compact
     end
+    def has_exit_code?(code, opts=nil)
+      codes = errors.instance_variable_get(:@codes) || {}
+      code = code.to_s
+      if opts && opts[:on]
+        (codes[opts[:on].to_sym] || []).include? code
+      else
+        codes.values.any?{ |c| c.include? code }
+      end
+    end
 
     class << self
       def on_exit_code(code, handles=nil, &block)
         (@exit_code_conditions ||= {})[code] = handles || block
       end
       def translate_api_error(errors, code, field, text)
-        Rails.logger.debug "Server error: :#{field} \##{code}: #{text}"
+        Rails.logger.debug "  Server error: :#{field} \##{code}: #{text}"
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
           case handler
@@ -429,7 +438,12 @@ module RestApi
           end
         end
         message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
-        errors.add( (field || 'base').to_sym, message) unless message.blank?
+        field = (field || 'base').to_sym
+        errors.add(field, message) unless message.blank?
+
+        codes = errors.instance_variable_get(:@codes)
+        codes = errors.instance_variable_set(:@codes, {}) unless codes
+        (codes[field] ||= []).push(code.to_s)
       end
     end
 

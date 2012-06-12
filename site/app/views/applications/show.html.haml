@@ -84,7 +84,7 @@
                     %span.data= gear_group_state(group.states)
                   %li
                     %h6 Gears
-                    %span.data= "#{group.gears.length} #{group.gear_profile.to_s.humanize.downcase}"
+                    %span.data{:title => gear_group_count_title(cartridge, group.gears.length)}= gear_group_count(group.gears)
                 - else
                   %li
                     %h6 Gears
@@ -104,19 +104,22 @@
                 :javascript
                   $('#application_git_url').focus(function() {this.select()}).click(function() {this.select()});
 
-          - if cartridge.scales? || cartridge.builds?
+          - if cartridge.scales? || cartridge.buildable?
             .embedded
               .indent-left
-                - if cartridge.builds?
-                  .embedded-cart
-                    = link_to 'Builds with Jenkins', @application.build_job_url
-                -# elsif cartridge.buildable?
-                  .embedded-cart
-                    = link_to "Enable builds", link_to_wizard_for_builds
-
                 - if cartridge.scales?
                   .embedded-cart
-                    Scales with HAProxy
+                    - if cartridge.scales.times == 1
+                      = link_to "Scales with HAProxy", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
+                    - else
+                      = link_to "Scaled up with HAProxy x#{cartridge.scales.times}", application_scaling_path(@application), :title => 'Your web cartridge is running multiple copies to handle increased web traffic'
+
+                - if cartridge.builds?
+                  .embedded-cart #{link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'} #{link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'}
+                - elsif cartridge.buildable?
+                  .embedded-cart
+                    = link_to "Enable Jenkins builds", application_building_path(@application), :title => 'Jenkins helps you run builds, tests, and deployment steps when you push changes to your application.'
+
 
   .base.right.btn-toolbar
     = link_to application_cartridge_types_path(@application), :class => 'btn btn-primary btn-large' do

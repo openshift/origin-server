@@ -42,6 +42,23 @@ class Application < RestApi::Base
     app_url
   end
 
+  #FIXME would prefer this come from REST API
+  def ssh_url
+    uri = URI.parse(git_url)
+    uri.scheme = 'ssh'
+    uri.path = ''
+    uri.fragment = nil
+    uri
+  end
+
+  # Helper to return the segment that would be provided for command line calls
+  def ssh_string
+    uri = ssh_url
+    user = "#{uri.userinfo}@" if uri.userinfo
+    port = ":#{uri.port}" if uri.port
+    [user,uri.host,port].join
+  end
+
   def framework_name
     @framework_name ||= CartridgeType.cached.find(framework, :as => as).display_name rescue framework
   end
@@ -54,11 +71,24 @@ class Application < RestApi::Base
     scale
   end
 
+  def scale_status_url
+    "#{web_url}haproxy-status/"
+  end
+
   def build_job_url
     embedded.jenkins_build_url if embedded
   end
   def builds?
     build_job_url.present?
+  end
+  def jenkins_server?
+    framework == 'jenkins-1.4'
+  end
+
+  # FIXME it is assumed that eventually this will be server functionality
+  def destroy_build_cartridge
+    cart = Cartridge.new :application => self, :as => as, :name => 'jenkins-client-1.4'
+    cart.destroy.tap{ |success| cart.errors.full_messages.each{ |m| errors.add(:base, m) } unless success }
   end
 
   def reload
