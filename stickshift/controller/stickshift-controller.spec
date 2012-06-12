@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.4
+Version: 0.12.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Fix missing requires (kraman@gmail.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
 - change rest test to verify from internal (dmcphers@redhat.com)
 - Merge pull request #113 from lnader/master (dmcphers@redhat.com)
