@@ -95,20 +95,26 @@
                 -#
                   %li
                     %img{:src => "/app/images/console/gear-sm.png"}
-          - if cartridge.git_url
-            .indent-left.indent-right
-              %h6 Git Repository
-              %input#application_git_url.git-url{:readonly => 'readonly', :value => cartridge.git_url, :title => 'The code for your application will be available through this Git repository.'}
-              - content_for :javascripts do
-                :javascript
-                  $('#application_git_url').focus(function() {this.select()}).click(function() {this.select()});
-          - if cartridge.ssh_string
-            .indent-left.indent-right
-              %h6 SSH Url
-              %input#application_ssh_url.git-url{:readonly => 'readonly', :value => cartridge.ssh_string, :title => 'Your app is accessable through this ssh url.'}
-              - content_for :javascripts do
-                :javascript
-                  $('#application_ssh_url').focus(function() {this.select()}).click(function() {this.select()});
+          - if @sshkey_uploaded
+            - if cartridge.git_url
+              .indent-left.indent-right
+                %h6 Git Repository
+                %input#application_git_url.git-url{:readonly => 'readonly', :value => cartridge.git_url, :title => 'The code for your application will be available through this Git repository.'}
+                - content_for :javascripts do
+                  :javascript
+                    $('#application_git_url').focus(function() {this.select()}).click(function() {this.select()});
+            - if cartridge.ssh_string
+              .indent-left.indent-right
+                %h6 SSH Url
+                %input#application_ssh_url.git-url{:readonly => 'readonly', :value => cartridge.ssh_string, :title => 'Your app is accessable through this ssh url.'}
+                - content_for :javascripts do
+                  :javascript
+                    $('#application_ssh_url').focus(function() {this.select()}).click(function() {this.select()});
+          - else
+            .indent-left
+              You must
+              =link_to "add a valid ssh public key to your account", account_path
+              before you can use git or ssh to develop your application.
           - if cartridge.scales? || cartridge.buildable?
             .embedded
               .indent-left

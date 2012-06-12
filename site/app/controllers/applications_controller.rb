@@ -148,6 +148,7 @@ class ApplicationsController < ConsoleController
     user_default_domain
     @application = @domain.find_application params[:id]
     @gear_groups = @application.gear_groups
+    @has_keys = sshkey_uploaded?
   end
 
   def get_started
@@ -157,6 +158,6 @@ class ApplicationsController < ConsoleController
 
     @wizard = !params[:wizard].nil?
     @template = !params[:template].nil?
-    @has_keys = true if Key.first :as => session_user
+    @has_keys = sshkey_uploaded?
   end
 end

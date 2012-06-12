@@ -4,6 +4,7 @@ class ConsoleController < ApplicationController
 
   before_filter :authenticate_user!
   include DomainAware
+  include SshkeyAware
 
   def index
     redirect_to applications_path
