@@ -24,23 +24,29 @@ IP=$4
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/00000_default.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/zzzzz_proxy.conf"
+  ProxyPass / http://$IP:8080/ status=I
+  ProxyPassReverse / http://$IP:8080/
+  ProxyPass /health !
+EOF
+
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
   ServerAdmin mmcgrath@redhat.com
   DocumentRoot /var/www/html
   DefaultType None
 EOF
 
-cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf"
 <VirtualHost *:80>
   RequestHeader append X-Forwarded-Proto "http"
 
-  Include ${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/*.conf
+  Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
   
   RewriteEngine on
   RewriteCond %{HTTPS} off
   RewriteRule /health ${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/configuration/health [L]
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+#  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -48,13 +54,8 @@ cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}.con
 
 $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
-  Include ${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/*.conf
+  Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
   
-  ##RewriteEngine On
-  ##RewriteRule /health ${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/configuration/health [L]
   Alias /health ${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/configuration/health
-  ProxyPass /health !
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
 </VirtualHost>
 EOF
