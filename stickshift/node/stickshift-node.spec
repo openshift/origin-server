@@ -21,6 +21,7 @@ Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
+Requires:       mercurial
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
