@@ -81,7 +81,8 @@ Broker::Application.configure do
         :require_for_app_create => false,
         :max_capacity => 6000, #Only used by district create
         :first_uid => 1000
-    }
+    },
+    :node_profile_enabled => false
   }
 end
 EOF

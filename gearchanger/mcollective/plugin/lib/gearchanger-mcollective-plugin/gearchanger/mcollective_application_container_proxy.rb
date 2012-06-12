@@ -1672,10 +1672,12 @@ module GearChanger
 
         district_uuid = nil if district_uuid == 'NONE'
 
-        if node_profile
-          additional_filters.push({:fact => "node_profile",
-                                   :value => node_profile,
-                                   :operator => "=="})
+        if Rails.configuration.gearchanger[:node_profile_enabled]
+          if node_profile
+            additional_filters.push({:fact => "node_profile",
+                                     :value => node_profile,
+                                     :operator => "=="})
+          end
         end
 
         if district_uuid
