@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.93.5
+Version: 0.93.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 12 2012 Dan McPherson <dmcphers@redhat.com> 0.93.6-1
+- fix jenkins httpd proxy (bdecoste@gmail.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
 - Bug 825354 (dmcphers@redhat.com)
 - Rename ~/app to ~/app-root to avoid application name conflicts and additional
