@@ -82,6 +82,19 @@ module StickShift
       end
     end
     
+    def find_subaccounts_by_parent_login(parent_id)
+      Rails.logger.debug "MongoDataStore.find_subaccounts_by_parent_login(#{parent_id})\n\n"
+      cur = MongoDataStore.rescue_con_failure { collection.find({ "parent_user_login" => parent_id }) }
+      return [] unless cur
+      hash_list = []
+      cur.each do |hash|
+        hash.delete("_id")
+        hash_list << hash
+      end
+
+      hash_list
+    end
+    
     def save(obj_type, user_id, id, obj_attrs)
       Rails.logger.debug "MongoDataStore.save(#{obj_type}, #{user_id}, #{id}, #hidden)\n\n"
       case obj_type
