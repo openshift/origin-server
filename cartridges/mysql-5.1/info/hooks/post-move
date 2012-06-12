@@ -33,6 +33,11 @@ source ${CART_INFO_DIR}/lib/util
 
 MYSQL_DIR="$APP_HOME/mysql-5.1/"
 
+if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
+    #  This gear is dedicated to running mysql - configure it as such.
+    unobfuscate_app_home $uuid $namespace $application
+fi
+
 . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
 IP=$OPENSHIFT_INTERNAL_IP
 
