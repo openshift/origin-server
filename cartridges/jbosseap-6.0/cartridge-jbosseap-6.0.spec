@@ -1,10 +1,10 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/jbosseap-6.0
-%global jbossver 6.0
+%global jbossver 6.0.0.GA
 %global oldjbossver 6.0.0.Beta2
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.4
+Version:   0.1.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
