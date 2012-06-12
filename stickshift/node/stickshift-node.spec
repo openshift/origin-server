@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.12.4
+Version: 0.12.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -99,6 +99,11 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Updating gem versions (admiller@redhat.com)
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
 - Updating gem versions (admiller@redhat.com)
 

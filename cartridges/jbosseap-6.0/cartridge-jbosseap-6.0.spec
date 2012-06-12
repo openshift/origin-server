@@ -1,10 +1,10 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/jbosseap-6.0
-%global jbossver 6.0.0.Beta2
+%global jbossver 6.0
 %global oldjbossver 6.0.0.Beta2
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.3
+Version:   0.1.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.1.4-1
+- update to EAP 6.0 GA (bdecoste@gmail.com)
+
+* Tue Jun 12 2012 William DeCoste <wdecoste@redhat.com> 0.1.0
+- Update to 6.0 GA
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
 - updated jms deployment (bdecoste@gmail.com)
 - increased deployment timeout to 5mins (bdecoste@gmail.com)
