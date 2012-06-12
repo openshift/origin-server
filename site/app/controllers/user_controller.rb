@@ -8,6 +8,7 @@ class UserController < SiteController
 
   before_filter :require_login, :only => :show
   protect_from_forgery :except => :create_external
+  include DomainAware
 
   def skip_captcha?
     Rails.configuration.captcha_secret.presence and params[:captcha_secret] == Rails.configuration.captcha_secret
@@ -164,11 +165,12 @@ class UserController < SiteController
   def show
     @user = session_user
     @user.load_email_address
-    logger.debug "User: #{@user.inspect}"
+    logger.debug "  User: #{@user.inspect}"
     @identities = Identity.find(@user)
     @show_email = @identities.any? {|i| i.id != i.email }
 
-    @domain = Domain.find :first, :as => @user
+    user_default_domain rescue nil
+
     @keys = Key.find(:all, :as => @user)
     render :layout => 'console'
   end

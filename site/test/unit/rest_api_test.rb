@@ -260,6 +260,36 @@ class RestApiTest < ActiveSupport::TestCase
     assert c.errors[:together].include? c.errors[:last][0]
   end
 
+  class Observed < RestApi::Base
+  end
+
+  class Observer < ActiveModel::Observer
+    observe RestApiTest::Observed
+    def after_save(domain)
+      puts "save"
+    end
+    def after_create(domain)
+      puts "create"
+    end
+  end
+  def test_observed
+    Observed.observers = Observer
+    Observed.instantiate_observers
+
+    Observer.any_instance.expects(:after_save)
+    Observer.any_instance.expects(:after_create)
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/observeds.json', json_header(true), {}.to_json
+    end
+
+    o = Observed.new :as => @user
+    o.save
+  end
+
+  def test_domain_observed
+    assert RestApi::Base.observers.include?(DomainSessionSweeper)
+  end
+
   def test_client_key_validation
     key = Key.new :type => 'ssh-rsa', :name => 'test2', :as => @user
     assert !key.save

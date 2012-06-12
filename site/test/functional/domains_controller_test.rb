@@ -38,6 +38,16 @@ class DomainsControllerTest < ActionController::TestCase
     assert_redirected_to account_path
   end
 
+  test "should clear domain session cache" do
+    session[:domain] = 'foo'
+    post :create, {:domain => get_post_form}
+
+    assert domain = assigns(:domain)
+    assert domain.errors.empty?, domain.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:domain]
+  end
+
   test "should assign errors on empty name" do
     post :create, {:domain => get_post_form.merge(:name => '')}
 
@@ -50,7 +60,7 @@ class DomainsControllerTest < ActionController::TestCase
 
   test "should assign errors on long name" do
     post :create, {:domain => get_post_form.merge(:name => 'aoeu'*2000)}
-    
+
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
@@ -108,6 +118,18 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert domain.errors.empty?, domain.errors.inspect
     assert_redirected_to account_path
+  end
+
+  test "should update domain and clear session cache" do
+    with_particular_user
+    session[:domain] = 'foo'
+
+    put :update, {:domain => {:name => unique_name}}
+
+    assert domain = assigns(:domain)
+    assert domain.errors.empty?, domain.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:domain]
   end
 
   test "update should assign errors on empty name" do

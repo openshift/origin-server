@@ -1,13 +1,13 @@
 class BuildingController < ConsoleController
 
   def show
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:application_id]
     redirect_to new_application_building_path(@application) unless @application.builds?
   end
 
   def new
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     apps = @domain.applications
     @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
     @jenkins_server = apps.find{ |a| a.jenkins_server? } || Application.new(:name => 'jenkins', :cartridge => 'jenkins-1.4', :domain => @domain)
@@ -17,6 +17,7 @@ class BuildingController < ConsoleController
 
   def create
     @domain = Domain.find :one, :as => session_user
+    user_default_domain
     apps = @domain.applications
     @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
     @jenkins_server = apps.find{ |a| a.jenkins_server? }
@@ -59,7 +60,7 @@ class BuildingController < ConsoleController
   end
 
   def delete
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:application_id]
     redirect_to new_application_building_path(@application) unless @application.builds?
   end

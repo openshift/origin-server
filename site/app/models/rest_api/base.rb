@@ -223,12 +223,12 @@ module RestApi
       end
     end
 
-    def save(*args)
+    def save_with_change_tracking(*args, &block)
       @previously_changed = changes # track changes
-      valid = super
-      remove_instance_variable(:@update_id) if @update_id && valid
-      @changed_attributes.clear
-      valid
+      save_without_change_tracking(*args, &block).tap do |valid|
+        remove_instance_variable(:@update_id) if @update_id && valid
+        @changed_attributes.clear
+      end
 
     rescue ActiveResource::ConnectionError => error
       # if the server returns a body that has messages, filter them through
@@ -237,6 +237,7 @@ module RestApi
       # would
       raise unless set_remote_errors(error, true)
     end
+    alias_method_chain :save, :change_tracking
 
     # Copy calculated attribute errors
     def valid?
