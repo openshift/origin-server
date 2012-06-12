@@ -1,5 +1,6 @@
 require 'state_machine'
 require 'syslog'
+require 'shellwords'
 
 class Application < StickShift::Cartridge
   attr_accessor :user, :creation_time, :uuid, :aliases, :cart_data, 
