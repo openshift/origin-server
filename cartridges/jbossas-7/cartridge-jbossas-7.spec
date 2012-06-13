@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.94.4
+Version: 0.94.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.5-1
+- bug 831130 (bdecoste@gmail.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
 - 
 
