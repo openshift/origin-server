@@ -29,6 +29,10 @@ class ApplicationsControllerTest < ActionController::TestCase
     end
   end
 
+  test "should create JBoss EAP app" do
+    create_and_destroy('jbosseap-6.0')
+  end
+
   def create_and_destroy(type)
     post(:create, {:application => get_post_form(type)})
 
