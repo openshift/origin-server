@@ -65,7 +65,7 @@ class Application < StickShift::Cartridge
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
       else
-        from_descriptor({"Name"=>app_name, "Subscribes"=>{"doc-root"=>{"Type"=>"FILESYSTEM:doc-root"}}})
+        from_descriptor({"Name"=>app_name})
         self.requires_feature = []
         self.requires_feature << framework unless framework.nil?      
       end
@@ -120,14 +120,8 @@ Name: #{app_name}
 Components:
   proxy:
     Dependencies: [#{framework}, \"haproxy-1.4\"]
-    Subscribes:
-      doc-root:
-        Type: \"FILESYSTEM:doc-root\"
   web:
     Dependencies: [#{framework}]
-    Subscribes:
-      doc-root:
-        Type: \"FILESYSTEM:doc-root\"
 Groups:
   proxy:
     Components:
@@ -135,6 +129,10 @@ Groups:
   web:
     Components:
       web: web
+GroupOverrides: 
+  - [\"proxy\", \"proxy/haproxy-1.4\"]
+  - [\"proxy\", \"proxy/#{framework}\"]
+  - [\"web\", \"web/#{framework}\"]
 Connections:
   auto-scale:
     Components: [\"proxy/haproxy-1.4\", \"web/#{framework}\"]
@@ -1397,7 +1395,7 @@ private
         self.group_instance_map[cinst2.group_instance_name] = ginst1
       end
     }
-    # generate_group_overrides(default_profile)
+    generate_group_overrides(default_profile)
     auto_merge_top_groups(default_profile)
   end
   
@@ -1406,8 +1404,8 @@ private
       go_copy = go.dup
       n = go_copy.pop
       go_copy.each { |v|
-        from_cinst = ComponentInstance::find_component_in_cart(default_profile, self, from, self.get_name_prefix)
-        to_cinst = ComponentInstance::find_component_in_cart(default_profile, self, to, self.get_name_prefix)
+        from_cinst = ComponentInstance::find_component_in_cart(default_profile, self, v, self.get_name_prefix)
+        to_cinst = ComponentInstance::find_component_in_cart(default_profile, self, n, self.get_name_prefix)
         next if from_cinst.nil? or to_cinst.nil?
         from_gpath = from_cinst.group_instance_name
         to_gpath = to_cinst.group_instance_name
@@ -1426,7 +1424,7 @@ private
         ginst1 = self.group_instance_map[gname]
         ginst2 = self.group_instance_map[mapped_to]
         next if ginst1==ginst2
-        ginst1.merge(ginst2)
+        ginst1.merge_inst(ginst2)
         self.group_instance_map[mapped_to] = ginst1
       }
     else
