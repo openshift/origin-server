@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.1.0
+Version: 0.1.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -183,5 +183,8 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jun 12 2012 Ram Ranganathan <ramr@redhat.com> 0.1.1-1
+- Initial version
+
 * Tue Jun 05 2012 Ram Ranganathan <ramr@redhat.com> 0.1.0-1
 - Initial version
