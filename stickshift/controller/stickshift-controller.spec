@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.21
+Version: 0.11.22
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jun 12 2012 Dan McPherson <dmcphers@redhat.com> 0.11.22-1
+- Adding ability to use sub-users using X-impersonate-user header Changes to
+  query subaccounts by parent login (kraman@gmail.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.21-1
 - Merge pull request #101 from kraman/dev/kraman/bugs/827359
   (dmcphers@redhat.com)
