@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.6
+Version: 0.12.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
+- support for group overrides so that we do not rely on filesystem co-location
+  - fix for bug#824124 (rchopra@redhat.com)
+
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
 - Strip out the unnecessary gems from rcov reports and focus it on just the
   OpenShift code. (rmillner@redhat.com)
