@@ -10,11 +10,21 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert types = assigns(:framework_types)
     assert types.length > 5
     assert types[0].name
+    jboss_eap_seen = false
+    types.each do |t|
+      # check to make sure JBoss EAP comes before JBoss AS
+      if t.id.start_with? 'jbosseap'
+        jboss_eap_seen = true
+      elsif t.id.start_with? 'jbossas'
+        assert jboss_eap_seen, "Backend lists JBoss AS before JBoss EAP - EAP should take precidence"
+      end
+    end
     assert popular = assigns(:popular_types)
   end
 
   test "should show type page" do
     types = ApplicationType.all :as => @user
+
     types.each do |t|
       get :show, :id => t.id
       assert_response :success
