@@ -32,19 +32,19 @@ GEM
     arel (2.0.9)
     bson (1.5.2)
     builder (2.1.2)
-    stickshift-common (0.11.2)
+    stickshift-common (0.11.3)
       activemodel
       json
       mongo
       rack
-    stickshift-controller (0.12.4)
+    stickshift-controller (0.12.6)
       activesupport
       stickshift-common
       dnsruby
       json
       open4
       state_machine
-    stickshift-node (0.12.4)
+    stickshift-node (0.12.6)
       activemodel
       stickshift-common
       highline
