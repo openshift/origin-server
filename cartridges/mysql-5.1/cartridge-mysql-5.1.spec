@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.3
+Version: 0.28.4
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.28.4-1
+- BZ824409 call unobfuscate_app_home on mongo and mysql gear moves
+  (jhonce@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.28.3-1
 - 
 
