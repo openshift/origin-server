@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.21.2
+Version: 0.21.3
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.21.3-1
+- BZ824409 call unobfuscate_app_home on mongo and mysql gear moves
+  (jhonce@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.21.2-1
 - The single quotes cause CART_INFO_DIR to be embedded rather than its
   expansion. (rmillner@redhat.com)
