@@ -60,7 +60,13 @@ class BaseController < ActionController::Base
       if not request.headers["X-Impersonate-User"].nil?
         @parent_user = CloudUser.find @login
         subuser_name = request.headers["X-Impersonate-User"]
-        unless @parent_user.capabilities["subaccounts"] == true
+
+        if @parent_user.nil?
+          Rails.logger.debug "#{@login} tried to impersinate user but #{@login} user does not exist"
+          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+        end
+
+        if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
           Rails.logger.debug "#{@parent_user.login} tried to impersinate user but does not have require capability."
           raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
@@ -70,7 +76,7 @@ class BaseController < ActionController::Base
           Rails.logger.debug "#{@parent_user.login} tried to impersinate user #{subuser_name} but does not own the subaccount."
           raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
-        
+
         if sub_user.nil?
           Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
           @cloud_user = CloudUser.new(subuser_name,nil,nil,nil,{},@parent_user.login)
@@ -87,7 +93,7 @@ class BaseController < ActionController::Base
           @cloud_user.save
         end
       end
-
+      
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
     rescue StickShift::AccessDeniedException
       log_action(@request_id, 'nil', login, "AUTHENTICATE", false, "Access denied")
