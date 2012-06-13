@@ -73,11 +73,12 @@ class ApplicationsController < ConsoleController
   def index
     # replace domains with Applications.find :all, :as => session_user
     # in the future
-    domain = Domain.find :one, :as => session_user rescue nil
-    return redirect_to application_types_path, :notice => 'Create your first application now!' if domain.nil? || domain.applications.empty?
+    #domain = Domain.find :one, :as => session_user rescue nil
+    user_default_domain rescue nil
+    return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @applications_filter.apply(domain.applications)
+    @applications = @applications_filter.apply(@domain.applications)
   end
 
   def destroy
@@ -91,7 +92,8 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
     @referer = application_path(@application)
@@ -142,13 +144,15 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
     @gear_groups = @application.gear_groups
   end
 
   def get_started
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?

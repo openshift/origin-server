@@ -270,7 +270,7 @@ class CartridgeType < RestApi::Base
         :version => 'JBoss EAP 6.0.0',
         :license => 'ASL 2.0',
         :license_url => 'http://www.apache.org/licenses/LICENSE-2.0',
-        :categories => [:web, :framework],
+        :categories => [:web, :framework, :new],
         :description => 'Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications.  Build and deploy enterprise Java in the cloud.',
         :website => 'http://www.jboss.org/jbossas',
         :help_topics => {

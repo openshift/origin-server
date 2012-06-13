@@ -6,7 +6,7 @@ class CartridgesController < ConsoleController
   end
 
   def show
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:application_id]
     @application_type = ApplicationType.find @application.framework, :as => session_user
     Rails.logger.debug @application.cartridges
@@ -41,7 +41,7 @@ class CartridgesController < ConsoleController
   end
 
   def next_steps
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
