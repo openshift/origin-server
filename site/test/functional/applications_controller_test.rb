@@ -126,6 +126,15 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert groups[0].cartridges.map(&:name).include? readable_app.cartridge
     assert groups[0].cartridges[0].display_name
     assert domain = assigns(:domain)
+    assert !assigns(:has_keys)
+  end
+
+  test "should retrieve application details with has_sshkey cache set" do
+    session[:has_sshkey] = true
+    get :show, :id => readable_app.name
+    assert_response :success
+    assert app = assigns(:application)
+    assert has_keys = assigns(:has_keys)
   end
 
   test "should retrieve scalable application details" do

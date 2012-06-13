@@ -132,6 +132,16 @@ class KeysControllerTest < ActionController::TestCase
     assert_equal 1, key.errors[:name].length
   end
 
+  test "should clear session cache" do
+    session[:has_sshkey] = 'true'
+    post :create, {:key => get_post_form}
+
+    assert key = assigns(:key)
+    assert key.errors.empty?, key.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:key]
+  end
+
   def get_post_form
     name = unique_name
     {:name => name, :raw_content => "ssh-rsa value#{name}"}
