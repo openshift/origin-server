@@ -67,6 +67,10 @@ module HelpHelper
     community_base_url 'developers'
   end
 
+  def ssh_help_url
+    community_base_url 'developers/remote-access'
+  end
+
   def developers_get_started_path
     community_base_url 'developers/get-started'
   end
@@ -157,14 +161,12 @@ module HelpHelper
 
   def console_help_links
     [
+      {:href => developers_url,
+       :name => 'Developer Center'},
       {:href => user_guide_url,
        :name => 'OpenShift User Guide'},
-      {:href => getting_started_guide_url,
+      {:href => getting_started_path,
        :name => 'Installing OpenShift client tools on Mac OSX, Linux, and Windows'},
-      {:href => rails_quickstart_guide_url,
-       :name => 'Ruby on Rails Quickstart Guide'},
-      {:href => community_base_url('kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app'),
-       :name => 'How can I add JBoss modules to an OpenShift App'},
       {:href => sync_git_with_remote_repo_knowledge_base_url,
        :name => 'Sync your OpenShift repo with an existing Git repo'}
     ]

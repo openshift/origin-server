@@ -9,7 +9,7 @@
   	border-left: 2px dashed #bb161c;
 	}
 	
-  > .name {
+  .name {
     text-overflow: ellipsis;
     text-transform: capitalize;
     display: inline-block;
@@ -21,6 +21,7 @@
   > .url {
     display: inline-block;
     vertical-align: top;
+    white-space: nowrap;
   }
 
 	.gear-numbers {
@@ -72,6 +73,17 @@
 
   > .url {
     line-height: 34px; // chosen to match h2
+  }
+}
+
+/* Arbitrarily chosen */
+@media (max-width: 560px) {
+  .grid-wrapper .application-info {
+    > .url {
+      line-height: 18px; // chosen to match h1
+      font-size: 13px;
+      display: block;
+    }
   }
 }
 

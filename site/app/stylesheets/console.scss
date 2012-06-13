@@ -507,150 +507,161 @@ a.cap-link {
 /* application details */
 #app-specifics {
 	margin-bottom: 20px;
-	}
-#app-cartridges header {
-	background: #202020;
-	overflow: hidden;
-	}
-	#app-cartridges h3 {
-		margin: 5px 0 0 30px;
-	}
-	#app-cartridges header .add-cart-btn {
-		display: inline-block;
-    padding: 8px 8px 8px 20px;
-    position: relative;
-    width: 130px;
-    color: #9a9b9c;
-    text-decoration: none;
-    font-size: 11px;
-    text-transform: uppercase;
-    font-family: $headerFontFamily;
-    border-left: 2px solid transparent;
-		}
-		#app-cartridges header .add-cart-btn:hover {
-			color: #fff;
-			background: #1c1c1c;
-      border-color: black;
-			}
-		#app-cartridges header .add-cart-btn span.sprite {
-			background-position: 10px -50px;
-			background-color: #1d1d1d;
-			width: 35px;
-			height: 35px;
-			position: absolute;
-			right: 0;
-			top: 0;
-			}
-			#app-cartridges header .add-cart-btn:hover span {
-				background-color: #b1e5f2;
-				background-position:-26px -50px;
-				}
-.indent-left {
-	margin-left: 30px;
-	}
-.indent-right {
-	margin-right: 30px;
-	}
-#app-cartridges .cartridge-block {
-	background-color: #1d1d1d;
-		padding: 15px 0;
-		border-top: 3px solid #2a2a2a;
-	}
-#app-cartridges .gear-group {
-  margin-top: 5px;
-  margin-bottom: 15px;
-	border-bottom: 3px solid #2a2a2a;
 }
 
-	/*
-	#app-cartridges .cartridge-block.warning {
-		border-left: 2px dashed red;
-	}*/
-	#app-cartridges .cartridge-block .bits {
-		float: right;
+
+.unstyled-flat.bits li {
+  border-left: 1px dotted #444;
+  padding: 0 8px;
+  min-height: 37px;
+  font-weight: normal;
+  text-transform: uppercase;
+  
+  img {
+    vertical-align: text-top;
+  }
+  &:first-child {
+    border-left: 0;
+  }
+}
+
+$cartridgeBorderWidth: 10px;
+
+#app-cartridges {
+  header {
+    background: #202020;
+    overflow: hidden;
+    padding-left: $gridGutterWidth;
+
+    h3 {
+      margin-top: 5px;
+    }
+
+    .btn-add-cart {
+      display: inline-block;
+      padding: 8px 8px 8px 20px;
+      position: relative;
+      width: 130px;
+      color: #9a9b9c;
+      text-decoration: none;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-family: $headerFontFamily;
+      border-left: 2px solid transparent;
+
+      span.sprite {
+        background-position: 10px -50px;
+        background-color: #1d1d1d;
+        width: 35px;
+        height: 35px;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+		
+      &:hover {
+        color: #fff;
+        background: #1c1c1c;
+        border-color: black;
+        span {
+          background-color: #b1e5f2;
+          background-position:-26px -50px;
+        }
+      }
+    }
+  }
+
+  .gear-group {
+    margin-top: 5px;
+    margin-bottom: 15px;
+  	border-bottom: 3px solid #2a2a2a;
+  }
+  .cartridge-block {
+		border-top: 3px solid #2a2a2a;
+
+    .cartridge-border {
+      background: url(../images/cartridge-edge.gif) repeat-y;
+      padding-left: 10px;
+    }
+
+    .cartridge-inset {
+  	  background-color: #1d1d1d;
+      border: 1px solid #101010;
+      border-width: 2px 0;
+		  padding: 15px ($gridGutterWidth - $cartridgeBorderWidth);
+    }
+
+    h2 { 
+      text-overflow: ellipsis; 
+      overflow: hidden; 
+      white-space: nowrap;
+    }
+
+    /* &.warning { border-left: 2px dashed red; }*/
+		.warning {
+			color: #EB0011;
 		}
-	#app-cartridges .cartridge-block .bits li {
-		border-left: 1px dotted #444;
-		padding: 0 8px;
-		min-height: 37px;
-    font-weight: normal;
-    text-transform: uppercase;
-		}
-		#app-cartridges .cartridge-block .bits li img {
-			vertical-align: text-top;
-			}
-		#app-cartridges .cartridge-block .bits li:first-child {
-			border-left: 0;
-		}
-		.cartridge-block .warning {
-				color: #EB0011;
-				}
-		.cartridge-block .embedded {
+
+		.embedded {
 			background: #131313;
-			margin: 15px 30px 0 30px;
-    	padding: 10px 0;
+			margin-top: 15px;
+    	padding: 10px 20px;
     	overflow: hidden;
     	position: relative;
-			}
-			.cartridge-block .embedded .cart-msg {
+			
+			.cart-msg {
 				padding: 8px 0;
-				}
-				.cartridge-block .embedded .view-cart-details {
-					bottom: 10px;
-    			padding: 10px 5px 0 6px;
-    			position: absolute;
-    			right: 0;
-    			vertical-align: baseline;
-    			width: 87px;
-    			white-space: nowrap;
-    			display: inline-block;
-					}
-					.cartridge-block .embedded .view-cart-details span.sprite {
-						background: url('../images/sprite-vert.png') 0 -112px no-repeat;
-						display: inline-block;
-    				height: 20px;
-    				margin-left: 10px;
-    				position: absolute;
-    				width: 20px;
-						}
-						.cartridge-block .embedded .view-cart-details:hover span.sprite {
-							background: url('../images/sprite-vert.png') 0 -55px no-repeat;
-							}
-
-		.cartridge-block .embedded .embedded-cart {
-			border: 1px solid #6b6b6b;
-			background: #242424;
-			float: left;
-			margin-right: 15px;
-      line-height: 35px;
-      //FIXME: embedded-cart should be more flexible
-      padding: 0 10px;
-			//width: 35px;
-			//height: 35px;
 			}
-		.cartridge-block .embedded .embedded-cart-add {
-			background-position:10px -50px;
-			background-color: #202020;
-			border: 1px solid #202020;
-			width: 35px;
-			height: 35px;
-			float: left;
-			margin-right: 15px;
-			}
-			.cartridge-block .embedded .embedded-cart-add:hover {
-				border: 1px solid #b1e5f2;
-				background-color: #b1e5f2;
-				background-position:-26px -50px;
-				}
 
-.cartridge-block input.git-url {
-  border: 1px dotted #444;
-  @include border-radius(0);
-  color: #BABBBC;
-  background-color: inherit;
-  //@include font-family-monospace();
-  cursor: inherit;
-  width: 100%;
+			.view-cart-details {
+        bottom: 10px;
+        padding: 10px 5px 0 6px;
+        position: absolute;
+        right: 0;
+        vertical-align: baseline;
+        width: 87px;
+        white-space: nowrap;
+        display: inline-block;
+			
+        span.sprite {
+          background: url('../images/sprite-vert.png') 0 -112px no-repeat;
+          display: inline-block;
+          height: 20px;
+          margin-left: 10px;
+          position: absolute;
+          width: 20px;
+				}
+				&:hover span.sprite {
+					background: url('../images/sprite-vert.png') 0 -55px no-repeat;
+				}
+      }
+
+  		.embedded-cart {
+    		border: 1px solid #6b6b6b;
+  			background: #242424;
+  			float: left;
+  			margin-right: 15px;
+        line-height: 35px;
+        //FIXME: embedded-cart should be more flexible
+        padding: 0 10px;
+  			//width: 35px;
+  			//height: 35px;
+			}
+    }
+
+    input {
+      border: 1px dotted #444;
+      @include border-radius(0);
+      color: #BABBBC;
+      background-color: inherit;
+      //@include font-family-monospace();
+      cursor: inherit;
+      @include box-sizing(border-box);
+      width: 100%;
+      height: 28px; // border-box height
+      //width: -moz-available;
+    }
+  }
 }
 
 #secondary {
@@ -710,6 +721,34 @@ a.cap-link {
 	#my-apps li h2 {
 		float: none;
 		}
+
+  #app-cartridges {
+    @include expand_for_phone(false);
+    header {
+      padding-left: $gridGutterWidthPhone;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidthPhone - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidthPhone - $cartridgeBorderWidth;
+    }
+  }
+}
+
+/* Arbitrarily chosen */
+@media (max-width: 600px) {
+  #app-cartridges .cartridge-block .bits {
+    margin-left: 0;
+    li {
+      display: block;
+      float: none;
+      border: 0;
+      text-align: right;
+      min-height: 0;
+      h6 {
+        display: inline;
+      }
+    }
+  }
 }
 
 @media (max-width: 767px) {
@@ -757,6 +796,34 @@ a.cap-link {
 	.control-group-important .input-prepend-append .add-on-first, .control-group-important .input-prepend-append .add-on-last, .control-group-important .input-prepend-append .add-on-middle, .control-group-important .input-prepend-append input, .control-group-important .input-prepend-append input {
     font-size: inherit;
    	}
+
+  #account-digest {
+    @include expand_for_phone(false);
+    .digest-bg {
+      padding-left: 0;
+      padding-right: 0;
+      background: transparent;
+
+      #secondary {
+        margin: 0 $gridGutterWidthPhone;
+      }
+    }
+  }
+
+  #app-unique-info {
+    margin: 0;
+  }
+
+  #app-cartridges {
+    header {
+      padding-left: $gridGutterWidthTablet;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidthTablet - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidthTablet - $cartridgeBorderWidth;
+    }
+  }
+
 }
 
 @media (min-width: 768px) and (max-width: 979px) {
@@ -779,6 +846,16 @@ a.cap-link {
   .digest-bg {
   	margin: 0 -23px;
   }
+  #app-cartridges {
+    header {
+      padding-left: $gridGutterWidthLarge;
+    }
+    .cartridge-block .cartridge-inset {
+      padding-left: $gridGutterWidthLarge - $cartridgeBorderWidth;
+      padding-right: $gridGutterWidthLarge - $cartridgeBorderWidth;
+    }
+  }
+
 }
 
 @media (min-width: 1200px) {

@@ -31,14 +31,14 @@
 
 	margin-bottom: 3px;
 
-  a {
+  .tile-target {
     color:#c0c0c0;
   }
 
   &:hover  {
 		background: #000;
 
-    a {
+    .tile-target {
   		color: #f0f0f0;
     }
     i.tile-arrow {

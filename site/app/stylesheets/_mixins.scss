@@ -1,10 +1,12 @@
 // If an element has a background and should stretch across the 
 // width of the page on a phone, include this mixin.
-@mixin expand_for_phone() {
+@mixin expand_for_phone($padding:true) {
   margin-left: -$gridGutterWidthPhone;
   margin-right: -$gridGutterWidthPhone;
-  padding-left: $gridGutterWidthPhone;
-  padding-right: $gridGutterWidthPhone;
+  @if $padding {
+    padding-left: $gridGutterWidthPhone;
+    padding-right: $gridGutterWidthPhone;
+  }
 }
 
 @mixin font-family-monospace() {
