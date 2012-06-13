@@ -16,6 +16,8 @@
     = f.semantic_errors
 
     - if @jenkins_server.persisted?
+
+
       %h2 Build server available
       %p
         You have created a #{link_to "Jenkins application (#{@jenkins_server.name})", application_path(@jenkins_server)} to 
@@ -31,7 +33,7 @@
 
       - errors = @jenkins_server.errors.full_messages.present?
       = f.inputs do
-        = f.semantic_errors :name
+        = f.semantic_errors :name, :not => :base
         = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @jenkins_server}
 
     %h2 Create cartridge
