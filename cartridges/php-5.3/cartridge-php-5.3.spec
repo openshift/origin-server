@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.94.1
+Version: 0.94.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -113,6 +113,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- BZ827575.  Allow applications to specify foreign channels in deplist.txt.
+  (rmillner@redhat.com)
+- BZ 829640. The php-bcmath library is required for bccomp.
+  (rmillner@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
 - bumping spec versions (admiller@redhat.com)
 
