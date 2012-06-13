@@ -7,7 +7,7 @@
 // ---------
 
 p {
-  margin: 0 0 $baseLineHeight / 2;
+  margin: 0 0 $baseLineHeight / 1.35;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
   line-height: $baseLineHeight;
@@ -25,7 +25,7 @@ p {
 
 // HEADINGS
 // --------
-h1, h2, h3, h4, h5 {
+h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-family: $headerFontFamily;
   font-weight: normal;
@@ -72,6 +72,7 @@ h5 {
 h6 {
   font-size: 11px;
   line-height: $baseLineHeight;
+  text-transform: uppercase;
 }
 
 @media (max-width:480px) {

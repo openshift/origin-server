@@ -301,6 +301,7 @@ figure {
 	background: #262626;
 	border-bottom: 3px solid #2f2f2f;
   margin: 5px 0 3px 5px;
+  padding: 0 0 13px;
   position: relative;
 
   > nav {
@@ -521,7 +522,9 @@ a.cap-link {
     width: 130px;
     color: #9a9b9c;
     text-decoration: none;
-    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-family: $headerFontFamily;
     border-left: 2px solid transparent;
 		}
 		#app-cartridges header .add-cart-btn:hover {
@@ -570,7 +573,6 @@ a.cap-link {
 		border-left: 1px dotted #444;
 		padding: 0 8px;
 		min-height: 37px;
-		font-size: 10px;
     font-weight: normal;
     text-transform: uppercase;
 		}
@@ -677,7 +679,6 @@ a.cap-link {
  	font-weight: normal;
   }
 .data {
-	font-size: 125%;
 	color: #eaebec;
 	}
 
