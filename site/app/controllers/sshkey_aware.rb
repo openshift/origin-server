@@ -6,18 +6,17 @@ module SshkeyAware
   end
 
   def sshkey_uploaded?
-    has_key = false
+    @has_key = false
     if session[:has_sshkey]
-      logger.debug "  Hit has_sshkey cache"
-      has_key = true
+      logger.debug "  Hit has_sshkey cache #{session.inspect}"
+      @has_keys = session[:has_sshkey]
     else
-      key = Key.first :as => session_user
-      puts "#{key.inspect}"
-      has_key = key ? true : false
-      session[:has_sshkey] = true if has_key
+      key = Key.first :as => current_user
+      @has_keys = key ? true : false
+      session[:has_sshkey] = @has_keys
     end
 
-    has_key
+    @has_key
   end
 end
 RestApi::Base.observers << SshkeySessionSweeper
