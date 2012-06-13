@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.22
+Version: 0.11.23
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 13 2012 Dan McPherson <dmcphers@redhat.com> 0.11.23-1
+- Trap error case when user tried to specify subaccount but parent account
+  cannot be found. Returning 401 instead of 500. (kraman@gmail.com)
+
 * Tue Jun 12 2012 Dan McPherson <dmcphers@redhat.com> 0.11.22-1
 - Adding ability to use sub-users using X-impersonate-user header Changes to
   query subaccounts by parent login (kraman@gmail.com)
