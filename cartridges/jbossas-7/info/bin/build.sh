@@ -7,6 +7,7 @@ do
 done
 
 source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CONFIG_DIR="$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
@@ -44,6 +45,43 @@ case "$node_profile" in
         OPENSHIFT_MAVEN_XMX="-Xmx396m"
     ;;
 esac
+
+# If hot deploy is enabled, we need to restrict the Maven memory size to fit
+# alongside the running application server. For now, just hard-code it to 64
+# and figure out how to apply a scaling factor later.
+if ! in_ci_build && hot_deploy_marker_is_present ; then
+    echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
+    
+    case "$node_profile" in
+        micro)
+            # 256 - (100 + 100) = 56
+            OPENSHIFT_MAVEN_XMX="-Xmx32m"
+        ;;
+        small)
+            # 512 - (256 + 128) = 128
+            OPENSHIFT_MAVEN_XMX="-Xmx96m"
+        ;;
+        medium)
+            # 1024 - (664 + 128) = 232
+            OPENSHIFT_MAVEN_XMX="-Xmx192m"
+        ;;
+        large)
+            # 2048 - (1456 + 148) = 444
+            OPENSHIFT_MAVEN_XMX="-Xmx384m"
+        ;;
+        exlarge)
+            # 4096 - (2888 + 184) = 1024
+            OPENSHIFT_MAVEN_XMX="-Xmx896m"
+        ;;
+        jumbo)
+            # 8192 - (5888 + 256) = 2048
+            OPENSHIFT_MAVEN_XMX="-Xm1584m"
+        ;;
+        *)
+            OPENSHIFT_MAVEN_XMX="-Xmx96m"
+        ;;
+    esac
+fi
 
 if [ -z "$BUILD_NUMBER" ]
 then

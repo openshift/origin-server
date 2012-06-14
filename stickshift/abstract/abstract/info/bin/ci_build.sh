@@ -17,6 +17,10 @@ then
   ln -s ~/$WORKSPACE $REPO_LINK
 fi
 
+# Export the CI_BUILD variable which will allow the downstream build
+# scripts to know they are running in the context of a CI build.
+export CI_BUILD=0
+
 set_app_state building
 
 user_pre_build.sh
