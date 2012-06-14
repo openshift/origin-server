@@ -30,3 +30,14 @@ Feature: RUBY Application
     And a ruby application git repo will not exist
     And a ruby application source tree will not exist
     And a ruby application httpd will not be running
+
+  Scenario: Push a code change to a new Ruby application
+    Given an accepted node
+    And a new guest account
+    And the guest account has no application installed
+    When I configure a ruby application
+    And the application is prepared for git pushes
+    Then a ruby application httpd will be running 
+    When the ruby-1.8 application code is changed
+    Then a ruby application httpd will be running 
+    And the ruby-1.8 application should change pids
