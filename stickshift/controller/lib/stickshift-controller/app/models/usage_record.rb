@@ -11,7 +11,7 @@ class UsageRecord < StickShift::UserModel
   def initialize(event=nil, user=nil, time=nil, uuid=nil)
     self.uuid = uuid ? uuid : StickShift::Model.gen_uuid
     self.event = event
-    self.time = time ? time : Time.new
+    self.time = time ? time : Time.now.utc
     self.user = user
     self.sync_time = nil
   end

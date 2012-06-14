@@ -1348,7 +1348,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
   def track_gear_usage(gear, event)
     if Rails.configuration.usage_tracking[:datastore_enabled]
-      now = Time.new
+      now = Time.now.utc
       uuid = StickShift::Model.gen_uuid
       self.gear_usage_records = [] unless gear_usage_records
       self.gear_usage_records << GearUsageRecord.new(gear.uuid, gear.node_profile, event, user, now, uuid)
