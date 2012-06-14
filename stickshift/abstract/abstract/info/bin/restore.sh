@@ -10,7 +10,8 @@ done
 
 if [ "$include_git" = "INCLUDE_GIT" ]
 then
-  ~/git/${OPENSHIFT_GEAR_NAME}.git/hooks/pre-receive 1>&2
+  # prevent feeding the tarball to pre-receive on stdin
+  ~/git/${OPENSHIFT_GEAR_NAME}.git/hooks/pre-receive < /dev/null 1>&2
   echo "Removing old git repo: ~/git/${OPENSHIFT_GEAR_NAME}.git/" 1>&2
   /bin/rm -rf ~/git/${OPENSHIFT_GEAR_NAME}.git/[^h]*/*
 else
