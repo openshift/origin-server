@@ -1,7 +1,5 @@
 require 'rack/lobster'
-
-# Comment thread-dump till rpm is available.
-#require 'thread-dump'
+require './thread-dumper'
 
 map '/health' do
   health = proc do |env|

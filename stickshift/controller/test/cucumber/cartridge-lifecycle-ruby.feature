@@ -11,6 +11,7 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
     |     1     |  ruby-1.8    |
+    |     1     |  ruby-1.9    |
 
   Scenario Outline: Application Modification
     Given an existing <type> application
@@ -21,6 +22,7 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Modification Scenarios
     |      type     |
     |   ruby-1.8    |
+    |   ruby-1.9    |
     
   Scenario Outline: Application Restarting
     Given an existing <type> application
@@ -30,6 +32,7 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Restart Scenarios
     |      type     |
     |   ruby-1.8    |
+    |   ruby-1.9    |
     
   Scenario Outline: Application Tidy
     Given an existing <type> application
@@ -39,6 +42,7 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Tidy Scenarios
     |      type     |
     |   ruby-1.8    |
+    |   ruby-1.9    |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application
@@ -48,3 +52,4 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Destroying Scenarios
     |      type     |
     |   ruby-1.8    |
+    |   ruby-1.9    |

@@ -69,7 +69,8 @@ def get_pid_file(type)
     "nodejs-0.6" => "node.pid",
     "perl-5.10" => "httpd.pid",
     "python-2.6" => "httpd.pid",
-    "ruby-1.8" => "httpd.pid"
+    "ruby-1.8" => "httpd.pid",
+    "ruby-1.9" => "httpd.pid"
   }
 
   raise "No pid filename is configured for cartridge type #{type}" unless pid_files_by_type.has_key?(type)
@@ -87,6 +88,7 @@ def get_index_file(type)
   index_files_by_type = {
     "php-5.3" => "php/index.php",
     "ruby-1.8" => "config.ru",
+    "ruby-1.9" => "config.ru",
     "python-2.6" => "wsgi/application",
     "perl-5.10" => "perl/index.pl",
     "jbossas-7" => "src/main/webapp/index.html",

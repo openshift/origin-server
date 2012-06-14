@@ -41,6 +41,7 @@ Requires:  ruby193-rubygem-bacon
 Requires:  ruby193-rubygem-bcrypt-ruby
 Requires:  ruby193-rubygem-bigdecimal
 Requires:  ruby193-rubygem-bson
+Requires:  ruby193-rubygem-bson_ext
 Requires:  ruby193-rubygem-builder
 Requires:  ruby193-rubygem-bundler
 Requires:  ruby193-rubygem-coffee-rails
@@ -92,18 +93,13 @@ Requires:  ruby193-rubygem-tzinfo
 Requires:  ruby193-rubygem-uglifier
 Requires:  ruby193-rubygem-xml-simple
 Requires:  ruby193-runtime
-
-# FIXME: Need to enable these packages once they fixed in the ruby193 repo.
-# Requires:  ruby193-rubygem-passenger
-# Requires:  ruby193-rubygem-passenger-devel
-# Requires:  ruby193-rubygem-passenger-native
-# Requires:  ruby193-rubygem-passenger-native-libs
-# Requires:  ruby193-mod_passenger
-
-# FIXME: Need to enable these packages once they are in the ruby193 repo.
-# Requires:  ruby193-rubygem-thread-dump
-# Requires:  ruby193-rubygem-mysql
-# Requires:  ruby193-rubygem-bson_ext
+Requires:  ruby193-rubygem-passenger
+Requires:  ruby193-rubygem-passenger-devel
+Requires:  ruby193-rubygem-passenger-native
+Requires:  ruby193-rubygem-passenger-native-libs
+Requires:  ruby193-mod_passenger
+Requires:  ruby193-ruby-mysql
+Requires:  ruby193-rubygem-pg
 
 Requires:  mysql-devel
 Requires:  ruby-devel

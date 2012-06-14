@@ -1,6 +1,6 @@
 # Controller cartridge command paths
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
-$ruby_cartridge = "#{$cartridge_root}/ruby-1.8"
+$ruby_cartridge = "#{$cartridge_root}/ruby-'%s'"
 $ruby_common_conf_path = "#{$ruby_cartridge}/info/configuration/etc/conf/httpd_nolog.conf"
 $ruby_hooks = "#{$ruby_cartridge}/info/hooks"
 $ruby_config_path = "#{$ruby_hooks}/configure"
@@ -20,7 +20,7 @@ $ruby_status_format = "#{$ruby_status_path} '%s' '%s' '%s'"
 
 $libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
 
-When /^I configure a ruby application$/ do
+When /^I configure a ruby\-([\w\-\.]+) application$/ do |rubyver|
   account_name = @account['accountname']
   namespace = @account['namespace']
   app_name = @account['appnames'][0]
@@ -28,7 +28,7 @@ When /^I configure a ruby application$/ do
     'name' => app_name,
     'namespace' => namespace
   }
-  command = $ruby_config_format % [app_name, namespace, account_name]
+  command = $ruby_config_format % [rubyver, app_name, namespace, account_name]
   exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 20
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
@@ -64,11 +64,11 @@ Then /^a ruby application git repo will( not)? exist$/ do | negate |
 
 end
 
-Then /^a ruby application source tree will( not)? exist$/ do | negate |
+Then /^a ruby\-([\w\-\.]+) application source tree will( not)? exist$/ do | rubyver, negate |
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/#{app_name}"
+  app_root = "#{$home_root}/#{acct_name}/ruby-#{rubyver}"
   status = (File.exists? app_root and File.directory? app_root) 
   # TODO - need to check permissions and SELinux labels
 
@@ -124,7 +124,7 @@ Then /^ruby application log files will( not)? exist$/ do | negate |
 
 end
 
-Given /^a new ruby application$/ do
+Given /^a new ruby\-([\w\-\.]+) application$/ do |rubyver|
   account_name = @account['accountname']
   app_name = @account['appnames'][0]
   namespace = @account['namespace']
@@ -132,21 +132,21 @@ Given /^a new ruby application$/ do
     'namespace' => namespace,
     'name' => app_name
   }
-  command = $ruby_config_format % [app_name, namespace, account_name]
+  command = $ruby_config_format % [rubyver, app_name, namespace, account_name]
   exitcode = runcon command, $selinux_user, $selinux_role, $selinux_type, nil, 20
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
 
-When /^I deconfigure the ruby application$/ do
+When /^I deconfigure the ruby\-([\w\-\.]+) application$/ do |rubyver|
   account_name = @account['accountname']
   namespace = @app['namespace']
   app_name = @app['name']
-  command = $ruby_deconfig_format % [app_name, namespace, account_name]
+  command = $ruby_deconfig_format % [rubyver, app_name, namespace, account_name]
   exitcode = runcon command,  $selinux_user, $selinux_role, $selinux_type, nil, 25
   raise "Non zero exit code: #{exitcode}" unless exitcode == 0
 end
 
-Given /^the ruby application is (running|stopped)$/ do | start_state |
+Given /^the ruby\-([\w\-\.]+) application is (running|stopped)$/ do | rubyver, start_state |
   account_name = @account['accountname']
   namespace = @app['namespace']
   app_name = @app['name']
@@ -161,12 +161,12 @@ Given /^the ruby application is (running|stopped)$/ do | start_state |
   end
 
   # check
-  status_command = $ruby_status_format %  [app_name, namespace, account_name]
+  status_command = $ruby_status_format %  [rubyver, app_name, namespace, account_name]
   exit_status = runcon status_command, $selinux_user, $selinux_role, $selinux_type, nil, 2
 
   if exit_status != good_exit
     # fix it
-    fix_command = "#{$ruby_hooks}/%s %s %s %s" % [fix_action, app_name, namespace, account_name]
+    fix_command = "#{$ruby_hooks}/%s %s %s %s" % [rubyver, fix_action, app_name, namespace, account_name]
     exit_status = runcon fix_command, $selinux_user, $selinux_role, $selinux_type, nil, 2
     if exit_status != 0
       raise "Unable to %s for %s %s %s" % [fix_action, app_name, namespace, account_name]
@@ -181,26 +181,26 @@ Given /^the ruby application is (running|stopped)$/ do | start_state |
   # check again
 end
 
-When /^I (start|stop) the ruby application$/ do |action|
+When /^I (start|stop) the ruby\-([\w\-\.]+) application$/ do |action, rubyver|
   account_name = @account['accountname']
   namespace = @app['namespace']
   app_name = @app['name']
 
-  command = "#{$ruby_hooks}/%s %s %s %s" % [action, app_name, namespace, account_name]
+  command = "#{$ruby_hooks}/%s %s %s %s" % [rubyver, action, app_name, namespace, account_name]
   exit_status = runcon command, $selinux_user, $selinux_role, $selinux_type, nil, 20
   if exit_status != 0
     raise "Unable to %s for %s %s %s" % [action, app_name, namespace, account_name]
   end
 end
 
-Then /^the ruby application will( not)? be running$/ do | negate |
+Then /^the ruby\-([\w\-\.]+) application will( not)? be running$/ do | rubyver, negate |
   account_name = @account['accountname']
   namespace = @app['namespace']
   app_name = @app['name']
 
   good_status = negate ? 0 : 0
 
-  command = "#{$ruby_hooks}/status %s %s %s" % [app_name, namespace, account_name]
+  command = "#{$ruby_hooks}/status %s %s %s" % [rubyver, app_name, namespace, account_name]
   exit_status = runcon command, $selinux_user, $selinux_role, $selinux_type, nil, 2
   exit_status.should == good_status
 end

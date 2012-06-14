@@ -19,4 +19,4 @@ fi
 
 redeploy_repo_dir.sh
 
-user_pre_build.sh
+/usr/bin/scl enable ruby193 "user_pre_build.sh"

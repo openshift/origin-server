@@ -36,16 +36,16 @@ then
           SAVED_GIT_DIR=$GIT_DIR
           unset GIT_DIR
           pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-          bundle install --deployment
+          /usr/bin/scl enable ruby193 "bundle install --deployment"
           popd > /dev/null
           export GIT_DIR=$SAVED_GIT_DIR
       fi
       echo "Precompiling with 'bundle exec rake assets:precompile'"
       pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-      bundle exec rake assets:precompile 2>/dev/null
+      /usr/bin/scl enable ruby193 "bundle exec rake assets:precompile" 2>/dev/null
       popd > /dev/null
   fi
 
 fi
 
-user_build.sh
+/usr/bin/scl enable ruby193 "user_build.sh"
