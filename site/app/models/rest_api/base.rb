@@ -541,18 +541,18 @@ module RestApi
         end
     end
 
+    #
+    # The user under whose context we will be accessing the remote server
+    #
+    def as
+      @as
+    end
     def as=(as)
       @connection = nil
       @as = as
     end
 
     protected
-      #
-      # The user under whose context we will be accessing the remote server
-      #
-      def as
-        return @as
-      end
 
       def connection(refresh = false)
         raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as

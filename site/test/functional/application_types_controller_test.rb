@@ -22,6 +22,12 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert popular = assigns(:popular_types)
   end
 
+  test "should be able to find templates" do
+    types = ApplicationType.all :as => @user
+    (templates,) = types.partition{|t| t.template}
+    assert_not_equal 0, templates.length, "There should be templates to test against"
+  end
+
   test "should show type page" do
     types = ApplicationType.all :as => @user
 
@@ -43,7 +49,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should fill domain info" do
-    setup_domain
+    with_unique_domain
     t = ApplicationType.all(:as => @user)[0]
 
     get :show, :id => t.id

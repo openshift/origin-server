@@ -17,6 +17,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
+  attr_accessor :conflicts, :requires
   attr_accessor :help_topics
   attr_accessor :priority
 
@@ -45,6 +46,18 @@ class CartridgeType < RestApi::Base
   end
   def categories=(cats)
     @categories = cats.map{ |c| c.to_sym }.compact
+  end
+
+  def conflicts
+    @conflicts || []
+  end
+
+  def requires
+    @requires || []
+  end
+
+  def help_topics
+    @help_topics || {}
   end
 
   def priority

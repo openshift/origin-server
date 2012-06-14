@@ -2,16 +2,14 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class CartridgeTypesControllerTest < ActionController::TestCase
 
-  setup :with_unique_domain
-
   test "should show index" do
-    get :index, :application_id => readable_app.name
+    get :index, :application_id => with_app.name
     assert_response :success
 
     assert app = assigns(:application)
-    assert_equal readable_app.name, app.name
+    assert_equal with_app.name, app.name
     assert domain = assigns(:domain)
-    assert_equal readable_app.domain_id, domain.id
+    assert_equal with_app.domain_id, domain.id
 
     assert types = assigns(:installed)
     assert_equal 0, types.length
@@ -24,13 +22,13 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert types = assigns(:carts)
     assert types.length > 0
 
-    cached = CartridgeType.cached.all :as => @user
+    cached = CartridgeType.cached.all :as => with_app.as
     assert cached.all? {|t| (t.categories & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 
   test "should show type page" do
-    t = CartridgeType.embedded(:as => @user).first
-    get :show, :application_id => readable_app.name, :id => t.name
+    t = CartridgeType.embedded(:as => with_app.as).first
+    get :show, :application_id => with_app.name, :id => t.name
     assert_response :success
     assert type = assigns(:cartridge_type)
     assert_equal t.name, type.name
@@ -42,8 +40,9 @@ class CartridgeTypesControllerTest < ActionController::TestCase
   test "should not raise on missing type" do
     # We allow arbitrary cartridges, but we may want to change that
     #assert_raise(StandardError) do
-      get :show, :application_id => readable_app.name, :id => 'missing_cartridge_type'
+      get :show, :application_id => with_app.name, :id => 'missing_cartridge_type'
       assert_response :success
     #end
   end
 end
+

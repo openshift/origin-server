@@ -3,15 +3,11 @@ require File.expand_path('../../test_helper', __FILE__)
 class ScalingControllerTest < ActionController::TestCase
   include ActiveSupport::Testing::Isolation
 
-  def setup
-    require 'active_resource/persistent_http_mock'
-  end
-
   def json_header(is_post=false)
     {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(auth_headers)
   end
 
-  def domain
+  def mock_domain
     {:id => 'test'}
   end
   def app_without_scaling
@@ -49,12 +45,13 @@ class ScalingControllerTest < ActionController::TestCase
     ]
   end
 
-  def with_app(app=app_without_scaling, gear_groups=groups_without_scaling)
+  def with_mock_app(app=app_without_scaling, gear_groups=groups_without_scaling)
     with_unique_user
 
+    require 'active_resource/persistent_http_mock'
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', json_header, [].to_json
-      mock.get '/broker/rest/domains.json', json_header, [domain].to_json
+      mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications.json', json_header, [app].compact.to_json
       mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, gear_groups.to_json
@@ -64,39 +61,41 @@ class ScalingControllerTest < ActionController::TestCase
 
   def without_scaling
     with_unique_user
-    with_app
+    with_mock_app
   end
   def with_scaling(multiplier=1)
     with_unique_user
-    with_app(app_with_scaling, groups_with_scaling(multiplier))
+    with_mock_app(app_with_scaling, groups_with_scaling(multiplier))
   end
 
-  test "should get redirected from show without scaling" do
-    get :show, without_scaling
-    assert app = assigns(:application)
-    assert assigns(:domain)
-    assert_redirected_to new_application_scaling_path(app)
-  end
+  [true, false].each do |mock|
+    test "should get redirected from show without scaling #{'(mock)' if mock}" do
+      get :show, mock ? without_scaling : {:application_id => with_app.to_param}
+      assert app = assigns(:application)
+      assert assigns(:domain)
+      assert_redirected_to new_application_scaling_path(app)
+    end
 
-  test "should get redirected from delete without scaling" do
-    get :delete, without_scaling
-    assert app = assigns(:application)
-    assert assigns(:domain)
-    assert_redirected_to new_application_scaling_path(app)
-  end
+    test "should get redirected from delete without scaling #{'(mock)' if mock}" do
+      get :delete, mock ? without_scaling : {:application_id => with_app.to_param}
+      assert app = assigns(:application)
+      assert assigns(:domain)
+      assert_redirected_to new_application_scaling_path(app)
+    end
 
-  test "should see new page without scaling" do
-    get :new, without_scaling
-    assert app = assigns(:application)
-    assert assigns(:domain)
-    assert_response :success
-  end
+    test "should see new page without scaling #{'(mock)' if mock}" do
+      get :new, mock ? without_scaling : {:application_id => with_app.to_param}
+      assert app = assigns(:application)
+      assert assigns(:domain)
+      assert_response :success
+    end
 
-  test "should show if all components exist" do
-    get :show, with_scaling
-    assert app = assigns(:application)
-    assert app.ssh_string
-    assert assigns(:domain)
-    assert_response :success
+    test "should show if all components exist #{'(mock)' if mock}" do
+      get :show, mock ? with_scaling : {:application_id => with_scalable_app.to_param}
+      assert app = assigns(:application)
+      assert app.ssh_string
+      assert assigns(:domain)
+      assert_response :success
+    end
   end
 end
