@@ -20,7 +20,10 @@ then
     # Prep the mysql database
     (
         /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
-        echo "; use mysql; update user set Host='$OPENSHIFT_DB_HOST' where Host='$OLD_IP'; SET PASSWORD FOR '$OPENSHIFT_DB_USERNAME'@'$OPENSHIFT_DB_HOST' = PASSWORD('$OPENSHIFT_DB_PASSWORD');"
+        echo ";"
+        echo "UPDATE mysql.user SET Host='$OPENSHIFT_DB_HOST' WHERE Host='$OLD_IP';"
+        echo "UPDATE mysql.user SET Password=PASSWORD('$OPENSHIFT_DB_PASSWORD') WHERE User='$OPENSHIFT_DB_USERNAME';"
+        echo "FLUSH PRIVILEGES;"
     ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_DB_PORT -u $OPENSHIFT_DB_USERNAME --password="$OPENSHIFT_DB_PASSWORD"
     if [ ! ${PIPESTATUS[1]} -eq 0 ]
     then
