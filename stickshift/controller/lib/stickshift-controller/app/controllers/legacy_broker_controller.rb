@@ -27,14 +27,16 @@ class LegacyBrokerController < ApplicationController
       end
       user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
       app_info = {}
-      @cloud_user.applications.each do |app|
-        app_info[app.name] = {
-          "framework" => app.framework,
-          "creation_time" => app.creation_time,
-          "uuid" => app.uuid,
-          "aliases" => app.aliases,
-          "embedded" => app.embedded
-        }
+      if @cloud_user.applications
+        @cloud_user.applications.each do |app|
+          app_info[app.name] = {
+            "framework" => app.framework,
+            "creation_time" => app.creation_time,
+            "uuid" => app.uuid,
+            "aliases" => app.aliases,
+            "embedded" => app.embedded
+          }
+        end
       end
       
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_USER_INFO")

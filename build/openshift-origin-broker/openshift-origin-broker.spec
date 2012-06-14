@@ -40,13 +40,6 @@ Installs and configures a OpenShift Origin broker environment locally
 %post
 perl -p -i -e "s/^#auth = .*$/auth = true/" /etc/mongodb.conf
 
-cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE=eth0
-BOOTPROTO=dhcp
-ONBOOT=yes
-NM_MANAGED=no
-EOF
-
 echo 'AcceptEnv GIT_SSH' >> /etc/ssh/sshd_config
 
 lokkit --service=ssh
@@ -64,11 +57,6 @@ sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'gearchanger-mc
 echo "require File.expand_path('../plugin-config/gearchanger-mcollective-plugin.rb', __FILE__)" >> /var/www/stickshift/broker/config/environments/development.rb
 
 pushd /var/www/stickshift/broker/ && bundle install && chown apache:apache Gemfile.lock && popd
-
-cat <<EOF > /etc/resolv.conf
-search example.com
-nameserver 127.0.0.1
-EOF
 
 cat <<EOF > /etc/mcollective/client.cfg
 topicprefix = /topic/
@@ -114,8 +102,6 @@ factsource = yaml
 plugin.yaml = /etc/mcollective/facts.yaml
 EOF
 
-chmod 755 /etc/rc.d/init.d/livesys-late-openshift
-/sbin/restorecon /etc/rc.d/init.d/livesys-late-openshift
 /sbin/restorecon -r /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid
 
 if [ ! -f /etc/qpidd.conf.orig ] ; then
@@ -124,13 +110,8 @@ fi
 cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
 echo "auth=no" >> /etc/qpidd.conf
 
-chkconfig --add livesys-late-openshift
 chkconfig sshd on
-chkconfig stickshift-broker on
 chkconfig httpd on
-chkconfig mongod on
-chkconfig qpidd on
-chkconfig mcollective on
 
 %install
 rm -rf %{buildroot}
@@ -147,19 +128,17 @@ mkdir -p %{buildroot}/etc/stickshift
 mkdir -p %{buildroot}/var/www/html
 cp doc/getting_started.html %{buildroot}/var/www/html
 
-mkdir -p %{buildroot}/etc/rc.d/init.d
-cp init-scripts/livesys-late-openshift %{buildroot}/etc/rc.d/init.d/
-
 mv bin/ss-register-dns %{buildroot}%{_bindir}
+mv bin/ss-setup-broker %{buildroot}%{_bindir}
 %clean
 rm -rf %{buildroot}                                
 
 %files
 %defattr(-,root,root,-)
 /etc/skel
-%attr(0700,-,-) /etc/rc.d/init.d/livesys-late-openshift
 %attr(0555,apache,apache) /var/www/html
 %attr(0700,-,-) /usr/bin/ss-register-dns
+%attr(0700,-,-) /usr/bin/ss-setup-broker
 
 %changelog
 * Fri Jun 08 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1

@@ -176,21 +176,15 @@ task :createrepo do
 end
 
 task :install_broker do
-  sudo "service httpd stop"
-  sudo "service stickshift-broker stop"
   sudo "yum erase -y stickshift-* rubygem-stickshift-*"
   sudo "yum clean metadata"
   sudo "yum install -y openshift-origin-broker openshift-origin-node cartridge-* --skip-broken"
-  sudo "service httpd start"
-  sudo "service stickshift-broker start"
 end
 
 task :install_node do
-  sudo "service httpd stop"
   sudo "yum erase -y openshift-origin-node cartridge-* rubygem-stickshift-node rubygem-stickshift-abstract rubygem-stickshift-common"
   sudo "yum clean metadata"
   sudo "yum install -y openshift-origin-node cartridge-* --skip-broken"
-  sudo "service httpd start"
 end
 
 task :clean do
