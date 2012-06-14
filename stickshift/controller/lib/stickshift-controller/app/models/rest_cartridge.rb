@@ -1,9 +1,10 @@
 class RestCartridge < StickShift::Model
-  attr_accessor :type, :name, :links
+  attr_accessor :type, :name, :links, :properties
   
-  def initialize(type, name, app, url)
+  def initialize(type, name, app, url, properties = {})
     self.name = name
     self.type = type
+    self.properties = properties
     if app
     domain_id = app.domain.namespace
     app_id = app.name

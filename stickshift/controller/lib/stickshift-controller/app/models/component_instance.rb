@@ -1,6 +1,6 @@
 class ComponentInstance < StickShift::Model
   attr_accessor :state, :parent_cart_name, :parent_cart_profile, :parent_component_name, :parent_cart_group,
-                :name, :dependencies, :group_instance_name, :exec_order, :cart_data
+                :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties
 
   def initialize (cartname=nil, profname=nil, groupname=nil, compname=nil, pathname=nil, gi=nil)
     self.name = pathname
@@ -12,10 +12,17 @@ class ComponentInstance < StickShift::Model
     self.dependencies = []
     self.exec_order = []
     self.cart_data = []
+    self.cart_properties = {}
   end
   
   def process_cart_data(data)
     self.cart_data.push data
+  end
+
+  def process_cart_properties(properties)
+    properties.each do |prop|
+      self.cart_properties[prop[0]] = prop[1]
+    end
   end
 
   def get_component_definition(app)

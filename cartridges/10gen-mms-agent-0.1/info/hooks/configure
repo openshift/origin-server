@@ -115,5 +115,7 @@ client_result "Please configure your mongodb host at https://mms.10gen.com/ to s
 client_result ""
 client_result "Monitoring URL: https://mms.10gen.com/"
 
+cart_props "monitoring_url=https://mms.10gen.com/"
+
 set_app_info "Monitoring URL: https://mms.10gen.com/"
 enable_cgroups

@@ -1,5 +1,5 @@
 class ResultIO
-  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands
+  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :cart_properties
   
   def initialize
     @debugIO = StringIO.new
@@ -10,6 +10,7 @@ class ResultIO
     @data = ""
     @exitcode = 0
     @cart_commands = []
+    @cart_properties = {}
   end
   
   def append(resultIO)
@@ -19,6 +20,7 @@ class ResultIO
     self.errorIO << resultIO.errorIO.string
     self.appInfoIO << resultIO.appInfoIO.string
     self.cart_commands += resultIO.cart_commands
+    self.cart_properties = resultIO.cart_properties.merge(self.cart_properties)
     self.exitcode = resultIO.exitcode
     self.data += resultIO.data
     self
@@ -31,6 +33,7 @@ class ResultIO
           "--ERROR--\n#{@errorIO.string}\n" +
           "--APP INFO--\n#{@appInfoIO.string}\n" +
           "--CART COMMANDS--\n#{@cart_commands.join("\n")}\n" +
+          "--CART PROPERTIES--\n#{@cart_properties.inspect}\n" +
           "--DATA--\n#{@data}\n" +
           "--EXIT CODE--\n#{@exitcode}\n"          
   end
