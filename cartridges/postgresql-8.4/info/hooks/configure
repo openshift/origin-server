@@ -143,5 +143,10 @@ client_result "Connection URL: postgresql://$IP:5432/"
 client_result ""
 #client_result "You can manage your new PostgreSQL database by also embedding phpPgAdmin."
 
+cart_props "connection_url=postgresql://$IP:5432/"
+cart_props "username=admin"
+cart_props "password=$password"
+cart_props "database_name=${application}"
+
 set_app_info "Connection URL: postgresql://$IP:5432/"
 enable_cgroups

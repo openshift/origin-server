@@ -116,4 +116,6 @@ client_result "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
 client_result ""
 client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_GEAR_NAME"
 
+cart_props "job_url=${JENKINS_URL}job/${JOB_NAME}/"
+
 set_app_info "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"

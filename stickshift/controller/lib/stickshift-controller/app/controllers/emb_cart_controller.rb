@@ -20,7 +20,7 @@ class EmbCartController < BaseController
     cartridges = Array.new
     unless application.embedded.nil?
       application.embedded.each do |key, value|
-        cartridge = RestCartridge.new("embedded", key, application, get_url)
+        cartridge = RestCartridge.new("embedded", key, application, get_url, value)
         cartridges.push(cartridge)
       end
     end
@@ -49,7 +49,7 @@ class EmbCartController < BaseController
       application.embedded.each do |key, value|
         if key == id
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
-          cartridge = RestCartridge.new("embedded", key, application, get_url)
+          cartridge = RestCartridge.new("embedded", key, application, get_url, value)
           @reply = RestReply.new(:ok, "cartridge", cartridge)
           respond_with @reply, :status => @reply.status
           return
@@ -222,4 +222,3 @@ class EmbCartController < BaseController
       end
   end
 end
-

@@ -125,6 +125,7 @@ class GroupInstance < StickShift::Model
       old_ci = app.comp_instance_map[cpath]
       ci = ComponentInstance.new(self.cart_name, self.profile_name, self.group_name, comp_ref.name, cpath, self)
       ci.cart_data += old_ci.cart_data unless old_ci.nil?
+      ci.process_cart_properties(old_ci.cart_properties) unless old_ci.nil?
       new_components << cpath
       self.component_instances << cpath if not self.component_instances.include? cpath
       app.comp_instance_map[cpath] = ci

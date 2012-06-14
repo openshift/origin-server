@@ -199,5 +199,10 @@ fi
 client_result ""
 client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 
+cart_props "connection_url=mongodb://$mongodb_ip:$mongodb_port/"
+cart_props "username=admin"
+cart_props "password=$password"
+cart_props "database_name=$application"
+
 set_app_info "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
 enable_cgroups

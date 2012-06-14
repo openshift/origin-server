@@ -348,6 +348,10 @@ function cart_data {
     echo "CART_DATA: $@"
 }
 
+function cart_props {
+    echo "CART_PROPERTIES: $@"
+}
+
 function setup_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
