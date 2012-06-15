@@ -59,6 +59,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Fix for BZ785050 remove mod_autoindex from httpd.confs (tkramer@redhat.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
 - Fix for bug 812046 (abhgupta@redhat.com)
 
