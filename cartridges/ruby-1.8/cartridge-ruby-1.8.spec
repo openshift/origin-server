@@ -131,6 +131,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Security BZ785050 Removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
 - bumping spec versions (admiller@redhat.com)
 
