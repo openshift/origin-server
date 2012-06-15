@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.94.2
+Version: 0.94.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -113,6 +113,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Security - BZ785050 - Removed mod_autoindex from the two httpd.conf files
+  (tkramer@redhat.com)
+
 * Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
 - BZ785050  Remove mod_autoindex from the two httpd.conf files (tkramer@redhat.com)
 
