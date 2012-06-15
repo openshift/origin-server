@@ -163,10 +163,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # @param [String] app_name
   # @return [Application]
   def self.find(user, app_name)
+    return nil if app_name.nil? or app_name.empty?
     app = nil
     if user.applications
       user.applications.each do |next_app|
-        if next_app.name == app_name
+        if next_app.name.downcase == app_name.downcase
           app = next_app
           break
         end
@@ -1096,6 +1097,15 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
 
+  def get_public_ip_address
+    begin
+      return self.container.get_public_ip_address
+    rescue Exception=>e
+      Rails.logger.debug e.backtrace.inspect
+      return nil
+    end
+  end
+  
   # Returns the first Gear object on which the application is running
   # @return [Gear]
   # @deprecated  

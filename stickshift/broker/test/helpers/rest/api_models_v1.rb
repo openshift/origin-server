@@ -273,7 +273,7 @@ class RestKey_V1 < BaseObj_V1
 end
 
 class RestApplication_V1 < BaseObj_V1
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
 
   def initialize(name=nil, framework=nil, domain_id=nil, scalable=nil)
     self.name = name
@@ -287,6 +287,7 @@ class RestApplication_V1 < BaseObj_V1
     self.gear_profile = nil
     self.git_url = nil
     self.app_url = nil
+    self.ssh_url = nil
     self.scalable = scalable
     self.scale_min = 1
     self.scale_max = -1

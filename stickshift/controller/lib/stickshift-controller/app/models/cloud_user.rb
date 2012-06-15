@@ -5,7 +5,7 @@
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
   private :login=, :uuid=, :save_jobs=
 
-  DEFAULT_SSH_KEY_NAME = "default"
+  DEFAULT_SSH_KEY_NAME = "default" unless defined? DEFAULT_SSH_KEY_NAME
 
   validates_each :login do |record, attribute, val|
     record.errors.add(attribute, {:message => "Invalid characters found in login '#{val}' ", :exit_code => 107}) if val =~ /["\$\^<>\|%\/;:,\\\*=~]/
