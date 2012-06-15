@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.25.1
+Version: 0.25.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.25.2-1
+- BZ831854: Add expat-devel as a requirement for building the XML::Parser
+  module. (rmillner@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.25.1-1
 - bumping spec versions (admiller@redhat.com)
 
