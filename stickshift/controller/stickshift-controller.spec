@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.7
+Version: 0.12.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,19 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.8-1
+- switch to using utc time (dmcphers@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- Trap error case when user tried to specify subaccount but parent account
+  cannot be found. Returning 401 instead of 500. (kraman@gmail.com)
+- Checkpoint ruby-1.9 work (ruby-1.9 disabled for now in framework cartridges).
+  Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1]. Match up
+  spec file to first build version in brew and checkpoint with
+  working/available ruby193 packages. (ramr@redhat.com)
+- Adding ability to use sub-users using X-impersonate-user header Changes to
+  query subaccounts by parent login (kraman@gmail.com)
+
 * Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
 - support for group overrides so that we do not rely on filesystem co-location
   - fix for bug#824124 (rchopra@redhat.com)
