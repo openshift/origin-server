@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.1.2
+Version: 0.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -205,6 +205,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Use the right hook names -- thanks mpatel. (ramr@redhat.com)
+- Checkpoint ruby-1.9 work (ruby-1.9 disabled for now in framework cartridges).
+  Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1]. Match up
+  spec file to first build version in brew and checkpoint with
+  working/available ruby193 packages. (ramr@redhat.com)
+
 * Tue Jun 12 2012 Ram Ranganathan <ramr@redhat.com>  0-1.2-1
 - Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1].
   (ramr@redhat.com)
