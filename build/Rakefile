@@ -14,6 +14,8 @@ def sudo(cmd)
 end
 
 def repo_string(rpmdir)
+redhat_release = File.open("/etc/redhat-release").read
+  if redhat_release.match(/Fedora/)
   <<-EOF
 [local_build]
 name    = local_build
@@ -33,6 +35,21 @@ baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
 gpgcheck= 0
 enabled = 1
   EOF
+  else
+  <<-EOF
+[local_build]
+name    = local_build
+baseurl = file://#{rpmdir}/noarch
+gpgcheck= 0
+enabled = 1
+
+[openshift_origin]
+name    = openshift_origin
+baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
+gpgcheck= 0
+enabled = 1
+  EOF
+  end
 end
 
 def build_srpm(specs, rpmdir, test_build=true)

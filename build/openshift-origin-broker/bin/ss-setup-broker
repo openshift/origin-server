@@ -49,7 +49,7 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
-eth_device = args["--eth-device"] || eth0
+eth_device = args["--eth-device"] || "eth0"
 use_dhcp   = args["--static-ip"].nil?
 dns        = args["--static-dns"]
 dns_address = dns.split(/,/) unless dns.nil?
