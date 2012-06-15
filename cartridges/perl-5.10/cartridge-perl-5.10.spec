@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.25.2
+Version: 0.25.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.25.3-1
+- Security - #BZ785050 Removed mod_autoindex from both httpd.conf files
+  (tkramer@redhat.com)
+
 * Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
 - BZ785050 Removed the mod_autoindex from both httpd.conf files (tkramer@redhat.com)
 
