@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.94.2
+Version: 0.94.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
 - fix jenkins httpd proxy (bdecoste@gmail.com)
 
