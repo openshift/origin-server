@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.4
+Version: 0.28.5
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.28.5-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+- BZ828703: Scalable apps use the host field differently; just update the
+  password on every admin entry. (rmillner@redhat.com)
+
 * Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.28.4-1
 - BZ824409 call unobfuscate_app_home on mongo and mysql gear moves
   (jhonce@redhat.com)
