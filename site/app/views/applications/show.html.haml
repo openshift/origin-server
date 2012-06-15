@@ -111,7 +111,10 @@
 
                   %h6= link_to 'Want to log in to your application?', '#', :'data-unhide' => '.ssh.hidden'
                   .ssh.hidden
-                    %p The command below will open a Secure Shell (SSH) session to your application on most operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information about connecting with Windows, Mac, and Linux computers.
+                    %p 
+                      The command below will open a Secure Shell (SSH) session to your application on most 
+                      operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information 
+                      about connecting with Windows, Mac, and Linux computers.
                     %p
                       %input#application_ssh_url.git-url{:readonly => 'readonly', :value => "ssh #{cartridge.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
                       - content_for :javascripts do
