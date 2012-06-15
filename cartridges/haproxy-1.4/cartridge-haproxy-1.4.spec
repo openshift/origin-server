@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.11.4
+Version: 0.11.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.11.5-1
+- Security - # BZ785050 Removed the mod_autoindex from the httpd.conf files
+  (tkramer@redhat.com)
+
 * Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
 - # BZ785050 Removed mod_autoindex from two httpd.conf files
 
