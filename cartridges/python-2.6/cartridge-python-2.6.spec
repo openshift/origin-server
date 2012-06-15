@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.94.2
+Version: 0.94.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Security - BZ785050 remove mod_autoindex from all httpd.confs
+  (tkramer@redhat.com)
+
 * Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
 - Security - BZ785050 removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
 
