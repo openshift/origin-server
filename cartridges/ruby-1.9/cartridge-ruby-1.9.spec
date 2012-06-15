@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.1.3
+Version: 0.1.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -205,6 +205,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Security - BZ785050 remove mod_autoindex from all httpd.confs
+  (tkramer@redhat.com)
+
 * Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
 - Security BZ785050 Removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
 
