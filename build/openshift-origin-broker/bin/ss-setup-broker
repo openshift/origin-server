@@ -62,7 +62,8 @@ end
 
 if dns_address.nil?
   if use_dhcp
-    dns_address = `cat /var/lib/dhclient/dhclient-*#{eth_device}.lease | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n")
+    dns_address = `cat /var/lib/dhclient/dhclient-*#{eth_device}.lease | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
+    dns_address.delete '127.0.0.1'
   else
     dns_address = ["8.8.8.8", "8.8.4.4"]
   end

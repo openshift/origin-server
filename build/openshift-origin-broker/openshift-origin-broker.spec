@@ -23,10 +23,6 @@ Requires: rubygem-gearchanger-mcollective-plugin
 Requires: mcollective-qpid-plugin
 Requires: rhc
 
-BuildRequires: tito
-BuildRequires: fedora-kickstarts
-BuildRequires: livecd-tools
-BuildRequires: wget
 BuildArch:     noarch
 
 %description

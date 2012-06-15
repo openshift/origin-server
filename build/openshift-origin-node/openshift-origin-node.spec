@@ -15,8 +15,6 @@ Requires:       rubygems
 Requires:       java-1.6.0-openjdk
 Requires:       jpackage-utils
 Requires:       java-1.6.0-openjdk-devel
-Requires:       emacs
-Requires:       tig
 Requires:       openssh-server
 
 Requires:       rhc
@@ -25,10 +23,6 @@ Requires:       stickshift-mcollective-agent
 Requires:       rubygem-stickshift-node
 Requires:       stickshift-port-proxy
 
-BuildRequires:  tito
-BuildRequires:  fedora-kickstarts
-BuildRequires:  livecd-tools
-BuildRequires:  wget
 BuildArch:      noarch
 
 %description

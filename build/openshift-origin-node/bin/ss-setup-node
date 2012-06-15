@@ -86,4 +86,4 @@ system "/etc/cron.minutely/stickshift-facts"
 system "service crond restart"
 system "service mcollective restart"
 
-print "NOTE: Please ensure that the clocks between broker and node are in sync."
+print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"
