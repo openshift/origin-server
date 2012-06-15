@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.12.3
+Version: 0.12.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,15 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- Merge pull request #130 from abhgupta/agupta-dev
+  (mmcgrath+openshift@redhat.com)
+- Prevent passing binary on stdin to pre-receive hook (dmace@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- BZ829452: Stop and print an informative message if the remote repository
+  cannot be reached. (rmillner@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - Add port wrap around to manage UID descrepency between dev and the district
   code in stg/prod. (rmillner@redhat.com)
