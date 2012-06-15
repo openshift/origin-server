@@ -205,6 +205,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Security BZ785050 Removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Use the right hook names -- thanks mpatel. (ramr@redhat.com)
 - Checkpoint ruby-1.9 work (ruby-1.9 disabled for now in framework cartridges).
