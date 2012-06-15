@@ -98,6 +98,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- # BZ785050 Removed mod_autoindex from two httpd.conf files
+
 * Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.11.4-1
 - support for group overrides so that we do not rely on filesystem co-location
   - fix for bug#824124 (rchopra@redhat.com)
