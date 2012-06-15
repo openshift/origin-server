@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- BZ785050 Removed the mod_autoindex from both httpd.conf files (tkramer@redhat.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.25.2-1
 - BZ831854: Add expat-devel as a requirement for building the XML::Parser
   module. (rmillner@redhat.com)
