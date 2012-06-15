@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.94.5
+Version: 0.94.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.94.6-1
+- The medium builder appears to be unnecessary now and causes some confusion.
+  (rmillner@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- updated eap6 standalone.xml (bdecoste@gmail.com)
+
 * Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.5-1
 - bug 831130 (bdecoste@gmail.com)
 
