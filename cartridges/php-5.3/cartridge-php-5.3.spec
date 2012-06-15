@@ -113,6 +113,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- BZ785050  Remove mod_autoindex from the two httpd.conf files (tkramer@redhat.com)
+
 * Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
 - BZ827575.  Allow applications to specify foreign channels in deplist.txt.
   (rmillner@redhat.com)
