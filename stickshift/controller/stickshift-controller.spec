@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.3
+Version: 0.12.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,19 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Fix missing requires (kraman@gmail.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- change rest test to verify from internal (dmcphers@redhat.com)
+- Merge pull request #113 from lnader/master (dmcphers@redhat.com)
+- added mini test for REST API workflow with @internals and @internals1 tag
+  (lnader@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - registering users using ss-register-user in cucumber tests before creating
   domain/app (abhgupta@redhat.com)

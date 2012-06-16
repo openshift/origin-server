@@ -15,8 +15,6 @@ Architecture: noarch
 Publishes:
   get-balancer-connection-info:
     Type: "NET_TCP:http:http"
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
 Subscribes:
   haproxy-colocation-hack:
     Type: "FILESYSTEM:haproxy:colocate-hack"

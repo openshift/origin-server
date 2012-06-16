@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.11.2
+Version: 0.11.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,10 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - Updated gem info for rails 3.0.13 (admiller@redhat.com)
 
