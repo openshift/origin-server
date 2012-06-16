@@ -9,6 +9,7 @@ Source0:       stickshift-port-proxy-%{version}.tar.gz
 
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:      haproxy
+Requires:      procmail
 BuildArch:     noarch
 
 %description

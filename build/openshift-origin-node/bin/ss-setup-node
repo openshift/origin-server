@@ -67,7 +67,7 @@ if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostnam
 end
         
 facts = YAML.load_file("/etc/mcollective/facts.yaml")
-system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{facts["ipaddress_eth0"]}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{facts["ipaddress"]}/' /etc/stickshift/stickshift-node.conf"
 system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
 system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
         

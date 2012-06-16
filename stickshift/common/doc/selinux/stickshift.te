@@ -116,14 +116,16 @@ optional_policy(`
     abrt_stream_connect(stickshift_t)
 ')
 
+ifdef(`colord_read_lib_files',`
+    optional_policy(`
+      colord_read_lib_files(stickshift_t)
+    ')
+')
+
 optional_policy(`
     apache_exec_modules(stickshift_t)
     apache_list_modules(stickshift_t)
     apache_read_config(stickshift_t)
-')
-
-optional_policy(`
-    colord_read_lib_files(stickshift_t)
 ')
 
 optional_policy(`
@@ -142,9 +144,11 @@ optional_policy(`
     setroubleshoot_stream_connect(stickshift_t)
 ')
 
-optional_policy(`
+ifdef(`systemd_dbus_chat_logind',`
+  optional_policy(`
     systemd_dbus_chat_logind(stickshift_t)
     systemd_write_inherited_logind_sessions_pipes(stickshift_t)
+  ')
 ')
 
 ########################################
@@ -328,7 +332,6 @@ require {
 	class lnk_file { create unlink };
 	class dir { setattr relabelfrom create write rmdir remove_name relabelto add_name };
 	class file { rename relabelfrom create write link relabelto unlink append };
-	type mongod_port_t;
 	class process execmem;
 	class tcp_socket name_connect;
 	class dir { write remove_name add_name };
@@ -352,9 +355,13 @@ require {
 	type root_t;
 	class dir create;
 	class file { rename setattr };
+	type var_lock_t;
+	class process transition;
 }
 
 #============= mcollectived_t ==============
+allow mcollectived_t stickshift_t:process transition;
+allow mcollectived_t var_lock_t:file { read write open lock };
 
 optional{
   require {
@@ -416,7 +423,12 @@ allow mcollectived_t mysqld_exec_t:file { read execute open execute_no_trans };
 allow mcollectived_t stickshift_t:unix_stream_socket connectto;
 
 #mongo
-allow mcollectived_t mongod_port_t:tcp_socket name_connect;
+optional{
+  require {
+    type mongod_port_t;
+  }
+  allow mcollectived_t mongod_port_t:tcp_socket name_connect;
+}
 allow mcollectived_t self:process execmem;
 
 #misc

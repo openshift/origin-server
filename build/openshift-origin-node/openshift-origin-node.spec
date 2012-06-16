@@ -16,6 +16,7 @@ Requires:       java-1.6.0-openjdk
 Requires:       jpackage-utils
 Requires:       java-1.6.0-openjdk-devel
 Requires:       openssh-server
+Requires:       lsb
 
 Requires:       rhc
 Requires:       mcollective-qpid-plugin
@@ -138,7 +139,11 @@ if [ ! -f /etc/qpidd.conf.orig ] ; then
   mv /etc/qpidd.conf /etc/qpidd.conf.orig
 fi
 cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
-echo "auth=no" >> /etc/qpidd.conf
+if [[ "x`fgrep auth= /etc/qpidd.conf`" == xauth* ]] ; then
+  sed -i -e 's/auth=yes/auth=no/' /etc/qpidd.conf
+else
+  echo "auth=no" >> /etc/qpidd.conf   
+fi
 
 chkconfig sshd on
 chkconfig httpd on

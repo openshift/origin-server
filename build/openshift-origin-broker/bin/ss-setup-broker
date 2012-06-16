@@ -95,10 +95,21 @@ if use_dhcp
   end
 end
 
-system "chkconfig NetworkManager off"
-system "service NetworkManager stop"
+unless File.exist?('/etc/rndc.key')
+  print  "Unable to find rnds.key .. generating\n"
+  system "rndc-confgen -a"
+  system "/sbin/restorecon /etc/rndc.* /etc/named.*"
+  system "chown root:named /etc/rndc.key"
+  system "chmod 0640 /etc/rndc.key"
+end
+
+if system("chkcinfig --list NetworkManager")
+  system "chkconfig NetworkManager off"
+  system "service NetworkManager stop"
+end
 system "chkconfig network on"
-system "service network start"
+system "service network restart"
+
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
@@ -120,9 +131,6 @@ end
 
 print "Setup mongo db user\n"
 print `/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'`
-
-print "Connect node services to local broker\n"
-system "/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip #{ip_address}"
 
 print "Configure and start local named\n"
 File.open("/var/named/forwarders.conf", "w") do |f|
@@ -146,3 +154,6 @@ print "Register admin user\n"
   system "chkconfig #{service} on" 
   system "service #{service} restart"
 end
+
+print "Connect node services to local broker\n"
+system "/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip #{ip_address}"
