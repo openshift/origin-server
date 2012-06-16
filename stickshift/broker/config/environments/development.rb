@@ -61,7 +61,7 @@ Broker::Application.configure do
   
   config.ss = {
     :domain_suffix => "example.com",
-    :default_max_gears => 1000
+    :default_max_gears => 100
   }
 
 end
