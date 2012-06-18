@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.8
+Version: 0.12.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jun 18 2012 Adam Miller <admiller@redhat.com> 0.12.9-1
+- Merge pull request #136 from abhgupta/gearip (kraman@gmail.com)
+- Bug 830656 - Update message for bad cartridge type to match current command
+  line options (ccoleman@redhat.com)
+- Fixes for bug 827337, 830309, 811066, and 832374 Exposing initial public ip
+  in the rest response for application creation (abhgupta@redhat.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.8-1
 - switch to using utc time (dmcphers@redhat.com)
 - Fix for bug 812046 (abhgupta@redhat.com)
