@@ -360,7 +360,7 @@ class LegacyBrokerController < ApplicationController
       if cart_type == 'standalone'
         raise StickShift::UserException.new(110), "Invalid application type (-t|--type) specified: '#{framework}'.  Valid application types are (#{carts.join(', ')})."
       else
-        raise StickShift::UserException.new(110), "Invalid type (-e|--embed) specified: '#{framework}'.  Valid embedded types are (#{carts.join(', ')})."
+        raise StickShift::UserException.new(110), "Invalid type (-c|--cartridge) specified: '#{framework}'.  Valid cartridge types are (#{carts.join(', ')})."
       end
     end
   end
