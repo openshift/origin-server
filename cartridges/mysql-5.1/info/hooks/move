@@ -36,7 +36,10 @@ MYSQL_DIR="$APP_HOME/mysql-5.1/"
 observe_setup_var_lib_dir "$MYSQL_DIR"
 
 . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-IP=$OPENSHIFT_INTERNAL_IP
+IP=`find_open_ip $uid $uuid`
+if [ "$IP" != "$OPENSHIFT_INTERNAL_IP" ]; then 
+   echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
+fi
 
 . $APP_HOME/.env/OPENSHIFT_DB_PORT
 . $APP_HOME/.env/OPENSHIFT_DB_HOST
