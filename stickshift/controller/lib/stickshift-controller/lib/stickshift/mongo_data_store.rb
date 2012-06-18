@@ -301,12 +301,12 @@ module StickShift
     end
 
     def get_app(user_id, id)
-      hash = find_one( user_collection, { "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
+      hash = find_one( user_collection, { "_id" => user_id, "apps.name" => /^#{id}$/i }, :fields => ["apps"])
       return nil unless hash && !hash.empty?
 
       app_hash = nil
       hash["apps"].each do |app|
-        if app["name"] == id
+        if app["name"].downcase == id.downcase
           app_hash = app
           break
         end

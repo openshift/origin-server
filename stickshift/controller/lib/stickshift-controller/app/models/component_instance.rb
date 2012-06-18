@@ -20,8 +20,8 @@ class ComponentInstance < StickShift::Model
   end
 
   def process_cart_properties(properties)
-    properties.each do |prop|
-      self.cart_properties[prop[0]] = prop[1]
+    properties.each do |key, value|
+      self.cart_properties[key] = value
     end
   end
 
