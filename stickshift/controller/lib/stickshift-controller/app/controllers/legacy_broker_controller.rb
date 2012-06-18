@@ -428,6 +428,10 @@ class LegacyBrokerController < ApplicationController
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       @reply.resultIO << e.message
       status = :bad_request
+    when StickShift::DNSException
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      @reply.resultIO << e.message
+      status = :service_unavailable
     when StickShift::SSException
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       Rails.logger.error e.backtrace[0..5].join("\n")
