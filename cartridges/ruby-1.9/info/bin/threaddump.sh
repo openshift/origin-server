@@ -12,7 +12,7 @@ then
     exit 1
 fi
 
-PID=`ps -e -o pid,command | grep 'Rack.*'$1 | awk 'BEGIN {FS=" "}{print $1}'`
+PID=`ps -u $2 -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}'`
 
 if [$PID .eq ""]; then
     _state_file=${OPENSHIFT_HOMEDIR}/app-root/runtime/.state
@@ -27,6 +27,8 @@ if [$PID .eq ""]; then
         # idle = "$_state"
         echo "Application is inactive. Ruby/Rack applications must be accessed by their URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
     fi
-else
-    kill -3 $PID
+else 
+    if ! kill -3 $PID; then
+      echo "Failed to signal application. Please retry after restarting application and access it by its URL (http://${OPENSHIFT_GEAR_DNS})"
+    fi
 fi
