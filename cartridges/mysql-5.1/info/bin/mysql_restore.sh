@@ -17,11 +17,12 @@ then
 
     dbhost=${OPENSHIFT_DB_GEAR_DNS:-$OPENSHIFT_DB_HOST}
     OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_host)
+    NEW_IP=$(get_mysql_db_host_as_user)
     # Prep the mysql database
     (
         /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
         echo ";"
-        echo "UPDATE mysql.user SET Host='$OPENSHIFT_DB_HOST' WHERE Host='$OLD_IP';"
+        echo "UPDATE mysql.user SET Host='$NEW_IP' WHERE Host='$OLD_IP';"
         echo "UPDATE mysql.user SET Password=PASSWORD('$OPENSHIFT_DB_PASSWORD') WHERE User='$OPENSHIFT_DB_USERNAME';"
         echo "FLUSH PRIVILEGES;"
     ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_DB_PORT -u $OPENSHIFT_DB_USERNAME --password="$OPENSHIFT_DB_PASSWORD"
