@@ -80,7 +80,7 @@ class DomainsController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", false, "Failed to create domain '#{namespace}': #{e.message}")
       Rails.logger.error e.backtrace
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with @reply, :status => @reply.status
@@ -181,7 +181,7 @@ class DomainsController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, e.message)
       Rails.logger.error "Failed to update domain #{e.message} #{e.backtrace}"
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|
@@ -266,7 +266,7 @@ class DomainsController < BaseController
     rescue Exception => e
       #Rails.logger.error "Failed to delete domain #{e.message}"
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", false, "Failed to delete domain '#{id}': #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|
