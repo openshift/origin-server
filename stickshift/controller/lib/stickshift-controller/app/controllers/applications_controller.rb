@@ -191,12 +191,20 @@ class ApplicationsController < BaseController
       end
       # application.stop
       # application.start
-      
+
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", true, "Created application #{application.name}")
+
       app = RestApplication.new(application, get_url)
       @reply = RestReply.new( :created, "application", app)
       message = Message.new(:info, "Application #{application.name} was created.")
       @reply.messages.push(message)
+      
+      current_ip = application.get_public_ip_address
+      unless current_ip.nil? or current_ip.empty?
+        message = Message.new(:info, "#{current_ip}", 0, "current_ip")
+        @reply.messages.push(message)
+      end
+
       if app_configure_reply
         message = Message.new(:info, app_configure_reply.resultIO.string, 0, :result)
         @reply.messages.push(message)

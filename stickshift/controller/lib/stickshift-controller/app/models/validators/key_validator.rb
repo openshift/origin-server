@@ -1,6 +1,6 @@
 class KeyValidator < ActiveModel::Validator
-    KEY_NAME_MAX_LENGTH = 256
-    KEY_NAME_MIN_LENGTH = 1
+    KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
+    KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
   def validate(record)
     if !record.content
       record.errors.add("content", {:message => "Key content is required and cannot be blank.", :exit_code => 108})

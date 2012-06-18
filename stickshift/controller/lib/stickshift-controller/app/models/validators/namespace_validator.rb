@@ -1,6 +1,6 @@
 class NamespaceValidator < ActiveModel::EachValidator
-  NAMESPACE_MAX_LENGTH = 16
-  NAMESPACE_MIN_LENGTH = 1
+  NAMESPACE_MAX_LENGTH = 16 unless defined? NAMESPACE_MAX_LENGTH
+  NAMESPACE_MIN_LENGTH = 1 unless defined? NAMESPACE_MIN_LENGTH
 
   def validate_each(record, attribute, val)
     if !val
