@@ -71,6 +71,10 @@ module HelpHelper
     community_base_url 'developers/remote-access'
   end
 
+  def client_tools_help_url
+    community_base_url 'developers/tools'
+  end
+
   def developers_get_started_path
     community_base_url 'developers/get-started'
   end
