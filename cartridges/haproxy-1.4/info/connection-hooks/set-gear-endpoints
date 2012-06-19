@@ -28,14 +28,17 @@ function get_registered_endpoints() {
 
 
 function register_gear_endpoint() {
-    [ $# -lt 2 ]  &&  return 1
+    [ $# -lt 3 ]  &&  return 1
 
     #  Add gear endpoint to registry if it doesn't already exist.
     if ! grep "$1" "$HAPROXY_GEAR_REGISTRY" > /dev/null 2>&1; then
-        echo "$2" >> "$HAPROXY_GEAR_REGISTRY"
+        echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
         if [ -f "$FRAMEWORK_INFO_DIR/bin/sync_gears.sh" ]; then
-            run_as_user "$FRAMEWORK_INFO_DIR/bin/sync_gears.sh $1"
+            run_as_user "$FRAMEWORK_INFO_DIR/bin/sync_gears.sh $2"
         fi
+    else
+        unregister_gear_endpoint "$1"
+        echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
     fi
 
     return 0
@@ -90,17 +93,19 @@ for arg in $kvargs; do
     zinfo=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
     zarr=(${zinfo//;/ })
     ep=${zarr[0]}
-    curr_endpoints[$ep]="$zinfo"
-    register_gear_endpoint "$ep" "$zinfo"  ||  :
+    zarr2=(${zinfo//@/ })
+    gname=${zarr2[0]}
+    curr_endpoints[$gname]="$zinfo"
+    register_gear_endpoint "$gname" "$ep" "$zinfo"  ||  :
 done
 
 # Get a list of all the registered endpoints and remove the endpoints which
 # are not in the current set.
 for zinfo in $(get_registered_endpoints); do
-    zarr=(${zinfo//;/ })
-    ep=${zarr[0]}
-    if [ -z "${curr_endpoints[$ep]}" ]; then
-        unregister_gear_endpoint "$ep" "$zinfo"  ||  :
+    zarr=(${zinfo//@/ })
+    gname=${zarr[0]}
+    if [ -z "${curr_endpoints[$gname]}" ]; then
+        unregister_gear_endpoint "$gname" ||  :
     fi
 done
 
