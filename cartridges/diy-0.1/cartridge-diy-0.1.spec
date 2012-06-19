@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.28.1
+Version: 0.28.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.28.2-1
+- Fix for BZ 831097 (mpatel@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
 - bumping spec versions (admiller@redhat.com)
 - BZ827585 (jhonce@redhat.com)
