@@ -21,6 +21,7 @@ Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 Requires: jboss-eap6 >= %{jbossver}
 Requires: jboss-eap6-modules >= %{jbossver}
+Requires: lsof
 
 %if 0%{?rhel}
 Requires: maven3
