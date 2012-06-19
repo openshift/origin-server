@@ -19,6 +19,28 @@ class ApplicationTemplate < RestApi::Base
     self
   end
 
+  def credentials
+    creds = get_metadata(:credentials)
+    creds.map{|x| x.attributes.to_hash } unless creds.nil?
+  end
+
+  def credentials_message
+    creds = credentials
+    return if credentials.empty?
+
+    str =  "Your application contains pre-configured accounts, here are their credentials. " +
+           "You may want to change them as soon as possible.\n"
+
+    credentials.each do |cred|
+      str << "\n"
+      [:username, :password].each do |type|
+        str << "%s: %s\n" % [type.to_s.upcase,cred[type.to_s]]
+      end
+    end
+
+    str
+  end
+
   def method_missing(method, *args, &block)
     # These attributes are defined in the metadata
     metadata = [:description, :website, :version, :git_url, :git_project_url]

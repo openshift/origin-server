@@ -136,6 +136,12 @@ class ApplicationsController < ConsoleController
 
     if @application.save
       message = @application.remote_results
+
+      unless @application_type.template.nil?
+        t = @application_type.template
+        message = [message,t.credentials_message] if t.credentials
+      end
+
       redirect_to get_started_application_path(@application, :wizard => true, :template => !@application_type.template.nil?), :flash => {:info_pre => message}
     else
       logger.debug @application.errors.inspect
