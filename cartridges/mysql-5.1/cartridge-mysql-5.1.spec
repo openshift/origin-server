@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.5
+Version: 0.28.6
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.28.6-1
+- Merge pull request #141 from rmillner/dev/rmillner/bug/833012
+  (mrunalp@gmail.com)
+- Fix for bugz 833029 and applying the same to mongo (rchopra@redhat.com)
+- fix for bug#833039. Fix for scalable app's mysql move across districts.
+  (rchopra@redhat.com)
+- BZ 833012: Pull DB_HOST from mysql gear itself. (rmillner@redhat.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.28.5-1
 - Fix for bug 812046 (abhgupta@redhat.com)
 - BZ828703: Scalable apps use the host field differently; just update the
