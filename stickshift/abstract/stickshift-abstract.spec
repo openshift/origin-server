@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.12.4
+Version: 0.12.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -56,6 +56,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- Merge pull request #124 from
+  matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
+- Replace all env vars in standalone.xml. (matejonnet@gmail.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
 - Merge pull request #130 from abhgupta/agupta-dev
   (mmcgrath+openshift@redhat.com)
