@@ -22,14 +22,23 @@ function stop_mysql {
     super_run_as_user "$MYSQL_DIR/${application}_mysql_ctl.sh stop"
 }
 
-function control_mysql_on_dbgear {
+function is_mysql_on_dbgear {
+    [[ -n "$OPENSHIFT_DB_GEAR_UUID"  && \
+        -n "$OPENSHIFT_DB_GEAR_DNS" && \
+        "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_DB_GEAR_UUID" ]]
+}
+
+function ssh_dbgear {
    gear_user_and_host="$OPENSHIFT_DB_GEAR_UUID@$OPENSHIFT_DB_GEAR_DNS"
-   ssh $gear_user_and_host rhcsh $OPENSHIFT_DB_CTL_ONGEAR_SCRIPT $1
+   ssh $gear_user_and_host rhcsh "$@"
+}
+
+function control_mysql_on_dbgear {
+    ssh_dbgear $OPENSHIFT_DB_CTL_ONGEAR_SCRIPT $1
 }
 
 function start_mysql_as_user {
-    if [[ -n "$OPENSHIFT_DB_GEAR_UUID"  &&  -n "$OPENSHIFT_DB_GEAR_DNS"  &&
-          "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_DB_GEAR_UUID" ]]; then
+    if is_mysql_on_dbgear; then
         control_mysql_on_dbgear start
         return 0
     fi
@@ -38,8 +47,7 @@ function start_mysql_as_user {
 }
 
 function stop_mysql_as_user {
-    if [[ -n "$OPENSHIFT_DB_GEAR_UUID"  &&  -n "$OPENSHIFT_DB_GEAR_DNS"  &&
-          "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_DB_GEAR_UUID" ]]; then
+    if is_mysql_on_dbgear; then
         control_mysql_on_dbgear stop
         sleep 1
         return 0
@@ -47,6 +55,15 @@ function stop_mysql_as_user {
 
     ${OPENSHIFT_DB_CTL_SCRIPT} stop
     sleep 1
+}
+
+function get_mysql_db_host_as_user {
+    if is_mysql_on_dbgear; then
+        ssh_dbgear 'echo $OPENSHIFT_DB_HOST' 2>/dev/null
+        return 0
+    fi
+
+    echo $OPENSHIFT_DB_HOST
 }
 
 function wait_to_start_as_user {
