@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.12.6
+Version: 0.12.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -99,6 +99,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
+- Updating gem versions (admiller@redhat.com)
+- bug 800188 (dmcphers@redhat.com)
+
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
 - Updating gem versions (admiller@redhat.com)
 - Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
