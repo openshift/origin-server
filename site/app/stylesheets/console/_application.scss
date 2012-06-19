@@ -10,17 +10,15 @@
 	}
 	
   .name {
-    text-overflow: ellipsis;
     text-transform: capitalize;
     display: inline-block;
-
     margin-bottom: 5px;
-    margin-right: 10px;
+    //margin-right: 10px;
   }
 
   > .url {
-    display: inline-block;
-    vertical-align: top;
+    display: block;
+    vertical-align: text-bottom;
     white-space: nowrap;
   }
 
@@ -67,33 +65,54 @@
 .tile-dark .application-info {
   left: -5px;
   margin-right: -10px;
-
   padding-top: 15px;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
 
   > .url {
-    line-height: 34px; // chosen to match h2
+    // line-height: 34px; chosen to match h2
   }
 }
 
-/* Arbitrarily chosen */
-@media (max-width: 560px) {
-  .grid-wrapper .application-info {
-    > .url {
-      line-height: 18px; // chosen to match h1
-      font-size: 13px;
-      display: block;
+@media (max-width: 480px) {
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      width: 74%;
     }
   }
 }
 
-@media (max-width: 767px) {
+
+@media (min-width: 480px) and (max-width: 767px) {
   .section-header > .application-info {
     margin-right: 0;
     left: 0;
   }
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      width: 80%;
+    }
+    .emblem {
+      margin-right: 7px;
+    }
+  }
+}
 
-	.application-info .emblem {
-    margin-right: 7px;
-	}
+@media (min-width: 767px) and (max-width: 980px) {
+  .console.index .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      width: 375px;
+    }
+  }
 }

@@ -287,6 +287,12 @@ ol.wizard li a {
 	  background-position:
 	  	297px 101%;
 	}
+@media (max-width: 767px) {
+  .ie9 .section-console {
+	 background-color: #1f1f1f;
+	 background-image: none;
+	}
+}
 
 figure {
 	background: black;
@@ -510,18 +516,21 @@ a.cap-link {
 }
 
 
-.unstyled-flat.bits li {
-  border-left: 1px dotted #444;
-  padding: 0 8px;
-  min-height: 37px;
-  font-weight: normal;
-  text-transform: uppercase;
-  
-  img {
-    vertical-align: text-top;
-  }
-  &:first-child {
-    border-left: 0;
+.unstyled-flat.bits {
+  margin: 0 0 10px 0;
+  li {
+    border-left: 1px dotted #444;
+    padding: 0 8px;
+    min-height: 37px;
+    font-weight: normal;
+    text-transform: uppercase;
+    
+    img {
+      vertical-align: text-top;
+    }
+    &:first-child {
+      border-left: 0;
+    }
   }
 }
 
@@ -734,7 +743,7 @@ $cartridgeBorderWidth: 10px;
   }
 }
 
-/* Arbitrarily chosen */
+/* Arbitrarily chosen 
 @media (max-width: 600px) {
   #app-cartridges .cartridge-block .bits {
     margin-left: 0;
@@ -750,6 +759,7 @@ $cartridgeBorderWidth: 10px;
     }
   }
 }
+*/
 
 @media (max-width: 767px) {
 	.section-console .base {

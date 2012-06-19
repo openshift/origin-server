@@ -28,7 +28,6 @@
 .tile-dark > .tile-click {
 	background: #131313;
   position: relative;
-
 	margin-bottom: 3px;
 
   .tile-target {
@@ -69,5 +68,9 @@
 @media (max-width: 767px) {
   .section-body .row > .tile-click {
     @include expand_for_phone();
+    
+    i.tile-arrow {
+      right: -15px;
+    }
   }
 }
