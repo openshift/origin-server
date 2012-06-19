@@ -172,26 +172,26 @@ function create_custom_uservars_var {
     echo "$2" > "$APP_HOME/.env/.uservars/$1"
 }
 
-#example usage: sed -i $(getSedExpression_replaceEnvVariables) path/to/file.conf
-function getSedExpression_replaceEnvVariables {
-        pathToEnvFolder="${OPENSHIFT_HOMEDIR}.env"
+#example usage: sed -i $(print_sed_exp_replace_env_var) path/to/file.conf
+function print_sed_exp_replace_env_var {
+        path_to_env_folder="${OPENSHIFT_HOMEDIR}.env"
 
-        variableFiles=`find ${pathToEnvFolder} -type f -print`
+        variable_files=`find ${path_to_env_folder} -type f -print`
 
-        sedCmd=""
+        sed_exp=""
 
-        for variableFile in $variableFiles
+        for variable_file in $variable_files
         do
-                arrVarFile=(`echo $variableFile | tr "/" "\n"`)
-                arrSize=${#arrVarFile[@]}
+                arr_var_file=(`echo $variable_file | tr "/" "\n"`)
+                arr_size=${#arr_var_file[@]}
                 #use file name as variable name
-                variableName=${arrVarFile[$arrSize - 1]}
-                variableVal=(`echo ${!variableName//\//\\\/}`)
+                variable_name=${arr_var_file[$arr_size - 1]}
+                variable_val=(`echo ${!variable_name//\//\\\/}`)
 
-                sedCmd="${sedCmd} -e s/\${env.${variableName}}/${variableVal}/g"
+                sed_exp="${sed_exp} -e s/\${env.${variable_name}}/${variable_val}/g"
         done
         
-        printf "%s\n" "$sedCmd"
+        printf "%s\n" "$sed_exp"
 }
 
 function create_standard_app_dirs {
