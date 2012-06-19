@@ -157,7 +157,7 @@ class ApplicationsController < BaseController
             log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
             Rails.logger.error e
             application.destroy_dns
-            @reply = RestReply.new(:internal_server_error)
+            @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
             message = Message.new(:error, "Failed to create dns for application #{application.name} due to:#{e.message}") 
             @reply.messages.push(message)
             message = Message.new(:error, "Failed to create application #{application.name} due to DNS failure.") 
@@ -179,6 +179,8 @@ class ApplicationsController < BaseController
     
         if e.kind_of? StickShift::UserException
           @reply = RestReply.new(:unprocessable_entity)
+        elsif e.kind_of? StickShift::DNSException
+          @reply = RestReply.new(:service_unavailable)
         else
           @reply = RestReply.new(:internal_server_error)
         end
@@ -262,7 +264,7 @@ class ApplicationsController < BaseController
       application.cleanup_and_delete()
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Failed to delete application #{id}: #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       message = Message.new(:error, "Failed to delete application #{id} due to:#{e.message}", error_code) 
       @reply.messages.push(message)
