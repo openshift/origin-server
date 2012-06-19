@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.9
+Version: 0.12.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.10-1
+- bug 800188 (dmcphers@redhat.com)
+- Fix for bug 806713 (abhgupta@redhat.com)
+
 * Mon Jun 18 2012 Adam Miller <admiller@redhat.com> 0.12.9-1
 - Merge pull request #136 from abhgupta/gearip (kraman@gmail.com)
 - Bug 830656 - Update message for bad cartridge type to match current command
