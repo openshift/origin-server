@@ -148,6 +148,6 @@ case "$1" in
     restart)             restart             ;;
     graceful|reload)     reload              ;;
     force-stop)          pkill haproxy       ;;
-    status)              print_running_processes `id -u` ;;
+    status)              print_user_running_processes `id -u` ;;
     # FIXME:  status should just report on haproxy not all the user's processes.
 esac

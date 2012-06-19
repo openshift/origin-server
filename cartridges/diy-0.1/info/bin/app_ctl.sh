@@ -43,6 +43,6 @@ case "$1" in
          $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
     ;;
     status)
-        print_running_processes `id -u`
+        print_user_running_processes `id -u`
     ;;
 esac
