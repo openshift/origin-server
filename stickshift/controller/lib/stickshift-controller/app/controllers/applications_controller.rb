@@ -146,27 +146,15 @@ class ApplicationsController < BaseController
         application.create
         Rails.logger.debug "Configuring dependencies #{application.name}"
         app_configure_reply = application.configure_dependencies
-        #Rails.logger.debug "Adding node settings #{application.name}"
-        #application.add_node_settings
         Rails.logger.debug "Executing connections for #{application.name}"
         application.execute_connections
         begin
           Rails.logger.debug "Creating dns"
           application.create_dns
         rescue Exception => e
-            log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
-            Rails.logger.error e
-            application.destroy_dns
-            @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
-            message = Message.new(:error, "Failed to create dns for application #{application.name} due to:#{e.message}") 
-            @reply.messages.push(message)
-            message = Message.new(:error, "Failed to create application #{application.name} due to DNS failure.") 
-            @reply.messages.push(message)
-            application.deconfigure_dependencies
-            application.destroy
-            application.delete
-            respond_with @reply, :status => @reply.status
-            return
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
+          application.destroy_dns
+          raise
         end
       rescue Exception => e
         log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create application #{application.name}: #{e.message}")
@@ -186,7 +174,7 @@ class ApplicationsController < BaseController
         end
         
         error_code = e.respond_to?("code") ? e.code : 1
-        message = Message.new(:error, "Failed to create application #{application.name} due to:#{e.message}", error_code) 
+        message = Message.new(:error, "Failed to create application #{application.name} due to: #{e.message}", error_code) 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
         return

@@ -222,7 +222,6 @@ class LegacyBrokerController < ApplicationController
           @reply.append app.create
           Rails.logger.debug "Configuring dependencies #{app.name}"
           @reply.append app.configure_dependencies
-          #@reply.append app.add_node_settings
 
           app.execute_connections
           begin

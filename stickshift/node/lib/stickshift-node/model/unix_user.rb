@@ -143,12 +143,8 @@ module StickShift
       FileUtils.rm_rf(@homedir)
 
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, ".httpd.d", token)
-      conf_file = path + ".conf"
-
-      FileUtils.rm_rf(path)   if File.exist? path
-      FileUtils.rm(conf_file) if File.exist? conf_file
+      path = File.join(basedir, ".httpd.d", "#{uuid}_*")
+      FileUtils.rm_rf(Dir.glob(path))
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
       raise UserDeletionException.new(

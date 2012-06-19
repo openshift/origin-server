@@ -244,7 +244,7 @@ class DomainsController < BaseController
           @reply.messages.push(Message.new(:error, "Domain contains applications. Delete applications first or set force to true.", 128))
 
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", false, "Domain '#{id}' contains applications")
-          
+
           respond_with(@reply) do |format|
             format.xml { render :xml => @reply, :status => @reply.status }
             format.json { render :json => @reply, :status => @reply.status }

@@ -367,25 +367,26 @@ module StickShift
       app_attrs.delete("ngears")
       gear_usage_records = app_attrs["gear_usage_records"]
       app_attrs.delete("gear_usage_records")
+      destroyed_gears = app_attrs["destroyed_gears"]
+      app_attrs.delete("destroyed_gears")
 
       updates = { "$set" => { "apps.$" => app_attrs } }
       if gear_usage_records
         updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
       end
       if ngears != 0
-        updates["$inc"] = { "consumed_gears" => ngears } 
+        updates["$inc"] = { "consumed_gears" => ngears }
       end
 
-      if ngears > 0
-        hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => id,
-               "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"},
+      if ngears != 0
+        query = { "_id" => user_id, "apps.name" => id, "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"}
+        if destroyed_gears && !destroyed_gears.empty?
+          query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
+        end
+
+        hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
-        raise StickShift::UserException.new("Application limit has reached for '#{user_id}'", 104) if hash == nil
-      elsif ngears < 0
-        hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => id,
-               "$where" => "this.consumed_gears + #{ngears} >= 0"},
-               :update => updates })
-        raise StickShift::UserException.new("Application gears already at zero for '#{user_id}'", 135) if hash == nil
+        raise StickShift::UserException.new("Query condition failed to update application '#{id}' for '#{user_id}'", 1) if hash == nil
       else
         update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
       end
@@ -398,6 +399,7 @@ module StickShift
       app_attrs.delete("ngears")
       gear_usage_records = app_attrs["gear_usage_records"]
       app_attrs.delete("gear_usage_records")
+      app_attrs.delete("destroyed_gears")
       
       updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
       if gear_usage_records

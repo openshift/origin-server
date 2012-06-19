@@ -7,9 +7,9 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records, :destroyed_gears
   primary_key :name
-  exclude_attributes :user, :comp_instance_map, :group_instance_map, 
+  exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash,
                 :init_git_url, :group_override_map
   include_attributes :comp_instances, :group_instances
@@ -539,13 +539,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         comp_inst = self.comp_instance_map[comp_inst_name]
         next if comp_inst.parent_cart_name == self.name
         group_inst = self.group_instance_map[comp_inst.group_instance_name]
-        begin
-          run_on_gears(group_inst.gears, reply, false) do |gear, r|
+        run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          begin
             r.append gear.deconfigure(comp_inst)
-            r.append process_cartridge_commands(r.cart_commands)
+          rescue Exception => e
+            Rails.logger.error("Error deconfiguring '#{comp_inst_name}' with message: #{e.message}")
           end
-        rescue  Exception => e
-          # raise e
+          r.append process_cartridge_commands(r.cart_commands)
         end
       end
     end
@@ -553,7 +553,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:after_application_deconfigure, {:application => self, :reply => reply})
     reply
   end
-  
+
   # Start a particular dependency on all gears that host it. 
   # If unable to start a component, the application is stopped on all gears
   # @param [String] dependency Name of a cartridge to start. Set to nil for all dependencies.

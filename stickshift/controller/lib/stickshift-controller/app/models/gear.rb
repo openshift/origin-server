@@ -43,6 +43,8 @@ class Gear < StickShift::Model
 
   def destroy
     self.app.ngears -= 1
+    self.app.destroyed_gears = [] unless self.app.destroyed_gears
+    self.app.destroyed_gears << uuid
     self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
     ret = get_proxy.destroy(app,self)
     return ret
