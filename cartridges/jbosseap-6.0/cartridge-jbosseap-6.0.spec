@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.8
+Version:   0.1.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.1.9-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+
 * Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.1.8-1
 - updated eap template pom (bdecoste@gmail.com)
 - add eap maven repo (bdecoste@gmail.com)
