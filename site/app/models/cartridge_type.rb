@@ -312,7 +312,7 @@ class CartridgeType < RestApi::Base
         :display_name => 'PHP 5.3',
         :version => '5.3.2',
         :categories => [:web, :framework],
-        :description => 'PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages.  The mod_php Apache module is used to execute PHP applications.  Popular development frameworks include: CakePHP, Symfony, and Code Igniter.  Popular applications include: Drupal, Wordpress, and Mediawiki.',
+        :description => 'PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages.  Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter.',
         :website => 'http://www.php.net',
   #      :provides => [
   #        'Apache configured with mod_php',
@@ -326,7 +326,7 @@ class CartridgeType < RestApi::Base
         :display_name => 'Python 2.6',
         :version => 'Python 2.6.6 / WSGI 3.2',
         :categories => [:web, :framework],
-        :description => 'Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. The Web Server Gateway Interface (WSGI) defines a simple and universal interface between web servers and web applications or frameworks for the Python programming language. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears.',
+        :description => 'Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears.',
         :website => 'http://www.wsgi.org/',
         :help_topics => {
           'Getting Django up and running in 5 minutes' => '/community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes'
@@ -338,7 +338,7 @@ class CartridgeType < RestApi::Base
         :display_name => 'Perl 5.10',
         :version => 'Perl 5.10 / mod_perl 2.0.4',
         :categories => [:web, :framework],
-        :description => 'Perl is a high-level, general-purpose, interpreted, dynamic programming language. mod_perl is an optional module for the Apache HTTP server. It embeds a Perl interpreter into the Apache server, so that dynamic content produced by Perl scripts can be served in response to incoming requests, without the significant overhead of re-launching the Perl interpreter for each request. ',
+        :description => 'Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests.',
         :website => 'http://perl.apache.org/start/index.html',
         :help_topics => {
           'How to onboard a Perl application' => '/community/kb/kb-e1013-how-to-onboard-a-perl-application',
@@ -351,7 +351,7 @@ class CartridgeType < RestApi::Base
         :display_name => 'Node.js 0.6',
         :version => 'Node.js 0.6.10',
         :categories => [:web, :framework],
-        :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js uses an event-driven, non-blocking I/O model that makes it lightweight and efficient, perfect for data-intensive real-time applications that run across distributed devices.',
+        :description => 'Node.js is a platform built on Chrome\'s JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices.',
         :website => 'http://nodejs.org/'
       },
       {
@@ -360,7 +360,7 @@ class CartridgeType < RestApi::Base
         :display_name => 'Ruby 1.8.7',
         :version => 'Ruby 1.8.7 / Rack 1.1',
         :categories => [:web, :framework],
-        :description => 'Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. Popular development frameworks include: Ruby on Rails and Sinatra.',
+        :description => 'Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra.',
         :website => 'http://rack.rubyforge.org/'
       },
       {
@@ -369,13 +369,13 @@ class CartridgeType < RestApi::Base
         :display_name => 'Do-It-Yourself',
   #      :version => '1.0',
         :categories => [:web, :framework, :custom],
-        :description => 'The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift.'
+        :description => RDiscount.new('The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See [the community site](/community/developers/do-it-yourself) for examples of bringing your favorite framework to OpenShift.').html_safe
         #:website => 'http://perl.apache.org/start/index.html'
       },
       {
         :name => 'jenkins-1.4',
         :display_name => "Jenkins Server",
-        :description => RDiscount.new('Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  When you add Jenkins as an application you will enable your other applications to run complex builds whenever you push code. See [the Jenkins info page for more](/community/jenkins).').html_safe,
+        :description => RDiscount.new('Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  See [the Jenkins info page for more](/community/jenkins).').html_safe,
         :version => '1.4',
         :categories => [:framework, :productivity, :web],
       },
