@@ -20,6 +20,7 @@ Requires: php >= 5.3.2
 Requires: php < 5.4.0
 Requires: mod_bw
 Requires: rubygem-builder
+Requires: php-devel
 Requires: php-pdo
 Requires: php-gd
 Requires: php-xml
