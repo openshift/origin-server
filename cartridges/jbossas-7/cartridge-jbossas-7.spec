@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.94.6
+Version: 0.94.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.7-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- Merge pull request #124 from
+  matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
+- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+- Add custom module path to JBoss AS. (matejonnet@gmail.com)
+- Replace all env vars in standalone.xml. (matejonnet@gmail.com)
+
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.94.6-1
 - The medium builder appears to be unnecessary now and causes some confusion.
   (rmillner@redhat.com)
