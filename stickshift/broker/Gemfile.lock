@@ -37,7 +37,7 @@ GEM
       json
       mongo
       rack
-    stickshift-controller (0.12.11)
+    stickshift-controller (0.12.12)
       activesupport
       stickshift-common
       dnsruby
