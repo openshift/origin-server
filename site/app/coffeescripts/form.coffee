@@ -10,6 +10,7 @@ $ ->
   # Show/hide loading icons when form buttons are clicked
   loading_match = '*[data-loading=true]'
   ($ 'form '+loading_match).each ->
+    this.src = window.loader_image if window.loader_image
     ($ window).bind 'pagehide', ->
       ($ loading_match).hide()
       ($ 'input[type=submit][disabled]').removeAttr('disabled')

@@ -1,5 +1,7 @@
 - content_for :javascripts do
   = javascript_include_tag status_jsonp_url('outage')
+  :javascript
+    window.loader_image = '#{image_path('loader-dark.gif')}';
 
 !!! 5
 -# http://paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither
