@@ -32,6 +32,7 @@ module LayoutHelper
     tags = []
     flash.each do |key, value|
       (value.kind_of?(Array) ? value : [value]).each do |value|
+        next if value.blank?
         tags << content_tag(flash_element_for(key), value, :class => alert_class_for(key))
       end
     end
