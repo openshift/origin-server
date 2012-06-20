@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.94.8
+Version: 0.94.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.94.9-1
+- remove duplicate source (bdecoste@gmail.com)
+
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.8-1
 - Merge branch 'master' of github.com:openshift/crankcase (admiller@redhat.com)
 - Install initial ROOT.war into app-root during configure (dmace@redhat.com)
