@@ -115,7 +115,7 @@ class EmbCartController < BaseController
       return
     end
     
-    if application.scalable && !colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
+    if application.scalable && colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Reached gear limit of #{@cloud_user.max_gears}")
       @reply = RestReply.new(:unprocessable_entity)
       message = Message.new(:error, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
