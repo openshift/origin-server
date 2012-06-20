@@ -72,6 +72,10 @@ class Application < StickShift::Cartridge
     else
       template_descriptor = YAML.load(template.descriptor_yaml)
       template_descriptor["Name"] = app_name
+      if not template_descriptor["Configure-Order"]
+        requires_list = template_descriptor["Requires"] || []
+        template_descriptor["Configure-Order"] = requires_list
+      end
       from_descriptor(template_descriptor)
       @init_git_url = template.git_url
     end
