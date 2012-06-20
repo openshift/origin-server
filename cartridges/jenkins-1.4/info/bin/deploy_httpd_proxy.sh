@@ -46,7 +46,7 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
   RewriteEngine on
   RewriteCond %{HTTPS} off
   RewriteRule /health ${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/configuration/health [L]
-#  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 </VirtualHost>
 
 <VirtualHost *:443>
