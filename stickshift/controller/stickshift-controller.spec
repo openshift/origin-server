@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.11
+Version: 0.12.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.12-1
+- Merge pull request #151 from rajatchopra/master (smitram@gmail.com)
+- fix for build break - configure order is not random anymore (picked up from
+  requires) (rchopra@redhat.com)
+- reverse check on colocate with (dmcphers@redhat.com)
+- Bug 833697 (dmcphers@redhat.com)
+
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.11-1
 - fix for bug#832745 and bug#833376 (rchopra@redhat.com)
 
