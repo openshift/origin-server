@@ -213,7 +213,7 @@ class LegacyBrokerController < ApplicationController
       app = Application.new(@cloud_user, @req.app_name, nil, @req.node_profile, @req.cartridge, nil, false, domain)
       check_cartridge_type(@req.cartridge, "standalone")
       if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-        raise StickShift::UserException.new("#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
+        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
       raise StickShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if StickShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
@@ -323,6 +323,9 @@ class LegacyBrokerController < ApplicationController
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
     case @req.action
     when 'configure'
+      if app.scalable && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && @req.cartridge != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
+        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+      end
       @reply.append app.add_dependency(@req.cartridge)
     when 'deconfigure'
       @reply.append app.remove_dependency(@req.cartridge)
