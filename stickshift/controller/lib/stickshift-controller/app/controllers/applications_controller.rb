@@ -105,9 +105,9 @@ class ApplicationsController < BaseController
     end
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached application limit of #{@cloud_user.max_gears}")
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached gear limit of #{@cloud_user.max_gears}")
       @reply = RestReply.new(:unprocessable_entity)
-      message = Message.new(:error, "#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
+      message = Message.new(:error, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
