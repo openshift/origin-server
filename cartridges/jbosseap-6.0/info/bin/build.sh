@@ -57,10 +57,6 @@ then
     then
         echo ".openshift/markers/force_clean_build found!  Removing Maven dependencies." 1>&2
         rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
-
-        #pushd ${OPENSHIFT_HOMEDIR}.m2/ > /dev/null
-        #tar -xf ${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/data/m2_repository.tar.gz
-        #popd > /dev/null
     fi
 
     if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD

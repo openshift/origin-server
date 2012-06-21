@@ -179,9 +179,6 @@ create_app_ctl_script "$cartridge_type"
 populate_repo_dir
 
 cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/deployments
-pushd $M2_DIR > /dev/null
-tar -xf ${JBOSS_CARTRIDGE_ROOT}/info/data/m2_repository.tar.gz
-popd > /dev/null
 
 chmod +x "$APP_JBOSS_BIN_DIR/standalone.sh" || error "Failed to chmod new application scripts" 122
 secure_app_dir
