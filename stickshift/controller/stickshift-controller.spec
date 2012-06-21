@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.1
+Version: 0.13.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Enable ruby-1.9 cartridge is list of frameworks, bug fixes + cucumber tests.
+  (ramr@redhat.com)
+- Merge pull request #156 from abhgupta/abhgupta-dev (admiller@redhat.com)
+- remove base m2_repository (dmcphers@redhat.com)
+- Fix for bug 830642 (abhgupta@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
