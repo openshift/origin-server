@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.16.0
+Version: 0.16.1
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
 - Security - BZ785050 removed mod_autoindex from the two httpd.conf files
   (tkramer@redhat.com)
