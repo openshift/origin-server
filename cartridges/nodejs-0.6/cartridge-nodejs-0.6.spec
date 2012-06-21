@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.10.0
+Version: 0.10.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.9.2-1
 - The single quotes cause CART_INFO_DIR to be embedded rather than its
   expansion. (rmillner@redhat.com)
