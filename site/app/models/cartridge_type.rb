@@ -285,7 +285,7 @@ class CartridgeType < RestApi::Base
         :license_url => 'http://www.apache.org/licenses/LICENSE-2.0',
         :categories => [:web, :framework, :new],
         :description => 'Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications.  Build and deploy enterprise Java in the cloud.',
-        :website => 'http://www.jboss.org/jbossas',
+        :website => 'http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/',
         :help_topics => {
           'How to add JBoss modules to an OpenShift app' => '/community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app',
           'How to solve java.net.BindException to 8080' => '/community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting'
