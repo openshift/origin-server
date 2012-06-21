@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.95.0
+Version: 0.95.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
 - Security - BZ785050 remove mod_autoindex from all httpd.confs
   (tkramer@redhat.com)
