@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.10
+Version:   0.1.11
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -134,6 +134,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.1.11-1
+- Merge pull request #154 from mrunalp/master (rmillner@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.1.10-1
 - remove duplicate source (bdecoste@gmail.com)
 
