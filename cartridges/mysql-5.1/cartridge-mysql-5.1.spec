@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.28.7
+Version: 0.28.8
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.28.8-1
+- Merge pull request #155 from rajatchopra/master (rmillner@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.28.7-1
 - httpd config files should get recreated on move/post-move
   (rchopra@redhat.com)
