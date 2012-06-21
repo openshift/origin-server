@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.12.0
+Version: 0.12.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
 - Fix for BZ 831097 (mpatel@redhat.com)
 
