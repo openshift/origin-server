@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.12.0
+Version: 0.12.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
 - Strip out the unnecessary gems from rcov reports and focus it on just the
   OpenShift code. (rmillner@redhat.com)
