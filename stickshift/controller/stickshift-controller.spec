@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.0
+Version: 0.13.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.12-1
 - Merge pull request #151 from rajatchopra/master (smitram@gmail.com)
 - fix for build break - configure order is not random anymore (picked up from
