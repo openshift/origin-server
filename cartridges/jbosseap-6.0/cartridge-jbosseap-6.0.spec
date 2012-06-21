@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.10
+Version: 0.2.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

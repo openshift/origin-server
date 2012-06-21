@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.12.5
+Version: 0.13.0
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
