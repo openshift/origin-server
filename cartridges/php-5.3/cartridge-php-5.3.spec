@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.95.0
+Version: 0.95.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -114,6 +114,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
 - BZ 833221: Added php-devel as cartridge requirement for php for building
   extensions. (rmillner@redhat.com)
