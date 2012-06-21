@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version: 0.2.1
+Version: 0.2.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -134,6 +134,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
+- remove base m2_repository (dmcphers@redhat.com)
+- Fix for BZ 831966: Added link to missing connection hook. (mpatel@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
