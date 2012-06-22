@@ -1,4 +1,4 @@
-pre {
+pre, code {
   @include border-radius(0);
 }
 
@@ -6,4 +6,21 @@ pre.cli {
 	color: $cliText;
 	background-color: $cliBackground;
 	border: none;
+}
+
+// GeshiFilter specific, can be moved into a more generic section
+.column-content div.geshifilter {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+
+  // Reset to _type defaults
+  pre {
+    padding: 8.5px;
+    margin: 0 0 9px;
+    line-height: 18px;
+    border: 1px solid #ccc; // fallback for IE7-8
+    border: 1px solid rgba(0,0,0,.15);
+  }
 }
