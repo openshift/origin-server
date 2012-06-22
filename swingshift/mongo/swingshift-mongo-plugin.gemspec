@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
   s.add_dependency('stickshift-controller')
   s.add_dependency('json')  
   s.add_development_dependency('rake')  
-  s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')
   s.add_development_dependency('mocha')
 end

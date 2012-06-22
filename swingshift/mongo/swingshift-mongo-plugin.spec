@@ -16,6 +16,7 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
+Requires:       rubygem(mocha)
 Requires:       stickshift-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
@@ -64,6 +65,9 @@ cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-co
 Broker::Application.configure do
   config.auth = {
     :salt => "ClWqe5zKtEW4CJEMyjzQ",
+    :privkeyfile => "/var/www/stickshift/broker/config/server_priv.pem",
+    :privkeypass => "",
+    :pubkeyfile  => "/var/www/stickshift/broker/config/server_pub.pem",
     
     # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     :mongo_replica_sets => false,
@@ -77,13 +81,18 @@ Broker::Application.configure do
 end
 EOF
 
-
 %clean
 rm -rf %{buildroot}
 
 %post
+/usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
+/usr/bin/openssl rsa    -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
+
 echo "The following variables need to be set in your rails config to use swingshift-mongo-plugin:"
 echo "auth[:salt]                    - salt for the password hash"
+echo "auth[:privkeyfile]             - RSA private key file for node-broker authentication"
+echo "auth[:privkeypass]             - RSA private key password"
+echo "auth[:pubkeyfile]              - RSA public key file for node-broker authentication"
 echo "auth[:mongo_replica_sets]      - List of replica servers or false if replicas is disabled eg: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]"
 echo "auth[:mongo_host_port]         - Address of mongo server if replicas are disabled. eg: [\"localhost\", 27017]"
 echo "auth[:mongo_user]              - Username to log into mongo"

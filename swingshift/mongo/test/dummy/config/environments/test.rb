@@ -45,6 +45,14 @@ Dummy::Application.configure do
     :mongo_user => "stickshift",
     :mongo_password => "mooo",
     :mongo_db => "stickshift_broker_test",
-    :mongo_collection => "auth_user"
+    :mongo_collection => "auth_user",
+    :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
+    :privkeypass => "foo",
+    :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem"
+  }
+
+ config.user_action_logging = {
+    :logging_enabled => false,
+    :log_filepath => "/var/log/stickshift/user_action.log"
   }
 end

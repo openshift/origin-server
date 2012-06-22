@@ -21,6 +21,9 @@ module Swingshift
       @db           = auth_info[:mongo_db]
       @collection   = auth_info[:mongo_collection]
       @salt         = auth_info[:salt]
+      @privkeyfile  = auth_info[:privkeyfile]
+      @privkeypass  = auth_info[:privkeypass]
+      @pubkeyfile   = auth_info[:pubkeyfile]
     end
     
     def db
@@ -45,20 +48,49 @@ module Swingshift
     end
     
     def generate_broker_key(app)
-      iv = Base64::encode64(app.name)
-      token = Base64::encode64(app.user.login)
-      [iv, token]
+      cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")                                                                                                                                                                 
+      cipher.encrypt
+      cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
+      cipher.iv = iv = cipher.random_iv
+      token = {:app_name => app.name,
+               :login => app.user.login,
+               :creation_time => app.creation_time}
+      encrypted_token = cipher.update(token.to_json)
+      encrypted_token << cipher.final
+      
+      public_key = OpenSSL::PKey::RSA.new(File.read(@pubkeyfile), @privkeypass)
+      encrypted_iv = public_key.public_encrypt(iv)
+      
+      # Base64 encode the iv and token
+      encoded_iv = Base64::encode64(encrypted_iv)
+      encoded_token = Base64::encode64(encrypted_token)
+       
+      [encoded_iv, encoded_token]
     end
 
     def validate_broker_key(iv, key)
-      username = Base64::decode64(key)
-      appname  = Base64::decode64(iv)
-      app = Application.find( CloudUser.find(username) , appname)
-      if app
-        return {:username => username, :auth_method => :broker_auth}
-      else
-        raise StickShift::AccessDeniedException
-      end
+      key = key.gsub(" ", "+")
+      iv = iv.gsub(" ", "+")
+      encrypted_token = Base64::decode64(key)
+      cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")
+      cipher.decrypt
+      cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
+      private_key = OpenSSL::PKey::RSA.new(File.read(@privkeyfile), @privkeypass)
+      cipher.iv =  private_key.private_decrypt(Base64::decode64(iv))
+      json_token = cipher.update(encrypted_token)
+      json_token << cipher.final
+  
+      token = JSON.parse(json_token)
+      username = token['login']
+      app_name = token['app_name']
+      creation_time = Time.parse(token['creation_time'])
+            
+      user = CloudUser.find(username)
+      raise StickShift::UserValidationException.new if user.nil?
+      app = Application.find(user, app_name)
+      
+      raise StickShift::UserValidationException.new if app.nil? or creation_time.ctime != app.creation_time.ctime
+      return {:username => username, :auth_method => :broker_auth}
     end
     
     def authenticate(request, login, password)
