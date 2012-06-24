@@ -1,5 +1,5 @@
 @verify
-@verify1
+@verify2
 @broker
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation
