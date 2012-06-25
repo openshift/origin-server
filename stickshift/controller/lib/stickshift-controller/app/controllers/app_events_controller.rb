@@ -26,6 +26,14 @@ class AppEventsController < BaseController
       respond_with @reply, :status => @reply.status   
       return
     end
+    if event == 'scale-up' && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", false, "Reached gear limit of #{@cloud_user.max_gears}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+      @reply.messages.push(message)
+      respond_with @reply, :status => @reply.status
+      return
+    end
     begin
       case event
         when "start"
