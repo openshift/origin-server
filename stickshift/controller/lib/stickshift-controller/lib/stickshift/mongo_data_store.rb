@@ -386,7 +386,7 @@ module StickShift
 
         hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
-        raise StickShift::UserException.new("Query condition failed to update application '#{id}' for '#{user_id}'", 1) if hash == nil
+        raise StickShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
       else
         update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
       end
