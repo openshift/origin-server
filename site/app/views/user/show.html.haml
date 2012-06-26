@@ -26,7 +26,7 @@
               %td= i.url.present? ? link_to(i.type_name, i.url, :class => 'external') : i.type_name
 
         .btn-toolbar
-          = link_to "Change password...", edit_password_path, :class => 'btn'
+          = link_to "Change password...", edit_account_password_path, :class => 'btn'
           -#%li= link_to "Terms of Use", legal_site_terms_path
           -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
