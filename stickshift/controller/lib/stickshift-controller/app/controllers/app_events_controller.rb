@@ -34,30 +34,42 @@ class AppEventsController < BaseController
       respond_with @reply, :status => @reply.status
       return
     end
+    msg = "Added #{event} to application #{id}"
     begin
       case event
         when "start"
           application.start
+          msg = "Application #{id} has started"
         when "stop"
           application.stop
+          msg = "Application #{id} has stopped"
         when "force-stop"
           application.force_stop
+          msg = "Application #{id} has forcefully stopped"
         when "restart"
           application.restart
+          msg = "Application #{id} has restarted"
         when "expose-port"
           application.expose_port
+          msg = "Application #{id} has exposed port"
         when "conceal-port"
           application.conceal_port
+          msg = "Application #{id} has concealed port"
         when "show-port"
           application.show_port
+          msg = "Application #{id} called show port"
         when "add-alias"
           application.add_alias(server_alias)
+          msg = "Application #{id} has added alias"
         when "remove-alias"
           application.remove_alias(server_alias)
+          msg = "Application #{id} has removed alias"
         when "scale-up"
           application.scaleup
+          msg = "Application #{id} has scaled up"
         when "scale-down"
           application.scaledown
+          msg = "Application #{id} has scaled down"
         else
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "APPLICATION_EVENT", false, "Invalid application event '#{event}' specified")
           @reply = RestReply.new(:unprocessable_entity)
@@ -89,7 +101,7 @@ class AppEventsController < BaseController
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url)
     @reply = RestReply.new(:ok, "application", app)
-    message = Message.new("INFO", "Added #{event} to application #{id}")
+    message = Message.new("INFO", msg)
     @reply.messages.push(message)
     respond_with @reply, :status => @reply.status
   end

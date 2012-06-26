@@ -25,4 +25,5 @@ module StickShift
   class AccessDeniedException < UserValidationException; end
   class DNSException < StickShift::SSException; end
   class DNSNotFoundException < DNSException; end
+  class EstimatesException < StickShift::SSException; end
 end
