@@ -358,8 +358,6 @@ require {
 	type var_lock_t;
 	class process transition;
         type tmpfs_t;
-	type ephemeral_port_t;
-	type unreserved_port_t;
 	type http_cache_port_t;
 	type mcollectived_t;
 	type node_t;
@@ -390,6 +388,13 @@ require {
 	class sem destroy;
 }
 
+# missing in RHEL 6.3's policy
+optional {
+  require {
+     type unreserved_port_t;
+     type ephemeral_port_t;
+  }
+}
 
 #============= mcollectived_t ==============
 allow mcollectived_t stickshift_t:process transition;
@@ -411,6 +416,9 @@ allow mcollectived_t http_port_t:tcp_socket name_connect;
 allow mcollectived_t java_exec_t:file { read execute open execute_no_trans };
 allow mcollectived_t random_device_t:chr_file { read open };
 allow mcollectived_t ssh_keygen_exec_t:file { read execute open execute_no_trans };
+
+#runcon
+allow initrc_t stickshift_t:process transition;
 
 #Allow cartridges to write http proxy configs and restart http as mcollecitve
 allow mcollectived_t cert_t:file getattr;
@@ -449,11 +457,21 @@ allow mcollectived_t self:netlink_audit_socket { nlmsg_relay create };
 allow mcollectived_t self:process { setsched setfscreate };
 
 #mysql
+require {
+	type mysqld_t;
+	type anon_inodefs_t;
+	type stickshift_file_t;
+	class dir { write search read remove_name open getattr add_name };
+	class file { read create write getattr unlink open };
+}
 allow mcollectived_t bin_t:file setattr;
 allow mcollectived_t hostname_exec_t:file { read getattr open execute execute_no_trans };
 allow mcollectived_t mysqld_etc_t:file { read getattr open };
 allow mcollectived_t mysqld_exec_t:file { read execute open execute_no_trans };
 allow mcollectived_t stickshift_t:unix_stream_socket connectto;
+allow mysqld_t anon_inodefs_t:file { read write };
+allow mysqld_t stickshift_file_t:dir { write search read remove_name open getattr add_name };
+allow mysqld_t stickshift_file_t:file { write getattr read create unlink open };
 
 #mongo
 optional{
@@ -489,14 +507,12 @@ allow mcollectived_t lib_t:file { rename setattr };
 allow mcollectived_t root_t:dir create;
 
 #haproxy
-allow mcollectived_t ephemeral_port_t:tcp_socket name_bind;
 allow mcollectived_t http_cache_port_t:tcp_socket name_connect;
 allow mcollectived_t initrc_t:process signal;
 allow mcollectived_t initrc_var_run_t:file { read unlink open };
 allow mcollectived_t node_t:tcp_socket node_bind;
 allow mcollectived_t self:capability { sys_chroot sys_resource };
 allow mcollectived_t self:process setrlimit;
-allow mcollectived_t unreserved_port_t:tcp_socket name_bind;
 allow mcollectived_t var_lib_t:dir { write remove_name add_name };
 allow mcollectived_t var_lib_t:sock_file { rename create unlink link };
 allow mcollectived_t http_port_t:tcp_socket name_bind;
@@ -511,6 +527,13 @@ allow mcollectived_t self:process setpgid;
 allow mcollectived_t self:sem { write read create unix_write setattr };
 allow mcollectived_t self:process getpgid;
 allow mcollectived_t self:sem destroy;
+# missing in RHEL 6.3's policy
+ifdef(`unreserved_port_t',`
+  allow mcollectived_t unreserved_port_t:tcp_socket name_bind;
+')
+ifdef(`ephemeral_port_t',`
+  allow mcollectived_t ephemeral_port_t:tcp_socket name_bind;
+')
 
 #============ dont audits ================
 
