@@ -11,7 +11,7 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
-      <builderSize>medium</builderSize>
+      <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
       <builderType>jbosseap-6.0</builderType>
