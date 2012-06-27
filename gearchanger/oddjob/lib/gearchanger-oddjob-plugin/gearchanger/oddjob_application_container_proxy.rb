@@ -437,6 +437,7 @@ module GearChanger
 
       if output && !output.empty?
         output.each_line do |line|
+          line.chomp!
           if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
             if line =~ /^CLIENT_MESSAGE: /
               result.messageIO << line['CLIENT_MESSAGE: '.length..-1]
