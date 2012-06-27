@@ -29,7 +29,7 @@ class Gear < StickShift::Model
         self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
-        self.app.group_instance_map[self.group_instance_name] << self
+        self.app.group_instance_map[self.group_instance_name].gears << self
         self.app.save
         ret = self.container.create(app,self)
         begin
@@ -54,7 +54,7 @@ class Gear < StickShift::Model
         rescue Exception=>e
         end
         self.app.ngears -= 1
-        self.app.group_instance_map[self.group_instance_name].delete(self)
+        self.app.group_instance_map[self.group_instance_name].gears.delete(self)
         self.app.save
         raise StickShift::NodeException.new("Unable to create gear on node", "-100", create_result)
       end
@@ -69,7 +69,7 @@ class Gear < StickShift::Model
       self.app.destroyed_gears << @uuid
       self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
       self.app.ngears -= 1
-      self.app.group_instance_map[self.group_instance_name].delete(self)
+      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
       self.app.save
     else
       raise StickShift::NodeException.new("Unable to destroy gear on node", "-100", ret)
@@ -88,7 +88,7 @@ class Gear < StickShift::Model
       self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
     ensure
       self.app.ngears -= 1
-      self.app.group_instance_map[self.group_instance_name].delete(self)
+      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
       self.app.save
     end
   end

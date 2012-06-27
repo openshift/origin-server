@@ -79,7 +79,7 @@ class GroupInstance < StickShift::Model
     return [create_result, gear]
   end
 
-  def remove_gear(app, gear)
+  def remove_gear(gear)
     gear.destroy
   end
 
