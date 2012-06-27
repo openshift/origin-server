@@ -49,8 +49,7 @@ class GroupInstance < StickShift::Model
     # component_instances remains a flat collection
   end
   
-  def add_gear(app)
-    gear = Gear.new(app, self)
+  def fix_gear_uuid(app, gear)
     #FIXME: backward compat: first gears UUID = app.uuid
     if app.scalable
       # Override/set gear's uuid with app's uuid if its a scalable app w/ the
@@ -64,29 +63,24 @@ class GroupInstance < StickShift::Model
       gear.uuid = app.uuid
       gear.name = app.name
     end
+  end
+
+  def add_gear(app)
+    gear = Gear.new(app, self)
+    fix_gear_uuid(app, gear)
 
     # create the gear
-    create_result = nil
-    begin
-      create_result = gear.create
-    rescue Exception => e
-      create_result = ResultIO.new
-      create_result.exitcode = 5
-    end
+    create_result = gear.create
 
-    unless create_result.exitcode == 0
-      begin
-        gear.destroy
-      rescue Exception => e
-      end
-      raise StickShift::NodeException.new("Unable to create gear on node", "-100", create_result)
-    end
-    self.gears << gear
     if app.scalable and not self.component_instances.include? "@@app/comp-proxy/cart-haproxy-1.4"
       app.add_dns(gear.name, app.domain.namespace, gear.get_proxy.get_public_hostname)
     end
     app.add_node_settings([gear])
     return [create_result, gear]
+  end
+
+  def remove_gear(app, gear)
+    gear.destroy
   end
 
   def fulfil_requirements(app)
