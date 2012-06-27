@@ -315,9 +315,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
     s,f = run_on_gears(nil, reply, false) do |gear, r|
-      r.append gear.destroy
       group_instance = self.group_instance_map[gear.group_instance_name]
-      group_instance.gears.delete(gear)
+      r.append group_instance.remove_gear(gear)
     end
     begin
       self.save if self.persisted?
@@ -329,6 +328,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
       Rails.logger.debug(data[:exception].backtrace.inspect)
     end
+    raise StickShift::NodeException.new("Could not destroy all gears of application.", "-100", reply) if f.length > 0
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
   end
@@ -391,8 +391,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       result_io.append gear.deconfigure(cinst)
     }
 
-    result_io.append gear.destroy
-    ginst.gears.delete gear
+    result_io.append ginst.remove_gear(gear)
 
     # inform anyone who needs to know that this gear is no more
     self.configure_dependencies
@@ -426,10 +425,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       end
       
       run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append gear.destroy if gear.configured_components.length == 0
-        # self.save        
+        r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
       end
-      group_inst.gears.delete_if { |gear| gear.configured_components.length == 0 }
+
     end
     cleanup_deleted_components
     # self.save
@@ -477,10 +475,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         end
         
         #destroy any unused gears
+        # TODO : if the destroy fails below... the user still sees the error as configure failure 
+        #   Then to recover, if we re-elaborate (like in add_dependency), then the group instance will get lost
+        #   and any failed gears below will leak (i.e. they exist on node, their destroy failed, but they do not have any handle in Mongo)
         run_on_gears(group_inst.gears, reply, false) do |gear, r|
-          r.append gear.destroy if gear.configured_components.length == 0
+          r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
         end
-        group_inst.gears.delete_if { |gear| gear.configured_components.length == 0 }
 
         self.save
         exceptions << gear_exception
@@ -1492,7 +1492,7 @@ private
     failed_runs = []
     gears = self.gears if gears.nil?
     
-    gears.each do |gear|
+    gears.dup.each do |gear|
       begin
         retval = block.call(gear, result_io)
         successful_runs.push({:gear => gear, :return => retval})
