@@ -50,7 +50,7 @@ class Gear < StickShift::Model
       ## recovery action if creation failed above
       if ret.exitcode != 0
         begin
-          get_proxy.destroy(self.app, self) 
+          get_proxy.destroy(self.app, self)
         rescue Exception=>e
         end
         self.app.ngears -= 1
