@@ -16,6 +16,7 @@ class ComponentInstance < StickShift::Model
   end
   
   def process_cart_data(data)
+    data.chomp! if data
     self.cart_data.push data
   end
 
