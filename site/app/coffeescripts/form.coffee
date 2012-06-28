@@ -11,10 +11,12 @@ $ ->
   loading_match = '*[data-loading=true]'
   ($ 'form '+loading_match).each ->
     this.src = window.loader_image if window.loader_image
-    ($ window).bind 'pagehide', ->
+    finished = ->
       ($ loading_match).hide()
       ($ 'input[type=submit][disabled]').removeAttr('disabled')
+    ($ window).bind 'pagehide', finished
     ($ this).closest('form').bind 'submit', ->
+      this.finished = finished
       if ($ '.control-group.error-client').length == 0
         ($ loading_match, this).show()
         ($ 'input[type=submit]', this).attr('disabled','disabled')
@@ -41,7 +43,7 @@ $ ->
 
   # /app/account/new
   # /app/account
-  $('#new-user form').validate
+  $('form#new_user_form').validate
     rules:
       # Require email for new users
       "web_user[email_address]":
@@ -58,20 +60,12 @@ $ ->
         equalTo:    "#web_user_password"
 
   # /app/login 
-  $('#login-form form').validate
+  $('form#login_form').validate
     rules:
       "web_user[rhlogin]":
         required: true
       "web_user[password]":
         required: true
-
-  # /app/user/request_password_reset_form
-  $('#password-reset-form form').validate
-    rules:
-      "email":
-        required: true
-        email: true
-
 
   $("[data-unhide]").click (event) ->
     src = $(this)

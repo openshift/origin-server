@@ -2,7 +2,7 @@ require 'recaptcha'
 require 'json'
 include ActionView::Helpers::UrlHelper
 
-class UserController < SiteController
+class UserController < AccountController
 
   layout 'simple'
 
