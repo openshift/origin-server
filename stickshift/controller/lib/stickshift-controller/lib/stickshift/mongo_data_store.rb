@@ -380,9 +380,10 @@ module StickShift
 
       if ngears != 0
         query = { "_id" => user_id, "apps.name" => id, "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"}
-        if destroyed_gears && !destroyed_gears.empty?
-          query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
-        end
+        
+        #if destroyed_gears && !destroyed_gears.empty?
+        #  query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
+        #end
 
         hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
