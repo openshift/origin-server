@@ -56,8 +56,9 @@ class AppEventsController < BaseController
           application.conceal_port
           msg = "Application #{id} has concealed port"
         when "show-port"
-          application.show_port
+          r = application.show_port
           msg = "Application #{id} called show port"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "add-alias"
           application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
