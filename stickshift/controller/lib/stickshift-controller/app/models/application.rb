@@ -474,8 +474,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           r.append process_cartridge_commands(r.cart_commands)
         end
         
-        #destroy any unused gears
-        # TODO : if the destroy fails below... the user still sees the error as configure failure 
+        # destroy any unused gears
+        # TODO : if the destroy fails below... the user still sees the error as configure failure
         #   Then to recover, if we re-elaborate (like in add_dependency), then the group instance will get lost
         #   and any failed gears below will leak (i.e. they exist on node, their destroy failed, but they do not have any handle in Mongo)
         run_on_gears(group_inst.gears, reply, false) do |gear, r|
