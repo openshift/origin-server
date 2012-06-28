@@ -359,7 +359,7 @@ module MCollective
             setcode { active }
           end
 
-          repy[:output] = "created/updated district #{uuid} with active = #{active}"
+          reply[:output] = "created/updated district #{uuid} with active = #{active}"
           reply[:exitcode] = 0
         rescue Exception => e
           reply[:output] = e.message

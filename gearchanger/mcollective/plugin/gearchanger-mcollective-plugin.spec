@@ -21,7 +21,6 @@ Requires:       qpid-cpp-client
 Requires:       ruby-qpid
 #Requires:       qpid-tools
 Requires:       rubygem(stickshift-common)
-Requires:       stickshift-broker
 Requires:       rubygem(json)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
