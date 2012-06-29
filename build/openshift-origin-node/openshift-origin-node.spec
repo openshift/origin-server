@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin Node
 Name:           openshift-origin-node
-Version:        0.0.0
+Version:        0.0.1
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -166,3 +166,6 @@ semodule -r stickshift
 rm -rf %{buildroot}                                
 
 %changelog
+* Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
