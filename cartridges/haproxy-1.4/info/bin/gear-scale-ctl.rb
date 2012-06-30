@@ -38,14 +38,25 @@ class Gear_scale_ctl
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
-    request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 120,
+    request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 300,
         :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
         :payload => params
         )
 
-    response = request.execute()
-    if 300 <= response.code
-      raise response
+    begin
+      response = request.execute()
+      if 300 <= response.code
+        raise response
+      end
+    rescue RestClient::UnprocessableEntity => e
+      puts "The #{action} request could not be processed by the broker. Already at the limit?"
+      return false
+    rescue RestClient::ExceptionWithResponse => e
+      puts "The #{action} request failed with http_code: #{e.http-code}"
+      return false
+    rescue RestClient::Exception => e
+      puts "The #{action} request failed with the following exception: #{e.to_s}"
+      return false
     end
   end
 
@@ -61,26 +72,51 @@ class Gear_scale_ctl
           :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
           :payload => params
           )
-      response = request.execute()
-      if 300 <= response.code
+
+      begin
+        response = request.execute()
+        if 300 <= response.code
+          return false
+        end
+      rescue RestClient::Exception => e
+        puts "Failed to get application info from the broker."
         return false
       end
-      response_object = JSON.parse(response)
-      min = response_object["data"]["scale_min"]
-      max = response_object["data"]["scale_max"]
+
+      begin
+        response_object = JSON.parse(response)
+        min = response_object["data"]["scale_min"]
+        max = response_object["data"]["scale_max"]
+      rescue
+        puts "Could not use the application info response."
+        return false
+      end
+
       f = File.open(scale_file, 'w')
       f.write("scale_min=#{min}\nscale_max=#{max}")
       f.close
     else
-      scale_data = File.read(scale_file)
-      scale_hash = {}
-      scale_data.split("\n").each { |s| 
-        line = s.split("=")
-        scale_hash[line[0]] = line[1] 
-      }
-      min = scale_hash["scale_min"].to_i
-      max = scale_hash["scale_max"].to_i
+
+      begin
+        scale_data = File.read(scale_file)
+        scale_hash = {}
+        scale_data.split("\n").each { |s|
+          line = s.split("=")
+          scale_hash[line[0]] = line[1]
+        }
+        min = scale_hash["scale_min"].to_i
+        max = scale_hash["scale_max"].to_i
+      rescue => e
+        puts "Could not read or parse #{scale_file}"
+        begin
+          # Get it fresh from the broker next invocation
+          File.unlink(scale_file)
+        rescue
+        end
+        return false
+      end
     end
+
     haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
     gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
     current_gear_count = `wc -l #{gear_registry_db}`
