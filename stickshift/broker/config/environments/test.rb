@@ -34,14 +34,14 @@ Broker::Application.configure do
   config.active_support.deprecation = :stderr
 
   config.datastore = {
-    :replica_set => true,
+    :replica_set => false,
     # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-    :host_port => [["localhost", 27017]],
+    :host_port => ["localhost", 27017],
 
-    :user => "libra",
-    :password => "momo",
-    :db => "openshift_broker_dev",
-    :collections => {:user => "user_test"}
+    :user => "stickshift",
+    :password => "mooo",
+    :db => "stickshift_broker_dev",
+    :collections => {:user => "user_test", :district => "district_test"}
   }
   
   config.usage_tracking = {
