@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.95.1
+Version: 0.95.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -114,6 +114,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- BZ 836348 and BZ 832289; disable expose_php to hide information about it.
+  (rmillner@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
