@@ -15,8 +15,7 @@ class UserController < SiteController
   end
 
   def new
-    @product = 'openshift' unless defined? @product
-    @redirect = params[:redirect].presence || params[:redirectUrl].presence
+    @redirect = params[:then] || params[:redirect].presence || params[:redirectUrl].presence
     @captcha_secret = params[:captcha_secret].presence
 
     @user = WebUser.new params[:web_user]
@@ -25,6 +24,7 @@ class UserController < SiteController
   def create
     logger.debug "Registration request"
 
+    @redirect = server_relative_uri(params[:then])
     @user = WebUser.new params[:web_user]
     @captcha_secret = params[:captcha_secret]
 
@@ -53,14 +53,6 @@ class UserController < SiteController
     # Verify product choice if any
     @product = 'openshift'
     action = 'confirm'
-    if @user.cloud_access_choice
-      case @user.cloud_access_choice.to_i
-      when CloudAccess::EXPRESS
-        @product = 'express'
-      end
-    end
-
-    # flash[:product] = @product
 
     # Stop if you have a validation error
     unless valid
@@ -74,7 +66,8 @@ class UserController < SiteController
     confirmationUrl = url_for(:action => 'confirm',
                               :controller => 'email_confirm',
                               :only_path => false,
-                              :protocol => 'https')
+                              :protocol => 'https',
+                              :then => @redirect)
 
     @user.register(confirmationUrl, @user.promo_code)
 
@@ -90,9 +83,6 @@ class UserController < SiteController
     #Process promo code
     if @user.promo_code and not @user.promo_code.blank?
       PromoCodeMailer.promo_code_email(@user).deliver
-
-      #Save promo code so that omniture tag can be updated in UserController::complete
-      session[:promo_code] = @user.promo_code
     end
 
     redirect_to complete_account_path(:promo_code => @user.promo_code.presence)
@@ -101,10 +91,9 @@ class UserController < SiteController
   def complete
     @event = 'event29' # set omniture 'simple registration' event
 
-    if session[:promo_code]
+    if params[:promo_code]
       @event += ",event8"
-      @evar8 = session[:promo_code]
-      session.delete(:promo_code)
+      @evar8 = params[:promo_code]
     end
 
     render :create
