@@ -185,7 +185,7 @@ client_result "MongoDB 2.0 database added.  Please make note of these credential
 client_result ""
 client_result "       Root User: admin"
 client_result "   Root Password: $password"
-client_result "   Database Name: $application"
+client_result "   Database Name: $DB_NAME"
 client_result ""
 
 if is_a_scalable_app; then
@@ -202,7 +202,7 @@ client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 cart_props "connection_url=mongodb://$mongodb_ip:$mongodb_port/"
 cart_props "username=admin"
 cart_props "password=$password"
-cart_props "database_name=$application"
+cart_props "database_name=$DB_NAME"
 
 set_app_info "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
 enable_cgroups
