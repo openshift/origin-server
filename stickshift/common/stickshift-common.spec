@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.12.1
+Version: 0.12.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- BugFixes: 824973, 805983, 796458 (rpenta@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
