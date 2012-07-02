@@ -4,6 +4,10 @@ Description: Cartridge providing support for creating/managing jenkins jobs
 Version: 1.0.0
 License: ASL 2.0
 Vendor: 
+Cart-Data:
+  - Key: "job_url"
+    Type: cart_data
+    Description: "URL for the build job submitted on jenkins server"
 Provides:
   - "jenkins-client"
 Requires:
@@ -12,7 +16,7 @@ Native-Requires:
 Architecture: noarch
 Reservations:
   - MEM >= 10MB
-Service-Dependencies: ["rhc-cartridge-jenkins-1.4"]
+Service-Dependencies: ["jenkins-1.4"]
 Publishes:
   colocate-with-haproxy-hack:
     Type: "FILESYSTEM:haproxy:colocate-hack"

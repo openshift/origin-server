@@ -1,9 +1,34 @@
 Name: mongodb-2.0
 Display-Name: MongoDB v2.0.0 (x86-64)
-Description: Cartridge packaging MongoDB
+Description: "MongoDB is an open source, document-oriented database designed for both scalability and ease of development"
 Version: 2.0.0
 License: ASL 2.0
-Vendor:  mongodb.org
+License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
+Vendor: 10gen
+Categories:
+  - cartridge
+  - database
+  - nosql
+Website: http://www.10gen.com
+Help-Topics:
+  - "Building with MongoDB" : https://openshift.redhat.com/community/developers/mongodb
+Cart-Data:
+  - Key: "username"
+    Type: cart_data
+    Description: "Root user on mongo database"
+  - Key: "password"
+    Type: cart_data
+    Description: "Password for root user on mongo database"
+  - Key: database_name
+    Type: cart_data
+    Description: "Mongo DB name"
+  - Key: connection_url
+    Type: cart_data
+    Description: "Mongo DB connection URL"
+Suggests:
+  - 10gen-mms-agent-0.1
+  - rockmongo
+
 Provides:
   - "mongodb"
   - "mongodb(version) = 2.0.0"
@@ -39,7 +64,7 @@ Profiles:
           Min: 1
           Max: 1
   replica-sets:
-    Provides:  mongodb-replica-sets
+    Provides: mongodb-replica-sets
     Reservations:
       - MEM >= 1GB
     Components:
@@ -47,7 +72,7 @@ Profiles:
         Subscribes:
           set-replicaset:
             Type: "NET_TCP:db:mongodb:replica-servers"
-          set-doc-root:  #  Best-practices: run router where appserver runs.
+          set-doc-root: # Best-practices: run router where appserver runs.
             Type: "FILESYSTEM:doc-root"
       configsvr:
         Publishes:
@@ -103,11 +128,11 @@ Profiles:
         Components:
           - replica
           - config_server
-    Start-Order:  [arbiter_config_server, arbiter_replica, config_server, router, replica]
+    Start-Order: [arbiter_config_server, arbiter_replica, config_server, router, replica]
     Group-Overrides: [ config_servers == replica_set ]
 
   master-slave:
-    Provides:  mongodb-master-slave
+    Provides: mongodb-master-slave
     Components:
       master:
         Publishes:
@@ -144,5 +169,5 @@ Profiles:
         Components:
           - master
           - slaves
-    Start-Order:  [master, slaves]
+    Start-Order: [master, slaves]
 Default-Profile: basic
