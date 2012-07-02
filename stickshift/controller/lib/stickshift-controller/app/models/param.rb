@@ -5,6 +5,7 @@ class Param < StickShift::Model
     self.name = name
     self.type = type
     self.description = description
+    valid_options = [valid_options] unless valid_options.kind_of?(Array)
     self.valid_options = valid_options || Array.new
   end
 end
