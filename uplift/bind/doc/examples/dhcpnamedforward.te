@@ -19,5 +19,8 @@ allow named_t named_forward_file_t:file { getattr open read };
 init_labeled_script_domtrans(dhcpc_t, named_initrc_exec_t)
 #allow dhcpc_t named_initrc_exec_t:file { getattr execute };
 
-corenet_udp_bind_all_ephemeral_ports(named_t)
+ifdef(`corenet_udp_bind_all_ephemeral_ports',`
+  corenet_udp_bind_all_ephemeral_ports(named_t)
+')
+corenet_udp_bind_all_unreserved_ports(named_t)
 corenet_udp_bind_all_ports(httpd_t)
