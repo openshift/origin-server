@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.12.1
+Version: 0.12.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- BZ 835205: Fail gracefully when the gear is in a half-built state instead of
+  trying to do the wrong thing. (rmillner@redhat.com)
+- BZ 835157: Add exception handling to add/remove-gear and print informative
+  messages. (rmillner@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
