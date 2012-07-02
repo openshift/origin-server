@@ -88,6 +88,16 @@ class Haproxy
     #sessions_per_gear = sessions / gear_count
     #session_capacity_pct = (sessions_per_gear / @max_sessions_per_gear ) * 100
 
+    class ShouldRetry < StandardError
+      attr_reader :message
+      def initialize(message)
+        @message=message
+      end
+      def to_s
+        "An error occurred; try again later: #{@message}"
+      end
+    end
+
     def initialize(stats_sock="#{HAPROXY_RUN_DIR}/stats")
         @stats_sock=stats_sock
         @last_scale_up_time=Time.now
@@ -100,24 +110,36 @@ class Haproxy
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
-        @socket = UNIXSocket.open(@stats_sock)
-        @socket.puts("show stat\n") 
         @max_sessions_per_gear=10.0
         @gear_remove_pct = 49.9
         @gear_up_pct = 90.0
+        @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
         @log = Logger.new("#{ENV['OPENSHIFT_LOG_DIR']}/scale_events.log")
 
         @status={}
-        while(line = @socket.gets) do
+
+        begin
+          @socket = UNIXSocket.open(@stats_sock)
+          @socket.puts("show stat\n") 
+          while(line = @socket.gets) do
             pxname=line.split(',')[0]
             svname=line.split(',')[1]
             @status[pxname] = {} unless @status[pxname]
             @status[pxname][svname] = Haproxy_attr.new(line)
+          end
+          @socket.close
+        rescue Errno::ENOENT => e
+          @log.error("A retryable error occurred: #{e}")
+          raise ShouldRetry, e.to_s
         end
-        @socket.close
-        @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
+
         @gear_count = self.stats['express'].count - 3
         @sessions = self.stats['express']['BACKEND'].scur.to_i
+        if @gear_count == 0
+          raise ShouldRetry, "Failed to get information from haproxy"
+          @log.error("Failed to get information from haproxy")
+        end
+
         @sessions_per_gear = @sessions / @gear_count
         @session_capacity_pct = @session_capacity_pct = (@sessions_per_gear / @max_sessions_per_gear ) * 100
 
@@ -160,13 +182,15 @@ class Haproxy
     def add_gear
         @last_scale_up_time = Time.now
         @log.info("GEAR_UP - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} up_thresh: #{@gear_up_pct}%")
-        `add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`add-gear -n #{self.gear_namespace}  -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        @log.debug("GEAR_UP - add-gear: exit: #{$?}  stdout: #{res}")
         self.print_gear_stats
     end
 
     def remove_gear
         @log.info("GEAR_DOWN - capacity: #{self.session_capacity_pct}% gear_count: #{self.gear_count} sessions: #{self.sessions} remove_thresh: #{@gear_remove_pct}%")
-        `remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        res=`remove-gear -n #{self.gear_namespace} -a #{ENV['OPENSHIFT_APP_NAME']} -u #{ENV['OPENSHIFT_APP_UUID']}`
+        @log.debug("GEAR_DOWN - remove-gear: exit: #{$?}  stdout: #{res}")
         self.print_gear_stats
     end
 
@@ -311,21 +335,28 @@ rescue Exception => e
 end
 
 
-if opt['up']
-    ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
-   ha.add_gear
-   exit 0
-elsif opt['down']
-    ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
+begin
+  ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
+  if opt['up']
+    ha.add_gear
+    exit 0
+  elsif opt['down']
     ha.remove_gear
     exit 0
+  end
+rescue Haproxy::ShouldRetry => e
+  puts e
+  exit 1
 end
 
-ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
 last_cfg_check_time=0
 while true
-    ha.refresh()
-    ha.check_capacity(opt['debug'])
+    begin
+      ha.refresh()
+      ha.check_capacity(opt['debug'])
+    rescue Haproxy::ShouldRetry => e
+      # Already logged when the exception was generated
+    end
     sleep @check_interval
     if (Time.now - last_cfg_check_time).to_i > CONFIG_VALIDATION_CHECK_INTERVAL
         last_cfg_check_time = Time.now
