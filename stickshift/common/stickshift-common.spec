@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.12.2
+Version: 0.12.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,13 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- Misc selinux fixes for RHEL6.3 (bleanhar@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 - BugFixes: 824973, 805983, 796458 (rpenta@redhat.com)
 
