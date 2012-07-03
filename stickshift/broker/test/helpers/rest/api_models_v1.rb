@@ -7,6 +7,7 @@ class Param_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
+    valid_options = [valid_options] unless valid_options.kind_of?(Array)
     self.valid_options = valid_options || Array.new
   end
 
@@ -18,7 +19,7 @@ class Param_V1 < BaseObj
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options
+    end if self.valid_options.to_s.length > 0
   end
 end
 
@@ -29,7 +30,8 @@ class OptionalParam_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
-    self.valid_options = valid_options
+    valid_options = [valid_options] unless valid_options.kind_of?(Array)
+    self.valid_options = valid_options || Array.new
     self.default_value = default_value
   end
 
@@ -42,7 +44,7 @@ class OptionalParam_V1 < BaseObj
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options
+    end if self.valid_options.to_s.length > 0
   end
 end
 
