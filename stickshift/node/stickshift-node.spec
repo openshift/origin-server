@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.13.3
+Version: 0.13.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,13 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- Updating gem versions (admiller@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
 - Updating gem versions (admiller@redhat.com)
 - Revert "Updating gem versions" (dmcphers@redhat.com)
