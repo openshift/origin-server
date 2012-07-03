@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.3
+Version: 0.13.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- More fixes to bug# 808425 (rpenta@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+- Fix for Bug# 808425 (rpenta@redhat.com)
+
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
 - Removed destroyed_gears during querying mongo (rpenta@redhat.com)
 - BugFix: 812800 (rpenta@redhat.com)
