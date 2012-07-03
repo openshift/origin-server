@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.95.2
+Version: 0.95.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
 - Fix for bugz 835876 - use current euid. (ramr@redhat.com)
 
