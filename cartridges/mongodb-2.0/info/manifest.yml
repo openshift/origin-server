@@ -13,16 +13,16 @@ Website: http://www.10gen.com
 Help-Topics:
   - "Building with MongoDB" : https://openshift.redhat.com/community/developers/mongodb
 Cart-Data:
-  - Name: "username"
+  - Key: "username"
     Type: cart_data
     Description: "Root user on mongo database"
-  - Name: "password"
+  - Key: "password"
     Type: cart_data
     Description: "Password for root user on mongo database"
-  - Name: database_name
+  - Key: database_name
     Type: cart_data
     Description: "Mongo DB name"
-  - Name: connection_url
+  - Key: connection_url
     Type: cart_data
     Description: "Mongo DB connection URL"
 Suggests:
