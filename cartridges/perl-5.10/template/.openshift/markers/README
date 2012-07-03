@@ -9,3 +9,6 @@ force_clean_build - Will remove all previous perl deps and start installing
 enable_cpan_tests - Will install all the cpan packages and run
     their tests
 
+hot_deploy - Will prevent the apache process from being restarted during
+    build/deployment
+
