@@ -11,6 +11,12 @@
       <id>nexus</id>
       <repositories>
         <repository>
+          <id>eap</id>
+          <url>http://maven.repository.redhat.com/techpreview/all</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
           <id>central</id>
           <url>http://central</url>
           <releases><enabled>true</enabled></releases>
@@ -18,6 +24,12 @@
         </repository>
       </repositories>
      <pluginRepositories>
+        <pluginRepository>
+          <id>eap</id>
+          <url>http://maven.repository.redhat.com/techpreview/all</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
         <pluginRepository>
           <id>central</id>
           <url>http://central</url>

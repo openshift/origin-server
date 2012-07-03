@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.12.3
+Version: 0.13.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -13,6 +13,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildArch: noarch
 Requires: git
+Requires: mod_ssl
 
 %description
 This contains the common function used while building cartridges.
@@ -27,10 +28,13 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
 cp -rv abstract %{buildroot}%{cartdir}/
 cp -rv abstract-httpd %{buildroot}%{cartdir}/
+cp -rv abstract-jboss %{buildroot}%{cartdir}/
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract-httpd
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-httpd
+cp -rv LICENSE %{buildroot}%{cartdir}/abstract-jboss
+cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-jboss
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -41,6 +45,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin/
 #%{_libexecdir}/stickshift/cartridges/abstract-httpd/info
+%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
@@ -51,11 +58,40 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_libexecdir}/stickshift/cartridges/abstract/LICENSE
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/COPYRIGHT
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/LICENSE
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/COPYRIGHT
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/LICENSE
 
 
 %post
 
 %changelog
+* Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.13.3-1
+- Abstract JBoss cartridge
+  
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- Merge pull request #124 from
+  matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
+- Replace all env vars in standalone.xml. (matejonnet@gmail.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- Merge pull request #130 from abhgupta/agupta-dev
+  (mmcgrath+openshift@redhat.com)
+- Prevent passing binary on stdin to pre-receive hook (dmace@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- BZ829452: Stop and print an informative message if the remote repository
+  cannot be reached. (rmillner@redhat.com)
+
 * Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - Add port wrap around to manage UID descrepency between dev and the district
   code in stg/prod. (rmillner@redhat.com)

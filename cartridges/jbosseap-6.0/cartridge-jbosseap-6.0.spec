@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.1.6
+Version: 0.2.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -21,6 +21,7 @@ Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 Requires: jboss-eap6 >= %{jbossver}
 Requires: jboss-eap6-modules >= %{jbossver}
+Requires: lsof
 
 %if 0%{?rhel}
 Requires: maven3
@@ -80,8 +81,28 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/publish-gear-endpoint %{buildroot}%{cartridgedir}/info/connection-hooks/publish-gear-endpoint
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/publish-http-url %{buildroot}%{cartridgedir}/info/connection-hooks/publish-http-url
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-db-connection-info
+ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-nosql-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/build.sh %{buildroot}%{cartridgedir}/info/bin/build.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy_httpd_proxy.sh %{buildroot}%{cartridgedir}/info/bin/deploy_httpd_proxy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy.sh %{buildroot}%{cartridgedir}/info/bin/deploy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/tidy.sh %{buildroot}%{cartridgedir}/info/bin/tidy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/restore_tar.sh %{buildroot}%{cartridgedir}/info/bin/restore_tar.sh
+
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/publish_jboss_cluster
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/publish_jboss_remoting
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_cluster
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_remoting
+
+ln -s %{cartridgedir}/../abstract-jboss/info/data/mysql.tar %{buildroot}%{cartridgedir}/info/data/mysql.tar
+
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/conceal-port %{buildroot}%{cartridgedir}/info/hooks/conceal-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/deconfigure %{buildroot}%{cartridgedir}/info/hooks/deconfigure
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{cartridgedir}/info/hooks/expose-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
 %post
 # To modify an alternative you should:
@@ -132,6 +153,35 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.2.4-1
+- Abstract JBoss cartridge
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.2.3-1
+- BZ 833373: Change default builder to small. (rmillner@redhat.com)
+
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
+- remove base m2_repository (dmcphers@redhat.com)
+- Fix for BZ 831966: Added link to missing connection hook. (mpatel@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.1.10-1
+- remove duplicate source (bdecoste@gmail.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.1.9-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.1.8-1
+- updated eap template pom (bdecoste@gmail.com)
+- add eap maven repo (bdecoste@gmail.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.1.7-1
+- add product.conf for eap6 (bdecoste@gmail.com)
+- updated eap6 standalone.xml (bdecoste@gmail.com)
+- updated eap6 standalone.xml (bdecoste@gmail.com)
+
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.1.6-1
 - bug 831130 (bdecoste@gmail.com)
 - EAP6.0.0.GA (bdecoste@gmail.com)
