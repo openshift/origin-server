@@ -34,7 +34,6 @@ class EstimatesController < BaseController
         end
       end if descriptor_hash.has_key?('Requires')
       app_name = descriptor_hash['Name'] || nil
-      scalable = descriptor_hash['Scalable'] || false
 
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Application name or framework not found in the descriptor") if !framework or !app_name
       raise StickShift::EstimatesException.new("Application name or framework not found in the descriptor.") if !framework or !app_name
@@ -42,7 +41,7 @@ class EstimatesController < BaseController
       # Elaborate app descriptor
       template = ApplicationTemplate.new
       template.descriptor_yaml = descriptor
-      app = Application.new(nil, app_name, nil, nil, framework, template, scalable)
+      app = Application.new(nil, app_name, nil, nil, framework, template)
       app.elaborate_descriptor
 
       # Generate output  
