@@ -132,6 +132,13 @@ class EmbCartController < BaseController
         application.add_group_override(name, colocate_with)
       end
       cart_create_reply = application.add_dependency(name)
+    rescue StickShift::UserException => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{e.message}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
+      @reply.messages.push(message)
+      respond_with @reply, :status => @reply.status
+      return
     rescue Exception => e
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
@@ -141,8 +148,6 @@ class EmbCartController < BaseController
         else
           message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
         end
-      elsif e.class==StickShift::UserException
-        message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
       else
         message = Message.new(:error, "Failed to add #{name} to application #{id} due to #{e.message}.")
       end

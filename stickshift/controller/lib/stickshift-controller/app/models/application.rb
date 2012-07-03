@@ -343,17 +343,19 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
   def scaleup(comp_name=nil)
     result_io = ResultIO.new
+
     if not self.scalable
-      raise StickShift::NodeException.new("Cannot scale a non-scalable application", "-100", result_io)
+      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
+
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
+    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
-    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
-    raise StickShift::NodeException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", "104", result_io) if user.consumed_gears >= user.max_gears
+    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
+    raise StickShift::UserException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
+    raise StickShift::UserException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", 104, result_io) if user.consumed_gears >= user.max_gears
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -364,16 +366,16 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def scaledown(comp_name=nil)
     result_io = ResultIO.new
     if not self.scalable
-      raise StickShift::NodeException.new("Cannot scale a non-scalable application", "-100", result_io)
+      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
+    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
+    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length <= ginst.min
+    raise StickShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.first
 
