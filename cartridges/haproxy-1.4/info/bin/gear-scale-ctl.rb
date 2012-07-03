@@ -49,13 +49,13 @@ class Gear_scale_ctl
         raise response
       end
     rescue RestClient::UnprocessableEntity => e
-      puts "The #{action} request could not be processed by the broker. Already at the limit?"
+      $stderr.puts "The #{action} request could not be processed by the broker. Already at the limit?"
       return false
     rescue RestClient::ExceptionWithResponse => e
-      puts "The #{action} request failed with http_code: #{e.http-code}"
+      $stderr.puts "The #{action} request failed with http_code: #{e.http-code}"
       return false
     rescue RestClient::Exception => e
-      puts "The #{action} request failed with the following exception: #{e.to_s}"
+      $stderr.puts "The #{action} request failed with the following exception: #{e.to_s}"
       return false
     end
   end
@@ -79,7 +79,7 @@ class Gear_scale_ctl
           return false
         end
       rescue RestClient::Exception => e
-        puts "Failed to get application info from the broker."
+        $stderr.puts "Failed to get application info from the broker."
         return false
       end
 
@@ -88,7 +88,7 @@ class Gear_scale_ctl
         min = response_object["data"]["scale_min"]
         max = response_object["data"]["scale_max"]
       rescue
-        puts "Could not use the application info response."
+        $stderr.puts "Could not use the application info response."
         return false
       end
 
@@ -107,7 +107,7 @@ class Gear_scale_ctl
         min = scale_hash["scale_min"].to_i
         max = scale_hash["scale_max"].to_i
       rescue => e
-        puts "Could not read or parse #{scale_file}"
+        $stderr.puts "Could not read or parse #{scale_file}"
         begin
           # Get it fresh from the broker next invocation
           File.unlink(scale_file)
@@ -122,10 +122,10 @@ class Gear_scale_ctl
     current_gear_count = `wc -l #{gear_registry_db}`
     current_gear_count = current_gear_count.split(' ')[0].to_i
     if action=='add-gear' and current_gear_count == max
-      puts "Cannot add gear because max limit '#{max}' reached."
+      $stderr.puts "Cannot add gear because max limit '#{max}' reached."
       return false
     elsif action=='remove-gear' and current_gear_count == min
-      puts "Cannot remove gear because min limit '#{min}' reached."
+      $stderr.puts "Cannot remove gear because min limit '#{min}' reached."
       return false
     end
     return true
