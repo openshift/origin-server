@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version:        0.0.1
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -104,6 +104,26 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
+- fixed a couple typos (admiller@redhat.com)
+- Automatic commit of package [rubygem-gearchanger-mcollective-plugin] release
+  [0.0.1-1]. (kraman@gmail.com)
+- Fix typo and remove dependency. (mpatel@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com>
+- fixed a couple typos (admiller@redhat.com)
+- Automatic commit of package [rubygem-gearchanger-mcollective-plugin] release
+  [0.0.1-1]. (kraman@gmail.com)
+- Fix typo and remove dependency. (mpatel@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
