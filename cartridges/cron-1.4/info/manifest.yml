@@ -2,9 +2,18 @@ Name: cron-1.4
 Version: 1.4
 Architecture: noarch
 Display-Name: cron v1.4
-Description: cron job scheduling service
+Description: "Cron based job scheduling service"
+License: "ASL 2.0"
+License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Vendor:
-License: ASL 2.0
+Categories:
+  - cartridge
+Website:
+Help-Topics:
+  "Getting Started Guide": https://openshift.redhat.com/community/blogs/getting-started-with-cron-jobs-on-openshift
+Cart-Data:
+Suggests:
+
 Provides: rhc-cartridge-cron
 Native-Requires:
   - cronie
