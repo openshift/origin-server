@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version:       0.0.1
+Version:       0.0.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -58,6 +58,14 @@ fi
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
+- Automatic commit of package [stickshift-port-proxy] release [0.0.1-1].
+  (kraman@gmail.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
