@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    stickshift-node (0.12.2)
+    stickshift-node (0.12.6)
       activemodel
       stickshift-common
       highline
@@ -18,7 +18,7 @@ GEM
       i18n
     activesupport (3.0.13)
     builder (2.1.2)
-    stickshift-common (0.11.1)
+    stickshift-common (0.11.3)
       activemodel
       json
     diff-lcs (1.1.3)

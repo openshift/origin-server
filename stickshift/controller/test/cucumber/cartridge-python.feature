@@ -28,3 +28,14 @@ Feature: PYTHON Application
     And a python application git repo will not exist
     And a python application source tree will not exist
     And a python application httpd will not be running
+
+  Scenario: Push a code change to a new Python application
+    Given an accepted node
+    And a new guest account
+    And the guest account has no application installed
+    When I configure a python application
+    And the application is prepared for git pushes
+    Then a python application httpd will be running 
+    When the python-2.6 application code is changed
+    Then a python application httpd will be running 
+    And the python-2.6 application should change pids

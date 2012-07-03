@@ -1,5 +1,5 @@
  class CloudUser < StickShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records
+  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records, :capabilities, :parent_user_login
   primary_key :login
   exclude_attributes :applications, :auth_method, :save_jobs, :gear_usage_records
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
@@ -25,7 +25,7 @@
     end if val
   end
 
-  def initialize(login=nil, ssh=nil, ssh_type=nil, key_name=nil)
+  def initialize(login=nil, ssh=nil, ssh_type=nil, key_name=nil, capabilities=nil, parent_login=nil)
     super()
     if not ssh.nil?
       ssh_type = "ssh-rsa" if ssh_type.to_s.strip.length == 0
@@ -38,6 +38,8 @@
     self.login = login
     self.domains = []
     self.max_gears = Rails.configuration.ss[:default_max_gears]
+    self.capabilities = capabilities || {}
+    self.parent_user_login = parent_login
 
     self.consumed_gears = 0
   end
@@ -158,6 +160,12 @@
     hash = StickShift::DataStore.instance.find_by_uuid(obj_type_of_uuid, uuid)
     return nil unless hash
     hash_to_obj(hash)
+  end
+  
+  def self.find_subaccounts_by_parent_login(parent_login)
+    hash_list = StickShift::DataStore.instance.find_subaccounts_by_parent_login(parent_login)
+    return nil if hash_list.nil? or hash_list.empty?
+    hash_list.map {|hash| hash_to_obj(hash) }
   end
   
   def self.hash_to_obj(hash)

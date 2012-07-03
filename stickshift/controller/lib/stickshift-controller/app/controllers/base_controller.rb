@@ -57,12 +57,43 @@ class BaseController < ActionController::Base
       @login = auth[:username]
       @auth_method = auth[:auth_method]
 
-      @cloud_user = CloudUser.find @login
-      if @cloud_user.nil?
-        Rails.logger.debug "Adding user #{@login}...inside base_controller"
-        @cloud_user = CloudUser.new(@login)
-        @cloud_user.save
+      if not request.headers["X-Impersonate-User"].nil?
+        @parent_user = CloudUser.find @login
+        subuser_name = request.headers["X-Impersonate-User"]
+
+        if @parent_user.nil?
+          Rails.logger.debug "#{@login} tried to impersinate user but #{@login} user does not exist"
+          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+        end
+
+        if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
+          Rails.logger.debug "#{@parent_user.login} tried to impersinate user but does not have require capability."
+          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+        end
+
+        sub_user = CloudUser.find subuser_name
+        if sub_user && sub_user.parent_user_login != @parent_user.login
+          Rails.logger.debug "#{@parent_user.login} tried to impersinate user #{subuser_name} but does not own the subaccount."
+          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+        end
+
+        if sub_user.nil?
+          Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
+          @cloud_user = CloudUser.new(subuser_name,nil,nil,nil,{},@parent_user.login)
+          @cloud_user.parent_user_login = @parent_user.login
+          @cloud_user.save
+        else
+          @cloud_user = sub_user
+        end
+      else
+        @cloud_user = CloudUser.find @login
+        if @cloud_user.nil?
+          Rails.logger.debug "Adding user #{@login}...inside base_controller"
+          @cloud_user = CloudUser.new(@login)
+          @cloud_user.save
+        end
       end
+      
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
     rescue StickShift::AccessDeniedException
       log_action(@request_id, 'nil', login, "AUTHENTICATE", false, "Access denied")

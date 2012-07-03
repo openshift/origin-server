@@ -24,6 +24,7 @@ Requires: perl-App-cpanminus
 Requires: perl-CPAN
 Requires: perl-CPANPLUS
 Requires: rpm-build
+Requires: expat-devel
 
 
 %description

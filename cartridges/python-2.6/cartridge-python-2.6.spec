@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.94.1
+Version: 0.94.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -29,6 +29,7 @@ Requires:  libcurl-devel
 Requires:  numpy
 Requires:  numpy-f2py
 Requires:  gcc-gfortran
+Requires:  freetype-devel
 
 Obsoletes: cartridge-python-3.2
 
@@ -115,6 +116,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- Fix for bugz 827827. Use freetype-devel (as that's available on rhel-6.2).
+  (ramr@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
 - bumping spec versions (admiller@redhat.com)
 

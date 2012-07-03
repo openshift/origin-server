@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.12.2
+Version: 0.12.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,37 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
+- support for group overrides so that we do not rely on filesystem co-location
+  - fix for bug#824124 (rchopra@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Fix missing requires (kraman@gmail.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- change rest test to verify from internal (dmcphers@redhat.com)
+- Merge pull request #113 from lnader/master (dmcphers@redhat.com)
+- added mini test for REST API workflow with @internals and @internals1 tag
+  (lnader@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- registering users using ss-register-user in cucumber tests before creating
+  domain/app (abhgupta@redhat.com)
+- generating new ssh keys for cucumber tests instead of storing them in the
+  repo (abhgupta@redhat.com)
+- Bug fixes (abhgupta@redhat.com)
+- allow helper methods to be used by all the code (dmcphers@redhat.com)
+- deconfigure jboss after cucumber scenario (bdecoste@gmail.com)
+- Revert "BZ824124 remove unused doc_root connector" (kraman@gmail.com)
+- BZ824124 remove unused doc_root connector (jhonce@redhat.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+- US2307 - update test scenario names (bdecoste@gmail.com)
+- US2307 - enable eap6 (bdecoste@gmail.com)
+
 * Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 - fixes to cucumber tests to run under OpenShift Origin (abhgupta@redhat.com)
 - add beginnings of broker integration tests (dmcphers@redhat.com)

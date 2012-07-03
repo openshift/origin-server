@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.9.1
+Version: 0.9.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.9.2-1
+- The single quotes cause CART_INFO_DIR to be embedded rather than its
+  expansion. (rmillner@redhat.com)
+- Fix issue with node_modules resolution with GEAR_DIR movement. Node.js
+  searches up the directory chain for node_modules, since we are now under app-
+  root/runtime/repo, this causes issues w/ installed user modules.
+  (ramr@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
 - bumping spec versions (admiller@redhat.com)
 

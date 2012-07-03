@@ -29,3 +29,14 @@ Feature: PERL Application
     And a perl application git repo will not exist
     And a perl application source tree will not exist
     And a perl application httpd will not be running   
+
+  Scenario: Push a code change to a new PERL application
+    Given an accepted node
+    And a new guest account
+    And the guest account has no application installed
+    When I configure a perl application
+    And the application is prepared for git pushes
+    Then a perl application httpd will be running 
+    When the perl-5.10 application code is changed
+    Then a perl application httpd will be running 
+    And the perl-5.10 application should change pids

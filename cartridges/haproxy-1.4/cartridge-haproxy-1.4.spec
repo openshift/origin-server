@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.11.2
+Version: 0.11.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.11.4-1
+- support for group overrides so that we do not rely on filesystem co-location
+  - fix for bug#824124 (rchopra@redhat.com)
+
+* Mon Jun 11 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Moving stats socket file to run directory instead of tmp. On OpenShift
+  Origin, multiple apps using haproxy caused errors because they compete over
+  the /tmp/stats socket file. (kraman@gmail.com)
+
 * Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - fixing gearup bug (mmcgrath@redhat.com)
 
