@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
-Version: 0.8.1
+Version: 0.8.2
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -84,6 +84,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
+- Fix for bugz 837130. (ramr@redhat.com)
+
 * Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.8.1-1
 - bumping spec versions (admiller@redhat.com)
 
