@@ -3,7 +3,7 @@
 %global gemname gearchanger-mcollective-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
-Summary:        GearChanger plugin for m-colective service
+Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
 Version:        0.0.1
 Release:        1%{?dist}
@@ -31,12 +31,12 @@ BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
 
 %package -n ruby-%{gemname}
-Summary:        GearChanger plugin for m-colective based node/gear manager
+Summary:        GearChanger plugin for mcollective based node/gear manager
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
 
 %description
-GearChanger plugin for m-colective based node/gear manager
+GearChanger plugin for mcollective based node/gear manager
 
 %description -n ruby-%{gemname}
 GearChanger plugin for mcollective based node/gear manager
