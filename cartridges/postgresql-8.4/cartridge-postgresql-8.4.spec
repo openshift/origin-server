@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.11.1
+Version: 0.11.2
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,11 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
