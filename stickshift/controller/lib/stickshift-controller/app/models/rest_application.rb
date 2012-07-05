@@ -29,6 +29,14 @@ class RestApplication < StickShift::Model
         Application.get_available_cartridges("embedded")
       end
     end
+    # Update carts list
+    # - remove already embedded carts
+    # - remove conflicting carts
+    app.embedded.keys.each do |cname|
+      carts -= [cname]
+      cinfo = CartridgeCache.find_cartridge(cname)
+      carts -= cinfo.conflicts_feature if defined?(cinfo.conflicts_feature)
+    end if !app.embedded.empty?
 
     self.links = {
       "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
