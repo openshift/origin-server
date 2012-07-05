@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.13.3
+Version: 0.13.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+
 * Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.13.3-1
 - Abstract JBoss cartridge
   
