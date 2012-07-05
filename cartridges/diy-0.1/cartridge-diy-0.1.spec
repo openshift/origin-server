@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.29.1
+Version: 0.29.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
