@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.95.2
+Version: 0.95.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -114,6 +114,19 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- more cartridges have better metadata (rchopra@redhat.com)
+- Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
+  (mmcgrath+openshift@redhat.com)
+- Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
+- Adds hot deploy support for jenkins to php cartridge. (mpatel@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- US2443 - Add info about the hot_deploy marker. (ramr@redhat.com)
+- Add max_file_uploads INI setting to php.ini files (vvitek@redhat.com)
+
 * Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
 - BZ 836348 and BZ 832289; disable expose_php to hide information about it.
   (rmillner@redhat.com)
