@@ -28,6 +28,18 @@ function stickshift_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
+function stickshift_cron_users() {
+    cron_users=()
+    for u in `stickshift_users`; do
+       if [ -z "${cron_users[*]}" ]; then
+          cron_users=("$u")
+       elif [ -d $GEAR_BASE_DIR/$u/$CART_DIRNAME ]; then
+          cron_users=("${cron_users[@]}" "$u")
+       fi
+    done
+    echo "${cron_users[@]}" | tr '\n' ' '
+}
+
 function run_all_scheduled_jobs() {
    freq=${1:-""}
    if [ -z "$freq" ]; then
@@ -37,7 +49,7 @@ function run_all_scheduled_jobs() {
 
    {
       log_message ":START: $freq run of all scheduled jobs"
-      stickshift_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
+      stickshift_cron_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
       log_message ":END: $freq run of all scheduled jobs"
    } &> /dev/null
 }

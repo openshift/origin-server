@@ -56,7 +56,7 @@ class Gear < StickShift::Model
         self.app.ngears -= 1
         self.app.group_instance_map[self.group_instance_name].gears.delete(self)
         self.app.save
-        raise StickShift::NodeException.new("Unable to create gear on node", "-100", create_result)
+        raise StickShift::NodeException.new("Unable to create gear on node", "-100", ret)
       end
       return ret
     end
