@@ -1,6 +1,6 @@
 Name: phpmyadmin-3.4
 Display-Name: phpmyadmin v3.4 (noarch)
-Description: Cartridge packaging phpmyadmin
+Description: Administer MySQL database over the web
 Version: 1.1.0
 License: ASL 2.0
 Vendor:

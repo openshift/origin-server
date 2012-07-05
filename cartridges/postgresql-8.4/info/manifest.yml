@@ -4,6 +4,9 @@ Architecture: noarch
 Display-Name: postgres v8.4 
 Description: Postgres DB Server
 Vendor: 
+Categories:
+  - cartridge
+  - database
 License: ASL 2.0
 Website: http://www.postgresql.org
 Help-Topics:

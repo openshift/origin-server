@@ -4,6 +4,9 @@ Description: Cartridge packaging Node.js support for OpenShift
 Version: 0.6.10
 License: ASL 2.0
 Vendor: www.nodejs.org
+Categories:
+  - cartridge
+  - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
