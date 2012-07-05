@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.26.1
+Version: 0.26.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.26.2-1
+- Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- more cartridges have better metadata (rchopra@redhat.com)
+- Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
+- Add code for supporting hot_deploy (from jboss) -- need to move this to a
+  common library or something. (ramr@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- US2443 - Add info about the hot_deploy marker. (ramr@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.26.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
