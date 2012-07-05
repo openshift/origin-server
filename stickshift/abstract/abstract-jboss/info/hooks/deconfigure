@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Destroys jbossas-7 instance
+# Destroys jboss instance
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
