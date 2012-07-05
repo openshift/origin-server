@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.29.1
+Version: 0.29.2
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -61,6 +61,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
