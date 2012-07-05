@@ -19,7 +19,6 @@ class ApplicationTypesControllerTest < ActionController::TestCase
         assert jboss_eap_seen, "Backend lists JBoss AS before JBoss EAP - EAP should take precidence"
       end
     end
-    assert popular = assigns(:popular_types)
   end
 
   test "should be able to find templates" do

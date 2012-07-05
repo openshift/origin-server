@@ -2,19 +2,17 @@ class ApplicationTypesController < ConsoleController
 
   def index
     types = ApplicationType.all :as => session_user
-    @template_types, types = types.partition{|t| t.template}
-    @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
+
+    types.sort!{ |a,b| a.name <=> b.name }
+
     # hack to make JBoss EAP show up before JBoss AS
     # we need to bubble it up inplace
-    eap_index = @framework_types.index { |t| t.id.start_with? "jbosseap" }
-    eap = @framework_types[eap_index]
-    while eap_index != 0 do
-      left_sib = eap_index - 1
-      @framework_types[eap_index] = @framework_types[left_sib]
-      @framework_types[0] = eap if left_sib == 0
-      eap_index = left_sib
+    if index = types.index{ |t| t.id.start_with? 'jbosseap' }
+      types.unshift types.delete_at(index)
     end
-    @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
+
+    @template_types, @framework_types = types.partition{ |t| t.template }
+
   end
 
   def show
