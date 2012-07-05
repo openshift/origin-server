@@ -4,6 +4,10 @@ Description: Cartridge packaging ruby support running on Phusion Passenger
 Version: 1.0.0
 License: ASL 2.0
 Vendor:
+Website: www.ruby-lang.org
+Categories:
+  - cartridge
+  - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
