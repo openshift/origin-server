@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.12.3
+Version: 0.12.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,10 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - Misc selinux fixes for RHEL6.3 (bleanhar@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
