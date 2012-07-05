@@ -48,6 +48,8 @@ rm -rf $RPM_BUILD_ROOT
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
