@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.95.4
+Version: 0.95.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -152,6 +152,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.5-1
+- Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- more cartridges have better metadata (rchopra@redhat.com)
+- abstract jboss cart (bdecoste@gmail.com)
+
 * Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.95.4-1
 - Abstract JBoss cartridge
 
