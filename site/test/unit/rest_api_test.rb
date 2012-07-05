@@ -985,7 +985,7 @@ class RestApiTest < ActiveSupport::TestCase
       ].to_json
     end
     types = ApplicationType.find :all, :as => @user
-    assert_equal 2, types.length
+    assert_equal 1, types.length, types.inspect
     types.each do |type|
       assert a = ApplicationType.find(type.id, :as => @user)
       assert_equal type.id, a.id
@@ -1020,7 +1020,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     types = ApplicationType.find :all, :as => @user
-    assert_equal 2, types.length
+    assert_equal 1, types.length
 
     types.each do |type|
       assert a = ApplicationType.find(type.id, :as => @user)
