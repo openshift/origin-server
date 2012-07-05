@@ -855,15 +855,16 @@ module GearChanger
       # If a server is supplied, only execute for that server.
       #
       def self.rpc_exec(agent, server=nil, forceRediscovery=false, options=rpc_options)
-        if server
-          Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to server #{server}")
-          # Filter to the specified server
-          options[:filter]["identity"] = server
-          options[:mcollective_limit_targets] = "1"
-        end
       
         # Setup the rpc client
         rpc_client = rpcclient(agent, :options => options)
+
+        # Filter to the specified server
+        if server
+          Rails.logger.debug("DEBUG: rpc_exec: Filtering rpc_exec to server #{server}")
+          rpc_client.identity_filter(server)
+        end
+
         if forceRediscovery
           rpc_client.reset
         end
