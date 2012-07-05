@@ -122,6 +122,7 @@ class ApplicationsController < BaseController
         message = Message.new(:error, "Invalid template.", 125, "template") 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
+        return
       end
       application = Application.new(@cloud_user, app_name, nil, node_profile, nil, template, scale, domain)
     else
