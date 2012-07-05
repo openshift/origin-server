@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.4
+Version: 0.13.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
+- Merge pull request #182 from pravisankar/dev/ravi/bug/806273
+  (admiller@redhat.com)
+- changes identified after writing integration tests (abhgupta@redhat.com)
+- Fix for Bug 806273 (rpenta@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- Fix for bug#812802 (rpenta@redhat.com)
+
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - More fixes to bug# 808425 (rpenta@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
