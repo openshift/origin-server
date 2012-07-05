@@ -75,11 +75,14 @@ observe_setup_app_and_git_dirs
 
 observe_setup_cart_instance_dir
 
-# npm keeps per-user config in ~/.npmrc and cache in ~/.npm/
+# npm keeps per-user config in ~/.npmrc and cache in ~/.npm/  and
+# node-gyp (add-on build tool) uses ~/.node-gyp
 # Create files/directories, change ownership and SELinux file security context.
 touch "$APP_HOME"/.npmrc
 mkdir "$APP_HOME"/.npm
-chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc
+mkdir "$APP_HOME"/.node-gyp
+chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc  \
+                            "$APP_HOME"/.node-gyp
 
 #
 # Create environment variables
