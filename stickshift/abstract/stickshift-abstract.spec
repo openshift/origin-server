@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.13.2
+Version: 0.13.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -28,10 +28,13 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
 cp -rv abstract %{buildroot}%{cartdir}/
 cp -rv abstract-httpd %{buildroot}%{cartdir}/
+cp -rv abstract-jboss %{buildroot}%{cartdir}/
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract-httpd
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-httpd
+cp -rv LICENSE %{buildroot}%{cartdir}/abstract-jboss
+cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-jboss
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -42,6 +45,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin/
 #%{_libexecdir}/stickshift/cartridges/abstract-httpd/info
+%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
@@ -52,11 +58,16 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_libexecdir}/stickshift/cartridges/abstract/LICENSE
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/COPYRIGHT
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/LICENSE
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/COPYRIGHT
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/LICENSE
 
 
 %post
 
 %changelog
+* Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.13.3-1
+- Abstract JBoss cartridge
+  
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
   gearchanger plugin - Added mcollective agent and facter plugins - Added
