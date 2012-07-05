@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin Broker
 Name:           openshift-origin-broker
-Version:        0.0.1
+Version:        0.0.2
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -144,6 +144,12 @@ rm -rf %{buildroot}
 %attr(0700,-,-) /usr/bin/ss-setup-broker
 
 %changelog
+* Thu Jul 05 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
 
