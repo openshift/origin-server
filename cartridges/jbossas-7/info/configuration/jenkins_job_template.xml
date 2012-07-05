@@ -62,11 +62,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-# For some reason, WORKSPACE is set to a relative path, although the Jenkins
-# docs specify it should be absolute. Play it safe by getting the absolute
-# path manually and doing checks relative to our own variable.
-workspace_abs=`cd ~/$WORKSPACE; pwd`
-hot_deploy_file="${workspace_abs}/.openshift/markers/hot_deploy"
+source /usr/libexec/stickshift/cartridges/abstract/info/lib/jenkins_util
 
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
@@ -82,11 +78,7 @@ mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTe
 # Deploy new build
 
 # Stop app
-if [ -f $hot_deploy_file ]; then
-  echo "Skipping application stop due to presence of hot_deploy marker"
-else
-  $GIT_SSH UPSTREAM_SSH 'ctl_all stop'
-fi
+jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
 rsync ~/.m2/ UPSTREAM_SSH:~/.m2/
@@ -96,11 +88,7 @@ rsync ~/$WORKSPACE/.openshift/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/.openshift/
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
 
-if [ -f $hot_deploy_file ]; then
-  echo "Skipping application start due to presence of hot_deploy marker"
-else
-  $GIT_SSH UPSTREAM_SSH 'ctl_all start'
-fi
+jenkins_start_app UPSTREAM_SSH
 
 $GIT_SSH UPSTREAM_SSH post_deploy.sh
       </command>
