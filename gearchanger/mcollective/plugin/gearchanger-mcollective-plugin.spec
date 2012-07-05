@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- Fix for BZ 837522. (mpatel@redhat.com)
+
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - fixed a couple typos (admiller@redhat.com)
 - Automatic commit of package [rubygem-gearchanger-mcollective-plugin] release
