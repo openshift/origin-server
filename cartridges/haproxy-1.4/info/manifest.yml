@@ -7,8 +7,9 @@ License-Url:
 Vendor: http://haproxy.1wt.eu/
 Categories:
   - cartridge
-  - web-proxy
-  - git-host
+  - web_proxy
+  - git_host
+  - scales
 Website:
 Help-Topics:
 Cart-Data:

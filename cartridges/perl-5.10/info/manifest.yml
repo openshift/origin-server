@@ -4,6 +4,10 @@ Description: Cartridge packaging Perl versions 5.10
 Version: 1.0.0
 License: ASL 2.0
 Vendor:  
+Categories:
+  - cartridge
+  - web_framework
+Website: "http://www.perl.org"
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
