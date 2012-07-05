@@ -36,6 +36,11 @@
   font-weight: 200;
 }
 
+@media (max-width: 479px) {
+  #help ul li {
+    text-align: center;
+  }
+}
 
 @media (max-width: 767px) {
   #help ul li {

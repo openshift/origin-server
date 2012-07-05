@@ -13,13 +13,15 @@
     text-transform: capitalize;
     display: inline-block;
     margin-bottom: 5px;
+    vertical-align: middle;
     //margin-right: 10px;
   }
 
   > .url {
-    display: block;
+    display: inline-block;
     vertical-align: text-bottom;
     white-space: nowrap;
+    vertical-align: middle;
   }
 
 	.gear-numbers {
@@ -97,7 +99,7 @@
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      width: 80%;
+      max-width: 80%;
     }
     .emblem {
       margin-right: 7px;
@@ -105,14 +107,39 @@
   }
 }
 
-@media (min-width: 767px) and (max-width: 980px) {
+@media (min-width: 768px) and (max-width: 979px) {
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 375px;
+    }
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1199px) {
   .console.index .application-info {
     > .url,
     > .name {
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-      width: 375px;
+      max-width: 475px;
+    }
+  }
+}
+
+
+@media (min-width: 1200px) {
+  .console.index .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 565px;
     }
   }
 }
