@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.10.1
+Version: 0.10.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- Fix for bugz 837058 - EACCESS on ~/.node-gyp directory. (ramr@redhat.com)
+- Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
+- Fixes for saving node_modules across deployments. (ramr@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
 * Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
 - bump_minor_versions for sprint 14 (admiller@redhat.com)
 
