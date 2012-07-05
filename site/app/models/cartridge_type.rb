@@ -358,10 +358,19 @@ class CartridgeType < RestApi::Base
         :name => 'ruby-1.8',
         :type => 'standalone',
         :display_name => 'Ruby 1.8.7',
-        :version => 'Ruby 1.8.7 / Rack 1.1',
+        :version => 'Ruby 1.8.7 / Rack 1.3',
+        :categories => [:web, :framework],
+        :description => 'Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9.3 for new applications.',
+        :website => 'http://ruby-lang.org/'
+      },
+      {
+        :name => 'ruby-1.9',
+        :type => 'standalone',
+        :display_name => 'Ruby 1.9.3',
+        :version => 'Ruby 1.9.3 / Rack 1.4',
         :categories => [:web, :framework],
         :description => 'Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra.',
-        :website => 'http://rack.rubyforge.org/'
+        :website => 'http://ruby-lang.org/'
       },
       {
         :name => 'diy-0.1',
