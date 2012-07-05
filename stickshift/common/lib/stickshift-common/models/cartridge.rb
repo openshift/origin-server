@@ -2,7 +2,8 @@ module StickShift
   class Cartridge < StickShift::UserModel
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides_feature, :requires_feature, :conflicts_feature, :requires, :default_profile,
-                  :path, :profile_name_map
+                  :path, :profile_name_map, :license_url, :categories, :website, :suggests_feature,
+                  :help_topics, :cart_data_def
     exclude_attributes :profile_name_map
     include_attributes :profiles
     
@@ -66,12 +67,18 @@ module StickShift
       self.architecture = spec_hash["Architecture"] || "noarch"
       self.display_name = spec_hash["Display-Name"] || "#{self.name}-#{self.version}-#{self.architecture}"
       self.license = spec_hash["License"] || "unknown"
+      self.license_url = spec_hash["License-Url"] || ""
       self.vendor = spec_hash["Vendor"] || "unknown"
       self.description = spec_hash["Description"] || ""
       self.provides_feature = spec_hash["Provides"] || []
       self.requires_feature = spec_hash["Requires"] || []
       self.conflicts_feature = spec_hash["Conflicts"] || []
       self.requires = spec_hash["Native-Requires"] || []
+      self.categories = spec_hash["Categories"] || ["cartridge"]
+      self.website = spec_hash["Website"] || ""
+      self.suggests_feature = spec_hash["Suggests"] || []
+      self.help_topics = spec_hash["Help-Topics"] || {}
+      self.cart_data_def = spec_hash["Cart-Data"] || {}
       
       self.provides_feature = [self.provides_feature] if self.provides_feature.class == String
       self.requires_feature = [self.requires_feature] if self.requires_feature.class == String
@@ -104,13 +111,20 @@ module StickShift
         "Version" => self.version,
         "Architecture" => self.architecture,
         "Display-Name" => self.display_name,
-        "Description" => self.description        
+        "Description" => self.description
       }
       
       h["License"] = self.license if self.license
+      h["License-Url"] = self.license_url if self.license_url
+      h["Categories"] = self.categories if self.categories
+      h["Website"] = self.website if self.website
+      h["Help-Topics"] = self.help_topics if self.help_topics
+      h["Cart-Data"] = self.cart_data_def if self.cart_data_def
+
       h["Provides"] = self.provides_feature if self.provides_feature && !self.provides_feature.empty?
       h["Requires"] = self.requires_feature if self.requires_feature && !self.requires_feature.empty?
       h["Conflicts"] = self.conflicts_feature if self.conflicts_feature && !self.conflicts_feature.empty?
+      h["Suggests"] = self.suggests_feature if self.suggests_feature && !self.suggests_feature.empty? 
       h["Native-Requires"] = self.requires if self.requires && !self.requires.empty?
       h["Vendor"] = self.vendor if self.vendor
       h["Default-Profile"] = self.default_profile if self.profile_name_map && !self.profile_name_map[self.default_profile].nil? &&

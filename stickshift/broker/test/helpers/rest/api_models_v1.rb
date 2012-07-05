@@ -173,7 +173,8 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links, :properties
+  attr_accessor :type, :name, :version, :license, :license_url, :categories, :website,
+    :suggests, :help_topics, :links, :properties, :requires, :conflicts, :suggests, :depends
   
   def initialize(type=nil, name=nil)
     self.name = name
