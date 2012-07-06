@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.13.4
+Version:   0.13.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -50,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/configuration/
 #%{_libexecdir}/stickshift/cartridges/abstract-jboss/info
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
@@ -68,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Jul 06 2012 Daniel Mace <dmace@redhat.com> 0.13.5
+- Refactor abstract jboss cart, include info/configuration dir
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
 - abstract jboss cart (bdecoste@gmail.com)
