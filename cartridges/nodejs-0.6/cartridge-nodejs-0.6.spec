@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.10.2
+Version: 0.10.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 06 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
+- Fix build failures -- seems like something in npm link output causes broker
+  to fail parsing the response. (ramr@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - Fix for bugz 837058 - EACCESS on ~/.node-gyp directory. (ramr@redhat.com)
