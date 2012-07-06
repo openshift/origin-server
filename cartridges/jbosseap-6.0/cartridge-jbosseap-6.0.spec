@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version: 0.2.5
+Version:   0.2.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{car
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartridgedir}/info/hooks/configure
+ln -s %{cartridgedir}/../abstract-jboss/info/configuration/jenkins_job_template.xml %{buildroot}%{cartridgedir}/info/configuration/jenkins_job_template.xml
+
 %post
 # To modify an alternative you should:
 # - remove the previous version if it's no longer valid
@@ -153,6 +156,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 06 2012 Daniel Mace <dmace@redhat.com> 0.13.5
+- Include jenkins template and configure script from abstract cart
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.2.5-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - abstract jboss cart (bdecoste@gmail.com)

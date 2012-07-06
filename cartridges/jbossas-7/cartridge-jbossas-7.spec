@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.95.5
+Version:   0.95.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -103,6 +103,9 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{car
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartridgedir}/info/hooks/configure
+ln -s %{cartridgedir}/../abstract-jboss/info/configuration/jenkins_job_template.xml %{buildroot}%{cartridgedir}/info/configuration/jenkins_job_template.xml
+
 %post
 # To modify an alternative you should:
 # - remove the previous version if it's no longer valid
@@ -152,6 +155,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 06 2012 Daniel Mace <dmace@redhat.com> 0.95.6
+- Include jenkins template and configure script from abstract cart
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.5-1
 - Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
 - Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
