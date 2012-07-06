@@ -1,5 +1,5 @@
 class RestCartridge < StickShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :categories, :website,
+  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
   :suggests, :help_topics, :links, :properties, :requires, :conflicts, :suggests, :depends
   
   def initialize(type, name, app, url)
@@ -11,7 +11,7 @@ class RestCartridge < StickShift::Model
     self.version = cart.version
     self.license = cart.license
     self.license_url = cart.license_url
-    self.categories = cart.categories
+    self.tags = cart.categories
     self.website = cart.website
     self.suggests = cart.suggests_feature
     self.requires = cart.requires_feature
