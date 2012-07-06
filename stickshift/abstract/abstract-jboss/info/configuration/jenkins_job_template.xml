@@ -14,7 +14,7 @@
       <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
-      <builderType>jbosseap-6.0</builderType>
+      <builderType>UPSTREAM_APP_TYPE</builderType>
     </hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTimeoutJobProperty>
       <builderTimeout>300000</builderTimeout>
@@ -62,9 +62,9 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+source /usr/libexec/stickshift/cartridges/abstract/info/lib/jenkins_util
 
-rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
+jenkins_rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
 
 # Build setup and run user pre_build and build
 . ci_build.sh
@@ -76,16 +76,16 @@ mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTe
 # Deploy new build
 
 # Stop app
-$GIT_SSH UPSTREAM_SSH 'ctl_all stop'
+jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/.m2/ UPSTREAM_SSH:~/.m2/
-rsync ~/$WORKSPACE/deployments/. UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/deployments/
-rsync ~/$WORKSPACE/.openshift/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/.openshift/
+jenkins_sync_jboss UPSTREAM_SSH
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
-$GIT_SSH UPSTREAM_SSH 'ctl_all start'
+
+jenkins_start_app UPSTREAM_SSH
+
 $GIT_SSH UPSTREAM_SSH post_deploy.sh
       </command>
     </hudson.tasks.Shell>
