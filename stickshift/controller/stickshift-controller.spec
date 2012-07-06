@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.5
+Version: 0.13.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jul 06 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- changing categories to tags for site functional tests (rchopra@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
 - Merge pull request #182 from pravisankar/dev/ravi/bug/806273
   (admiller@redhat.com)
