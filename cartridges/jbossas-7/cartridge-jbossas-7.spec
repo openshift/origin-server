@@ -103,6 +103,9 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{car
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartridgedir}/info/hooks/configure
+ln -s %{cartridgedir}/../abstract-jboss/info/configuration/jenkins_job_template.xml %{buildroot}%{cartridgedir}/info/configuration/jenkins_job_template.xml
+
 %post
 # To modify an alternative you should:
 # - remove the previous version if it's no longer valid
