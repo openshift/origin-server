@@ -44,6 +44,7 @@ class Gear < StickShift::Model
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.join("\n")
         ret = ResultIO.new
+        ret.errorIO << e.message
         ret.exitcode = 5
       end
 
