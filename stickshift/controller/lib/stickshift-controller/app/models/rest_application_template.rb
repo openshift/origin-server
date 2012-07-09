@@ -7,9 +7,9 @@ class RestApplicationTemplate < StickShift::Model
         template.gear_cost, template.metadata
         
     self.links = {
-      "GET_TEMPLATE" => Link.new("Get specific template", "GET", URI::join(url, "application_template/#{@uuid}")),
-      "LIST_TEMPLATES" => Link.new("Get specific template", "GET", URI::join(url, "application_template")),
-      "LIST_TEMPLATES_BY_TAG" => Link.new("Get specific template", "GET", URI::join(url, "application_template/TAG"))
+      "GET_TEMPLATE" => Link.new("Get specific template", "GET", URI::join(url, "application_templates/#{@uuid}")),
+      "LIST_TEMPLATES" => Link.new("Get specific template", "GET", URI::join(url, "application_templates")),
+      "LIST_TEMPLATES_BY_TAG" => Link.new("Get specific template", "GET", URI::join(url, "application_templates/TAG"))
     }
   end
   
