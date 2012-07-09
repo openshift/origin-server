@@ -131,6 +131,3 @@ rm -rf %{buildroot}
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 
-* Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
-- new package built with tito
-

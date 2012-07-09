@@ -245,6 +245,3 @@ rm -rf %{buildroot}
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
 - cleaning up spec files (dmcphers@redhat.com)
 
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
-- new package built with tito
-
