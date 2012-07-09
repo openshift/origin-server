@@ -72,8 +72,16 @@ class GroupInstance < StickShift::Model
     # create the gear
     create_result = gear.create
 
-    if app.scalable and not self.component_instances.include? "@@app/comp-proxy/cart-haproxy-1.4"
-      app.add_dns(gear.name, app.domain.namespace, gear.get_proxy.get_public_hostname)
+    begin
+      if app.scalable and not self.component_instances.include? "@@app/comp-proxy/cart-haproxy-1.4"
+        app.add_dns(gear.name, app.domain.namespace, gear.get_proxy.get_public_hostname)
+      end
+    rescue Exception => e
+      Rails.logger.debug e.message
+      Rails.logger.debug e.backtrace.inspect
+      # Cleanup 
+      gear.destroy
+      raise e 
     end
     app.add_node_settings([gear])
     return [create_result, gear]
