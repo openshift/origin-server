@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version:        0.0.4
+Version:        0.0.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.0.5-1
+- fix for bug#837579 - handle better messaging on find_available_node failure
+  (rchopra@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
 - Fix for BZ 837522. (mpatel@redhat.com)
 
