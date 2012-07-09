@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.95.2
+Version: 0.95.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- Disable automatic Jenkins update checking (ironcladlou@gmail.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - cart metadata work merged; depends service added; cartridges enhanced; unit
