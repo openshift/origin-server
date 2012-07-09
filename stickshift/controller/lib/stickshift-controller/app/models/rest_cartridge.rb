@@ -6,7 +6,18 @@ class RestCartridge < StickShift::Model
     self.name = name
     self.type = type
   
-    prop_values = app.embedded[name] if app
+    prop_values = nil
+    if app
+      if CartridgeCache.cartridge_names('standalone').include? name
+        app.comp_instance_map.each { |cname, cinst|
+          next if cinst.parent_cart_name!=name
+          prop_values = cinst.cart_properties
+          break
+        }
+      else
+        prop_values = app.embedded[name] 
+      end
+    end
     cart = CartridgeCache.find_cartridge(name)
     self.version = cart.version
     self.license = cart.license
