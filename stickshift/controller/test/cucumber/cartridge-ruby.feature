@@ -3,8 +3,6 @@
 @node
 Feature: RUBY Application
 
-  # runcon -u ?? -r system_r -t libra_initrc_t
-
   Scenario Outline: Create Delete one RUBY Application
     Given a new guest account
     And the guest account has no application installed
@@ -51,4 +49,3 @@ Feature: RUBY Application
    | version |
    |   1.8   |
    |   1.9   |
-
