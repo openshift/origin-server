@@ -174,7 +174,7 @@ end
 
 class RestCartridge_V1 < BaseObj_V1
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
-    :suggests, :help_topics, :links, :properties, :requires, :conflicts, :suggests, :depends
+    :help_topics, :links, :properties
   
   def initialize(type=nil, name=nil)
     self.name = name
