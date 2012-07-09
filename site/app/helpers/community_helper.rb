@@ -21,7 +21,7 @@ module CommunityHelper
   end
 
   def open_bug_url
-    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Express'
+    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift'
   end
 
   def openshift_github_url
