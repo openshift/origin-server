@@ -37,7 +37,7 @@ setup_basic_hook "$1" $2 $3
 result=`run_as_user "$CARTRIDGE_BASE_PATH/ruby-1.8/info/bin/threaddump.sh $1 $3"`
 
 if [$result .eq ""]; then
-    DATE=`date '+%Y%m%d'`
+    DATE=`date -u '+%Y%m%d'`
     client_result "Success"
     client_result ""
     client_result "The thread dump file will be available via: rhc app tail -a ${application} -f ${application}/logs/error_log-$DATE-000000-EST -o '-n 250'"

@@ -19,10 +19,8 @@ module ThreadDumper
 end
 
 trap 'QUIT' do
-  datefmt = Time.now.strftime "%Y%m%d"
-  logf = File.join(ENV['OPENSHIFT_LOG_DIR'], "error_log-#{datefmt}-00000-EST")
   btraces = ThreadDumper::Dumper.dump_thread_backtraces
   Thread.start do
-    File.open(logf, 'a') { |f| f.write(btraces) }
+    STDERR.write(btraces)
   end
 end
