@@ -11,8 +11,8 @@ end
 class BaseController < ActionController::Base
   respond_to :json, :xml
   before_filter :check_version, :only => :show
-  API_VERSION = "1.0"
-  SUPPORTED_API_VERSIONS = ["1.0"]
+  API_VERSION = 1.1
+  SUPPORTED_API_VERSIONS = [1.0,1.1]
 
   include UserActionLogger
   
@@ -112,29 +112,32 @@ class BaseController < ActionController::Base
     return url.to_s
   end
   
-  def check_version  
+  def check_version
     accept_header = request.headers['Accept']
     mime_types = accept_header.split(%r{,\s*})
+    version_header = API_VERSION
     mime_types.each do |mime_type|
       values = mime_type.split(%r{;\s*})
       values.each do |value|
         value = value.downcase
         if value.include?("version")
-          $requested_api_version = value.split("=")[1].delete(' ')
+          version_header = value.split("=")[1].delete(' ').to_f
         end
       end
     end
     
     #$requested_api_version = request.headers['X_API_VERSION'] 
-    if not $requested_api_version
+    if not version_header
       $requested_api_version = API_VERSION
+    else
+      $requested_api_version = version_header
     end
     
-    if not SUPPORTED_API_VERSIONS.include?$requested_api_version
+    if not SUPPORTED_API_VERSIONS.include? $requested_api_version
       invalid_version = $requested_api_version
       $requested_api_version = API_VERSION
       @reply = RestReply.new(:not_acceptable)
-      @reply.messages.push(message = Message.new(:error, "Requested API version #{invalid_version} is not supported.  Supported versions are #{SUPPORTED_API_VERSIONS.join(",")}"))
+      @reply.messages.push(message = Message.new(:error, "Requested API version #{invalid_version} is not supported.  Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}"))
       respond_with(@reply) do |format|
         format.xml { render :xml => @reply, :status => @reply.status }
         format.json { render :json => @reply, :status => @reply.status }
