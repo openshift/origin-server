@@ -157,7 +157,7 @@ module MCollective
         source = make_target(agent, type, collective)        
         Log.debug("Unsubscribing #{source}")
         receiver = @subscriptions.delete(source)
-        receiver.close
+        receiver.close if receiver
         Log.debug("Current subscriptions #{@subscriptions}")
       end
 
