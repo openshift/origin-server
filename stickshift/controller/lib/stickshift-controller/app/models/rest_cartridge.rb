@@ -1,6 +1,6 @@
 class RestCartridge < StickShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
-  :suggests, :help_topics, :links, :properties, :requires, :conflicts, :suggests, :depends
+  :help_topics, :links, :properties
   
   def initialize(type, name, app, url)
     self.name = name
@@ -13,10 +13,10 @@ class RestCartridge < StickShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    self.suggests = cart.suggests_feature
-    self.requires = cart.requires_feature
-    self.depends = cart.profiles.map { |p| p.components.map { |c| c.depends_service }.flatten }.flatten.uniq
-    self.conflicts = cart.conflicts_feature
+    # self.suggests = cart.suggests_feature
+    # self.requires = cart.requires_feature
+    # self.depends = cart.profiles.map { |p| p.components.map { |c| c.depends_service }.flatten }.flatten.uniq
+    # self.conflicts = cart.conflicts_feature
     self.help_topics = cart.help_topics
     
     self.properties = []
