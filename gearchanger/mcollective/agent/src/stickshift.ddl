@@ -22,22 +22,31 @@ action "cartridge_do", :description => "run a cartridge action" do
         :prompt         => "Action",
         :description    => "Cartridge hook to run",
         :type           => :string,
-        :validation     => '^(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|app-state-show|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|expose-port|conceal-port|show-port|system-messages)$',
+        :validation     => '^(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|app-state-show|cartridge-list|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|expose-port|conceal-port|show-port|system-messages)$',
         :optional       => false,
         :maxlength      => 64
 
     input :args,
         :prompt         => "Args",
         :description    => "Args to pass to cartridge",
-        :type           => :string,
-        :validation     => '^.+$',
-        :optional       => true,
-        :maxlength      => 1024
+        :type           => :any,
+        :optional       => true
 
     output  :time,
             :description => "The time as a message",
             :display_as => "Time"
 
+    output  :output,
+            :description => "Output from script",
+            :display_as => "Output"
+
+    output :exitcode,
+           :description => "Exit code",
+           :display_as => "Exit Code"
+end
+
+action "execute_parallel", :description => "run commands in parallel" do
+    display :always
     output  :output,
             :description => "Output from script",
             :display_as => "Output"
@@ -147,7 +156,7 @@ action "has_uid_or_gid", :description => "Returns whether this system has alread
     input :uid,
         :prompt         => "uid/gid",
         :description    => "uid/gid",
-        :type           => :string,  # use :number for version mcollective 1.3.2
+        :type           => :number,
         :optional       => false
 
     output  :time,
