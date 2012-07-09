@@ -23,7 +23,7 @@ module MCollective
       end
 
       def ss_app_create(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         app_uuid = args['--with-app-uuid']
         gear_uuid = args['--with-container-uuid']
@@ -34,17 +34,16 @@ module MCollective
         app_name = args['--with-app-name']
         gear_name = args['--with-container-name']
         namespace = args['--with-namespace']
-        
         output = ""
         begin
           container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
                                                            namespace, quota_blocks, quota_files)
           container.create
         rescue StickShift::UserCreationException => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return 129, e.message
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -52,7 +51,7 @@ module MCollective
       end
 
       def ss_app_destroy(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
         app_uuid = args['--with-app-uuid']
         uuid = args['--with-container-uuid']
         
@@ -61,7 +60,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(app_uuid, uuid)
           container.destroy
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -69,7 +68,7 @@ module MCollective
       end
 
       def ss_authorized_ssh_key_add(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
@@ -82,7 +81,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_ssh_key(ssh_key, key_type, comment)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -90,7 +89,7 @@ module MCollective
       end
 
       def ss_authorized_ssh_key_remove(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
@@ -102,7 +101,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_ssh_key(ssh_key, comment)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -110,7 +109,7 @@ module MCollective
       end
 
       def ss_broker_auth_key_add(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
@@ -122,7 +121,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_broker_auth(iv, token)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -130,7 +129,7 @@ module MCollective
       end
 
       def ss_broker_auth_key_remove(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
@@ -140,7 +139,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_broker_auth
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -148,7 +147,7 @@ module MCollective
       end
 
       def ss_env_var_add(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
@@ -160,7 +159,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_env_var(key, value)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -168,7 +167,7 @@ module MCollective
       end
 
       def ss_env_var_remove(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
         key = args['--with-key']
@@ -178,7 +177,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_env_var(key)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -186,7 +185,7 @@ module MCollective
       end
 
       def ss_cartridge_list(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         list_descriptors = true if args['--with-descriptors']
         porcelain = true if args['--porcelain']
@@ -195,7 +194,7 @@ module MCollective
         begin
           output = StickShift::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -203,7 +202,7 @@ module MCollective
       end
 
       def ss_app_state_show(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
 
         container_uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']        
@@ -213,7 +212,7 @@ module MCollective
           container = StickShift::ApplicationContainer.new(app_uuid, container_uuid)
           output = container.get_app_state()
         rescue Exception => e
-          Log.instance.debug e.message
+          Log.instance.info e.message
           return -1, e.message
         else
           return 0, output
@@ -221,7 +220,7 @@ module MCollective
       end
 
       def ss_connector_execute(cmd, args)
-        Log.instance.debug "COMMAND: #{cmd}"
+        Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
         cart_name = args['--cart-name']
         hook_name = args['--hook-name']
@@ -269,8 +268,8 @@ module MCollective
       # Passes arguments to cartridge for use
       #
       def cartridge_do_action
-        Log.instance.debug("cartridge_do_action call / request = #{request.pretty_inspect}")
-        Log.instance.debug("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
+        Log.instance.info("cartridge_do_action call / request = #{request.pretty_inspect}")
+        Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
         validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute)\Z/
@@ -290,9 +289,9 @@ module MCollective
             reply[:output] = output
             reply[:exitcode] = rc
             if rc == 0
-              Log.instance.debug("cartridge_do_action (#{rc})\n------\n#{output}\n------)")
+              Log.instance.info("cartridge_do_action (#{rc})\n------\n#{output}\n------)")
             else
-              Log.instance.debug("cartridge_do_action ERROR (#{rc})\n------\n#{output}\n------)")
+              Log.instance.info("cartridge_do_action ERROR (#{rc})\n------\n#{output}\n------)")
             end
             reply.fail! "cartridge_do_action failed #{rc}.  Output #{output}" unless rc == 0
             return 0
@@ -321,13 +320,13 @@ module MCollective
             end
           end
         rescue Timeout::Error
-          Log.instance.debug("cartridge_do_action WARNING - stdout read timed out")
+          Log.instance.info("cartridge_do_action WARNING - stdout read timed out")
         end
 
         if exitcode == 0
-          Log.instance.debug("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
+          Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
         else
-          Log.instance.debug("cartridge_do_action ERROR (#{exitcode})\n------\n#{output}\n------)")
+          Log.instance.info("cartridge_do_action ERROR (#{exitcode})\n------\n#{output}\n------)")
         end
 
         reply[:output] = output
@@ -339,7 +338,7 @@ module MCollective
       # Set the district for a node
       #
       def set_district_action
-        Log.instance.debug("set_district call / request = #{request.pretty_inspect}")
+        Log.instance.info("set_district call / request = #{request.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid]
         active = request[:active]
@@ -367,7 +366,7 @@ module MCollective
           reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}" 
         end
 
-        Log.instance.debug("set_district (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
+        Log.instance.info("set_district (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
       end
 
       #
@@ -462,7 +461,7 @@ module MCollective
       # Executes a list of jobs parallely and returns their results embedded in args
       #
       def execute_parallel_action        
-        Log.instance.debug("execute_parallel_action call / request = #{request.pretty_inspect}")
+        Log.instance.info("execute_parallel_action call / request = #{request.pretty_inspect}")
         #validate :joblist, /\A[\w\+\/= \{\}\"@\-\.:\'\\\n~,_]+\z/
         #validate :joblist, :shellsafe
 
@@ -513,7 +512,7 @@ module MCollective
           pj, pid, sout, serr = reap_args
           reap_output(pj, pid, sout, serr)
         }
-        Log.instance.debug("execute_parallel_action call - 10 #{joblist}")
+        Log.instance.info("execute_parallel_action call - 10 #{joblist}")
         reply[:output] = joblist
         reply[:exitcode] = 0
       end
@@ -549,13 +548,13 @@ module MCollective
             end
           end
         rescue Timeout::Error
-          Log.instance.debug("cartridge_do_action WARNING - stdout read timed out")
+          Log.instance.info("cartridge_do_action WARNING - stdout read timed out")
         end
 
         if exitcode == 0
-          Log.instance.debug("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
+          Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
         else
-          Log.instance.debug("cartridge_do_action ERROR (#{exitcode})\n------\n#{output}\n------)")
+          Log.instance.info("cartridge_do_action ERROR (#{exitcode})\n------\n#{output}\n------)")
         end
 
         parallel_job[:result_stdout] = output
