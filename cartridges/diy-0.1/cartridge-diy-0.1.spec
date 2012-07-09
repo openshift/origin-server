@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version:   0.29.4
+Version:   0.29.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.29.5-1
+- add maven mirror for diy builder (bdecoste@gmail.com)
+
 * Mon Jul 09 2012 William DeCoste <wdecoste@redhat.com> 0.29.4-1
 - maven repo for diy builder
 
