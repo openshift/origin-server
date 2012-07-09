@@ -5,8 +5,13 @@ pre, code {
 pre.cli {
 	color: $cliText;
 	background-color: $cliBackground;
-	border: none;
+	border: 1px solid #000;
 }
+
+pre.pre-scrollable-horizontal {
+  overflow-x: auto;
+  white-space: nowrap;
+  }
 
 // GeshiFilter specific, can be moved into a more generic section
 .column-content div.geshifilter {
