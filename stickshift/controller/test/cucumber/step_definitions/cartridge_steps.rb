@@ -5,7 +5,7 @@ When /^the application is prepared for git pushes$/ do
   app_name = @account['appnames'][0]
   namespace = @account['namespace']
 
-  ssh_key = IO.read(File.expand_path("~/.ssh/id_rsa.pub")).chomp.split[1]
+  ssh_key = IO.read($test_pub_key).chomp.split[1]
   run "echo \"127.0.0.1 #{app_name}-#{namespace}.dev.rhcloud.com # Added by cucumber\" >> /etc/hosts"
   run "ss-authorized-ssh-key-add -a #{account_name} -c #{account_name} -s #{ssh_key} -t ssh-rsa -m default"
   run "echo -e \"Host #{app_name}-#{namespace}.dev.rhcloud.com\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"

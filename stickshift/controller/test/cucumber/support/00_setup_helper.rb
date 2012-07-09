@@ -49,8 +49,8 @@ $rhc_domain_script = "/usr/bin/rhc-domain"
 $rhc_sshkey_script = "/usr/bin/rhc-sshkey"
 
 # RSA Key constants
-$test_pub_key = File.expand_path("~/.ssh/libra_id_rsa.pub")
-$test_priv_key = File.expand_path("~/.ssh/libra_id_rsa")
+$test_pub_key = File.expand_path("~/.ssh/id_rsa.pub")
+$test_priv_key = File.expand_path("~/.ssh/id_rsa")
 
 module SetupHelper
   def self.setup
