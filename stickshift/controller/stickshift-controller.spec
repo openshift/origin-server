@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.7
+Version: 0.13.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.8-1
+- Merge pull request #201 from lnader/master (lnader@redhat.com)
+- added max_gears to rest user and corrected parameter desc (lnader@redhat.com)
+
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.13.7-1
 - Merge pull request #191 from abhgupta/abhgupta-dev (kraman@gmail.com)
 - fix for bug#837579 - handle better messaging on find_available_node failure
