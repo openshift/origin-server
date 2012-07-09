@@ -1,5 +1,5 @@
 class RestUser < StickShift::Model
-  attr_accessor :login, :consumed_gears, :links
+  attr_accessor :login, :consumed_gears, :max_gears, :links
   
   def initialize(cloud_user, url)
     self.login = cloud_user.login
