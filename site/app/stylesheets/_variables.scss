@@ -2,7 +2,7 @@ $baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, san
 $headerFontFamily:    Overpass, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
 $baseLineHeight:          18px;
-$baseFontSize:						13px;
+$baseFontSize:						13.5px;
 
 $responsivePhone:         480px;
 $responsiveTablet:        768px;
@@ -25,6 +25,7 @@ $logoWidth:       110px;
 $logoSeparation:  10px;
 
 $openshiftRed:                  #CD202C; /* From style guide */
+$openshiftBrightRed:            #EA0011;
 $openshiftDarkRed:              darken($openshiftRed, 15); /*FIXME: Not accurate */
 $openshiftMediumBackgroundGray: #343434; /* From screenshots, for nav */
 $openshiftDarkBackgroundGray:   #333; /* From screenshots, background of sign in link */
@@ -34,8 +35,8 @@ $openshiftLinkGray:             #909090; /* Used on the signup link */
 $openshiftBorderGray:           #b4b4b2; /* From screenshots */
 $genericLightGreen:             #d4e16b;
 
-$cliText:                       #000C5A;
-$cliBackground:                 #E9ECFF;
+$cliText:                       #D0E57B;
+$cliBackground:                 #222222;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray;
@@ -61,14 +62,18 @@ $lightBackground:               white;
 $linkColor:                     $openshiftRed;
 $linkColorHover:                $openshiftDarkRed;
 
+$linkColorBlue:                 #069;
+$linkColorBlueHover:            $openshiftBrightRed;
+$linkColorBlueOnDark:           #42a0bf;
+
 $textColor:                     #404040;
 
-$ribbonColor:                   #EB0011; /* FIXME: From screenshots, is this accurate? */
+$ribbonColor:                   $openshiftBrightRed;
 $ribbonTextColor:               white;
-$ribbonFoldColor:               #91010b; /* FIXME: From screenshots, is this accurate? */
+$ribbonFoldColor:               #A1000C;
 
-$takeActionBackground:          #EB0011; /* FIXME: This makes the logo look desaturated.  We may want a different color set for the nav */
-$takeActionHighlightBackground: #91010b;
+$takeActionBackground:          $openshiftBrightRed;
+$takeActionHighlightBackground: #a1000c;
 
 $grayLighter:										#ededed;
 $grayLight:                     #999;

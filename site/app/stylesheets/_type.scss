@@ -7,7 +7,7 @@
 // ---------
 
 p {
-  margin: 0 0 $baseLineHeight / 1.35;
+  margin: 0 0 $baseLineHeight;
   font-family: $baseFontFamily;
   font-size: $baseFontSize;
   line-height: $baseLineHeight;
@@ -132,7 +132,7 @@ dt {
   font-weight: bold;
 }
 dd {
-  margin-left: $baseLineHeight / 2;
+  margin: 0 0 10px 10px;
 }
 
 // MISC
