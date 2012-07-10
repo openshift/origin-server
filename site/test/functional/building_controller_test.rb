@@ -1,4 +1,5 @@
 require File.expand_path('../../test_helper', __FILE__)
+require 'mocha'
 
 class BuildingControllerTest < ActionController::TestCase
   include ActiveSupport::Testing::Isolation
@@ -98,6 +99,28 @@ class BuildingControllerTest < ActionController::TestCase
     assert cart = assigns(:cartridge)
     assert !cart.persisted?
     assert_response :success
+  end
+
+  test "should tell the user when the Jenkins app isn't yet registered w/ DNS" do
+    # Don't actually sleep for 10 seconds at a go within this test.
+    BuildingController.any_instance.expects(:sleep).at_least_once
+
+    # Set up the cartridge save attempt to fail
+    Cartridge.any_instance.expects(:save).at_least_once.returns(false)
+    Cartridge.any_instance.expects(:has_exit_code?).at_least_once.returns(true)
+
+    # Build the REST environment
+    app_args = with_app(jenkins_app, app_without_builds)
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.post '/broker/rest/domains/test/applications/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422
+    end
+
+    # Simulate the POST
+    post :create, app_args
+
+    # Check that the flash text matches our desired message
+    assert_match /^The Jenkins server has not yet registered with DNS/, flash[:info_pre]
   end
 
   test "should show if all components exist" do
