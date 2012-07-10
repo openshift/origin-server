@@ -330,3 +330,24 @@ Feature: applications
      | format | 
      | JSON | 
      | XML | 
+     
+     
+  Scenario Outline: Scale-up and scale-down as application that is not scalable
+    Given a new user
+    And I accept "<format>"
+    When I send a POST request to "/domains" with the following:"id=cucumber<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/cucumber<random>/applications" with the following:"name=app&cartridge=jbossas-7"
+    Then the response should be "201"
+    When I send a POST request to "/domains/cucumber<random>/applications/app/events" with the following:"event=scale-up"
+    Then the response should be "422"
+    When I send a POST request to "/domains/cucumber<random>/applications/app/events" with the following:"event=scale-down"
+    Then the response should be "422"
+    When I send a DELETE request to "/domains/cucumber<random>/applications/app"
+    Then the response should be "204"
+    
+    Scenarios:
+     | format | 
+     | JSON | 
+     | XML | 
+

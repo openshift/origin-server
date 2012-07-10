@@ -11,7 +11,9 @@ Rails.application.routes.draw do
       resources :keys, :controller => :keys, :constraints => { :id => /[\w]+/ } 
     end
     resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }
-    resources :application_template
+    resources :application_templates
+    #keeping for backward compatibility
+    resources :application_template, :controller => :application_templates
     resources :estimates, :constraints => { :id => /[\w]+/ }, :only => [:index, :show]
 
     # Allow restful update of the domain name via the standard id parameter

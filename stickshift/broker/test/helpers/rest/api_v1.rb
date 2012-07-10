@@ -105,7 +105,7 @@ estimates_app_get_v1.request = { 'id' => 'application', 'descriptor' => "--- \nN
 estimates_app_get_v1.response = RestApplicationEstimate_V1.new
 estimates_app_get_v1.response_type = "application_estimates"
  
-template_list_get_v1 = RestApi_V1.new("/application_template")
+template_list_get_v1 = RestApi_V1.new("/application_templates")
 template_list_get_v1.response_type = "application_templates"
 
 domain_add_post_v1 = RestApi_V1.new("/domains", "POST")

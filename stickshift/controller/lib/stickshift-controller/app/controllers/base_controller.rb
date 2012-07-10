@@ -25,7 +25,7 @@ class BaseController < ActionController::Base
         Param.new("id", "string", "Name of the domain")
       ]),
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
-      "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_template")),
+      "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_templates")),
       "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))
     }
     
