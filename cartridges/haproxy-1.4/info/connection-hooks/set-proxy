@@ -50,7 +50,7 @@ for arg in $kvargs; do
 
     if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
         cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
-        sed -i "/\s*server\s*gear-${gear_name}.*/d" /tmp/haproxy.cfg.$$
+        sed -i "/\s*server\s*gear-${gear_name}\s.*/d" /tmp/haproxy.cfg.$$
         cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
         rm -f /tmp/haproxy.cfg.$$
     fi
@@ -62,11 +62,11 @@ done
 # current set. No recreate permissions on haproxy.cfg, so need to use a temp
 # file to operate on and then overlay the contents of haproxy.cfg
 srvgears=$(grep -E "server\s*gear" "$haproxy_cfg" |  \
-           sed "s/\s*server\s*gear-\([A-Za-z0-9\-]*\).*/\\1/g" | tr "\n" " ")
+           sed "s/\s*server\s*gear-\([A-Za-z0-9\-]*\)\s.*/\\1/g" | tr "\n" " ")
 cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
 for sg in $srvgears; do
     if [ -z "${curr_server_gears[$sg]}" ]; then
-        sed -i "/\s*server\s*gear-$sg.*/d" /tmp/haproxy.cfg.$$
+        sed -i "/\s*server\s*gear-$sg\s.*/d" /tmp/haproxy.cfg.$$
     fi
 done
 
