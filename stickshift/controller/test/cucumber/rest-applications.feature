@@ -350,4 +350,19 @@ Feature: applications
      | format | 
      | JSON | 
      | XML | 
+     
+    Scenario Outline: add application or application event to a non-existent domain
+    Given a new user
+    And I accept "<format>"
+    When I send a POST request to "/domains/bogus/applications" with the following:"name=app&cartridge=jbossas-7"
+    Then the response should be "404"
+    And the error message should have "severity=error&exit_code=127"
+    When I send a POST request to "/domains/bogus/applications/app/events" with the following:"event=scale-up"
+    Then the response should be "404"
+    And the error message should have "severity=error&exit_code=127"
+    
+    Scenarios:
+     | format | 
+     | JSON | 
+     | XML | 
 
