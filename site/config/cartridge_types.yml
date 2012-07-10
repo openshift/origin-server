@@ -1,0 +1,260 @@
+--- 
+- :description: MongoDB is a scalable, high-performance, open source NoSQL database.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :database
+  :display_name: MongoDB NoSQL Database 2.0
+  :license: ASL 2.0 and AGPLv3
+  :help_topics: {}
+
+  :version: MongoDB 2.0
+  :website: http://www.mongodb.org/
+  :name: mongodb-2.0
+  :license_url: http://www.mongodb.org/display/DOCS/Licensing
+- :description: MySQL is a multi-user, multi-threaded SQL database server.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :database
+  :display_name: MySQL Database 5.1
+  :license: GPLv2 with exceptions
+  :conflicts: 
+  - postgresql-8.4
+  :help_topics: {}
+
+  :version: MySQL 5.1
+  :website: http://www.mysql.com/
+  :name: mysql-5.1
+  :license_url: http://www.mysql.com/about/legal/licensing/index.html
+- :description: PostgreSQL is an advanced Object-Relational database management system
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :database
+  :display_name: PostgreSQL Database 8.4
+  :license: PostgreSQL
+  :conflicts: 
+  - mysql-5.1
+  :help_topics: {}
+
+  :version: PostgreSQL 8.4
+  :website: http://www.postgresql.org/
+  :name: postgresql-8.4
+  :license_url: http://www.postgresql.org/about/licence/
+- :description: The Cron cartridge allows you to run command line programs at scheduled times. Use this for background jobs and periodic processing.
+  :type: embedded
+  :categories: 
+  - :embedded
+  :display_name: Cron 1.4
+  :license: MIT and BSD and ISC and GPLv2
+  :help_topics: {}
+
+  :version: Cron 1.4
+  :website: https://fedorahosted.org/cronie/
+  :name: cron-1.4
+  :license_url: 
+- :description: This cartridge provides the agent for connecting to 10gen's MongoDB Monitoring Service.  MongoDB Monitoring Service is a publicly available SaaS solution for proactive monitoring of your MongoDB cluster.  You must install the MongoDB cartridge before installing 10gen MMS Agent.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :blacklist
+  - :administration
+  :display_name: 10gen - MongoDB Monitoring Service Agent
+  :license: 
+  :help_topics: {}
+
+  :version: 10gen MMS Agent 0.1
+  :website: http://www.10gen.com/mongodb-monitoring-service
+  :name: 10gen-mms-agent-0.1
+  :license_url: 
+- :description: Web based MySQL admin tool.  Requires the MySQL cartridge to be installed first.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :administration
+  :display_name: phpMyAdmin 3.4
+  :requires: 
+  - mysql-5.1
+  :license: GPLv2
+  :help_topics: {}
+
+  :version: phpMyAdmin 3.4
+  :website: http://www.phpmyadmin.net/
+  :name: phpmyadmin-3.4
+  :license_url: http://www.phpmyadmin.net/home_page/license.php
+- :description: An experimental cartridge that demonstrates retrieving real-time statistics from your application. May be removed or replaced in the future.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :experimental
+  :display_name: OpenShift Metrics 0.1
+  :help_topics: {}
+
+  :version: Metrics 0.1
+  :name: metrics-0.1
+- :description: Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :administration
+  :display_name: phpMoAdmin 1.0
+  :requires: 
+  - mongodb-2.0
+  :license: GPL v3
+  :help_topics: {}
+
+  :version: phpMoAdmin 1.0
+  :website: http://www.phpmoadmin.com/
+  :name: phpmoadmin-1.0
+  :license_url: http://www.gnu.org/licenses/gpl-3.0.html
+- :description: Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :administration
+  :display_name: RockMongo 1.1
+  :requires: 
+  - mongodb-2.0
+  :license: BSD
+  :help_topics: {}
+
+  :version: RockMongo 1.1
+  :website: http://code.google.com/p/rock-php/wiki/rock_mongo
+  :name: rockmongo-1.1
+  :license_url: http://www.opensource.org/licenses/bsd-license.php
+- :description: |
+    <p>The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be <a href="/app/console/application_types">created via the new application page</a>.</p>
+
+  :type: embedded
+  :categories: 
+  - :embedded
+  - :productivity
+  - :builds
+  :display_name: Jenkins Client 1.4
+  :license: MIT
+  :help_topics: {}
+
+  :version: Jenkins Client 1.4
+  :website: https://jenkins-ci.org/
+  :name: jenkins-client-1.4
+  :license_url: http://www.opensource.org/licenses/mit-license.php
+- :description: ""
+  :type: embedded
+  :categories: 
+  - :blacklist
+  - :scales
+  :display_name: High Availability Proxy
+  :license: ""
+  :version: "1.4"
+  :name: haproxy-1.4
+  :license_url: ""
+- :description: Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications.  Build and deploy enterprise Java in the cloud.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  - :new
+  :display_name: JBoss Enterprise Application Platform 6.0
+  :license: ASL 2.0
+  :help_topics: 
+    How to add JBoss modules to an OpenShift app: /community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app
+    How to solve java.net.BindException to 8080: /community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting
+  :version: JBoss EAP 6.0.0
+  :website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
+  :name: jbosseap-6.0
+  :priority: -1
+  :license_url: http://www.apache.org/licenses/LICENSE-2.0
+- :description: The leading open source Java EE6 application server for enterprise Java applications.  Popular development frameworks include Seam, CDI, Weld, and Spring.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: JBoss Application Server 7.1
+  :license: GNU LPGL 2.1
+  :help_topics: 
+    How to add JBoss modules to an OpenShift app: /community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app
+    How to solve java.net.BindException to 8080: /community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting
+  :version: JBoss AS 7.1.0.Final
+  :website: http://www.jboss.org/jbossas
+  :name: jbossas-7
+  :license_url: http://www.gnu.org/licenses/lgpl-2.1-standalone.html
+- :description: "PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages.  Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter."
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: PHP 5.3
+  :version: 5.3.2
+  :website: http://www.php.net
+  :name: php-5.3
+- :description: "Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears."
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: Python 2.6
+  :help_topics: 
+    Getting Django up and running in 5 minutes: /community/kb/kb-e1010-show-me-your-django-getting-django-up-and-running-in-5-minutes
+  :version: Python 2.6.6 / WSGI 3.2
+  :website: http://www.wsgi.org/
+  :name: python-2.6
+- :description: Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: Perl 5.10
+  :help_topics: 
+    How to deploy the Perl Dancer framework: /community/kb/kb-e1014-how-to-deploy-the-perl-dancer-framework-on-openshift-express
+    How to onboard a Perl application: /community/kb/kb-e1013-how-to-onboard-a-perl-application
+  :version: Perl 5.10 / mod_perl 2.0.4
+  :website: http://perl.apache.org/start/index.html
+  :name: perl-5.10
+- :description: Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: Node.js 0.6
+  :version: Node.js 0.6.10
+  :website: http://nodejs.org/
+  :name: nodejs-0.6
+- :description: Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9.3 for new applications.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: Ruby 1.8.7
+  :version: Ruby 1.8.7 / Rack 1.3
+  :website: http://ruby-lang.org/
+  :name: ruby-1.8
+- :description: Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra.
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  :display_name: Ruby 1.9.3
+  :version: Ruby 1.9.3 / Rack 1.4
+  :website: http://ruby-lang.org/
+  :name: ruby-1.9
+- :description: |
+    <p>The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See <a href="/community/developers/do-it-yourself">the community site</a> for examples of bringing your favorite framework to OpenShift.</p>
+
+  :type: standalone
+  :categories: 
+  - :web
+  - :framework
+  - :custom
+  :display_name: Do-It-Yourself
+  :name: diy-0.1
+- :description: |
+    <p>Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  See <a href="/community/jenkins">the Jenkins info page for more</a>.</p>
+
+  :categories: 
+  - :framework
+  - :productivity
+  - :web
+  :display_name: Jenkins Server
+  :version: "1.4"
+  :name: jenkins-1.4

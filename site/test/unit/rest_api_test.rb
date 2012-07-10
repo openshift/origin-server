@@ -1356,7 +1356,7 @@ class RestApiTest < ActiveSupport::TestCase
   # HttpMock.respond_to or use respond_to(false).
   #
   def mock_types
-    types = CartridgeType.send(:known_types).map{ |t| {:name => t[:name]} }
+    types = CartridgeType.send(:type_map).keys.map{ |k| {:name => k} }
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', json_header, types.to_json
     end

@@ -526,6 +526,7 @@ module RestApi
           connection.idle_timeout = idle_timeout if idle_timeout
           connection.ssl_options = ssl_options if ssl_options
           connection.connection_name = 'rest_api'
+          connection.debug_output = $stderr if ENV['REST_API_DEBUG']
           connection
         end
 

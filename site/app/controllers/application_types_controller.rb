@@ -3,13 +3,7 @@ class ApplicationTypesController < ConsoleController
   def index
     types = ApplicationType.all :as => session_user
 
-    types.sort!{ |a,b| a.name <=> b.name }
-
-    # hack to make JBoss EAP show up before JBoss AS
-    # we need to bubble it up inplace
-    if index = types.index{ |t| t.id.start_with? 'jbosseap' }
-      types.unshift types.delete_at(index)
-    end
+    types.sort!
 
     @template_types, @framework_types = types.partition{ |t| t.template }
 

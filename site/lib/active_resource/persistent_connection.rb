@@ -70,6 +70,11 @@ module ActiveResource
       @auth_type = legitimize_auth_type(auth_type)
     end
 
+    # Sets the debug output stream for HTTP requests
+    def debug_output=(debug_output)
+      @debug_output = debug_output
+    end
+
     # Sets the number of seconds after which HTTP requests to the remote service should time out.
     def timeout=(timeout)
       @timeout = timeout
@@ -208,6 +213,10 @@ module ActiveResource
         if @timeout
           http.open_timeout = @timeout
           http.read_timeout = @timeout
+        end
+
+        if @debug_output
+          http.debug_output = @debug_output
         end
 
         if @idle_timeout

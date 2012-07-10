@@ -9,10 +9,13 @@ class ApplicationType
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
-  attr_accessor :categories, :learn_more_url
+  attr_accessor :tags, :learn_more_url
   attr_accessor :help_topics
-  attr_accessor :blocks
+  attr_accessor :priority
   attr_accessor :template
+
+  alias_attribute :categories, :tags
+  alias_attribute :display_name, :name
 
   def initialize(attributes={})
     attributes.each do |name,value|
@@ -22,6 +25,17 @@ class ApplicationType
 
   def persisted?
     true
+  end
+
+  def <=>(other)
+    return 0 if id == other.id
+    c = priority - other.priority
+    return c unless c == 0
+    display_name <=> other.display_name
+  end
+
+  def priority
+    @priority || 0
   end
 
   class << self
