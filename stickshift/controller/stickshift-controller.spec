@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.9
+Version: 0.13.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.10-1
+- fix for bug#838694 - jenkins cartridge info is not shown in cartridge REST
+  call (rchopra@redhat.com)
+- blocking requires/conflicts/suggests/depends from RestCartridge model until
+  further agreement on cartridge metadata is made (rchopra@redhat.com)
+
 * Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.9-1
 - added missing attr accessor (lnader@redhat.com)
 
