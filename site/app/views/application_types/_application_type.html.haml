@@ -29,8 +29,8 @@
           %label Version:
           %span= application_type.version
 
-  - if application_type.description.respond_to? :to_html
-    = application_type.description.to_html.html_safe
+  - if application_type.description.html_safe?
+    = application_type.description
   - else
     %p= application_type.description
 

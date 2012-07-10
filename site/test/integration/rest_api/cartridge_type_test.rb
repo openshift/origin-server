@@ -10,16 +10,17 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     types.each do |t|
       Rails.logger.debug <<-TYPE.strip_heredoc
         Cartridge #{t.display_name} (#{t.name})
-          tags:       #{t.tags.inspect}
-          version:    #{t.version}
-          priority:   #{t.priority}
+          description: #{t.description}
+          tags:        #{t.tags.inspect}
+          version:     #{t.version}
+          priority:    #{t.priority}
         #{log_extra(t)}
       TYPE
     end
   end
   def log_extra(type)
     if type.respond_to?(:requires)
-      "  requires:   #{type.requires.inspect}\n"
+      "  requires:    #{type.requires.inspect}\n"
     end
   end
 
@@ -38,6 +39,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert (required = types.select{ |t| t.requires.present? }).length > 1
     assert types.all?{ |t| t.categories.present? }
     assert types.all?{ |t| t.tags.present? }
+    assert types.any?{ |t| t.description.html_safe? }
     assert types.all?{ |t| t.tags & t.categories = t.categories }
   end
 

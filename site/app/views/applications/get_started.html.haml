@@ -31,7 +31,7 @@
           If you try to access your application and get a 503 error, it means the deployment is in progress.
 
       %p.well.application-url.larger
-        = link_to @application.web_url, @application.web_url
+        = link_to @application.web_url, @application.web_url, :target => '_blank'
 
     %p 
       The 
