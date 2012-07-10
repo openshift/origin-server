@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.11
+Version: 0.13.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,21 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.12-1
+- Add modify application dns and use where applicable (dmcphers@redhat.com)
+- Merge pull request #209 from lnader/master (rmillner@redhat.com)
+- Merge pull request #207 from pravisankar/dev/ravi/bug/834663
+  (rchopra@redhat.com)
+- Merge pull request #208 from pravisankar/dev/ravi/bug/835176
+  (rchopra@redhat.com)
+- Added test to cover Bug 838627 (lnader@redhat.com)
+- Bug 837926 - changed application_template to application_templates
+  (lnader@redhat.com)
+- Application Gear min/max scaling limit check will also be done in mongo
+  layer. (rpenta@redhat.com)
+- Add gear will do cleanup in case of failures due to DNS timeouts/errors
+  (rpenta@redhat.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.11-1
 - remove any failable logic from track gear usage (dmcphers@redhat.com)
 
