@@ -119,7 +119,8 @@ Requires:  rubygem-nokogiri
 %endif
 
 # Deps for users
-Requires: ruby-RMagick
+Requires:  ImageMagick-devel
+Requires:  ruby-RMagick
 
 BuildArch: noarch
 
