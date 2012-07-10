@@ -164,7 +164,7 @@ module HelpHelper
   end
 
   def pricing_url
-    '/pricing'
+    community_base_url 'developers/pricing'
   end
 
   def console_help_links
