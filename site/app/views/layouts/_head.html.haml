@@ -6,8 +6,11 @@
 
 -# Allow views to modify title if desired
 %title
-  - if content_for?(:page_title)
+  - if content_for? :page_title
     = yield :page_title
+    |
+  - elsif content_for? :title
+    = yield :title
     |
   OpenShift by Red Hat
 
