@@ -276,8 +276,8 @@ private
   end
 
   def register_application(dns_service, old_ns, new_ns, name)
-    dns_service.deregister_application(name, old_ns)
     public_hostname = get_proxy.get_public_hostname
+    dns_service.deregister_application(name, old_ns)
     dns_service.register_application(name, new_ns, public_hostname)
   end
 end
