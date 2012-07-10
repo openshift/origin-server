@@ -25,7 +25,7 @@ class AccountControllerTest < ActionController::TestCase
   
   def test_authenticate
     post(:create, { :username => "test", :password => "test" })
-    data = @auth_service.authenticate(nil, "test", "test")
+    data = @auth_service.authenticate(ActionDispatch::TestRequest.new, "test", "test")
     assert_equal data[:auth_method], :login
     assert_equal data[:username], "test"
   end
