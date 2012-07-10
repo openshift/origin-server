@@ -905,11 +905,15 @@ class RestApiTest < ActiveSupport::TestCase
   def test_cartridge_compare
     mock_types
 
-    ruby = CartridgeType.new :name => 'ruby-1.8'
+    ruby18 = CartridgeType.new :name => 'ruby-1.8'
+    ruby = CartridgeType.new :name => 'ruby-1.9'
     php = CartridgeType.new :name => 'php-5.3'
     mongo = CartridgeType.new :name => 'mongodb-2.0'
     cron = CartridgeType.new :name => 'cron-1.4'
     jenkins = CartridgeType.new :name => 'jenkins-client-1.4'
+
+    assert ruby18 > ruby
+    assert ruby < ruby18
 
     assert cron > ruby
     assert ruby < cron
