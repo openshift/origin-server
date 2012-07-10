@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version:        0.0.7
+Version:        0.0.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -104,6 +104,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.0.8-1
+- Merge pull request #211 from kraman/dev/kraman/bugs/835489
+  (dmcphers@redhat.com)
+- Add modify application dns and use where applicable (dmcphers@redhat.com)
+- Bugz 835489. Fixing location for district config file and adding in missing
+  node_profile_enabled blocks (kraman@gmail.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.0.7-1
 - Bug 838786 (dmcphers@redhat.com)
 
