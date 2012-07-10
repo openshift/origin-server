@@ -70,7 +70,7 @@ action "set_district", :description => "run a cartridge action" do
     input :active,
         :prompt         => "District active boolean",
         :description    => "District active boolean",
-        :type           => :boolean,
+        :type           => :any,
         :optional       => false
 
     output  :time,
