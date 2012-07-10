@@ -28,6 +28,9 @@ module StickShift
 
     def deregister_application(app_name, namespace)
     end
+    
+    def modify_application(app_name, namespace, public_hostname)
+    end
 
     def publish
     end

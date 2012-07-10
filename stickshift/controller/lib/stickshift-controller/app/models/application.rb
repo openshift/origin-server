@@ -979,9 +979,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_recreate_dns, {:application => self, :reply => reply})    
     dns = StickShift::DnsService.instance
     begin
-      dns.deregister_application(@name,@domain.namespace)
       public_hostname = self.container.get_public_hostname
-      dns.register_application(@name,@domain.namespace, public_hostname)
+      dns.modify_application(@name, @domain.namespace, public_hostname)
       dns.publish
     ensure
       dns.close
