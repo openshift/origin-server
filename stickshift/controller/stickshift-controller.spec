@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.10
+Version: 0.13.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.11-1
+- remove any failable logic from track gear usage (dmcphers@redhat.com)
+
 * Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.10-1
 - fix for bug#838694 - jenkins cartridge info is not shown in cartridge REST
   call (rchopra@redhat.com)
