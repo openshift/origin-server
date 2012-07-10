@@ -14,16 +14,16 @@ Help-Topics:
 Cart-Data:
   - Key: "username"
     Type: cart_data
-    Description: "Root user on mysql database"
+    Description: "Root user on PostgreSQL database"
   - Key: "password"
     Type: cart_data
-    Description: "Password for root user on mysql database"
+    Description: "Password for root user on PostgreSQL database"
   - Key: database_name
     Type: cart_data
-    Description: "MySQL DB name"
+    Description: "PostgreSQL DB name"
   - Key: connection_url
     Type: cart_data
-    Description: "MySQL DB connection URL"
+    Description: "PostgreSQL DB connection URL"
 Provides: rhc-cartridge-postgresql
 Suggests:
 Native-Requires: 
