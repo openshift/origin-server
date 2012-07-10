@@ -41,7 +41,9 @@ Broker::Application.configure do
     :user => "stickshift",
     :password => "mooo",
     :db => "stickshift_broker_dev",
-    :collections => {:user => "user", :district => "district"}
+    :collections => {:user => "user",
+                     :district => "district",
+                     :application_template => "template"}
   }
   
   config.usage_tracking = {
