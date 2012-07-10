@@ -32,15 +32,8 @@ class Gear < StickShift::Model
         self.app.group_instance_map[self.group_instance_name].gears << self
         self.app.save
         ret = self.container.create(app,self)
-        begin
-          self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
-        rescue Exception=>e
-          self.app.destroyed_gears = [] unless self.app.destroyed_gears
-          self.app.destroyed_gears << @uuid
-          self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
-          raise
-        end
-      rescue Exception=>e
+        self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
+      rescue Exception => e
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.join("\n")
         ret = ResultIO.new
@@ -57,7 +50,7 @@ class Gear < StickShift::Model
         self.app.ngears -= 1
         self.app.group_instance_map[self.group_instance_name].gears.delete(self)
         self.app.save
-        raise StickShift::NodeException.new("Unable to create gear on node", "-100", ret)
+        raise StickShift::NodeException.new("Unable to create gear on node", 1, ret)
       end
       return ret
     end
@@ -73,7 +66,7 @@ class Gear < StickShift::Model
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
       self.app.save
     else
-      raise StickShift::NodeException.new("Unable to destroy gear on node", "-100", ret)
+      raise StickShift::NodeException.new("Unable to destroy gear on node", 1, ret)
     end
     return ret
   end

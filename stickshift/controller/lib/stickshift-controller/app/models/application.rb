@@ -320,15 +320,15 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     begin
       self.save if self.persisted?
-    rescue Exception=>e
+    rescue Exception => e
       # pass on failure... because we maybe wanting a delete here instead anyway
     end
-          
+
     f.each do |data|
       Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
       Rails.logger.debug(data[:exception].backtrace.inspect)
     end
-    raise StickShift::NodeException.new("Could not destroy all gears of application.", "-100", reply) if f.length > 0
+    raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if f.length > 0
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
   end
@@ -1381,7 +1381,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       self.class.notify_observers(:track_gear_usage, {:gear => gear, :event => event, :time => now, :uuid => uuid})
     end
     if Rails.configuration.usage_tracking[:syslog_enabled]
-      Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+      begin
+        Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+      rescue Exception => e
+        # Can't fail because of a secondary logging error
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
     end
   end
 
@@ -1493,7 +1499,7 @@ private
     successful_runs = []
     failed_runs = []
     gears = self.gears if gears.nil?
-    
+
     gears.dup.each do |gear|
       begin
         retval = block.call(gear, result_io)
@@ -1501,7 +1507,7 @@ private
       rescue Exception => e
         Rails.logger.error e.message
         Rails.logger.error e.inspect
-        Rails.logger.error e.backtrace.inspect        
+        Rails.logger.error e.backtrace.inspect
         failed_runs.push({:gear => gear, :exception => e})
         if (!result_io.nil? && e.kind_of?(StickShift::SSException) && !e.resultIO.nil?)
           result_io.append(e.resultIO)
