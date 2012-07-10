@@ -26,7 +26,7 @@ $logoSeparation:  10px;
 
 $openshiftRed:                  #CD202C; /* From style guide */
 $openshiftBrightRed:            #EA0011;
-$openshiftDarkRed:              darken($openshiftRed, 15); /*FIXME: Not accurate */
+$openshiftDarkRed:              #a1000c; /* action-call dark */
 $openshiftMediumBackgroundGray: #343434; /* From screenshots, for nav */
 $openshiftDarkBackgroundGray:   #333; /* From screenshots, background of sign in link */
 $openshiftAlmostBlack:          #030303;
@@ -39,7 +39,7 @@ $cliText:                       #D0E57B;
 $cliBackground:                 #222222;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
-$breadcrumbTextColor:           $openshiftMediumBackgroundGray;
+$breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
 
 $topBarBackgroundColor:         $openshiftSeriouslyAlmostBlack;
 $navBackgroundColor:            $openshiftMediumBackgroundGray;
