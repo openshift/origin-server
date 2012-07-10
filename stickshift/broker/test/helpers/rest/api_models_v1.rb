@@ -144,7 +144,7 @@ class BaseApi_V1 < BaseObj_V1
            Param_V1.new("id", "string")
           ]),
          "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges"),
-         "LIST_TEMPLATES" => Link_V1.new("GET", "application_template"),
+         "LIST_TEMPLATES" => Link_V1.new("GET", "application_templates"),
          "LIST_ESTIMATES" => Link_V1.new("GET", "estimates")
     }
   end

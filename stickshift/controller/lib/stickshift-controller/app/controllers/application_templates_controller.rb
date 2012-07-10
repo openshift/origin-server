@@ -1,4 +1,4 @@
-class ApplicationTemplateController < BaseController
+class ApplicationTemplatesController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
   
