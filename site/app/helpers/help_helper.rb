@@ -163,6 +163,10 @@ module HelpHelper
     "http://git-scm.com/"
   end
 
+  def pricing_url
+    '/pricing'
+  end
+
   def console_help_links
     [
       {:href => developers_url,
