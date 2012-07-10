@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.13.4
+Version: 0.13.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.13.5-1
+- Separate prune into a pre step because gc needs additional space to run and
+  prune does not.  This will allow space to be reclaimed before gc runs
+  (dmcphers@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
 - abstract jboss cart (bdecoste@gmail.com)

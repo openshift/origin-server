@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.12.5
+Version: 0.12.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.8-1
+- cleanup specs (dmcphers@redhat.com)
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.7-1
+- 
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.6-1
+- Add visible error message if fail to scale up or down by request.
+  (rmillner@redhat.com)
+- bug 836973 - increased scaleup timeout (bdecoste@gmail.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
@@ -236,7 +247,4 @@ rm -rf %{buildroot}
 
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
 - cleaning up spec files (dmcphers@redhat.com)
-
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
-- new package built with tito
 

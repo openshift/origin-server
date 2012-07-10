@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.0.3-1
+- don't send stickshift logs to debug, instead use info (mmcgrath@redhat.com)
+
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
 - Automatic commit of package [stickshift-mcollective-agent] release [0.0.1-1].
   (kraman@gmail.com)

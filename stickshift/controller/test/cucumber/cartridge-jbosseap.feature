@@ -1,6 +1,7 @@
 @internals
 @internals1
 @node
+@not-origin
 Feature: JBossEAP Application
 
    Scenario: Create Delete one JBoss EAP Application
@@ -47,4 +48,3 @@ Feature: JBossEAP Application
      When I deconfigure the jbosseap application
      Then a jbosseap daemon will not be running
      
-

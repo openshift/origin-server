@@ -151,11 +151,12 @@ class BaseApi_V1 < BaseObj_V1
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :consumed_gears, :links                                                                         
+  attr_accessor :login, :consumed_gears, :max_gears, :links                                                                         
                                                                                                        
   def initialize
     self.login = nil
     self.consumed_gears = 0
+    self.max_gears = 3
     self.links = {                                                                                         
       "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
       "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
@@ -174,7 +175,7 @@ end
 
 class RestCartridge_V1 < BaseObj_V1
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
-    :suggests, :help_topics, :links, :properties, :requires, :conflicts, :suggests, :depends
+    :help_topics, :links, :properties
   
   def initialize(type=nil, name=nil)
     self.name = name

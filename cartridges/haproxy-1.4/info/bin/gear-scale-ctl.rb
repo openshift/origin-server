@@ -49,7 +49,13 @@ class Gear_scale_ctl
         raise response
       end
     rescue RestClient::UnprocessableEntity => e
-      $stderr.puts "The #{action} request could not be processed by the broker. Already at the limit?"
+      if action == "add-gear"
+        puts "Already at the maximum number of gears allowed for either the app or your account."
+      elsif action == "remove-gear"
+        puts "Already at the minimum number of gears required for this application."
+      else
+        puts "The #{action} request could not be processed."
+      end
       return false
     rescue RestClient::ExceptionWithResponse => e
       $stderr.puts "The #{action} request failed with http_code: #{e.http-code}"

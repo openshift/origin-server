@@ -51,6 +51,8 @@ create_app_dir_symlink "$cartridge_type"
 DIY_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$DIY_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
+mkdir -p ../.m2/repository
+chown -R $user_id ../.m2/repository
 mkdir logs
 popd > /dev/null
 
