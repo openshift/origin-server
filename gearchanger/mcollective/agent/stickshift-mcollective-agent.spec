@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,15 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- Merge pull request #211 from kraman/dev/kraman/bugs/835489
+  (dmcphers@redhat.com)
+- Fix to work around a bug in mcollective that doesn't convert string true into
+  a boolean anymore. (mpatel@redhat.com)
+- Fix stickshift DDL. (mpatel@redhat.com)
+- Bugz 835489. Fixing location for district config file and adding in missing
+  node_profile_enabled blocks (kraman@gmail.com)
+
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.0.3-1
 - don't send stickshift logs to debug, instead use info (mmcgrath@redhat.com)
 
