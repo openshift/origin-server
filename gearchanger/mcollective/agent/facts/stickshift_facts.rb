@@ -24,8 +24,9 @@ end
 #
 district_uuid = 'NONE'
 district_active = false
-if File.exists?('/etc/stickshift/district.conf')
-  config_file = ParseConfig.new('/etc/stickshift/district.conf')
+district_conf = '/var/lib/stickshift/.settings/district.info'
+if File.exists?(district_conf)
+  config_file = ParseConfig.new(district_conf)
   district_uuid = config_file.get_value('uuid') ? config_file.get_value('uuid') : 'NONE'
   district_active = config_file.get_value('active') ? config_file.get_value('active') == "true" : false
 end

@@ -1245,10 +1245,12 @@ module GearChanger
                                  :value => "NONE",
                                  :operator => "!="}]
 
-          if node_profile
-            additional_filters.push({:fact => "node_profile",
-                                     :value => node_profile,
-                                     :operator => "=="})
+          if Rails.configuration.gearchanger[:node_profile_enabled]
+            if node_profile
+              additional_filters.push({:fact => "node_profile",
+                                       :value => node_profile,
+                                       :operator => "=="})
+            end
           end
           
           rpc_opts = nil
@@ -1290,10 +1292,12 @@ module GearChanger
         current_server = nil
         additional_filters = []
 
-        if node_profile
-          additional_filters.push({:fact => "node_profile",
-                                   :value => node_profile,
-                                   :operator => "=="})
+        if Rails.configuration.gearchanger[:node_profile_enabled]
+          if node_profile
+            additional_filters.push({:fact => "node_profile",
+                                     :value => node_profile,
+                                     :operator => "=="})
+          end
         end
 
         options = rpc_options
