@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.13.5
+Version: 0.13.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- Support hot_deploy marker during gear sync (ironcladlou@gmail.com)
+
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.13.5-1
 - Separate prune into a pre step because gc needs additional space to run and
   prune does not.  This will allow space to be reclaimed before gc runs
