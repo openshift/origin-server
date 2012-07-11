@@ -57,12 +57,7 @@ class GearsController < BaseController
           comp_list.push comp_info
         end
 
-        app_name = app.name
-        app_name = gear.uuid[0..9] if app.scalable and not has_proxy_cart
-
-        git_url = "ssh://#{gear.uuid}@#{app_name}-#{app.domain.namespace}." + Rails.application.config.ss[:domain_suffix] + "/~/git/#{app_name}.git/"
-
-        gear_info = RestGear.new(gear.uuid, comp_list, git_url)
+        gear_info = RestGear.new(gear.uuid, comp_list)
         app_gears_info.push gear_info
       end
 
