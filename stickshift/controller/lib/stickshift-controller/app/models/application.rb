@@ -276,6 +276,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       elaborate_descriptor()
       if self.scalable
         raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
+        min_gear_count = 0
+        group_instances.uniq.each { |gi|
+          min_gear_count += gi.min
+        }
+        if ((user.consumed_gears+min_gear_count) > user.max_gears)
+          raise StickShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
+        end
       end
       user.applications << self
       Rails.logger.debug "Creating gears"
