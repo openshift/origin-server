@@ -6,10 +6,35 @@ do
     [ -f "$f" ] && source "$f"
 done
 
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+# Defines the default pre sync actions, taking into account
+# the hot_deploy marker.
+function set_default_pre_actions {
+  if hot_deploy_marker_is_present; then
+    echo "Application will not be stopped during gear sync to to presence of hot_deploy marker"
+    OPENSHIFT_SYNC_GEARS_PRE=()
+  else
+    OPENSHIFT_SYNC_GEARS_PRE=('ctl_all stop')
+  fi
+}
+
+# Defines the default post sync actions, taking into account
+# the hot_deploy marker.
+function set_default_post_actions {
+  if hot_deploy_marker_is_present; then
+    echo "Application will not be restarted during gear sync due to presence of hot_deploy marker"
+    OPENSHIFT_SYNC_GEARS_POST=('deploy.sh' 'post_deploy.sh')
+  else
+    OPENSHIFT_SYNC_GEARS_POST=('deploy.sh' 'ctl_all start' 'post_deploy.sh')
+  fi
+}
+
 # Defaults for sync-gears.  Override these in .env from the configure script
 [ -z "$OPENSHIFT_SYNC_GEARS_DIRS" ] && OPENSHIFT_SYNC_GEARS_DIRS=( "repo" "node_modules" "virtenv" "../.m2" ".openshift" "deployments" "perl5lib" "phplib" )
-[ -z "$OPENSHIFT_SYNC_GEARS_PRE" ] && OPENSHIFT_SYNC_GEARS_PRE=('ctl_all stop')
-[ -z "$OPENSHIFT_SYNC_GEARS_POST" ] && OPENSHIFT_SYNC_GEARS_POST=('deploy.sh' 'ctl_all start' 'post_deploy.sh')
+[ -z "$OPENSHIFT_SYNC_GEARS_PRE" ] && set_default_pre_actions
+[ -z "$OPENSHIFT_SYNC_GEARS_POST" ] && set_default_post_actions
 declare -ax OPENSHIFT_SYNC_GEARS_DIRS OPENSHIFT_SYNC_GEARS_PRE OPENSHIFT_SYNC_GEARS_POST
 
 rsynccmd="rsync -v --delete-after -az"
