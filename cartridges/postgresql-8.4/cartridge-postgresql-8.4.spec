@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.11.2
+Version: 0.11.3
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Merge pull request #220 from pravisankar/dev/ravi/bug806273
+  (abhgupta@redhat.com)
+- - Don't show postgresql-8.4 as valid options to embed cartridge when mysql is
+  already installed and viceversa. (rpenta@redhat.com)
+- Change references to PostgreSQL. (rmillner@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - cart metadata work merged; depends service added; cartridges enhanced; unit
