@@ -18,11 +18,17 @@ class EmbCartController < BaseController
       return
     end
     cartridges = Array.new
-    cartridges.push(RestCartridge.new("standalone", application.framework, application, get_url))
+    if $requested_api_version >= 1.1
+      cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url))
+    end
 
     unless application.embedded.nil?
       application.embedded.each_key do |key|
-        cartridge = RestCartridge.new("embedded", key, application, get_url)
+        if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new("embedded", key, application, get_url)
+        else
+          cartridge = RestCartridge10.new("embedded", key, application, get_url)
+        end
         cartridges.push(cartridge)
       end
     end
@@ -51,7 +57,12 @@ class EmbCartController < BaseController
       application.embedded.each do |key, value|
         if key == id
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
-          cartridge = RestCartridge.new("embedded", key, application, get_url)
+
+          if $requested_api_version >= 1.1
+            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+          else
+            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+          end
           @reply = RestReply.new(:ok, "cartridge", cartridge)
           respond_with @reply, :status => @reply.status
           return
@@ -163,7 +174,11 @@ class EmbCartController < BaseController
       application.embedded.each do |key, value|
         if key == name
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", true, "Embedded cartridge #{name} in application #{id}")
-          cartridge = RestCartridge.new("embedded", key, application, get_url)
+          if $requested_api_version >= 1.1
+            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+          else
+            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+          end
           @reply = RestReply.new(:created, "cartridge", cartridge)
           message = Message.new(:info, "Added #{name} to application #{id}")
           @reply.messages.push(message)

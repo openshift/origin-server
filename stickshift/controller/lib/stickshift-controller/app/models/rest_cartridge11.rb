@@ -1,4 +1,4 @@
-class RestCartridge < StickShift::Model
+class RestCartridge11 < StickShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
   :help_topics, :links, :properties
   
@@ -35,8 +35,8 @@ class RestCartridge < StickShift::Model
       property = {}
       property["name"] = data_def["Key"]
       property["type"] = data_def["Type"]
-      property["Description"] = data_def["Description"]
-      property["Value"] = prop_values[data_def["Key"]] unless prop_values.nil? or prop_values[data_def["Key"]].nil?
+      property["description"] = data_def["Description"]
+      property["value"] = prop_values[data_def["Key"]] unless prop_values.nil? or prop_values[data_def["Key"]].nil?
       self.properties << property
     end
     
