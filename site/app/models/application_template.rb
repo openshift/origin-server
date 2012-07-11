@@ -8,6 +8,7 @@ class ApplicationTemplate < RestApi::Base
   attr_accessor :categories
 
   def descriptor
+    logger.debug descriptor_yaml
     YAML.load(descriptor_yaml)
   end
 
