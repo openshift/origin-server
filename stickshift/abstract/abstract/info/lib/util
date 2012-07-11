@@ -719,9 +719,14 @@ function set_app_state {
 
 function set_cartridge_state {
   _state=`get_cartridge_state "$1"`
+
   if [ ! \( "idle" = "$_state" -a "stopped" = "$2" \) ]; then
     _state_file="$1/.state"
-    run_as_user "echo \"$2\" >$_state_file"
+    rm -f "$_state_file"
+    echo "$2" > "$_state_file"
+    chown --reference="$1" "$_state_file"
+    chcon --reference="$1" "$_state_file"
+    chmod 640 "$_state_file"
   fi  
 }
 
