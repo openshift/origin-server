@@ -68,7 +68,7 @@ class ApplicationType
         end
 
         templates = ApplicationTemplate.cached.all(:as => opts[:as]).select do |t|
-          not t.categories.include?(:blacklist)
+          not (t.categories.include?(:blacklist) or (Rails.env.production? and t.categories.include?(:in_development)))
         end.map do |t|
           t.to_application_type
         end
