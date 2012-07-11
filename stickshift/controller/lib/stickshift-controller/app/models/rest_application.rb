@@ -81,7 +81,7 @@ class RestApplication < StickShift::Model
       "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
       
       "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-        Param.new("cartridge", "string", "framework-type, e.g.: mysql-5.1", carts)
+        Param.new("cartridge", "string", "framework-type, e.g.: metrics-0.1", carts)
       ]),
       "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"))
     }
