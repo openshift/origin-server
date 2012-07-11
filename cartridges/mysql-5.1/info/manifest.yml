@@ -30,6 +30,8 @@ Provides: mysql
 Native-Requires: 
   - mysql-server
   - mysql-devel
+Conflicts:
+  - postgresql-8.4
 Profiles:
   singleton-master:
     Provides: mysql-singleton-master
