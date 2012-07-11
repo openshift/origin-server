@@ -102,6 +102,14 @@ class GroupInstance < StickShift::Model
     result_io
   end
 
+  def get_unconfigured_gears(comp_inst)
+    unconfigured_gears = []
+    self.gears.each do |gear|
+      unconfigured_gears << gear if not gear.configured_components.include?(comp_inst.name)
+    end
+    unconfigured_gears
+  end
+
   def gears=(data)
     @gears = [] if @gears.nil?
     data.each do |hash|

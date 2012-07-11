@@ -451,7 +451,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       begin
         group_inst.fulfil_requirements(self)
-        run_on_gears(group_inst.gears, reply) do |gear, r|
+        run_on_gears(group_inst.get_unconfigured_gears(comp_inst), reply) do |gear, r|
           doExpose = false
           if self.scalable and comp_inst.parent_cart_name!=self.proxy_cartridge
             doExpose = true if not gear.configured_components.include? comp_inst.name
