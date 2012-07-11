@@ -25,6 +25,8 @@ Cart-Data:
     Type: cart_data
     Description: "PostgreSQL DB connection URL"
 Provides: rhc-cartridge-postgresql
+Conflicts:
+  - mysql-5.1
 Suggests:
 Native-Requires: 
   - postgresql
