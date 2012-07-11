@@ -9,6 +9,15 @@ class AppEventsController < BaseController
     id = params[:application_id]
     event = params[:event]
     server_alias = params[:alias]
+    
+    domain = get_domain(domain_id)
+    if not domain or not domain.hasAccess?(@cloud_user)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "APPLICATION_EVENT", false, "Domain '#{domain_id}' not found while processing event '#{event}'")
+      @reply = RestReply.new(:not_found)
+      @reply.messages.push(message = Message.new(:error, "Domain not found.", 127))
+      respond_with @reply, :status => @reply.status
+      return
+    end
     application = Application.find(@cloud_user,id)
     if application.nil?
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "APPLICATION_EVENT", false, "Application '#{id}' not found while processing event '#{event}'")
@@ -106,5 +115,12 @@ class AppEventsController < BaseController
     @reply.messages.push(message)
     respond_with @reply, :status => @reply.status
   end
-  
+  def get_domain(id)
+    @cloud_user.domains.each do |domain|
+      if domain.namespace == id
+      return domain
+      end
+    end
+    return nil
+  end
 end
