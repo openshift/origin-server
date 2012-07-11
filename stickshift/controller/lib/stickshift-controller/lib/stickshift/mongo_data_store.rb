@@ -484,7 +484,9 @@ module StickShift
 
       if ngears != 0
         condition = ""
-        if app_attrs["scalable"]
+# TODO: Needs fix, condition should be applicable ONLY for scale-up/scale-down events
+#        if app_attrs["scalable"]
+        if false
           condition = <<COND
 if ((this.consumed_gears + #{ngears}) > this.max_gears) {
   return false;
