@@ -14,9 +14,7 @@ Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) = 1.8
 Requires:       rubygems
-Requires:       mcollective
 Requires:       mcollective-client
-Requires:       qpid-cpp-server
 Requires:       qpid-cpp-client
 Requires:       ruby-qpid
 #Requires:       qpid-tools
