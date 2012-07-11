@@ -61,19 +61,12 @@ class ApplicationType
         find_every(*arguments).find{ |t| t.id == id } or raise NotFound, id
       end
       def find_every(opts={})
-        cartridges = CartridgeType.cached.standalone(:as => opts[:as]).select do |t|
-          not t.categories.include?(:blacklist)
-        end.map do |t|
-          t.to_application_type
-        end
+        cartridges = CartridgeType.cached.standalone(:as => opts[:as]).map(&:to_application_type)
+        templates = ApplicationTemplate.cached.all(:as => opts[:as]).map(&:to_application_type)
 
-        templates = ApplicationTemplate.cached.all(:as => opts[:as]).select do |t|
+        templates.concat(cartridges).select do |t|
           not (t.categories.include?(:blacklist) or (Rails.env.production? and t.categories.include?(:in_development)))
-        end.map do |t|
-          t.to_application_type
         end
-
-        templates.concat(cartridges)
       end
   end
 end

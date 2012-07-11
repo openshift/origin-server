@@ -56,10 +56,22 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   test 'should load application types' do
     types = ApplicationType.all :as => @user
     assert types.length > 0
-    types.sort!
 
+    types.sort!
     log_types(types)
 
     assert types[0].id.starts_with?('jbosseap-'), types[0].id
+
+    assert type = types.find{ |t| t.template.present? }
+    template = type.template
+    assert template.name
+    assert template.description
+    assert template.version
+    assert template.website
+    assert template.git_url
+    assert template.git_project_url
+    assert_equal type.id, template.name
+    assert template.git_project_url
+    assert_same template.tags, template.categories
   end
 end

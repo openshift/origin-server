@@ -5,15 +5,17 @@ class ApplicationTemplate < RestApi::Base
 
   custom_id :name
 
-  attr_accessor :categories
-
   def descriptor
-    YAML.load(descriptor_yaml)
+    @descriptor ||= YAML.load(descriptor_yaml) || {}
   end
 
-  def categories
-    tags.map{|t| t.to_sym} << :template
+  def display_name
+    attributes['display_name'] || name
   end
+  def tags
+    @tags ||= super.map{|t| t.to_sym} << :template
+  end
+  alias_method :categories, :tags
 
   def template
     self

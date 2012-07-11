@@ -1006,10 +1006,15 @@ class RestApiTest < ActiveSupport::TestCase
       ].to_json
 
       mock.get '/broker/rest/application_template.json', json_header, [
-        { :name => 'blacklist', :tags => [:framework, :blacklist] },
+        { 
+          :name => 'blacklist',
+          :tags => [:framework, :blacklist],
+          :metadata => {},
+          :descriptor_yaml => ''
+        },
         {
           :name => 'rails',
-          :tags => [:framework, :ruby, :rails],
+          :tags => [:framework, :ruby, :rails, :in_development],
           :descriptor_yaml => YAML.dump({
             'Name' => "rails"
           }),
@@ -1026,6 +1031,8 @@ class RestApiTest < ActiveSupport::TestCase
     types = ApplicationType.find :all, :as => @user
     assert_equal 1, types.length
 
+    assert_equal 'Ruby on Rails', types[0].display_name
+
     types.each do |type|
       assert a = ApplicationType.find(type.id, :as => @user)
       assert_equal type.id, a.id
@@ -1034,6 +1041,10 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist', :as => @user) }
+
+    # template is in_development and excluded
+    Rails.env.expects(:production?).returns(true)
+    assert ApplicationType.find(:all, :as => @user).empty?
   end
 
   def test_application_job_url
