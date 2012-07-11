@@ -334,12 +334,11 @@ class RestApplication_V1 < BaseObj_V1
 end
 
 class RestGear_V1 < BaseObj_V1
-  attr_accessor :uuid, :components, :git_url
+  attr_accessor :uuid, :components
 
   def initialize(components=nil)
     self.uuid = nil
     self.components = components
-    self.git_url = nil
   end
 end
 
