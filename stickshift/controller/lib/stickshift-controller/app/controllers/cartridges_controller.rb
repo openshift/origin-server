@@ -20,7 +20,11 @@ class CartridgesController < BaseController
         Application.get_available_cartridges(cart_type)
       end
       carts.each do |cart|
-        cartridge = RestCartridge.new(cart_type, cart, nil, get_url)
+        if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new(cart_type, cart, nil, get_url)
+        else
+          cartridge = RestCartridge10.new(cart_type, cart, nil, get_url)
+        end
         cartridges.push(cartridge)
       end
     end
@@ -32,7 +36,11 @@ class CartridgesController < BaseController
         Application.get_available_cartridges(cart_type)
       end
       carts.each do |cart|
-        cartridge = RestCartridge.new(cart_type, cart, nil, get_url)
+	if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new(cart_type, cart, nil, get_url)
+        else
+          cartridge = RestCartridge10.new(cart_type, cart, nil, get_url)
+        end
         cartridges.push(cartridge)
       end
     end

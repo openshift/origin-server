@@ -7,7 +7,7 @@ class RestReply < StickShift::Model
     self.type = type
     self.data = data
     self.messages = []
-    self.version = $requested_api_version
+    self.version = $requested_api_version.to_s
     self.supported_api_versions = BaseController::SUPPORTED_API_VERSIONS
   end
   
