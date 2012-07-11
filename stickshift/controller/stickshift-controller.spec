@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.12
+Version: 0.13.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.13-1
+- Merge pull request #220 from pravisankar/dev/ravi/bug806273
+  (abhgupta@redhat.com)
+- minor text change: example cart as mongodb instead of metrics
+  (rpenta@redhat.com)
+- - Don't show postgresql-8.4 as valid options to embed cartridge when mysql is
+  already installed and viceversa. (rpenta@redhat.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.12-1
 - Add modify application dns and use where applicable (dmcphers@redhat.com)
 - Merge pull request #209 from lnader/master (rmillner@redhat.com)
