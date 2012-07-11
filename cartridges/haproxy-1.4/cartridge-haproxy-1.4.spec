@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.12.8
+Version: 0.12.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,6 +98,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.12.9-1
+- BZ 835529: The regexp was capturing gear names that contain the gear name
+  being looked for (ex: gear name 012345-foobar also matches if checking for
+  gear 012345-foo).  Add a space match at the end of the gear name to terminate
+  it. (rmillner@redhat.com)
+
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.8-1
 - cleanup specs (dmcphers@redhat.com)
 
