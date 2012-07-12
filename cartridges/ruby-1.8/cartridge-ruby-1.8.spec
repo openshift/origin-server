@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.96.0
+Version: 0.96.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.96.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.95.6-1
 - 
 
