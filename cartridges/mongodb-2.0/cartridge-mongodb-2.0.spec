@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.22.4
+Version: 0.23.0
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
