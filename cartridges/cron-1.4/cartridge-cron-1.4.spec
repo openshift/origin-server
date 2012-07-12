@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
 
 Name: cartridge-cron-1.4
-Version: 0.9.0
+Version: 0.9.1
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -84,6 +84,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.8.3-1
 - Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
 - Optimize cron run time - down to 0.5 seconds on a c9 instance.
