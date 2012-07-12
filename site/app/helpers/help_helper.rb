@@ -152,11 +152,11 @@ module HelpHelper
   end
 
   def getting_started_guide_url
-    'https://docs.redhat.com/docs/en-US/OpenShift/2.0/html/Getting_Started_Guide'
+    community_base_url 'developers/install-the-client-tools'
   end
 
   def cli_on_windows_user_guide_topic_url
-    'https://docs.redhat.com/docs/en-US/OpenShift/2.0/html/Getting_Started_Guide/sect-Getting_Started_Guide-Installing_on_Windows.html'
+    community_base_url 'developers/install-the-client-tools#windows'
   end
 
   def git_homepage_url
