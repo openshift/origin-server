@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.3.0
+Version: 0.3.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -202,6 +202,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.2.7-1
 - Merge remote-tracking branch 'upstream/master' (ramr@redhat.com)
 - Add image magick devel package for Redmine. (ramr@redhat.com)
