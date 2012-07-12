@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.96.0
+Version: 0.96.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -152,6 +152,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.96.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.5-1
 - Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
 - Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
