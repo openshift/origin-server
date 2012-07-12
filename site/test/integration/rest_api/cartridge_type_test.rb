@@ -13,6 +13,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
           description: #{t.description}
           tags:        #{t.tags.inspect}
           version:     #{t.version}
+          provides:    #{t.provides.inspect}
           priority:    #{t.priority}
         #{log_extra(t)}
       TYPE

@@ -17,6 +17,10 @@ class ApplicationTemplate < RestApi::Base
   end
   alias_method :categories, :tags
 
+  def provides
+    Array(super)
+  end
+
   def template
     self
   end
