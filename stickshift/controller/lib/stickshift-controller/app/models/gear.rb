@@ -231,6 +231,13 @@ class Gear < StickShift::Model
     get_proxy.remove_broker_auth_key(app, self)    
   end
   
+  def cartridges
+    group_instance = app.group_instance_map[group_instance_name]
+    carts = group_instance.component_instances.map{ |comp_instance_name| app.comp_instance_map[comp_instance_name].parent_cart_name }
+    carts.delete(app.name)
+    carts
+  end
+  
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     results = []
     gi = self.app.group_instance_map[self.group_instance_name]

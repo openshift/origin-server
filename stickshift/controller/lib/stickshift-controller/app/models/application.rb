@@ -608,7 +608,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # @param [String] dependency Name of a cartridge to start. Set to nil for all dependencies.
   # @param [Boolean] force_stop_on_failure
   # @param [Boolean] throw_exception_on_failure
-  def stop(dependency=nil,force_stop_on_failure=true, throw_exception_on_failure=true)
+  def stop(dependency=nil, force_stop_on_failure=true, throw_exception_on_failure=true)
     reply = ResultIO.new
     self.class.notify_observers(:before_stop, {:application => self, :reply => reply, :dependency => dependency})
     self.start_order.reverse.each do |comp_inst_name|
@@ -620,14 +620,14 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
         r.append gear.stop(comp_inst)
       end
-      
+
       if(f.length > 0)
         self.force_stop(dependency,false) if(force_stop_on_failure)
         raise f[0][:exception] if(throw_exception_on_failure)
       end
     end
     self.class.notify_observers(:after_stop, {:application => self, :reply => reply, :dependency => dependency})
-    reply    
+    reply
   end
   
   # Force stop a particular dependency on all gears that host it.
@@ -639,12 +639,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.start_order.each do |comp_inst_name|
       comp_inst = self.comp_instance_map[comp_inst_name]
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
-      
+
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
         r.append gear.force_stop(comp_inst)
       end
-      
+
       raise f[0][:exception] if(f.length > 0 and throw_exception_on_failure)
     end
     self.class.notify_observers(:after_force_stop, {:application => self, :reply => reply, :dependency => dependency})
