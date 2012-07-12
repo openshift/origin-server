@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version:        0.0.4
+Version:        0.0.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,10 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.0.5-1
+- Fix validation. (mpatel@redhat.com)
+- Add missing method to DDL. (mpatel@redhat.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
 - Merge pull request #211 from kraman/dev/kraman/bugs/835489
   (dmcphers@redhat.com)
