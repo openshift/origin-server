@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version:        0.0.8
+Version:        0.0.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.0.9-1
+- mcollective-plugin pkg doesn't require qpid-cpp-server or mcollective, only
+  -client (admiller@redhat.com)
+
 * Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.0.8-1
 - Merge pull request #211 from kraman/dev/kraman/bugs/835489
   (dmcphers@redhat.com)
