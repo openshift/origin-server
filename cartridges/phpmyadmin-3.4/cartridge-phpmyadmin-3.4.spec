@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.17.0
+Version: 0.17.1
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
 - more cartridges have better metadata (rchopra@redhat.com)
 - Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
