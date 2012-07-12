@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.0
+Version: 0.14.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
 - Support hot_deploy marker during gear sync (ironcladlou@gmail.com)
 
