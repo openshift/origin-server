@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.30.0
+Version: 0.30.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.30.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.29.5-1
 - add maven mirror for diy builder (bdecoste@gmail.com)
 
