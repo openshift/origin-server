@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.13.13
+Version: 0.13.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,28 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.14-1
+- Merge pull request #228 from rajatchopra/master (admiller@redhat.com)
+- Merge pull request #224 from kraman/dev/kraman/bugs/838611
+  (rpenta@redhat.com)
+- fix for Bug 836973  - Sometimes jbossas-7 auto scaling up doesn't work fine
+  (rchopra@redhat.com)
+- nicer error on user reaching max gear limit when creating scalable app
+  (rchopra@redhat.com)
+- Bump API version to 1.1. New version returns framework cartridge and related
+  properties when listing cartridges for an app
+  (.../applications/<id>/cartridges) Builds upon cartridge metadata which was
+  added in 47d1b813a1a74228c9c95734043487d681f799d4. (kraman@gmail.com)
+- Merge pull request #222 from pravisankar/dev/ravi/bug/834351
+  (rchopra@redhat.com)
+- Merge pull request #223 from abhgupta/abhgupta-dev (lnader@redhat.com)
+- Merge pull request #212 from lnader/master (abhgupta@redhat.com)
+- Commented current code related to checking gear scale limits in mongo to
+  unblock the build. Proper fix comming soon. (rpenta@redhat.com)
+- Fix for bug 839151 (abhgupta@redhat.com)
+- Bug 838862 - add events to application dose not check the domain name in the
+  URL (lnader@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.13-1
 - Merge pull request #220 from pravisankar/dev/ravi/bug806273
   (abhgupta@redhat.com)
