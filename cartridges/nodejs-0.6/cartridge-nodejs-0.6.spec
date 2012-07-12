@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.11.0
+Version: 0.11.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bump_minor_versions for sprint 15 (admiller@redhat.com)
+
 * Fri Jul 06 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
 - Fix build failures -- seems like something in npm link output causes broker
   to fail parsing the response. (ramr@redhat.com)
