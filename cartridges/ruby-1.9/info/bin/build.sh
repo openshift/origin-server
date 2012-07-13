@@ -40,9 +40,27 @@ then
           popd > /dev/null
           export GIT_DIR=$SAVED_GIT_DIR
       fi
-      echo "Precompiling with 'bundle exec rake assets:precompile'"
+
+      ###
+      # Precompiling assets for Rails
+      # Restore precompiled assets between deploys
+
+      if [ -d ${OPENSHIFT_GEAR_DIR}/tmp/assets ]; then
+        echo 'Restoring previously precompiled assets'
+        mv ${OPENSHIFT_GEAR_DIR}/tmp/assets ${OPENSHIFT_REPO_DIR}/public/assets
+      fi
+
       pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-      /usr/bin/scl enable ruby193 "bundle exec rake assets:precompile" 2>/dev/null
+      # Ensure we can run rake
+      command -v rake > /dev/null
+      if [ $? -eq 0 ]; then
+        # Ensure rake understands assets:precompile
+        has_rake=$(bundle exec 'rake -W assets:precompile')
+        if [ $? -eq 0 -a $(echo "$has_rake" | wc -l) -eq 1 ]; then
+          echo "Precompiling with 'bundle exec rake assets:precompile'"
+          /usr/bin/scl enable ruby193 "bundle exec rake assets:precompile" 2>/dev/null
+        fi
+      fi
       popd > /dev/null
   fi
 

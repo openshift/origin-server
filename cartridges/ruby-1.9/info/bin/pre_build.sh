@@ -17,6 +17,12 @@ then
   mv ${OPENSHIFT_REPO_DIR}vendor ${OPENSHIFT_GEAR_DIR}tmp/
 fi
 
+# Store precompiled assets between deploys
+if [ -d ${OPENSHIFT_REPO_DIR}/public/assets ]; then
+  echo 'Saving away previously precompiled assets'
+  mv ${OPENSHIFT_REPO_DIR}/public/assets ${OPENSHIFT_GEAR_DIR}/tmp
+fi
+
 redeploy_repo_dir.sh
 
 /usr/bin/scl enable ruby193 "user_pre_build.sh"
