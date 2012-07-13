@@ -1,13 +1,12 @@
 require File.expand_path('../../test_helper', __FILE__)
 
-
 #
 # Mock tests only - should verify functionality of ActiveResource extensions
 # and simple server/client interactions via HttpMock
 #
 class RestApiTest < ActiveSupport::TestCase
-  isolate{ require 'active_resource/persistent_http_mock' }
 
+  uses_http_mock
   setup{ Rails.cache.clear }
 
   def setup
@@ -335,8 +334,13 @@ class RestApiTest < ActiveSupport::TestCase
     assert connection1 = RestApi::Base.connection(:as => auth1)
     assert connection2 = RestApi::Base.connection(:as => auth2)
 
-    assert_same connection.send(:http), connection1.send(:http)
-    assert_same connection.send(:http), connection2.send(:http)
+    if connection.respond_to? :http_with_mock
+      assert_same connection.send(:http_without_mock), connection1.send(:http_without_mock)
+      assert_same connection.send(:http_without_mock), connection2.send(:http_without_mock)
+    else
+      assert_same connection.send(:http), connection1.send(:http)
+      assert_same connection.send(:http), connection2.send(:http)
+    end
 
     assert_equal 'test1', connection.user
     assert_equal 'test1', connection1.user

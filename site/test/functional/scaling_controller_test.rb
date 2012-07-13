@@ -1,7 +1,9 @@
 require File.expand_path('../../test_helper', __FILE__)
 
+
 class ScalingControllerTest < ActionController::TestCase
-  include ActiveSupport::Testing::Isolation
+
+  uses_http_mock :sometimes
 
   def json_header(is_post=false)
     {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(auth_headers)
@@ -48,7 +50,7 @@ class ScalingControllerTest < ActionController::TestCase
   def with_mock_app(app=app_without_scaling, gear_groups=groups_without_scaling)
     with_unique_user
 
-    require 'active_resource/persistent_http_mock'
+    allow_http_mock
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', json_header, [].to_json
       mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
@@ -84,6 +86,7 @@ class ScalingControllerTest < ActionController::TestCase
     end
 
     test "should see new page without scaling #{'(mock)' if mock}" do
+      puts "Starting test #{mock} #{ActiveResource::HttpMock.enabled?}"
       get :new, mock ? without_scaling : {:application_id => with_app.to_param}
       assert app = assigns(:application)
       assert assigns(:domain)

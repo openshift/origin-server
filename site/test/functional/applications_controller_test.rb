@@ -3,14 +3,7 @@ require File.expand_path('../../test_helper', __FILE__)
 class ApplicationsControllerTest < ActionController::TestCase
 
   test "should create and delete app" do
-    with_unique_domain
-    post(:create, {:application => get_post_form})
-
-    assert app = assigns(:application)
-    assert app.errors.empty?, app.errors.inspect
-
-    delete :destroy, :id => app.id
-    assert_redirected_to applications_path
+    # in applications_controller_sanity_test
   end
 
   def create_and_destroy(type)

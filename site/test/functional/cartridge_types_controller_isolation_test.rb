@@ -1,9 +1,9 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class CartridgeTypesIsolationControllerTest < ActionController::TestCase
-  include ActiveSupport::Testing::Isolation
-
   tests CartridgeTypesController
+
+  uses_http_mock :sometimes
 
   setup :with_unique_user
 
@@ -19,8 +19,8 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
   end
 
   def mock_app
-    require 'active_resource/persistent_http_mock'
     Rails.cache.clear # cart metadata is mocked
+    allow_http_mock
     ActiveResource::HttpMock.respond_to(true) do |mock|
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json

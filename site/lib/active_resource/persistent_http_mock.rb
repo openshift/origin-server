@@ -7,15 +7,27 @@ require 'active_resource/http_mock'
 
 # Duplicate of ActiveResource::HttpMock method
 class ActiveResource::PersistentConnection
-  private
+  protected
     silence_warnings do
-      def http
-        @http ||= ActiveResource::HttpMock.new(@site)
+      # changes behavior, will not cache http object
+      def http_with_mock
+        if ActiveResource::HttpMock.enabled?
+          ActiveResource::HttpMock.new(@site)
+        else
+          http_without_mock
+        end
       end
+      alias_method_chain :http, :mock
     end
 end
 
 class ActiveResource::HttpMock
+  def self.enabled=(bool)
+    @enabled = bool
+  end
+  def self.enabled?
+    @enabled
+  end
   def request(uri, req)
     headers = {}
     req.each_capitalized{ |k,v| headers[k] = v unless k == 'Accept' && v == '*/*' }
