@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.2
+Version: 0.14.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Jul 13 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
+- Merge pull request #231 from rmillner/dev/rmillner/bug/839924
+  (mrunalp@gmail.com)
+- BZ 839924: Was deleting the wrong data directory. (rmillner@redhat.com)
+
 * Fri Jul 13 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
 - several fixes related to migrations (dmcphers@redhat.com)
 
