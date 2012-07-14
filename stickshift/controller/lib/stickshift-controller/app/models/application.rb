@@ -259,6 +259,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     super(user.login)
     self.ngears = 0
     self.gear_usage_records = nil
+    self.destroyed_gears = []
   end
   
   # Deletes the application object from the datastore
