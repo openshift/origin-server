@@ -517,9 +517,9 @@ COND
         end
         query = { "_id" => user_id, "apps.name" => id, "$where" => condition }
         
-        #if destroyed_gears && !destroyed_gears.empty?
-        #  query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
-        #end
+        if destroyed_gears && !destroyed_gears.empty?
+          query["apps.group_instances.gears.uuid"] = { "$in" => destroyed_gears }
+        end
 
         hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
