@@ -34,6 +34,16 @@ name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
 gpgcheck= 0
 enabled = 1
+
+[openshift]
+name=Openshift
+baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch/
+failovermethod=priority
+skip_if_unavailable=1
+gpgkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-beta
+ggpkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-release
+enabled=1
+gpgcheck=1
   EOF
   else
   <<-EOF
