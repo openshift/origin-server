@@ -295,8 +295,7 @@ class MongoDataStoreTest < ActiveSupport::TestCase
       "env_vars" => {},
       "ssh_keys" => {},
       "max_gears" => 3,
-      "consumed_gears" => 0,
-      "vip" => false
+      "consumed_gears" => 0
     }
     cloud_user
   end
