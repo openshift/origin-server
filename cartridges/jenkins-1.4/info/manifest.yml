@@ -76,7 +76,7 @@ Reservations:
 Publishes:
   get-doc-root:
     Type: "FILESYSTEM:doc-root"
-  get-interface-url:
+  publish-jenkins-url:
     Type: "NET_TCP:jenkins:url"
 Scaling:
   Min: 1

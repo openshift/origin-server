@@ -251,15 +251,21 @@ module StickShift
       if prefix_cloud_name
         key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
       end
-      File.open(File.join(env_dir, key),
+      filename = File.join(env_dir, key)
+      if key.start_with?('JENKINS') && File.exist?(filename)
+        # Dont change original Jenkins config where the builder is configrued
+      else
+        File.open(filename,
             File::WRONLY|File::TRUNC|File::CREAT) do |file|
-        file.write "export #{key}='#{value}'"
+              file.write "export #{key}='#{value}'"
+          end
       end
 
       if block_given?
         blk.call(value)
       end
     end
+
     
     # Public: Remove an environment variable from a given gear.
     #
