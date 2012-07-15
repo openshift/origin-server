@@ -11,6 +11,7 @@ repo --name=updates --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?rep
 repo --name=fedora-ruby --baseurl=http://mirror.openshift.com/pub/fedora-ruby/$basearch/
 repo --name=passenger --baseurl=http://passenger.stealthymonkeys.com/fedora/$releasever/$basearch
 repo --name=openshift-origin --baseurl=http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
+repo --name=openshift --baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch
 #ADDITIONAL REPOS
 
 %packages

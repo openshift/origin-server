@@ -21,6 +21,7 @@ Requires: rubygem-swingshift-mongo-plugin
 Requires: rubygem-uplift-bind-plugin
 Requires: rubygem-gearchanger-mcollective-plugin
 Requires: mcollective-qpid-plugin
+Requires: qpid-cpp-server
 Requires: rhc
 
 BuildArch:     noarch
