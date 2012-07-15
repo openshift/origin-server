@@ -7,17 +7,17 @@ require 'active_resource/http_mock'
 
 # Duplicate of ActiveResource::HttpMock method
 class ActiveResource::PersistentConnection
-  protected
+  private
     silence_warnings do
+      alias_method :http_without_mock, :http
       # changes behavior, will not cache http object
-      def http_with_mock
+      def http
         if ActiveResource::HttpMock.enabled?
           ActiveResource::HttpMock.new(@site)
         else
           http_without_mock
         end
       end
-      alias_method_chain :http, :mock
     end
 end
 

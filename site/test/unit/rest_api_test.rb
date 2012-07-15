@@ -327,6 +327,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_reuse_connection
+    ActiveResource::HttpMock.enabled = false
     auth1 = RestApi::Authorization.new('test1', '1234', 'pass1')
     auth2 = RestApi::Authorization.new('test2', '12345', 'pass2')
 
@@ -334,13 +335,8 @@ class RestApiTest < ActiveSupport::TestCase
     assert connection1 = RestApi::Base.connection(:as => auth1)
     assert connection2 = RestApi::Base.connection(:as => auth2)
 
-    if connection.respond_to? :http_with_mock
-      assert_same connection.send(:http_without_mock), connection1.send(:http_without_mock)
-      assert_same connection.send(:http_without_mock), connection2.send(:http_without_mock)
-    else
-      assert_same connection.send(:http), connection1.send(:http)
-      assert_same connection.send(:http), connection2.send(:http)
-    end
+    assert_same connection.send(:http), connection1.send(:http)
+    assert_same connection.send(:http), connection2.send(:http)
 
     assert_equal 'test1', connection.user
     assert_equal 'test1', connection1.user
