@@ -1,5 +1,5 @@
  class CloudUser < StickShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records, :capabilities, :parent_user_login
+  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records, :capabilities, :parent_user_login, :plan_id
   primary_key :login
   exclude_attributes :applications, :auth_method, :save_jobs, :gear_usage_records
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
@@ -38,6 +38,7 @@
     self.login = login
     self.domains = []
     self.max_gears = Rails.configuration.ss[:default_max_gears]
+    self.plan_id = :freeshift
     self.capabilities = capabilities || {}
     self.parent_user_login = parent_login
 
