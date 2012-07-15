@@ -29,7 +29,7 @@ module CommunityHelper
   end
 
   def client_tools_url
-    openshift_github_project_url 'os-client-tools'
+    openshift_github_project_url 'rhc'
   end
 
   def crankcase_url
