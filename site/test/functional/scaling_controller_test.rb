@@ -86,7 +86,6 @@ class ScalingControllerTest < ActionController::TestCase
     end
 
     test "should see new page without scaling #{'(mock)' if mock}" do
-      puts "Starting test #{mock} #{ActiveResource::HttpMock.enabled?}"
       get :new, mock ? without_scaling : {:application_id => with_app.to_param}
       assert app = assigns(:application)
       assert assigns(:domain)
