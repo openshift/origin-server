@@ -373,7 +373,7 @@ When /^I push an update to the diy application$/ do
     current = Dir.pwd
     begin
       Dir.chdir "diy"
-      `sed -ie 's/Place your application here/Jenkins Builder Testing/' diy/index.html`
+      `sed -ie 's/Welcome to Openshift Do-It-Yourself cartridge/Jenkins Builder Testing/' diy/index.html`
 
       status = Open4::popen4("git commit -a -m 'force build'") do |pid, stdin, stdout, stderr|
         $logger.debug "git commit: #{stdout.read}"
@@ -391,9 +391,11 @@ When /^I push an update to the diy application$/ do
                 $logger.debug "git push(#{fd}: #{fd.read_nonblock(256)}"
               rescue EOFError
                 done = true
+              rescue Errno::ECHILD
+                done = true
               end
             } if not readers.nil?
-            break if Process::waitpid(pid, Process::WNOHANG) || done
+            break if done || Process::waitpid(pid, Process::WNOHANG)
           end
         end
         status.to_s.should be == "0"
@@ -417,15 +419,16 @@ Then /^the application will be updated$/ do
     begin
       sleep 1
       delay -= 1
-
+            
       response = `#{@jenkins_job_command}`
       $logger.debug "@jenkins_job_command response = #{delay}[#{response}]"
 
       job = JSON.parse(response)
     end while job['color'] != 'blue' && 0 < delay
     job['color'].should be == 'blue' 
-
-    path = "/var/lib/stickshift/#{@app.name}-#{@app.namespace}/app-root/repo/#{@app.name}/index.html"
+    
+    app_uuid = @diy_git_url.match(TestApp::SSH_OUTPUT_PATTERN)[1]
+    path = "/var/lib/stickshift/#{app_uuid}/app-root/repo/#{@app.name}/index.html"
     $logger.debug "jenkins built application path = #{path}"
     `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_s.should be == "0"
