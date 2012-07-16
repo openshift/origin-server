@@ -108,25 +108,25 @@ module StickShift
     def to_descriptor
       h = {
         "Name" => self.name,
-        "Version" => self.version,
-        "Architecture" => self.architecture,
         "Display-Name" => self.display_name,
-        "Description" => self.description
       }
       
-      h["License"] = self.license if self.license
-      h["License-Url"] = self.license_url if self.license_url
-      h["Categories"] = self.categories if self.categories
-      h["Website"] = self.website if self.website
-      h["Help-Topics"] = self.help_topics if self.help_topics
-      h["Cart-Data"] = self.cart_data_def if self.cart_data_def
+      h["Architecture"] = self.architecture if self.architecture != "noarch"
+      h["Version"] = self.version if self.version != "0.0"
+      h["Description"] = self.description if self.description and !self.description.empty?
+      h["License"] = self.license if self.license and !self.license.empty? and self.license != "unknown"
+      h["License-Url"] = self.license_url if self.license_url and !self.license_url.empty?
+      h["Categories"] = self.categories if self.categories and !self.categories.empty?
+      h["Website"] = self.website if self.website and !self.website.empty?
+      h["Help-Topics"] = self.help_topics if self.help_topics and !self.help_topics.empty?
+      h["Cart-Data"] = self.cart_data_def if self.cart_data_def and !self.cart_data_def.empty?
 
       h["Provides"] = self.provides_feature if self.provides_feature && !self.provides_feature.empty?
       h["Requires"] = self.requires_feature if self.requires_feature && !self.requires_feature.empty?
       h["Conflicts"] = self.conflicts_feature if self.conflicts_feature && !self.conflicts_feature.empty?
       h["Suggests"] = self.suggests_feature if self.suggests_feature && !self.suggests_feature.empty? 
       h["Native-Requires"] = self.requires if self.requires && !self.requires.empty?
-      h["Vendor"] = self.vendor if self.vendor
+      h["Vendor"] = self.vendor if self.vendor and !self.vendor.empty? and self.vendor != "unknown"
       h["Default-Profile"] = self.default_profile if self.profile_name_map && !self.profile_name_map[self.default_profile].nil? &&
                                                       !self.profile_name_map[self.default_profile].generated
     

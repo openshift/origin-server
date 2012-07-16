@@ -79,6 +79,7 @@ class Application < StickShift::Cartridge
       from_descriptor(template_descriptor)
       @init_git_url = template.git_url
     end
+    self.categories -= ["cartridge"]
   end
 
   def add_to_requires_feature(feature)
