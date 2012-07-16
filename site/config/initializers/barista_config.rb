@@ -66,7 +66,8 @@ end
 
 #
 # All production environments pregenerate JS using the RPM build, development
-# environments use autogeneration
+# environments use autogeneration.  To trigger autogeneration you may need to
+# run 'rake assets:clean'.
 #
 if Rails.env.development?
   Rails.configuration.middleware.delete('Barista::Filter')
