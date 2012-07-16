@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'digest/md5'
 require 'stickshift-controller'
+require 'date'
 
 module Swingshift
   class MongoAuthService < StickShift::AuthService
@@ -83,13 +84,13 @@ module Swingshift
       token = JSON.parse(json_token)
       username = token['login']
       app_name = token['app_name']
-      creation_time = Time.parse(token['creation_time'])
+      creation_time = token['creation_time']
             
       user = CloudUser.find(username)
       raise StickShift::UserValidationException.new if user.nil?
       app = Application.find(user, app_name)
       
-      raise StickShift::UserValidationException.new if app.nil? or creation_time.ctime != app.creation_time.ctime
+      raise StickShift::UserValidationException.new if app.nil? or creation_time != app.creation_time
       return {:username => username, :auth_method => :broker_auth}
     end
     
