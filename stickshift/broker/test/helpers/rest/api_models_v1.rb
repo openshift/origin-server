@@ -151,7 +151,7 @@ class BaseApi_V1 < BaseObj_V1
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :consumed_gears, :max_gears, :links                                                                         
+  attr_accessor :login, :consumed_gears, :max_gears, :plan_id, :links                                                                         
                                                                                                        
   def initialize
     self.login = nil

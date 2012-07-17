@@ -321,6 +321,11 @@ class LegacyBrokerController < ApplicationController
     
     app = get_app_from_request(@cloud_user)    
     check_cartridge_type(@req.cartridge, "embedded")
+    
+    # making this check here for the specific actions, so that the error codes for other conditions are not affected
+    if ['deconfigure', 'start', 'stop', 'restart', 'status', 'reload'].include?(@req.action) and ( app.embedded.nil? or not app.embedded.has_key?(@req.cartridge) )
+      raise StickShift::UserException.new("The application #{app.name} is not configured with the embedded cartridge #{@req.cartridge}.", 129) 
+    end
 
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
     case @req.action
