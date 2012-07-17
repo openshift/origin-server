@@ -184,15 +184,3 @@ function show_proxy_port {
   echo "Failed to find proxy."
   return 1
 }
-
-function remove_all_proxy_ports {
-  uuid=$1
-
-  setproxy=()
-  for proxy_port in $(uuid_to_portset $uuid)
-  do
-    setproxy=("${setproxy[@]}" "$proxy_port" "delete")
-  done
-  proxy_cmd setproxy "${setproxy[@]}"
-  return 0
-}

@@ -17,6 +17,7 @@
 require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/model/unix_user'
+require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
 
 module StickShift
@@ -26,6 +27,8 @@ module StickShift
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
+      @config = StickShift::Config.instance
+
       @uuid = container_uuid
       @application_uuid = application_uuid
       @user = UnixUser.new(application_uuid, container_uuid, user_uid,
@@ -44,10 +47,45 @@ module StickShift
     end
 
     # Destroy gear - model/unix_user.rb
-    def destroy
+    def destroy(cartlist=[])
       notify_observers(:before_container_destroy)
+
+      hook_timeout=30
+
+      output = ""
+      errout = ""
+      retcode = 0
+
+      hooks={}
+      ["pre", "post"].each do |hooktype|
+        hooks[hooktype] = cartlist.map { |cart|
+          File.join(@config.get("CARTRIDGE_BASE_PATH"),cart,"info","hooks","#{hooktype}-destroy")
+        }.select { |hook|
+          File.exists? hook
+        }.map { |hook|
+          "#{hook} #{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
+        }
+      end
+
+      hooks["pre"].each do | cmd |
+        out,err,rc = shellCmd(cmd, user.homedir, true, 0, hook_timeout)
+        errout << err
+        output << out
+        retcode = 121 if rc != 0
+      end
+
       @user.destroy
-      notify_observers(:after_container_destroy)      
+
+      hooks["post"].each do | cmd |
+        out,err,rc = shellCmd(cmd, user.homedir, true, 0, hook_timeout)
+        errout << err
+        output << out
+        retcode = 121 if rc != 0
+      end
+
+      notify_observers(:after_container_destroy)
+
+      return output, errout, retcode
     end
 
     # Public: Fetch application state from gear.

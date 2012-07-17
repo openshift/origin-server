@@ -117,6 +117,7 @@ module StickShift
       end
       notify_observers(:after_unix_user_create)
       initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
+      initialize_stickshift_proxy
     end
     
     # Public: Destroys a gear stopping all processes and removing all files
@@ -137,15 +138,21 @@ module StickShift
             "ERROR: unable to destroy user account #{@uuid}"
             ) if @uid.nil? || @homedir.nil? || @uuid.nil?
       notify_observers(:before_unix_user_destroy)
+
+      initialize_stickshift_proxy
       
-      cmd = %{/bin/ps -U '#{@uuid}' -o pid | \
-              /bin/grep -v PID | \
-              xargs kill -9 2> /dev/null}
+      cmd = %{/usr/bin/killall -s KILL -u '#{@uuid}' 2> /dev/null}
       (1..10).each do |i|
         out,err,rc = shellCmd(cmd)
         break unless rc == 0
+        sleep 0.5
       end
       
+      unobfuscated = File.join(@homedir,"..","#{@container_name}-#{namespace}")
+      if File.exists? unobfuscated
+        FileUtils.rm_f(unobfuscated)
+      end
+
       FileUtils.rm_rf(@homedir)
 
       basedir = @config.get("GEAR_BASE_DIR")
@@ -370,6 +377,13 @@ module StickShift
       @homedir = homedir
       notify_observers(:before_initialize_homedir)
       homedir = homedir.end_with?('/') ? homedir : homedir + '/'
+
+      if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+        unobfuscated = File.join(@homedir,"..","#{@container_name}-#{namespace}")
+        if not File.exists? unobfuscated
+          FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
+        end
+      end
       
       tmp_dir = File.join(homedir, ".tmp")
       # Required for polyinstantiated tmp dirs to work
@@ -463,6 +477,55 @@ module StickShift
           return i
         end
       end
+    end
+
+    # Private: Initialize Stickshift Port Proxy for this gear
+    #
+    # The port proxy range is determined by configuration and must
+    # produce identical results to the abstract cartridge provided
+    # range.
+    #
+    # Examples:
+    # initialize_stickshift_proxy
+    #    => true
+    #    service stickshift_proxy setproxy 35000 delete 35001 delete etc...
+    #
+    # Returns:
+    #    true   - port proxy could be initialized properly
+    #    false  - port proxy could not be initialized properly
+    def initialize_stickshift_proxy
+      notify_observers(:before_initialize_stickshift_proxy)
+
+      port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
+      ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
+
+      # Note, due to a mismatch between dev and prod this is
+      # intentionally not GEAR_MIN_UID and the range must
+      # wrap back around on itself.
+      uid_begin = (@config.get("UID_BEGIN") || "500").to_i
+
+      wrap_uid = ((65536 - port_begin)/ports_per_user)+uid_begin
+
+      if @uid >= wrap_uid
+        tuid = @uid - wrap_uid + uid_begin
+      else
+        tuid = @uid
+      end
+
+      proxy_port_begin = (tuid-uid_begin) * ports_per_user + port_begin
+
+      proxy_port_range = (proxy_port_begin ... (proxy_port_begin + ports_per_user))
+
+      cmd = %{/sbin/chkconfig --list stickshift-proxy}
+      out,err,rc = shellCmd(cmd)
+      if rc == 0
+        cmd = %{/sbin/service stickshift-proxy setproxy}
+        proxy_port_range.each { |i| cmd << " #{i} delete" }
+        out, err, rc = shellCmd(cmd)
+      end
+
+      notify_observers(:after_initialize_stickshift_proxy)
+      return rc == 0
     end
   end
 end
