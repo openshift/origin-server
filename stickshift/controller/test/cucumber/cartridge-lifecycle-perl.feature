@@ -1,5 +1,5 @@
 @verify
-@verify2
+@verify3
 @broker
 Feature: Cartridge Lifecycle Perl Verification Tests
   Scenario Outline: Application Creation
