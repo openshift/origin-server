@@ -15,7 +15,7 @@
 #++
 
 require 'rubygems'
-require 'open3'
+require 'open4'
 
 module StickShift::Utils
   class ShellExecutionException < Exception
@@ -29,8 +29,8 @@ end
 
 module StickShift::Utils::ShellExec
 
-  def shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0)
-    StickShift::Utils::ShellExec.shellCmd(cmd, pwd, ignore_err, expected_rc)
+  def shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)
+    StickShift::Utils::ShellExec.shellCmd(cmd, pwd, ignore_err, expected_rc, timeout)
   end
 
   # Public: Execute shell command.
@@ -46,23 +46,31 @@ module StickShift::Utils::ShellExec
   #   # => ["/etc/passwd\n","", 0]
   #
   # Returns An Array with [stdout, stderr, return_code]
-  def self.shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0)
+  def self.shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)
     out = err = rc = nil         
     begin
-      rc_file = "/var/tmp/#{Process.pid}.#{rand}"
-      m_cmd = "cd #{pwd}; #{cmd}; echo $? > #{rc_file}"
-      stdin, stdout, stderr = Open3.popen3(m_cmd){ | stdin, stdout, stderr,
-                                                    thr |
+      # Using Open4 spawn with cwd isn't thread safe
+      m_cmd = "cd #{pwd} && ( #{cmd} )"
+      pid, stdin, stdout, stderr = Open4.popen4ext(true, m_cmd)
+      begin
         stdin.close
-        out = stdout.read
-        err = stderr.read          
+        Timeout::timeout(timeout) do
+          out = stdout.read
+          err = stderr.read
+        end
+      rescue Timeout::Error
+        pstree = Hash.new{|a,b| a[b]=[b]}
+        pppids = Hash[*`ps -e -opid,ppid --no-headers`.map{|p| p.to_i}]
+        pppids.each do |l_pid, l_ppid|
+          pstree[l_ppid] << pstree[l_pid]
+        end
+        Process.kill("KILL", *(pstree[pid].flatten))
+        raise StickShift::Utils::ShellExecutionException.new("command timed out")
+      ensure
         stdout.close
         stderr.close  
-      }
-      f_rc_file = File.open(rc_file,"r")
-      rc = f_rc_file.read.to_i
-      f_rc_file.close
-      `rm -f #{rc_file}`
+        rc = Process::waitpid2(pid)[1].exitstatus
+      end
     rescue Exception => e
       raise StickShift::Utils::ShellExecutionException.new(e.message
                                                     ) unless ignore_err

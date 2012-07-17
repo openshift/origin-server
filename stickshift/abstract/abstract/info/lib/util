@@ -405,6 +405,8 @@ function setup_deconfigure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
+    CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
+
     namespace=`basename $2`
     application="$1"
     uuid=$3
@@ -559,37 +561,6 @@ function print_user_running_processes {
     echo ""
     ps -FCvx -U ${myuserid}
     echo ""
-}
-
-function rm_unobfuscated_app_home {
-    # Check if unobfuscate is set in /etc/stickshift/stickshift-node.conf
-    # If it is set, remove symlink
-
-    namespace=$1
-    appname=$2
-
-    if [ $CREATE_APP_SYMLINKS -eq 1 ]
-    then
-        rm -f "${GEAR_BASE_DIR}/${appname}-${namespace}"
-    fi
-}
-
-function unobfuscate_app_home {
-    # Check if unobfuscate is set in /etc/stickshift/stickshift-node.conf
-    # If it is set, symlink /var/lib/stickshift/uuid to /var/lib/stickshift/appname-namespace
-    # This will allow easier debugging.
-
-    uuid=$1
-    namespace=$2
-    appname=$3
-
-    if [ $CREATE_APP_SYMLINKS -eq 1 ]
-    then
-        if [ ! -f "${GEAR_BASE_DIR}/$appname-$namespace" ] && [ ! -d "${GEAR_BASE_DIR}/$appname-$namespace" ]
-        then
-            /bin/ln -sf "${GEAR_BASE_DIR}/${uuid}" "${GEAR_BASE_DIR}/${appname}-${namespace}"
-        fi
-    fi
 }
 
 function send_stopped_status {

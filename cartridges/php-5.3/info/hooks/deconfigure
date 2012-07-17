@@ -30,7 +30,7 @@ setup_deconfigure "$1" $2 $3
 
 PHPCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-remove_all_proxy_ports $uuid
+$CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
 
 if [ ! -d "$APP_HOME/app-root" ]
 then
@@ -54,7 +54,6 @@ else
     enable_cgroups
 fi
 
-rm_unobfuscated_app_home $namespace $application
 
 #
 # Remove virtualhost definition for apache

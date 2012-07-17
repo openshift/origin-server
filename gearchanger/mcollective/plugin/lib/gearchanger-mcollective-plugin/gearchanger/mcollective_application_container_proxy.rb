@@ -144,7 +144,10 @@ module GearChanger
       def destroy(app, gear, keep_uid=false, uid=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
+        args['--with-app-name'] = app.name
         args['--with-container-uuid'] = gear.uuid
+        args['--with-container-name'] = gear.name
+        args['--with-namespace'] = app.domain.namespace
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
         result_io = parse_result(result)
         

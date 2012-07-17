@@ -10,9 +10,9 @@ require 'dnsruby'
 # Controller cartridge command paths
 $cartridge_root = '/usr/libexec/stickshift/cartridges'
 $controller_config_path = "ss-app-create"
-$controller_config_format = "#{$controller_config_path} -c '%s' --with-namespace '%s' --with-app-name '%s'"
+$controller_config_format = "#{$controller_config_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
 $controller_deconfig_path = "ss-app-destroy"
-$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s'"
+$controller_deconfig_format = "#{$controller_deconfig_path} -c '%s' -a '%s' --with-namespace '%s' --with-app-name '%s'"
 $home_root = "/var/lib/stickshift"
 
 # --------------------------------------------------------------------------
@@ -58,7 +58,7 @@ Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |names
     'appnames' => [ name ],
   }
 
-  command = $controller_config_format % [acctname, namespace, name]
+  command = $controller_config_format % [acctname, acctname, namespace, name]
   run command
 
   # get and store the account UID's by name
@@ -78,7 +78,7 @@ Given /^a new guest account$/ do
     'appnames' => [ appname ],
   }
 
-  command = $controller_config_format % [acctname, namespace, appname]
+  command = $controller_config_format % [acctname, acctname, namespace, appname]
   run command
 
   # get and store the account UID's by name
@@ -103,7 +103,7 @@ When /^I create a guest account$/ do
     'appnames' => [ appname ],
   }
 
-  command = $controller_config_format % [acctname, namespace, appname]
+  command = $controller_config_format % [acctname, acctname, namespace, appname]
   run command
 
   # get and store the account UID's by name
@@ -113,7 +113,10 @@ end
 When /^I delete the guest account$/ do
   # call /usr/libexec/stickshift/cartridges  @table.hashes.each do |row|
   
-  command = $controller_deconfig_format % [@account['accountname']]
+  command = $controller_deconfig_format % [@account['accountname'],
+                                           @account['accountname'],
+                                           @account['namespace'],
+                                           @account['appnames'][0]]
   run command
 
 end
