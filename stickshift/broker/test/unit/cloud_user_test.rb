@@ -5,7 +5,9 @@ require 'mocha'
 module Rails
   def self.logger
     l = Mocha::Mock.new("logger")
-    l.expects(:debug)
+    l.stubs(:debug)
+    l.stubs(:info)
+    l.stubs(:add)
     l
   end
 end
