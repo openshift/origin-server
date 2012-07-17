@@ -59,7 +59,19 @@ class DomainsController < BaseController
     return
     end
 
-    if not Domain.namespace_available?(namespace)
+    begin
+      dom_available = Domain.namespace_available?(namespace)
+    rescue Exception => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", false, "Failed to check availability '#{namespace}': #{e.message}")
+      Rails.logger.error e.backtrace
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, e.message, error_code))
+      respond_with @reply, :status => @reply.status
+      return
+    end
+
+    if not dom_available
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", false, "Namespace '#{namespace}' is already in use")
       @reply = RestReply.new(:unprocessable_entity)
       @reply.messages.push(Message.new(:error, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "id"))
@@ -142,7 +154,19 @@ class DomainsController < BaseController
 
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
 
-    if not Domain.namespace_available?(new_namespace)
+    begin
+      dom_available = Domain.namespace_available?(new_namespace)
+    rescue Exception => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Failed to check availability '#{namespace}': #{e.message}")
+      Rails.logger.error e.backtrace
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
+      error_code = e.respond_to?('code') ? e.code : 1
+      @reply.messages.push(Message.new(:error, e.message, error_code))
+      respond_with @reply, :status => @reply.status
+      return
+    end
+
+    if not dom_available
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Namespace '#{new_namespace}' already in use")
       @reply = RestReply.new(:unprocessable_entity)
       @reply.messages.push(Message.new(:error, "Namespace '#{new_namespace}' already in use. Please choose another.", 103, "id"))
