@@ -35,14 +35,16 @@ setup_basic_hook "$1" $2 $3
 # Stop application
 #
 
+# Do not exit on errors past this point; force kill no matter what else happens.
+set +e
+
 set_app_state stopped
 for i in {1..10}
 do
-    if /bin/ps -U "$uuid" -o pid | /bin/grep -v PID | xargs kill -9 2> /dev/null
+    if killall -s KILL -u "$uuid" 2> /dev/null
     then
         sleep .5
     else
         break
     fi
 done
-
