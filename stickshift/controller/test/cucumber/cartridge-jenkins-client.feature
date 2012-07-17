@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 @jenkins
 Feature: Jenkins Client Embedded Cartridge
 

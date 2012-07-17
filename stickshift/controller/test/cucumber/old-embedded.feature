@@ -1,6 +1,4 @@
-@verify
-@verify3
-@broker
+@rhc_extended
 Feature: Embedded Cartridge Verification Tests OLD
   Scenario: MySQL Embedded Usage
     Given the libra client tools

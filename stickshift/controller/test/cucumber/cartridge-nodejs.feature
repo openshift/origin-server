@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: Node.js Application
 
   Scenario: Create Delete one Node Application

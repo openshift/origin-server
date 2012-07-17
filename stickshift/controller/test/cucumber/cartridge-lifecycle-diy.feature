@@ -1,6 +1,5 @@
-@verify
-@verify3
-@broker
+@runtime_verify
+@runtime_verify3
 Feature: Cartridge Lifecycle DIY Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

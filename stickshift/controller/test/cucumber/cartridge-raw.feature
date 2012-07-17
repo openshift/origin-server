@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: Raw Application
 
   Scenario: Create Delete one Raw Application

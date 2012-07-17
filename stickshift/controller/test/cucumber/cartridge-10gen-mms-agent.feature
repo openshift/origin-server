@@ -1,6 +1,5 @@
-@internals
-@internals1
-@node
+@runtime
+@runtime1
 Feature: 10gen-mms-agent Embedded Cartridge
 
   Scenario Outline: Add Remove 10gen-mms-agent to one application

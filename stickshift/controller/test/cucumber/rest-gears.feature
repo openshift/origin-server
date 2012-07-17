@@ -1,4 +1,4 @@
-@api
+@broker_api
 Feature: gear-groups
   As an API client
   I want to check the application state on each of the gears within each gear group

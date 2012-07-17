@@ -1,6 +1,4 @@
-@verify
-@verify3
-@broker
+@rhc_extended
 Feature: Cartridge Verification Tests
   Scenario Outline: Application Creation OLD
     Given the libra client tools

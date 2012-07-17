@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: PHP Application
 
   Scenario: Create Delete one PHP Application

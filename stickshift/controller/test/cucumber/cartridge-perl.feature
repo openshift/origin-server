@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: PERL Application
 
   Scenario: Create Delete one PERL Application

@@ -1,6 +1,5 @@
-@internals
-@internals1
-@node
+@runtime
+@runtime1
 @not-origin
 Feature: JBossEAP Application
 

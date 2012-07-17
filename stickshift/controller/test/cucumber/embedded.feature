@@ -1,6 +1,5 @@
-@verify
-@verify3
-@broker
+@runtime_verify
+@runtime_verify3
 Feature: Embedded Cartridge Verification Tests
 
   Scenario: Embedded Usage

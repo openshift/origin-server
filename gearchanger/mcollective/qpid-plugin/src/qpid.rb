@@ -92,7 +92,7 @@ module MCollective
 
           @session.acknowledge
           msg = Message.new(qpid_msg.getContent, qpid_msg)
-          Log.debug("Constructed mcolelctive messgae #{msg.inspect}")
+          Log.debug("Constructed mcollective message #{msg.inspect}")
           msg
         rescue StandardError => e
           Log.debug("Caught Exception #{e}")

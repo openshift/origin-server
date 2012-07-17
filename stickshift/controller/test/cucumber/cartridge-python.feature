@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: PYTHON Application
 
   Scenario: Create Delete one PYTHON Application

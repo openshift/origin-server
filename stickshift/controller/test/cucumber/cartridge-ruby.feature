@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: RUBY Application
 
   Scenario Outline: Create Delete one RUBY Application

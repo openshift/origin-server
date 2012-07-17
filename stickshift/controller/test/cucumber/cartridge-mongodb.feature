@@ -1,6 +1,5 @@
-@internals
-@internals2
-@node
+@runtime
+@runtime2
 Feature: MongoDB Application Sub-Cartridge
   
   Scenario Outline: Create Delete one application with a MongoDB database

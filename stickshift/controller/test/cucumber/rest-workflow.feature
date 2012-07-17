@@ -1,5 +1,4 @@
-@verify
-@verify2
+@broker
 Feature: Rest Quick tests
   As an developer I want to make sure I didn't break anything that is going to prevent others from working
     

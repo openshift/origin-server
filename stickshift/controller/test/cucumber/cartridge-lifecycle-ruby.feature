@@ -1,6 +1,5 @@
-@verify
-@verify3
-@broker
+@runtime_verify
+@runtime_verify3
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
@@ -42,7 +41,6 @@ Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenarios: Application Tidy Scenarios
     |      type     |
     |   ruby-1.8    |
-    |   ruby-1.9    |
 
   Scenario Outline: Application Destroying
     Given an existing <type> application

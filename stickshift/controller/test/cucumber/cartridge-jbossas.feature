@@ -1,6 +1,5 @@
-@internals
-@internals1
-@node
+@runtime
+@runtime1
 Feature: JBossAS Application
 
    Scenario: Create Delete one JBoss AS Application

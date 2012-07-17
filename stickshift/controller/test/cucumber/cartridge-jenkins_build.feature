@@ -1,4 +1,3 @@
-@broker
 @jenkins
 Feature: Jenkins Application
   Scenario: Create and Deploy a DIY and Jenkins Application
