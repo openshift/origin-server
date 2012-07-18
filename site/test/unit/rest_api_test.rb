@@ -1,13 +1,13 @@
 require File.expand_path('../../test_helper', __FILE__)
 
-require 'active_resource/persistent_http_mock'
-
 #
 # Mock tests only - should verify functionality of ActiveResource extensions
 # and simple server/client interactions via HttpMock
 #
 class RestApiTest < ActiveSupport::TestCase
-  setup { Rails.cache.clear }
+
+  uses_http_mock
+  setup{ Rails.cache.clear }
 
   def setup
     RestApi::Base.site = "https://mock.test/broker/rest"
@@ -327,6 +327,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_reuse_connection
+    ActiveResource::HttpMock.enabled = false
     auth1 = RestApi::Authorization.new('test1', '1234', 'pass1')
     auth2 = RestApi::Authorization.new('test2', '12345', 'pass2')
 

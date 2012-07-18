@@ -2,11 +2,8 @@ require File.expand_path('../../test_helper', __FILE__)
 require 'mocha'
 
 class BuildingControllerTest < ActionController::TestCase
-  include ActiveSupport::Testing::Isolation
 
-  def setup
-    require 'active_resource/persistent_http_mock'
-  end
+  uses_http_mock
 
   def json_header(is_post=false)
     {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(auth_headers)
