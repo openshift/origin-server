@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.96.1
+Version:   0.96.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -154,6 +154,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jul 18 2012 William DeCoste <wdecoste@redhat.com> 0.96.2-1
+- Require Java7
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.96.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
