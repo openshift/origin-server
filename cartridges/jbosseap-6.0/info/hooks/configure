@@ -198,7 +198,12 @@ create_standard_env_uservars
 create_standard_network_env_vars
 create_jboss_network_env_vars
 create_standard_repo_dir_env_var
-JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+if [ -e $APP_HOME/$application/repo/.openshift/markers/java7 ];
+then
+	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+else
+	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+fi
 M2_HOME=/etc/alternatives/maven-3.0
 echo "export JAVA_HOME=$JAVA_HOME" > $APP_HOME/.env/JAVA_HOME
 echo "export M2_HOME=$M2_HOME" > $APP_HOME/.env/M2_HOME

@@ -99,8 +99,13 @@ then
 
     if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
     then
-        echo "Found pom.xml... attempting to build with 'mvn -e clean package -Popenshift -DskipTests'" 
-        export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+        echo "Found pom.xml... attempting to build with 'mvn -e clean package -Popenshift -DskipTests'"
+        if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
+		then
+			JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+		else
+        	export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+        fi
         export M2_HOME=/etc/alternatives/maven-3.0
         export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
