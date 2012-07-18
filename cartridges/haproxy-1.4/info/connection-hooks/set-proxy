@@ -33,6 +33,8 @@ setup_configure "$1" $2 $3
 
 import_env_vars
 
+exitcode=0
+
 declare -A curr_server_gears
 
 haproxy_cfg=$OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg
@@ -47,6 +49,17 @@ for arg in $kvargs; do
     #  Gear end-point is the form: $gear-ipaddress:$gear-port
     gear_name=$(echo "${zarr[0]}" | cut -f 1 -d '.')
     curr_server_gears[$gear_name]="$ep"
+
+    # Ensure endpoint is valid.
+    [ -z "$ep" ]  &&  continue
+
+    # And of the form: $ipv4-address:$port-number
+    if [[ ! $ep =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{4,5} ]]; then
+       # write/log error, set exit code but continue/process remaining entries.
+       echo "${@:1:3} - Invalid endpoint '$ep' passed in input - $zinfo" 1>&2
+       exitcode=22
+       continue
+    fi
 
     if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
         cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
@@ -77,4 +90,8 @@ uuid=$3
 setup_user_vars
 # echo "$0: reloading haproxy for application $1 - uuid $uuid ... "
 run_as_user "app_ctl.sh reload"
+appctl_exitcode=$?
 
+# Pass the appropriate exit code back.
+[ $exitcode -ne 0 ]  &&  exit $exitcode
+exit $appctl_exitcode
