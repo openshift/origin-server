@@ -53,7 +53,7 @@ function wait_to_start() {
    done
 
    if [ $i -ge 10 ]; then
-      echo "`date`: haproxy-status check - max retries ($i) exceeded" 1>&2
+      echo "`date`: HAProxy status check - max retries ($i) exceeded" 1>&2
    fi
 }
 
@@ -69,7 +69,7 @@ start() {
         wait_to_start
         run_user_hook post_start_${CARTRIDGE_TYPE}
     else
-        echo "Haproxy already running" 1>&2
+        echo "HAProxy already running" 1>&2
         wait_to_start
     fi
 }
@@ -94,9 +94,9 @@ stop() {
     else
         if `pgrep -x haproxy > /dev/null 2>&1`
         then
-            echo "Warning: Haproxy process exists without a pid file.  Use force-stop to kill." 1>&2
+            echo "Warning: HAProxy process exists without a pid file.  Use force-stop to kill." 1>&2
         else
-            echo "Haproxy already stopped" 1>&2
+            echo "HAProxy already stopped" 1>&2
         fi
     fi
     run_user_hook post_stop_${CARTRIDGE_TYPE}
@@ -124,7 +124,7 @@ function _reload_service() {
     while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 60 ]; do
         sleep 2
         i=$(($i + 1))
-        echo "`date`: Retrying haproxy service reload - attempt #$((i+1)) ... "
+        echo "`date`: Retrying HAProxy service reload - attempt #$((i+1)) ... "
     done
 
     wait_to_start
@@ -134,7 +134,7 @@ reload() {
     if ! isrunning; then
        start
     else
-       echo "`date`: Reloading haproxy service " 1>&2
+       echo "`date`: Reloading HAProxy service " 1>&2
        _reload_service
     fi
     haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
