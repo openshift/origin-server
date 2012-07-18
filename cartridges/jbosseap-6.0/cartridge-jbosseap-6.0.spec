@@ -22,6 +22,8 @@ Requires: rubygem(stickshift-node)
 Requires: jboss-eap6 >= %{jbossver}
 Requires: jboss-eap6-modules >= %{jbossver}
 Requires: lsof
+Requires: java-1.7.0-openjdk
+Requires: java-1.7.0-openjdk-devel
 
 %if 0%{?rhel}
 Requires: maven3
