@@ -32,10 +32,6 @@ function stop_mongodb {
     super_run_as_user "$MONGODB_DIR/${application}_mongodb_ctl.sh stop"
 }
 
-function repair_mongodb {
-    super_run_as_user "$MONGODB_DIR/${application}_mongodb_ctl.sh repair"
-}
-
 function start_mongodb_as_user {
     if [[ -n "$OPENSHIFT_NOSQL_DB_GEAR_UUID"  &&  -n "$OPENSHIFT_NOSQL_DB_GEAR_DNS"  &&
           "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_NOSQL_DB_GEAR_UUID" ]]; then

@@ -27,7 +27,7 @@ fi
 
 MONGODB_DIR="$OPENSHIFT_HOMEDIR/mongodb-2.0/"
 
-isrunning() {
+function isrunning() {
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
         mongodb_pid=`cat $MONGODB_DIR/pid/mongodb.pid 2> /dev/null`
         myid=`id -u`
@@ -39,7 +39,16 @@ isrunning() {
     return 1
 }
 
-repair() {
+function _wait_for_mongod_to_startup() {
+    i=0
+    while ( (! echo "exit" | mongo $IP > /dev/null 2>&1) ||  \
+            [ ! -f ${MONGODB_DIR}/pid/mongodb.pid ]) && [ $i -lt 20 ]; do
+        sleep 1
+        i=$(($i + 1))
+    done
+}
+
+function _repair_mongod() {
     if ! isrunning ; then
         echo "Attempting to repair MongoDB ..." 1>&2
         tmp_config="/tmp/mongodb.repair.conf"
@@ -52,18 +61,30 @@ repair() {
     fi
 }
 
-start() {
+function _start_mongod() {
+    /usr/bin/mongod --auth --nojournal --smallfiles --quiet  \
+                    -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
+    _wait_for_mongod_to_startup
+    if ! isrunning; then
+       _repair_mongod
+       /usr/bin/mongod --auth --nojournal --smallfiles --quiet  \
+                       -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
+       _wait_for_mongod_to_startup
+    fi
+}
+
+function start() {
     if ! isrunning
     then
         src_user_hook pre_start_mongodb-2.0
-        /usr/bin/mongod --auth --nojournal --smallfiles --quiet -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
+        _start_mongod
         run_user_hook post_start_mongodb-2.0
     else
         echo "MongoDB already running" 1>&2
     fi
 }
 
-stop() {
+function stop() {
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
     	pid=$( /bin/cat $MONGODB_DIR/pid/mongodb.pid )
     fi
@@ -100,10 +121,6 @@ case "$1" in
     ;;
     restart)
         stop
-        start
-    ;;
-    repair)
-        repair
         start
     ;;
     status)
