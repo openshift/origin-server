@@ -167,6 +167,10 @@ module HelpHelper
     community_base_url 'developers/pricing'
   end
 
+  def tax_exempt_help_status
+    community_base_url 'policy/tax-exemptions'
+  end
+
   def console_help_links
     [
       {:href => developers_url,
