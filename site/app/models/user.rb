@@ -12,7 +12,7 @@ class User < RestApi::Base
   has_many :domains
 
   def plan_id
-    (super || :freeshift).to_sym
+    super or 'freeshift'
   end
 
   def plan
