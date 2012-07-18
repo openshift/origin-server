@@ -8,7 +8,7 @@ CART_VERSION=1.4
 set -e
 
 function log_error() {
-    echo "$0: $@" | logger -p local0.err -t stickshift_haproxy_set_git_url
+    echo "$0: $@" | logger -p local0.err -t stickshift_haproxy_set_gear_ep
     return ${1:-1}
 }
 
@@ -17,7 +17,7 @@ function print_help() {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_haproxy_set_git_url
+    log_error "Invalid parameters - $@"
     exit 1
 }
 
@@ -93,6 +93,16 @@ for arg in $kvargs; do
     zinfo=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
     zarr=(${zinfo//;/ })
     ep=${zarr[0]}
+
+    # Ensure endpoint is valid.
+    [ -z "$ep" ]  &&  continue
+
+    # And of the form: $app-uuid@$ipv4-address(.*)
+    if [[ ! $ep =~ ^[a-zA-Z0-9]{1,32}@[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]; then
+       echo "${@:1:3} - Invalid endpoint '$ep' passed in input - $zinfo" 1>&2
+       exit 22
+    fi
+
     zarr2=(${zinfo//@/ })
     gname=${zarr2[0]}
     curr_endpoints[$gname]="$zinfo"
