@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.93.7
+Version: 0.95.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -29,6 +29,7 @@ Requires:  libcurl-devel
 Requires:  numpy
 Requires:  numpy-f2py
 Requires:  gcc-gfortran
+Requires:  freetype-devel
 
 Obsoletes: cartridge-python-3.2
 
@@ -115,6 +116,28 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Security - BZ785050 remove mod_autoindex from all httpd.confs
+  (tkramer@redhat.com)
+
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Security - BZ785050 removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- Fix for bugz 827827. Use freetype-devel (as that's available on rhel-6.2).
+  (ramr@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.7-1
 - Bug 825354 (dmcphers@redhat.com)
 - Adding a dependency resolution step (using post-recieve hook) for all

@@ -9,23 +9,30 @@ namespace :rcov do
     rm_rf "test/coverage"
     rm_rf "test/coverage.data"
     Rcov = "cd test && rcov --rails --aggregate coverage.data -Ilib \
-                        --text-summary -x 'bundler/*,gems/*' \
-                        -i 'openshift/*,stickshift/*,gearchanger/*,swingshift/*,uplift/*'"
+                        --text-summary -x '/usr/lib/ruby' \
+                        -i 'openshift,stickshift,gearchanger,swingshift,uplift,rhc'"
   end
 
   desc 'Coverage analysis of unit tests'
-  task :unit => :clean do
+  task :units => :clean do
     system("#{Rcov} --html unit/*_test.rb")
   end
  
   desc 'Coverage analysis of functional tests'
-  task :func => :clean do
+  task :functionals => :clean do
     system("#{Rcov} --html functional/*_test.rb")
   end
  
+  desc 'Coverage analysis of integration tests'
+  task :integration => :clean do
+    system("#{Rcov} --html integration/*_test.rb")
+  end
+
   desc 'Coverage analysis of all tests'
   task :all => :clean do
-    system("#{Rcov} --html */*_test.rb")
+    Rake::Task["rcov:units"].invoke
+    Rake::Task["rcov:functionals"].invoke
+    Rake::Task["rcov:integration"].invoke
   end
  
 end

@@ -19,6 +19,7 @@ require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
 require 'syslog'
+require 'fcntl'
 
 module StickShift
   class UserCreationException < Exception
@@ -87,8 +88,8 @@ module StickShift
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
       
-      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do
-            | lock |
+      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do | lock |
+        lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC) 
         lock.flock(File::LOCK_EX)
         
         unless @uid
@@ -143,12 +144,8 @@ module StickShift
       FileUtils.rm_rf(@homedir)
 
       basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, ".httpd.d", token)
-      conf_file = path + ".conf"
-
-      FileUtils.rm_rf(path)   if File.exist? path
-      FileUtils.rm(conf_file) if File.exist? conf_file
+      path = File.join(basedir, ".httpd.d", "#{uuid}_*")
+      FileUtils.rm_rf(Dir.glob(path))
 
       out,err,rc = shellCmd("userdel \"#{@uuid}\"")
       raise UserDeletionException.new(

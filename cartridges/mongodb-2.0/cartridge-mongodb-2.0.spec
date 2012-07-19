@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.20.11
+Version: 0.22.4
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,14 +83,42 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.20.11-1
-- Merge pull request #110 from rmillner/master (admiller@redhat.com)
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.22.4-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
 
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.20.10-1
-- 
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.22.3-1
+- Bug fix - should print the correct database name for scalable apps.
+  (ramr@redhat.com)
 
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.20.9-1
-- Merge pull request #100 from jwhonce/master (dmcphers@redhat.com)
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.22.2-1
+- Merge pull request #155 from rajatchopra/master (rmillner@redhat.com)
+- fix for bug#833340: support same district move (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.22.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.21.6-1
+- httpd config files should get recreated on move/post-move
+  (rchopra@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.21.5-1
+- Fix for bugz 833029 and applying the same to mongo (rchopra@redhat.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.21.4-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.21.3-1
+- BZ824409 call unobfuscate_app_home on mongo and mysql gear moves
+  (jhonce@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.21.2-1
+- The single quotes cause CART_INFO_DIR to be embedded rather than its
+  expansion. (rmillner@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.21.1-1
+- bumping spec versions (admiller@redhat.com)
+- Fix BZ827585 (jhonce@redhat.com)
 
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.20.8-1
 - Bugzilla 825714: Show connection info when mongo is embedded.

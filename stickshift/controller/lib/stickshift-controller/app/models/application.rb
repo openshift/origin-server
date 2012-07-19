@@ -1,14 +1,15 @@
 require 'state_machine'
 require 'syslog'
+require 'shellwords'
 
 class Application < StickShift::Cartridge
   attr_accessor :user, :creation_time, :uuid, :aliases, :cart_data, 
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :gear_usage_records, :destroyed_gears
   primary_key :name
-  exclude_attributes :user, :comp_instance_map, :group_instance_map, 
+  exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash,
                 :init_git_url, :group_override_map
   include_attributes :comp_instances, :group_instances
@@ -64,13 +65,17 @@ class Application < StickShift::Cartridge
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
       else
-        from_descriptor({"Name"=>app_name, "Subscribes"=>{"doc-root"=>{"Type"=>"FILESYSTEM:doc-root"}}})
+        from_descriptor({"Name"=>app_name})
         self.requires_feature = []
         self.requires_feature << framework unless framework.nil?      
       end
     else
       template_descriptor = YAML.load(template.descriptor_yaml)
       template_descriptor["Name"] = app_name
+      if not template_descriptor["Configure-Order"]
+        requires_list = template_descriptor["Requires"] || []
+        template_descriptor["Configure-Order"] = requires_list
+      end
       from_descriptor(template_descriptor)
       @init_git_url = template.git_url
     end
@@ -119,14 +124,8 @@ Name: #{app_name}
 Components:
   proxy:
     Dependencies: [#{framework}, \"haproxy-1.4\"]
-    Subscribes:
-      doc-root:
-        Type: \"FILESYSTEM:doc-root\"
   web:
     Dependencies: [#{framework}]
-    Subscribes:
-      doc-root:
-        Type: \"FILESYSTEM:doc-root\"
 Groups:
   proxy:
     Components:
@@ -134,6 +133,10 @@ Groups:
   web:
     Components:
       web: web
+GroupOverrides: 
+  - [\"proxy\", \"proxy/haproxy-1.4\"]
+  - [\"proxy\", \"proxy/#{framework}\"]
+  - [\"web\", \"web/#{framework}\"]
 Connections:
   auto-scale:
     Components: [\"proxy/haproxy-1.4\", \"web/#{framework}\"]
@@ -164,10 +167,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # @param [String] app_name
   # @return [Application]
   def self.find(user, app_name)
+    return nil if app_name.nil? or app_name.empty?
     app = nil
     if user.applications
       user.applications.each do |next_app|
-        if next_app.name == app_name
+        if next_app.name.downcase == app_name.downcase
           app = next_app
           break
         end
@@ -272,6 +276,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       elaborate_descriptor()
       if self.scalable
         raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
+        min_gear_count = 0
+        group_instances.uniq.each { |gi|
+          min_gear_count += gi.min
+        }
+        if ((user.consumed_gears+min_gear_count) > user.max_gears)
+          raise StickShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
+        end
       end
       user.applications << self
       Rails.logger.debug "Creating gears"
@@ -311,16 +322,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
     s,f = run_on_gears(nil, reply, false) do |gear, r|
-      r.append gear.destroy
       group_instance = self.group_instance_map[gear.group_instance_name]
-      group_instance.gears.delete(gear)
+      r.append group_instance.remove_gear(gear)
     end
-    self.save if self.persisted?
-          
+    begin
+      self.save if self.persisted?
+    rescue Exception => e
+      # pass on failure... because we maybe wanting a delete here instead anyway
+    end
+
     f.each do |data|
       Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
       Rails.logger.debug(data[:exception].backtrace.inspect)
     end
+    raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if f.length > 0
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
   end
@@ -335,16 +350,19 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
   def scaleup(comp_name=nil)
     result_io = ResultIO.new
+
     if not self.scalable
-      raise StickShift::NodeException.new("Cannot scale a non-scalable application", "-100", result_io)
+      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
+
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
+    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
-    raise StickShift::NodeException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", "-101", result_io) if ginst.gears.length>=ginst.max and ginst.max>0
+    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
+    raise StickShift::UserException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
+    raise StickShift::UserException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", 104, result_io) if user.consumed_gears >= user.max_gears
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -355,16 +373,16 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def scaledown(comp_name=nil)
     result_io = ResultIO.new
     if not self.scalable
-      raise StickShift::NodeException.new("Cannot scale a non-scalable application", "-100", result_io)
+      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", "-101", result_io) if cinst.nil?
+    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", "-101", result_io) if ginst.nil?
+    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::NodeException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", "-100", result_io) if ginst.gears.length <= ginst.min
+    raise StickShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.first
 
@@ -382,8 +400,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       result_io.append gear.deconfigure(cinst)
     }
 
-    result_io.append gear.destroy
-    ginst.gears.delete gear
+    result_io.append ginst.remove_gear(gear)
 
     # inform anyone who needs to know that this gear is no more
     self.configure_dependencies
@@ -417,10 +434,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       end
       
       run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append gear.destroy if gear.configured_components.length == 0
-        # self.save        
+        r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
       end
-      group_inst.gears.delete_if { |gear| gear.configured_components.length == 0 }
+
     end
     cleanup_deleted_components
     # self.save
@@ -435,7 +451,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       begin
         group_inst.fulfil_requirements(self)
-        run_on_gears(group_inst.gears, reply) do |gear, r|
+        run_on_gears(group_inst.get_unconfigured_gears(comp_inst), reply) do |gear, r|
           doExpose = false
           if self.scalable and comp_inst.parent_cart_name!=self.proxy_cartridge
             doExpose = true if not gear.configured_components.include? comp_inst.name
@@ -467,11 +483,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           r.append process_cartridge_commands(r.cart_commands)
         end
         
-        #destroy any unused gears
+        # destroy any unused gears
+        # TODO : if the destroy fails below... the user still sees the error as configure failure
+        #   Then to recover, if we re-elaborate (like in add_dependency), then the group instance will get lost
+        #   and any failed gears below will leak (i.e. they exist on node, their destroy failed, but they do not have any handle in Mongo)
         run_on_gears(group_inst.gears, reply, false) do |gear, r|
-          r.append gear.destroy if gear.configured_components.length == 0
+          r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
         end
-        group_inst.gears.delete_if { |gear| gear.configured_components.length == 0 }
 
         self.save
         exceptions << gear_exception
@@ -539,21 +557,26 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         comp_inst = self.comp_instance_map[comp_inst_name]
         next if comp_inst.parent_cart_name == self.name
         group_inst = self.group_instance_map[comp_inst.group_instance_name]
-        begin
-          run_on_gears(group_inst.gears, reply, false) do |gear, r|
+        run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          begin
             r.append gear.deconfigure(comp_inst)
-            r.append process_cartridge_commands(r.cart_commands)
+          rescue Exception => e
+            Rails.logger.error("Error deconfiguring '#{comp_inst_name}' with message: #{e.message}")
           end
-        rescue  Exception => e
-          # raise e
+          r.append process_cartridge_commands(r.cart_commands)
         end
       end
     end
-    self.save if self.persisted?
+    begin
+      self.save if self.persisted?
+    rescue Exception=>e
+      # do nothing.. raising an exception will spoil the destroy work
+      # we may be wanting a delete in the flow here anyway
+    end
     self.class.notify_observers(:after_application_deconfigure, {:application => self, :reply => reply})
     reply
   end
-  
+
   # Start a particular dependency on all gears that host it. 
   # If unable to start a component, the application is stopped on all gears
   # @param [String] dependency Name of a cartridge to start. Set to nil for all dependencies.
@@ -963,9 +986,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_recreate_dns, {:application => self, :reply => reply})    
     dns = StickShift::DnsService.instance
     begin
-      dns.deregister_application(@name,@domain.namespace)
       public_hostname = self.container.get_public_hostname
-      dns.register_application(@name,@domain.namespace, public_hostname)
+      dns.modify_application(@name, @domain.namespace, public_hostname)
       dns.publish
     ensure
       dns.close
@@ -994,6 +1016,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def complete_namespace_update(new_ns, old_ns)
+    self.comp_instances.each do |comp_inst|
+      comp_inst.cart_properties.each do |prop_key, prop_value|
+        comp_inst.cart_properties[prop_key] = prop_value.gsub(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+      end
+    end
     self.embedded.each_key do |framework|
       if self.embedded[framework].has_key?('info')
         info = self.embedded[framework]['info']
@@ -1001,6 +1028,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.embedded[framework]['info'] = info
       end
     end
+
     # elaborate descriptor again to execute connections, because connections need to be renewed
     self.elaborate_descriptor
     self.execute_connections
@@ -1091,6 +1119,15 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
 
+  def get_public_ip_address
+    begin
+      return self.container.get_public_ip_address
+    rescue Exception=>e
+      Rails.logger.debug e.backtrace.inspect
+      return nil
+    end
+  end
+  
   # Returns the first Gear object on which the application is running
   # @return [Gear]
   # @deprecated  
@@ -1164,8 +1201,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     retval = {}
     self.comp_instance_map.values.each do |comp_inst|
       if embedded_carts.include?(comp_inst.parent_cart_name)
-        retval[comp_inst.parent_cart_name] = {}
-        retval[comp_inst.parent_cart_name] = {"info" => comp_inst.cart_data.first} unless comp_inst.cart_data.first.nil?
+        if comp_inst.cart_data.first.nil?
+          retval[comp_inst.parent_cart_name] = comp_inst.cart_properties
+        else
+          retval[comp_inst.parent_cart_name] = comp_inst.cart_properties.merge({"info" => comp_inst.cart_data.first})
+        end
       end
     end
     retval
@@ -1340,14 +1380,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
   def track_gear_usage(gear, event)
     if Rails.configuration.usage_tracking[:datastore_enabled]
-      now = Time.new
+      now = Time.now.utc
       uuid = StickShift::Model.gen_uuid
       self.gear_usage_records = [] unless gear_usage_records
       self.gear_usage_records << GearUsageRecord.new(gear.uuid, gear.node_profile, event, user, now, uuid)
       self.class.notify_observers(:track_gear_usage, {:gear => gear, :event => event, :time => now, :uuid => uuid})
     end
     if Rails.configuration.usage_tracking[:syslog_enabled]
-      Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+      begin
+        Syslog.open('openshift_gear_usage', Syslog::LOG_PID) { |s| s.notice "User: #{user.login}  Gear: #{gear.uuid}  Gear Size: #{gear.node_profile}  Event: #{event}" }
+      rescue Exception => e
+        # Can't fail because of a secondary logging error
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
     end
   end
 
@@ -1396,7 +1442,7 @@ private
         self.group_instance_map[cinst2.group_instance_name] = ginst1
       end
     }
-    # generate_group_overrides(default_profile)
+    generate_group_overrides(default_profile)
     auto_merge_top_groups(default_profile)
   end
   
@@ -1405,8 +1451,8 @@ private
       go_copy = go.dup
       n = go_copy.pop
       go_copy.each { |v|
-        from_cinst = ComponentInstance::find_component_in_cart(default_profile, self, from, self.get_name_prefix)
-        to_cinst = ComponentInstance::find_component_in_cart(default_profile, self, to, self.get_name_prefix)
+        from_cinst = ComponentInstance::find_component_in_cart(default_profile, self, v, self.get_name_prefix)
+        to_cinst = ComponentInstance::find_component_in_cart(default_profile, self, n, self.get_name_prefix)
         next if from_cinst.nil? or to_cinst.nil?
         from_gpath = from_cinst.group_instance_name
         to_gpath = to_cinst.group_instance_name
@@ -1425,7 +1471,7 @@ private
         ginst1 = self.group_instance_map[gname]
         ginst2 = self.group_instance_map[mapped_to]
         next if ginst1==ginst2
-        ginst1.merge(ginst2)
+        ginst1.merge_inst(ginst2)
         self.group_instance_map[mapped_to] = ginst1
       }
     else
@@ -1459,15 +1505,15 @@ private
     successful_runs = []
     failed_runs = []
     gears = self.gears if gears.nil?
-    
-    gears.each do |gear|
+
+    gears.dup.each do |gear|
       begin
         retval = block.call(gear, result_io)
         successful_runs.push({:gear => gear, :return => retval})
       rescue Exception => e
         Rails.logger.error e.message
         Rails.logger.error e.inspect
-        Rails.logger.error e.backtrace.inspect        
+        Rails.logger.error e.backtrace.inspect
         failed_runs.push({:gear => gear, :exception => e})
         if (!result_io.nil? && e.kind_of?(StickShift::SSException) && !e.resultIO.nil?)
           result_io.append(e.resultIO)

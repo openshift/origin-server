@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.11.21
+Version: 0.13.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,9 +78,194 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.21-1
-- Merge pull request #101 from kraman/dev/kraman/bugs/827359
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.14-1
+- Merge pull request #228 from rajatchopra/master (admiller@redhat.com)
+- Merge pull request #224 from kraman/dev/kraman/bugs/838611
+  (rpenta@redhat.com)
+- fix for Bug 836973  - Sometimes jbossas-7 auto scaling up doesn't work fine
+  (rchopra@redhat.com)
+- nicer error on user reaching max gear limit when creating scalable app
+  (rchopra@redhat.com)
+- Bump API version to 1.1. New version returns framework cartridge and related
+  properties when listing cartridges for an app
+  (.../applications/<id>/cartridges) Builds upon cartridge metadata which was
+  added in 47d1b813a1a74228c9c95734043487d681f799d4. (kraman@gmail.com)
+- Merge pull request #222 from pravisankar/dev/ravi/bug/834351
+  (rchopra@redhat.com)
+- Merge pull request #223 from abhgupta/abhgupta-dev (lnader@redhat.com)
+- Merge pull request #212 from lnader/master (abhgupta@redhat.com)
+- Commented current code related to checking gear scale limits in mongo to
+  unblock the build. Proper fix comming soon. (rpenta@redhat.com)
+- Fix for bug 839151 (abhgupta@redhat.com)
+- Bug 838862 - add events to application dose not check the domain name in the
+  URL (lnader@redhat.com)
+
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.13-1
+- Merge pull request #220 from pravisankar/dev/ravi/bug806273
+  (abhgupta@redhat.com)
+- minor text change: example cart as mongodb instead of metrics
+  (rpenta@redhat.com)
+- - Don't show postgresql-8.4 as valid options to embed cartridge when mysql is
+  already installed and viceversa. (rpenta@redhat.com)
+
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.12-1
+- Add modify application dns and use where applicable (dmcphers@redhat.com)
+- Merge pull request #209 from lnader/master (rmillner@redhat.com)
+- Merge pull request #207 from pravisankar/dev/ravi/bug/834663
+  (rchopra@redhat.com)
+- Merge pull request #208 from pravisankar/dev/ravi/bug/835176
+  (rchopra@redhat.com)
+- Added test to cover Bug 838627 (lnader@redhat.com)
+- Bug 837926 - changed application_template to application_templates
+  (lnader@redhat.com)
+- Application Gear min/max scaling limit check will also be done in mongo
+  layer. (rpenta@redhat.com)
+- Add gear will do cleanup in case of failures due to DNS timeouts/errors
+  (rpenta@redhat.com)
+
+* Tue Jul 10 2012 Adam Miller <admiller@redhat.com> 0.13.11-1
+- remove any failable logic from track gear usage (dmcphers@redhat.com)
+
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.10-1
+- fix for bug#838694 - jenkins cartridge info is not shown in cartridge REST
+  call (rchopra@redhat.com)
+- blocking requires/conflicts/suggests/depends from RestCartridge model until
+  further agreement on cartridge metadata is made (rchopra@redhat.com)
+
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.9-1
+- added missing attr accessor (lnader@redhat.com)
+
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.13.8-1
+- Merge pull request #201 from lnader/master (lnader@redhat.com)
+- added max_gears to rest user and corrected parameter desc (lnader@redhat.com)
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.13.7-1
+- Merge pull request #191 from abhgupta/abhgupta-dev (kraman@gmail.com)
+- fix for bug#837579 - handle better messaging on find_available_node failure
+  (rchopra@redhat.com)
+- fixes to cucumber test runs on OpenShift Origin (abhgupta@redhat.com)
+
+* Fri Jul 06 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- changing categories to tags for site functional tests (rchopra@redhat.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
+- Merge pull request #182 from pravisankar/dev/ravi/bug/806273
+  (admiller@redhat.com)
+- changes identified after writing integration tests (abhgupta@redhat.com)
+- Fix for Bug 806273 (rpenta@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- Fix for bug#812802 (rpenta@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- More fixes to bug# 808425 (rpenta@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+- Fix for Bug# 808425 (rpenta@redhat.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Removed destroyed_gears during querying mongo (rpenta@redhat.com)
+- BugFix: 812800 (rpenta@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (rpenta@redhat.com)
+- remove whitespaces (rchopra@redhat.com)
+- fix for gear delete/add from group instance (rchopra@redhat.com)
+- rejig gear saving flow. now save to mongo happens before create (with
+  required rollback on failure). also, destroy failures are not ignored (the
+  mongo entry will still exist). (rchopra@redhat.com)
+- Fix for bug# 796458 (rpenta@redhat.com)
+- BugFixes: 824973, 805983, 796458 (rpenta@redhat.com)
+- better error message (dmcphers@redhat.com)
+- Bug 834720 - Include the message at the rest level as well
   (dmcphers@redhat.com)
+- Bug 834720 (dmcphers@redhat.com)
+- rearrange tests (dmcphers@redhat.com)
+
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Enable ruby-1.9 cartridge is list of frameworks, bug fixes + cucumber tests.
+  (ramr@redhat.com)
+- Merge pull request #156 from abhgupta/abhgupta-dev (admiller@redhat.com)
+- remove base m2_repository (dmcphers@redhat.com)
+- Fix for bug 830642 (abhgupta@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.12-1
+- Merge pull request #151 from rajatchopra/master (smitram@gmail.com)
+- fix for build break - configure order is not random anymore (picked up from
+  requires) (rchopra@redhat.com)
+- reverse check on colocate with (dmcphers@redhat.com)
+- Bug 833697 (dmcphers@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.11-1
+- fix for bug#832745 and bug#833376 (rchopra@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.10-1
+- bug 800188 (dmcphers@redhat.com)
+- Fix for bug 806713 (abhgupta@redhat.com)
+
+* Mon Jun 18 2012 Adam Miller <admiller@redhat.com> 0.12.9-1
+- Merge pull request #136 from abhgupta/gearip (kraman@gmail.com)
+- Bug 830656 - Update message for bad cartridge type to match current command
+  line options (ccoleman@redhat.com)
+- Fixes for bug 827337, 830309, 811066, and 832374 Exposing initial public ip
+  in the rest response for application creation (abhgupta@redhat.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.8-1
+- switch to using utc time (dmcphers@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- Trap error case when user tried to specify subaccount but parent account
+  cannot be found. Returning 401 instead of 500. (kraman@gmail.com)
+- Checkpoint ruby-1.9 work (ruby-1.9 disabled for now in framework cartridges).
+  Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1]. Match up
+  spec file to first build version in brew and checkpoint with
+  working/available ruby193 packages. (ramr@redhat.com)
+- Adding ability to use sub-users using X-impersonate-user header Changes to
+  query subaccounts by parent login (kraman@gmail.com)
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
+- support for group overrides so that we do not rely on filesystem co-location
+  - fix for bug#824124 (rchopra@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Fix missing requires (kraman@gmail.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- change rest test to verify from internal (dmcphers@redhat.com)
+- Merge pull request #113 from lnader/master (dmcphers@redhat.com)
+- added mini test for REST API workflow with @internals and @internals1 tag
+  (lnader@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- registering users using ss-register-user in cucumber tests before creating
+  domain/app (abhgupta@redhat.com)
+- generating new ssh keys for cucumber tests instead of storing them in the
+  repo (abhgupta@redhat.com)
+- Bug fixes (abhgupta@redhat.com)
+- allow helper methods to be used by all the code (dmcphers@redhat.com)
+- deconfigure jboss after cucumber scenario (bdecoste@gmail.com)
+- Revert "BZ824124 remove unused doc_root connector" (kraman@gmail.com)
+- BZ824124 remove unused doc_root connector (jhonce@redhat.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+- US2307 - update test scenario names (bdecoste@gmail.com)
+- US2307 - enable eap6 (bdecoste@gmail.com)
+
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- fixes to cucumber tests to run under OpenShift Origin (abhgupta@redhat.com)
+- add beginnings of broker integration tests (dmcphers@redhat.com)
+- Add test step which verifies phpmyadmin httpd proxy configuration
+  (dmace@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bumping spec versions (admiller@redhat.com)
+- Passing back client message from update_namespace hook (kraman@gmail.com)
 
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.20-1
 - Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)

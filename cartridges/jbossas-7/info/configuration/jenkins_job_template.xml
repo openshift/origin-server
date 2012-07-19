@@ -11,7 +11,7 @@
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
-      <builderSize>medium</builderSize>
+      <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
       <builderType>jbossas-7</builderType>
@@ -62,6 +62,8 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
+source /usr/libexec/stickshift/cartridges/abstract/info/lib/jenkins_util
+
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
@@ -76,7 +78,7 @@ mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTe
 # Deploy new build
 
 # Stop app
-$GIT_SSH UPSTREAM_SSH 'ctl_all stop'
+jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
 rsync ~/.m2/ UPSTREAM_SSH:~/.m2/
@@ -85,7 +87,9 @@ rsync ~/$WORKSPACE/.openshift/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/.openshift/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
-$GIT_SSH UPSTREAM_SSH 'ctl_all start'
+
+jenkins_start_app UPSTREAM_SSH
+
 $GIT_SSH UPSTREAM_SSH post_deploy.sh
       </command>
     </hudson.tasks.Shell>

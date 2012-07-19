@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.93.5
+Version: 0.95.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,29 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- Disable automatic Jenkins update checking (ironcladlou@gmail.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
+- bug 801655 (bdecoste@gmail.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- fix jenkins httpd proxy (bdecoste@gmail.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
 - Bug 825354 (dmcphers@redhat.com)
 - Rename ~/app to ~/app-root to avoid application name conflicts and additional

@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.9.3
+Version: 0.11.3
 Release: 1%{?dist}
 Summary: Embedded postgresql support for express
 
@@ -72,6 +72,27 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Merge pull request #220 from pravisankar/dev/ravi/bug806273
+  (abhgupta@redhat.com)
+- - Don't show postgresql-8.4 as valid options to embed cartridge when mysql is
+  already installed and viceversa. (rpenta@redhat.com)
+- Change references to PostgreSQL. (rmillner@redhat.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.9.3-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 

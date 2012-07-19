@@ -38,14 +38,31 @@ class Gear_scale_ctl
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
-    request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 120,
+    request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 600,
         :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
         :payload => params
         )
 
-    response = request.execute()
-    if 300 <= response.code
-      raise response
+    begin
+      response = request.execute()
+      if 300 <= response.code
+        raise response
+      end
+    rescue RestClient::UnprocessableEntity => e
+      if action == "add-gear"
+        puts "Already at the maximum number of gears allowed for either the app or your account."
+      elsif action == "remove-gear"
+        puts "Already at the minimum number of gears required for this application."
+      else
+        puts "The #{action} request could not be processed."
+      end
+      return false
+    rescue RestClient::ExceptionWithResponse => e
+      $stderr.puts "The #{action} request failed with http_code: #{e.http-code}"
+      return false
+    rescue RestClient::Exception => e
+      $stderr.puts "The #{action} request failed with the following exception: #{e.to_s}"
+      return false
     end
   end
 
@@ -61,35 +78,60 @@ class Gear_scale_ctl
           :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
           :payload => params
           )
-      response = request.execute()
-      if 300 <= response.code
+
+      begin
+        response = request.execute()
+        if 300 <= response.code
+          return false
+        end
+      rescue RestClient::Exception => e
+        $stderr.puts "Failed to get application info from the broker."
         return false
       end
-      response_object = JSON.parse(response)
-      min = response_object["data"]["scale_min"]
-      max = response_object["data"]["scale_max"]
+
+      begin
+        response_object = JSON.parse(response)
+        min = response_object["data"]["scale_min"]
+        max = response_object["data"]["scale_max"]
+      rescue
+        $stderr.puts "Could not use the application info response."
+        return false
+      end
+
       f = File.open(scale_file, 'w')
       f.write("scale_min=#{min}\nscale_max=#{max}")
       f.close
     else
-      scale_data = File.read(scale_file)
-      scale_hash = {}
-      scale_data.split("\n").each { |s| 
-        line = s.split("=")
-        scale_hash[line[0]] = line[1] 
-      }
-      min = scale_hash["scale_min"].to_i
-      max = scale_hash["scale_max"].to_i
+
+      begin
+        scale_data = File.read(scale_file)
+        scale_hash = {}
+        scale_data.split("\n").each { |s|
+          line = s.split("=")
+          scale_hash[line[0]] = line[1]
+        }
+        min = scale_hash["scale_min"].to_i
+        max = scale_hash["scale_max"].to_i
+      rescue => e
+        $stderr.puts "Could not read or parse #{scale_file}"
+        begin
+          # Get it fresh from the broker next invocation
+          File.unlink(scale_file)
+        rescue
+        end
+        return false
+      end
     end
+
     haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
     gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
     current_gear_count = `wc -l #{gear_registry_db}`
     current_gear_count = current_gear_count.split(' ')[0].to_i
     if action=='add-gear' and current_gear_count == max
-      puts "Cannot add gear because max limit '#{max}' reached."
+      $stderr.puts "Cannot add gear because max limit '#{max}' reached."
       return false
     elsif action=='remove-gear' and current_gear_count == min
-      puts "Cannot remove gear because min limit '#{min}' reached."
+      $stderr.puts "Cannot remove gear because min limit '#{min}' reached."
       return false
     end
     return true

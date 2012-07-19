@@ -31,3 +31,14 @@ Feature: Node.js Application
     When I start the nodejs application
     Then the nodejs application will be running
     And a node process will be running
+
+  Scenario: Push a code change to a new Node application
+    Given an accepted node
+    And a new guest account
+    And the guest account has no application installed
+    When I configure a nodejs application
+    And the application is prepared for git pushes
+    Then a node process will be running
+    When the nodejs-0.6 application code is changed
+    Then a node process will be running
+    And the nodejs-0.6 application should change pids

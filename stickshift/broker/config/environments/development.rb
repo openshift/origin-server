@@ -41,7 +41,9 @@ Broker::Application.configure do
     :user => "stickshift",
     :password => "mooo",
     :db => "stickshift_broker_dev",
-    :collections => {:user => "user"}
+    :collections => {:user => "user",
+                     :district => "district",
+                     :application_template => "template"}
   }
   
   config.usage_tracking = {
@@ -61,7 +63,7 @@ Broker::Application.configure do
   
   config.ss = {
     :domain_suffix => "example.com",
-    :default_max_gears => 5
+    :default_max_gears => 100
   }
 
 end

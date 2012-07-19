@@ -1,5 +1,5 @@
 class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
   include LegacyBrokerHelper
   
   def initialize(app, url)
@@ -16,12 +16,27 @@ class RestApplication < StickShift::Model
     self.scale_min,self.scale_max = app.scaling_limits
     self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/~/git/#{@name}.git/"
     self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
+    self.ssh_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}"
     self.health_check_path = app.health_check_path
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"
-    carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-      Application.get_available_cartridges("embedded")
+    
+    carts = nil
+    if app.scalable
+      carts = Application::SCALABLE_EMBEDDED_CARTS
+    else
+      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
+        Application.get_available_cartridges("embedded")
+      end
     end
+    # Update carts list
+    # - remove already embedded carts
+    # - remove conflicting carts
+    app.embedded.keys.each do |cname|
+      carts -= [cname]
+      cinfo = CartridgeCache.find_cartridge(cname)
+      carts -= cinfo.conflicts_feature if defined?(cinfo.conflicts_feature)
+    end if !app.embedded.empty?
 
     self.links = {
       "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
@@ -66,7 +81,7 @@ class RestApplication < StickShift::Model
       "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
       
       "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-        Param.new("cartridge", "string", "framework-type, e.g.: mysql-5.1", carts)
+        Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.0", carts)
       ]),
       "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"))
     }

@@ -46,8 +46,8 @@ class DomainsController < BaseController
       Rails.logger.error "Domain is not valid"
       @reply = RestReply.new(:unprocessable_entity)
       domain.errors.keys.each do |key|
-        field = key
-        field = "id" if key == "namespace"
+        field = key.to_s
+        field = "id" if key.to_s == "namespace"
         error_messages = domain.errors.get(key)
         error_messages.each do |error_message|
           @reply.messages.push(Message.new(:error, error_message[:message], error_message[:exit_code], field))
@@ -80,7 +80,7 @@ class DomainsController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", false, "Failed to create domain '#{namespace}': #{e.message}")
       Rails.logger.error e.backtrace
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with @reply, :status => @reply.status
@@ -99,6 +99,26 @@ class DomainsController < BaseController
     new_namespace = params[:id]
     domain = get_domain(id)
 
+    new_domain = Domain.new(new_namespace, @cloud_user)
+    if not new_domain.valid?
+      log_messages = []
+      @reply = RestReply.new(:unprocessable_entity)
+      new_domain.errors.keys.each do |key|
+        field = key.to_s
+        field = "id" if key.to_s == "namespace"
+        error_messages = new_domain.errors.get(key)
+        error_messages.each do |error_message|
+          @reply.messages.push(Message.new(:error, error_message[:message], error_message[:exit_code], field))
+          log_messages.push(error_message[:message])
+        end
+      end
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, log_messages.join(', '))
+      respond_with(@reply) do |format|
+        format.xml { render :xml => @reply, :status => @reply.status }
+        format.json { render :json => @reply, :status => @reply.status }
+      end
+    return
+    end
     if not domain or not domain.hasAccess?@cloud_user
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Domain '#{id}' not found")
       @reply = RestReply.new(:not_found)
@@ -161,7 +181,7 @@ class DomainsController < BaseController
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, e.message)
       Rails.logger.error "Failed to update domain #{e.message} #{e.backtrace}"
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|
@@ -224,7 +244,7 @@ class DomainsController < BaseController
           @reply.messages.push(Message.new(:error, "Domain contains applications. Delete applications first or set force to true.", 128))
 
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", false, "Domain '#{id}' contains applications")
-          
+
           respond_with(@reply) do |format|
             format.xml { render :xml => @reply, :status => @reply.status }
             format.json { render :json => @reply, :status => @reply.status }
@@ -246,7 +266,7 @@ class DomainsController < BaseController
     rescue Exception => e
       #Rails.logger.error "Failed to delete domain #{e.message}"
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_DOMAIN", false, "Failed to delete domain '#{id}': #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       @reply.messages.push(Message.new(:error, e.message, error_code))
       respond_with(@reply) do |format|

@@ -10,15 +10,16 @@ done
 
 if [ "$include_git" = "INCLUDE_GIT" ]
 then
-  ~/git/${OPENSHIFT_GEAR_NAME}.git/hooks/pre-receive 1>&2
+  # prevent feeding the tarball to pre-receive on stdin
+  ~/git/${OPENSHIFT_GEAR_NAME}.git/hooks/pre-receive < /dev/null 1>&2
   echo "Removing old git repo: ~/git/${OPENSHIFT_GEAR_NAME}.git/" 1>&2
   /bin/rm -rf ~/git/${OPENSHIFT_GEAR_NAME}.git/[^h]*/*
 else
   stop_app.sh 1>&2
 fi
 
-echo "Removing old data dir: ~/${OPENSHIFT_GEAR_NAME}/app-root/data/*" 1>&2
-/bin/rm -rf ~/${OPENSHIFT_GEAR_NAME}/app-root/data/* ~/${OPENSHIFT_GEAR_NAME}/app-root/data/.[^.]*
+echo "Removing old data dir: ~/app-root/data/*" 1>&2
+/bin/rm -rf ~/app-root/data/* ~/app-root/data/.[^.]*
 
 restore_tar.sh $include_git
 

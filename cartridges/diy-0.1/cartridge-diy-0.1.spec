@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.27.7
+Version:   0.29.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,8 +104,28 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.27.7-1
-- Merge pull request #100 from jwhonce/master (dmcphers@redhat.com)
+* Mon Jul 09 2012 Adam Miller <admiller@redhat.com> 0.29.5-1
+- add maven mirror for diy builder (bdecoste@gmail.com)
+
+* Mon Jul 09 2012 William DeCoste <wdecoste@redhat.com> 0.29.4-1
+- maven repo for diy builder
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.29.3-1
+- bz 821921 - create .m2 for diy builder (bdecoste@gmail.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.28.2-1
+- Fix for BZ 831097 (mpatel@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
+- bumping spec versions (admiller@redhat.com)
+- BZ827585 (jhonce@redhat.com)
 
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.27.6-1
 - Merge pull request #94 from mrunalp/master (dmcphers@redhat.com)

@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.93.9
+Version: 0.95.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -21,6 +21,7 @@ Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 Requires: jboss-as7 >= %{jbossver}
 Requires: jboss-as7-modules >= %{jbossver}
+Requires: lsof
 
 %if 0%{?rhel}
 Requires: maven3
@@ -82,6 +83,25 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-nosql-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/build.sh %{buildroot}%{cartridgedir}/info/bin/build.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy_httpd_proxy.sh %{buildroot}%{cartridgedir}/info/bin/deploy_httpd_proxy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy.sh %{buildroot}%{cartridgedir}/info/bin/deploy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/tidy.sh %{buildroot}%{cartridgedir}/info/bin/tidy.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/restore_tar.sh %{buildroot}%{cartridgedir}/info/bin/restore_tar.sh
+
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/publish_jboss_cluster
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/publish_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/publish_jboss_remoting
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_cluster %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_cluster
+ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_remoting %{buildroot}%{cartridgedir}/info/connection-hooks/set_jboss_remoting
+
+ln -s %{cartridgedir}/../abstract-jboss/info/data/mysql.tar %{buildroot}%{cartridgedir}/info/data/mysql.tar
+
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/conceal-port %{buildroot}%{cartridgedir}/info/hooks/conceal-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/deconfigure %{buildroot}%{cartridgedir}/info/hooks/deconfigure
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{cartridgedir}/info/hooks/expose-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
+ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
 %post
 # To modify an alternative you should:
@@ -132,8 +152,60 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.93.9-1
-- Merge pull request #103 from ironcladlou/master (dmcphers@redhat.com)
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.5-1
+- Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- more cartridges have better metadata (rchopra@redhat.com)
+- abstract jboss cart (bdecoste@gmail.com)
+
+* Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.95.4-1
+- Abstract JBoss cartridge
+
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- remove base m2_repository (dmcphers@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- 
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.94.9-1
+- remove duplicate source (bdecoste@gmail.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.8-1
+- Merge branch 'master' of github.com:openshift/crankcase (admiller@redhat.com)
+- Install initial ROOT.war into app-root during configure (dmace@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.7-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- Merge pull request #124 from
+  matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
+- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+- Add custom module path to JBoss AS. (matejonnet@gmail.com)
+- Replace all env vars in standalone.xml. (matejonnet@gmail.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.94.6-1
+- The medium builder appears to be unnecessary now and causes some confusion.
+  (rmillner@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- updated eap6 standalone.xml (bdecoste@gmail.com)
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.5-1
+- bug 831130 (bdecoste@gmail.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
+- 
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- updated jms deployment (bdecoste@gmail.com)
+- increased deployment timeout to 5mins (bdecoste@gmail.com)
+
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- Disable restart of JBoss app on namespace alter (dmace@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
 
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.8-1
 - Bug 825354 (dmcphers@redhat.com)

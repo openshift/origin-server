@@ -21,7 +21,6 @@
         <extension module="org.jboss.as.logging"/>
         <extension module="org.jboss.as.mail"/>
         <extension module="org.jboss.as.messaging"/>
-        <extension module="org.jboss.as.modcluster"/>
         <extension module="org.jboss.as.naming"/>
         <extension module="org.jboss.as.osgi"/>
         <extension module="org.jboss.as.pojo"/>
@@ -98,7 +97,7 @@
                     </security>
                 </datasource>
                 <datasource jndi-name="java:jboss/datasources/MysqlDS" enabled="${mysql.enabled}" use-java-context="true" pool-name="MysqlDS">
-                    <connection-url>jdbc:mysql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_GEAR_NAME}</connection-url>
+                    <connection-url>jdbc:mysql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
                     <driver>mysql</driver>
                     <security>
                       <user-name>${env.OPENSHIFT_DB_USERNAME}</user-name>
@@ -106,7 +105,7 @@
                     </security>
                 </datasource>
                 <datasource jndi-name="java:jboss/datasources/PostgreSQLDS" enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS" use-ccm="true">
-                    <connection-url>jdbc:postgresql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_GEAR_NAME}</connection-url>
+                    <connection-url>jdbc:postgresql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
                     <driver>postgresql</driver>
                     <security>
                       <user-name>${env.OPENSHIFT_DB_USERNAME}</user-name>
@@ -127,7 +126,7 @@
             </datasources>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:deployment-scanner:1.1">
-            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="120"/>
+            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" deployment-timeout="300"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:ee:1.0"/>
         <subsystem xmlns="urn:jboss:domain:ejb3:1.2">
@@ -321,7 +320,7 @@
                     <in-vm-acceptor name="in-vm" server-id="0"/>
                 </acceptors>
 
-                <broadcast-groups>
+                <!--broadcast-groups>
                     <broadcast-group name="bg-group1">
                         <group-address>231.7.7.7</group-address>
                         <group-port>9876</group-port>
@@ -346,7 +345,7 @@
                         <connector-ref>netty</connector-ref>
                         <discovery-group-ref discovery-group-name="dg-group1"/>
                     </cluster-connection>
-                </cluster-connections>
+                </cluster-connections-->
 
                 <!--security-settings>
                     <security-setting match="#">

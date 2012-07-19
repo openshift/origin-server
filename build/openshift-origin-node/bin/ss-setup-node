@@ -1,0 +1,103 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#    http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'parseconfig'
+require 'yaml'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+ss-setup-node: Configure node hostname and broker IP
+  This command must be run as root.
+
+== Usage
+
+ss-setup-node   --with-broker-ip 127.0.0.1 \\
+                --with-node-hostname node1 \\
+                --with-domain example.com
+
+== List of arguments
+  -b|--with-broker-ip       broker_ip   IP address of the broker (required)
+  -n|--with-node-hostname   host        Hostname for this node (required)
+  -d|--domain               domain      Domain name for this node (optional, default: example.com)
+  -h|--help                             Print this message
+
+USAGE
+end
+
+require 'stickshift-node'
+opts = GetoptLong.new(
+    ["--with-broker-ip",      "-b", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-node-hostname",  "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+ip = args["--with-broker-ip"]
+node_hostname = args["--with-node-hostname"]
+node_domain = args["--domain"] || "example.com"
+
+if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
+  usage
+  exit -1
+end
+
+system "/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml"     
+facts = YAML.load_file("/etc/mcollective/facts.yaml")
+system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{facts["ipaddress"]}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
+        
+File.open("/etc/resolv.conf", "w") do |f|
+  f.write("search #{node_domain}\nnameserver #{ip}")
+end
+
+File.open("/etc/dhcp/dhclient.conf", "w") do |f|
+  f.write("prepend domain-name-servers #{ip};")
+  f.write("supersede host-name \"#{node_hostname}\";")
+  f.write("supersede domain-name \"#{node_domain}\";")
+end
+
+config_lines = File.open('/etc/stickshift/stickshift-node.conf').readlines
+File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
+  config_lines.each do |line|
+    if line.start_with? "BROKER_HOST"
+      f.write("BROKER_HOST=\"#{ip}\"\n")
+    else
+      f.write(line)
+    end
+  end
+end
+
+system "chkconfig stickshift-proxy on"
+system "hostname #{node_hostname}.#{node_domain}"
+system "/etc/cron.minutely/stickshift-facts"
+system "service crond restart"
+system "service mcollective restart"
+system "service stickshift-proxy restart"
+
+print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"

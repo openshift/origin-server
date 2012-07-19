@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.11.9
+Version: 0.13.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -13,6 +13,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildArch: noarch
 Requires: git
+Requires: mod_ssl
 
 %description
 This contains the common function used while building cartridges.
@@ -27,10 +28,13 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
 cp -rv abstract %{buildroot}%{cartdir}/
 cp -rv abstract-httpd %{buildroot}%{cartdir}/
+cp -rv abstract-jboss %{buildroot}%{cartdir}/
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract
 cp -rv LICENSE %{buildroot}%{cartdir}/abstract-httpd
 cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-httpd
+cp -rv LICENSE %{buildroot}%{cartdir}/abstract-jboss
+cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-jboss
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -41,6 +45,12 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin/
 #%{_libexecdir}/stickshift/cartridges/abstract-httpd/info
+%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
+#%{_libexecdir}/stickshift/cartridges/abstract-jboss/info
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
 %attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
@@ -51,17 +61,67 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_libexecdir}/stickshift/cartridges/abstract/LICENSE
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/COPYRIGHT
 %doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/LICENSE
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/COPYRIGHT
+%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/LICENSE
 
 
 %post
 
 %changelog
-* Tue Jun 05 2012 Adam Miller <admiller@redhat.com> 0.11.9-1
-- Merge pull request #108 from rmillner/master (admiller@redhat.com)
+* Fri Jul 13 2012 Adam Miller <admiller@redhat.com> 0.13.7-1
+- BZ 839924: Was deleting the wrong data directory. (rmillner@redhat.com)
 
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.8-1
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- Support hot_deploy marker during gear sync (ironcladlou@gmail.com)
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.13.5-1
+- Separate prune into a pre step because gc needs additional space to run and
+  prune does not.  This will allow space to be reclaimed before gc runs
+  (dmcphers@redhat.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+- abstract jboss cart (bdecoste@gmail.com)
+
+* Thu Jul 05 2012 William DeCoste <wdecoste@redhat.com> 0.13.3-1
+- Abstract JBoss cartridge
+  
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
+- Merge pull request #124 from
+  matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
+- Replace all env vars in standalone.xml. (matejonnet@gmail.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- Merge pull request #130 from abhgupta/agupta-dev
+  (mmcgrath+openshift@redhat.com)
+- Prevent passing binary on stdin to pre-receive hook (dmace@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Add hot deployment support via hot_deploy marker (dmace@redhat.com)
+- BZ829452: Stop and print an informative message if the remote repository
+  cannot be reached. (rmillner@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- Add port wrap around to manage UID descrepency between dev and the district
+  code in stg/prod. (rmillner@redhat.com)
+
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 -  Fix update-namespace.sh called twice due to typeless gear dir name changes.
   Just do it once -- don't need gear type anymore. (ramr@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bumping spec versions (admiller@redhat.com)
 
 * Thu May 31 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
 - Bugzilla 826819: redeploy_repo_dir assumed . was the git repo and that

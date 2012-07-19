@@ -81,6 +81,7 @@ class Domain < StickShift::UserModel
     dns_service = StickShift::DnsService.instance
     return dns_service.namespace_available?(namespace)
   end
+
   def self.hash_to_obj(hash)
     domain = super(hash)
     domain

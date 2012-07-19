@@ -2,10 +2,11 @@
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %global gemname stickshift-node
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%define appdir %{_localstatedir}/lib/stickshift
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.11.11
+Version: 0.13.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -21,6 +22,7 @@ Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
+Requires:       mercurial
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -45,11 +47,15 @@ This contains the Cloud Development Node packaged as a ruby site library.
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_bindir}/ss
+#mkdir -p %{buildroot}%{_bindir}/ss
 mkdir -p %{buildroot}%{_sysconfdir}/stickshift
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
-mkdir -p %{_bindir}
+mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}%{appdir}
+mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
+mkdir -p %{buildroot}%{appdir}/.httpd.d
+ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -69,6 +75,7 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
 rm -rf %{buildroot}%{geminstdir}/misc
+mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 %clean
 rm -rf %{buildroot}                                
@@ -83,6 +90,9 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/stickshift
 %{_bindir}/*
+%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
+%attr(0755,-,-) %{_var}/lib/stickshift
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -90,6 +100,7 @@ rm -rf %{buildroot}
 
 %post
 echo "/usr/bin/ss-trap-user" >> /etc/shells
+restorecon -r %{_var}/lib/stickshift
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
@@ -98,6 +109,60 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- Updating gem versions (admiller@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
+- Updating gem versions (admiller@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- Updating gem versions (admiller@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Updating gem versions (admiller@redhat.com)
+- Revert "Updating gem versions" (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Updating gem versions (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- Updating gem versions (admiller@redhat.com)
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.12.7-1
+- Updating gem versions (admiller@redhat.com)
+- bug 800188 (dmcphers@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
+- Updating gem versions (admiller@redhat.com)
+- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- pull in mercurial as a dep (mmcgrath@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Updating gem versions (admiller@redhat.com)
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- Updating gem versions (admiller@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- Updating gem versions (admiller@redhat.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- Updating gem versions (admiller@redhat.com)
+- fixes to cucumber tests to run under OpenShift Origin (abhgupta@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- Updating gem versions (admiller@redhat.com)
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.11.11-1
 - Updating gem versions (admiller@redhat.com)
 - Set debugging output to false (jhonce@redhat.com)

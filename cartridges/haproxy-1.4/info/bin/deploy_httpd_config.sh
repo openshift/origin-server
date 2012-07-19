@@ -49,7 +49,7 @@ global
     daemon
 
     # turn on stats unix socket
-    stats socket /tmp/stats
+    stats socket $HAPROXY_DIR/run/stats
 
 #---------------------------------------------------------------------
 # common defaults that all the 'listen' and 'backend' sections will

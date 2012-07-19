@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.10.3
+Version: 0.12.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -18,6 +18,8 @@ Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(mongo)
 Requires:       rubygem(rcov)
+Requires:       selinux-policy-targeted
+Requires:       policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -44,6 +46,12 @@ This contains the Cloud Development Common packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
+
+#selinux policy
+cp doc/selinux/stickshift.te %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/stickshift.fc %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/stickshift.if %{buildroot}/usr/share/selinux/packages/%{name}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -64,12 +72,46 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
+/usr/share/selinux/packages/%{name}/
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
 %{ruby_sitelib}/%{gemname}.rb
 
+%post
+pushd /usr/share/selinux/packages/%{name}
+rm -f stickshift.pp
+make -f /usr/share/selinux/devel/Makefile
+popd
+
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- Misc selinux fixes for RHEL6.3 (bleanhar@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- BugFixes: 824973, 805983, 796458 (rpenta@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Fri May 25 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
 - code for min_gear setting (rchopra@redhat.com)
 

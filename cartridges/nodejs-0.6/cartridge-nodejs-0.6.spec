@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.8.8
+Version: 0.10.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,14 +111,31 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.8.8-1
-- Merge pull request #110 from rmillner/master (admiller@redhat.com)
+* Fri Jul 06 2012 Adam Miller <admiller@redhat.com> 0.10.3-1
+- Fix build failures -- seems like something in npm link output causes broker
+  to fail parsing the response. (ramr@redhat.com)
 
-* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.8.7-1
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- Fix for bugz 837058 - EACCESS on ~/.node-gyp directory. (ramr@redhat.com)
+- Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
+- Fixes for saving node_modules across deployments. (ramr@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.9.2-1
+- The single quotes cause CART_INFO_DIR to be embedded rather than its
+  expansion. (rmillner@redhat.com)
 - Fix issue with node_modules resolution with GEAR_DIR movement. Node.js
   searches up the directory chain for node_modules, since we are now under app-
   root/runtime/repo, this causes issues w/ installed user modules.
   (ramr@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.9.1-1
+- bumping spec versions (admiller@redhat.com)
 
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
 - Bug 825354 (dmcphers@redhat.com)

@@ -47,6 +47,7 @@ ss-app-create   --with-app-uuid e335712492e011e1bae700262df50034 \\
 USAGE
 end
 
+require 'rubygems'
 require 'stickshift-node'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],

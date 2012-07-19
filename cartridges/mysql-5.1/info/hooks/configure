@@ -214,5 +214,10 @@ fi
 
 client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 
+cart_props "connection_url=mysql://$mysql_ip:$mysql_port/"
+cart_props "username=admin"
+cart_props "password=$password"
+cart_props "database_name=${dbname}"
+
 set_app_info "Connection URL: mysql://$mysql_ip:$mysql_port/"
 enable_cgroups

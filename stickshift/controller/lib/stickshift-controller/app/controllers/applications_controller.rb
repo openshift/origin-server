@@ -105,9 +105,9 @@ class ApplicationsController < BaseController
     end
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached application limit of #{@cloud_user.max_gears}")
-      @reply = RestReply.new(:forbidden)
-      message = Message.new(:error, "#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Reached gear limit of #{@cloud_user.max_gears}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       @reply.messages.push(message)
       respond_with @reply, :status => @reply.status
       return
@@ -122,6 +122,7 @@ class ApplicationsController < BaseController
         message = Message.new(:error, "Invalid template.", 125, "template") 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
+        return
       end
       application = Application.new(@cloud_user, app_name, nil, node_profile, nil, template, scale, domain)
     else
@@ -146,27 +147,15 @@ class ApplicationsController < BaseController
         application.create
         Rails.logger.debug "Configuring dependencies #{application.name}"
         app_configure_reply = application.configure_dependencies
-        #Rails.logger.debug "Adding node settings #{application.name}"
-        #application.add_node_settings
         Rails.logger.debug "Executing connections for #{application.name}"
         application.execute_connections
         begin
           Rails.logger.debug "Creating dns"
           application.create_dns
         rescue Exception => e
-            log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
-            Rails.logger.error e
-            application.destroy_dns
-            @reply = RestReply.new(:internal_server_error)
-            message = Message.new(:error, "Failed to create dns for application #{application.name} due to:#{e.message}") 
-            @reply.messages.push(message)
-            message = Message.new(:error, "Failed to create application #{application.name} due to DNS failure.") 
-            @reply.messages.push(message)
-            application.deconfigure_dependencies
-            application.destroy
-            application.delete
-            respond_with @reply, :status => @reply.status
-            return
+          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
+          application.destroy_dns
+          raise
         end
       rescue Exception => e
         log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create application #{application.name}: #{e.message}")
@@ -177,20 +166,36 @@ class ApplicationsController < BaseController
           application.delete
         end
     
-        @reply = RestReply.new(:internal_server_error)
-        message = Message.new(:error, "Failed to create application #{application.name} due to:#{e.message}") 
+        if e.kind_of? StickShift::UserException
+          @reply = RestReply.new(:unprocessable_entity)
+        elsif e.kind_of? StickShift::DNSException
+          @reply = RestReply.new(:service_unavailable)
+        else
+          @reply = RestReply.new(:internal_server_error)
+        end
+        
+        error_code = e.respond_to?("code") ? e.code : 1
+        message = Message.new(:error, "Failed to create application #{application.name} due to: #{e.message}", error_code) 
         @reply.messages.push(message)
         respond_with @reply, :status => @reply.status
         return
       end
       # application.stop
       # application.start
-      
+
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", true, "Created application #{application.name}")
+
       app = RestApplication.new(application, get_url)
       @reply = RestReply.new( :created, "application", app)
       message = Message.new(:info, "Application #{application.name} was created.")
       @reply.messages.push(message)
+      
+      current_ip = application.get_public_ip_address
+      unless current_ip.nil? or current_ip.empty?
+        message = Message.new(:info, "#{current_ip}", 0, "current_ip")
+        @reply.messages.push(message)
+      end
+
       if app_configure_reply
         message = Message.new(:info, app_configure_reply.resultIO.string, 0, :result)
         @reply.messages.push(message)
@@ -248,7 +253,7 @@ class ApplicationsController < BaseController
       application.cleanup_and_delete()
     rescue Exception => e
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "DELETE_APPLICATION", false, "Failed to delete application #{id}: #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
+      @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
       message = Message.new(:error, "Failed to delete application #{id} due to:#{e.message}", error_code) 
       @reply.messages.push(message)

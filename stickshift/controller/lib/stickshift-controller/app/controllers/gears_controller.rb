@@ -49,15 +49,15 @@ class GearsController < BaseController
                        'proxy_port' => proxy_port,
                        'internal_port' => internal_port
                       }
+          
+          if comp_inst.cart_properties and comp_inst.cart_properties.length > 0
+            comp_info = comp_inst.cart_properties.merge comp_info
+          end
+
           comp_list.push comp_info
         end
 
-        app_name = app.name
-        app_name = gear.uuid[0..9] if app.scalable and not has_proxy_cart
-
-        git_url = "ssh://#{gear.uuid}@#{app_name}-#{app.domain.namespace}." + Rails.application.config.ss[:domain_suffix] + "/~/git/#{app_name}.git/"
-
-        gear_info = RestGear.new(gear.uuid, comp_list, git_url)
+        gear_info = RestGear.new(gear.uuid, comp_list)
         app_gears_info.push gear_info
       end
 

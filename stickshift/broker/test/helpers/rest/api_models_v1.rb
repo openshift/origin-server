@@ -7,6 +7,7 @@ class Param_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
+    valid_options = [valid_options] unless valid_options.kind_of?(Array)
     self.valid_options = valid_options || Array.new
   end
 
@@ -18,7 +19,7 @@ class Param_V1 < BaseObj
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options
+    end if self.valid_options.to_s.length > 0
   end
 end
 
@@ -29,7 +30,8 @@ class OptionalParam_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
-    self.valid_options = valid_options
+    valid_options = [valid_options] unless valid_options.kind_of?(Array)
+    self.valid_options = valid_options || Array.new
     self.default_value = default_value
   end
 
@@ -42,7 +44,7 @@ class OptionalParam_V1 < BaseObj
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options
+    end if self.valid_options.to_s.length > 0
   end
 end
 
@@ -142,18 +144,19 @@ class BaseApi_V1 < BaseObj_V1
            Param_V1.new("id", "string")
           ]),
          "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges"),
-         "LIST_TEMPLATES" => Link_V1.new("GET", "application_template"),
+         "LIST_TEMPLATES" => Link_V1.new("GET", "application_templates"),
          "LIST_ESTIMATES" => Link_V1.new("GET", "estimates")
     }
   end
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :consumed_gears, :links                                                                         
+  attr_accessor :login, :consumed_gears, :max_gears, :links                                                                         
                                                                                                        
   def initialize
     self.login = nil
     self.consumed_gears = 0
+    self.max_gears = 3
     self.links = {                                                                                         
       "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
       "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
@@ -171,11 +174,12 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links
+  attr_accessor :type, :name, :links, :properties                                                                                                                                                                                                                                 
   
   def initialize(type=nil, name=nil)
     self.name = name
     self.type = type
+    self.properties = {}
     if type == "embedded"
       self.links = {
         "GET" => Link_V1.new("GET", "/cartridges/#{name}"),
@@ -272,7 +276,7 @@ class RestKey_V1 < BaseObj_V1
 end
 
 class RestApplication_V1 < BaseObj_V1
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
 
   def initialize(name=nil, framework=nil, domain_id=nil, scalable=nil)
     self.name = name
@@ -286,6 +290,7 @@ class RestApplication_V1 < BaseObj_V1
     self.gear_profile = nil
     self.git_url = nil
     self.app_url = nil
+    self.ssh_url = nil
     self.scalable = scalable
     self.scale_min = 1
     self.scale_max = -1
@@ -328,12 +333,11 @@ class RestApplication_V1 < BaseObj_V1
 end
 
 class RestGear_V1 < BaseObj_V1
-  attr_accessor :uuid, :components, :git_url
+  attr_accessor :uuid, :components
 
   def initialize(components=nil)
     self.uuid = nil
     self.components = components
-    self.git_url = nil
   end
 end
 

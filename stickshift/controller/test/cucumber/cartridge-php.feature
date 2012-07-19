@@ -12,7 +12,6 @@ Feature: PHP Application
     And a php application source tree will exist
     And a php application httpd will be running 
     And php application log files will exist
-    And the file permissions are correct
     When I deconfigure the php application
     Then a php application http proxy file will not exist
     And a php application git repo will not exist
@@ -49,3 +48,13 @@ Feature: PHP Application
     When I deconfigure the php application
     Then a php application http proxy file will not exist
 
+  Scenario: Push a code change to a new PHP application
+    Given an accepted node
+    And a new guest account
+    And the guest account has no application installed
+    When I configure a php application
+    And the application is prepared for git pushes
+    Then the php application will be running
+    When the php-5.3 application code is changed
+    Then the php application will be running
+    And the php-5.3 application should change pids

@@ -63,7 +63,7 @@ module StickShift
 
     def find_by_gear_uuid(gear_uuid)
       Rails.logger.debug "MongoDataStore.find_by_gear_uuid(#{gear_uuid})\n\n"
-      hash = find_one({ "apps.group_instances.gears.uuid" => gear_uuid })
+      hash = find_one( user_collection, { "apps.group_instances.gears.uuid" => gear_uuid } )
       return nil unless hash
       user_hash_to_ret(hash)
     end
@@ -80,6 +80,19 @@ module StickShift
       when "ApplicationTemplate"
         find_application_template(uuid)
       end
+    end
+    
+    def find_subaccounts_by_parent_login(parent_id)
+      Rails.logger.debug "MongoDataStore.find_subaccounts_by_parent_login(#{parent_id})\n\n"
+      cur = MongoDataStore.rescue_con_failure { user_collection.find({ "parent_user_login" => parent_id }) }
+      return [] unless cur
+      hash_list = []
+      cur.each do |hash|
+        hash.delete("_id")
+        hash_list << hash
+      end
+
+      hash_list
     end
     
     def save(obj_type, user_id, id, obj_attrs)
@@ -128,8 +141,8 @@ module StickShift
     
     def delete_gear_usage_record_by_gear_uuid(user_id, gear_uuid)
       Rails.logger.debug "MongoDataStore.delete_gear_usage_record_by_gear_uuid(#{user_id}, #{gear_uuid})\n\n"
-      update({ "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}})
+      update( user_collection, { "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}} )
     end
 
     def db
@@ -143,35 +156,35 @@ module StickShift
       user_db
     end
 
-    def collection
+    def user_collection
       db.collection(@collections[:user])
     end
 
-    def find_one(*args)
+    def find_one(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.find_one(*args)
       end
     end
 
-    def find_and_modify(*args)
+    def find_and_modify(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.find_and_modify(*args)
       end
     end
 
-    def insert(*args)
+    def insert(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.insert(*args)
       end
     end
 
-    def update(*args)
+    def update(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.update(*args)
       end
     end
 
-    def remove(*args)
+    def remove(collection, *args)
       MongoDataStore.rescue_con_failure do
         collection.remove(*args)
       end
@@ -187,6 +200,110 @@ module StickShift
         raise ex if retries > max_retries
         sleep(retry_wait_tm)
         retry
+      end
+    end
+
+    def find_district(uuid)
+      Rails.logger.debug "find_district(#{uuid})\n\n"
+      hash = find_one_district( "_id" => uuid )
+      hash_to_district_ret(hash)
+    end
+    
+    def find_district_by_name(name)
+      Rails.logger.debug "find_district_by_name(#{name})\n\n"
+      hash = find_one_district( "name" => name )
+      hash_to_district_ret(hash)
+    end
+    
+    def find_all_districts()
+      Rails.logger.debug "find_all_districts()\n\n"
+      MongoDataStore.rescue_con_failure do
+        mcursor = district_collection.find()
+        cursor_to_district_hash(mcursor)
+      end
+    end
+    
+    def find_district_with_node(server_identity)
+      Rails.logger.debug "find_district_with_node(#{server_identity})\n\n"
+      hash = find_one_district({"server_identities.name" => server_identity })
+      hash_to_district_ret(hash)
+    end
+    
+    def save_district(uuid, district_attrs)
+      Rails.logger.debug "save_district(#{uuid}, #{district_attrs.pretty_inspect})\n\n"
+      district_attrs["_id"] = uuid
+      orig_server_identities = district_attrs["server_identities"] 
+      district_attrs_to_internal(district_attrs)
+      update_district({ "_id" => uuid }, district_attrs, { :upsert => true })
+      district_attrs.delete("_id")
+      district_attrs["server_identities"] = orig_server_identities
+    end
+    
+    def delete_district(uuid)
+      Rails.logger.debug "delete_district(#{uuid})\n\n"
+      remove_district({ "_id" => uuid, "active_server_identities_size" => 0 })
+    end
+    
+    def reserve_district_uid(uuid)
+      Rails.logger.debug "reserve_district_uid(#{uuid})\n\n"
+      hash = find_and_modify_district({
+        :query => {"_id" => uuid, "available_capacity" => {"$gt" => 0}},
+        :update => {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }},
+        :new => false })
+      hash["available_uids"][0]
+    end
+
+    def unreserve_district_uid(uuid, uid)
+      Rails.logger.debug "unreserve_district_uid(#{uuid})\n\n"
+      update_district({"_id" => uuid, "available_uids" => {"$ne" => uid}}, {"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
+    end
+
+    def add_district_node(uuid, server_identity)
+      Rails.logger.debug "add_district_node(#{uuid},#{server_identity})\n\n"
+      update_district({"_id" => uuid, "server_identities.name" => { "$ne" => server_identity }}, {"$push" => { "server_identities" => {"name" => server_identity, "active" => true}}, "$inc" => { "active_server_identities_size" => 1 }})
+    end
+
+    def remove_district_node(uuid, server_identity)
+      Rails.logger.debug "remove_district_node(#{uuid},#{server_identity})\n\n"
+      hash = find_and_modify_district({
+        :query => { "_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => false}}}, 
+        :update => { "$pull" => { "server_identities" => {"name" => server_identity }}} })
+      return hash != nil
+    end
+
+    def deactivate_district_node(uuid, server_identity)
+      Rails.logger.debug "deactivate_district_node(#{uuid},#{server_identity})\n\n"
+      update_district({"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => true}}}, {"$set" => { "server_identities.$.active" => false}, "$inc" => { "active_server_identities_size" => -1 }})
+    end
+    
+    def activate_district_node(uuid, server_identity)
+      Rails.logger.debug "activate_district_node(#{uuid},#{server_identity})\n\n"
+      update_district({"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => false}}}, {"$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 }})
+    end
+    
+    def add_district_uids(uuid, uids)
+      Rails.logger.debug "add_district_capacity(#{uuid},#{uids})\n\n"
+      update_district({"_id" => uuid}, {"$pushAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => uids.length, "max_uid" => uids.length, "max_capacity" => uids.length }})
+    end
+
+    def remove_district_uids(uuid, uids)
+      Rails.logger.debug "remove_district_capacity(#{uuid},#{uids})\n\n"
+      update_district({"_id" => uuid, "available_uids" => uids[0]}, {"$pullAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => -uids.length, "max_uid" => -uids.length, "max_capacity" => -uids.length }})
+    end
+
+    def inc_district_externally_reserved_uids_size(uuid)
+      Rails.logger.debug "inc_district_externally_reserved_uids_size(#{uuid})\n\n"
+      update_district({"_id" => uuid}, {"$inc" => { "externally_reserved_uids_size" => 1 }})
+    end
+    
+    def find_available_district(node_profile=nil)
+      node_profile = node_profile ? node_profile : "small"
+      MongoDataStore.rescue_con_failure do
+        hash = district_collection.find(
+          { "available_capacity" => { "$gt" => 0 }, 
+            "active_server_identities_size" => { "$gt" => 0 },
+            "node_profile" => node_profile}).sort(["available_capacity", "descending"]).limit(1).next
+        hash_to_district_ret(hash)
       end
     end
 
@@ -238,28 +355,28 @@ module StickShift
     end
 
     def get_user(user_id)
-      hash = find_one( "_id" => user_id )
+      hash = find_one( user_collection, "_id" => user_id )
       return nil unless hash && !hash.empty?
 
       user_hash_to_ret(hash)
     end
     
     def get_user_by_uuid(uuid)
-      hash = find_one( "uuid" => uuid )
+      hash = find_one( user_collection, "uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
     end
     
     def get_user_by_app_uuid(uuid)
-      hash = find_one( "apps.uuid" => uuid )
+      hash = find_one( user_collection, "apps.uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
     end
     
     def get_user_by_domain_uuid(uuid)
-      hash = find_one( "domains.uuid" => uuid )
+      hash = find_one( user_collection, "domains.uuid" => uuid )
       return nil unless hash && !hash.empty?
       
       user_hash_to_ret(hash)
@@ -267,7 +384,7 @@ module StickShift
     
     def get_users
       MongoDataStore.rescue_con_failure do
-        mcursor = collection.find()
+        mcursor = user_collection.find()
         ret = []
         mcursor.each do |hash|
           ret.push(user_hash_to_ret(hash))
@@ -275,7 +392,7 @@ module StickShift
         ret
       end
     end
-    
+
     def user_hash_to_ret(hash)
       hash.delete("_id")
       if hash["apps"] 
@@ -288,12 +405,12 @@ module StickShift
     end
 
     def get_app(user_id, id)
-      hash = find_one({ "_id" => user_id, "apps.name" => id }, :fields => ["apps"])
+      hash = find_one( user_collection, { "_id" => user_id, "apps.name" => /^#{id}$/i }, :fields => ["apps"])
       return nil unless hash && !hash.empty?
 
       app_hash = nil
       hash["apps"].each do |app|
-        if app["name"] == id
+        if app["name"].downcase == id.downcase
           app_hash = app
           break
         end
@@ -302,14 +419,14 @@ module StickShift
     end
   
     def get_apps(user_id)
-      hash = find_one({ "_id" => user_id }, :fields => ["apps"] )
+      hash = find_one( user_collection, { "_id" => user_id }, :fields => ["apps"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["apps"] && !hash["apps"].empty?
       apps_hash_to_apps_ret(hash["apps"])
     end
     
     def get_domain(user_id, id)
-      hash = find_one({ "_id" => user_id, "domains.uuid" => id }, :fields => ["domains"])
+      hash = find_one( user_collection, { "_id" => user_id, "domains.uuid" => id }, :fields => ["domains"] )
       return nil unless hash && !hash.empty?
 
       domain_hash = nil
@@ -323,7 +440,7 @@ module StickShift
     end
   
     def get_domains(user_id)
-      hash = find_one({ "_id" => user_id }, :fields => ["domains"] )
+      hash = find_one( user_collection, { "_id" => user_id }, :fields => ["domains"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["domains"] && !hash["domains"].empty?
       domains_hash_to_domains_ret(hash["domains"])
@@ -336,14 +453,14 @@ module StickShift
       changed_user_attrs.delete("consumed_gears")
       changed_user_attrs.delete("gear_usage_records")
 
-      update({ "_id" => user_id }, { "$set" => changed_user_attrs })
+      update( user_collection, { "_id" => user_id }, { "$set" => changed_user_attrs } )
     end
 
     def add_user(user_id, user_attrs)
       user_attrs["_id"] = user_id
       user_attrs.delete("apps")
       user_attrs.delete("domains")
-      insert(user_attrs)
+      insert(user_collection, user_attrs)
       user_attrs.delete("_id")
     end
 
@@ -354,27 +471,61 @@ module StickShift
       app_attrs.delete("ngears")
       gear_usage_records = app_attrs["gear_usage_records"]
       app_attrs.delete("gear_usage_records")
+      destroyed_gears = app_attrs["destroyed_gears"]
+      app_attrs.delete("destroyed_gears")
 
       updates = { "$set" => { "apps.$" => app_attrs } }
       if gear_usage_records
         updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
       end
       if ngears != 0
-        updates["$inc"] = { "consumed_gears" => ngears } 
+        updates["$inc"] = { "consumed_gears" => ngears }
       end
 
-      if ngears > 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
-               "$where" => "(this.consumed_gears + #{ngears}) <= this.max_gears"},
+      if ngears != 0
+        condition = ""
+# TODO: Needs fix, condition should be applicable ONLY for scale-up/scale-down events
+#        if app_attrs["scalable"]
+        if false
+          condition = <<COND
+if ((this.consumed_gears + #{ngears}) > this.max_gears) {
+  return false;
+}
+var i,j;
+for(i=0; i<this.apps.length; i++) {
+  if (this.apps[i].name !== '#{id}') {
+    continue;
+  }
+  for (j=0; j<this.apps[i].group_instances.length; j++) {
+    if ((this.apps[i].group_instances[j].gears.length > 0) &&
+        (this.apps[i].group_instances[j].gears[0].group_instance_name === '@@app/group-web')) {
+      if (((this.apps[i].group_instances[j].max == -1) ||
+           (this.apps[i].group_instances[j].gears.length + #{ngears} <= this.apps[i].group_instances[j].max)) &&
+          (this.apps[i].group_instances[j].gears.length + #{ngears} >= this.apps[i].group_instances[j].min)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+return true;
+COND
+        else
+          condition = "(this.consumed_gears + #{ngears}) <= this.max_gears"
+        end
+        query = { "_id" => user_id, "apps.name" => id, "$where" => condition }
+        
+        #if destroyed_gears && !destroyed_gears.empty?
+        #  query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
+        #end
+
+        hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
-        raise StickShift::UserException.new("Application limit has reached for '#{user_id}'", 104) if hash == nil
-      elsif ngears < 0
-        hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => id,
-               "$where" => "this.consumed_gears + #{ngears} >= 0"},
-               :update => updates })
-        raise StickShift::UserException.new("Application gears already at zero for '#{user_id}'", 135) if hash == nil
+        raise StickShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
       else
-        update({ "_id" => user_id, "apps.name" => id}, updates )
+        update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
       end
     end
 
@@ -385,13 +536,14 @@ module StickShift
       app_attrs.delete("ngears")
       gear_usage_records = app_attrs["gear_usage_records"]
       app_attrs.delete("gear_usage_records")
+      app_attrs.delete("destroyed_gears")
       
       updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
       if gear_usage_records
         updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
       end
 
-      hash = find_and_modify({ :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
              "$where" => "((this.consumed_gears + #{ngears}) <= this.max_gears) && (this.domains.length > 0)"},
              :update => updates })
       raise StickShift::UserException.new("Failed: Either application limit has already reached or " +
@@ -406,34 +558,34 @@ module StickShift
 #        domain_updates["domains.$.#{k}"] = v
 #        domain_updates["apps.$.domain.#{k}"] = v
 #      end
-#      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
-      update({ "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
+#      update( user_collection, { "_id" => user_id, "domains.uuid" => id}, { "$set" => domain_updates } )
+      update( user_collection, { "_id" => user_id, "domains.uuid" => id}, { "$set" => { "domains.$" => domain_attrs }} )
     end
 
     def add_domain(user_id, id, domain_attrs)
       domain_attrs_to_internal(domain_attrs)
-      hash = find_and_modify({ :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
              :update => { "$push" => { "domains" => domain_attrs } } })
       #raise StickShift::UserException.new("#{user_id} has already reached the domain limit", 104) if hash == nil
     end
 
     def delete_user(user_id)
-      remove({ "_id" => user_id, "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, 
-             {"domains" => {"$exists" => false}}], "$where" => "this.consumed_gears == 0"})
+      remove( user_collection, { "_id" => user_id, "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, 
+             {"domains" => {"$exists" => false}}], "$where" => "this.consumed_gears == 0"} )
     end
 
     def delete_app(user_id, id)
-      update({ "_id" => user_id, "apps.name" => id},
+      update( user_collection, { "_id" => user_id, "apps.name" => id},
              { "$pull" => { "apps" => {"name" => id }}})
     end
     
     def put_gear_usage_record(user_id, id, gear_usage_attrs)
-      update({ "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
+      update( user_collection, { "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
     end
     
     def delete_gear_usage_record(user_id, id)
-      update({ "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"uuid" => id }}})
+      update( user_collection, { "_id" => user_id },
+             { "$pull" => { "gear_usage_records" => {"uuid" => id }}} )
     end
 
     def app_attrs_to_internal(app_attrs)
@@ -451,7 +603,7 @@ module StickShift
     end
     
     def delete_domain(user_id, id)
-      hash = find_and_modify({ :query => { "_id" => user_id, "domains.uuid" => id,
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => id,
                                "$or" => [{"apps" => {"$exists" => true, "$size" => 0}}, 
                                          {"apps" => {"$exists" => false}}] },
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})
@@ -471,6 +623,85 @@ module StickShift
       ret = []
       ret = domains_hash.map { |domain_hash| domain_hash_to_ret(domain_hash) } if domains_hash
       ret
+    end
+
+    #district
+          
+    def district_collection
+      db.collection(@collections[:district])
+    end
+    
+    def find_one_district(*args)
+      MongoDataStore.rescue_con_failure do
+        district_collection.find_one(*args)
+      end
+    end
+
+    def find_and_modify_district(*args)
+      MongoDataStore.rescue_con_failure do
+        district_collection.find_and_modify(*args)
+      end
+    end
+
+    def insert_district(*args)
+      MongoDataStore.rescue_con_failure do
+        district_collection.insert(*args)
+      end
+    end
+
+    def update_district(*args)
+      MongoDataStore.rescue_con_failure do
+        district_collection.update(*args)
+      end
+    end
+
+    def remove_district(*args)
+      MongoDataStore.rescue_con_failure do
+        district_collection.remove(*args)
+      end
+    end
+
+    def cursor_to_district_hash(cursor)
+      return [] unless cursor
+  
+      districts = []
+      cursor.each do |hash|
+        districts.push(hash_to_district_ret(hash))
+      end
+      districts
+    end
+
+    def hash_to_district_ret(hash)
+      return nil unless hash
+      hash.delete("_id")
+      if hash["server_identities"]
+        server_identities = {}
+        hash["server_identities"].each do |server_identity|
+          name = server_identity["name"]
+          server_identity.delete("name")
+          server_identities[name] = server_identity
+        end
+        hash["server_identities"] = server_identities
+      else
+        hash["server_identities"] = {}
+      end
+      hash
+    end
+    
+    def district_attrs_to_internal(district_attrs)
+      if district_attrs
+        if district_attrs["server_identities"]
+          server_identities = []
+          district_attrs["server_identities"].each do |name, server_identity|
+            server_identity["name"] = name
+            server_identities.push(server_identity)
+          end
+          district_attrs["server_identities"] = server_identities
+        else
+          district_attrs["server_identities"] = []
+        end
+      end
+      district_attrs
     end
   end
 end

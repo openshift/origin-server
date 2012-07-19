@@ -135,5 +135,9 @@ client_result "   Root Password: $OPENSHIFT_DB_PASSWORD"
 client_result ""
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
+cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
+cart_props "username=$OPENSHIFT_DB_USERNAME"
+cart_props "password=$OPENSHIFT_DB_PASSWORD"
+
 set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 enable_cgroups

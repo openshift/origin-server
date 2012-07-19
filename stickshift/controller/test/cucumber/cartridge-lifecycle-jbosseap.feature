@@ -1,4 +1,7 @@
+@verify
+@verify2
 @broker
+@not-origin
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

@@ -253,8 +253,10 @@ Then /^a jbossas deployments directory will( not)? exist$/ do |negate|
   acct_name = @account['accountname']
   app_name = @app['name']
 
-  app_root = "#{$home_root}/#{acct_name}/app-root"
-  deploy_root = Dir.new "#{app_root}/repo/deployments"
+  cart_instance_dir = "#{$home_root}/#{acct_name}/jbossas-7"
+  jboss_root = cart_instance_dir + "/" + $jbossas_version
+
+  deploy_root = Dir.new "#{jboss_root}/standalone/deployments"
   
   deploy_contents = ['ROOT.war']
 
@@ -272,20 +274,12 @@ Then /^the jbossas maven repository will( not)? exist$/ do |negate|
   app_name = @app['name']
 
   m2_root = "#{$home_root}/#{acct_name}/.m2"
-  m2_repo_path = "#{m2_root}/repository"
-  m2_repo_list = ["classworlds", "com", "commons-cli", "junit", "org", "xpp3"]
-
-  m2_repo_list.each do |file_name|
-    file_path = "#{m2_repo_path}/#{file_name}"
-    file_exists = File.exists? file_path
-    unless negate
-      file_exists.should be_true "file #{file_path} should exist and does not"
-      file_dir = File.directory? file_path
-      file_dir.should be_true "file #{file_path} should be a directory and is not"
-    else
-      file_exists.should be_false "file #{file_path} should not exist and does"
-    end
-  end
+  m2_root_exists = File.exists? m2_root
+  unless negate
+    m2_root_exists.should be_true "Dir #{m2_root} should exist and does not"
+  else
+    m2_root_exists.should be_false "Dir #{m2_root} should not exist and does"
+  end  
 end
 
 Then /^the openshift environment variable files will( not)? exist$/ do |negate|

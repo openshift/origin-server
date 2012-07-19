@@ -18,9 +18,17 @@ class EmbCartController < BaseController
       return
     end
     cartridges = Array.new
+    if $requested_api_version >= 1.1
+      cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url))
+    end
+
     unless application.embedded.nil?
-      application.embedded.each do |key, value|
-        cartridge = RestCartridge.new("embedded", key, application, get_url)
+      application.embedded.each_key do |key|
+        if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new("embedded", key, application, get_url)
+        else
+          cartridge = RestCartridge10.new("embedded", key, application, get_url)
+        end
         cartridges.push(cartridge)
       end
     end
@@ -49,7 +57,12 @@ class EmbCartController < BaseController
       application.embedded.each do |key, value|
         if key == id
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
-          cartridge = RestCartridge.new("embedded", key, application, get_url)
+
+          if $requested_api_version >= 1.1
+            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+          else
+            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+          end
           @reply = RestReply.new(:ok, "cartridge", cartridge)
           respond_with @reply, :status => @reply.status
           return
@@ -114,6 +127,15 @@ class EmbCartController < BaseController
       respond_with @reply, :status => @reply.status
       return
     end
+    
+    if application.scalable && colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Reached gear limit of #{@cloud_user.max_gears}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+      @reply.messages.push(message)
+      respond_with @reply, :status => @reply.status
+      return
+    end
 
     cart_create_reply = ""
     begin
@@ -121,6 +143,13 @@ class EmbCartController < BaseController
         application.add_group_override(name, colocate_with)
       end
       cart_create_reply = application.add_dependency(name)
+    rescue StickShift::UserException => e
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{e.message}")
+      @reply = RestReply.new(:unprocessable_entity)
+      message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
+      @reply.messages.push(message)
+      respond_with @reply, :status => @reply.status
+      return
     rescue Exception => e
       Rails.logger.error e
       @reply = RestReply.new(:internal_server_error)
@@ -130,8 +159,6 @@ class EmbCartController < BaseController
         else
           message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
         end
-      elsif e.class==StickShift::UserException
-        message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
       else
         message = Message.new(:error, "Failed to add #{name} to application #{id} due to #{e.message}.")
       end
@@ -147,7 +174,11 @@ class EmbCartController < BaseController
       application.embedded.each do |key, value|
         if key == name
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", true, "Embedded cartridge #{name} in application #{id}")
-          cartridge = RestCartridge.new("embedded", key, application, get_url)
+          if $requested_api_version >= 1.1
+            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+          else
+            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+          end
           @reply = RestReply.new(:created, "cartridge", cartridge)
           message = Message.new(:info, "Added #{name} to application #{id}")
           @reply.messages.push(message)
@@ -222,4 +253,3 @@ class EmbCartController < BaseController
       end
   end
 end
-

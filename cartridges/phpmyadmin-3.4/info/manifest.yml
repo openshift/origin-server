@@ -1,12 +1,12 @@
 Name: phpmyadmin-3.4
 Display-Name: phpmyadmin v3.4 (noarch)
-Description: Cartridge packaging phpmyadmin
+Description: Administer MySQL database over the web
 Version: 1.1.0
 License: ASL 2.0
 Vendor:
 Provides:
   - "phpmyadmin"
-Requires:
+Requires: 
 Conflicts:
 Native-Requires:
 Architecture: noarch
@@ -14,7 +14,7 @@ Reservations:
   - MEM >= 100MB
 Components:
   default:
-    Service-Dependencies: [rhc-cartridge-mysql-5.1]
+    Service-Dependencies: ["mysql-5.1"]
     Publishes:
       get-serve-info:
         Type: "NET_TCP:db-config:url"

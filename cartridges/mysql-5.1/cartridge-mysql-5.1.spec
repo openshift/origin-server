@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.27.11
+Version: 0.29.4
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,14 +80,53 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.27.11-1
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.29.4-1
+- - Don't show postgresql-8.4 as valid options to embed cartridge when mysql is
+  already installed and viceversa. (rpenta@redhat.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.29.3-1
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Thu Jun 21 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
+- Merge pull request #155 from rajatchopra/master (rmillner@redhat.com)
+- fix for bug#833340: support same district move (rchopra@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.28.7-1
+- httpd config files should get recreated on move/post-move
+  (rchopra@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.28.6-1
+- Merge pull request #141 from rmillner/dev/rmillner/bug/833012
+  (mrunalp@gmail.com)
+- Fix for bugz 833029 and applying the same to mongo (rchopra@redhat.com)
+- fix for bug#833039. Fix for scalable app's mysql move across districts.
+  (rchopra@redhat.com)
+- BZ 833012: Pull DB_HOST from mysql gear itself. (rmillner@redhat.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.28.5-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+- BZ828703: Scalable apps use the host field differently; just update the
+  password on every admin entry. (rmillner@redhat.com)
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.28.4-1
+- BZ824409 call unobfuscate_app_home on mongo and mysql gear moves
+  (jhonce@redhat.com)
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.28.3-1
+- 
+
+* Fri Jun 08 2012 Adam Miller <admiller@redhat.com> 0.28.2-1
 - Mismatched quotes (rmillner@redhat.com)
+- The single quotes cause CART_INFO_DIR to be embedded rather than its
+  expansion. (rmillner@redhat.com)
 
-* Thu Jun 07 2012 Adam Miller <admiller@redhat.com> 0.27.10-1
-- Merge pull request #110 from rmillner/master (admiller@redhat.com)
-
-* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.27.9-1
-- Merge pull request #100 from jwhonce/master (dmcphers@redhat.com)
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
+- bumping spec versions (admiller@redhat.com)
+- BZ827585 (jhonce@redhat.com)
 
 * Tue May 29 2012 Adam Miller <admiller@redhat.com> 0.27.8-1
 - Fix for bugz 825077 - mysql added to a scalable app is not accessible via

@@ -44,7 +44,11 @@ then
         deploy.sh
 
         # Start the app
-        start_app.sh
+        if hot_deploy_marker_is_present; then
+            echo "App will not be started due to presence of hot_deploy marker"
+        else
+            start_app.sh
+        fi
 
         # Run any steps required after startup
         post_deploy.sh

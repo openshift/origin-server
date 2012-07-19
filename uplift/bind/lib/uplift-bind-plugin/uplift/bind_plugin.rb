@@ -107,6 +107,11 @@ module Uplift
         Rails.logger.debug "DEBUG: BIND: Could not find CNAME for #{fqdn} to delete"
       end
     end
+  
+    def modify_application(app_name, namespace, public_hostname)
+      deregister_application(app_name, namespace)
+      register_application(app_name, namespace, public_hostname)
+    end
 
     def publish
     end

@@ -172,6 +172,28 @@ function create_custom_uservars_var {
     echo "$2" > "$APP_HOME/.env/.uservars/$1"
 }
 
+#example usage: sed -i $(print_sed_exp_replace_env_var) path/to/file.conf
+function print_sed_exp_replace_env_var {
+        path_to_env_folder="${OPENSHIFT_HOMEDIR}.env"
+
+        variable_files=`find ${path_to_env_folder} -type f -print`
+
+        sed_exp=""
+
+        for variable_file in $variable_files
+        do
+                arr_var_file=(`echo $variable_file | tr "/" "\n"`)
+                arr_size=${#arr_var_file[@]}
+                #use file name as variable name
+                variable_name=${arr_var_file[$arr_size - 1]}
+                variable_val=(`echo ${!variable_name//\//\\\/}`)
+
+                sed_exp="${sed_exp} -e s/\${env.${variable_name}}/${variable_val}/g"
+        done
+        
+        printf "%s\n" "$sed_exp"
+}
+
 function create_standard_app_dirs {
     mkdir -p run tmp ci
     [ -e repo ] || ln -s ../app-root/repo repo
@@ -346,6 +368,10 @@ function remove_broker_auth_key {
 
 function cart_data {
     echo "CART_DATA: $@"
+}
+
+function cart_props {
+    echo "CART_PROPERTIES: $@"
 }
 
 function setup_configure {
@@ -643,12 +669,12 @@ function run_as_user {
     if [ "`whoami`" = "$_uuid" ]; then
         eval $1
     else
-      runuser --shell /bin/sh "$_uuid" -c "$1"
+      runuser --shell /bin/sh "$_uuid" -c "runcon system_u:system_r:stickshift_t:s0-s0:c0.c1023 $1"
     fi
 }
 
 function super_run_as_user {
-    /bin/su -s /bin/sh "$uuid" -c "$1"
+    runuser -s /bin/sh "$uuid" -c "runcon system_u:system_r:stickshift_t:s0-s0:c0.c1023 $1"
 }
 
 function daemon_as_user {
@@ -763,6 +789,27 @@ function resolve_application_dependencies {
     super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/pre-receive 2>&1 | tee /dev/null"
     super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/post-receive 2>&1 | tee /dev/null"
     popd
+}
+
+# Checks for the presence of the user-specified hot_deploy marker in the app
+# repo. Returns 0 if the marker is present, otherwise 1.
+function hot_deploy_marker_is_present {
+  if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/hot_deploy" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Checks for the CI_BUILD variable. Returns 0 if the variable is not empty,
+# otherwise 1. This is used to provide scripts with information about the
+# build context (e.g., are we currently executing in a Jenkins build).
+function in_ci_build {
+  if [ -z "$CI_BUILD" ]; then
+    return 1
+  else
+    return 0
+  fi
 }
 
 if [ -f /usr/libexec/stickshift/lib/util_ext ]

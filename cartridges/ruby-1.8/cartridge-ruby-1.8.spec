@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.93.7
+Version: 0.95.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,43 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.95.6-1
+- 
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.95.5-1
+- Fix for bugz 837468 - use UTC time + ruby19 cleanup: write to stderr.
+  (ramr@redhat.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.4-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- Fix for bugz 835876 - use current euid. (ramr@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- BZ830115 fix for ruby thread dumps (jhonce@redhat.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- Security - BZ785050 remove mod_autoindex from all httpd.confs
+  (tkramer@redhat.com)
+
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Security BZ785050 Removed mod_autoindex from both httpd.conf files (tkramer@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.7-1
 - Bug 825354 (dmcphers@redhat.com)
 - Rename ~/app to ~/app-root to avoid application name conflicts and additional

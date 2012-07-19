@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.93.6
+Version: 0.95.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -20,6 +20,7 @@ Requires: php >= 5.3.2
 Requires: php < 5.4.0
 Requires: mod_bw
 Requires: rubygem-builder
+Requires: php-devel
 Requires: php-pdo
 Requires: php-gd
 Requires: php-xml
@@ -32,6 +33,7 @@ Requires: php-imap
 Requires: php-pecl-apc
 Requires: php-mcrypt
 Requires: php-soap
+Requires: php-bcmath
 
 %description
 Provides php support to OpenShift
@@ -112,6 +114,46 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
+- Merge pull request #183 from rajatchopra/master (admiller@redhat.com)
+- Refactor hot deploy support in Jenkins templates (ironcladlou@gmail.com)
+- more cartridges have better metadata (rchopra@redhat.com)
+- Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
+  (mmcgrath+openshift@redhat.com)
+- Merge pull request #176 from rajatchopra/master (rpenta@redhat.com)
+- Adds hot deploy support for jenkins to php cartridge. (mpatel@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- US2443 - Add info about the hot_deploy marker. (ramr@redhat.com)
+- Add max_file_uploads INI setting to php.ini files (vvitek@redhat.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.95.2-1
+- BZ 836348 and BZ 832289; disable expose_php to hide information about it.
+  (rmillner@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.95.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.4-1
+- BZ 833221: Added php-devel as cartridge requirement for php for building
+  extensions. (rmillner@redhat.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.94.3-1
+- Security - BZ785050 - Removed mod_autoindex from the two httpd.conf files
+  (tkramer@redhat.com)
+
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- BZ785050  Remove mod_autoindex from the two httpd.conf files (tkramer@redhat.com)
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.94.2-1
+- BZ827575.  Allow applications to specify foreign channels in deplist.txt.
+  (rmillner@redhat.com)
+- BZ 829640. The php-bcmath library is required for bccomp.
+  (rmillner@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.94.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
 - Bug 825354 (dmcphers@redhat.com)
 - Adding a dependency resolution step (using post-recieve hook) for all

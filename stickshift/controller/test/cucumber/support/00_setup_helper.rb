@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'logger'
+require 'etc'
 
 #
 # Define global variables
@@ -23,13 +24,13 @@ $selinux_type = nil
 
 # User registration flag and script
 $registration_required = true
-$user_register_script = "/usr/bin/ss-register-user"
+$user_register_script_format = "/usr/bin/ss-register-user -l admin -p admin --username %s --userpass %s"
 
 # Alternatie domain suffix for use in alias commands
 $alias_domain = "foobar.com"
 
 # Submodule repo directory for testing submodule addition test case
-$submodule_repo_dir = "~/submodule_test_repo"
+$submodule_repo_dir = "#{Etc.getpwuid.dir}/submodule_test_repo"
 
 #
 # Old RHC Client scripts
@@ -48,11 +49,8 @@ $rhc_domain_script = "/usr/bin/rhc-domain"
 $rhc_sshkey_script = "/usr/bin/rhc-sshkey"
 
 # RSA Key constants
-$libra_pub_key = File.expand_path("~/.ssh/libra_id_rsa.pub")
-$libra_priv_key = File.expand_path("~/.ssh/libra_id_rsa")
-$test_priv_key = File.expand_path("../misc/test_id_rsa", File.expand_path(File.dirname(__FILE__)))
-$test_pub_key = File.expand_path("../misc/test_id_rsa.pub", File.expand_path(File.dirname(__FILE__)))
-$test_ssh_key = File.open($test_pub_key).gets.chomp.split(' ')[1]
+$test_pub_key = File.expand_path("~/.ssh/id_rsa.pub")
+$test_priv_key = File.expand_path("~/.ssh/id_rsa")
 
 module SetupHelper
   def self.setup
@@ -76,10 +74,9 @@ module SetupHelper
         "#{$$} #{datetime}: #{msg}\n"
     end
 
-    # Setup the default keys if necessary
-    FileUtils.cp $test_pub_key, $libra_pub_key if !File.exists?($libra_pub_key)
-    FileUtils.cp $test_priv_key, $libra_priv_key if !File.exists?($libra_priv_key)
-    FileUtils.chmod 0600, $libra_priv_key
+    # If the default ssh key is not present, create one
+    `ssh-keygen -q -f #{$test_priv_key} -P ''` if !File.exists?($test_priv_key)
+    FileUtils.chmod 0600, $test_priv_key
 
     # create a submodule repo for the tests
     if !File.exists?($submodule_repo_dir)

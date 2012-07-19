@@ -1,6 +1,6 @@
 class AppValidator < ActiveModel::Validator
-  APP_NAME_MAX_LENGTH = 32
-  APP_NAME_MIN_LENGTH = 1
+  APP_NAME_MAX_LENGTH = 32 unless defined? APP_NAME_MAX_LENGTH
+  APP_NAME_MIN_LENGTH = 1 unless defined? APP_NAME_MIN_LENGTH
   def validate(record)
     attributes.each do |attribute|
       value = record.read_attribute_for_validation(attribute)

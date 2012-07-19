@@ -29,23 +29,62 @@ class Gear < StickShift::Model
         self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
+        self.app.group_instance_map[self.group_instance_name].gears << self
+        self.app.save
         ret = self.container.create(app,self)
-        self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin])
-      rescue Exception=>e
+        self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
+      rescue Exception => e
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.join("\n")
         ret = ResultIO.new
+        ret.errorIO << e.message
         ret.exitcode = 5
+      end
+
+      ## recovery action if creation failed above
+      if ret.exitcode != 0
+        begin
+          get_proxy.destroy(self.app, self)
+        rescue Exception=>e
+        end
+        self.app.ngears -= 1
+        self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+        self.app.save
+        raise StickShift::NodeException.new("Unable to create gear on node", 1, ret)
       end
       return ret
     end
   end
 
   def destroy
-    self.app.ngears -= 1
-    self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
     ret = get_proxy.destroy(app,self)
+    if ret.exitcode==0
+      self.app.destroyed_gears = [] unless self.app.destroyed_gears
+      self.app.destroyed_gears << @uuid
+      self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
+      self.app.ngears -= 1
+      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+      self.app.save
+    else
+      raise StickShift::NodeException.new("Unable to destroy gear on node", 1, ret)
+    end
     return ret
+  end
+
+  def force_destroy
+    begin
+      begin
+        get_proxy.destroy(app,self)
+      rescue Exception=>e
+      end
+      self.app.destroyed_gears = [] unless self.app.destroyed_gears
+      self.app.destroyed_gears << @uuid
+      self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
+    ensure
+      self.app.ngears -= 1
+      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+      self.app.save
+    end
   end
   
   def configure(comp_inst, template_git_url=nil)
@@ -54,6 +93,7 @@ class Gear < StickShift::Model
     result_io, cart_data = get_proxy.configure_cartridge(app, self, comp_inst.parent_cart_name, template_git_url)
     r.append result_io
     comp_inst.process_cart_data(cart_data)
+    comp_inst.process_cart_properties(result_io.cart_properties)
     self.configured_components.push(comp_inst.name)
     r
   end
@@ -236,8 +276,8 @@ private
   end
 
   def register_application(dns_service, old_ns, new_ns, name)
-    dns_service.deregister_application(name, old_ns)
     public_hostname = get_proxy.get_public_hostname
+    dns_service.deregister_application(name, old_ns)
     dns_service.register_application(name, new_ns, public_hostname)
   end
 end

@@ -1,13 +1,14 @@
 class RestUser < StickShift::Model
-  attr_accessor :login, :consumed_gears, :links
+  attr_accessor :login, :consumed_gears, :max_gears, :links
   
   def initialize(cloud_user, url)
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
+    self.max_gears = cloud_user.max_gears
     @links = {
       "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
       "ADD_KEY" => Link.new("Add new SSH key", "POST", URI::join(url, "user/keys"), [
-        Param.new("name", "string", "Name of the application"),
+        Param.new("name", "string", "Name of the key"),
         Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
       ]),

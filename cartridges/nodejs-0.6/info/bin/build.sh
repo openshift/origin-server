@@ -37,9 +37,18 @@ function is_node_module_installed() {
     return 1
 }
 
+gear_tmpdir="${OPENSHIFT_GEAR_DIR}tmp/"
+if [ -d "${gear_tmpdir}saved.node_modules" ]; then
+   node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules"
+   mv "$node_modules_dir" "$gear_tmpdir"
+   mv "${gear_tmpdir}/saved.node_modules" "$node_modules_dir"
+   (shopt -s dotglob; mv -f "${gear_tmpdir}"node_modules/* "$node_modules_dir")
+   rm -rf "${gear_tmpdir}"node_modules
+fi
+
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
     echo ".openshift/markers/force_clean_build found!  Recreating npm modules" 1>&2
-    rm -rf "${OPENSHIFT_GEAR_DIR}"/node_modules/*
+    rm -rf "${OPENSHIFT_GEAR_DIR}"node_modules/*
 fi
 
 if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then

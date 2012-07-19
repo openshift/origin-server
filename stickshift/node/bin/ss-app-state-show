@@ -36,6 +36,7 @@ UUID: Unique identifier for the application
 USAGE
 end
 
+require 'rubygems'
 require 'stickshift-node'
 require 'stickshift-node/utils/shell_exec'
 opts = GetoptLong.new(
@@ -66,7 +67,7 @@ end
 
 begin
   container = StickShift::ApplicationContainer.new(app_uuid, container_uuid)
-  puts container.get_app_state()
+  print container.get_app_state()
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

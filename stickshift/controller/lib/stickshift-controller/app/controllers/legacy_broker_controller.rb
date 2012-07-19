@@ -27,14 +27,16 @@ class LegacyBrokerController < ApplicationController
       end
       user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
       app_info = {}
-      @cloud_user.applications.each do |app|
-        app_info[app.name] = {
-          "framework" => app.framework,
-          "creation_time" => app.creation_time,
-          "uuid" => app.uuid,
-          "aliases" => app.aliases,
-          "embedded" => app.embedded
-        }
+      unless @cloud_user.applications.nil?
+        @cloud_user.applications.each do |app|
+          app_info[app.name] = {
+            "framework" => app.framework,
+            "creation_time" => app.creation_time,
+            "uuid" => app.uuid,
+            "aliases" => app.aliases,
+            "embedded" => app.embedded
+          }
+        end
       end
       
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_USER_INFO")
@@ -213,7 +215,7 @@ class LegacyBrokerController < ApplicationController
       app = Application.new(@cloud_user, @req.app_name, nil, @req.node_profile, @req.cartridge, nil, false, domain)
       check_cartridge_type(@req.cartridge, "standalone")
       if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-        raise StickShift::UserException.new("#{@login} has already reached the application limit of #{@cloud_user.max_gears}", 104)
+        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
       raise StickShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if StickShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
@@ -222,7 +224,6 @@ class LegacyBrokerController < ApplicationController
           @reply.append app.create
           Rails.logger.debug "Configuring dependencies #{app.name}"
           @reply.append app.configure_dependencies
-          #@reply.append app.add_node_settings
 
           app.execute_connections
           begin
@@ -324,6 +325,9 @@ class LegacyBrokerController < ApplicationController
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
     case @req.action
     when 'configure'
+      if app.scalable && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && @req.cartridge != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
+        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+      end
       @reply.append app.add_dependency(@req.cartridge)
     when 'deconfigure'
       @reply.append app.remove_dependency(@req.cartridge)
@@ -360,7 +364,7 @@ class LegacyBrokerController < ApplicationController
       if cart_type == 'standalone'
         raise StickShift::UserException.new(110), "Invalid application type (-t|--type) specified: '#{framework}'.  Valid application types are (#{carts.join(', ')})."
       else
-        raise StickShift::UserException.new(110), "Invalid type (-e|--embed) specified: '#{framework}'.  Valid embedded types are (#{carts.join(', ')})."
+        raise StickShift::UserException.new(110), "Invalid type (-c|--cartridge) specified: '#{framework}'.  Valid cartridge types are (#{carts.join(', ')})."
       end
     end
   end
@@ -428,6 +432,10 @@ class LegacyBrokerController < ApplicationController
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       @reply.resultIO << e.message
       status = :bad_request
+    when StickShift::DNSException
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      @reply.resultIO << e.message
+      status = :service_unavailable
     when StickShift::SSException
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       Rails.logger.error e.backtrace[0..5].join("\n")

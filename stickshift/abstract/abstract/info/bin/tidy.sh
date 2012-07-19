@@ -9,9 +9,11 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-client_message "Running 'git gc --prune --aggressive'"
 pushd ${OPENSHIFT_HOMEDIR}git/${OPENSHIFT_GEAR_NAME}.git > /dev/null
-git gc --prune --aggressive 
+client_message "Running 'git prune'"
+git prune
+client_message "Running 'git gc --aggressive'"
+git gc --aggressive
 popd > /dev/null
 
 client_message "Emptying log dir: ${OPENSHIFT_LOG_DIR}"

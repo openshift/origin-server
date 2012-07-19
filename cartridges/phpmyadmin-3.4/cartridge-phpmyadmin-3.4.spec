@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.14.4
+Version: 0.16.2
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,30 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
+  (mmcgrath+openshift@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- Add max_file_uploads INI setting to php.ini files (vvitek@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
+- Security - BZ785050 removed mod_autoindex from the two httpd.conf files
+  (tkramer@redhat.com)
+
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- Fix for BZ785050 remove mod_autoindex from httpd.confs (tkramer@redhat.com)
+
+* Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
+- Fix for bug 812046 (abhgupta@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
+- bumping spec versions (admiller@redhat.com)
+
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 

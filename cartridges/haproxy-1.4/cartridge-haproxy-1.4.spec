@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.10.9
+Version: 0.12.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -98,8 +98,74 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Tue Jun 05 2012 Adam Miller <admiller@redhat.com> 0.10.9-1
+* Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.12.9-1
+- BZ 835529: The regexp was capturing gear names that contain the gear name
+  being looked for (ex: gear name 012345-foobar also matches if checking for
+  gear 012345-foo).  Add a space match at the end of the gear name to terminate
+  it. (rmillner@redhat.com)
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.8-1
+- cleanup specs (dmcphers@redhat.com)
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.7-1
+- 
+
+* Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.12.6-1
+- Add visible error message if fail to scale up or down by request.
+  (rmillner@redhat.com)
+- bug 836973 - increased scaleup timeout (bdecoste@gmail.com)
+
+* Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- more cartridges have better metadata (rchopra@redhat.com)
+- Merge pull request #161 from VojtechVitek/php.ini-max_file_uploads
+  (mmcgrath+openshift@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- Add max_file_uploads INI setting to php.ini files (vvitek@redhat.com)
+
+* Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- BugFix: 834151 (rpenta@redhat.com)
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- 
+
+* Mon Jul 02 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
+- BZ 835205: Fail gracefully when the gear is in a half-built state instead of
+  trying to do the wrong thing. (rmillner@redhat.com)
+- BZ 835157: Add exception handling to add/remove-gear and print informative
+  messages. (rmillner@redhat.com)
+
+* Wed Jun 20 2012 Adam Miller <admiller@redhat.com> 0.12.1-1
+- bump_minor_versions for sprint 14 (admiller@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
+- Fix for BZ 831097 (mpatel@redhat.com)
+
+* Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.11.6-1
+- fix for bug#833039. Fix for scalable app's mysql move across districts.
+  (rchopra@redhat.com)
+
+* Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.11.5-1
+- Security - # BZ785050 Removed the mod_autoindex from the httpd.conf files
+  (tkramer@redhat.com)
+
+* Fri Jun 15 2012 Tim Kramer <tkramer@redhat.com>
+- # BZ785050 Removed mod_autoindex from two httpd.conf files
+
+* Wed Jun 13 2012 Adam Miller <admiller@redhat.com> 0.11.4-1
+- support for group overrides so that we do not rely on filesystem co-location
+  - fix for bug#824124 (rchopra@redhat.com)
+
+* Mon Jun 11 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
+- Moving stats socket file to run directory instead of tmp. On OpenShift
+  Origin, multiple apps using haproxy caused errors because they compete over
+  the /tmp/stats socket file. (kraman@gmail.com)
+
+* Mon Jun 04 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - fixing gearup bug (mmcgrath@redhat.com)
+
+* Fri Jun 01 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
+- bumping spec versions (admiller@redhat.com)
 
 * Wed May 30 2012 Adam Miller <admiller@redhat.com> 0.10.8-1
 - Bug 825354 (dmcphers@redhat.com)
@@ -187,7 +253,4 @@ rm -rf %{buildroot}
 
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.8.6-1
 - cleaning up spec files (dmcphers@redhat.com)
-
-* Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.8.5-1
-- new package built with tito
 

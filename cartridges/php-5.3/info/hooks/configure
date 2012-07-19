@@ -69,6 +69,7 @@ create_app_ctl_script "$cartridge_type"
 # Pear requires a special pearrc file, this is that file:
 pear config-create "$PHPCART_INSTANCE_DIR"/phplib/pear/ "$APP_HOME"/.pearrc > /dev/null 2>&1
 pear -c "$APP_HOME"/.pearrc config-set php_ini "$PHPCART_INSTANCE_DIR"/conf/php.ini > /dev/null 2>&1
+pear -c "$APP_HOME"/.pearrc config-set auto_discover 1 > /dev/null 2>&1
 observe_setup_var_lib_file "$APP_HOME"/.pearrc
 
 populate_repo_dir

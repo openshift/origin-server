@@ -11,6 +11,11 @@ module Rails
 end
 
 class CloudUserTest < ActiveSupport::TestCase
+  def setup
+    #setup test user auth on the mongo db
+    system "/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser(\"stickshift\", \"mooo\")' 2>&1 > /dev/null"
+  end
+
   test "validation of login" do
     invalid_chars = '"$^<>|%/;:,\*=~'
     invalid_chars.length.times do |i|
