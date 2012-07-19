@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version:   0.96.2
+Version:   0.96.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.96.3-1
+- Fix for bugz 840165 - update readmes. (ramr@redhat.com)
+- enable java7 (bdecoste@gmail.com)
+- Refactor JBoss hot deployment support (ironcladlou@gmail.com)
+- enable java7 (bdecoste@gmail.com)
+- enable java7 (bdecoste@gmail.com)
+- require java7 (bdecoste@gmail.com)
+- require java7 (bdecoste@gmail.com)
+
 * Wed Jul 18 2012 William DeCoste <wdecoste@redhat.com> 0.96.2-1
 - Require Java7
 
