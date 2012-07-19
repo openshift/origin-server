@@ -43,22 +43,41 @@ module StickShift
       end
     end
     
-    def find_all(obj_type, user_id=nil, f=nil)
-      Rails.logger.debug "MongoDataStore.find_all(#{obj_type}, #{user_id}, #{f})\n\n"
+    def find_all(obj_type, user_id=nil, opts=nil, &block)
+      Rails.logger.debug "MongoDataStore.find_all(#{obj_type}, #{user_id}, #{opts})\n\n"
       case obj_type
       when "CloudUser"
-        get_users
+        get_users(opts, &block)
       when "Application"
-        get_apps(user_id)
+        get_apps(user_id, &block)
       when "Domain"
-        get_domains(user_id)
+        get_domains(user_id, &block)
       when "ApplicationTemplate"
-        if f.nil? || f.empty?
-          find_all_application_templates()
+        if opts.nil? || opts.empty?
+          find_all_application_templates(&block)
         else
-          find_application_template_by_tag(f[:tag])
+          find_application_template_by_tag(opts[:tag], &block)
         end
       end
+    end
+
+    def find_all_logins(opts)
+      Rails.logger.debug "MongoDataStore.find_all_logins()\n\n"
+      query = {}
+      if opts
+        if opts[:with_gears]
+          query["apps.group_instances.gears"] = {"$exists" => true}
+        end
+        if opts[:with_gear_usage]
+          query["gear_usage_records"] = {"$exists" => true}
+        end
+      end
+      mcursor = user_collection.find(query, {:fields => []})
+      ret = []
+      mcursor.each do |hash|
+        ret.push(hash['_id'])
+      end
+      ret
     end
 
     def find_by_gear_uuid(gear_uuid)
@@ -382,12 +401,25 @@ module StickShift
       user_hash_to_ret(hash)
     end
     
-    def get_users
+    def get_users(opts=nil)
       MongoDataStore.rescue_con_failure do
-        mcursor = user_collection.find()
+        query = {}
+        if opts
+          if opts[:with_gears]
+            query["apps.group_instances.gears"] = {"$exists" => true}
+          end
+          if opts[:with_gear_usage]
+            query["gear_usage_records"] = {"$exists" => true}
+          end
+        end
+        mcursor = user_collection.find(query)
         ret = []
         mcursor.each do |hash|
-          ret.push(user_hash_to_ret(hash))
+          if block_given?
+            yield user_hash_to_ret(hash)
+          else
+            ret.push(user_hash_to_ret(hash))
+          end
         end
         ret
       end
@@ -395,12 +427,6 @@ module StickShift
 
     def user_hash_to_ret(hash)
       hash.delete("_id")
-      if hash["apps"] 
-        hash["apps"] = apps_hash_to_apps_ret(hash["apps"])
-      end
-      if hash["domains"] 
-        hash["domains"] = domains_hash_to_domains_ret(hash["domains"])
-      end
       hash
     end
 
@@ -415,14 +441,14 @@ module StickShift
           break
         end
       end if hash["apps"]
-      app_hash_to_ret(app_hash)
+      app_hash
     end
   
     def get_apps(user_id)
       hash = find_one( user_collection, { "_id" => user_id }, :fields => ["apps"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["apps"] && !hash["apps"].empty?
-      apps_hash_to_apps_ret(hash["apps"])
+      hash["apps"]
     end
     
     def get_domain(user_id, id)
@@ -436,14 +462,14 @@ module StickShift
           break
         end
       end if hash["domains"]
-      domain_hash_to_ret(domain_hash)
+      domain_hash
     end
   
     def get_domains(user_id)
       hash = find_one( user_collection, { "_id" => user_id }, :fields => ["domains"] )
       return [] unless hash && !hash.empty?
       return [] unless hash["domains"] && !hash["domains"].empty?
-      domains_hash_to_domains_ret(hash["domains"])
+      hash["domains"]
     end
 
 
@@ -551,7 +577,6 @@ COND
     end
     
     def put_domain(user_id, id, domain_attrs)
-      domain_attrs_to_internal(domain_attrs)
 #TODO: FIXME
 #      domain_updates = {}
 #      domain_attrs.each do |k, v|
@@ -563,7 +588,6 @@ COND
     end
 
     def add_domain(user_id, id, domain_attrs)
-      domain_attrs_to_internal(domain_attrs)
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
              :update => { "$push" => { "domains" => domain_attrs } } })
       #raise StickShift::UserException.new("#{user_id} has already reached the domain limit", 104) if hash == nil
@@ -592,16 +616,6 @@ COND
       app_attrs
     end
     
-    def app_hash_to_ret(app_hash)
-      app_hash
-    end
-    
-    def apps_hash_to_apps_ret(apps_hash)
-      ret = []
-      ret = apps_hash.map { |app_hash| app_hash_to_ret(app_hash) } if apps_hash
-      ret
-    end
-    
     def delete_domain(user_id, id)
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => id,
                                "$or" => [{"apps" => {"$exists" => true, "$size" => 0}}, 
@@ -609,20 +623,6 @@ COND
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})
       raise StickShift::UserException.new("Could not delete domain." +
                                           "Domain has valid applications.", 136) if hash == nil
-    end
-
-    def domain_attrs_to_internal(domain_attrs)
-      domain_attrs
-    end
-    
-    def domain_hash_to_ret(domain_hash)
-      domain_hash
-    end
-    
-    def domains_hash_to_domains_ret(domains_hash)
-      ret = []
-      ret = domains_hash.map { |domain_hash| domain_hash_to_ret(domain_hash) } if domains_hash
-      ret
     end
 
     #district

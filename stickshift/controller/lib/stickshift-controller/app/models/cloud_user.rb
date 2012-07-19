@@ -236,10 +236,14 @@
     reply.resultIO << "User #{@login} deleted successfully.\n"
     super(@login)
     reply
-  end
+    end
 
   def self.find(login)
     super(login,login)
+  end
+  
+  def self.find_all_logins(opts=nil)
+    StickShift::DataStore.instance.find_all_logins(opts)
   end
   
   def add_system_ssh_key(app_name, key)
