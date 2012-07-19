@@ -99,5 +99,6 @@ system "/etc/cron.minutely/stickshift-facts"
 system "service crond restart"
 system "service mcollective restart"
 system "service stickshift-proxy restart"
+system "systemctl enable stickshift-gears.service"
 
 print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"
