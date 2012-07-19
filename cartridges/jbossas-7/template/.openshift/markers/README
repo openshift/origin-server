@@ -17,3 +17,6 @@ your pom.xml file will then be re-downloaded.
 hot_deploy - Will prevent a JBoss container restart during build/deployment.
              Newly build archives will be re-deployed automatically by the
              JBoss HDScanner component.
+             
+java7 - Will run JBoss AS7 with Java7 if present. If no marker is present then the 
+			baseline Java version will be used (currently Java6)
