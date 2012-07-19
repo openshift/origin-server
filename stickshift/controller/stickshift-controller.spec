@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.3
+Version: 0.14.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
+- auth_key/iv for java client (bdecoste@gmail.com)
+- Move lifecycle tests for php and ruby to libra_check (jhonce@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Merge pull request #244 from rmillner/dev/rmillner/bug/834668
   (mrunalp@gmail.com)
