@@ -5,7 +5,6 @@ Repo layout
 php/ - Externally exposed php code goes here
 libs/ - Additional libraries
 misc/ - For not-externally exposed php code
-../data - For persistent data (full path in environment var: OPENSHIFT_DATA_DIR)
 deplist.txt - list of pears to install
 .openshift/action_hooks/pre_build - Script that gets run every git push before the build
 .openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
@@ -19,8 +18,10 @@ Please leave php, libs and data directories but feel free to create additional
 directories if needed.
 
 Note: Every time you push, everything in your remote repo dir gets recreated
-please store long term items (like an sqlite database) in ../data which will
-persist between pushes of your repo.
+      please store long term items (like an sqlite database) in the OpenShift
+      data directory, which will persist between pushes of your repo.
+      The OpenShift data directory is accessible relative to the remote repo
+      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
 
 
 Environment Variables

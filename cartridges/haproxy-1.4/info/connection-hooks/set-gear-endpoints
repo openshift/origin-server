@@ -17,7 +17,7 @@ function print_help() {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
 
-    log_error "Invalid parameters - $@"
+    echo "$0 $@" | logger -p local0.notice -t stickshift_haproxy_set_gear_ep
     exit 1
 }
 
