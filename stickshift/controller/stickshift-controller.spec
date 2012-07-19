@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.2
+Version: 0.14.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,22 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
+- Merge pull request #244 from rmillner/dev/rmillner/bug/834668
+  (mrunalp@gmail.com)
+- test case reorg (dmcphers@redhat.com)
+- BZ 834668: Dynect call to determine if domain is available not protected from
+  exceptions. (rmillner@redhat.com)
+- reorg some tests (short term fix) (dmcphers@redhat.com)
+- Fix for bug 816020 (abhgupta@redhat.com)
+- Merge pull request #240 from abhgupta/abhgupta-dev (kraman@gmail.com)
+- Merge pull request #232 from lnader/master (rpenta@redhat.com)
+- fix for cartridge-jenkins_build.feature cucumber test (abhgupta@redhat.com)
+- Mongo safety check during deletion of app gears. If 2 requests are deleting
+  the same gear, this check will ensure that one will succeed and the other
+  will throw an error as expected. (rpenta@redhat.com)
+- US2427: Broker add / change plan REST API (lnader@redhat.com)
+
 * Fri Jul 13 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
 - several fixes related to migrations (dmcphers@redhat.com)
 
