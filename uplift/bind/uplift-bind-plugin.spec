@@ -70,7 +70,6 @@ cp /usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/example.com.db 
 
 echo "Enable and start local named"
 /sbin/chkconfig named on
-/sbin/chkconfig NetworkManager off
 /sbin/chkconfig network on
 
 echo "Setup dhcp update hooks"

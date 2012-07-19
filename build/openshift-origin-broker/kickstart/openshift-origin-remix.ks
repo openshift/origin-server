@@ -3,7 +3,7 @@
 part / --size 7000
 selinux --enforcing
 firewall --enabled --service=mdns,ssh,dns,https
-services --enabled=network,sshd --disabled=NetworkManager
+services --enabled=network,sshd
 xconfig --startxonboot
 bootloader --append="biosdevname=0"
 network --bootproto=dhcp --device=eth0
@@ -53,6 +53,24 @@ echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 export PATH=/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/sbin:$PATH
 cd /var/www/stickshift/broker
 bundle install
+
+cat <<EOF > /etc/skel/.config/autostart/xhost.desktop
+[Desktop Entry]
+Type=Application
+Exec=/usr/bin/xhost +
+Hidden=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Xhost
+Name=Xhost
+Comment[en_US]=Xhost
+Comment=Xhost
+EOF
+
+cat <<EOF > /usr/bin/launch_openshift_doc.sh
+/bin/sleep 30
+/usr/bin/firefox file:///var/www/html/getting_started.html
+EOF
+chmod +x /usr/bin/launch_openshift_doc.sh
 
 cat <<EOF > /etc/rc.d/init.d/livesys-late-openshift
 #!/bin/bash

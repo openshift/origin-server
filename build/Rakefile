@@ -91,7 +91,7 @@ end
 
 task :build_setup do
   print "Setting up basic requirements\n"
-  sudo "yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
+  sudo "yum install --enablerepo=updates-testing -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
   Rake::Task[:createrepo].invoke
 
   print "Setting up local express.conf\n"

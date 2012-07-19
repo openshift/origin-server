@@ -26,27 +26,31 @@ def usage
 ss-setup-node: Configure node hostname and broker IP
   This command must be run as root.
 
-== Usage
-
-ss-setup-node   --with-broker-ip 127.0.0.1 \\
-                --with-node-hostname node1 \\
-                --with-domain example.com
-
 == List of arguments
-  -b|--with-broker-ip       broker_ip   IP address of the broker (required)
-  -n|--with-node-hostname   host        Hostname for this node (required)
-  -d|--domain               domain      Domain name for this node (optional, default: example.com)
-  -h|--help                             Print this message
+  -b  |--with-broker-ip	                IP address of the broker (required)
+  -h  |--with-node-hostname	        Hostname for this node (required)
+  -d  |--domain <domain>                Domain name for this node (optional, default: example.com)
+ --eip|--external-ip <IP>		Setus up the VM to use a static IP on the external ethernet device. (Defaults to DHCP)
+ --ed |--external-device		Setus up the VM to use specified ethernet device. Default: eth0
+  -iip|--internal-ip			Setus up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
+ --id |--internal-device		Setus up the VM to use specified ethernet device. (Defaults to same as external)
+  -n  |--static-dns <IP>[,<IP>]		Comma seperated list of IP addresses to use for DNS forwarding
+  -?  |--help                           Print this message
 
 USAGE
 end
 
 require 'stickshift-node'
 opts = GetoptLong.new(
-    ["--with-broker-ip",      "-b", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-node-hostname",  "-n", GetoptLong::REQUIRED_ARGUMENT],
-    ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+    ["--external-ip",           "--eip", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--external-device",       "--ed" , GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--internal-ip",           "--iip", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--internal-device",       "--id" , GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--static-dns",            "-n"  , GetoptLong::OPTIONAL_ARGUMENT],
+    ["--help",                  "-?"  , GetoptLong::NO_ARGUMENT],
+    ["--with-broker-ip",        "-b", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-node-hostname",    "-h", GetoptLong::REQUIRED_ARGUMENT],
+    ["--domain",                "-d", GetoptLong::OPTIONAL_ARGUMENT]
 )
 
 args = {}
@@ -57,36 +61,124 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
-ip = args["--with-broker-ip"]
+broker_ip = args["--with-broker-ip"]
 node_hostname = args["--with-node-hostname"]
 node_domain = args["--domain"] || "example.com"
 
-if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
+if args["--help"] || (broker_ip.nil? || broker_ip.empty? || node_hostname.nil? || node_hostname.empty?)
   usage
   exit -1
 end
 
-system "/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml"     
-facts = YAML.load_file("/etc/mcollective/facts.yaml")
-system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{facts["ipaddress"]}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
-        
-File.open("/etc/resolv.conf", "w") do |f|
-  f.write("search #{node_domain}\nnameserver #{ip}")
+ext_eth_device = args["--external-device"] || "eth0"
+ext_address    = args["--external-ip"]
+int_eth_device = args["--internal-device"] || ext_eth_device
+int_address    = args["--internal-ip"]
+dns            = args["--static-dns"]
+dns_address    = dns.split(/,/) unless dns.nil?
+ext_dhcp       = false
+int_dhcp       = false
+
+if ext_address.nil? #DHCP
+  ext_address = `ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  ext_dhcp = true
+end 
+
+if int_address.nil? #DHCP
+  int_address = `ip addr show dev #{int_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  int_dhcp = true
 end
 
+ext_hw_address = `ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+int_hw_address = `ip addr show dev #{int_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+
+if dns_address.nil?
+  if ext_dhcp
+    dns_address = `cat /var/lib/dhclient/dhclient-*#{ext_eth_device}.lease* | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
+    dns_address.delete '127.0.0.1'
+  else
+    dns_address = ["8.8.8.8", "8.8.4.4"]
+  end
+end
+
+if dns_address.nil? || dns_address.length == 0
+  print "Error: Unable to determine DNS servers.\n\n"
+  usage
+  exit -1
+end
+
+if args["--help"]
+  usage
+  exit -1
+end
+
+### Begin network setup
+
+if ext_dhcp
+  File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
+    f.write "DEVICE=#{ext_eth_device}\n"
+    f.write "BOOTPROTO=dhcp\n"
+    f.write "ONBOOT=yes\n"
+    f.write "#NM_CONTROLLED=no\n"
+    f.write "HWADDR=#{ext_hw_address}\n"
+    f.write "DNS1=#{broker_ip}\n"
+    dns_address.each_index do |idx|
+      f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
+    end
+
+    f.write "TYPE=Ethernet\n"
+    f.write "DEFROUTE=yes\n"
+    f.write "PEERDNS=no\n"
+    f.write "PEERROUTES=yes\n"
+  end
+end
+
+if int_dhcp && (int_eth_device != ext_eth_device)
+  File.open("/etc/sysconfig/network-scripts/ifcfg-#{int_eth_device}","w") do |f|
+    f.write "DEVICE=#{int_eth_device}\n"
+    f.write "BOOTPROTO=dhcp\n"
+    f.write "ONBOOT=yes\n"
+    f.write "#NM_CONTROLLED=no\n"
+    f.write "HWADDR=#{int_hw_address}\n"
+  end
+end
+
+print "Opening required ports\n"
+system "lokkit --service=ssh"
+system "lokkit --service=http"
+system "lokkit --service=https"
+
 File.open("/etc/dhcp/dhclient.conf", "w") do |f|
-  f.write("prepend domain-name-servers #{ip};")
+  f.write("prepend domain-name-servers #{broker_ip};")
   f.write("supersede host-name \"#{node_hostname}\";")
   f.write("supersede domain-name \"#{node_domain}\";")
 end
 
+File.open("/etc/sysconfig/network", "w") do |f|
+  f.write("NETWORKING=yes\n")
+  f.write("HOSTNAME=#{node_hostname}.#{node_domain}\n")
+end
+
+system "chkconfig network on"
+system "service network start"
+
+if File.exist?('/lib/systemd/system/NetworkManager.service')
+  #try to restart network manager and wait for it to acquire IP
+  system "service NetworkManager restart && sleep 5"
+end
+
+### End network setup
+
+system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
+system "/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml"     
+        
 config_lines = File.open('/etc/stickshift/stickshift-node.conf').readlines
 File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
   config_lines.each do |line|
     if line.start_with? "BROKER_HOST"
-      f.write("BROKER_HOST=\"#{ip}\"\n")
+      f.write("BROKER_HOST=\"#{broker_ip}\"\n")
     else
       f.write(line)
     end
