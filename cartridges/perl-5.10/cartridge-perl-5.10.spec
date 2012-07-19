@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.27.1
+Version: 0.27.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.27.2-1
+- Fix for bugz 840165 - update readmes. (ramr@redhat.com)
+- Fix bugz 727462 - favicon.ico errors in a perl app. (ramr@redhat.com)
+- Fixes for bugz 840030 - Apache blocks access to /icons. Remove these as
+  mod_autoindex has now been turned OFF (see bugz 785050 for more details).
+  (ramr@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.27.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
