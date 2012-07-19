@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify3
+@runtime
+@runtime1
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
