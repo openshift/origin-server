@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime4
 Feature: Raw Application
 
   Scenario: Create Delete one Raw Application
