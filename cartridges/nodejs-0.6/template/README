@@ -22,8 +22,10 @@ Please leave the node_modules and .openshift directories but feel free to
 create additional directories if needed.
 
 Note: Every time you push, everything in your remote repo dir gets recreated
-please store long term items (like an sqlite database) in ../data which will
-persist between pushes of your repo.
+      please store long term items (like an sqlite database) in the OpenShift
+      data directory, which will persist between pushes of your repo.
+      The OpenShift data directory is accessible relative to the remote repo
+      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
 
 
 Environment Variables

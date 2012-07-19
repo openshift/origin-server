@@ -11,7 +11,8 @@ do
     . $f
 done
 
-export HAPROXY_PID="${OPENSHIFT_HOMEDIR}/haproxy-1.4/run/haproxy.pid"
+HAPROXY_CART="haproxy-1.4"
+export HAPROXY_PID="${OPENSHIFT_HOMEDIR}/${HAPROXY_CART}/run/haproxy.pid"
 
 if ! [ $# -eq 1 ]
 then
@@ -23,7 +24,7 @@ validate_run_as_user
 
 . app_ctl_pre.sh
 
-isrunning() {
+function isrunning() {
     if [ -f "${HAPROXY_PID}" ]; then
         haproxy_pid=`cat $HAPROXY_PID 2> /dev/null`
         [ -z "$haproxy_pid" ]  &&  return 1
@@ -38,14 +39,14 @@ isrunning() {
 
 function ping_server_gears() {
     #  Ping the server gears and wake 'em up on startup.
-    gear_registry=$OPENSHIFT_HOMEDIR/haproxy-1.4/conf/gear-registry.db
+    gear_registry=$OPENSHIFT_HOMEDIR/${HAPROXY_CART}/conf/gear-registry.db
     for geardns in $(cut -f 2 -d ';' "$gear_registry"); do
         [ -z "$geardns" ]  ||  curl "http://$geardns/" > /dev/null 2>&1  ||  :
     done
 }
 
 function wait_to_start() {
-   ep=$(grep "listen stats" $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg | sed 's#listen\s*stats\s*\(.*\)#\1#')
+   ep=$(grep "listen stats" $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/conf/haproxy.cfg | sed 's#listen\s*stats\s*\(.*\)#\1#')
    i=0
    while ( ! curl "http://$ep/haproxy-status/;csv" &> /dev/null )  && [ $i -lt 10 ]; do
        sleep 1
@@ -53,34 +54,35 @@ function wait_to_start() {
    done
 
    if [ $i -ge 10 ]; then
-      echo "`date`: haproxy-status check - max retries ($i) exceeded" 1>&2
+      echo "`date`: HAProxy status check - max retries ($i) exceeded" 1>&2
    fi
 }
 
-start() {
+
+function _start_haproxy_service() {
     set_app_state started
     if ! isrunning
     then
         src_user_hook pre_start_${CARTRIDGE_TYPE}
         ping_server_gears
-        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/haproxy-1.4/logs/haproxy.log 2>&1
+        /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/logs/haproxy.log 2>&1
         haproxy_ctld_daemon stop > /dev/null 2>&1  || :
         haproxy_ctld_daemon start > /dev/null 2>&1
         wait_to_start
         run_user_hook post_start_${CARTRIDGE_TYPE}
     else
-        echo "Haproxy already running" 1>&2
+        echo "HAProxy already running" 1>&2
         wait_to_start
     fi
 }
 
 
-stop() {
+function _stop_haproxy_service() {
     src_user_hook pre_stop_${CARTRIDGE_TYPE}
     set_app_state stopped
     haproxy_ctld_daemon stop > /dev/null 2>&1
-    if [ -f $HAPROXY_PID ]; then
-        pid=$( /bin/cat "${HAPROXY_PID}" )
+    [ -f $HAPROXY_PID ]  &&  pid=$( /bin/cat "${HAPROXY_PID}" )
+    if `ps -p $pid > /dev/null 2>&1`; then
         /bin/kill $pid
         ret=$?
         if [ $ret -eq 0 ]; then
@@ -94,26 +96,24 @@ stop() {
     else
         if `pgrep -x haproxy > /dev/null 2>&1`
         then
-            echo "Warning: Haproxy process exists without a pid file.  Use force-stop to kill." 1>&2
+            echo "Warning: HAProxy process exists without a pid file.  Use force-stop to kill." 1>&2
         else
-            echo "Haproxy already stopped" 1>&2
+            echo "HAProxy already stopped" 1>&2
         fi
     fi
     run_user_hook post_stop_${CARTRIDGE_TYPE}
 }
 
-
-function restart() {
-   stop || pkill haproxy || :
-   start
+function _restart_haproxy_service() {
+    _stop_haproxy_service || pkill haproxy || :
+    _start_haproxy_service
 }
-
 
 function _reload_haproxy_service() {
     [ -n "$1" ]  &&  zopts="-sf $1"
     src_user_hook pre_start_${CARTRIDGE_TYPE}
     ping_server_gears
-    /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
+    /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/conf/haproxy.cfg ${zopts} > /dev/null 2>&1
     run_user_hook post_start_${CARTRIDGE_TYPE}
 
 }
@@ -124,30 +124,65 @@ function _reload_service() {
     while (! _reload_haproxy_service "$zpid" )  && [ $i -lt 60 ]; do
         sleep 2
         i=$(($i + 1))
-        echo "`date`: Retrying haproxy service reload - attempt #$((i+1)) ... "
+        echo "`date`: Retrying HAProxy service reload - attempt #$((i+1)) ... "
     done
 
     wait_to_start
 }
 
-reload() {
+
+function _send_client_result() {
+    # Only sent client result if call done at the cartridge level.
+    [ "$CARTRIDGE_TYPE" = "$HAPROXY_CART" ]  &&  client_result "$@"
+    return 0
+}
+
+function start() {
+    _start_haproxy_service
+    isrunning  &&  _send_client_result "HAProxy instance is started"
+}
+
+function stop() {
+    _stop_haproxy_service
+    isrunning  ||  _send_client_result "HAProxy instance is stopped"
+}
+
+function restart() {
+    _restart_haproxy_service
+    isrunning  &&  _send_client_result "Restarted HAProxy instance"
+}
+
+function reload() {
     if ! isrunning; then
-       start
+       _start_haproxy_service
     else
-       echo "`date`: Reloading haproxy service " 1>&2
+       echo "`date`: Reloading HAProxy service " 1>&2
        _reload_service
     fi
     haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
     haproxy_ctld_daemon start > /dev/null 2>&1
+    isrunning  &&  _send_client_result "Reloaded HAProxy instance"
 }
 
+function force_stop() {
+    pkill haproxy
+    isrunning  ||  _send_client_result "Force stopped HAProxy instance"
+}
+
+function status() {
+    if isrunning; then
+        _send_client_result "HAProxy instance is running"
+    else
+        _send_client_result "HAProxy instance is stopped"
+    fi
+    print_user_running_processes `id -u`
+}
 
 case "$1" in
-    start)               start               ;;
-    graceful-stop|stop)  stop                ;;
-    restart)             restart             ;;
-    graceful|reload)     reload              ;;
-    force-stop)          pkill haproxy       ;;
-    status)              print_user_running_processes `id -u` ;;
-    # FIXME:  status should just report on haproxy not all the user's processes.
+    start)               start       ;;
+    graceful-stop|stop)  stop        ;;
+    restart)             restart     ;;
+    graceful|reload)     reload      ;;
+    force-stop)          force_stop  ;;
+    status)              status      ;;
 esac
