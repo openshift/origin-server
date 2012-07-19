@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.11.1
+Version: 0.11.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
+- Fix for bugz 840165 - update readmes. (ramr@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.11.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
