@@ -11,7 +11,6 @@ Get started
 Repo layout
 ===========
 static/ - Externally exposed static content goes here
-../data - For persistent data (full path in environment var: OPENSHIFT_DATA_DIR)
 .openshift/action_hooks/start - Script that gets run to start your application
 .openshift/action_hooks/stop - Script that gets run to stop your application
 .openshift/action_hooks/pre_build - Script that gets run every git push before the build
@@ -19,15 +18,16 @@ static/ - Externally exposed static content goes here
 .openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
 .openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
 
-
 Notes about layout
 ==================
 Please leave the static directory in place (alter but do not delete) but feel
 free to create additional directories if needed.
 
 Note: Every time you push, everything in your remote repo dir gets recreated
-please store long term items (like an sqlite database) in ../data which will
-persist between pushes of your repo.
+      please store long term items (like an sqlite database) in the OpenShift
+      data directory, which will persist between pushes of your repo.
+      The OpenShift data directory is accessible relative to the remote repo
+      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
 
 
 Environment Variables
