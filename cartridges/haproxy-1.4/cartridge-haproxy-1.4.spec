@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.13.1
+Version: 0.13.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Fix for bugz 839140 - The haproxy-1.4 cartridge's status is always "SUCESS".
+  (ramr@redhat.com)
+- Cleanup messages. (ramr@redhat.com)
+- Log help at notice (not error) level. (ramr@redhat.com)
+- Fix bugz 817704 - haproxy reseliency checks. (ramr@redhat.com)
+- Fixes for bugz 840030 - Apache blocks access to /icons. Remove these as
+  mod_autoindex has now been turned OFF (see bugz 785050 for more details).
+  (ramr@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
