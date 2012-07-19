@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.3
+Version: 0.14.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,14 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
+- Refactor JBoss hot deployment support (ironcladlou@gmail.com)
+- enable java7 (bdecoste@gmail.com)
+- BZ 838365: Setting app state was failing because the user in question could
+  not run processes.  Force-kill must kill all processes even if it cannot set
+  app state for some reason. (rmillner@redhat.com)
+- bz 831062 (bdecoste@gmail.com)
+
 * Fri Jul 13 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Merge pull request #231 from rmillner/dev/rmillner/bug/839924
   (mrunalp@gmail.com)
