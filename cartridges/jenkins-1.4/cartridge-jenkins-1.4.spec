@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.96.1
+Version: 0.96.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -89,6 +89,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.96.2-1
+- bz 831062 (bdecoste@gmail.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.96.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
