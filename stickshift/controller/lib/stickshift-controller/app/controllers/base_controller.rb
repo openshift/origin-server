@@ -44,6 +44,11 @@ class BaseController < ActionController::Base
       if params['broker_auth_key'] && params['broker_auth_iv']
         login = params['broker_auth_key']
         password = params['broker_auth_iv']
+      else  
+        if request.headers['broker_auth_key'] && request.headers['broker_auth_iv']
+          login = request.headers['broker_auth_key']
+          password = request.headers['broker_auth_iv']
+        end
       end
     end
     if login.nil? or password.nil?
