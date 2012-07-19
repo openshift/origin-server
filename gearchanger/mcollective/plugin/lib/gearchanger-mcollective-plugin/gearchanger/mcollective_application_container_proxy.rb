@@ -59,6 +59,10 @@ module GearChanger
         MCollectiveApplicationContainerProxy.new(current_server)
       end
 
+      def self.get_blacklisted_in_impl
+        []
+      end
+
       def self.blacklisted_in_impl?(name)
         false
       end
