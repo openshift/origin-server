@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.3.3
+Version:   0.3.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -158,6 +158,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.3.4-1
+- fixed EAP website (bdecoste@gmail.com)
+- bz841683 (bdecoste@gmail.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
 - enable java7 (bdecoste@gmail.com)
