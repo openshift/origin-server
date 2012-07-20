@@ -43,7 +43,6 @@ IP=$OPENSHIFT_INTERNAL_IP
 . $APP_HOME/.env/OPENSHIFT_APP_NAME
 if [ ! -d "$GEAR_BASE_DIR/$uuid/$OPENSHIFT_APP_NAME" ]; then
     #  This gear is dedicated to running mongo - configure it as such.
-    unobfuscate_app_home $uuid $namespace $application
     export CART_INFO_DIR
     import_env_vars
     $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP

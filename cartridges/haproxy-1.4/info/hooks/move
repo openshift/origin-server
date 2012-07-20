@@ -36,7 +36,6 @@ setup_basic_vars
 
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
 
-unobfuscate_app_home $uuid $namespace $application
 
 observe_setup_app_home
 observe_setup_app_and_git_dirs

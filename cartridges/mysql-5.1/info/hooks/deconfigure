@@ -47,7 +47,7 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
 # For non-embedded (dedicated) mysql gear, destroy the git repo and stop app.
 APPLICATION_DIR=`readlink -fn "$APP_DIR"`
 if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
-   remove_all_proxy_ports $uuid
+   $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
 
    # Destroy git repo and stop app.
    destroy_git_repo $application $uuid
@@ -69,7 +69,6 @@ fi
 if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
     # Blow away the directories.
     rm_app_dir
-    rm_unobfuscated_app_home $namespace $application
 
     # Remove apache vhost configuration.
     rm_httpd_proxy $uuid $namespace $application

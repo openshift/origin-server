@@ -29,7 +29,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_deconfigure "$1" $2 $3
 
 
-remove_all_proxy_ports $uuid
+$CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
 
 if [ ! -d "$APP_HOME/app-root" ]
 then
@@ -60,7 +60,6 @@ fi
 
 remove_ssh_key
 
-rm_unobfuscated_app_home $namespace $application
 
 #
 # Remove virtualhost definition for apache
