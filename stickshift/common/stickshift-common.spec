@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.13.1
+Version: 0.13.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,9 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Bug 841073 (dmcphers@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
