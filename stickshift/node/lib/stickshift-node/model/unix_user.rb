@@ -128,6 +128,11 @@ module StickShift
     #
     # Returns nil on Success or raises on Failure
     def destroy
+      if @uid.nil? and (not File.directory?(@homedir.to_s))
+        # gear seems to have been destroyed already... suppress any error
+        # TODO : remove remaining stuff if it exists, e.g. .httpd/#{uuid}* etc
+        return nil
+      end
       raise UserDeletionException.new(
             "ERROR: unable to destroy user account #{@uuid}"
             ) if @uid.nil? || @homedir.nil? || @uuid.nil?
