@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.13.6
+Version: 0.13.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.13.7-1
+- Updating gem versions (admiller@redhat.com)
+- fix for bug#841407 (rchopra@redhat.com)
+
 * Thu Jul 05 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
 - Updating gem versions (admiller@redhat.com)
 
