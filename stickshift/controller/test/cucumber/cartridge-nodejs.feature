@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime1
 Feature: Node.js Application
 
   Scenario: Create Delete one Node Application

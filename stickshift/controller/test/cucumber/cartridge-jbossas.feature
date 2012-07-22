@@ -1,5 +1,5 @@
 @runtime
-@runtime1
+@runtime3
 Feature: JBossAS Application
 
    Scenario: Create Delete one JBoss AS Application

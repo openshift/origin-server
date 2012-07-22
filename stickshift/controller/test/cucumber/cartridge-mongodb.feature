@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime3
 Feature: MongoDB Application Sub-Cartridge
   
   Scenario Outline: Create Delete one application with a MongoDB database

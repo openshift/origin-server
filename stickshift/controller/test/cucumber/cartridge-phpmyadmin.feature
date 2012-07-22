@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime4
 Feature: phpMyAdmin Embedded Cartridge
 
   Scenario Outline: Add Remove phpMyAdmin to one application

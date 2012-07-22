@@ -1,5 +1,5 @@
 @runtime
-@runtime1
+@runtime4
 @not-origin
 Feature: JBossEAP Application
 

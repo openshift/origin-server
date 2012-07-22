@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime1
 Feature: PYTHON Application
 
   Scenario: Create Delete one PYTHON Application

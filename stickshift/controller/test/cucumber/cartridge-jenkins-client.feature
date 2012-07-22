@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime1
 @jenkins
 Feature: Jenkins Client Embedded Cartridge
 
