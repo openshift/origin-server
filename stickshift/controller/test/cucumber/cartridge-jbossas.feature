@@ -1,7 +1,7 @@
 @runtime
-@runtime3
 Feature: JBossAS Application
 
+   @runtime1
    Scenario: Create Delete one JBoss AS Application
      Given an accepted node
      And a new guest account
@@ -31,6 +31,7 @@ Feature: JBossAS Application
      #And the openshift environment variable files will not exist
      And a jbossas daemon will not be running     
 
+   @runtime2
    Scenario: Stop Start Restart a JBoss AS Application
      Given an accepted node
      And a new guest account
@@ -46,6 +47,7 @@ Feature: JBossAS Application
      When I deconfigure the jbossas application
      Then a jbossas daemon will not be running
      
+   @runtime1_verify
    Scenario: Push code change to application with hot deployment enabled
      Given an accepted node
      And a new guest account
@@ -57,6 +59,7 @@ Feature: JBossAS Application
      Then a jbossas daemon will be running
      And the jbossas-7 application should not change pids
 
+   @runtime4
    Scenario: Push code change to the application
      Given an accepted node
      And a new guest account
