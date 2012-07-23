@@ -1,7 +1,7 @@
 @runtime
-@runtime2
 Feature: RUBY Application
 
+  @runtime2
   Scenario Outline: Create Delete one RUBY Application
     Given a new guest account
     And the guest account has no application installed
@@ -33,6 +33,7 @@ Feature: RUBY Application
    |   1.8   |
    |   1.9   |
 
+  @runtime1
   Scenario Outline: Push a code change to a new Ruby application
     Given an accepted node
     And a new guest account
