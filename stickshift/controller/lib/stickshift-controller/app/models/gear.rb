@@ -163,13 +163,23 @@ class Gear < StickShift::Model
   end
   
   def system_messages(comp_inst)
-    get_proxy.system_messages(app,self,comp_inst.parent_cart_name)
+    get_proxy.system_messages(app, self, comp_inst.parent_cart_name)
   end
   
   def add_alias(server_alias)
+    if app.gear.uuid == self.uuid
+      get_proxy.add_alias(app, self, app.framework, server_alias)
+    else
+      ResultIO.new
+    end
   end
   
   def remove_alias(server_alias)
+    if app.gear.uuid == self.uuid
+      get_proxy.remove_alias(app, self, app.framework, server_alias)
+    else
+      ResultIO.new
+    end
   end
     
   def add_authorized_ssh_key(ssh_key, key_type=nil, comment=nil)
