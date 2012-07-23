@@ -1,2 +1,2 @@
 #!/bin/bash
-/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml
+/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml.tmp && mv -f /etc/mcollective/facts.yaml.tmp /etc/mcollective/facts.yaml
