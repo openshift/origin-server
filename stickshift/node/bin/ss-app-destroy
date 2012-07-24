@@ -24,15 +24,22 @@ ss-app-destroy: Deletes an application container.
 
 == Usage
 
-ss-app-destroy --with-container-uuid UUID --with-app-uuid APP_UUID
+ss-app-destroy --with-container-uuid UUID \\
+               --with-container-name NAME \\
+               --with-app-uuid APP_UUID \\
+               --with-app-name APP_NAME \\
+               --with-namespace NAMESPACE
 
-Options:
--h|--help:
-   Prints this message
-
-APP_UUID: Unique identifier for the application
-UUID: Unique identifier for the application
-NAME: The name of the application to create
+== List of arguments
+  -a|--with-app-uuid        app_uuid    Unique application identifier (required)
+  -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
+    |--with-app-name        name        Name of the application (required)
+    |--with-namespace       namespace   Namespace of the application (required)
+    |--with-container-name  gear_name   Name of the gear
+  -n|--dry-run                          Don't make changes, just do a dry run.
+  -q|--porcelain                        TODO: what does this do?
+  -d|--debug                            Enable debug mode
+  -h|--help                             Print this message
 
 USAGE
 end
@@ -42,8 +49,10 @@ require 'stickshift-node'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-app-name",             GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-container-name",       GetoptLong::OPTIONAL_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
-    ["--with-app-name",             GetoptLong::OPTIONAL_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
@@ -63,22 +72,28 @@ if args["--help"]
 end
 
 app_uuid = args['--with-app-uuid']
-uuid = args['--with-container-uuid']
+app_name = args['--with-app-name']
+container_uuid = args['--with-container-uuid']
+container_name = args['--with-container-name'] || args['--with-app-name']
+namespace = args['--with-namespace']
 $dry_run = true if args['--dry-run']
 $ss_debug = true if args['--debug']
 $porcelin = args['--porcelain'] ? true : false
 
-unless uuid
+unless container_uuid
   usage
   exit -100
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(app_uuid,uuid)
-  container.destroy
+  container = StickShift::ApplicationContainer.new(app_uuid, container_uuid, nil, app_name,
+                                                   container_name, namespace, nil, nil)
+  out, err, rc = container.destroy
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
 else
-  exit 0
+  $stdout.puts(out) if out != ""
+  $stderr.puts(err) if err != ""
+  exit rc
 end

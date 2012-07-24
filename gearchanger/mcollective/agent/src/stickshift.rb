@@ -53,17 +53,22 @@ module MCollective
       def ss_app_destroy(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         app_uuid = args['--with-app-uuid']
-        uuid = args['--with-container-uuid']
-        
+        app_name = args['--with-app-name']
+        gear_uuid = args['--with-container-uuid']
+        gear_name = args['--with-container-name']
+        namespace = args['--with-namespace']
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(app_uuid, uuid)
-          container.destroy
+          container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, nil, app_name, gear_name, 
+                                                           namespace, nil, nil)
+          out, err, rc = container.destroy
         rescue Exception => e
           Log.instance.info e.message
           return -1, e.message
         else
-          return 0, output
+          output << out
+          output << err
+          return rc, output
         end
       end
 

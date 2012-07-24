@@ -32,6 +32,4 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-rm_unobfuscated_app_home $namespace $application
-
 rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"

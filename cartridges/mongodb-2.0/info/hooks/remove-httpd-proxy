@@ -38,6 +38,5 @@ APP_HOME="$GEAR_BASE_DIR/$uuid"
 # Only do this for an "standalone" mongodb gear.
 [ "$OPENSHIFT_GEAR_TYPE" = "mongodb-2.0" ]  ||  return 0
 
-rm_unobfuscated_app_home $namespace $application
 
 rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"

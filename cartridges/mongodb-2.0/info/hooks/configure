@@ -17,7 +17,6 @@ function prepare_gear_for_standalone_mongodb() {
 
     setup_configure "$1" $2 $3 $4
     check_cartridge_dir_doesnt_exist
-    unobfuscate_app_home $uuid $namespace $application
 
     # Source the original application name if any.
     source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"

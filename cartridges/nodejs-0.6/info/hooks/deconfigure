@@ -35,7 +35,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 # Deconfigure app.
 setup_deconfigure "$1" $2 $3
 
-remove_all_proxy_ports $uuid
+$CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
 
 if [ ! -d "$APP_HOME/app-root" ]
 then
@@ -59,7 +59,6 @@ else
     enable_cgroups
 fi
 
-rm_unobfuscated_app_home $namespace $application
 
 # And finally, remove virtualhost definition added to Apache.
 rm_httpd_proxy $uuid $namespace $application

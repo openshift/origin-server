@@ -33,7 +33,6 @@ setup_configure "$1" $2 $3 $4
 disable_cgroups
 
 check_cartridge_dir_doesnt_exist
-unobfuscate_app_home $uuid $namespace $application
 
 # Repo
 if [ ! -d $git_url ]; then

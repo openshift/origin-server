@@ -17,15 +17,19 @@
 require 'rubygems'
 require 'stickshift-node/config'
 require 'stickshift-node/model/unix_user'
+require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
 
 module StickShift
   # == Application Container
   class ApplicationContainer < Model
+    include StickShift::Utils::ShellExec
     attr_reader :uuid, :application_uuid, :user
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
+      @config = StickShift::Config.instance
+
       @uuid = container_uuid
       @application_uuid = application_uuid
       @user = UnixUser.new(application_uuid, container_uuid, user_uid,
@@ -46,8 +50,49 @@ module StickShift
     # Destroy gear - model/unix_user.rb
     def destroy
       notify_observers(:before_container_destroy)
+
+      hook_timeout=30
+
+      output = ""
+      errout = ""
+      retcode = 0
+
+      hooks={}
+      ["pre", "post"].each do |hooktype|
+        if @user.homedir.nil?
+          hooks[hooktype]=[]
+        else
+          hooks[hooktype] = Dir.entries(@user.homedir).map { |cart|
+            [ File.join(@config.get("CARTRIDGE_BASE_PATH"),cart,"info","hooks","#{hooktype}-destroy"),
+              File.join(@config.get("CARTRIDGE_BASE_PATH"),"embedded",cart,"info","hooks","#{hooktype}-destroy"),
+            ].select { |hook| File.exists? hook }[0]
+          }.select { |hook|
+            not hook.nil?
+          }.map { |hook|
+            "#{hook} #{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
+          }
+        end
+      end
+
+      hooks["pre"].each do | cmd |
+        out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
+        errout << err if not err.nil?
+        output << out if not out.nil?
+        retcode = 121 if rc != 0
+      end
+
       @user.destroy
-      notify_observers(:after_container_destroy)      
+
+      hooks["post"].each do | cmd |
+        out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
+        errout << err if not err.nil?
+        output << out if not out.nil?
+        retcode = 121 if rc != 0
+      end
+
+      notify_observers(:after_container_destroy)
+
+      return output, errout, retcode
     end
 
     # Public: Fetch application state from gear.
