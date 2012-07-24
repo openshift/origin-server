@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.4
+Version: 0.14.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - Refactor JBoss hot deployment support (ironcladlou@gmail.com)
 - enable java7 (bdecoste@gmail.com)
