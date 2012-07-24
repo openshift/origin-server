@@ -17,8 +17,11 @@
 
 require 'stickshift-node'
 require 'stickshift-common'
+require 'systemu'
 
 module StickShift
+  class NodeCommandException < StandardError; end
+
   class Node < Model
     def self.get_cartridge_list(list_descriptors = false, porcelain = false, ss_debug = false)
       carts = []
@@ -121,6 +124,24 @@ module StickShift
       end
       output
     end
+
+    def self.get_quota(uuid)
+      cmd = %&quota #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
+      st, out, errout = systemu cmd
+      if st.exitstatus == 0
+        arr = out.strip.split(":")
+      else
+        raise NodeCommandException.new "Error: #{errout} executing command #{cmd}"
+      end
+    end
+
+    def self.set_quota(uuid, blocksmax, inodemax)
+      mountpoint = %x[quota #{uuid} | awk '/^.*\\/dev/ {print $1}']
+      cmd = "setquota -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
+      st, out, errout = systemu cmd
+      raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
+    end
+
   end
 end
 

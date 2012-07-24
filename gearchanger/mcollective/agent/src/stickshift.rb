@@ -224,6 +224,40 @@ module MCollective
         end
       end
 
+      def ss_get_quota(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        uuid = args['--uuid']
+
+        output = ""
+        begin
+          output = StickShift::Node.get_quota(uuid)
+        rescue Exception => e
+          Log.instance.info e.message
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
+      def ss_set_quota(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        uuid   = args['--uuid']
+        blocks = args['--blocks']
+        inodes = args['--inodes']
+
+        output = ""
+        begin
+          output = StickShift::Node.set_quota(uuid, blocks, inodes)
+        rescue Exception => e
+          Log.instance.info e.message
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
       def ss_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
@@ -263,6 +297,10 @@ module MCollective
           rc, output = ss_cartridge_list(cmd, args)
         when "app-state-show"
           rc, output = ss_app_state_show(cmd, args)
+        when "get-quota"
+          rc, output = ss_get_quota(cmd, args)
+        when "set-quota"
+          rc, output = ss_set_quota(cmd, args)
         else
           return nil, nil
         end
@@ -277,7 +315,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute)\Z/
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute|get-quota|set-quota)\Z/
         validate :action, :shellsafe
         cartridge = request[:cartridge]
         action = request[:action]
