@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.13.2
+Version: 0.13.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - Fix for bugz 839140 - The haproxy-1.4 cartridge's status is always "SUCESS".
   (ramr@redhat.com)
