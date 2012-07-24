@@ -37,12 +37,19 @@ Installs the OpenShift Origin environment locally
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}/etc/systemd/system
+mkdir -p %{buildroot}/var/run/stickshift
 
 mv bin/ss-setup-node %{buildroot}%{_bindir}
+mv bin/ss-admin-ctl-gears %{buildroot}%{_bindir}
+mv services/stickshift-gears.service %{buildroot}/etc/systemd/system/stickshift-gears.service
 
 %files
 %defattr(-,root,root,-)
 %attr(0700,-,-) /usr/bin/ss-setup-node
+%attr(0700,-,-) /usr/bin/ss-admin-ctl-gears
+/etc/systemd/system
+/var/run/stickshift
 
 %post
 semanage -i - <<_EOF
