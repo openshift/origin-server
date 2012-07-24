@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.14.3
+Version: 0.14.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,11 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
+- Updating gem versions (admiller@redhat.com)
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+
 * Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Updating gem versions (admiller@redhat.com)
 - fix for bug#841407 (rchopra@redhat.com)
