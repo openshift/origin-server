@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.23.2
+Version: 0.23.3
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.23.3-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.23.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
 - Fix bugz 840166 - call mongodb repair automatically if ctl script start
