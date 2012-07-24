@@ -168,7 +168,7 @@ module StickShift
       end
       
       if self.groups.length == 1 && self.groups.first.generated
-        h["Scaling"] = self.groups.first.scaling.to_descriptor
+        h["Scaling"] = self.groups.first.scaling.to_descriptor if !self.groups.first.scaling.generated
       else
         h["Groups"] = {}
         self.groups.each do |v|
