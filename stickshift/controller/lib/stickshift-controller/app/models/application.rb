@@ -53,7 +53,7 @@ class Application < StickShift::Cartridge
   def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil)
     self.user = user
     self.domain = domain
-    self.node_profile = node_profile || DEFAULT_NODE_PROFILE
+    self.node_profile = node_profile
     self.creation_time = DateTime::now().strftime
     self.uuid = uuid || StickShift::Model.gen_uuid
     self.scalable = will_scale
@@ -275,6 +275,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_application_create, {:application => self, :reply => result_io})
     gears_created = []
     begin
+      self.node_profile = DEFAULT_NODE_PROFILE unless self.node_profile
       elaborate_descriptor()
       if self.scalable
         raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework

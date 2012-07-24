@@ -79,11 +79,7 @@ class ApplicationsController < BaseController
     
     template_id = params[:template]
     node_profile = params[:gear_profile]
-    if not node_profile 
-      node_profile = "small"
-    else
-      node_profile.downcase!
-    end
+    node_profile.downcase! if node_profile
 
     if app_name.nil? or app_name.empty?
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Application name is required and cannot be blank")
