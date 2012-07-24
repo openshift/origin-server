@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.13.2
+Version: 0.13.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,10 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Generate fields in the descriptor only if they are not empty or default value
+  (kraman@gmail.com)
+
 * Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - Bug 841073 (dmcphers@redhat.com)
 
