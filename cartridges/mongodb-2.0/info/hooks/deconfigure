@@ -46,7 +46,7 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 
 # For non-embedded (dedicated) mongo gear, destroy the git repo and stop app.
 if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
-   remove_all_proxy_ports $uuid
+   $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
 
    # Destroy git repo and stop app.
    destroy_git_repo $application $uuid
@@ -69,7 +69,6 @@ runcon -l s0-s0:c0.c1023 rm -rf "$MONGODB_DIR" "$MONGODB_DIR/${application}_mong
 if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
     # Blow away the directories.
     rm_app_dir
-    rm_unobfuscated_app_home $namespace $application
 
     # Remove apache vhost configuration.
     rm_httpd_proxy $uuid $namespace $application
