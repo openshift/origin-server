@@ -1,6 +1,6 @@
 class GroupInstance < StickShift::Model
   attr_accessor :app, :gears, :node_profile, :component_instances, 
-    :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max
+    :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb
   exclude_attributes :app
 
   def initialize(app, cartname=nil, profname=nil, groupname=nil, path=nil)
