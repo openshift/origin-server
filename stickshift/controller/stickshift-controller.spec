@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.5
+Version: 0.14.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,16 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.6-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+- Generate fields in the descriptor only if they are not empty or default value
+  (kraman@gmail.com)
+- Bug 842267 (dmcphers@redhat.com)
+- Rebalance threading for runtime tests (jhonce@redhat.com)
+- adjust when tests run (jhonce@redhat.com)
+- reorg runtime tests into 4 groups (dmcphers@redhat.com)
+
 * Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
 - Bug 841073 (dmcphers@redhat.com)
 
