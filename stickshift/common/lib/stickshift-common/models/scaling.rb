@@ -1,10 +1,14 @@
 module StickShift
   class Scaling < StickShift::Model
-    attr_accessor :min, :max
+    attr_accessor :min, :max, :generated
     
     def initialize
       self.min = 1
       self.max = -1
+    end
+
+    def generated
+      self.min == 1 && self.max == -1
     end
     
     def from_descriptor(spec_hash = {})
