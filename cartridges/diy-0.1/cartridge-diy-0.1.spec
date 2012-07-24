@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.30.2
+Version: 0.30.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.30.3-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.30.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
 
