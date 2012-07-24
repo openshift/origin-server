@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.1.1
+Version: 0.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,13 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
+- Add pre and post destroy calls on gear destruction and move unobfuscate and
+  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+- BROKE THE BUILD (admiller@redhat.com)
+- BZ 841681: Make update_yaml single instance and use tmp file for
+  generating/updating facts. (mpatel@redhat.com)
+
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.1.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
