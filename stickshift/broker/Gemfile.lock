@@ -93,6 +93,7 @@ GEM
     rdoc (3.7)
     regin (0.3.7)
     state_machine (1.1.2)
+    systemu (1.2.0)
     thor (0.14.6)
     treetop (1.4.10)
       polyglot
@@ -114,4 +115,5 @@ DEPENDENCIES
   rails (~> 3.0.13)
   rcov
   regin
+  systemu
   xml-simple
