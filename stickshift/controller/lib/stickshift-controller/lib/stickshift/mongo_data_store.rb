@@ -66,10 +66,10 @@ module StickShift
       query = {}
       if opts
         if opts[:with_gears]
-          query["apps.group_instances.gears"] = {"$exists" => true}
+          query["apps.group_instances.gears.0"] = {"$exists" => true}
         end
-        if opts[:with_gear_usage]
-          query["gear_usage_records"] = {"$exists" => true}
+        if opts[:with_usage]
+          query["usage_records.0"] = {"$exists" => true}
         end
       end
       mcursor = user_collection.find(query, {:fields => []})
@@ -113,7 +113,7 @@ module StickShift
 
       hash_list
     end
-    
+
     def save(obj_type, user_id, id, obj_attrs)
       Rails.logger.debug "MongoDataStore.save(#{obj_type}, #{user_id}, #{id}, #hidden)\n\n"
       case obj_type
@@ -123,8 +123,8 @@ module StickShift
         put_app(user_id, id, obj_attrs)
       when "Domain"
         put_domain(user_id, id, obj_attrs)
-      when "GearUsageRecord"
-        put_gear_usage_record(user_id, id, obj_attrs)
+      when "UsageRecord"
+        put_usage_record(user_id, id, obj_attrs)
       end
     end
     
@@ -153,15 +153,15 @@ module StickShift
         delete_domain(user_id, id)
       when "ApplicationTemplate"
         delete_application_template(id)
-      when "GearUsageRecord"
-        delete_gear_usage_record(user_id, id)
+      when "UsageRecord"
+        delete_usage_record(user_id, id)
       end
     end
-    
-    def delete_gear_usage_record_by_gear_uuid(user_id, gear_uuid)
-      Rails.logger.debug "MongoDataStore.delete_gear_usage_record_by_gear_uuid(#{user_id}, #{gear_uuid})\n\n"
+
+    def delete_usage_record_by_gear_uuid(user_id, gear_uuid, usage_type)
+      Rails.logger.debug "MongoDataStore.delete_usage_record_by_gear_uuid(#{user_id}, #{gear_uuid}, #{usage_type})\n\n"
       update( user_collection, { "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"gear_uuid" => gear_uuid }}} )
+                               { "$pull" => { "usage_records" => {"gear_uuid" => gear_uuid, "usage_type" => usage_type}}} )
     end
 
     def db
@@ -408,8 +408,8 @@ module StickShift
           if opts[:with_gears]
             query["apps.group_instances.gears"] = {"$exists" => true}
           end
-          if opts[:with_gear_usage]
-            query["gear_usage_records"] = {"$exists" => true}
+          if opts[:with_usage]
+            query["usage_records"] = {"$exists" => true}
           end
         end
         mcursor = user_collection.find(query)
@@ -477,7 +477,7 @@ module StickShift
       changed_user_attrs.delete("apps")
       changed_user_attrs.delete("domains")
       changed_user_attrs.delete("consumed_gears")
-      changed_user_attrs.delete("gear_usage_records")
+      changed_user_attrs.delete("usage_records")
 
       update( user_collection, { "_id" => user_id }, { "$set" => changed_user_attrs } )
     end
@@ -495,14 +495,14 @@ module StickShift
       ngears = app_attrs["ngears"]
       ngears = ngears.to_i
       app_attrs.delete("ngears")
-      gear_usage_records = app_attrs["gear_usage_records"]
-      app_attrs.delete("gear_usage_records")
+      usage_records = app_attrs["usage_records"]
+      app_attrs.delete("usage_records")
       destroyed_gears = app_attrs["destroyed_gears"]
       app_attrs.delete("destroyed_gears")
 
       updates = { "$set" => { "apps.$" => app_attrs } }
-      if gear_usage_records
-        updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
+      if usage_records
+        updates["$pushAll"] = { "usage_records" => usage_records }
       end
       if ngears != 0
         updates["$inc"] = { "consumed_gears" => ngears }
@@ -560,13 +560,13 @@ COND
       ngears = app_attrs["ngears"]
       ngears = ngears.to_i
       app_attrs.delete("ngears")
-      gear_usage_records = app_attrs["gear_usage_records"]
-      app_attrs.delete("gear_usage_records")
+      usage_records = app_attrs["usage_records"]
+      app_attrs.delete("usage_records")
       app_attrs.delete("destroyed_gears")
       
       updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
-      if gear_usage_records
-        updates["$pushAll"] = { "gear_usage_records" => gear_usage_records }
+      if usage_records
+        updates["$pushAll"] = { "usage_records" => usage_records }
       end
 
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
@@ -602,14 +602,14 @@ COND
       update( user_collection, { "_id" => user_id, "apps.name" => id},
              { "$pull" => { "apps" => {"name" => id }}})
     end
-    
-    def put_gear_usage_record(user_id, id, gear_usage_attrs)
-      update( user_collection, { "_id" => user_id, "gear_usage_records.uuid" => id}, { "$set" => { "gear_usage_records.$" => gear_usage_attrs }} )
+
+    def put_usage_record(user_id, id, usage_attrs)
+      update( user_collection, { "_id" => user_id, "usage_records.uuid" => id}, { "$set" => { "usage_records.$" => usage_attrs }} )
     end
     
-    def delete_gear_usage_record(user_id, id)
-      update( user_collection, { "_id" => user_id },
-             { "$pull" => { "gear_usage_records" => {"uuid" => id }}} )
+    def delete_usage_record(user_id, id)
+      update( user_collection, { "_id" => user_id,  },
+             { "$pull" => { "usage_records" => {"uuid" => id }}} )
     end
 
     def app_attrs_to_internal(app_attrs)
