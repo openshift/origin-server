@@ -156,7 +156,6 @@ chkconfig sshd on
 chkconfig httpd on
 chkconfig qpidd on
 chkconfig mcollective on
-chkconfig NetworkManager off
 chkconfig network on
 
 %postun

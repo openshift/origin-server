@@ -3,7 +3,7 @@
 part / --size 4000
 selinux --enforcing
 firewall --enabled --service=mdns,ssh,dns,https,http
-services --enabled=network,sshd --disabled=NetworkManager
+services --enabled=network,sshd
 bootloader --append="biosdevname=0 3"
 
 repo --name=fedora --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-$releasever&arch=$basearch
