@@ -729,7 +729,6 @@ module GearChanger
                 end
               end
             end
-            # deconfigure destination
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
             reply.append destination_container.destroy(app, gear, keep_uid)
@@ -779,21 +778,6 @@ module GearChanger
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
-          gi = app.group_instance_map[gear.group_instance_name]
-          # gi.component_instances.each do |ci_name|
-          app.configure_order.reverse.each do |ci_name|
-            next if not gi.component_instances.include? ci_name
-            cinst = app.comp_instance_map[ci_name]
-            cart = cinst.parent_cart_name
-            next if cart==app.name
-            begin
-              if framework_carts.include? cart or app.scalable
-                reply.append source_container.run_cartridge_command(cart, app, gear, "deconfigure", nil, false) if not cart.include? "jenkins"
-              end
-            rescue Exception => e
-              log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
-            end
-          end
           reply.append source_container.destroy(app, gear, keep_uid, orig_uid)
         rescue Exception => e
           log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"

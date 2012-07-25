@@ -274,7 +274,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_application_create, {:application => self, :reply => result_io})
     gears_created = []
     begin
-      elaborate_descriptor()
+      elaborate_descriptor
       if self.scalable
         raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
         min_gear_count = 0
@@ -312,7 +312,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def cleanup_and_delete
     reply = ResultIO.new
     reply.append self.destroy_dns
-    reply.append self.deconfigure_dependencies
     reply.append self.destroy
     self.delete
     reply
@@ -322,21 +321,37 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def destroy
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
-    s,f = run_on_gears(nil, reply, false) do |gear, r|
-      group_instance = self.group_instance_map[gear.group_instance_name]
-      r.append group_instance.remove_gear(gear)
+
+    # Destroy in the reverse order of configure.
+    group_instances = []
+    self.configure_order.reverse.each do |comp_inst_name|
+      comp_inst = self.comp_instance_map[comp_inst_name]
+      next if comp_inst.parent_cart_name == self.name
+      group_inst = self.group_instance_map[comp_inst.group_instance_name]
+      group_instances.delete(group_inst)
+      group_instances << group_inst
     end
+
+    failures = []
+    group_instances.each do |group_inst|
+      s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
+        r.append group_inst.remove_gear(gear)
+      end
+      failures += f
+    end
+
     begin
       self.save if self.persisted?
     rescue Exception => e
       # pass on failure... because we maybe wanting a delete here instead anyway
     end
 
-    f.each do |data|
+    failures.each do |data|
       Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
       Rails.logger.debug(data[:exception].backtrace.inspect)
     end
-    raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if f.length > 0
+
+    raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if failures.length > 0
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
   end
@@ -395,12 +410,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       dns.close
     end
 
-    comps_to_deconfigure = gear.configured_components.dup
-    comps_to_deconfigure.each { |conf_comp|
-      cinst = self.comp_instance_map[conf_comp]
-      result_io.append gear.deconfigure(cinst)
-    }
-
     result_io.append ginst.remove_gear(gear)
 
     # inform anyone who needs to know that this gear is no more
@@ -409,39 +418,15 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     result_io
   end
   
-  # Elaborates the descriptor, deconfigures cartridges that were removed and configures cartridges that were added to the application dependencies.
+  # Elaborates the descriptor, configures cartridges that were added to the application dependencies.
   # If a node is empty after removing components, then the gear is destroyed. Errors that occur while removing cartridges are logged but no exception is thrown.
   # If an error occurs while configuring a cartridge, then the cartirdge is deconfigures on all nodes and an exception is thrown.
   def configure_dependencies
     reply = ResultIO.new
     self.class.notify_observers(:before_application_configure, {:application => self, :reply => reply})
-    
-    removed_component_instances = elaborate_descriptor()
-    #remove unused components
-    removed_component_instances.each do |comp_inst_name|
-      comp_inst = self.comp_instance_map[comp_inst_name]
-      next if comp_inst.parent_cart_name == self.name
-      group_inst = self.group_instance_map[comp_inst.group_instance_name]
-      s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append gear.deconfigure(comp_inst)
-        r.append process_cartridge_commands(r.cart_commands)
-        # self.save
-      end
-      
-      f.each do |failed_data|
-        Rails.logger.debug("Failed to deconfigure cartridge #{comp_inst.parent_cart_name} on gear #{failed_data[:gear].server_identity}:#{failed_data[:gear].uuid}")
-        Rails.logger.debug("Exception #{failed_data[:exception].message}")
-        Rails.logger.debug("#{failed_data[:exception].backtrace.inspect}")
-      end
-      
-      run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
-      end
 
-    end
-    cleanup_deleted_components
-    # self.save
-    
+    elaborate_descriptor
+
     exceptions = []
     Rails.logger.debug "Configure order is #{self.configure_order.inspect}"
     #process new additions
@@ -462,7 +447,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
             r.append gear.expose_port(comp_inst) if doExpose
           rescue Exception=>e
           end
-          r.append process_cartridge_commands(r.cart_commands)
+          process_cartridge_commands(r)
         end
       rescue Exception => e
         Rails.logger.debug e.message
@@ -472,7 +457,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         successful_gears = e.message[:successful].map{|g| g[:gear]} if e.message[:successful]
         failed_gears = []
         failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
-        gear_exception = e.message[:exception]        
+        gear_exception = e.message[:exception]
 
         #remove failed component from all gears
         run_on_gears(successful_gears, reply, false) do |gear, r|
@@ -547,35 +532,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       }
       # we dont care about subscriber's output/status
     }
-  end
-
-  # Deconfigure all cartriges for the application. Errors are logged but no exception is thrown.
-  def deconfigure_dependencies
-    reply = ResultIO.new
-    self.class.notify_observers(:before_application_deconfigure, {:application => self, :reply => reply})  
-    if(self.configure_order)
-      self.configure_order.reverse.each do |comp_inst_name|
-        comp_inst = self.comp_instance_map[comp_inst_name]
-        next if comp_inst.parent_cart_name == self.name
-        group_inst = self.group_instance_map[comp_inst.group_instance_name]
-        run_on_gears(group_inst.gears, reply, false) do |gear, r|
-          begin
-            r.append gear.deconfigure(comp_inst)
-          rescue Exception => e
-            Rails.logger.error("Error deconfiguring '#{comp_inst_name}' with message: #{e.message}")
-          end
-          r.append process_cartridge_commands(r.cart_commands)
-        end
-      end
-    end
-    begin
-      self.save if self.persisted?
-    rescue Exception=>e
-      # do nothing.. raising an exception will spoil the destroy work
-      # we may be wanting a delete in the flow here anyway
-    end
-    self.class.notify_observers(:after_application_deconfigure, {:application => self, :reply => reply})
-    reply
   end
 
   # Start a particular dependency on all gears that host it. 
@@ -1095,10 +1051,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     begin
       reply.append self.configure_dependencies
       self.execute_connections
-    rescue Exception=>e
+    rescue Exception => e
       remove_from_requires_feature(dep)
       self.elaborate_descriptor
-      cleanup_deleted_components
       self.save
       raise e
     end
@@ -1115,7 +1070,33 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     raise StickShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 101) unless self.embedded.include? dep
     raise StickShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 101) if (self.scalable and self.proxy_cartridge==dep)
     remove_from_requires_feature(dep)
-    reply.append self.configure_dependencies
+    elaborate_descriptor { |removed_component_instances|
+      #remove unused components
+      removed_component_instances.each do |comp_inst_name|
+        comp_inst = self.comp_instance_map[comp_inst_name]
+        next if comp_inst.parent_cart_name == self.name
+        group_inst = self.group_instance_map[comp_inst.group_instance_name]
+        s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          unless gear.configured_components.length == 1 && gear.configured_components.first == comp_inst.name
+            reply.append gear.deconfigure(comp_inst)
+            process_cartridge_commands(r)
+          end
+        end
+
+        f.each do |failed_data|
+          Rails.logger.debug("Failed to deconfigure cartridge #{comp_inst.parent_cart_name} on gear #{failed_data[:gear].server_identity}:#{failed_data[:gear].uuid}")
+          Rails.logger.debug("Exception #{failed_data[:exception].message}")
+          Rails.logger.debug("#{failed_data[:exception].backtrace.inspect}")
+        end
+
+        run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          if gear.configured_components.empty? || (gear.configured_components.length == 1 && gear.configured_components.first == comp_inst.name)
+            reply.append group_inst.remove_gear(gear)
+          end
+        end
+      end
+    }
+    self.save
     self.class.notify_observers(:after_remove_dependency, {:application => self, :dependency => dep, :reply => reply})
     reply
   end
@@ -1296,7 +1277,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.group_override_map = {} 
     self.conn_endpoints_list = [] 
     default_profile = @profile_name_map[@default_profile]
-    
+
     default_profile.groups.each { |g|
       #gpath = self.name + "." + g.name
       gpath = self.get_name_prefix + g.get_name_prefix
@@ -1334,7 +1315,16 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   
     deleted_components_list = []
     self.comp_instance_map.each { |k,v| deleted_components_list << k if self.working_comp_inst_hash[k].nil?  }
-    deleted_components_list
+    
+    yield deleted_components_list if block_given?
+    
+    # delete entries in {group,comp}_instance_map that do 
+    # not exist in working_{group,comp}_inst_hash
+    self.group_instance_map.delete_if { |k,v| 
+      v.component_instances.delete(k) if self.working_comp_inst_hash[k].nil? and v.component_instances.include?(k)
+      self.working_group_inst_hash[k].nil?
+    }
+    self.comp_instance_map.delete_if { |k,v| self.working_comp_inst_hash[k].nil?  }
   end
   
   # Get path for checking application health
@@ -1350,8 +1340,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
   end
   
-  def process_cartridge_commands(commands)
-    result = ResultIO.new
+  def process_cartridge_commands(result)
+    commands = result.cart_commands
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
@@ -1376,7 +1366,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     if user.save_jobs
       user.save
     end
-    result
+    commands.clear
   end
 
   def track_usage(gear, event, usage_type=UsageRecord::USAGE_TYPES[:gear_usage])
@@ -1416,16 +1406,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
 
 private
-
-  def cleanup_deleted_components
-    # delete entries in {group,comp}_instance_map that do 
-    # not exist in working_{group,comp}_inst_hash
-    self.group_instance_map.delete_if { |k,v| 
-      v.component_instances.delete(k) if self.working_comp_inst_hash[k].nil? and v.component_instances.include?(k)
-      self.working_group_inst_hash[k].nil? 
-    }
-    self.comp_instance_map.delete_if { |k,v| self.working_comp_inst_hash[k].nil?  }
-  end
   
   def get_exec_order(default_profile)
     self.configure_order = []
