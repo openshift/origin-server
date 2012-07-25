@@ -11,6 +11,7 @@ gem 'open4'
 gem 'stickshift-node'
 gem 'stickshift-controller'
 gem 'rest-client'
+gem 'systemu'
 
 # Add plugin gems here
 
