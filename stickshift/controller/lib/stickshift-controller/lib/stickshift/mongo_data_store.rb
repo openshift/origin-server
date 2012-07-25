@@ -125,6 +125,10 @@ module StickShift
         put_domain(user_id, id, obj_attrs)
       when "UsageRecord"
         put_usage_record(user_id, id, obj_attrs)
+      when "Gear"
+        put_gear(user_id, id, obj_attrs)
+      when "GroupInstance"
+        put_group_instance(user_id, id, obj_attrs)
       end
     end
     
@@ -139,10 +143,14 @@ module StickShift
         add_domain(user_id, id, obj_attrs)
       when "ApplicationTemplate"
         save_application_template(id, obj_attrs)
+      when "Gear"
+        create_gear(user_id, id, obj_attrs)
+      when "GroupInstance"
+        create_group_instance(user_id, id, obj_attrs)
       end
     end
     
-    def delete(obj_type, user_id, id=nil)
+    def delete(obj_type, user_id, id=nil, attrs=nil)
       Rails.logger.debug "MongoDataStore.delete(#{obj_type}, #{user_id}, #{id})\n\n"
       case obj_type
       when "CloudUser"
@@ -155,6 +163,10 @@ module StickShift
         delete_application_template(id)
       when "UsageRecord"
         delete_usage_record(user_id, id)
+      when "Gear"
+        delete_gear(user_id, id, attrs)
+      when "GroupInstance"
+        delete_group_instance(user_id, id, attrs)
       end
     end
 
@@ -490,87 +502,132 @@ module StickShift
       user_attrs.delete("_id")
     end
 
+    def create_group_instance(user_id, ginst_uuid, gi_attrs)
+      app_name = gi_attrs["app_name"]
+      gi_attrs.delete("app_name")
+      gi_attrs["gears"] = []
+      query = { "_id" => user_id, "apps.name" => app_name }
+      updates = { "$set" => { "apps.$.group_instances.#{ginst_uuid}" => gi_attrs } }
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not create group instance '#{ginst_uuid}' for '#{user_id}'", 1) if hash == nil
+    end
+
+    def delete_group_instance(user_id, ginst_uuid, gi_attrs)
+      app_name = gi_attrs["app_name"]
+      # gi_attrs.delete("gears")
+      # check and make sure there are no gears in this group instance
+      query = { "_id" => user_id, "apps.name" => app_name }
+      updates = { "$unset" => { "apps.$.group_instances.#{ginst_uuid}" => 1 } }
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not update group instance '#{ginst_uuid}' for '#{user_id}'", 1) if hash == nil
+    end
+
+    def put_group_instance(user_id, ginst_uuid, gi_attrs)
+      app_name = gi_attrs["app_name"]
+      gi_attrs.delete("app_name")
+      gi_attrs.delete("gears")
+      query = { "_id" => user_id, "apps.name" => app_name , "apps.group_instances.#{ginst_uuid}" => { "$exists" => true } }
+      field_attrs = {}
+      gi_attrs.each { |k, v|
+        field_attrs["apps.$.group_instances.#{ginst_uuid}." + k] = v
+      }
+      updates = { "$set" => field_attrs } 
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not update group instance '#{ginst_uuid}' for '#{user_id}'", 1) if hash == nil
+    end
+
     def put_app(user_id, id, app_attrs)
       app_attrs_to_internal(app_attrs)
-      ngears = app_attrs["ngears"]
-      ngears = ngears.to_i
-      app_attrs.delete("ngears")
       usage_records = app_attrs["usage_records"]
       app_attrs.delete("usage_records")
-      destroyed_gears = app_attrs["destroyed_gears"]
-      app_attrs.delete("destroyed_gears")
 
-      updates = { "$set" => { "apps.$" => app_attrs } }
+      field_updates = {}
+      app_attrs.each do |field_key, field_value|
+        if field_key=="group_instances"
+          field_value.each do |ginst_attrs|
+            ginst_uuid = ginst_attrs["uuid"]
+            ginst_attrs.delete("gears")
+            ginst_attrs.each { |k, v|
+              field_updates["apps.$.group_instances.#{ginst_uuid}." + k] = v
+            }
+          end
+        else
+          key = "apps.$."+field_key
+          field_updates[key] = field_value
+        end
+      end
+      # updates = { "$set" => { "apps.$" => app_attrs } }
+      updates = { "$set" => field_updates }
       if usage_records
         updates["$pushAll"] = { "usage_records" => usage_records }
       end
-      if ngears != 0
-        updates["$inc"] = { "consumed_gears" => ngears }
-      end
 
-      if ngears != 0
-        condition = ""
-# TODO: Needs fix, condition should be applicable ONLY for scale-up/scale-down events
-#        if app_attrs["scalable"]
-        if false
-          condition = <<COND
-if ((this.consumed_gears + #{ngears}) > this.max_gears) {
-  return false;
-}
-var i,j;
-for(i=0; i<this.apps.length; i++) {
-  if (this.apps[i].name !== '#{id}') {
-    continue;
-  }
-  for (j=0; j<this.apps[i].group_instances.length; j++) {
-    if ((this.apps[i].group_instances[j].gears.length > 0) &&
-        (this.apps[i].group_instances[j].gears[0].group_instance_name === '@@app/group-web')) {
-      if (((this.apps[i].group_instances[j].max == -1) ||
-           (this.apps[i].group_instances[j].gears.length + #{ngears} <= this.apps[i].group_instances[j].max)) &&
-          (this.apps[i].group_instances[j].gears.length + #{ngears} >= this.apps[i].group_instances[j].min)) {
-        return true;
-      } else {
-        return false;
+      query = { "_id" => user_id, "apps.name" => id }
+
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
+      # update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
+    end
+
+    def put_gear(user_id, gear_uuid, gear_attrs)
+      app_index = gear_attrs["app_index"]
+      app_name = gear_attrs["app_name"]
+      gear_attrs.delete("app_name")
+      ginst_uuid = gear_attrs["ginst_uuid"]
+
+      field_attrs = {}
+      gear_attrs.each { |k, v|
+        field_attrs["apps.#{app_index}.group_instances.#{ginst_uuid}.gears.$." + k] = v
       }
-    }
-  }
-  return true;
-}
-return true;
-COND
-        else
-          condition = "(this.consumed_gears + #{ngears}) <= this.max_gears"
-        end
-        query = { "_id" => user_id, "apps.name" => id, "$where" => condition }
-        
-        if destroyed_gears && !destroyed_gears.empty?
-          query["apps.group_instances.gears.uuid"] = { "$in" => destroyed_gears }
-        end
+      updates = { "$set" => field_attrs }
+      query = { "_id" => user_id, "apps.#{app_index}.group_instances.#{ginst_uuid}.gears.uuid" => gear_uuid, "apps.name" => app_name} 
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not update gear '#{gear_uuid}' for '#{user_id}'", 1) if hash == nil
+    end
 
-        hash = find_and_modify( user_collection, { :query => query,
-               :update => updates })
-        raise StickShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
-      else
-        update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
-      end
+    def create_gear(user_id, gear_uuid, gear_attrs)
+      app_name = gear_attrs["app_name"]
+      gear_attrs.delete("app_name")
+      ginst_uuid = gear_attrs["ginst_uuid"]
+
+      updates = { "$push" => { "apps.$.group_instances.#{ginst_uuid}.gears" => gear_attrs }, "$inc" => { "consumed_gears" => 1 } }
+      condition =  "(this.consumed_gears < this.max_gears)"
+      query = { "_id" => user_id, "apps.name" => app_name, "apps.group_instances.#{ginst_uuid}" => { "$exists" => true }, "$where" => condition }
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not create gear '#{gear_uuid}' for '#{user_id}'", 1) if hash == nil
+    end
+
+    def delete_gear(user_id, gear_uuid, gear_attrs)
+      app_name = gear_attrs["app_name"]
+      gear_attrs.delete("app_name")
+      ginst_uuid = gear_attrs["ginst_uuid"]
+
+      updates = { "$pull" => { "apps.$.group_instances.#{ginst_uuid}.gears" => { "uuid" => gear_uuid } }, "$inc" => { "consumed_gears" => -1 } }
+      query = { "_id" => user_id, "apps.name" => app_name, "apps.group_instances.#{ginst_uuid}" => { "$exists" => true }}
+      hash = find_and_modify( user_collection, { :query => query, :update => updates })
+      raise StickShift::UserException.new("Consistency check failed.  Could not delete gear '#{gear_uuid}' for '#{user_id}'", 1) if hash == nil
     end
 
     def add_app(user_id, id, app_attrs)
       app_attrs_to_internal(app_attrs)
-      ngears = app_attrs["ngears"]
-      ngears = ngears.to_i
-      app_attrs.delete("ngears")
       usage_records = app_attrs["usage_records"]
       app_attrs.delete("usage_records")
-      app_attrs.delete("destroyed_gears")
+      gi_attrs = app_attrs["group_instances"]
+      app_attrs.delete("group_instances")
+      new_gi_attrs = {}
+      gi_attrs.each { |ginst_attrs|
+        ginst_attrs.delete("gears")
+        new_gi_attrs[ginst_attrs["uuid"]] = ginst_attrs
+      }
+      app_attrs["group_instances"] = new_gi_attrs
       
-      updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
+      updates = { "$push" => { "apps" => app_attrs } }
       if usage_records
         updates["$pushAll"] = { "usage_records" => usage_records }
       end
 
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
-             "$where" => "((this.consumed_gears + #{ngears}) <= this.max_gears) && (this.domains.length > 0)"},
+             "$where" => "(this.consumed_gears <= this.max_gears) && (this.domains.length > 0)"},
              :update => updates })
       raise StickShift::UserException.new("Failed: Either application limit has already reached or " +
                                           "domain doesn't exist for '#{user_id}'", 104) if hash == nil
