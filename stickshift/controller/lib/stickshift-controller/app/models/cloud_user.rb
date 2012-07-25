@@ -1,5 +1,6 @@
  class CloudUser < StickShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, :auth_method, :save_jobs, :gear_usage_records, :capabilities, :parent_user_login, :plan_id
+  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, 
+                :auth_method, :save_jobs, :gear_usage_records, :capabilities, :parent_user_login, :plan_id, :usage_tracker_id
   primary_key :login
   exclude_attributes :applications, :auth_method, :save_jobs, :gear_usage_records
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
@@ -25,7 +26,8 @@
     end if val
   end
 
-  def initialize(login=nil, ssh=nil, ssh_type=nil, key_name=nil, capabilities=nil, parent_login=nil)
+  def initialize(login=nil, ssh=nil, ssh_type=nil, key_name=nil, capabilities=nil, 
+                 parent_login=nil, plan_id=nil, usage_tracker_id=nil)
     super()
     if not ssh.nil?
       ssh_type = "ssh-rsa" if ssh_type.to_s.strip.length == 0
@@ -38,7 +40,8 @@
     self.login = login
     self.domains = []
     self.max_gears = Rails.configuration.ss[:default_max_gears]
-    self.plan_id = :freeshift
+    self.plan_id = plan_id
+    self.usage_tracker_id = usage_tracker_id
     self.capabilities = capabilities || {}
     self.parent_user_login = parent_login
 
