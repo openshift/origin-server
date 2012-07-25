@@ -115,6 +115,14 @@ module StickShift
         
         FileUtils.chown("root", @uuid, @homedir)
         FileUtils.chmod 0o0750, @homedir
+
+        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+          unobfuscated = File.join(File.dirname(@homedir),"#{@container_name}-#{namespace}")
+          if not File.exists? unobfuscated
+            FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
+          end
+        end
+
       end
       notify_observers(:after_unix_user_create)
       initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
@@ -150,7 +158,7 @@ module StickShift
       end
       
       if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-        Dir.entries(File.dirname(@homedir)).each do |dent|
+        Dir.foreach(File.dirname(@homedir)) do |dent|
           unobfuscate = File.join(File.dirname(@homedir), dent)
           if (File.symlink?(unobfuscate)) &&
               (File.readlink(unobfuscate) == File.basename(@homedir))
@@ -384,13 +392,6 @@ module StickShift
       notify_observers(:before_initialize_homedir)
       homedir = homedir.end_with?('/') ? homedir : homedir + '/'
 
-      if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-        unobfuscated = File.join(@homedir,"..","#{@container_name}-#{namespace}")
-        if not File.exists? unobfuscated
-          FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
-        end
-      end
-      
       tmp_dir = File.join(homedir, ".tmp")
       # Required for polyinstantiated tmp dirs to work
       FileUtils.mkdir_p tmp_dir
