@@ -752,6 +752,14 @@ function disable_cgroups {
     return 0
 }
 
+function enable_stale_detection {
+    return 0
+}
+
+function  disable_stale_detection {
+    return 0
+}
+
 function resolve_application_dependencies {
     uuid=$1
     application=$2

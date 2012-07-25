@@ -50,6 +50,9 @@ if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
 
    # Destroy git repo and stop app.
    destroy_git_repo $application $uuid
+
+   enable_stale_detection
+
    stop_app
 fi
 
