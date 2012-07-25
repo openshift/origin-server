@@ -26,20 +26,26 @@ def usage
 ss-setup-broker: Script to setup the broker and required services on this machine.
   This command must be run as root.
 
-== Usage
-  -i|--static-ip <IP>                   Sets up the vm to use a static IP and not regenrate the forwarders file using dhcp hooks
-  -n|--static-dns <IP>[,<IP>]		Comma seperated list of IP addresses to use for DNS forwarding
-  -d|--eth-device                       Ethernet device to use for broker setup. Defaults to eth0
-  -h|--help                             Print this message
+== List of arguments
+  --eip|--external-ip <IP>		Setus up the VM to use a static IP on the external ethernet device. (Defaults to DHCP)
+  --ed |--external-device		Setus up the VM to use specified ethernet device. Default: eth0
+  --iip|--internal-ip			Setus up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
+  --id |--internal-device		Setus up the VM to use specified ethernet device. (Defaults to same as external)
+  --n  |--static-dns <IP>[,<IP>]		Comma seperated list of IP addresses to use for DNS forwarding
+       |--skip-node                      Skip node setup (default: false if openshift-broker-node package is installed)
+  -?   |--help                           Print this message
 
 USAGE
 end
 
 opts = GetoptLong.new(
-    ["--static-ip",           "-i", GetoptLong::OPTIONAL_ARGUMENT],        
-    ["--static-dns",          "-n", GetoptLong::OPTIONAL_ARGUMENT],        
-    ["--eth-device",          "-d", GetoptLong::OPTIONAL_ARGUMENT],        
-    ["--help",                "-?", GetoptLong::NO_ARGUMENT])
+    ["--external-ip",           "--eip", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--external-device",       "--ed" , GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--internal-ip",           "--iip", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--internal-device",       "--id" , GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--static-dns",            "--n"  , GetoptLong::OPTIONAL_ARGUMENT],
+    ["--skip-node",                     GetoptLong::NO_ARGUMENT],
+    ["--help",                  "-?"  , GetoptLong::NO_ARGUMENT])
 
 args = {}
 begin
@@ -49,20 +55,38 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
-eth_device = args["--eth-device"] || "eth0"
-use_dhcp   = args["--static-ip"].nil?
-dns        = args["--static-dns"]
-dns_address = dns.split(/,/) unless dns.nil?
 
-if use_dhcp
-  ip_address = `ip addr show dev #{eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
-else
-  ip_address = args["--static-ip"]
+if args["--help"]
+  usage
+  exit 0
 end
 
+ext_eth_device = args["--external-device"] || "eth0"
+ext_address    = args["--external-ip"]
+int_eth_device = args["--internal-device"] || ext_eth_device
+int_address    = args["--internal-ip"]
+dns            = args["--static-dns"]
+dns_address    = dns.split(/,/) unless dns.nil?
+ext_dhcp       = false
+int_dhcp       = false
+
+
+if ext_address.nil? #DHCP
+  ext_address = `ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  ext_dhcp = true
+end 
+
+if int_address.nil? #DHCP
+  int_address = `ip addr show dev #{int_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  int_dhcp = true
+end
+
+ext_hw_address = `ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+int_hw_address = `ip addr show dev #{int_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+
 if dns_address.nil?
-  if use_dhcp
-    dns_address = `cat /var/lib/dhclient/dhclient-*#{eth_device}.lease* | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
+  if ext_dhcp
+    dns_address = `cat /var/lib/dhclient/dhclient-*#{ext_eth_device}.lease* | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
     dns_address.delete '127.0.0.1'
   else
     dns_address = ["8.8.8.8", "8.8.4.4"]
@@ -75,7 +99,7 @@ if dns_address.nil? || dns_address.length == 0
   exit -1
 end
 
-if ip_address.nil? || ip_address.empty?
+if ext_address.nil? || ext_address.empty?
   print "Error: Unable to determine IP address of server.\n\n"
   usage
   exit -1
@@ -86,33 +110,40 @@ if args["--help"]
   exit -1
 end
 
-if use_dhcp
-  File.open("/etc/sysconfig/network-scripts/ifcfg-#{eth_device}","w") do |f|
-    f.write "DEVICE=#{eth_device}\n"
+
+### Begin network setup
+
+if ext_dhcp
+  File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
+    f.write "DEVICE=#{ext_eth_device}\n"
     f.write "BOOTPROTO=dhcp\n"
     f.write "ONBOOT=yes\n"
-    f.write "NM_MANAGED=no\n"
+    f.write "#NM_CONTROLLED=no\n"
+    f.write "HWADDR=#{ext_hw_address}\n"
+
+    f.write "TYPE=Ethernet\n"
+    f.write "DEFROUTE=yes\n"
+    f.write "PEERDNS=no\n"
+    f.write "PEERROUTES=yes\n"
   end
 end
 
-unless File.exist?('/etc/rndc.key')
-  print  "Unable to find rnds.key .. generating\n"
-  system "rndc-confgen -a"
-  system "/sbin/restorecon /etc/rndc.* /etc/named.*"
-  system "chown root:named /etc/rndc.key"
-  system "chmod 0640 /etc/rndc.key"
+if int_dhcp && (int_eth_device != ext_eth_device)
+  File.open("/etc/sysconfig/network-scripts/ifcfg-#{int_eth_device}","w") do |f|
+    f.write "DEVICE=#{int_eth_device}\n"
+    f.write "BOOTPROTO=dhcp\n"
+    f.write "ONBOOT=yes\n"
+    f.write "#NM_CONTROLLED=no\n"
+    f.write "HWADDR=#{int_hw_address}\n"
+  end
 end
 
-if system("chkcinfig --list NetworkManager")
-  system "chkconfig NetworkManager off"
-  system "service NetworkManager stop"
-end
 system "chkconfig network on"
 system "service network restart"
 
-#pickup new IP incase it changed
-if use_dhcp
-  ip_address = `ip addr show dev #{eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+if File.exist?('/lib/systemd/system/NetworkManager.service')
+  #try to restart network manager and wait for it to acquire IP
+  system "service NetworkManager restart && sleep 5"
 end
 
 print "Opening required ports\n"
@@ -122,12 +153,15 @@ system "lokkit --service=https"
 system "lokkit --service=dns"
 system "lokkit -p 5672:tcp"  #qpid
 
+### End network setup
+
+### Begin mongo setup
+
 print "Starting mongodb\n"
 system("chkconfig mongod on")
 system("service mongod start")
 
 print "Initializing mongodb database..."
-#..wait for mongo to initialize
 while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
   print "."
   sleep 5
@@ -136,6 +170,18 @@ end
 print "Setup mongo db user\n"
 print `/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'`
 
+### End mongo setup
+
+### Begin BIND DNS setup
+
+unless File.exist?('/etc/rndc.key')
+  print  "Unable to find rnds.key .. generating\n"
+  system "rndc-confgen -a"
+  system "/sbin/restorecon /etc/rndc.* /etc/named.*"
+  system "chown root:named /etc/rndc.key"
+  system "chmod 0640 /etc/rndc.key"
+end
+
 print "Configure and start local named\n"
 File.open("/var/named/forwarders.conf", "w") do |f|
   f.write("forwarders { #{dns_address.join(" ; ")} ; } ;")
@@ -143,14 +189,23 @@ end
 system "/sbin/restorecon -v /var/named/forwarders.conf"
 system "chkconfig named on"
 system "service named restart"
-system "/usr/bin/ss-register-dns -h broker -n #{ip_address}"
+system "/usr/bin/ss-register-dns -h broker -n #{ext_address}"
 
 print "Update resolve.conf with dns servers\n"
 File.open("/etc/resolv.conf", "w") do |f|
   f.write("nameserver 127.0.0.1\n")
   dns_address.each { |ns| f.write("nameserver #{ns}\n") }
 end
-  
+
+File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","a") do |f|
+  f.write "DNS1=127.0.0.1\n"
+  dns_address.each_index do |idx|
+    f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
+  end
+end
+
+### End BIND DNS setup
+ 
 print "Register admin user\n"
 `mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
  
@@ -159,5 +214,14 @@ print "Register admin user\n"
   system "service #{service} restart"
 end
 
-print "Connect node services to local broker\n"
-system "/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip #{ip_address}"
+unless args["--skip-node"] || /not installed/.match(`rpm -q openshift-origin-node`)
+  print "Connect node services to local broker\n"
+  args = []
+  args += ["--external-ip", ext_address.strip] unless ext_dhcp
+  args += ["--external-device", ext_eth_device.strip] unless ext_eth_device.nil?
+  args += ["--internal-ip", int_address.strip] unless int_dhcp
+  args += ["--internal-device", int_eth_device.strip] unless int_eth_device.nil?
+  args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
+
+  system("/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
+end

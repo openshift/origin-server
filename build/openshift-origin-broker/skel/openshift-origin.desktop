@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Exec=/usr/bin/firefox file:///var/www/html/getting_started.html
+Exec=/usr/bin/launch_openshift_doc.sh
 Hidden=false
 X-GNOME-Autostart-enabled=true
 Name[en_US]=Openshift-Origin
