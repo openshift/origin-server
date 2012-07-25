@@ -245,7 +245,6 @@ class LegacyBrokerController < ApplicationController
           end
         rescue Exception => e
           log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", false, "Failed to create application #{app.name}: #{e.message}")
-          @reply.append app.deconfigure_dependencies
           @reply.append app.destroy
           if app.persisted?
             app.delete
