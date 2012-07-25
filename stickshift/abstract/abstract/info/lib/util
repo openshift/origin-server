@@ -354,6 +354,10 @@ function add_env_var {
     echo "ENV_VAR_ADD: $1"
 }
 
+function force_add_env_var {
+    echo "FORCE_ENV_VAR_ADD: $1"
+}
+
 function remove_env_var {
     echo "ENV_VAR_REMOVE: $1"
 }
