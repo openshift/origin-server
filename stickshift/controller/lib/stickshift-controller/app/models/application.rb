@@ -328,7 +328,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       comp_inst = self.comp_instance_map[comp_inst_name]
       next if comp_inst.parent_cart_name == self.name
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
-      group_instances << group_inst unless group_instances.include?(group_inst)
+      group_instances.delete(group_inst)
+      group_instances << group_inst
     end
 
     failures = []
