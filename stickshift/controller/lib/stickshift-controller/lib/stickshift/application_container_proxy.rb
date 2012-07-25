@@ -77,6 +77,9 @@ module StickShift
 
     def add_env_var(app, gear, key, value)
     end
+    
+    def force_add_env_var(app, gear, key, value)
+    end
 
     def remove_env_var(app, gear, key)
     end

@@ -239,6 +239,16 @@ module GearChanger
         parse_result(result)
       end
       
+     def force_add_env_var(app, gear, key, value)
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-key'] = key
+        args['--with-value'] = value
+        result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
+        parse_result(result)
+      end
+      
       def remove_env_var(app, gear, key)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -1080,6 +1090,9 @@ module GearChanger
                   key = line['ENV_VAR_REMOVE: '.length..-1].chomp
                   result.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
                 end
+              elsif line =~ /^FORCE_ENV_VAR_ADD: /
+                env_var = line['FORCE_ENV_VAR_ADD: '.length..-1].chomp.split('=')
+                result.cart_commands.push({:command => "FORCE_ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
               elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
                 if line =~ /^BROKER_AUTH_KEY_ADD: /
                   result.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})

@@ -300,6 +300,12 @@
     add_save_job('adds', 'env_vars', [key, value])
   end
   
+  def force_add_env_var(key, value)
+    self.env_vars = {} unless self.env_vars
+    self.env_vars[key] = value
+    add_save_job('adds', 'env_vars', [key, value])
+  end
+  
   def remove_env_var(key)
     self.env_vars = {} unless self.env_vars
     self.env_vars.delete key
