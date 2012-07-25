@@ -56,7 +56,11 @@
     tag = ""
     if applications && !applications.empty? && save_jobs
       applications.each do |app|
-        gears += app.gears
+        app.gears.each do |gear|
+          if !app.destroyed_gears || !app.destroyed_gears.include?(gear.uuid)
+            gears << gear
+          end
+        end
       end
 
       if save_jobs['removes']

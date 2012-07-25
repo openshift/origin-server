@@ -160,7 +160,6 @@ class ApplicationsController < BaseController
       rescue Exception => e
         log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create application #{application.name}: #{e.message}")
         Rails.logger.debug e.backtrace.inspect
-        application.deconfigure_dependencies
         application.destroy
         if application.persisted?
           application.delete

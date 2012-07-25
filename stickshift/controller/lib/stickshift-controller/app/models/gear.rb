@@ -45,7 +45,7 @@ class Gear < StickShift::Model
       if ret.exitcode != 0
         begin
           get_proxy.destroy(self.app, self)
-        rescue Exception=>e
+        rescue Exception => e
         end
         self.app.ngears -= 1
         self.app.group_instance_map[self.group_instance_name].gears.delete(self)
@@ -58,9 +58,10 @@ class Gear < StickShift::Model
 
   def destroy
     ret = get_proxy.destroy(app,self)
-    if ret.exitcode==0
+    if ret.exitcode == 0
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
+      app.process_cartridge_commands(ret)
       track_destroy_usage
       self.app.ngears -= 1
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
@@ -75,7 +76,7 @@ class Gear < StickShift::Model
     begin
       begin
         get_proxy.destroy(app,self)
-      rescue Exception=>e
+      rescue Exception => e
       end
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
@@ -299,7 +300,7 @@ private
 
   def call_update_namespace_hook(cart_name, new_ns, old_ns)
     result = get_proxy.update_namespace(self.app, self, cart_name, new_ns, old_ns)
-    self.app.process_cartridge_commands(result.cart_commands)
+    self.app.process_cartridge_commands(result)
     return result
   end
 
