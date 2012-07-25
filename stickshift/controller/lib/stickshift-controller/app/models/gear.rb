@@ -32,7 +32,7 @@ class Gear < StickShift::Model
         self.app.group_instance_map[self.group_instance_name].gears << self
         self.app.save
         ret = self.container.create(app,self)
-        self.app.track_gear_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
+        self.app.track_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
       rescue Exception => e
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.join("\n")
@@ -61,7 +61,7 @@ class Gear < StickShift::Model
     if ret.exitcode==0
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
-      self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
+      track_destroy_usage
       self.app.ngears -= 1
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
       self.app.save
@@ -79,7 +79,7 @@ class Gear < StickShift::Model
       end
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
-      self.app.track_gear_usage(self, UsageRecord::EVENTS[:end])
+      track_destroy_usage
     ensure
       self.app.ngears -= 1
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
@@ -248,6 +248,10 @@ class Gear < StickShift::Model
     carts
   end
   
+  def group_instance
+    self.app.group_instance_map[self.group_instance_name]
+  end
+  
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     results = []
     gi = self.app.group_instance_map[self.group_instance_name]
@@ -285,6 +289,13 @@ class Gear < StickShift::Model
   end
 
 private
+
+  def track_destroy_usage
+    self.app.track_usage(self, UsageRecord::EVENTS[:end])
+    if self.group_instance.addtl_fs_gb
+      self.app.track_usage(self, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+    end
+  end
 
   def call_update_namespace_hook(cart_name, new_ns, old_ns)
     result = get_proxy.update_namespace(self.app, self, cart_name, new_ns, old_ns)
