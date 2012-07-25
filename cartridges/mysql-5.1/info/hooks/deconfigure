@@ -51,6 +51,9 @@ if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
 
    # Destroy git repo and stop app.
    destroy_git_repo $application $uuid
+
+   enable_stale_detection
+
    stop_app
 fi
 

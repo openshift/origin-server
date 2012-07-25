@@ -69,6 +69,8 @@ function setup_mysql_as_a_service() {
     import_env_vars
     $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
+    disable_stale_detection
+
     restart_httpd_graceful
 }
 
