@@ -457,6 +457,16 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         failed_gears = []
         failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
         gear_exception = e.message[:exception]
+
+        #remove failed component from all gears
+        run_on_gears(successful_gears, reply, false) do |gear, r|
+          r.append gear.deconfigure(comp_inst)
+          r.append process_cartridge_commands(r.cart_commands)
+        end
+        run_on_gears(failed_gears, reply, false) do |gear, r|
+          r.append gear.deconfigure(comp_inst, true)
+          r.append process_cartridge_commands(r.cart_commands)
+        end
         
         # destroy any unused gears
         # TODO : if the destroy fails below... the user still sees the error as configure failure
