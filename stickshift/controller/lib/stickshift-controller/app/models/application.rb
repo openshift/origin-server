@@ -7,7 +7,7 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :usage_records, :destroyed_gears
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :usage_records, :destroyed_gears
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -57,7 +57,6 @@ class Application < StickShift::Cartridge
     self.creation_time = DateTime::now().strftime
     self.uuid = uuid || StickShift::Model.gen_uuid
     self.scalable = will_scale
-    self.ngears = 0
     
     if template.nil?
       if self.scalable
@@ -257,8 +256,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # Saves the application object in the datastore
   def save
     super(user.login)
-    self.ngears = 0
     self.usage_records = nil
+    self.group_instances.each { |gi| gi.reset_state }
   end
   
   # Deletes the application object from the datastore
@@ -286,6 +285,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         end
       end
       user.applications << self
+      self.save
       Rails.logger.debug "Creating gears"
       group_instances.uniq.each do |ginst|
         create_result, new_gear = ginst.add_gear(self)
@@ -301,8 +301,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       result_io.append self.destroy
       self.class.notify_observers(:application_creation_failure, {:application => self, :reply => result_io})
       raise
-    ensure
-      save
     end
     self.class.notify_observers(:after_application_create, {:application => self, :reply => result_io})
     result_io
@@ -436,6 +434,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       next if comp_inst.parent_cart_name == self.name
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       begin
+        group_inst.save if not group_inst.persisted?
         group_inst.fulfil_requirements(self)
         run_on_gears(group_inst.get_unconfigured_gears(comp_inst), reply) do |gear, r|
           doExpose = false
@@ -448,6 +447,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           rescue Exception=>e
           end
           process_cartridge_commands(r)
+          gear.save
         end
       rescue Exception => e
         Rails.logger.debug e.message
@@ -477,7 +477,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           r.append group_inst.remove_gear(gear) if gear.configured_components.length == 0
         end
 
-        self.save
         exceptions << gear_exception
       end
     end
@@ -1243,16 +1242,28 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def group_instances=(data)
     group_instance_map_will_change!    
     @group_instance_map = {} if @group_instance_map.nil?
-    data.each do |value|
-      if value.class == GroupInstance
-        value.reused_by.each do |k|
-          @group_instance_map[k] = value
-        end
-      else
+    if data.class == Hash or data.class==BSON::OrderedHash
+      data.each do |key, value|
         ginst = GroupInstance.new(self)
-        ginst.attributes=value
+        ginst.attributes = value
         ginst.reused_by.each do |k|
           @group_instance_map[k] = ginst
+        end
+        ginst.reset_state
+      end
+    elsif data.class == Array
+      data.each do |value|
+        if value.class == GroupInstance
+          value.reused_by.each do |k|
+            @group_instance_map[k] = value
+          end
+        else
+          ginst = GroupInstance.new(self)
+          ginst.attributes=value
+          ginst.reused_by.each do |k|
+            @group_instance_map[k] = ginst
+          end
+          ginst.reset_state
         end
       end
     end
@@ -1320,10 +1331,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     
     # delete entries in {group,comp}_instance_map that do 
     # not exist in working_{group,comp}_inst_hash
+    existing_ginsts = self.group_instance_map.values.uniq
     self.group_instance_map.delete_if { |k,v| 
       v.component_instances.delete(k) if self.working_comp_inst_hash[k].nil? and v.component_instances.include?(k)
       self.working_group_inst_hash[k].nil?
     }
+    new_ginst_set = self.group_instance_map.values.uniq
+    existing_ginsts.each { |old_ginst| old_ginst.delete if not new_ginst_set.include? old_ginst }
     self.comp_instance_map.delete_if { |k,v| self.working_comp_inst_hash[k].nil?  }
   end
   

@@ -1,10 +1,13 @@
-class GroupInstance < StickShift::Model
-  attr_accessor :app, :gears, :node_profile, :component_instances, 
-    :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb
+class GroupInstance < StickShift::UserModel
+  attr_accessor :app, :uuid, :gears, :node_profile, :component_instances, 
+    :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb,
+    :app_name
   exclude_attributes :app
 
   def initialize(app, cartname=nil, profname=nil, groupname=nil, path=nil)
     self.app = app
+    self.app_name = app.name
+    self.uuid = StickShift::Model.gen_uuid
     self.name = path
     self.cart_name = cartname
     self.profile_name = profname
@@ -15,6 +18,16 @@ class GroupInstance < StickShift::Model
     self.node_profile = app.node_profile
     self.min = 1
     self.max = -1
+  end
+
+  def save
+    self.app_name = app.name
+    super(self.app.user.login)
+  end
+
+  def delete
+    self.app_name = app.name
+    super(self.app.user.login)
   end
 
   def merge_inst(ginst)
@@ -31,8 +44,15 @@ class GroupInstance < StickShift::Model
       self.app.group_instance_map[cinst.group_instance_name] = self if ginst==cur_ginst
     }
     self.component_instances = (self.component_instances + ginst.component_instances).uniq unless ginst.component_instances.nil?
-    if not ginst.gears.nil?
+    if not ginst.gears.nil? and ginst.gears.length > 0
       self.gears = [] if self.gears.nil?
+      if self.gears.length == 0
+        self.uuid = ginst.uuid
+      else
+        # problem... how to merge two group instances that have gears in them
+        # without deleting the gears that exist in them
+        raise Exception.new("Cannot merge descriptor groups with non-empty gears.")
+      end
       @gears += ginst.gears
     end
     self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, ginst.min, ginst.max)
@@ -118,6 +138,7 @@ class GroupInstance < StickShift::Model
       else
         gear = Gear.new(@app,self)
         gear.attributes=hash
+        gear.reset_state
         @gears.push gear
       end                             
     end                               
