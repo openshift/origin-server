@@ -72,7 +72,56 @@ module GearChanger
         cart_data = JSON.parse(result.resultIO.string)
         cart_data.map! {|c| StickShift::Cartridge.new.from_descriptor(YAML.load(c))}
       end
+
+      # Returns an array with following information
+      # [Filesystem, blocks_used, blocks_soft_limit, blocks_hard_limit, inodes_used,
+      #  inodes_soft_limit, inodes_hard_limit]
+      def get_quota(uuid)
+        args = Hash.new
+        args['--uuid'] = uuid
+        reply = execute_direct(@@C_CONTROLLER, 'get-quota', args, false)
+
+        output = nil
+        exitcode = 0
+        if reply.length > 0
+          mcoll_result = reply[0]
+          if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
+            output = mcoll_result.results[:data][:output]
+            exitcode = mcoll_result.results[:data][:exitcode]
+            raise StickShift::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
+          else
+            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          end
+        else
+          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+        end
+        output
+      end
       
+      # Set blocks hard limit and inodes ihard limit for uuid
+      def set_quota(uuid, blocks, inodes)
+        args = Hash.new
+        args['--uuid']   = uuid
+        args['--blocks'] = blocks
+        args['--inodes'] = inodes
+        reply = execute_direct(@@C_CONTROLLER, 'set-quota', args, false)
+
+        output = nil
+        exitcode = 0
+        if reply.length > 0
+          mcoll_result = reply[0]
+          if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
+            output = mcoll_result.results[:data][:output]
+            exitcode = mcoll_result.results[:data][:exitcode]
+            raise StickShift::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
+          else
+            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          end
+        else
+          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+        end
+      end
+
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
         if Rails.configuration.gearchanger[:districts][:enabled]
