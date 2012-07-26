@@ -170,6 +170,26 @@ module MCollective
           return 0, output
         end
       end
+      
+      def ss_force_env_var_add(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+
+        uuid = args['--with-container-uuid']
+        app_uuid = args['--with-app-uuid']
+        key = args['--with-key']
+        value = args['--with-value']
+        
+        output = ""
+        begin
+          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container.user.force_add_env_var(key, value)
+        rescue Exception => e
+          Log.instance.info e.message
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
 
       def ss_env_var_remove(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
@@ -291,6 +311,8 @@ module MCollective
           rc, output = ss_broker_auth_key_remove(cmd, args)
         when "env-var-add" 
           rc, output = ss_env_var_add(cmd, args)
+        when "force-env-var-add" 
+          rc, output = ss_force_env_var_add(cmd, args)
         when "env-var-remove" 
           rc, output = ss_env_var_remove(cmd, args)
         when "cartridge-list"

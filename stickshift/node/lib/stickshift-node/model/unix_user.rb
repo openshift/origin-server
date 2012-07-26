@@ -291,6 +291,36 @@ module StickShift
         blk.call(value)
       end
     end
+    
+    # Public: Add an environment variable to a given gear.
+    #
+    # key - The String value of target environment variable.
+    # value - The String value to place inside the environment variable.
+    # prefix_cloud_name - The String value to append in front of key.
+    #
+    # Examples
+    #
+    #  add_env_var('OPENSHIFT_DB_TYPE',
+    #               'mysql-5.3')
+    #  # => 36
+    #
+    # Returns the Integer value for how many bytes got written or raises on 
+    # failure.
+    def force_add_env_var(key, value, prefix_cloud_name = false, &blk)
+      env_dir = File.join(@homedir,'.env/')
+      if prefix_cloud_name
+        key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
+      end
+      filename = File.join(env_dir, key)
+      File.open(filename,
+          File::WRONLY|File::TRUNC|File::CREAT) do |file|
+            file.write "export #{key}='#{value}'"
+        end
+
+      if block_given?
+        blk.call(value)
+      end
+    end
 
     
     # Public: Remove an environment variable from a given gear.

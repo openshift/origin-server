@@ -128,6 +128,13 @@
                 job = gear.env_var_job_add(env_var_key, env_var_value)
                 RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
               end
+           when 'force-env_vars'
+              values.each do |value|
+                env_var_key = value[0]
+                env_var_value = value[1]
+                job = gear.force_env_var_job_add(env_var_key, env_var_value)
+                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+              end
             when 'broker_auth_keys'
               values.each do |value|
                 app_uuid = value[0]
@@ -298,6 +305,12 @@
     self.env_vars = {} unless self.env_vars
     self.env_vars[key] = value
     add_save_job('adds', 'env_vars', [key, value])
+  end
+  
+  def force_add_env_var(key, value)
+    self.env_vars = {} unless self.env_vars
+    self.env_vars[key] = value
+    add_save_job('adds', 'force-env_vars', [key, value])
   end
   
   def remove_env_var(key)
