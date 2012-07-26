@@ -181,7 +181,6 @@ module GearChanger
       end
 
       def add_env_var(app, gear, key, value)
-        Rails.logger.debug "!!!!!!!!!! mc add_env_var #{key} #{value}"
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
@@ -192,7 +191,6 @@ module GearChanger
       end
       
       def force_add_env_var(app, gear, key, value)
-        Rails.logger.debug "!!!!!!!!!! mc force_add_env_var #{key} #{value}"
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
@@ -432,7 +430,6 @@ module GearChanger
       end
       
      def get_force_env_var_add_job(app, gear, key, value)
-       Rails.logger.debug "!!!!!!!!!!!! mc get_force_env_var_add_job #{key} #{value}"
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
@@ -1037,7 +1034,6 @@ module GearChanger
         
         if output && !output.empty?
           output.each_line do |line|
-            Rails.logger.debug "!!!!! mc parse_result " + line
             if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
               if line =~ /^CLIENT_MESSAGE: /
                 result.messageIO << line['CLIENT_MESSAGE: '.length..-1]

@@ -132,7 +132,6 @@
               values.each do |value|
                 env_var_key = value[0]
                 env_var_value = value[1]
-Rails.logger.debug "!!!!!!!!! cloud_user save #{env_var_key} #{env_var_value}"
                 job = gear.force_env_var_job_add(env_var_key, env_var_value)
                 RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
               end
@@ -303,14 +302,12 @@ Rails.logger.debug "!!!!!!!!! cloud_user save #{env_var_key} #{env_var_value}"
   end
  
   def add_env_var(key, value)
-    Rails.logger.debug "!!!!!!!!! cloud_user add_env_var #{key} #{value}"
     self.env_vars = {} unless self.env_vars
     self.env_vars[key] = value
     add_save_job('adds', 'env_vars', [key, value])
   end
   
   def force_add_env_var(key, value)
-    Rails.logger.debug "!!!!!!!!! cloud_user force_add_env_var #{key} #{value}"
     self.env_vars = {} unless self.env_vars
     self.env_vars[key] = value
     add_save_job('adds', 'force-env_vars', [key, value])
