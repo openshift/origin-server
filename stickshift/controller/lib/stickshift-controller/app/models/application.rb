@@ -271,10 +271,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # @return [ResultIO]
   def create
     result_io = ResultIO.new
-    self.class.notify_observers(:before_application_create, {:application => self, :reply => result_io})
     gears_created = []
+    elaborate_descriptor
+    self.class.notify_observers(:before_application_create, {:application => self, :reply => result_io})
     begin
-      elaborate_descriptor
       if self.scalable
         raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
         min_gear_count = 0
