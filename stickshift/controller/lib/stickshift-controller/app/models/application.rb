@@ -1350,10 +1350,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       when "SYSTEM_SSH_KEY_REMOVE"
         self.user.remove_system_ssh_key(self.name)
       when "ENV_VAR_ADD"
+      Rails.logger.debug "!!!!!!!!!!!! process_cartridge_commands ENV_VAR_ADD"
         key = command_item[:args][0]
         value = command_item[:args][1]
         self.user.add_env_var(key,value)
       when "FORCE_ENV_VAR_ADD"
+Rails.logger.debug "!!!!!!!!!!!! process_cartridge_commands FORCE_ENV_VAR_ADD"
         key = command_item[:args][0]
         value = command_item[:args][1]
         self.user.force_add_env_var(key,value)
