@@ -131,6 +131,8 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     a_uuid = orig_a['uuid']
     create_app(ds, user_id, orig_a["name"], orig_a)
     a = ds.find("Application", user_id, orig_a["name"])
+    orig_a["group_instances"] = []
+    a["group_instances"] = []
     assert_equal(orig_a, a)
     
     cu = ds.find("CloudUser", user_id, nil)
@@ -154,12 +156,17 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     orig_a["embedded"] = {"mysql-5.1" => {"info" => "Connection URL: mysql://..."}}
     create_app(ds, user_id, orig_a["name"], orig_a)
     a = ds.find("Application", user_id, orig_a["name"])
+    orig_a["group_instances"] = []
+    a["group_instances"] = []
     assert_equal(orig_a, a)
     
     orig_a["embedded"] = {"mysql-5.1" => {"info" => "Connection URL: mysql://..."}}
     ds.save("Application", user_id, orig_a["name"], orig_a)
     a = ds.find("Application", user_id, orig_a["name"])
-    assert_equal(orig_a, a)
+    check_orig_a = orig_a.clone
+    check_orig_a["group_instances"] = []
+    a["group_instances"] = []
+    assert_equal(check_orig_a, a)
     
     cu = ds.find("CloudUser", user_id, nil)
     assert_equal(1, cu['consumed_gears'])
@@ -184,11 +191,17 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     orig_a["aliases"] = ["www.myalias.com"]
     ds.save("Application", user_id, orig_a["name"], orig_a)
     a = ds.find("Application", user_id, orig_a["name"])
-    assert_equal(orig_a, a)
+    check_orig_a = orig_a.clone
+    check_orig_a["group_instances"] = []
+    a["group_instances"] = []
+    assert_equal(check_orig_a, a)
     
     ds.save("Application", user_id, orig_a["name"], orig_a)
     a = ds.find("Application", user_id, orig_a["name"])
-    assert_equal(orig_a, a)
+    check_orig_a = orig_a.clone
+    check_orig_a["group_instances"] = []
+    a["group_instances"] = []
+    assert_equal(check_orig_a, a)
     
     apps = ds.find_all("Application", user_id)
     assert_equal(2, apps.length)
@@ -252,6 +265,7 @@ class MongoDataStoreTest < ActiveSupport::TestCase
       b = application
       create_app(ds, user_id, b["name"], b)
     rescue Exception => e
+      delete_app(ds, user_id, b["name"], b)
       caught_exception = true
     end
     assert(caught_exception)
@@ -274,15 +288,29 @@ class MongoDataStoreTest < ActiveSupport::TestCase
   end
 
   def create_app(ds, user_id, app_name, app_attrs)
-    app_attrs["ngears"] = 1
-    ds.create("Application", user_id, app_name, app_attrs)
-    app_attrs.delete("ngears")
+    ds.create("Application", user_id, app_name, app_attrs.clone)
+    g = gear(app_attrs["group_instances"][0])
+    add_gear(ds, user_id, g)
+  end
+
+  def add_gear(ds, user_id, gear_attrs)
+    ds.create("Gear", user_id, gear_attrs["uuid"], gear_attrs)
+  end
+
+  def delete_gear(ds, user_id, gear_attrs)
+    ds.delete("Gear", user_id, gear_attrs["uuid"], gear_attrs)
   end
 
   def delete_app(ds, user_id, app_name, app_attrs)
-    app_attrs["ngears"] = -1
     ds.save("Application", user_id, app_name, app_attrs)
-    app_attrs.delete("ngears")
+    a = ds.find("Application", user_id, app_name)
+    gi = a["group_instances"].values[0]
+    if gi and gi["gears"] and gi["gears"].length > 0
+      gi["gears"].each { |g|
+        g["app_name"] = app_name
+        delete_gear(ds, user_id, g)
+      }
+    end
     ds.delete("Application", user_id, app_name)
   end
  
@@ -310,15 +338,39 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     domain
   end
   
+  def group_instance(app_name)
+    group_instance = {
+      "min" => 1,
+      "max" => -1,
+      "app_name" => app_name,
+      "gears" => [],
+      "uuid" => gen_uuid
+    }
+    group_instance
+  end
+
+  def gear(ginst)
+    gear = {
+      "uuid" => gen_uuid,
+      "ginst_uuid" => ginst["uuid"],
+      "app_name" => ginst["app_name"],
+      "min" => 1,
+      "max" => -1
+    }
+    gear
+  end
+
   def application
     uuid = gen_uuid
+    app_name = "name#{uuid}"
     application = {
       "framework" => "php-5.3", 
       "creation_time" => DateTime::now().strftime,
       "uuid" => uuid,
       "embedded" => {},
       "aliases" => [],
-      "name" => "name#{uuid}",
+      "group_instances" => [group_instance(app_name)],
+      "name" => app_name,
       "server_identity" => "1234",
       "uid" => nil
     }
