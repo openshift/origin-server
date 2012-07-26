@@ -205,7 +205,6 @@ class LegacyBrokerController < ApplicationController
   end
   
   def cartridge_post
-    @req.node_profile ||= "small"
     raise StickShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
     
     case @req.action
