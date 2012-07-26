@@ -1,43 +1,43 @@
 @runtime
-@runtime2
+@runtime1
 Feature: cron Embedded Cartridge
 
   Scenario Outline: Add Remove cron to one application
-    Given an accepted node
-    And a new guest account
-    And a new <type> application
-    When I configure cron
-    Then the cron directory will exist
-    And the cron control script will exist
-    And the cron log directory will exist
-    And the cron run directory will exist
+    Given a new <type> type application
+    And I embed a cron-1.4 cartridge into the application
+    And cron is running
+
+    Then the embedded cron-1.4 cartridge directory will exist
+    And the embedded cron-1.4 cartridge subdirectory named log will exist
+    And the embedded cron-1.4 cartridge control script named cron will exist
+    And the embedded cron-1.4 cartridge subdirectory named run will exist
     And cron jobs will be enabled
-    When I deconfigure cron
-    Then the cron directory will not exist
-    And the cron control script will not exist
-    And the cron log directory will not exist
-    And the cron run directory will not exist
-    And cron jobs will not be enabled
+
+    When I destroy the application
+    Then cron is stopped
+    And the embedded cron-1.4 cartridge directory will not exist
+    And the embedded cron-1.4 cartridge subdirectory named log will not exist
+    And the embedded cron-1.4 cartridge control script named cron will not exist
+    And the embedded cron-1.4 cartridge subdirectory named run will not exist
 
   Scenarios: Add Remove cron to one Application Scenarios
     |type|
-    |php|
+    |php-5.3|
 
   Scenario Outline: Stop Start Restart cron
-    Given an accepted node
-    And a new guest account
-    And a new <type> application
-    And a new cron
+    Given a new <type> type application
+    And I embed a cron-1.4 cartridge into the application
     And cron is running
-    When I stop cron
+
+    When I stop the cron-1.4 cartridge
     Then cron jobs will not be enabled
     And cron is stopped
-    When I start cron
+    When I start the cron-1.4 cartridge
     Then cron jobs will be enabled
     And cron is running
-    When I restart cron
+    When I restart the cron-1.4 cartridge
     Then cron jobs will be enabled
 
   Scenarios: Stop Start Restart cron scenarios
     |type|
-    |php|
+    |php-5.3|

@@ -1,5 +1,5 @@
 @runtime
-@runtime2
+@runtime4
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
@@ -67,15 +67,6 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     |      type     |
     |   php-5.3     |
     
-  Scenario Outline: Application Change Namespace
-    Given an existing <type> application
-    When the application namespace is updated
-    Then the application should be accessible
-
-  Scenarios: Application Change Namespace Scenarios
-    |      type     |
-    |   php-5.3     |
-    
   Scenario Outline: Application Tidy
     Given an existing <type> application
     When I tidy the application
@@ -96,6 +87,15 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     |      type     |
     |   php-5.3     |
 
+  Scenario Outline: Application Change Namespace
+    Given an existing <type> application
+    When the application namespace is updated
+    Then the application should be accessible
+
+  Scenarios: Application Change Namespace Scenarios
+    |      type     |
+    |   php-5.3     |
+    
   Scenario Outline: Application Destroying
     Given an existing <type> application
     When the application is destroyed

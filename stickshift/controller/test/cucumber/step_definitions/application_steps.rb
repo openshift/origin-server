@@ -125,6 +125,8 @@ end
 
 When /^I snapshot the application$/ do
   rhc_snapshot(@app)
+  File.exist?(@app.snapshot).should be_true
+  File.size(@app.snapshot).should > 0
 end
 
 When /^I tidy the application$/ do
@@ -132,6 +134,8 @@ When /^I tidy the application$/ do
 end
 
 When /^I restore the application$/ do
+  File.exist?(@app.snapshot).should be_true
+  File.size(@app.snapshot).should > 0
   rhc_restore(@app)
 end
 
