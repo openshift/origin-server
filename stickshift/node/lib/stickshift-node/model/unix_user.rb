@@ -278,14 +278,10 @@ module StickShift
         key = (@config.get('CLOUD_NAME') || 'SS') + "_#{key}"
       end
       filename = File.join(env_dir, key)
-      if key.start_with?('JENKINS') && File.exist?(filename)
-        # Dont change original Jenkins config where the builder is configrued
-      else
-        File.open(filename,
-            File::WRONLY|File::TRUNC|File::CREAT) do |file|
-              file.write "export #{key}='#{value}'"
-          end
-      end
+      File.open(filename,
+          File::WRONLY|File::TRUNC|File::CREAT) do |file|
+            file.write "export #{key}='#{value}'"
+        end
 
       if block_given?
         blk.call(value)
