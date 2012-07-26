@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.1.2
+Version: 0.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.1.3-1
+- Mongo deleted_gears fix (rpenta@redhat.com)
+- Merge pull request #265 from kraman/dev/kraman/bugs/806824
+  (dmcphers@redhat.com)
+- Stop calling deconfigure on destroy (dmcphers@redhat.com)
+- Bug 806824 - [REST API] clients should be able to get informed about reserved
+  application names (kraman@gmail.com)
+- US2439: Add support for getting/setting quota. (mpatel@madagascar.(none))
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
   stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
