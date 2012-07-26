@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.14.4
+Version: 0.14.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,16 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.14.5-1
+- Updating gem versions (dmcphers@redhat.com)
+- bz841157 (bdecoste@gmail.com)
+- The initialize_homedir only deals with the contents of the home directory;
+  move the unobfuscated function up to create where it belongs so it can be
+  unit tested properly.  Using an iterator across the directory contents rather
+  than extracting the whole dir as an array is more efficient on nodes with
+  thousands of gears. (rmillner@redhat.com)
+- US2439: Add support for getting/setting quota. (mpatel@madagascar.(none))
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - Updating gem versions (admiller@redhat.com)
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
