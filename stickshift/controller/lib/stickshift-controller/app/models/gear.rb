@@ -1,5 +1,6 @@
-class Gear < StickShift::Model
-  attr_accessor :uuid, :uid, :server_identity, :group_instance_name, :node_profile, :container, :app, :configured_components, :name
+class Gear < StickShift::UserModel
+  attr_accessor :uuid, :uid, :server_identity, :group_instance_name, :node_profile, :container, :app, :configured_components, :name,
+                :app_index, :app_name, :ginst_uuid
   primary_key :uuid
   exclude_attributes :container, :app
   
@@ -10,6 +11,9 @@ class Gear < StickShift::Model
     self.group_instance_name = group_instance.name
     self.node_profile = group_instance.node_profile
     self.configured_components = []
+    self.app_index = nil
+    self.app_name = app.name
+    self.ginst_uuid = group_instance.uuid
     @uid = uid
     get_proxy
   end
@@ -20,17 +24,28 @@ class Gear < StickShift::Model
     end    
     return self.container
   end
+
+  def save
+    self.app_index = self.app.user.applications.index(self.app)
+    self.app_name = self.app.name
+    super(self.app.user.login)
+  end
+
+  def delete
+    self.app_index = self.app.user.applications.index(self.app)
+    self.app_name = self.app.name
+    super(self.app.user.login)
+  end
   
   def create
     if server_identity.nil?
       ret = nil
       begin
-        self.app.ngears += 1
         self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
         self.app.group_instance_map[self.group_instance_name].gears << self
-        self.app.save
+        self.save
         ret = self.container.create(app,self)
         self.app.track_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
       rescue Exception => e
@@ -47,9 +62,8 @@ class Gear < StickShift::Model
           get_proxy.destroy(self.app, self)
         rescue Exception => e
         end
-        self.app.ngears -= 1
         self.app.group_instance_map[self.group_instance_name].gears.delete(self)
-        self.app.save
+        self.save
         raise StickShift::NodeException.new("Unable to create gear on node", 1, ret)
       end
       return ret
@@ -63,31 +77,15 @@ class Gear < StickShift::Model
       self.app.destroyed_gears << @uuid
       app.process_cartridge_commands(ret)
       track_destroy_usage
-      self.app.ngears -= 1
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
-      self.app.save
+      self.delete
+      # self.app.save
     else
       raise StickShift::NodeException.new("Unable to destroy gear on node", 1, ret)
     end
     return ret
   end
 
-  def force_destroy
-    begin
-      begin
-        get_proxy.destroy(app,self)
-      rescue Exception => e
-      end
-      self.app.destroyed_gears = [] unless self.app.destroyed_gears
-      self.app.destroyed_gears << @uuid
-      track_destroy_usage
-    ensure
-      self.app.ngears -= 1
-      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
-      self.app.save
-    end
-  end
-  
   def configure(comp_inst, template_git_url=nil)
     r = ResultIO.new
     return r if self.configured_components.include?(comp_inst.name)
@@ -164,7 +162,7 @@ class Gear < StickShift::Model
   end
   
   def system_messages(comp_inst)
-    get_proxy.system_messages(app, self, comp_inst.parent_cart_name)
+    get_proxy.system_messages(app,self,comp_inst.parent_cart_name)
   end
   
   def add_alias(server_alias)
