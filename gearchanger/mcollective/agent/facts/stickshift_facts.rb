@@ -15,8 +15,13 @@ end
 # Count the number of git repos on this host
 #
 Facter.add(:git_repos) do
-    git_repos_count = Dir.glob("/var/lib/stickshift/**/git/*.git").count
-    setcode { git_repos_count }
+  git_repos_count = 0
+  Dir.glob("/var/lib/stickshift/*").each { |app_dir|
+    if File.directory?(app_dir) && !File.symlink?(app_dir)
+      git_repos_count += Dir.glob(File.join(app_dir, "git/*.git")).count
+    end
+  }
+  setcode { git_repos_count }
 end
 
 #
@@ -84,7 +89,7 @@ Facter.add(:active_capacity) do
     Dir.glob("/var/lib/stickshift/*").each { |app_dir|
         if File.directory?(app_dir) && !File.symlink?(app_dir)
             active = true
-            Dir.glob(File.join(app_dir, '*', 'runtime', '.state')).each {|file|
+            Dir.glob(File.join(app_dir, 'app-root', 'runtime', '.state')).each {|file|
                 state = File.read(file).chomp
                 if 'idle' == state || 'stopped' == state
                     active = false
