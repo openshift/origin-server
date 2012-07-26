@@ -17,12 +17,13 @@ class BaseController < ActionController::Base
   include UserActionLogger
   
   def show
+    blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
     links = {
       "API" => Link.new("API entry point", "GET", URI::join(get_url, "api")),
       "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),      
       "LIST_DOMAINS" => Link.new("List domains", "GET", URI::join(get_url, "domains")),
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
-        Param.new("id", "string", "Name of the domain")
+        Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
       ]),
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
       "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_templates")),
