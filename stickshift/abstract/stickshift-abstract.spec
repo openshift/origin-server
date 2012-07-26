@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.5
+Version: 0.14.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.14.6-1
+- BZ 843354: Don't generate passwords that start with "-".
+  (rmillner@redhat.com)
+- Stand-alone mysql or mongodb gears disable stale detection.
+  (rmillner@redhat.com)
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
   stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
