@@ -143,9 +143,14 @@ module CommandHelper
       log_event "#{time} CREATE_SNAPSHOT #{app.name} #{app.login}"
       app.persist
     end
+    output = `ls -l #{app.snapshot}`
+    $logger.info("snapshot: #{output}")
   end
 
   def rhc_restore(app)
+    output = `ls -l #{app.snapshot}`
+    $logger.info("restore: #{output}")
+
     rhc_do('rhc_restore') do
       time = Benchmark.realtime do 
         run("#{$rhc_app_script} snapshot restore -l #{app.login} -a #{app.name} -f '#{app.snapshot}' -p #{app.password} -d").should == 0
