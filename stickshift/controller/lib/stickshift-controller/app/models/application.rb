@@ -1353,6 +1353,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         key = command_item[:args][0]
         value = command_item[:args][1]
         self.user.add_env_var(key,value)
+      when "FORCE_ENV_VAR_ADD"
+        key = command_item[:args][0]
+        value = command_item[:args][1]
+        self.user.force_add_env_var(key,value)
       when "ENV_VAR_REMOVE"
         key = command_item[:args][0]
         self.user.remove_env_var(key)
