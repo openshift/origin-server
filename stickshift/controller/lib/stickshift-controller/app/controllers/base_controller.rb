@@ -169,4 +169,12 @@ class BaseController < ActionController::Base
     end
   end
 
+  def throw_error(status, msg, error_code, field=nil)
+    @reply = RestReply.new(status)
+    @reply.messages.push(message = Message.new(:error, msg, error_code, field))
+    respond_with(@reply) do |format|
+      format.xml { render :xml => @reply, :status => @reply.status }
+      format.json { render :json => @reply, :status => @reply.status }
+    end
+  end
 end
