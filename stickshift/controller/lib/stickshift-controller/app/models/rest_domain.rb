@@ -11,12 +11,13 @@ class RestDomain < StickShift::Model
     end
     
     valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
-    
+    blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
+
     self.links = {
       "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),
       "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
       "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
-        [Param.new("name", "string", "Name of the application")], 
+        [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
         [OptionalParam.new("cartridge", "string", "framework-type, e.g: php-5.3", carts),
         OptionalParam.new("template", "string", "UUID of the application template"),
         OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),

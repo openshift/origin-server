@@ -26,6 +26,15 @@ module StickShift
       @proxy_provider.find_one_impl(node_profile)
     end
 
+    def self.get_blacklisted
+      @proxy_provider.get_blacklisted_in_impl
+    end
+
+    def self.get_blacklisted_in_impl
+      []
+    end
+
+
     def self.blacklisted?(name)
       @proxy_provider.blacklisted_in_impl?(name)
     end
