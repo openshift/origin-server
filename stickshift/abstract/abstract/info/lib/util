@@ -305,7 +305,7 @@ function load_resource_limits_conf {
 }
 
 function generate_password {
-    head -n 500 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | head -n1
+    head -n 500 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
 }
 
 function error {
