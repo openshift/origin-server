@@ -154,13 +154,14 @@ class BaseApi_V1 < BaseObj_V1
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :consumed_gears, :max_gears, :plan_id, :links                                                                         
+  attr_accessor :login, :consumed_gears, :max_gears, :plan_id, :usage_account_id, :links 
                                                                                                        
   def initialize
     self.login = nil
     self.consumed_gears = 0
     self.max_gears = 3
     self.plan_id = nil
+    self.usage_account_id = nil
     self.links = {                                                                                         
       "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
       "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
