@@ -3,34 +3,34 @@
 Feature: phpMyAdmin Embedded Cartridge
 
   Scenario Outline: Add Remove phpMyAdmin to one application
-    Given an accepted node
-    And a new guest account
-    And a new <type> application
-    And a new mysql database
-    When I configure phpmyadmin
-    Then a phpmyadmin http proxy file will exist
-    And a phpmyadmin httpd will be running
-    And the phpmyadmin directory will exist
-    And phpmyadmin log files will exist
-    And the phpmyadmin control script will exist
+    Given a new <type> type application
+    
+    When I embed a mysql-5.1 cartridge into the application
+    And I embed a phpmyadmin-3.4 cartridge into the application
+    Then the embedded phpmyadmin-3.4 cartridge http proxy file will exist
+    And 4 processes named httpd will be running
+    And the embedded phpmyadmin-3.4 cartridge directory will exist
+    And the embedded phpmyadmin-3.4 cartridge log files will exist
+    And the embedded phpmyadmin-3.4 cartridge control script named phpmyadmin will exist
 
-    When I stop phpmyadmin
-    Then a phpmyadmin httpd will not be running
-    And phpmyadmin is stopped
-    When I start phpmyadmin
-    Then a phpmyadmin httpd will be running
+    When I stop the phpmyadmin-3.4 cartridge
+    Then 2 processes named httpd will be running
+
+    When I start the phpmyadmin-3.4 cartridge
+    Then 4 processes named httpd will be running
     And the phpmyadmin web console url will be accessible
-    When I restart phpmyadmin
-    Then a phpmyadmin httpd will be running
+    
+    When I restart the phpmyadmin-3.4 cartridge
+    Then 4 processes named httpd will be running
     And the phpmyadmin web console url will be accessible
 
-    When I deconfigure phpmyadmin
-    Then a phpmyadmin http proxy file will not exist
-    And a phpmyadmin httpd will not be running
-    And the phpmyadmin directory will not exist
-    And phpmyadmin log files will not exist
-    And the phpmyadmin control script will not exist
+    When I destroy the application
+    Then 0 processes named httpd will be running
+    And the embedded phpmyadmin-3.4 cartridge http proxy file will not exist
+    And the embedded phpmyadmin-3.4 cartridge directory will not exist
+    And the embedded phpmyadmin-3.4 cartridge log files will not exist
+    And the embedded phpmyadmin-3.4 cartridge control script named phpmyadmin will not exist
 
   Scenarios: Add Remove phpMyAdmin to one Application Scenarios
     |type|
-    |php|
+    |php-5.3|
