@@ -205,6 +205,11 @@ class Gear < StickShift::Model
     job
   end
   
+  def force_env_var_job_add(key, value)
+    job = get_proxy.get_force_env_var_add_job(app, self, key, value)
+    job
+  end
+  
   def ssh_key_job_add(ssh_key, ssh_key_type, ssh_key_comment)
     job = get_proxy.get_add_authorized_ssh_key_job(app, self, ssh_key, ssh_key_type, ssh_key_comment)
     job

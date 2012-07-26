@@ -59,10 +59,6 @@ module GearChanger
         MCollectiveApplicationContainerProxy.new(current_server)
       end
 
-      def self.get_blacklisted_in_impl
-        []
-      end
-
       def self.blacklisted_in_impl?(name)
         false
       end
@@ -76,56 +72,7 @@ module GearChanger
         cart_data = JSON.parse(result.resultIO.string)
         cart_data.map! {|c| StickShift::Cartridge.new.from_descriptor(YAML.load(c))}
       end
-
-      # Returns an array with following information
-      # [Filesystem, blocks_used, blocks_soft_limit, blocks_hard_limit, inodes_used,
-      #  inodes_soft_limit, inodes_hard_limit]
-      def get_quota(uuid)
-        args = Hash.new
-        args['--uuid'] = uuid
-        reply = execute_direct(@@C_CONTROLLER, 'get-quota', args, false)
-
-        output = nil
-        exitcode = 0
-        if reply.length > 0
-          mcoll_result = reply[0]
-          if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
-            output = mcoll_result.results[:data][:output]
-            exitcode = mcoll_result.results[:data][:exitcode]
-            raise StickShift::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
-          else
-            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
-          end
-        else
-          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
-        end
-        output
-      end
       
-      # Set blocks hard limit and inodes ihard limit for uuid
-      def set_quota(uuid, blocks, inodes)
-        args = Hash.new
-        args['--uuid']   = uuid
-        args['--blocks'] = blocks
-        args['--inodes'] = inodes
-        reply = execute_direct(@@C_CONTROLLER, 'set-quota', args, false)
-
-        output = nil
-        exitcode = 0
-        if reply.length > 0
-          mcoll_result = reply[0]
-          if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
-            output = mcoll_result.results[:data][:output]
-            exitcode = mcoll_result.results[:data][:exitcode]
-            raise StickShift::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
-          else
-            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
-          end
-        else
-          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
-        end
-      end
-
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
         if Rails.configuration.gearchanger[:districts][:enabled]
@@ -240,6 +187,16 @@ module GearChanger
         args['--with-key'] = key
         args['--with-value'] = value
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
+        parse_result(result)
+      end
+      
+      def force_add_env_var(app, gear, key, value)
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-key'] = key
+        args['--with-value'] = value
+        result = execute_direct(@@C_CONTROLLER, 'force-env-var-add', args)
         parse_result(result)
       end
       
@@ -469,6 +426,16 @@ module GearChanger
         args['--with-key'] = key
         args['--with-value'] = value
         job = RemoteJob.new('stickshift-node', 'env-var-add', args)
+        job
+      end
+      
+     def get_force_env_var_add_job(app, gear, key, value)
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-key'] = key
+        args['--with-value'] = value
+        job = RemoteJob.new('stickshift-node', 'force-env-var-add', args)
         job
       end
       
@@ -733,6 +700,7 @@ module GearChanger
                 end
               end
             end
+            # deconfigure destination
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
             reply.append destination_container.destroy(app, gear, keep_uid)
@@ -782,6 +750,21 @@ module GearChanger
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
+          gi = app.group_instance_map[gear.group_instance_name]
+          # gi.component_instances.each do |ci_name|
+          app.configure_order.reverse.each do |ci_name|
+            next if not gi.component_instances.include? ci_name
+            cinst = app.comp_instance_map[ci_name]
+            cart = cinst.parent_cart_name
+            next if cart==app.name
+            begin
+              if framework_carts.include? cart or app.scalable
+                reply.append source_container.run_cartridge_command(cart, app, gear, "deconfigure", nil, false) if not cart.include? "jenkins"
+              end
+            rescue Exception => e
+              log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
+            end
+          end
           reply.append source_container.destroy(app, gear, keep_uid, orig_uid)
         rescue Exception => e
           log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
@@ -1084,6 +1067,9 @@ module GearChanger
                   key = line['ENV_VAR_REMOVE: '.length..-1].chomp
                   result.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
                 end
+              elsif line =~ /^FORCE_ENV_VAR_ADD: /
+                env_var = line['FORCE_ENV_VAR_ADD: '.length..-1].chomp.split('=')
+                result.cart_commands.push({:command => "FORCE_ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
               elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
                 if line =~ /^BROKER_AUTH_KEY_ADD: /
                   result.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
