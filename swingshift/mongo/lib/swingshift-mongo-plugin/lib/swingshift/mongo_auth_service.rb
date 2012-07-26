@@ -72,14 +72,19 @@ module Swingshift
     def validate_broker_key(iv, key)
       key = key.gsub(" ", "+")
       iv = iv.gsub(" ", "+")
-      encrypted_token = Base64::decode64(key)
-      cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")
-      cipher.decrypt
-      cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
-      private_key = OpenSSL::PKey::RSA.new(File.read(@privkeyfile), @privkeypass)
-      cipher.iv =  private_key.private_decrypt(Base64::decode64(iv))
-      json_token = cipher.update(encrypted_token)
-      json_token << cipher.final
+      begin
+        encrypted_token = Base64::decode64(key)
+        cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")
+        cipher.decrypt
+        cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
+        private_key = OpenSSL::PKey::RSA.new(File.read(@privkeyfile), @privkeypass)
+        cipher.iv =  private_key.private_decrypt(Base64::decode64(iv))
+        json_token = cipher.update(encrypted_token)
+        json_token << cipher.final
+      rescue => e
+        Rails.logger.debug "Broker key authentication failed. #{e.backtrace.inspect}"
+        raise StickShift::AccessDeniedException.new
+      end
   
       token = JSON.parse(json_token)
       username = token['login']
@@ -87,10 +92,10 @@ module Swingshift
       creation_time = token['creation_time']
             
       user = CloudUser.find(username)
-      raise StickShift::UserValidationException.new if user.nil?
+      raise StickShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
       
-      raise StickShift::UserValidationException.new if app.nil? or creation_time != app.creation_time
+      raise StickShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
       return {:username => username, :auth_method => :broker_auth}
     end
     
