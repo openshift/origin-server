@@ -14,7 +14,7 @@ fi
 
 PID=`ps -u $2 -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}'`
 
-if [$PID .eq ""]; then
+if [ "$PID" = "" ]; then
     _state_file=${OPENSHIFT_HOMEDIR}/app-root/runtime/.state
     _state=unknown
     if [ -f "$_state_file" ]; then
