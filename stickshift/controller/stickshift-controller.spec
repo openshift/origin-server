@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.8
+Version: 0.14.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.9-1
+- fix typo (dmcphers@redhat.com)
+- keep usage_records out of the db unless there are entries
+  (dmcphers@redhat.com)
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.8-1
 - Bug 843710 (dmcphers@redhat.com)
 - restrict to single jenkins (bdecoste@gmail.com)
