@@ -501,7 +501,7 @@ module StickShift
       app_attrs.delete("destroyed_gears")
 
       updates = { "$set" => { "apps.$" => app_attrs } }
-      if usage_records
+      if usage_records && !usage_records.empty?
         updates["$pushAll"] = { "usage_records" => usage_records }
       end
       if ngears != 0
@@ -565,7 +565,7 @@ COND
       app_attrs.delete("destroyed_gears")
       
       updates = { "$push" => { "apps" => app_attrs }, "$inc" => { "consumed_gears" => ngears }}
-      if usage_records
+      if usage_records && !usage_records.empty?
         updates["$pushAll"] = { "usage_records" => usage_records }
       end
 
