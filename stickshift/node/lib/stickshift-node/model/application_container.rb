@@ -48,7 +48,7 @@ module StickShift
     end
 
     # Destroy gear - model/unix_user.rb
-    def destroy
+    def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
       hook_timeout=30
@@ -74,20 +74,24 @@ module StickShift
         end
       end
 
-      hooks["pre"].each do | cmd |
-        out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
-        errout << err if not err.nil?
-        output << out if not out.nil?
-        retcode = 121 if rc != 0
+      unless skip_hooks
+        hooks["pre"].each do | cmd |
+          out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
+          errout << err if not err.nil?
+          output << out if not out.nil?
+          retcode = 121 if rc != 0
+        end
       end
 
       @user.destroy
 
-      hooks["post"].each do | cmd |
-        out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
-        errout << err if not err.nil?
-        output << out if not out.nil?
-        retcode = 121 if rc != 0
+      unless skip_hooks
+        hooks["post"].each do | cmd |
+          out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
+          errout << err if not err.nil?
+          output << out if not out.nil?
+          retcode = 121 if rc != 0
+        end
       end
 
       notify_observers(:after_container_destroy)

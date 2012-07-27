@@ -193,16 +193,17 @@ module GearChanger
         result
       end
     
-      def destroy(app, gear, keep_uid=false, uid=nil)
+      def destroy(app, gear, keep_uid=false, uid=nil, skip_hooks=false)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-app-name'] = app.name
         args['--with-container-uuid'] = gear.uuid
         args['--with-container-name'] = gear.name
         args['--with-namespace'] = app.domain.namespace
+        args['--skip-hooks'] = true if skip_hooks
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
         result_io = parse_result(result)
-        
+
         uid = gear.uid unless uid
         
         if uid && !keep_uid
@@ -734,7 +735,7 @@ module GearChanger
             end
             # destroy destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' in '#{app.name}' with destroy on '#{destination_container.id}'"
-            reply.append destination_container.destroy(app, gear, keep_uid)
+            reply.append destination_container.destroy(app, gear, keep_uid, nil, true)
             raise
           end
         rescue Exception => e
@@ -781,7 +782,7 @@ module GearChanger
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
         begin
-          reply.append source_container.destroy(app, gear, keep_uid, orig_uid)
+          reply.append source_container.destroy(app, gear, keep_uid, orig_uid, true)
         rescue Exception => e
           log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
           raise

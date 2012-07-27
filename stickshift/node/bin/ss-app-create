@@ -89,7 +89,7 @@ gear_name = app_name if (gear_name && gear_name.empty?) || !gear_name
 namespace = args['--with-namespace']
 $dry_run = true if args['--dry-run']
 $ss_debug = true if args['--debug']
-$porcelin = args['--porcelain'] ? true : false
+$porcelain = args['--porcelain'] ? true : false
 
 unless gear_uuid
   usage
