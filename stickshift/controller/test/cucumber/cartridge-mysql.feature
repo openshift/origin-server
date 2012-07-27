@@ -3,34 +3,34 @@
 Feature: MySQL Application Sub-Cartridge
   
   Scenario Outline: Create Delete one application with a MySQL database
-    Given an accepted node
-    And a new guest account
-    And a new <type> application
-    When I configure a mysql database
-    Then the mysql directory will exist
+    Given a new <type> type application
+    
+    When I embed a mysql-5.1 cartridge into the application
+    Then a mysqld process will be running
+    And the embedded mysql-5.1 cartridge directory will exist
     And the mysql configuration file will exist
     And the mysql database will exist
-    And the mysql control script will exist
-    And the mysql daemon will be running
-    And the admin user will have access
-
-    When I stop the mysql database
-    Then the mysql daemon will not be running
-
-    When I start the mysql database
-    Then the mysql daemon will be running
-
-    When I restart the mysql database
-    Then the mysql daemon will be running
-    And the mysql daemon pid will be different
-
-    When I deconfigure the mysql database
-    Then the mysql daemon will not be running
+    And the embedded mysql-5.1 cartridge control script named mysql will exist
+    And the admin user will have access to mysql
+    
+    When I stop the mysql-5.1 cartridge
+    Then a mysqld process will not be running
+    
+    When I start the mysql-5.1 cartridge
+    Then a mysqld process will be running
+    
+    When the application cartridge PIDs are tracked
+    And I restart the mysql-5.1 cartridge
+    Then a mysqld process will be running
+    And the tracked application cartridge PIDs should be changed
+    
+    When I destroy the application
+    Then a mysqld process will not be running
     And the mysql database will not exist
-    And the mysql control script will not exist
+    And the embedded mysql-5.1 cartridge control script named mysql will not exist
     And the mysql configuration file will not exist
-    And the mysql directory will not exist
+    And the embedded mysql-5.1 cartridge directory will not exist
 
   Scenarios: Create Delete Application With Database Scenarios
-    |type|
-    |php|
+    | type    | 
+    | php-5.3 |

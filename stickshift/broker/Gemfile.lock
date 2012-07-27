@@ -37,14 +37,14 @@ GEM
       json
       mongo
       rack
-    stickshift-controller (0.14.6)
+    stickshift-controller (0.14.7)
       activesupport
       stickshift-common
       dnsruby
       json
       open4
       state_machine
-    stickshift-node (0.14.4)
+    stickshift-node (0.14.5)
       activemodel
       stickshift-common
       highline

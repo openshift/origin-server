@@ -138,7 +138,7 @@ module AppHelper
         if !curl_head_success?("http://#{hostname}")
           return true
         else
-          $logger.info("Connection still accessible / retry #{i} / #{hostname}")
+          $logger.info("Connection still accessible / retry #{i} of #{max_tries} / #{hostname}")
           sleep 1
         end
       end
@@ -194,7 +194,7 @@ module AppHelper
           $logger.info("Connection response time = #{@response_time} / #{url}")
           return body
         else
-          $logger.info("Connection failed / retry #{i} / #{url}")
+          $logger.info("Connection failed / retry #{i} of #{max_retries} / #{url}")
           sleep 1
         end
       end

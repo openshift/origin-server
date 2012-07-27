@@ -72,17 +72,17 @@ int_dhcp       = false
 
 
 if ext_address.nil? #DHCP
-  ext_address = `ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
   ext_dhcp = true
 end 
 
 if int_address.nil? #DHCP
-  int_address = `ip addr show dev #{int_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  int_address = `/sbin/ip addr show dev #{int_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
   int_dhcp = true
 end
 
-ext_hw_address = `ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
-int_hw_address = `ip addr show dev #{int_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+ext_hw_address = `/sbin/ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+int_hw_address = `/sbin/ip addr show dev #{int_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
 
 if dns_address.nil?
   if ext_dhcp
