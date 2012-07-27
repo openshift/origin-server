@@ -128,8 +128,10 @@ module StickShift
     def self.get_quota(uuid)
       cmd = %&quota #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
       st, out, errout = systemu cmd
-      if st.exitstatus == 0
+      if st.exitstatus == 0 || st.exitstatus == 1
         arr = out.strip.split(":")
+        raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless arr.length == 7
+        arr
       else
         raise NodeCommandException.new "Error: #{errout} executing command #{cmd}"
       end
