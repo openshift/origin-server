@@ -1,7 +1,7 @@
  class CloudUser < StickShift::UserModel
-  #TODO: vip no longer used, remove from the model
+  #TODO: vip and gear_usage_records no longer used, remove from the model
   attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, 
-                :auth_method, :save_jobs, :usage_records, :capabilities, :parent_user_login, :plan_id, :usage_account_id, :vip
+                :auth_method, :save_jobs, :usage_records, :gear_usage_records :capabilities, :parent_user_login, :plan_id, :usage_account_id, :vip
   primary_key :login
   exclude_attributes :applications, :auth_method, :save_jobs, :usage_records
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains

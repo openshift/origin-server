@@ -406,10 +406,10 @@ module StickShift
         query = {}
         if opts
           if opts[:with_gears]
-            query["apps.group_instances.gears"] = {"$exists" => true}
+            query["apps.group_instances.gears.0"] = {"$exists" => true}
           end
           if opts[:with_usage]
-            query["usage_records"] = {"$exists" => true}
+            query["usage_records.0"] = {"$exists" => true}
           end
         end
         mcursor = user_collection.find(query)
