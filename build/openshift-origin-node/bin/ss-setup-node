@@ -78,6 +78,7 @@ dns            = args["--static-dns"]
 dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
+use_nm         = File.exist?('/lib/systemd/system/NetworkManager.service')
 
 if ext_address.nil? #DHCP
   ext_address = `ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -119,7 +120,6 @@ if ext_dhcp
     f.write "DEVICE=#{ext_eth_device}\n"
     f.write "BOOTPROTO=dhcp\n"
     f.write "ONBOOT=yes\n"
-    f.write "#NM_CONTROLLED=no\n"
     f.write "HWADDR=#{ext_hw_address}\n"
     f.write "DNS1=#{broker_ip}\n"
     dns_address.each_index do |idx|
@@ -128,7 +128,7 @@ if ext_dhcp
 
     f.write "TYPE=Ethernet\n"
     f.write "DEFROUTE=yes\n"
-    f.write "PEERDNS=no\n"
+    f.write "PEERDNS=no\n" if use_nm
     f.write "PEERROUTES=yes\n"
   end
 end
@@ -138,7 +138,6 @@ if int_dhcp && (int_eth_device != ext_eth_device)
     f.write "DEVICE=#{int_eth_device}\n"
     f.write "BOOTPROTO=dhcp\n"
     f.write "ONBOOT=yes\n"
-    f.write "#NM_CONTROLLED=no\n"
     f.write "HWADDR=#{int_hw_address}\n"
   end
 end
@@ -162,10 +161,8 @@ end
 system "chkconfig network on"
 system "service network start"
 
-if File.exist?('/lib/systemd/system/NetworkManager.service')
-  #try to restart network manager and wait for it to acquire IP
-  system "service NetworkManager restart && sleep 5"
-end
+#try to restart network manager and wait for it to acquire IP
+system "service NetworkManager restart && sleep 5" if use_nm
 
 ### End network setup
 

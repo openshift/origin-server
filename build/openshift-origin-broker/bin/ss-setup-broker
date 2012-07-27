@@ -69,7 +69,7 @@ dns            = args["--static-dns"]
 dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
-
+use_nm         = File.exist?('/lib/systemd/system/NetworkManager.service')
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -123,7 +123,7 @@ if ext_dhcp
 
     f.write "TYPE=Ethernet\n"
     f.write "DEFROUTE=yes\n"
-    f.write "PEERDNS=no\n"
+    f.write "PEERDNS=no\n" if use_nm
     f.write "PEERROUTES=yes\n"
   end
 end
@@ -141,10 +141,7 @@ end
 system "chkconfig network on"
 system "service network restart"
 
-if File.exist?('/lib/systemd/system/NetworkManager.service')
-  #try to restart network manager and wait for it to acquire IP
-  system "service NetworkManager restart && sleep 5"
-end
+system "service NetworkManager restart && sleep 5" if use_nm
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
