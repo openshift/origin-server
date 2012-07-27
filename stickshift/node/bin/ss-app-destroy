@@ -36,6 +36,7 @@ ss-app-destroy --with-container-uuid UUID \\
     |--with-app-name        name        Name of the application (required)
     |--with-namespace       namespace   Namespace of the application (required)
     |--with-container-name  gear_name   Name of the gear
+    |--skip-hooks                       Skip running pre and post hooks for cartridge destroy
   -n|--dry-run                          Don't make changes, just do a dry run.
   -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
@@ -54,6 +55,7 @@ opts = GetoptLong.new(
     ["--with-container-name",       GetoptLong::OPTIONAL_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
+    ["--skip-hooks",                GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
@@ -76,9 +78,10 @@ app_name = args['--with-app-name']
 container_uuid = args['--with-container-uuid']
 container_name = args['--with-container-name'] || args['--with-app-name']
 namespace = args['--with-namespace']
+skip_hooks = true if args['--skip-hooks']
 $dry_run = true if args['--dry-run']
 $ss_debug = true if args['--debug']
-$porcelin = args['--porcelain'] ? true : false
+$porcelain = args['--porcelain'] ? true : false
 
 unless container_uuid
   usage
@@ -88,7 +91,7 @@ end
 begin
   container = StickShift::ApplicationContainer.new(app_uuid, container_uuid, nil, app_name,
                                                    container_name, namespace, nil, nil)
-  out, err, rc = container.destroy
+  out, err, rc = container.destroy(skip_hooks)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
