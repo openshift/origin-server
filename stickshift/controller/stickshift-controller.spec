@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.7
+Version: 0.14.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.8-1
+- Bug 843710 (dmcphers@redhat.com)
+- restrict to single jenkins (bdecoste@gmail.com)
+
 * Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.14.7-1
 - Runtime cucumber test refactor (ironcladlou@gmail.com)
 - Mongo deleted_gears fix (rpenta@redhat.com)
