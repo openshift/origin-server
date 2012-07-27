@@ -172,7 +172,7 @@ end
 system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/stickshift/stickshift-node.conf"
 system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
 system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
-system "/usr/libexec/mcollective/update_yaml.rb > /etc/mcollective/facts.yaml"     
+system "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
         
 config_lines = File.open('/etc/stickshift/stickshift-node.conf').readlines
 File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
