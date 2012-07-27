@@ -68,7 +68,7 @@ gear_uuid = args['--gear-uuid']
 cart_name = args['--cart-name']
 hook_name = args['--hook-name']
 $ss_debug = true if args['--debug']
-$porcelin = args['--porcelain'] ? true : false
+$porcelain = args['--porcelain'] ? true : false
 
 config = StickShift::Config.instance
 unless gear_uuid

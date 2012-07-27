@@ -57,11 +57,12 @@ module MCollective
         gear_uuid = args['--with-container-uuid']
         gear_name = args['--with-container-name']
         namespace = args['--with-namespace']
+        skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
         output = ""
         begin
           container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, nil, app_name, gear_name, 
                                                            namespace, nil, nil)
-          out, err, rc = container.destroy
+          out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
           Log.instance.info e.message
           return -1, e.message
