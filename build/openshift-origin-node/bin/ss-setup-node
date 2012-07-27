@@ -159,7 +159,7 @@ File.open("/etc/sysconfig/network", "w") do |f|
 end
 
 system "chkconfig network on"
-system "service network start"
+system "service network restart"
 
 #try to restart network manager and wait for it to acquire IP
 system "service NetworkManager restart && sleep 5" if use_nm
