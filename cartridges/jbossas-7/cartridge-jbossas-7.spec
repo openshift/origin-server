@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version:   0.96.3
+Version:   0.96.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.96.4-1
+- add postgres connection validation (bdecoste@gmail.com)
+- add mysql connection validation (bdecoste@gmail.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.96.3-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
 - enable java7 (bdecoste@gmail.com)
