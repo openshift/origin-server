@@ -104,6 +104,9 @@
 						<user-name>${env.OPENSHIFT_DB_USERNAME}</user-name>
 						<password>${env.OPENSHIFT_DB_PASSWORD}</password>
 					</security>
+					<validation>
+                      <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                	</validation>
 				</datasource>
 				<datasource jndi-name="java:jboss/datasources/PostgreSQLDS"
 					enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS"
