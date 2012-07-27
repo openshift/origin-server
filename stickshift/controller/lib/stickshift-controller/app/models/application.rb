@@ -324,36 +324,39 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
 
-    # Destroy in the reverse order of configure.
-    group_instances = []
-    self.configure_order.reverse.each do |comp_inst_name|
-      comp_inst = self.comp_instance_map[comp_inst_name]
-      next if comp_inst.parent_cart_name == self.name
-      group_inst = self.group_instance_map[comp_inst.group_instance_name]
-      group_instances.delete(group_inst)
-      group_instances << group_inst
-    end
-
-    failures = []
-    group_instances.each do |group_inst|
-      s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append group_inst.remove_gear(gear)
+    #only need to destroy if application has been elaborated first
+    unless self.configure_order.nil?
+      # Destroy in the reverse order of configure.
+      group_instances = []
+      self.configure_order.reverse.each do |comp_inst_name|
+        comp_inst = self.comp_instance_map[comp_inst_name]
+        next if comp_inst.parent_cart_name == self.name
+        group_inst = self.group_instance_map[comp_inst.group_instance_name]
+        group_instances.delete(group_inst)
+        group_instances << group_inst
       end
-      failures += f
-    end
 
-    begin
-      self.save if self.persisted?
-    rescue Exception => e
-      # pass on failure... because we maybe wanting a delete here instead anyway
-    end
+      failures = []
+      group_instances.each do |group_inst|
+        s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          r.append group_inst.remove_gear(gear)
+        end
+        failures += f
+      end
 
-    failures.each do |data|
-      Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
-      Rails.logger.debug(data[:exception].backtrace.inspect)
-    end
+      begin
+        self.save if self.persisted?
+      rescue Exception => e
+        # pass on failure... because we maybe wanting a delete here instead anyway
+      end
 
-    raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if failures.length > 0
+      failures.each do |data|
+        Rails.logger.debug("Unable to clean up application on gear #{data[:gear]} due to exception #{data[:exception].message}")
+        Rails.logger.debug(data[:exception].backtrace.inspect)
+      end
+
+      raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if failures.length > 0
+    end
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
   end
