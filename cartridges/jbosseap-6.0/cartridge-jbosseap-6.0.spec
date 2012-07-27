@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.3.4
+Version:   0.3.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -158,6 +158,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.3.5-1
+- add postgres connection validation (bdecoste@gmail.com)
+- add mysql connection validation (bdecoste@gmail.com)
+
 * Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.3.4-1
 - fixed EAP website (bdecoste@gmail.com)
 - bz841683 (bdecoste@gmail.com)
