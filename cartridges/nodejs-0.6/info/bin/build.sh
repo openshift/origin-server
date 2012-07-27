@@ -49,6 +49,8 @@ fi
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
     echo ".openshift/markers/force_clean_build found!  Recreating npm modules" 1>&2
     rm -rf "${OPENSHIFT_GEAR_DIR}"node_modules/*
+    rm -rf "${OPENSHIFT_HOMEDIR}"/.npm/*
+    rm -rf "${OPENSHIFT_REPO_DIR}"node_modules/*
 fi
 
 if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
