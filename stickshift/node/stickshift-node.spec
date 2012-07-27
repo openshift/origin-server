@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.14.5
+Version: 0.14.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,12 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.6-1
+- Updating gem versions (dmcphers@redhat.com)
+- Merge pull request #291 from mrunalp/bugs/843759 (rmillner@redhat.com)
+- Bug 843757 (dmcphers@redhat.com)
+- Fix for BZ843759 (mpatel@redhat.com)
+
 * Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.14.5-1
 - Updating gem versions (dmcphers@redhat.com)
 - bz841157 (bdecoste@gmail.com)
