@@ -93,6 +93,17 @@ module RestApi
     self.include_root_in_json = false
 
     #
+    # ActiveResource doesn't have a hierarchy for headers
+    #
+    class << self
+      def headers
+        @headers ||= begin
+          (superclass != ActiveResource::Base) ? superclass.headers.dup : {}
+        end
+      end
+    end
+
+    #
     # ActiveResource doesn't fully support alias_attribute
     #
     class << self
@@ -655,4 +666,6 @@ class RestApi::Base
   else
     'http://localhost/broker/rest'
   end
+
+  headers['User-Agent'] = Rails.configuration.user_agent
 end

@@ -37,7 +37,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(@auth_headers)
+    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(@auth_headers)
   end
 
   def test_base_connection
@@ -103,6 +103,13 @@ class RestApiTest < ActiveSupport::TestCase
     body.stubs(:body => contents)
     object.stubs(:response => body)
     object
+  end
+
+  def test_has_user_agent
+    agent = User.headers['User-Agent']
+    assert Rails.configuration.user_agent =~ %r{\Aopenshift_console/0.0.0 \(.*?\)\Z}
+    assert_equal Rails.configuration.user_agent, agent
+    assert_equal RestApi::Base.headers['User-Agent'], agent
   end
 
   def test_load_remote_errors
@@ -740,8 +747,8 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_domain_update_id_reset
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.post '/broker/rest/domains.json', {'Content-Type' => 'application/json'}.merge!(@auth_headers), {:id => '1'}.to_json
-      mock.put '/broker/rest/domains/1.json', {'Content-Type' => 'application/json'}.merge!(@auth_headers), {:id => '2'}.to_json
+      mock.post '/broker/rest/domains.json', json_header(true), {:id => '1'}.to_json
+      mock.put '/broker/rest/domains/1.json', json_header(true), {:id => '2'}.to_json
     end
     d = Domain.create :id => '1', :as => @user
     assert !d.changed?, d.pretty_inspect
