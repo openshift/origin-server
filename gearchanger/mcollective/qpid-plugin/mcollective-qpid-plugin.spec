@@ -25,11 +25,16 @@ rm -rf %{buildroot}
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/connector/
+mkdir -p %{buildroot}/usr/share/doc/mcollective-qpid-plugin
 cp src/qpid.rb %{buildroot}/usr/libexec/mcollective/mcollective/connector/
+cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugin/
 
 %files
 %defattr(-,root,root,-)
 /usr/libexec/mcollective/mcollective/connector/qpid.rb
+/usr/share/doc/mcollective-qpid-plugin/COPYRIGHT
+/usr/share/doc/mcollective-qpid-plugin/README.md
+/usr/share/doc/mcollective-qpid-plugin/LICENSE
 
 %changelog
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
