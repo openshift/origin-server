@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.1.4
+Version: 0.1.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,11 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Mon Jul 30 2012 Dan McPherson <dmcphers@redhat.com> 0.1.5-1
+- Merge pull request #288 from
+  kraman/dev/kraman/features/remove_old_mcollective (mrunalp@gmail.com)
+- Adding missed updates from when plugin was opensourced (kraman@gmail.com)
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.1.4-1
 - Bug 843757 (dmcphers@redhat.com)
 - Merge pull request #287 from mrunalp/bugs/841681 (rmillner@redhat.com)
