@@ -5,7 +5,7 @@ class EstimatesController < BaseController
   # GET /estimates
   def index
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_ESTIMATES")
-    @reply = RestReply.new(:ok, "estimates", RestEstimates.new(get_url))
+    @reply = RestReply.new(:ok, "estimates", RestEstimates.new(get_url, nolinks))
     respond_with @reply, :status => @reply.status
   end
 
