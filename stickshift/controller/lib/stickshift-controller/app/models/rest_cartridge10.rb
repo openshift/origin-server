@@ -1,7 +1,7 @@
 class RestCartridge10 < StickShift::Model
   attr_accessor :type, :name, :links, :properties
   
-  def initialize(type, name, app, url)
+  def initialize(type, name, app, url, nolinks)
     self.name = name
     self.type = type
     self.properties = {}
@@ -25,7 +25,7 @@ class RestCartridge10 < StickShift::Model
               Param.new("event", "string", "event", "reload")
             ]),
             "DELETE" => Link.new("Delete embedded cartridge", "DELETE", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}"))
-          }
+          } unless nolinks
       end
     end
   end

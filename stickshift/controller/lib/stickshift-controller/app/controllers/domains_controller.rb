@@ -7,7 +7,7 @@ class DomainsController < BaseController
     Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
     Rails.logger.debug @cloud_user.domains
     @cloud_user.domains.each do |domain|
-      domains.push(RestDomain.new(domain, get_url))
+      domains.push(RestDomain.new(domain, get_url, nolinks))
     end
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_DOMAINS")
     @reply = RestReply.new(:ok, "domains", domains)
@@ -22,7 +22,7 @@ class DomainsController < BaseController
     if domain and domain.hasAccess?(@cloud_user)
       #Rails.logger.debug "Found domain #{id}"
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_DOMAIN", true, "Found domain #{id}")
-      domain = RestDomain.new(domain, get_url)
+      domain = RestDomain.new(domain, get_url, nolinks)
       @reply = RestReply.new(:ok, "domain", domain)
       respond_with @reply, :status => @reply.status
     else
@@ -100,7 +100,7 @@ class DomainsController < BaseController
     end
 
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_DOMAIN", true, "Created domain with namespace #{namespace}")
-    domain = RestDomain.new(domain, get_url)
+    domain = RestDomain.new(domain, get_url, nolinks)
     @reply = RestReply.new(:created, "domain", domain)
     respond_with @reply, :status => @reply.status
   end
@@ -215,7 +215,7 @@ class DomainsController < BaseController
     return
     end
     @cloud_user = CloudUser.find(@login)
-    domain = RestDomain.new(domain, get_url)
+    domain = RestDomain.new(domain, get_url, nolinks)
     @reply = RestReply.new(:ok, "domain", domain)
 
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", true, "Updated domain #{id} to #{new_namespace}")

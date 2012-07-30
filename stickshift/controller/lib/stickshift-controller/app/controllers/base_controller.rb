@@ -117,7 +117,16 @@ class BaseController < ActionController::Base
     #Rails.logger.debug "Request URL: #{url.to_s}"
     return url.to_s
   end
-  
+
+  def nolinks
+    ignore_links = params[:nolinks]
+    if ignore_links
+      ignore_links.downcase!
+      return ["true", "1"].include?(ignore_links)
+    end
+    return false
+  end
+ 
   def check_version
     accept_header = request.headers['Accept']
     mime_types = accept_header.split(%r{,\s*})

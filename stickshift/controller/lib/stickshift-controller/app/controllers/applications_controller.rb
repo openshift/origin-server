@@ -20,7 +20,7 @@ class ApplicationsController < BaseController
     if not applications.nil? 
       applications.each do |application|
         if application.domain.uuid = domain.uuid
-          app = RestApplication.new(application, get_url)
+          app = RestApplication.new(application, get_url, nolinks)
           apps.push(app)
         end
       end
@@ -54,7 +54,7 @@ class ApplicationsController < BaseController
       respond_with @reply, :status => @reply.status
     else
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APPLICATION", true, "Application '#{id}' found")
-      app = RestApplication.new(application, get_url)
+      app = RestApplication.new(application, get_url, nolinks)
       @reply = RestReply.new(:ok, "application", app)
       respond_with @reply, :status => @reply.status
     end
@@ -180,7 +180,7 @@ class ApplicationsController < BaseController
 
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", true, "Created application #{application.name}")
 
-      app = RestApplication.new(application, get_url)
+      app = RestApplication.new(application, get_url, nolinks)
       @reply = RestReply.new( :created, "application", app)
       message = Message.new(:info, "Application #{application.name} was created.")
       @reply.messages.push(message)

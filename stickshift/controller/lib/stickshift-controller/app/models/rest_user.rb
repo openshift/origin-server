@@ -1,7 +1,7 @@
 class RestUser < StickShift::Model
   attr_accessor :login, :consumed_gears, :max_gears, :plan_id, :usage_account_id, :links
   
-  def initialize(cloud_user, url)
+  def initialize(cloud_user, url, nolinks)
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
     self.max_gears = cloud_user.max_gears
@@ -14,7 +14,7 @@ class RestUser < StickShift::Model
         Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
       ])
-    }
+    } unless nolinks
   end
   
   def to_xml(options={})
