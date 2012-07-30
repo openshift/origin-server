@@ -6,7 +6,7 @@ class ScalingControllerTest < ActionController::TestCase
   uses_http_mock :sometimes
 
   def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json'}.merge!(auth_headers)
+    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(auth_headers)
   end
 
   def mock_domain
