@@ -248,6 +248,7 @@ class LegacyBrokerController < ApplicationController
           if app.persisted?
             app.delete
           end
+          @reply.resultIO = StringIO.new(e.message)
           raise
         end
         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", true, "Created application #{app.name}")
@@ -453,7 +454,7 @@ class LegacyBrokerController < ApplicationController
       @reply.resultIO << e.message if @reply.resultIO.length == 0
     end
     
-    @reply.exitcode = e.respond_to?('exit_code') ? e.exit_code : 1
+    @reply.exitcode = e.respond_to?('code') ? e.code : 1
     render :json => @reply, :status => status
   end
   
