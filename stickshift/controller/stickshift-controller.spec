@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.10
+Version: 0.14.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Jul 30 2012 Dan McPherson <dmcphers@redhat.com> 0.14.11-1
+- Merge pull request #299 from pravisankar/dev/ravi/bug/813660
+  (abhgupta@redhat.com)
+- Fix for bug# 813660 (rpenta@redhat.com)
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.10-1
 - Merge pull request #293 from jwhonce/node_steps (ironcladlou@gmail.com)
 - restore lifecycle nodejs steps (jhonce@redhat.com)
