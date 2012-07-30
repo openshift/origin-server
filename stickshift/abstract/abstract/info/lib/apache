@@ -13,13 +13,11 @@ function rm_httpd_proxy {
     rm -rf /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf \
            /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application} || \
            echo "Could not remove apache definition" 1>&2
-    /sbin/service httpd configtest 2> /dev/null && \
-    /sbin/service httpd graceful 2> /dev/null || \
+    ${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || \
     echo "Failed to restart master httpd, please contact support" 1>&2
 }
 
 function restart_httpd_graceful {
-    /sbin/service httpd configtest 2> /dev/null &&\
-    /sbin/service httpd graceful 2> /dev/null || \
+    ${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || \
     error "Failed to restart master httpd, please contact support" 120
 }
