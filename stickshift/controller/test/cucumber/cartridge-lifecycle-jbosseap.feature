@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify2
+@runtime_extended
+@runtime_extended2
 @not-origin
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario Outline: Application Creation

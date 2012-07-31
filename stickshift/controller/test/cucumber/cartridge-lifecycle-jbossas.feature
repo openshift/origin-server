@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify2
+@runtime_extended
+@runtime_extended2
 Feature: Cartridge Lifecycle JBossAS Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
