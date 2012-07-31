@@ -506,42 +506,11 @@ module StickShift
       end
       if ngears != 0
         updates["$inc"] = { "consumed_gears" => ngears }
-      end
-
-      if ngears != 0
-        condition = ""
-# TODO: Needs fix, condition should be applicable ONLY for scale-up/scale-down events
-#        if app_attrs["scalable"]
-        if false
-          condition = <<COND
-if ((this.consumed_gears + #{ngears}) > this.max_gears) {
-  return false;
-}
-var i,j;
-for(i=0; i<this.apps.length; i++) {
-  if (this.apps[i].name !== '#{id}') {
-    continue;
-  }
-  for (j=0; j<this.apps[i].group_instances.length; j++) {
-    if ((this.apps[i].group_instances[j].gears.length > 0) &&
-        (this.apps[i].group_instances[j].gears[0].group_instance_name === '@@app/group-web')) {
-      if (((this.apps[i].group_instances[j].max == -1) ||
-           (this.apps[i].group_instances[j].gears.length + #{ngears} <= this.apps[i].group_instances[j].max)) &&
-          (this.apps[i].group_instances[j].gears.length + #{ngears} >= this.apps[i].group_instances[j].min)) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-return true;
-COND
-        else
+        query = { "_id" => user_id, "apps.name" => id }
+        if ngears > 0
           condition = "(this.consumed_gears + #{ngears}) <= this.max_gears"
+          query["$where"] = condition
         end
-        query = { "_id" => user_id, "apps.name" => id, "$where" => condition }
         
         if destroyed_gears && !destroyed_gears.empty?
           query["apps.group_instances.gears.uuid"] = { "$all" => destroyed_gears }
