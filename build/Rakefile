@@ -179,6 +179,13 @@ end
 task :devnode => [:build, :install_node] do
 end
 
+task :restart_services do
+  ["httpd","sshd","qpidd","mcollective","stickshift-broker","stickshift-proxy"].each do |service|
+    system "sudo chkconfig #{service} on" 
+    system "sudo service #{service} restart"
+  end
+end
+
 task :livecd do
   mkdir_p remix_dir
   remix_ks = "openshift-origin-remix.ks"
