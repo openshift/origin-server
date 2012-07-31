@@ -2,8 +2,8 @@
 @runtime3
 Feature: PostgreSQL Application Sub-Cartridge
   
-  Scenario Outline: Create Delete one application with a PostgreSQL database
-    Given a new <type> type application
+  Scenario: Create Delete one application with a PostgreSQL database
+    Given a new perl-5.10 type application
     
     When I embed a postgresql-8.4 cartridge into the application
     Then a postgres process will be running
@@ -30,7 +30,3 @@ Feature: PostgreSQL Application Sub-Cartridge
     And the embedded postgresql-8.4 cartridge control script named postgresql will not exist
     And the postgresql configuration file will not exist
     And the embedded postgresql-8.4 cartridge directory will not exist
-
-  Scenarios: Create Delete Application With Database Scenarios
-    |type|
-    |php-5.3|

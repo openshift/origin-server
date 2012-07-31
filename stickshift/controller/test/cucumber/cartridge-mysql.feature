@@ -2,8 +2,8 @@
 @runtime4
 Feature: MySQL Application Sub-Cartridge
   
-  Scenario Outline: Create Delete one application with a MySQL database
-    Given a new <type> type application
+  Scenario: Create Delete one application with a MySQL database
+    Given a new perl-5.10 type application
     
     When I embed a mysql-5.1 cartridge into the application
     Then a mysqld process will be running
@@ -30,7 +30,3 @@ Feature: MySQL Application Sub-Cartridge
     And the embedded mysql-5.1 cartridge control script named mysql will not exist
     And the mysql configuration file will not exist
     And the embedded mysql-5.1 cartridge directory will not exist
-
-  Scenarios: Create Delete Application With Database Scenarios
-    | type    | 
-    | php-5.3 |
