@@ -34,6 +34,7 @@ Requires: php-pecl-apc
 Requires: php-mcrypt
 Requires: php-soap
 Requires: php-bcmath
+Requires: php-process
 
 %description
 Provides php support to OpenShift
