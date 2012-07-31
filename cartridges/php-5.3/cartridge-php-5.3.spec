@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.96.3
+Version: 0.96.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.96.4-1
+- Add php-process to the PHP cartridge. (ricky@elrod.me)
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.96.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
   stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
