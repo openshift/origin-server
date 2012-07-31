@@ -1,4 +1,5 @@
 .breadcrumb {
+  padding: 7px 0;
   margin: 0;
   text-transform: uppercase;
   color: #939598;
@@ -8,6 +9,7 @@
 
   li {
     text-shadow: -1px 0 1px rgba(0, 0, 0, 0.5);
+    display: inline;
   }
 
   a,
@@ -19,5 +21,12 @@
 
   .divider {
     color: #939598;
+    padding: 0 5px;
   }
+}
+
+@media (max-width: 767px) {
+	.breadcrumb {
+    padding: 4px 0;
+	}
 }
