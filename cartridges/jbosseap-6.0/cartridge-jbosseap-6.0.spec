@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.3.6
+Version:   0.3.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -159,6 +159,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.3.7-1
+- BZ844267 plus abstracted app_ctl_impl.sh (bdecoste@gmail.com)
+
 * Tue Jul 31 2012 William DeCoste <wdecoste@redhat.com> 0.3.6-1
 - abstracted app_ctl_impl.sh for JBoss
 
