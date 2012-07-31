@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.11
+Version: 0.14.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.12-1
+- Don't allow more than one domain for the user (rpenta@redhat.com)
+- fix for bug#844490 - max_gears consistency check need not apply when
+  decrementing consumed_gears (rchopra@redhat.com)
+
 * Mon Jul 30 2012 Dan McPherson <dmcphers@redhat.com> 0.14.11-1
 - Merge pull request #299 from pravisankar/dev/ravi/bug/813660
   (abhgupta@redhat.com)
