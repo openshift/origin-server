@@ -21,7 +21,7 @@ APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir
 exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
-exec > "$APP_JBOSS_TMP_DIR/${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
+exec > "$APP_JBOSS_TMP_DIR/${CARTRIDGE_TYPE}-${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
 
 # Kill the process given by $1 and its children
 killtree() {
