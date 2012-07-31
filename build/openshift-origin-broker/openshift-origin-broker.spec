@@ -15,6 +15,7 @@ Requires: rubygems
 Requires: emacs
 Requires: tig
 Requires: openssh-server
+Requires: rng-tools
 
 Requires: stickshift-broker
 Requires: rubygem-swingshift-mongo-plugin
@@ -43,6 +44,10 @@ lokkit --service=ssh
 lokkit --service=https
 lokkit --service=http
 lokkit --service=dns
+
+semanage -i - <<_EOF
+boolean -m --on named_write_master_zones
+_EOF
 
 sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'swingshift-mongo-plugin'\n/" /var/www/stickshift/broker/Gemfile
 echo "require File.expand_path('../plugin-config/swingshift-mongo-plugin.rb', __FILE__)" >> /var/www/stickshift/broker/config/environments/development.rb
@@ -122,6 +127,7 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}
 mkdir -p %{buildroot}/etc/skel/.config/autostart
 mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}/usr/libexec/openshift-origin-broker/bin
 
 cp skel/*.desktop %{buildroot}/etc/skel/.config/autostart/
 mkdir -p %{buildroot}/etc/skel/.openshift
@@ -134,6 +140,7 @@ cp doc/getting_started.html %{buildroot}/var/www/html
 
 mv bin/ss-register-dns %{buildroot}%{_bindir}
 mv bin/ss-setup-broker %{buildroot}%{_bindir}
+mv bin/ss-setup-bind %{buildroot}/usr/libexec/openshift-origin-broker/bin
 %clean
 rm -rf %{buildroot}                                
 
@@ -143,6 +150,7 @@ rm -rf %{buildroot}
 %attr(0555,apache,apache) /var/www/html
 %attr(0700,-,-) /usr/bin/ss-register-dns
 %attr(0700,-,-) /usr/bin/ss-setup-broker
+%attr(0700,-,-) /usr/libexec/openshift-origin-broker/bin/ss-setup-bind
 
 %changelog
 * Thu Jul 05 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1

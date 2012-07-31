@@ -54,6 +54,10 @@ export PATH=/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/sbin:$PATH
 cd /var/www/stickshift/broker
 bundle install
 
+echo "Static broker setup" >> /var/log/openshift-init-setup
+/usr/bin/ss-setup-broker --livecd --static-dns 8.8.8.8,8.8.4.4 | tee -a /var/log/openshift-init-setup
+echo "Runtime broker setup" >> /var/log/openshift-init-setup
+
 cat <<EOF > /etc/skel/.config/autostart/xhost.desktop
 [Desktop Entry]
 Type=Application
@@ -67,10 +71,35 @@ Comment=Xhost
 EOF
 
 cat <<EOF > /usr/bin/launch_openshift_doc.sh
-/bin/sleep 30
+#/bin/sleep 30
 /usr/bin/firefox file:///var/www/html/getting_started.html
 EOF
 chmod +x /usr/bin/launch_openshift_doc.sh
+
+cat <<EOF > /usr/bin/complete_origin_setup
+#!/usr/bin/ruby
+
+system "service mongod start"
+print "Initializing mongodb database..."
+while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
+  print "."
+  sleep 5
+end
+
+print "Setup mongo db user\n"
+print \`/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'\`
+
+print "Register admin user\n"
+print \`mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'\`
+
+ext_address = \`/sbin/ip addr show dev eth0 | awk '/inet / { split(\$2,a, "/") ; print a[1];}'\`
+system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip}"
+system "/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip #{ext_address}"
+
+system "service stickshift-broker restart"
+system "/sbin/chkconfig livesys-late-openshift off"
+EOF
+chmod +x /usr/bin/complete_origin_setup
 
 cat <<EOF > /etc/rc.d/init.d/livesys-late-openshift
 #!/bin/bash
@@ -81,7 +110,7 @@ cat <<EOF > /etc/rc.d/init.d/livesys-late-openshift
 # description: Late init script for configuring image
 
 start() {
-  /usr/bin/ss-setup-broker | tee /var/log/openshift-init-setup
+  /usr/bin/complete_origin_setup | tee -a /var/log/openshift-init-setup
 }
 
 case "\$1" in
