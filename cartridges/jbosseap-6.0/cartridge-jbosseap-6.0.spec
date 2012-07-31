@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version:   0.3.5
+Version:   0.3.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -87,6 +87,7 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl.sh
+ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl_impl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl_impl.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/build.sh %{buildroot}%{cartridgedir}/info/bin/build.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy_httpd_proxy.sh %{buildroot}%{cartridgedir}/info/bin/deploy_httpd_proxy.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy.sh %{buildroot}%{cartridgedir}/info/bin/deploy.sh
@@ -158,6 +159,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 31 2012 William DeCoste <wdecoste@redhat.com> 0.3.6-1
+- abstracted app_ctl_impl.sh for JBoss
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.3.5-1
 - add postgres connection validation (bdecoste@gmail.com)
 - add mysql connection validation (bdecoste@gmail.com)

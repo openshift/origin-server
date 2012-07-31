@@ -21,7 +21,7 @@ APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir
 exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
-exec > "$APP_JBOSS_TMP_DIR/jbosseap6.0-${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
+exec > "$APP_JBOSS_TMP_DIR/${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
 
 # Kill the process given by $1 and its children
 killtree() {
@@ -32,7 +32,7 @@ killtree() {
     echo kill -TERM ${_pid}
     kill -TERM ${_pid}
 }
-# Check if the jbosseap process is running
+# Check if the jbossas process is running
 isrunning() {
     # Check for running app
     if [ -f "$JBOSS_PID_FILE" ]; then
@@ -64,6 +64,19 @@ function start_app() {
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
        ENABLE_JPDA=1
     fi
+    
+    if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
+	then
+		if [ -w ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME ];
+	    then
+			echo "export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0" > ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME
+		fi
+	else
+		if [ -w ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME ];
+	    then
+			echo "export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0" > ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME
+		fi
+	fi
 
     _state=`get_app_state`
     if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then

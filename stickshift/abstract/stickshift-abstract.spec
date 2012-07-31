@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.6
+Version: 0.14.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jul 31 2012 William DeCoste <wdecoste@redhat.com> 0.14.7-1
+- abstracted app_ctl_impl.sh for JBoss
+
 * Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.14.6-1
 - BZ 843354: Don't generate passwords that start with "-".
   (rmillner@redhat.com)
