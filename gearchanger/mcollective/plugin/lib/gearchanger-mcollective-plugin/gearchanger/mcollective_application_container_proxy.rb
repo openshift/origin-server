@@ -1456,6 +1456,7 @@ module GearChanger
       end
 
       def self.execute_parallel_jobs_impl(handle)
+=begin
         handle.each { |id, job_list|
           options = MCollectiveApplicationContainerProxy.rpc_options
           rpc_client = rpcclient('stickshift', :options => options)
@@ -1474,25 +1475,25 @@ module GearChanger
             rpc_client.disconnect
           end
         }
-#TODO Identity doesn't really seem to handle multiple until 1.3: http://projects.puppetlabs.com/issues/8466
-=begin
+=end
         begin
           options = MCollectiveApplicationContainerProxy.rpc_options
           rpc_client = rpcclient('stickshift', :options => options)
           mc_args = handle.clone
-          rpc_client.custom_request('execute_parallel', mc_args, nil, {'identity' => handle.keys}).each { |mcoll_reply|
-            if mcoll_reply.results[:statuscode] == 0              
+          identities = handle.keys
+          rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
+            if mcoll_reply.results[:statuscode] == 0 
               output = mcoll_reply.results[:data][:output]
               exitcode = mcoll_reply.results[:data][:exitcode]
               sender = mcoll_reply.results[:sender]
               Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
+              
               handle[sender] = output if exitcode == 0
             end
           }
         ensure
           rpc_client.disconnect
         end
-=end
       end
     end
 end
