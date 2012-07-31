@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.7
+Version: 0.14.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.8-1
+- abstracted app_ctl_impl.sh (bdecoste@gmail.com)
+- BZ844267 plus abstracted app_ctl_impl.sh (bdecoste@gmail.com)
+
 * Tue Jul 31 2012 William DeCoste <wdecoste@redhat.com> 0.14.7-1
 - abstracted app_ctl_impl.sh for JBoss
 
