@@ -67,7 +67,6 @@ function setup_haproxy_as_a_service() {
     secure_app_dir
     secure_cart_instance_dir
     secure_conf_dirs
-    observe_setup_app_and_git_dirs
     observe_setup_cart_instance_dir
 
     #
@@ -79,7 +78,6 @@ function setup_haproxy_as_a_service() {
     create_standard_repo_dir_env_var
     create_standard_path_env_var
 
-    observe_setup_env_uservars_dir
 
     export IP2=`embedded_find_open_ip $uid "$APP_HOME/"`
     echo "export OPENSHIFT_HAPROXY_STATUS_IP='$IP2'" > "$APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP"

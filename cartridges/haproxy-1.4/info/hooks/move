@@ -35,12 +35,11 @@ fi
 setup_basic_vars
 
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
+HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 
-observe_setup_app_home
-observe_setup_app_and_git_dirs
-observe_setup_env_uservars_dir
 observe_setup_cart_instance_dir
+observe_setup_var_lib_dir "$HAPROXY_DIR/.ssh/"
 
 #
 # Find an open localhost IP
