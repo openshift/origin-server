@@ -557,9 +557,10 @@ module StickShift
     end
 
     def add_domain(user_id, id, domain_attrs)
-      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id }},
+      hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id },
+             "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, {"domains" => {"$exists" => false}}]},
              :update => { "$push" => { "domains" => domain_attrs } } })
-      #raise StickShift::UserException.new("#{user_id} has already reached the domain limit", 104) if hash == nil
+      raise StickShift::UserException.new("Domain already exists for #{user_id}", 158) if hash == nil
     end
 
     def delete_user(user_id)
