@@ -102,7 +102,7 @@ then
         echo "Found pom.xml... attempting to build with 'mvn -e clean package -Popenshift -DskipTests'"
         if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
 		then
-			JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+			export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 		else
         	export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
         fi

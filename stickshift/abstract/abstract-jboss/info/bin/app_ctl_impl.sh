@@ -64,19 +64,6 @@ function start_app() {
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
        ENABLE_JPDA=1
     fi
-    
-    if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
-	then
-		if [ -w ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME ];
-	    then
-			echo "export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0" > ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME
-		fi
-	else
-		if [ -w ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME ];
-	    then
-			echo "export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0" > ${OPENSHIFT_GEAR_DIR}../.env/JAVA_HOME
-		fi
-	fi
 
     _state=`get_app_state`
     if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
