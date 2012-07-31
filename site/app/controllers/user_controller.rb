@@ -11,7 +11,7 @@ class UserController < AccountController
   include DomainAware
 
   def skip_captcha?
-    Rails.configuration.captcha_secret.presence and params[:captcha_secret] == Rails.configuration.captcha_secret
+    Rails.configuration.captcha_secret.nil? or params[:captcha_secret] == Rails.configuration.captcha_secret
   end
 
   def new
