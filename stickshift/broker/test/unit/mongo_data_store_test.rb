@@ -102,7 +102,9 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     updated_dom = ds.find("Domain", user_id, dom_id)
     assert_equal(orig_dom, updated_dom)
   end
-  
+
+#TODO: Enable this testcase once we support multiple domains per user.
+=begin  
   test "find all domains" do
     ds = MongoDataStore.new
     cu = cloud_user
@@ -116,6 +118,7 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     assert(ds.find_all("Domain", user_id).length >= 2)
     assert(ds.find_all("CloudUser", nil).length >= 2)
   end
+=end
 
   test "create and find application" do
     ds = MongoDataStore.new
