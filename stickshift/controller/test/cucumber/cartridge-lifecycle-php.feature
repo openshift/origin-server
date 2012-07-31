@@ -1,5 +1,5 @@
 @runtime
-@runtime4
+@runtime3
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

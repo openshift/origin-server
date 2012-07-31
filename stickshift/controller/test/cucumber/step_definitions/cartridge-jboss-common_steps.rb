@@ -11,11 +11,11 @@ Then /^the jboss application directory tree will( not)? be populated$/ do |negat
   file_list.each do |file_name| 
     file_path = cart_instance_root + "/" + file_name
     $logger.info("Checking for app file at #{file_path}")
-    file_exists = File.exists? file_path
-    unless negate
-      file_exists.should be_true "file #{file_path} does not exist"
+
+    if negate
+      assert_file_not_exists file_path
     else
-      file_exists.should be_false "file #{file_path} exists, and should not"
+      assert_file_exists file_path
     end
   end
 end
@@ -52,11 +52,10 @@ Then /^the jboss server configuration files will( not)? exist$/ do |negate|
 
   file_list.each do |file_name|
     $logger.info("Checking for server config file at #{file_name}")
-    file_exists = File.exists? file_name
-    unless negate
-      file_exists.should be_true "file #{file_name} should exist and does not"
+    if negate
+      assert_file_not_exists file_name
     else
-      file_exists.should be_false "file #{file_name} should not exist and does"
+      assert_file_exists file_name
     end
   end
 end
@@ -70,14 +69,12 @@ Then /^the jboss standalone scripts will( not)? exist$/ do |negate|
   file_name = "#{jboss_bin_dir}/standalone.sh"
 
   $logger.info("Checking for server script at #{file_name}")
-  file_exists = File.exists? file_name
-  unless negate
-    file_exists.should be_true "file #{file_name} should exist and does not"
+  if negate
+    assert_file_not_exists file_name
   else
-    file_exists.should be_false "file #{file_name} should not exist and does"
+    assert_file_exists file_name
   end
 end
-
 
 
 Then /^the jboss git hooks will( not)? exist$/ do |negate|
@@ -121,10 +118,9 @@ end
 Then /^the jboss maven repository will( not)? exist$/ do |negate|
   m2_root = "#{$home_root}/#{@gear.uuid}/.m2"
   $logger.info("Checking for Maven repo at #{m2_root}")
-  m2_root_exists = File.exists? m2_root
-  unless negate
-    m2_root_exists.should be_true "Dir #{m2_root} should exist and does not"
+  if negate
+    assert_directory_not_exists m2_root
   else
-    m2_root_exists.should be_false "Dir #{m2_root} should not exist and does"
-  end  
+    assert_directory_exists m2_root
+  end
 end
