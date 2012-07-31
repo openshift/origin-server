@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.13.3
+Version: 0.13.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
+- Set up .ssh directory during gear move (ironcladlou@gmail.com)
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
   stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
