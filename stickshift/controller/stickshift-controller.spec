@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.12
+Version: 0.14.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.13-1
+- send mcollective requests to multiple nodes at the same time
+  (dmcphers@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.12-1
 - Don't allow more than one domain for the user (rpenta@redhat.com)
 - fix for bug#844490 - max_gears consistency check need not apply when
