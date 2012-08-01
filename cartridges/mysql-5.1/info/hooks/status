@@ -40,6 +40,7 @@ MYSQL_DIR="$APP_HOME/mysql-5.1/"
 if output=$(runuser --shell /bin/sh "$uuid" "$MYSQL_DIR/${application}_mysql_ctl.sh" status 2>&1)
 then
     status_client_result "$output"
+    ([[ "$output" =~ .*is\ stopped ]]  && send_attr "status=ALREADY_STOPPED") || echo
 else
     client_result "MySQL is either stopped or inaccessible"
 fi

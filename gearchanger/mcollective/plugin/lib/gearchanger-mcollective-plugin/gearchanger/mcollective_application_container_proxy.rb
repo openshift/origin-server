@@ -555,6 +555,18 @@ module GearChanger
           end
         end
 
+        app.start_order.reverse.each do |ci_name|
+          next if not gi.component_instances.include? ci_name
+          cinst = app.comp_instance_map[ci_name]
+          cart = cinst.parent_cart_name
+          next if cart==app.name
+          idle, leave_stopped = state_map[ci_name]
+          if leave_stopped
+            log_debug "DEBUG: Stopping cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
+            reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "stop", nil, false)
+          end
+        end
+
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
