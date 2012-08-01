@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.14
+Version: 0.14.15
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.14.15-1
+- fix syntax (dmcphers@redhat.com)
+- Split tests to allow granular retries (jhonce@redhat.com)
+
 * Tue Jul 31 2012 Dan McPherson <dmcphers@redhat.com> 0.14.14-1
 - clearing save jobs too early (dmcphers@redhat.com)
 
