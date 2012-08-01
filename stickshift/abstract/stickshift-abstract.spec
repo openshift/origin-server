@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.14.8
+Version: 0.14.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,13 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.9-1
+- Merge pull request #302 from rmillner/dev/rmillner/bug/844123
+  (rchopra@redhat.com)
+- BZ844267 plus abstracted app_ctl_impl.sh (bdecoste@gmail.com)
+- Move direct calls to httpd init script to httpd_singular locking script
+  (rmillner@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.8-1
 - abstracted app_ctl_impl.sh (bdecoste@gmail.com)
 - BZ844267 plus abstracted app_ctl_impl.sh (bdecoste@gmail.com)
