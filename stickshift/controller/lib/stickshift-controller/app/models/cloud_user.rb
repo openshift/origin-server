@@ -95,7 +95,6 @@
               end
             end
           end
-          save_jobs['removes'].clear
         end
         if save_jobs['adds']
           save_jobs['adds'].each do |action, values|
@@ -127,7 +126,6 @@
               end
             end
           end
-          save_jobs['adds'].clear
         end
       }
       RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
@@ -135,6 +133,8 @@
           raise StickShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
         end
       }
+      save_jobs['removes'].clear if save_jobs['removes']
+      save_jobs['adds'].clear if save_jobs['adds']
     end
       
     super(@login)
