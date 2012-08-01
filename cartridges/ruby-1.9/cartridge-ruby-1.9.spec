@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.3.4
+Version: 0.3.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -202,6 +202,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.3.5-1
+- Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
+  was used. (rmillner@redhat.com)
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.3.4-1
 - The [ operator requires a space afterward in bash, = is used for string
   compare and if PID could be blank it must be quoted so that the blank is
