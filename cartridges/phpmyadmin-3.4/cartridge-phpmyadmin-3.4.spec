@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.17.2
+Version: 0.17.3
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
+- Move direct calls to httpd init script to httpd_singular locking script
+  (rmillner@redhat.com)
+
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
 - Fixes for bugz 840030 - Apache blocks access to /icons. Remove these as
   mod_autoindex has now been turned OFF (see bugz 785050 for more details).
