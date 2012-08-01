@@ -53,10 +53,11 @@
       #new user record
       resultIO.append(create())
     end
-    
-    gears = []
-    tag = ""
+
     if applications && !applications.empty? && save_jobs
+      gears = []
+      tag = ""
+
       applications.each do |app|
         app.gears.each do |gear|
           if !app.destroyed_gears || !app.destroyed_gears.include?(gear.uuid)
@@ -65,54 +66,38 @@
         end
       end
 
-      if save_jobs['removes']
-        save_jobs['removes'].each do |action, values|
-          handle = RemoteJob.create_parallel_job
-                 
-          RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
-            save_jobs['removes'].each do |action, values|
-              case action
-              when 'ssh_keys'
-                values.each do |value|
-                  ssh_key = value[0]
-                  ssh_key_comment = value[1]
-                  job = gear.ssh_key_job_remove(ssh_key, ssh_key_comment)
+      handle = RemoteJob.create_parallel_job
+               
+      RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
+        if save_jobs['removes']
+          save_jobs['removes'].each do |action, values|
+            case action
+            when 'ssh_keys'
+              values.each do |value|
+                ssh_key = value[0]
+                ssh_key_comment = value[1]
+                job = gear.ssh_key_job_remove(ssh_key, ssh_key_comment)
+                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+              end
+            when 'env_vars'
+              values.each do |value|
+                env_var_key = value[0]
+                job = gear.env_var_job_remove(env_var_key)
+                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+              end
+            when 'broker_auth_keys'
+              values.each do |value|
+                app_uuid = value[0]
+                if app_uuid == gear.app.uuid
+                  job = gear.broker_auth_key_job_remove
                   RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-                end
-              when 'env_vars'
-                values.each do |value|
-                  env_var_key = value[0]
-                  job = gear.env_var_job_remove(env_var_key)
-                  RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-                end
-              when 'broker_auth_keys'
-                values.each do |value|
-                  app_uuid = value[0]
-                  if app_uuid == gear.app.uuid
-                    job = gear.broker_auth_key_job_remove
-                    RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-                  end
                 end
               end
             end
-          }
-          RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
-            if status != 0
-              raise StickShift::NodeException.new("Error removing settings from gear: #{gear} with status: #{status} and output: #{output}", 143)
-            end
-          }
+          end
+          save_jobs['removes'].clear
         end
-      end
-    end
-    save_jobs['removes'].clear if save_jobs && save_jobs['removes']  
-
-    super(@login)
-    
-    if applications && !applications.empty? && save_jobs
-      if save_jobs['adds']
-        handle = RemoteJob.create_parallel_job
-       
-        RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
+        if save_jobs['adds']
           save_jobs['adds'].each do |action, values|
             case action
             when 'ssh_keys'
@@ -142,15 +127,17 @@
               end
             end
           end
-        }
-        RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
-          if status != 0
-            raise StickShift::NodeException.new("Error adding settings to gear: #{gear} with status: #{status} and output: #{output}", 143)
-          end
-        }
-      end
+          save_jobs['adds'].clear
+        end
+      }
+      RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
+        if status != 0
+          raise StickShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
+        end
+      }
     end
-    save_jobs['adds'].clear if save_jobs && save_jobs['adds']
+      
+    super(@login)
 
     resultIO
   end
