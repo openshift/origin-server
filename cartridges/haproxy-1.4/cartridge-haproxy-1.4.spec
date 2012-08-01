@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.13.4
+Version: 0.13.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
+- Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
+  was used. (rmillner@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - Set up .ssh directory during gear move (ironcladlou@gmail.com)
 
