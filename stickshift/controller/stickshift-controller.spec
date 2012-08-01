@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.13
+Version: 0.14.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Jul 31 2012 Dan McPherson <dmcphers@redhat.com> 0.14.14-1
+- clearing save jobs too early (dmcphers@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.13-1
 - send mcollective requests to multiple nodes at the same time
   (dmcphers@redhat.com)
