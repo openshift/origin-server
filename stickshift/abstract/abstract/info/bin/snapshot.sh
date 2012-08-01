@@ -26,6 +26,7 @@ echo "Creating and sending tar.gz" 1>&2
         --exclude=./$OPENSHIFT_GEAR_UUID/$OPENSHIFT_GEAR_NAME/${OPENSHIFT_GEAR_NAME}_ctl.sh \
         --exclude=./$OPENSHIFT_GEAR_UUID/$OPENSHIFT_GEAR_NAME/conf.d/stickshift.conf \
         --exclude=./$OPENSHIFT_GEAR_UUID/$OPENSHIFT_GEAR_NAME/run/httpd.pid \
+        --exclude=./$OPENSHIFT_GEAR_UUID/$OPENSHIFT_GEAR_NAME/haproxy-\*/run/stats \
         ./$OPENSHIFT_GEAR_UUID
 
 # Cleanup
