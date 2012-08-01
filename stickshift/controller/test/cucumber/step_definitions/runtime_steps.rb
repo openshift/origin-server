@@ -7,6 +7,40 @@
 
 require 'fileutils'
 
+Given /^a new ([^ ]+) application, verify create and delete using ([^ ]+)$/ do |cart_name, proc_name|
+  steps %Q{
+    Given a new #{cart_name} type application
+    Then the application http proxy file will exist
+    And a #{proc_name} process will be running
+    And the application git repo will exist
+    And the application source tree will exist
+    And the application log files will exist
+    When I destroy the application
+    Then the application http proxy file will not exist
+    And a #{proc_name} process will not be running
+    And the application git repo will not exist
+    And the application source tree will not exist
+  }
+end
+
+Given /^a new ([^ ]+) application, verify start, stop, restart using ([^ ]+)$/ do |cart_name, proc_name|
+  steps %Q{
+    Given a new #{cart_name} type application
+    Then a #{proc_name} process will be running
+    When I stop the application
+    Then a #{proc_name} process will not be running
+    When I start the application
+    Then a #{proc_name} process will be running
+    When I status the application
+    Then a #{proc_name} process will be running
+    When I restart the application
+    Then a #{proc_name} process will be running
+    When I destroy the application
+    Then the application http proxy file will not exist
+    And a #{proc_name} process will not be running
+  }
+end
+
 # Creates a new account, application, gear, and cartridge in one shot.
 # The cartridge is then configured. After running this step, subsequent
 # steps will have access to three pieces of state:

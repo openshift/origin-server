@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify3
+@runtime_extended
+@runtime_extended3
 Feature: Descriptor parsing and elaboration tests
 
   Scenario: Descriptor parsing
