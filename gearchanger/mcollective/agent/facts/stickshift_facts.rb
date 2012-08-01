@@ -12,19 +12,6 @@ def get_node_config_value(key, default)
 end
 
 #
-# Count the number of git repos on this host
-#
-Facter.add(:git_repos) do
-  git_repos_count = 0
-  Dir.glob("/var/lib/stickshift/*").each { |app_dir|
-    if File.directory?(app_dir) && !File.symlink?(app_dir)
-      git_repos_count += Dir.glob(File.join(app_dir, "git/*.git")).count
-    end
-  }
-  setcode { git_repos_count }
-end
-
-#
 # Setup the district
 #
 district_uuid = 'NONE'
@@ -80,28 +67,39 @@ Facter.add(:max_active_apps) do
 end
 
 #
+# Count number of git repos and stopped apps
+#
+git_repos_count = 0
+stopped_app_count = 0
+Dir.glob("/var/lib/stickshift/*").each { |app_dir|
+  if File.directory?(app_dir) && !File.symlink?(app_dir)
+    git_repos_count += Dir.glob(File.join(app_dir, "git/*.git")).count
+
+    active = true
+    Dir.glob(File.join(app_dir, 'app-root', 'runtime', '.state')).each {|file|
+      state = File.read(file).chomp
+      if 'idle' == state || 'stopped' == state
+        active = false
+      end
+    }
+    if not active
+      stopped_app_count += 1
+    end
+  end
+}
+
+Facter.add(:git_repos) do
+  setcode { git_repos_count }
+end
+
+#
 # Find active capacity
 #
 Facter.add(:active_capacity) do
-    git_repos =  Facter.value(:git_repos).to_f
-    max_active_apps = Facter.value(:max_active_apps).to_f
-    stopped_app_count = 0
-    Dir.glob("/var/lib/stickshift/*").each { |app_dir|
-        if File.directory?(app_dir) && !File.symlink?(app_dir)
-            active = true
-            Dir.glob(File.join(app_dir, 'app-root', 'runtime', '.state')).each {|file|
-                state = File.read(file).chomp
-                if 'idle' == state || 'stopped' == state
-                    active = false
-                end
-            }
-            if not active
-                stopped_app_count += 1
-            end
-        end
-    }
-    active_capacity = ( (git_repos - stopped_app_count) / max_active_apps ) * 100
-    setcode { active_capacity.to_s }
+  git_repos =  Facter.value(:git_repos).to_f
+  max_active_apps = Facter.value(:max_active_apps).to_f
+  active_capacity = ( (git_repos - stopped_app_count.to_f) / max_active_apps ) * 100
+  setcode { active_capacity.to_s }
 end
 
 #
