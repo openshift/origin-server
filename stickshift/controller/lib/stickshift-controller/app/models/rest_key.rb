@@ -1,7 +1,7 @@
 class RestKey < StickShift::Model
   attr_accessor :name, :content, :type, :links
   
-  def initialize(name, content, type, url)
+  def initialize(name, content, type, url, nolinks)
     self.name= name
     self.content = content
     self.type = type || "ssh-rsa"
@@ -13,7 +13,7 @@ class RestKey < StickShift::Model
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
       ]),
       "DELETE" => Link.new("Delete SSH key", "DELETE", URI::join(url, "user/keys/#{name}"))
-    }
+    } unless nolinks
   end
   
   def to_xml(options={})

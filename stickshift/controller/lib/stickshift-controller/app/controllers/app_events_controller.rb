@@ -109,7 +109,7 @@ class AppEventsController < BaseController
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "#{event.sub('-', '_').upcase}_APPLICATION", true, "Application event '#{event}' successful")
         
     application = Application.find(@cloud_user, id)
-    app = RestApplication.new(application, get_url)
+    app = RestApplication.new(application, get_url, nolinks)
     @reply = RestReply.new(:ok, "application", app)
     message = Message.new("INFO", msg)
     @reply.messages.push(message)

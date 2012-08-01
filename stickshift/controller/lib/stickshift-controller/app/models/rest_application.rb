@@ -2,7 +2,7 @@ class RestApplication < StickShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
   include LegacyBrokerHelper
   
-  def initialize(app, url)
+  def initialize(app, url, nolinks)
     self.framework = app.framework
     self.name = app.name
     self.creation_time = app.creation_time
@@ -84,7 +84,7 @@ class RestApplication < StickShift::Model
         Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.0", carts)
       ]),
       "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"))
-    }
+    } unless nolinks
   end
   
   def to_xml(options={})
