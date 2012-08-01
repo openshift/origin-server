@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.96.4
+Version: 0.96.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.96.5-1
+- Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
+  was used. (rmillner@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.96.4-1
 - Add php-process to the PHP cartridge. (ricky@elrod.me)
 
