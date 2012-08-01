@@ -946,4 +946,10 @@ $cartridgeBorderWidth: 10px;
   white-space: nowrap;
 }
 
+#new_web_user table td {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
