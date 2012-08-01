@@ -106,6 +106,7 @@ function _status_postgres_service() {
     if output=$(runuser --shell /bin/sh "$uuid" "$CTL_SCRIPT" status 2>&1)
     then
         status_client_result "$output"
+        ([[ "$output" =~ .*is\ stopped ]]  && send_attr "status=ALREADY_STOPPED") || echo
     else
         client_result "Postgres is either stopped or inaccessible"
     fi

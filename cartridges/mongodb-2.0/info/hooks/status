@@ -41,6 +41,7 @@ mongodbctl="$MONGODB_DIR/${application}_mongodb_ctl.sh"
 if output=$(runuser --shell /bin/sh "$uuid" "$mongodbctl" status 2>&1)
 then
     status_client_result "$output"
+    ([[ "$output" =~ .*is\ stopped ]]  && send_attr "status=ALREADY_STOPPED") || echo
 else
     client_result "MongoDB is either stopped or inaccessible"
 fi
