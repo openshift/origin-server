@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify1
+@runtime_extended
+@runtime_extended1
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

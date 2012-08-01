@@ -1,5 +1,5 @@
-@runtime_verify
-@runtime_verify3
+@runtime_extended
+@runtime_extended3
 Feature: Cartridge Lifecycle Jenkins Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
