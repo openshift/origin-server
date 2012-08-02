@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.0
+Version: 0.15.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+- BZ 844876: ignore the haproxy status socket (rmillner@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.14.9-1
 - Merge pull request #302 from rmillner/dev/rmillner/bug/844123
   (rchopra@redhat.com)
