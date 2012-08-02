@@ -2,7 +2,7 @@ class RestCartridge11 < StickShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
   :help_topics, :links, :properties
   
-  def initialize(type, name, app, url)
+  def initialize(type, name, app, url, nolinks=false)
     self.name = name
     self.type = type
   
@@ -40,7 +40,7 @@ class RestCartridge11 < StickShift::Model
       self.properties << property
     end
     
-    if app
+    if app and !nolinks
       domain_id = app.domain.namespace
       app_id = app.name
       if type == "embedded" and not app_id.nil? and not domain_id.nil?

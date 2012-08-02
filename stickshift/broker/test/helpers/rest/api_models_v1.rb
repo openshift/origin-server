@@ -129,7 +129,7 @@ class BaseObj_V1 < BaseObj
       self.links.keys.each do |lname|
         raise_ex("Link '#{lname}' missing") unless obj.links[lname]
         self.links[lname].compare(obj.links[lname])
-      end if self.links.keys
+      end if self.links && self.links.keys
     end
   end
 end
@@ -149,7 +149,7 @@ class BaseApi_V1 < BaseObj_V1
          "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges"),
          "LIST_TEMPLATES" => Link_V1.new("GET", "application_templates"),
          "LIST_ESTIMATES" => Link_V1.new("GET", "estimates")
-    }
+    } unless $nolinks
   end
 end
 
@@ -169,7 +169,7 @@ class RestUser_V1 < BaseObj_V1
         Param_V1.new("type", "string", ["ssh-rsa", "ssh-dss"]),                            
         Param_V1.new("content", "string"),      
       ])                                                                                              
-    } 
+    } unless $nolinks 
   end
 
   def compare(obj)
@@ -201,7 +201,7 @@ class RestCartridge_V1 < BaseObj_V1
           Param_V1.new("event", "string", "reload")                                            
         ]),
         "DELETE" => Link_V1.new("DELETE", "/cartridges/#{name}")
-      }
+      } unless $nolinks
     end
   end
 
@@ -217,7 +217,7 @@ class RestEstimates_V1 < BaseObj_V1
     self.links = {
       "GET_ESTIMATE" => Link_V1.new("GET", "estimates/application",
         [ Param_V1.new("descriptor", "string") ])
-    }
+    } unless $nolinks
   end
 end
 
@@ -259,7 +259,7 @@ class RestDomain_V1 < BaseObj_V1
         [ Param_V1.new("id", "string") ]),
       "DELETE" => Link_V1.new("DELETE", "domains/#{id}", nil,
         [ OptionalParam_V1.new("force", "boolean", [true, false], false) ])
-    }
+    } unless $nolinks
   end
 end
 
@@ -276,7 +276,7 @@ class RestKey_V1 < BaseObj_V1
         Param_V1.new("type", "string", ["ssh-rsa", "ssh-dss"]),
         Param_V1.new("content", "string") ]),
       "DELETE" => Link_V1.new("DELETE", "user/keys/#{name}")
-    }
+    } unless $nolinks
   end
 end
 
@@ -333,7 +333,7 @@ class RestApplication_V1 < BaseObj_V1
       "ADD_CARTRIDGE" => Link_V1.new("POST", "domains/#{domain_id}/applications/#{name}/cartridges",
         [ Param_V1.new("cartridge", "string") ]),
       "LIST_CARTRIDGES" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}/cartridges")
-    }
+    } unless $nolinks
   end
 end
 

@@ -28,7 +28,7 @@ class BaseController < ActionController::Base
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
       "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_templates")),
       "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))
-    }
+    } unless nolinks
     
     @reply = RestReply.new(:ok, "links", links)
     respond_with @reply, :status => @reply.status
@@ -117,7 +117,16 @@ class BaseController < ActionController::Base
     #Rails.logger.debug "Request URL: #{url.to_s}"
     return url.to_s
   end
-  
+
+  def nolinks
+    ignore_links = params[:nolinks]
+    if ignore_links
+      ignore_links.downcase!
+      return ["true", "1"].include?(ignore_links)
+    end
+    return false
+  end
+ 
   def check_version
     accept_header = request.headers['Accept']
     mime_types = accept_header.split(%r{,\s*})

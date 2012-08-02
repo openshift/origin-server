@@ -19,15 +19,15 @@ class EmbCartController < BaseController
     end
     cartridges = Array.new
     if $requested_api_version >= 1.1
-      cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url))
+      cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nolinks))
     end
 
     unless application.embedded.nil?
       application.embedded.each_key do |key|
         if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url)
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
         else
-          cartridge = RestCartridge10.new("embedded", key, application, get_url)
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
         end
         cartridges.push(cartridge)
       end
@@ -59,9 +59,9 @@ class EmbCartController < BaseController
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
 
           if $requested_api_version >= 1.1
-            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+            cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
           else
-            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+            cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
           end
           @reply = RestReply.new(:ok, "cartridge", cartridge)
           respond_with @reply, :status => @reply.status
@@ -175,9 +175,9 @@ class EmbCartController < BaseController
         if key == name
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", true, "Embedded cartridge #{name} in application #{id}")
           if $requested_api_version >= 1.1
-            cartridge = RestCartridge11.new("embedded", key, application, get_url)
+            cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
           else
-            cartridge = RestCartridge10.new("embedded", key, application, get_url)
+            cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
           end
           @reply = RestReply.new(:created, "cartridge", cartridge)
           message = Message.new(:info, "Added #{name} to application #{id}")
@@ -243,7 +243,7 @@ class EmbCartController < BaseController
       
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", true, "Cartridge #{cartridge} removed from application #{id}")
     application = Application.find(@cloud_user, id)
-    app = RestApplication.new(application, get_url)
+    app = RestApplication.new(application, get_url, nolinks)
     @reply = RestReply.new(:ok, "application", app)
     message = Message.new(:info, "Removed #{cartridge} from application #{id}")
     @reply.messages.push(message)

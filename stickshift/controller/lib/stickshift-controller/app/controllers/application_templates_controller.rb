@@ -4,7 +4,7 @@ class ApplicationTemplatesController < BaseController
   
   def index
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_TEMPLATES", true, "Showing all templates")
-    templates = ApplicationTemplate.find_all.map{|t| RestApplicationTemplate.new(t, get_url)}
+    templates = ApplicationTemplate.find_all.map{|t| RestApplicationTemplate.new(t, get_url, nolinks)}
     @reply = RestReply.new(:ok, "application_templates", templates)
     respond_with @reply, :status => @reply.status
   end
@@ -14,11 +14,11 @@ class ApplicationTemplatesController < BaseController
     template = ApplicationTemplate.find(id_or_tag)
     unless template.nil?
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_TEMPLATE", true, "Showing template for '#{id_or_tag}'")
-      @reply = RestReply.new(:ok, "application_template", RestApplicationTemplate.new(template, get_url))
+      @reply = RestReply.new(:ok, "application_template", RestApplicationTemplate.new(template, get_url, nolinks))
       respond_with @reply, :status => @reply.status
     else
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_TEMPLATES", true, "Showing template for '#{id_or_tag}'")
-      templates = ApplicationTemplate.find_all(id_or_tag).map{|t| RestApplicationTemplate.new(t, get_url)}
+      templates = ApplicationTemplate.find_all(id_or_tag).map{|t| RestApplicationTemplate.new(t, get_url, nolinks)}
       @reply = RestReply.new(:ok, "application_templates", templates)
       respond_with @reply, :status => @reply.status
     end
