@@ -31,8 +31,9 @@ source ${CART_INFO_DIR}/lib/util
 
 isrunning() {
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
-        mysql_pid=`$MYSQL_DIR/pid/mysql.pid 2> /dev/null`
-        if `ps --pid $mysql_pid > /dev/null 2>&1` || `pgrep -x mysqld_safe > /dev/null 2>&1`
+        mysql_pid=`cat $MYSQL_DIR/pid/mysql.pid 2> /dev/null`
+        myid=`id -u`
+        if `ps --pid $mysql_pid > /dev/null 2>&1` || `pgrep -x mysqld_safe -u $myid > /dev/null 2>&1`
         then
             return 0
         fi

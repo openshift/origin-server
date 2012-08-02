@@ -164,6 +164,16 @@ function reload() {
     isrunning  &&  _send_client_result "Reloaded HAProxy instance"
 }
 
+function cond_reload() {
+    if isrunning; then
+        echo "`date`: Conditionally reloading HAProxy service " 1>&2
+        _reload_service
+        haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
+        haproxy_ctld_daemon start > /dev/null 2>&1
+        _send_client_result "Conditionally reloaded HAProxy instance"
+    fi
+}
+
 function force_stop() {
     pkill haproxy
     isrunning  ||  _send_client_result "Force stopped HAProxy instance"
@@ -183,6 +193,7 @@ case "$1" in
     graceful-stop|stop)  stop        ;;
     restart)             restart     ;;
     graceful|reload)     reload      ;;
+    cond-reload)         cond_reload ;;
     force-stop)          force_stop  ;;
     status)              status      ;;
 esac

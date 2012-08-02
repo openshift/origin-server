@@ -89,7 +89,7 @@ rm -f /tmp/haproxy.cfg.$$
 uuid=$3
 setup_user_vars
 # echo "$0: reloading haproxy for application $1 - uuid $uuid ... "
-run_as_user "app_ctl.sh reload"
+run_as_user "app_ctl.sh cond-reload"
 appctl_exitcode=$?
 
 # Pass the appropriate exit code back.
