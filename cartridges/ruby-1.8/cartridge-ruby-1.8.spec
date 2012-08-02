@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.97.0
+Version: 0.97.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.97.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+
 * Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.96.5-1
 - Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
   was used. (rmillner@redhat.com)
