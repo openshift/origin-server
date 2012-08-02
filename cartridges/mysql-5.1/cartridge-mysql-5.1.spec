@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.31.0
+Version: 0.31.1
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.31.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+- Mysql and mongodb set gear state when on a scalable app.
+  (rmillner@redhat.com)
+
 * Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.30.5-1
 - Stand-alone mysql or mongodb gears disable stale detection.
   (rmillner@redhat.com)
