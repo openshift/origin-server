@@ -12,14 +12,23 @@ class Domain < StickShift::UserModel
   end
   def save
     resultIO = ResultIO.new
+    created = false
     if not persisted?
       resultIO.append(create())
+      created = true
     else
       resultIO.append(update())
     end
-    super(self.user.login)
+
+    begin
+      super(self.user.login)
+    rescue
+      delete_dns if created
+      raise
+    end
     resultIO
-  end  
+  end
+ 
   def hasAccess?(user)
     #TODO 
     #if user.domains.include? self.uuid
@@ -59,20 +68,24 @@ class Domain < StickShift::UserModel
     end    
   end
   
-  def delete
-    Rails.logger.debug "Deleting domain #{self.namespace} uuid #{self.uuid}"
-    resultIO = ResultIO.new
+  def delete_dns
     dns_service = StickShift::DnsService.instance
     begin
       dns_service.deregister_namespace(self.namespace)
       dns_service.publish
-      Rails.logger.debug "notifying the domain observer of domain delete"
-      notify_observers(:after_domain_destroy) 
-      Rails.logger.debug "done notifying the domain observer"
     ensure
       dns_service.close
     end
+  end
+
+  def delete
+    Rails.logger.debug "Deleting domain #{self.namespace} uuid #{self.uuid}"
+    resultIO = ResultIO.new
+    delete_dns
     super(user.login)
+    Rails.logger.debug "notifying the domain observer of domain delete"
+    notify_observers(:after_domain_destroy) 
+    Rails.logger.debug "done notifying the domain observer"
     resultIO
   end
    
