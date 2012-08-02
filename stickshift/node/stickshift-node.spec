@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.15.0
+Version: 0.15.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,16 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
+- Updating gem versions (admiller@redhat.com)
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+
 * Fri Jul 27 2012 Dan McPherson <dmcphers@redhat.com> 0.14.6-1
 - Updating gem versions (dmcphers@redhat.com)
 - Merge pull request #291 from mrunalp/bugs/843759 (rmillner@redhat.com)
