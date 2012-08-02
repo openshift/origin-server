@@ -41,6 +41,8 @@ isrunning() {
 }
 
 start() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state started
+
     if ! isrunning
     then
         src_user_hook pre_start_mysql-5.1
@@ -53,6 +55,8 @@ start() {
 }
 
 stop() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state stopped
+
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
         src_user_hook pre_stop_mysql-5.1
         pid=$( /bin/cat $MYSQL_DIR/pid/mysql.pid )
