@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.1.5
+Version: 0.1.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.1.6-1
+- fix for bug#844912 (rchopra@redhat.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.1.5-1
 - send mcollective requests to multiple nodes at the same time
   (dmcphers@redhat.com)
