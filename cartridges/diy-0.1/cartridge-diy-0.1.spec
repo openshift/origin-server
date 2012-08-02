@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.31.0
+Version: 0.31.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.31.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.30.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
   stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
