@@ -9,6 +9,8 @@ Source0:        openshift-origin-node-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Requires:       vim
+Requires:       nano
+Requires:       emacs-nox
 Requires:       git
 Requires:       ruby
 Requires:       rubygems
