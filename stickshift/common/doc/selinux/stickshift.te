@@ -346,7 +346,7 @@ require {
 	type consoletype_exec_t;
 	class lnk_file { read setattr };
 	class chr_file { read open };
-	class file { execute read lock create execute_no_trans write getattr unlink open };
+	class file { execute read lock create execute_no_trans write getattr unlink open relabelfrom relabelto };
 	class dir { write read add_name remove_name };
 	type http_port_t;
 	class tcp_socket name_connect;
@@ -386,7 +386,8 @@ require {
 	type mcollectived_t;
 	class process getpgid;
 	class sem destroy;
-}
+	type qpidd_t;
+ }
 
 # missing in RHEL 6.3's policy
 optional {
@@ -394,11 +395,14 @@ optional {
      type unreserved_port_t;
      type ephemeral_port_t;
   }
+  allow mcollectived_t ephemeral_port_t:tcp_socket name_bind;
+  allow mcollectived_t unreserved_port_t:tcp_socket name_bind;
 }
 
 #============= mcollectived_t ==============
 allow mcollectived_t stickshift_t:process transition;
 allow mcollectived_t var_lock_t:file { read write open lock };
+allow mcollectived_t stickshift_file_t:file { relabelfrom relabelto };
 
 optional{
   require {
@@ -406,6 +410,9 @@ optional{
   }
   allow mcollectived_t httpd_passwd_exec_t:file getattr;
 }
+
+#qpid
+allow qpidd_t proc_net_t:file read;
 
 #stickshift-proxy
 allow mcollectived_t ifconfig_exec_t:file { read execute open execute_no_trans };

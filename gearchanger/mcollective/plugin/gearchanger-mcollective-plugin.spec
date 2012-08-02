@@ -16,7 +16,7 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       mcollective-client
 Requires:       qpid-cpp-client
-Requires:       ruby-qpid
+Requires:       ruby-qpid-qmf
 #Requires:       qpid-tools
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
