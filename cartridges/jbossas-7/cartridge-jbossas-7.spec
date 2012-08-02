@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version:   0.96.6
+Version: 0.97.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

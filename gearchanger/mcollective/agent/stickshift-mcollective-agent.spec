@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.1.6
+Version: 0.2.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0

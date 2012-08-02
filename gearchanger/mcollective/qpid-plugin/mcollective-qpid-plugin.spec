@@ -1,6 +1,6 @@
 Summary:        Plugin to enable m-collective communication over amqp 1.0 enabled broker
 Name:           mcollective-qpid-plugin
-Version: 0.1.3
+Version: 0.2.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
