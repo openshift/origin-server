@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.15
+Version: 0.14.16
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.14.16-1
+- Deregister DNS when domain creation fails at mongo layer (rpenta@redhat.com)
+
 * Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.14.15-1
 - fix syntax (dmcphers@redhat.com)
 - Split tests to allow granular retries (jhonce@redhat.com)
