@@ -635,12 +635,13 @@ module GearChanger
         # get the state of all cartridges
         quota_blocks = nil
         quota_files = nil
+        idle, leave_stopped, quota_blocks, quota_files = get_app_status(app)
         gi = app.group_instance_map[gear.group_instance_name]
         gi.component_instances.each do |ci_name|
           cinst = app.comp_instance_map[ci_name]
           cart = cinst.parent_cart_name
           next if cart == app.name
-          idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, gear, cart)
+          # idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, gear, cart)
           state_map[ci_name] = [idle, leave_stopped]
         end
 
@@ -843,6 +844,10 @@ module GearChanger
           raise StickShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
         reply
+      end
+
+      def get_app_status(app)
+        get_cart_status(app, app.gear, app.framework)
       end
 
       def get_cart_status(app, gear, cart_name)
