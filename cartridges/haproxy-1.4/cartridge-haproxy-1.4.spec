@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.14.0
+Version: 0.14.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+
 * Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
 - Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
   was used. (rmillner@redhat.com)
