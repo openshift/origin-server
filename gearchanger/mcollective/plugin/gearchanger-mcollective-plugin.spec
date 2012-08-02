@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.0
+Version: 0.2.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,17 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+- Merge pull request #319 from rajatchopra/master (smitram@gmail.com)
+- fix for bug#844912 (rchopra@redhat.com)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+
 * Tue Jul 31 2012 Adam Miller <admiller@redhat.com> 0.1.5-1
 - send mcollective requests to multiple nodes at the same time
   (dmcphers@redhat.com)
