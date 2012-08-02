@@ -24,14 +24,17 @@ prog=haproxy
 lockfile=/var/lock/subsys/stickshift-proxy
 pidfile=/var/run/stickshift-proxy.pid
 cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
-
+source /etc/stickshift/stickshift-node.conf
 
 getaddr() {
-    ip -4 addr show dev eth0 scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+    if ! [ "$INTERNAL_ETH_DEV" ] ; then
+      INTERNAL_ETH_DEV=eth0
+    fi
+    ip -4 addr show dev $INTERNAL_ETH_DEV scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
 }
 
 fixaddr() {
-    # Fix eth0's address in case it was changed by the cloud provider
+    # Fix internal ip address in case it was changed by the cloud provider
     baddr=$(getaddr)
     sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
 }

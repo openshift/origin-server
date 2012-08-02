@@ -64,13 +64,20 @@ done
 cp rndc.conf /etc/rndc.conf
 popd
 
-#FIXME: temporary workaround 
 sed /upstream_hints/d </etc/named.conf >/tmp/dummy
 cp /tmp/dummy /etc/named.conf
 
 chown -R named:named /var/named
 rm /tmp/dummy
 
+echo "Setup dhcp update hooks"
+cat <<EOF > /etc/dhcp/dhclient.conf
+# prepend localhost for DNS lookup in dev and test
+prepend domain-name-servers 127.0.0.1 ;
+EOF
+
+cp $base_path/doc/examples/dhclient-up-hooks /etc/dhcp/dhclient-up-hooks
+
 # start services
-service named start
-service network start
+service named restart
+service network restart
