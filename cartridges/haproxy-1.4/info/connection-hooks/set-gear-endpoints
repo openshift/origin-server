@@ -121,4 +121,4 @@ done
 
 uuid=$3
 setup_user_vars
-run_as_user "app_ctl.sh reload"
+run_as_user "app_ctl.sh reload --config"
