@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.28.0
+Version: 0.28.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.28.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+
 * Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.27.4-1
 - Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
   was used. (rmillner@redhat.com)
