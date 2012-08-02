@@ -1,3 +1,5 @@
+$nolinks = false
+
 class BaseObj
   def self.to_obj(hash)
     obj = self.new
@@ -9,6 +11,7 @@ class BaseObj
     return nil unless hash
 
     self.instance_variables.each do |var|
+      next if $nolinks && (var[1..-1] == 'links')
       raise_ex("Object does NOT contain required variable '#{var[1..-1]}'") unless hash.include?(var[1..-1])
     end
     hash.each do |key,value|
@@ -24,7 +27,7 @@ class RestApi < BaseObj
   def initialize(uri=nil, method="GET")
     self.uri = uri
     self.method = method
-    self.request = {}
+    self.request = { 'nolinks' => $nolinks }
     self.request_timeout = 120  # 120 secs
 
     self.response = nil
@@ -47,4 +50,3 @@ def gen_uuid
     file.gets.strip.gsub("-","")
   end
 end
-

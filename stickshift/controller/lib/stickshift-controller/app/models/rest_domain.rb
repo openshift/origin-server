@@ -2,7 +2,7 @@ class RestDomain < StickShift::Model
   attr_accessor :id, :suffix, :links
   include LegacyBrokerHelper
   
-  def initialize(domain, url)
+  def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
     self.suffix = Rails.application.config.ss[:domain_suffix] 
 
@@ -29,7 +29,7 @@ class RestDomain < StickShift::Model
       "DELETE" => Link.new("Delete domain", "DELETE", URI::join(url, "domains/#{id}"),nil,[
         OptionalParam.new("force", "boolean", "Force delete domain.  i.e. delete any applications under this domain", [true, false], false)
       ])
-    }
+    } unless nolinks
   end
   
   def to_xml(options={})

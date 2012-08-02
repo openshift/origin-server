@@ -13,7 +13,7 @@ class UserController < BaseController
     end
     
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_USER")
-    @reply = RestReply.new(:ok, "user", RestUser.new(@cloud_user, get_url))
+    @reply = RestReply.new(:ok, "user", RestUser.new(@cloud_user, get_url, nolinks))
     respond_with @reply, :status => @reply.status
   end
 end

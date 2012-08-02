@@ -10,4 +10,27 @@ namespace :test do
       'test/integration/**/*_test.rb'
     ]
   end
+
+  Rake::TestTask.new :ss_unit1 => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      'test/unit/cloud_user_test.rb',
+      'test/unit/legacy_request_test.rb',
+      'test/unit/mongo_data_store_test.rb'
+    ]
+  end
+
+  Rake::TestTask.new :ss_unit2 => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      'test/unit/rest_api_test.rb'
+    ]
+  end
+
+  Rake::TestTask.new :ss_unit_ext1 => ['test:prepare'] do |t|
+    t.libs << 'test'
+    t.test_files = FileList[
+      'test/unit/rest_api_nolinks_test.rb'
+    ]
+  end
 end

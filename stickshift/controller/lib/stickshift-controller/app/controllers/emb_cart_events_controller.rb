@@ -59,7 +59,7 @@ class EmbCartEventsController < BaseController
     
     log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", true, "Added event #{event} on cartridge #{cartridge} for application #{id}")
     application = Application.find(@cloud_user, id)
-    app = RestApplication.new(application, get_url)
+    app = RestApplication.new(application, get_url, nolinks)
     @reply = RestReply.new(:ok, "application", app)
     message = Message.new(:info, "Added #{event} on #{cartridge} for application #{id}")
     @reply.messages.push(message)
