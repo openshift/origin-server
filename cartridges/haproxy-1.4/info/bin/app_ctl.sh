@@ -154,7 +154,7 @@ function restart() {
 
 function reload() {
     if ! isrunning; then
-       _start_haproxy_service
+       [ "$1" != "--config" ]  &&  _start_haproxy_service
     else
        echo "`date`: Reloading HAProxy service " 1>&2
        _reload_service
@@ -182,7 +182,7 @@ case "$1" in
     start)               start       ;;
     graceful-stop|stop)  stop        ;;
     restart)             restart     ;;
-    graceful|reload)     reload      ;;
+    graceful|reload)     reload "$@" ;;
     force-stop)          force_stop  ;;
     status)              status      ;;
 esac
