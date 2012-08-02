@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.13.5
+Version: 0.13.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.13.6-1
+- Fix for bugz 845154 - use conditional reload for config changes.
+  (ramr@redhat.com)
+- Fix for bugz 845164 - don't start haproxy if stopped and its a config change
+  via execute connections. (ramr@redhat.com)
+
 * Wed Aug 01 2012 Adam Miller <admiller@redhat.com> 0.13.5-1
 - Some frameworks (ex: mod_wsgi) need HTTPS set to notify the app that https
   was used. (rmillner@redhat.com)
