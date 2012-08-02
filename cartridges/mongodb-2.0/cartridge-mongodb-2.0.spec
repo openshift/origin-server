@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.24.0
+Version: 0.24.1
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.24.1-1
+- bump_minor_versions for sprint 16 (admiller@redhat.com)
+- Mysql and mongodb set gear state when on a scalable app.
+  (rmillner@redhat.com)
+
 * Thu Jul 26 2012 Dan McPherson <dmcphers@redhat.com> 0.23.4-1
 - Stand-alone mysql or mongodb gears disable stale detection.
   (rmillner@redhat.com)
