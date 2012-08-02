@@ -74,6 +74,8 @@ function _start_mongod() {
 }
 
 function start() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.0" ] && set_app_state started
+
     if ! isrunning
     then
         src_user_hook pre_start_mongodb-2.0
@@ -85,6 +87,8 @@ function start() {
 }
 
 function stop() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.0" ] && set_app_state stopped
+
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
     	pid=$( /bin/cat $MONGODB_DIR/pid/mongodb.pid )
     fi
