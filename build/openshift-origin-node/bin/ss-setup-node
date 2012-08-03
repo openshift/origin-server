@@ -37,7 +37,6 @@ ss-setup-node: Configure node hostname and broker IP
 
 
  --iip|--internal-ip <IP/PREFIX>	Setus up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
- --igw|--internal-gw <IP>		Gateway for internal IP (only for non-dhcp address)
  --id |--internal-device		Setus up the VM to use specified ethernet device. (Defaults to same as external)
 
   -n  |--static-dns <IP>[,<IP>]		Comma seperated list of IP addresses to use for DNS forwarding
@@ -88,7 +87,6 @@ ext_gw         = args["--external-gw"]
 int_eth_device = args["--internal-device"] || ext_eth_device
 int_address    = args["--internal-ip"]
 int_address,int_prefix = int_address.split("/") unless int_address.nil?
-int_gw         = args["--internal-gw"]
 
 dns            = args["--static-dns"]
 dns_address    = dns.split(/,/) unless dns.nil?
@@ -112,7 +110,7 @@ if !ext_dhcp && (ext_address.nil? || ext_address.empty? || ext_prefix.nil? || ex
   exit -1
 end
 
-if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty? || int_gw.nil? || int_gw.empty?)
+if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty?)
   usage
   print "Must provide --internal-device <DEV> --internal-ip <IP/PREFIX> and --internal-gw <IP> for statically configuring internal ethernet device.\n"
   exit -1
@@ -177,7 +175,6 @@ if int_eth_device != ext_eth_device
       f.write "BOOTPROTO=static\n"
       f.write "IPADDR=#{int_address}\n"
       f.write "PREFIX=#{int_prefix}\n"
-      f.write "GATEWAY=#{int_gw}\n"
     end
   end
 end
