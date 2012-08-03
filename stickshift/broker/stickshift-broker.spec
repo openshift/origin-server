@@ -10,6 +10,12 @@ License:   ASL 2.0
 URL:       http://openshift.redhat.com
 Source0:   stickshift-broker-%{version}.tar.gz
 
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+%define with_systemd 1
+%else
+%define with_systemd 0
+%endif
+
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:  httpd
 Requires:  bind
@@ -30,6 +36,9 @@ Requires:  rubygem(rcov)
 Requires:  stickshift-abstract
 Requires:  rubygem-passenger-native
 Requires:  rubygem-passenger-native-libs
+%if %{with_systemd}
+Requires:  systemd-units
+%endif
 BuildArch: noarch
 
 %description
@@ -43,7 +52,11 @@ This includes the public APIs for the client tools.
 
 %install
 rm -rf %{buildroot}
+%if %{with_systemd}
+mkdir -p %{buildroot}%{_unitdir}
+%else
 mkdir -p %{buildroot}%{_initddir}
+%endif
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{htmldir}
 mkdir -p %{buildroot}%{brokerdir}
@@ -58,9 +71,15 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/pids
 mkdir -p %{buildroot}%{brokerdir}/tmp/sessions
 mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 
 cp -r . %{buildroot}%{brokerdir}
+%if %{with_systemd}
+mv %{buildroot}%{brokerdir}/systemd/stickshift-broker.service %{buildroot}%{_unitdir}
+mv %{buildroot}%{brokerdir}/systemd/stickshift-broker.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-broker
+%else
 mv %{buildroot}%{brokerdir}/init.d/* %{buildroot}%{_initddir}
+%endif
 ln -s %{brokerdir}/public %{buildroot}%{htmldir}/broker
 ln -s %{brokerdir}/public %{buildroot}%{brokerdir}/httpd/root/broker
 touch %{buildroot}%{brokerdir}/log/production.log
@@ -95,9 +114,17 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_stickshift_proxy.conf
 
 %defattr(0640,root,root,0750)
+%if %{with_systemd}
+%{_unitdir}/stickshift-broker.service
+%attr(0644,-,-) %{_unitdir}/stickshift-broker.service
+%{_sysconfdir}/sysconfig/stickshift-broker
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/stickshift-broker
+%else
 %{_initddir}/stickshift-broker
 %attr(0750,-,-) %{_initddir}/stickshift-broker
+%endif
 %attr(0700,-,-) %{_bindir}/ss-*
+
 
 %doc %{brokerdir}/COPYRIGHT
 %doc %{brokerdir}/LICENSE
