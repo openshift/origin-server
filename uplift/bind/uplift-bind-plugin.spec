@@ -12,7 +12,7 @@ License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) = 1.8
+Requires:       ruby(abi) >= 1.8
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
@@ -62,7 +62,7 @@ cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
 # Compile SELinux policy
 mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin
-cp %{buildroot}/usr/lib/ruby/gems/1.8/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
+cp %{buildroot}%{gemdir}/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
 
 %post
 
