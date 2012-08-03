@@ -32,7 +32,6 @@ ss-setup-broker: Script to setup the broker and required services on this machin
   --ed |--external-device		Setus up the VM to use specified ethernet device. Default: eth0
 
   --iip|--internal-ip <IP/PREFIX>	Setus up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
-  --igw|--internal-gw <IP>		Gateway for internal IP (only for non-dhcp address)
   --id |--internal-device		Setus up the VM to use specified ethernet device. (Defaults to same as external)
 
    -n  |--static-dns <IP>[,<IP>]        Comma seperated list of IP addresses to use for DNS forwarding
@@ -81,7 +80,6 @@ ext_gw         = args["--external-gw"]
 int_eth_device = args["--internal-device"] || ext_eth_device
 int_address    = args["--internal-ip"]
 int_address,int_prefix = int_address.split("/") unless int_address.nil?
-int_gw         = args["--internal-gw"]
 
 node_domain =  args["--domain"] || "example.com"
 dns            = args["--static-dns"]
@@ -107,7 +105,7 @@ if !ext_dhcp && (ext_address.nil? || ext_address.empty? || ext_prefix.nil? || ex
   exit -1
 end
 
-if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty? || int_gw.nil? || int_gw.empty?)
+if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty?)
   usage
   print "Must provide --internal-device <DEV> --internal-ip <IP/PREFIX> and --internal-gw <IP> for statically configuring internal ethernet device.\n"
   exit -1
@@ -178,7 +176,6 @@ if int_eth_device != ext_eth_device
       f.write "BOOTPROTO=static\n"
       f.write "IPADDR=#{int_address}\n"
       f.write "PREFIX=#{int_prefix}\n"
-      f.write "GATEWAY=#{int_gw}\n"
     end
   end
 end
@@ -271,7 +268,6 @@ unless args["--skip-node"] || livecd || /not installed/.match(`rpm -q openshift-
   args += ["--external-gw", ext_gw.strip] unless ext_dhcp
   args += ["--external-device", ext_eth_device.strip] unless ext_eth_device.nil?
   args += ["--internal-ip", "#{int_address.strip}/#{int_prefix.strip}"] unless int_dhcp
-  args += ["--internal-gw", int_gw.strip] unless int_dhcp
   args += ["--internal-device", int_eth_device.strip] unless int_eth_device.nil?
   args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
   args += ["--domain", node_domain.strip] unless node_domain.nil?
