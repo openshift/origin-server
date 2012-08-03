@@ -118,7 +118,7 @@ function proxy_cmd {
   # Run proxy commands if one exists; otherwise, this is a stub.
   if chkconfig --list stickshift-proxy >/dev/null 2>&1 
   then
-    service stickshift-proxy "${@}"
+    stickshift-proxy-cfg "${@}"
     return $?
   fi
   return 0

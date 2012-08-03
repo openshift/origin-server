@@ -1,0 +1,181 @@
+#!/bin/bash
+
+#
+# Modify the stickshift-proxy configuration.
+#
+
+
+source /etc/stickshift/stickshift-node.conf
+
+cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
+
+
+### 
+# System service routines; systemctl may require modifications
+# but please retain compatability with RHEL 6 init scripts.
+###
+is_running() {
+    service stickshift-proxy status &>/dev/null
+}
+
+reload() {
+    service stickshift-proxy reload &>/dev/null
+}
+
+getpid() {
+    cat /var/run/stickshift-proxy.pid 
+}
+###
+
+
+getaddr() {
+    # External due to using DNS for gear->gear
+    ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+rollcfg() {
+    if ! is_running
+    then
+        echo "Error: Stickshift-proxy was not running."
+        return 1
+    fi
+
+    
+    if ! haproxy -c -q -f $cfgfile
+    then
+        echo "Error: Proxy configuration is corrupt."
+        return 1
+    fi
+
+    oldpid=$(getpid)
+    
+    if ! reload
+    then
+        echo "stickshift-proxy failed to start"
+        return 1
+    fi
+
+    # Wait for the old PID to terminate
+    if [ "$oldpid" ]
+    then
+        while ps $oldpid &>/dev/null
+        do
+            usleep 500000
+        done
+    fi
+
+    return 0
+}
+
+
+lockwrap() {
+    lockfile ${cfgfile}.lock
+    oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+    "$@"
+    retcode=$?
+    if [ $retcode != 0 ]; then
+        echo "Error: Failed to update proxy."
+    else
+        newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+        if [ $oldsum != $newsum ]; then
+            rollcfg
+            retcode=$?
+        fi
+    fi
+    rm -f ${cfgfile}.lock
+    return $retcode
+}
+
+setproxy() {
+    # Set a proxy entry (either add or delete)
+    proxport="$1"
+    target="$2"
+
+    if ! [ "$proxport" -ge 16384 -a "$proxport" -le 65535 ]; then
+        echo "Proxy port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if [ "$target" == "delete" -o "$target" == "del" ]; then
+        sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+        return $?
+    fi
+
+    ipbytes=( $(echo "$target" | cut -f 1 -d : | sed -e 's/\./ /g') )
+    if [ ${#ipbytes[@]} -ne 4 ]; then
+        echo "Dest addr must be a valid IPv4 address."
+        return 1
+    fi
+
+    for byt in "${ipbytes[@]}"; do
+        if ! [ "$byt" -ge 0 -a "$byt" -le 255 ]; then
+            echo "Dest addr must be a valid IP address."
+            return 1
+        fi
+    done
+
+    port=$(echo $target | cut -f 2 -d :)
+    if ! [ "$port" -ge 1 -a "$port" -le 65535 ]; then
+        echo "Dest port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if grep -q "^listen $proxport:$target" $cfgfile; then
+        return 0
+    fi
+
+    baddr=$(getaddr)
+
+    sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+
+    cat <<EOF >> $cfgfile
+listen $proxport:$target
+    mode tcp
+    bind $baddr:$proxport
+    server $proxport $target
+# End $proxport:$target
+EOF
+
+    return $?
+}
+
+setproxies() {
+    while [ "$1" ]; do
+        setproxy "$1" "$2"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed at $1 $2"
+            return 1
+        fi
+        shift; shift
+    done
+    return 0
+}
+
+
+showproxies() {
+    sedexp=""
+    for proxport in "$@"; do
+        sedexp="${sedexp};"'s/^listen \('"$proxport"'\):\(.*\)$/\1 \2/'
+    done
+    sedexp="${sedexp}; T; p"
+    sed -n -e "${sedexp}" $cfgfile
+    return 0
+}
+
+case "$1" in
+    getaddr)
+        getaddr
+        ;;
+    setproxy)
+        shift
+        lockwrap setproxies "$@"
+        ;;
+    showproxy)
+        shift
+        lockwrap showproxies "$@"
+        ;;
+    *)
+        echo "Usage: $0 {getaddr|setproxy [proxport] [ip:port]|showproxy [proxport]}"
+        exit 2
+        ;;
+esac
