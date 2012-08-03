@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.1.6
+Version: 0.1.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Aug 03 2012 Adam Miller <admiller@redhat.com> 0.1.7-1
+- call move hook in start_order - fix for bug#833543 (rchopra@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.1.6-1
 - fix for bug#844912 (rchopra@redhat.com)
 
