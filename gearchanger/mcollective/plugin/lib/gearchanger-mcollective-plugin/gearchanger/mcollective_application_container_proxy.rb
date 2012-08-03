@@ -654,7 +654,8 @@ module GearChanger
             rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, keep_uid)
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
-            gi.component_instances.each do |ci_name|
+            app.start_order.each do |ci_name|
+              next if not gi.component_instances.include? ci_name
               cinst = app.comp_instance_map[ci_name]
               cart = cinst.parent_cart_name
               next if cart == app.name
