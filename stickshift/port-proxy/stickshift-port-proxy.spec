@@ -26,9 +26,11 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p %{buildroot}%{_initddir}
 mkdir -p %{buildroot}%{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 mkdir -p %{buildroot}%{_sysconfdir}/stickshift
+mkdir -p %{buildroot}%{_bindir}
 
 mv init-scripts/stickshift-proxy %{buildroot}%{_initddir}
 mv config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
+install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -54,6 +56,7 @@ fi
 %files
 %defattr(-,root,root,-)
 %attr(0750,-,-) %{_initddir}/stickshift-proxy
+%attr(0755,-,-) %{_bindir}/stickshift-proxy-cfg
 %dir %attr(0750,root,root) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 

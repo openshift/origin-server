@@ -522,7 +522,7 @@ module StickShift
       cmd = %{/sbin/chkconfig --list stickshift-proxy}
       out,err,rc = shellCmd(cmd)
       if rc == 0
-        cmd = %{/sbin/service stickshift-proxy setproxy}
+        cmd = %{stickshift-proxy-cfg setproxy}
         proxy_port_range.each { |i| cmd << " #{i} delete" }
         out, err, rc = shellCmd(cmd)
       end
