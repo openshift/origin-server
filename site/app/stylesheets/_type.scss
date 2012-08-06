@@ -39,8 +39,11 @@ h1, h2, h3, h4, h5, h6 {
 h1 + h2 {
 	margin-bottom: 0;
 }
+h2 + h3, h2 + h4, h3 + h4, h3 + h5 {
+  padding-top: $baseLineHeight / 2;
+}
 p + h2, p + h3, p + h4 {
-	padding-top: 15px;
+	padding-top: $baseLineHeight;
 }
 h1 {
   font-size: 30px;
@@ -118,6 +121,9 @@ ul.unstyled,
 ol.unstyled {
   margin-left: 0;
   list-style: none;
+}
+ul.spaced-items li, ol.spaced-items li {
+  margin-bottom: 10px;
 }
 
 // Description Lists
