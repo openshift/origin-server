@@ -44,23 +44,6 @@ When /^I configure a jenkins application$/ do
   end
 end
 
-When /^I configure a second jenkins application$/ do
-  account_name = @account['accountname']
-  namespace = @account['namespace']
-  app_name = @account['appnames'][0]
-  @app = {
-    'name' => app_name,
-    'namespace' => namespace
-  }
-  command_formats = [$jenkins_config_format]
-  command_formats.each do |command_format|
-    command = command_format % [app_name, namespace, account_name]
-    buffer = []
-    exit_code = runcon command,  $selinux_user, $selinux_role, $selinux_type, buffer
-    raise Exception.new "Was able to create second jenkins" if exit_code == 0
-  end
-end
-
 Given /^a new jenkins application$/ do
   account_name = @account['accountname']
   app_name = @account['appnames'][0]

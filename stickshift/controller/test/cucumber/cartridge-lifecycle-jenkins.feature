@@ -11,6 +11,15 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
     | app_count |     type     |
     |     1     |  jenkins-1.4 |
     
+  Scenario Outline: Second Application Creation
+    Given an existing <type> application
+    When <app_count> <type> applications are created
+    Then there should be one application 
+
+  Scenarios: Second Application Creation Scenarios
+    | app_count |     type     |
+    |     1     |  jenkins-1.4 |
+    
   Scenario Outline: Application Restarting
     Given an existing <type> application
     When the application is restarted
@@ -33,7 +42,9 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
     Given an existing <type> application
     When the application is destroyed
     Then the application should not be accessible
-
+    
   Scenarios: Application Destroying Scenarios
     |      type     |
     |   jenkins-1.4 |
+
+  
