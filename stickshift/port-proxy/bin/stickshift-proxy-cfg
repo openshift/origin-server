@@ -18,6 +18,10 @@ is_running() {
     service stickshift-proxy status &>/dev/null
 }
 
+restart() {
+    service stickshift-proxy restart &>/dev/null
+}
+
 reload() {
     service stickshift-proxy reload &>/dev/null
 }
@@ -36,8 +40,11 @@ getaddr() {
 rollcfg() {
     if ! is_running
     then
-        echo "Error: Stickshift-proxy was not running."
-        return 1
+        if ! restart
+        then
+            echo "Error: Proxy has failed"
+            exit 1
+        fi
     fi
 
     
