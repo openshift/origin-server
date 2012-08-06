@@ -14,6 +14,8 @@ Feature: Cartridge Runtime Extended Checks (Ruby)
     Then a <proc_name> process will not be running
 
   Scenarios: Code push scenarios
-    | type         | proc_name | hot_deploy_status | pid_changed   |
-    | ruby-1.8     | httpd     | is not enabled    | should be     |
-    | ruby-1.9     | httpd     | is not enabled    | should be     |
+    | type         | proc_name        | hot_deploy_status | pid_changed   |
+    | ruby-1.8     | PassengerWatchd  | is not enabled    | should be     |
+    | ruby-1.9     | PassengerWatchd  | is not enabled    | should be     |
+    | ruby-1.8     | PassengerWatchd  | is enabled        | should not be |
+    | ruby-1.9     | PassengerWatchd  | is enabled        | should not be |
