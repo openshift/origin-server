@@ -310,7 +310,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     result_io
   end
   
-  #convinence method to cleanup an application
+  # Convience method to cleanup an application
   def cleanup_and_delete
     reply = ResultIO.new
     reply.append self.destroy_dns
@@ -324,7 +324,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
 
-    #only need to destroy if application has been elaborated first
+    # Only need to destroy if application has been elaborated first
     unless self.configure_order.nil?
       # Destroy in the reverse order of configure.
       group_instances = []
