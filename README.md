@@ -19,11 +19,11 @@ the system can operate many nodes at any one time.
 *   __Broker__
     Central service exposing a REST API for consumers and coordinating
 with each node.
-*   __Messaging system__
+*   __Messaging System__
     Communication pipeline between the broker and each node.
 *   __User Authentication__
     Pluggable authentication for controlling access to the broker
-*   __Domain name management__
+*   __Domain Name Management__
     Each hosted application receives a unique domain name to simplify
 SSL termination and deployment
 
