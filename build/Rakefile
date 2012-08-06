@@ -22,18 +22,21 @@ name    = local_build
 baseurl = file://#{rpmdir}/noarch
 gpgcheck= 0
 enabled = 1
+retries = 0
 
 [openshift_origin]
 name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
 gpgcheck= 0
 enabled = 1
+retries = 0
 
 [fedora_ruby]
 name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
 gpgcheck= 0
 enabled = 1
+retries = 0
 
 [openshift]
 name=Openshift
@@ -44,6 +47,7 @@ gpgkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-beta
 ggpkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-release
 enabled=1
 gpgcheck=1
+retries = 0
   EOF
   else
   <<-EOF
@@ -52,12 +56,14 @@ name    = local_build
 baseurl = file://#{rpmdir}/noarch
 gpgcheck= 0
 enabled = 1
+retries = 0
 
 [openshift_origin]
 name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
 gpgcheck= 0
 enabled = 1
+retries = 0
   EOF
   end
 end
