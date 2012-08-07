@@ -373,6 +373,7 @@ module StickShift
     #   # Creates:
     #   # ~
     #   # ~/.tmp/
+    #   # ~/.sandbox
     #   # ~/.env/
     #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
     #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
@@ -392,7 +393,11 @@ module StickShift
       # Required for polyinstantiated tmp dirs to work
       FileUtils.mkdir_p tmp_dir
       FileUtils.chmod(0o0000, tmp_dir)
-            
+
+      sandbox_dir = File.join(homedir, ".sandbox")
+      FileUtils.mkdir_p sandbox_dir
+      FileUtils.chmod(0o0000, sandbox_dir)
+
       env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
       FileUtils.chmod(0o0750, env_dir)
