@@ -1,5 +1,6 @@
 @runtime
 @runtime3
+@not-origin
 Feature: PostgreSQL Application Sub-Cartridge
   
   Scenario Outline: Create Delete one application with a PostgreSQL database
