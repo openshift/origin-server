@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 #--
 # Copyright 2012 Red Hat, Inc.
 #
