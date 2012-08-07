@@ -22,15 +22,9 @@ Then /^the haproxy configuration file will( not)? exist$/ do |negate|
   haproxy_user_root = "#{$home_root}/#{@gear.uuid}/haproxy-1.4"
   haproxy_config_file = "#{haproxy_user_root}/conf/haproxy.cfg.template"
 
-  begin
-    cnffile = File.new haproxy_config_file
-  rescue Errno::ENOENT
-    cnffile = nil
-  end
-
-  unless negate
-    cnffile.should be_a(File)
+  if negate
+    assert_file_not_exists haproxy_config_file
   else
-    cnffile.should be_nil
+    assert_file_exists haproxy_config_file
   end
 end

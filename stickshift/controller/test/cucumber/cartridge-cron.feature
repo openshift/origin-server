@@ -2,8 +2,8 @@
 @runtime1
 Feature: cron Embedded Cartridge
 
-  Scenario Outline: Add Remove cron to one application
-    Given a new <type> type application
+  Scenario: Add Remove cron to one application
+    Given a new perl-5.10 type application
     And I embed a cron-1.4 cartridge into the application
     And cron is running
 
@@ -20,12 +20,8 @@ Feature: cron Embedded Cartridge
     And the embedded cron-1.4 cartridge control script named cron will not exist
     And the embedded cron-1.4 cartridge subdirectory named run will not exist
 
-  Scenarios: Add Remove cron to one Application Scenarios
-    |type|
-    |php-5.3|
-
-  Scenario Outline: Stop Start Restart cron
-    Given a new <type> type application
+  Scenario: Stop Start Restart cron
+    Given a new perl-5.10 type application
     And I embed a cron-1.4 cartridge into the application
     And cron is running
 
@@ -37,7 +33,3 @@ Feature: cron Embedded Cartridge
     And cron is running
     When I restart the cron-1.4 cartridge
     Then cron jobs will be enabled
-
-  Scenarios: Stop Start Restart cron scenarios
-    |type|
-    |php-5.3|

@@ -2,8 +2,8 @@
 @runtime1
 Feature: MongoDB Application Sub-Cartridge
   
-  Scenario Outline: Create Delete one application with a MongoDB database
-    Given a new <type> type application
+  Scenario: Create Delete one application with a MongoDB database
+    Given a new perl-5.10 type application
     
     When I embed a mongodb-2.0 cartridge into the application
     Then 1 process named mongod will be running
@@ -30,7 +30,3 @@ Feature: MongoDB Application Sub-Cartridge
     And the embedded mongodb-2.0 cartridge control script named mongodb will not exist
     And the mongodb configuration file will not exist
     And the embedded mongodb-2.0 cartridge directory will not exist
-
-  Scenarios: Create Delete Application With Database Scenarios
-    |type|
-    |php-5.3|
