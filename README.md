@@ -19,7 +19,7 @@ the system can operate many nodes at any one time.
 *   __Broker__
     Central service exposing a REST API for consumers and coordinating
 with each node.
-*   __Messaging system__
+*   __Messaging system__jdsahdkasdjas
     Communication pipeline between the broker and each node.
 *   __User Authentication__
     Pluggable authentication for controlling access to the broker
