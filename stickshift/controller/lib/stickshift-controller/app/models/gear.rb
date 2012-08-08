@@ -253,6 +253,19 @@ class Gear < StickShift::Model
     self.app.group_instance_map[self.group_instance_name]
   end
   
+  def group_instance_name
+    return @group_instance_name if self.app.group_instance_map[@group_instance_name]
+    self.app.group_instance_map.each { |gi_name, gi|
+      gi.gears.each { |gi_gear|
+        if gi_gear.uuid==self.uuid
+          @group_instance_name = gi_name
+          return @group_instance_name
+        end
+      }
+    }
+    return self.app.get_name_prefix
+  end
+
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     results = []
     gi = self.app.group_instance_map[self.group_instance_name]
