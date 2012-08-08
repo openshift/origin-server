@@ -187,7 +187,12 @@ module CommandHelper
       log_event "#{time} CREATE_APP #{app.name} #{app.type} #{app.login}"
 
       # Update the application uid from the command output
-      app.update_uid(output_buffer[0])
+      begin
+        app.update_uid(output_buffer[0])
+      rescue NoMethodError
+        $logger.debug("Creating the app failed. #{cmd} returned #{output_buffer[0]}")
+        raise
+      end
 
       # Update the application creation code
       app.create_app_code = exit_code

@@ -1,60 +1,38 @@
 require 'fileutils'
 
 Given /^cron is (running|stopped)$/ do | status |
-  action = status == "running" ? "start" : "stop"
-
   cron_cart = @gear.carts['cron-1.4']
 
   cron_user_root = "#{$home_root}/#{@gear.uuid}/#{cron_cart.name}"
   jobs_enabled_file = "#{cron_user_root}/run/jobs.enabled"
 
-  $logger.info("Checking for cron jobs marker file at #{jobs_enabled_file}")
-  begin
-    marker_file = File.new jobs_enabled_file
-  rescue Errno::ENOENT
-    marker_file = nil
-  end
+  mark_exists = File.exists? jobs_enabled_file
+  $logger.info("Checking for cron jobs marker file at #{jobs_enabled_file}: #{mark_exists}")
 
-  outbuf = []
-
-  case action
-  when 'start'
-    if marker_file.nil?
+  if 'running' == status
+    if not mark_exists
       cron_cart.start
     end
-    exit_test = lambda { |marker| marker.is_a? File }
-  when 'stop'
-    if marker_file.is_a? File
+    exit_test = lambda {|f| ! File.exists? f}
+  else
+    if mark_exists
       cron_cart.stop
     end
-    exit_test = lambda { |marker| marker == nil }
-  # else
-  #   raise an exception
+    exit_test = lambda {|f| File.exists? f}
   end
-
-  # now loop until it's true
-  max_tries = 10
-  poll_rate = 3
-  tries = 0
 
   $logger.info("Checking for cron jobs marker file at #{jobs_enabled_file}")
-  begin
-    marker_file = File.new jobs_enabled_file
-  rescue Errno::ENOENT
-    marker_file = nil
+  StickShift::timeout(30) do
+    while exit_test.call(jobs_enabled_file)
+      sleep 1
+      $logger.info("Waiting for marker file to exist at #{marker_file}")
+    end
   end
 
-  while (not exit_test.call(marker_file) and tries < max_tries)
-    tries += 1
-
-    $logger.info("Waiting #{poll_rate}s for marker file to exist at #{marker_file} (retry #{tries} of #{max_tries})")
-
-    sleep poll_rate
-    begin
-      marker_file = File.new jobs_enabled_file
-    rescue Errno::ENOENT
-      marker_file = nil
-    end
+  if 'running' == status
+    assert_file_exists jobs_enabled_file
+  else
+    assert_file_not_exists jobs_enabled_file
   end
 end
 
@@ -65,15 +43,9 @@ Then /^cron jobs will( not)? be enabled$/ do | negate |
   jobs_enabled_file = "#{cron_user_root}/run/jobs.enabled"
 
   $logger.info("Checking for cron jobs marker at #{jobs_enabled_file}")
-  begin
-    marker_file = File.new jobs_enabled_file
-  rescue Errno::ENOENT
-    marker_file = nil
-  end
-
-  unless negate
-    marker_file.should be_a(File)
+  if negate
+    assert_file_not_exists jobs_enabled_file
   else
-    marker_file.should be_nil
+    assert_file_exists jobs_enabled_file
   end
 end

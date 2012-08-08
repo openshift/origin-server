@@ -11,6 +11,7 @@
 require 'stickshift-node'
 require 'stickshift-node/utils/shell_exec'
 require 'etc'
+require 'timeout'
 
 # Some constants which might be misplaced here. Perhaps they should
 # go in 00_setup_helper.rb?
@@ -19,7 +20,12 @@ $libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
 $cartridge_root ||= "/usr/libexec/stickshift/cartridges"
 $embedded_cartridge_root ||= "/usr/libexec/stickshift/cartridges/embedded"
 
+$app_registry = {}
+
 module StickShift
+  TIMEOUT = 60
+
+
   # Represents a user account. A name and domain will be automatically
   # generated upon init,
   class TestAccount
@@ -179,21 +185,6 @@ module StickShift
     # near future if the logic is encapsulated in the ApplicationContainer
     # class.
     def destroy()
-      $logger.info("Deconfiguring all cartridges on gear #{@uuid} of application #{@app.name}")
-
-      # This is kind of cheesy, and should be handled at a lower layer since
-      # carts actually have a dependency graph. For now, it should be good
-      # enough to just make sure we deconfigure embedded carts first (as
-      # deconfiguring standard ones would break deconfigure for carts 
-      # embedded into the same app).
-      @carts.values.each do |cart|
-        cart.deconfigure if cart.type == StickShift::TestCartridge::Embedded
-      end
-
-      @carts.values.each do |cart|
-        cart.deconfigure if cart.type == StickShift::TestCartridge::Standard
-      end
-
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
       @container.destroy
     end
@@ -284,7 +275,7 @@ module StickShift
       cmd = %Q{#{@hooks_path}/#{hook} '#{@gear.app.name}' '#{@gear.app.account.domain}' #{@gear.uuid} #{extra_args.join(" ")}}
 
       output = Array.new
-      exitcode = runcon cmd, $selinux_user, $selinux_role, $selinux_type, output, 45
+      exitcode = runcon cmd, $selinux_user, $selinux_role, $selinux_type, output, TIMEOUT
       raise %Q{Error (#{exitcode}) running #{cmd}: #{output.join("\n")}} unless exitcode == expected_exitcode
 
       notify_listeners "#{hook}_hook_completed", { :cart => self, :exitcode => exitcode, :output => output}
@@ -362,4 +353,16 @@ module StickShift
       end
     end
   end
+
+  def self.timeout(seconds, dflt = nil)
+    begin
+      Timeout::timeout(seconds) do
+        yield
+      end
+    rescue Timeout::Error
+      raise if dflt.instance_of? Timeout::Error
+      dflt 
+    end
+  end
 end
+
