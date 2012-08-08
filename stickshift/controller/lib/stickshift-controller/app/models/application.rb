@@ -1352,6 +1352,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       when "SYSTEM_SSH_KEY_ADD"
         key = command_item[:args][0]
         self.user.add_system_ssh_key(self.name, key)
+      when "APP_SSH_KEY_ADD"
+        key = command_item[:args][0]
+        self.user.add_app_ssh_key(self.name, key)
+      when "APP_SSH_KEY_REMOVE"
+        key = command_item[:args][0]
+        self.user.remove_app_ssh_key(self.name, key)
       when "SYSTEM_SSH_KEY_REMOVE"
         self.user.remove_system_ssh_key(self.name)
       when "ENV_VAR_ADD"
