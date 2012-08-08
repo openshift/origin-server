@@ -151,8 +151,16 @@ module HelpHelper
     user_guide_topic_url 'index.html'
   end
 
+  def getting_started_path(opts=nil)
+    community_base_url "get-started", opts
+  end
+
   def product_overview_path(opts=nil)
-    community_base_url "paas#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
+    community_base_url "paas", opts
+  end
+
+  def opensource_download_path(opts=nil)
+    community_base_url "open-source/download-origin", opts
   end
 
   def getting_started_guide_url
@@ -206,7 +214,7 @@ module HelpHelper
   end
 
   private
-    def community_base_url(path)
-      "/community/#{path}"
+    def community_base_url(path, opts=nil)
+      "/community/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
     end
 end
