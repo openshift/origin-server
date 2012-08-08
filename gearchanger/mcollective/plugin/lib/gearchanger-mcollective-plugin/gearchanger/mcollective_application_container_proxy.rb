@@ -654,7 +654,7 @@ module GearChanger
             rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, keep_uid)
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
-            app.start_order.each do |ci_name|
+            app.configure_order.each do |ci_name|
               next if not gi.component_instances.include? ci_name
               cinst = app.comp_instance_map[ci_name]
               cart = cinst.parent_cart_name
@@ -1081,6 +1081,13 @@ module GearChanger
                   result.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
                 else
                   result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
+                end
+              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
+                if line =~ /^APP_SSH_KEY_ADD: /
+                  key = line['APP_SSH_KEY_ADD: '.length..-1].chomp
+                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [key]})
+                else
+                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => []})
                 end
               elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
                 if line =~ /^ENV_VAR_ADD: /

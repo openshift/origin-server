@@ -79,6 +79,14 @@
                 job = gear.ssh_key_job_remove(ssh_key, ssh_key_comment)
                 RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
               end
+            when 'app_ssh_keys'
+              values.each do |value|
+                ssh_key = value[0]
+                app_name = value[1]
+                next if app_name != gear.app.name
+                job = gear.ssh_key_job_remove(ssh_key, app_name)
+                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+              end
             when 'env_vars'
               values.each do |value|
                 env_var_key = value[0]
@@ -105,6 +113,15 @@
                 ssh_key_type = value[1]
                 ssh_key_comment = value[2]
                 job = gear.ssh_key_job_add(ssh_key, ssh_key_type, ssh_key_comment)
+                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+              end
+            when 'app_ssh_keys'
+              values.each do |value|
+                ssh_key = value[0]
+                ssh_key_type = value[1]
+                app_name = value[2]
+                next if app_name != gear.app.name
+                job = gear.ssh_key_job_add(ssh_key, ssh_key_type, app_name)
                 RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
               end
             when 'env_vars'
@@ -258,6 +275,20 @@
     key_type = "ssh-rsa" if key_type.to_s.strip.length == 0
     self.ssh_keys[key_name] = { "key" => key, "type" => key_type }
     add_save_job('adds', 'ssh_keys', [key, key_type, key_name])
+  end
+
+  def add_app_ssh_key(app_name, key)
+    self.system_ssh_keys = {} unless self.system_ssh_keys
+    self.system_ssh_keys[app_name] = key 
+    add_save_job('adds', 'app_ssh_keys', [key, nil, app_name])
+  end
+
+  def remove_app_ssh_key(app_name)
+    self.system_ssh_keys = {} unless self.system_ssh_keys    
+    key = self.system_ssh_keys[app_name]
+    return unless key
+    self.system_ssh_keys.delete app_name
+    add_save_job('removes', 'app_ssh_keys', [key, app_name])
   end
 
   def remove_ssh_key(key_name)
