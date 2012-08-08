@@ -202,3 +202,9 @@ end
 Then /^the application should not be accessible$/ do
   @app.is_inaccessible?.should be_true
 end
+
+Then /^there should be one application$/ do
+  num_apps = @apps.length
+  
+  num_apps.should == 1
+end
