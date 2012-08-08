@@ -442,7 +442,7 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
   StickShift::timeout(30) do
     while not finished.call res
       res = `#{cmd}`
-      puts "Waiting on #{cart_type} to#{negate} be accessible: status #{res}"
+      $logger.debug { "Waiting on #{cart_type} to#{negate} be accessible: status #{res}" }
       sleep 1
     end 
   end
