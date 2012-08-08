@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.14.16
+Version: 0.14.17
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 07 2012 Dan McPherson <dmcphers@redhat.com> 0.14.17-1
+- fix for gear's group_instance_name being stale (rchopra@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.14.16-1
 - Deregister DNS when domain creation fails at mongo layer (rpenta@redhat.com)
 
