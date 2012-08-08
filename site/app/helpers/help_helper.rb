@@ -151,6 +151,10 @@ module HelpHelper
     user_guide_topic_url 'index.html'
   end
 
+  def product_overview_path(opts=nil)
+    community_base_url "paas#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
+  end
+
   def getting_started_guide_url
     community_base_url 'developers/install-the-client-tools'
   end
