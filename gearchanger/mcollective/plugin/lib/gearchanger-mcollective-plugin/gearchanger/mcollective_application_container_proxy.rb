@@ -537,7 +537,7 @@ module GearChanger
         job = RemoteJob.new('stickshift-node', 'app-state-show', args)
         job
       end
-      
+
       def move_cartridge(cart, source_gear, destination_gear)
         app = source_gear.app
         prof = app.profile_name_map[app.default_profile]
@@ -545,12 +545,14 @@ module GearChanger
         ginst = app.group_instance_map[cinst.group_instance_name]
         if destination_gear.nil?
           res, destination_gear = ginst.add_gear(app)
+          keep_uid = false
+        else
+          keep_uid = (source_gear.uid==destination_gear.uid)
         end
         source_container = source_gear.get_proxy
         destination_container = destination_gear.get_proxy
 
         idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, source_gear, cart)
-        keep_uid = (source_gear.uid==destination_gear.uid)
         
         # pre-move
         pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
@@ -566,8 +568,9 @@ module GearChanger
       end
 
       def post_move_cart(cart, gear, keep_uid, idle)
+        reply = ResultIO.new
         app = gear.app
-        if embedded_carts.include? cart 
+        if embedded_carts.include? cart
           if app.scalable and cart.include? app.proxy_cartridge
             log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{gear.name}"
             reply.append gear.get_proxy.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
@@ -599,6 +602,8 @@ module GearChanger
       end
 
       def pre_move_cart(cart, gear, leave_stopped, keep_uid)
+        reply = ResultIO.new
+        app = gear.app
         unless leave_stopped
           log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
           do_with_retry('stop') do
@@ -619,7 +624,7 @@ module GearChanger
           end
         end
       end
-
+      
       def move_gear_post(app, gear, destination_container, state_map)
         reply = ResultIO.new
         source_container = gear.container
