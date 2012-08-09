@@ -210,6 +210,7 @@ module CommandHelper
       time = Benchmark.realtime do 
         result = run_stdout("#{$rhc_app_script} cartridge add -l #{app.login} -a #{app.name} -p #{app.password} -c #{type} -d")
       end
+      $logger.info { "Embed #{type} into #{app.inspect}: OUTPUT\n#{result}" }
       log_event "#{time} ADD_EMBED_CART #{app.name} #{type} #{app.login}"
       if type.start_with?('mysql-')
         app.mysql_hostname = /^Connection URL: mysql:\/\/(.*)\/$/.match(result)[1]

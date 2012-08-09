@@ -177,13 +177,7 @@ module StickShift
       end
     end
 
-    # Destroys the gear by:
-    # - Recursively invoking deconfigure on each cart within the gear
-    # - Invoking ApplicationContainer.destroy
-    #
-    # TODO: The cart deconfigure calls might be made redundant in the
-    # near future if the logic is encapsulated in the ApplicationContainer
-    # class.
+    # Destroys the gear via ApplicationContainer
     def destroy()
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
       @container.destroy
@@ -230,7 +224,9 @@ module StickShift
       @hooks_path = "#{@cart_path}/info/hooks"
 
       # Add new listener classes here for now
-      @listeners = [ StickShift::TestCartridgeListeners::DatabaseCartListener.new ]
+      @listeners = [ StickShift::TestCartridgeListeners::ConfigureCartListener.new,
+                     StickShift::TestCartridgeListeners::DatabaseCartListener.new
+                   ]
     end
 
     # Convenience wrapper to invoke the configure hook.
@@ -305,6 +301,35 @@ module StickShift
   #   {hook_name}_hook_completed(cart, exitcode, output)
   #     - invoked after a successful hook execution in the cartridge
   module TestCartridgeListeners
+
+    # Pretend we're the broker's application model
+    class ConfigureCartListener
+      # We need to process all configure output for all cartridges
+      def supports?(cart_name)
+        true
+      end
+
+      def configure_hook_completed(args)
+        if args.key?(:output) && ! args[:output].empty?
+          homedir = args[:cart].gear.container.user.homedir
+ 
+          args[:output].first.split(/\n/).each { |line|
+            case line
+              when /^ENV_VAR_ADD: .*/
+                key, value = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
+                File.open(File.join(homedir, '.env', key),
+                    File::WRONLY|File::TRUNC|File::CREAT) do |file|
+                      file.write "export #{key}='#{value}'"
+                end
+              when /^ENV_VAR_REMOVE: .*/
+                key = line['ENV_VAR_REMOVE: '.length..-1].chomp
+                FileUtils.rm_f File.join(homedir, '.env', key)
+            end
+          }
+        end
+      end
+    end
+
     class DatabaseCartListener
       def supports?(cart_name) 
         ['mysql-5.1', 'mongodb-2.0', 'postgresql-8.4'].include?(cart_name)
@@ -354,6 +379,8 @@ module StickShift
     end
   end
 
+  #
+  # Only raise timeout exceptions...
   def self.timeout(seconds, dflt = nil)
     begin
       Timeout::timeout(seconds) do

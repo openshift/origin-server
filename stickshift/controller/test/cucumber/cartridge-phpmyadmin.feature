@@ -15,14 +15,16 @@ Feature: phpMyAdmin Embedded Cartridge
 
     When I stop the phpmyadmin-3.4 cartridge
     Then 2 processes named httpd will be running
+    And the web console for the phpmyadmin-3.4 cartridge is not accessible
 
     When I start the phpmyadmin-3.4 cartridge
     Then 4 processes named httpd will be running
-    And the phpmyadmin web console url will be accessible
+    And the web console for the phpmyadmin-3.4 cartridge is accessible
+
     
     When I restart the phpmyadmin-3.4 cartridge
     Then 4 processes named httpd will be running
-    And the phpmyadmin web console url will be accessible
+    And the web console for the phpmyadmin-3.4 cartridge is accessible
 
     When I destroy the application
     Then 0 processes named httpd will be running
