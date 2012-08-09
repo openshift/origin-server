@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.1.2
+Version: 0.1.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -61,6 +61,11 @@ fi
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Restart proxy if its been stopped. (rmillner@redhat.com)
+- BZ 845332: Separate out configuration file management from the init script so
+  that systemd properly interprets the daemon restart. (rmillner@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
 - setup broker/nod script fixes for static IP and custom ethernet devices add
   support for configuring different domain suffix (other than example.com)
