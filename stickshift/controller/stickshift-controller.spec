@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.1
+Version: 0.15.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,24 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
+- Increase URL matcher to 5mins (jhonce@redhat.com)
+- move debugging to logger (jhonce@redhat.com)
+- Refactor runtime tests to improve retry times (jhonce@redhat.com)
+- Fixing a few mode issues for Fedora packaging (bleanhar@redhat.com)
+- Merge pull request #345 from ironcladlou/hot-deploy-ruby
+  (openshift+bot@redhat.com)
+- adding not-origin tag to postgres cucumber feature and specifying complete
+  path for ip program (abhgupta@redhat.com)
+- Enable hot deployment support for Ruby cartridges (ironcladlou@gmail.com)
+- Fixing comments (dmcphers@redhat.com)
+- Deregister DNS when domain creation fails at mongo layer (rpenta@redhat.com)
+- Merge pull request #318 from pravisankar/dev/ravi/story/US1896
+  (kraman@gmail.com)
+- Added 'nolinks' parameter to suppress link generation in the REST API replies
+  to make the output terse and improve general processing speed
+  (rpenta@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
