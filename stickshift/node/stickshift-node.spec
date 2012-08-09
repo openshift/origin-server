@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.15.1
+Version: 0.15.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,13 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
+- Updating gem versions (admiller@redhat.com)
+- chmod and shebang fixes for Fedora packaging (bleanhar@redhat.com)
+- Create sandbox directory. (rmillner@redhat.com)
+- BZ 845332: Separate out configuration file management from the init script so
+  that systemd properly interprets the daemon restart. (rmillner@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
 - Updating gem versions (admiller@redhat.com)
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
