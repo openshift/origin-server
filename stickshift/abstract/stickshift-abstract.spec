@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.1
+Version: 0.15.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,15 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
+- Create sandbox directory. (rmillner@redhat.com)
+- BZ 845332: Separate out configuration file management from the init script so
+  that systemd properly interprets the daemon restart. (rmillner@redhat.com)
+- Merge pull request #325 from kraman/dev/kraman/features/origin
+  (rmillner@redhat.com)
+- Reducing the amount of entropy needed to generate a password. The extra
+  entropy was being discarded anyway. (kraman@gmail.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 - BZ 844876: ignore the haproxy status socket (rmillner@redhat.com)
