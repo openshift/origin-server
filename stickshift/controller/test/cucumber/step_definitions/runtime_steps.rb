@@ -439,7 +439,7 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
   finished = negate ? lambda { |s| s == "503" } : lambda { |s| s == "200"}
   cmd = "curl -L -k -w %{http_code} -s -o /dev/null -H 'Host: #{@app.name}-#{@account.domain}.dev.rhcloud.com' #{url}"
   res = `#{cmd}`
-  StickShift::timeout(30) do
+  StickShift::timeout(300) do
     while not finished.call res
       res = `#{cmd}`
       $logger.debug { "Waiting on #{cart_type} to#{negate} be accessible: status #{res}" }
