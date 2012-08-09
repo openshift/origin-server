@@ -54,6 +54,6 @@ function create_mongodb_snapshot() {
 }  #  End of function  create_mongodb_snapshot.
 
 
-start_mongodb_as_user &> $OPENSHIFT_LOG_DIR/mongo_start.log
+start_db_as_user &> $OPENSHIFT_LOG_DIR/mongo_start.log
 create_mongodb_snapshot
 exit 0

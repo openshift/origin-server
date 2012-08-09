@@ -32,13 +32,13 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_basic_hook "$1" $2 $3
 
 MONGODB_DIR="$APP_HOME/mongodb-2.0/"
-mongodbctl="$MONGODB_DIR/${application}_mongodb_ctl.sh"
+OPENSHIFT_NOSQL_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
 
 #
 # Get the status of the application
 #
 
-if output=$(runuser --shell /bin/sh "$uuid" "$mongodbctl" status 2>&1)
+if output=$(runuser --shell /bin/sh "$uuid" "$OPENSHIFT_NOSQL_DB_CTL_SCRIPT" status 2>&1)
 then
     status_client_result "$output"
 else

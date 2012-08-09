@@ -14,7 +14,7 @@ then
 	CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/postgresql-8.4/info
 	source ${CART_INFO_DIR}/lib/util
 
-    start_postgresql_as_user
+    start_db_as_user
 
     old_dbname=$OPENSHIFT_GEAR_NAME
     old_dbuser=$OPENSHIFT_GEAR_UUID

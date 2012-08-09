@@ -81,7 +81,8 @@ observe_setup_var_lib_dir "$APP_HOME/app-root/"
 observe_setup_var_lib_dir "$APP_DIR"
 observe_setup_var_lib_dir "$MONGODB_DIR"
 
-start_mongodb
+export OPENSHIFT_NOSQL_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
+start_db
 
 # Generate a password with no o's O's or 0's
 password=$(generate_password)

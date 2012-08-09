@@ -38,13 +38,15 @@ function _service_status() {
 
 
 function _service_start() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "$CART_DIRNAME" ] && set_app_state started
+
     if _is_service_running; then
         echo "$SERVICE_NAME server instance already running" 1>&2
     else
         src_user_hook pre_start_postgresql-8.4
         pglogfile="$CART_INSTANCE_DIR/log/postgres.log"
         /usr/bin/postgres -D $CART_INSTANCE_DIR/data > $pglogfile 2>&1 &
-        wait_to_start_as_user
+        wait_to_start_db_as_user
         run_user_hook post_start_postgresql-8.4
     fi
 
@@ -52,6 +54,8 @@ function _service_start() {
 
 
 function _service_stop() {
+    [ "$OPENSHIFT_GEAR_TYPE" == "$CART_DIRNAME" ] && set_app_state stopped
+
     if [ -f $CART_INSTANCE_DIR/pid/postgres.pid ]; then
         pid=$( /bin/cat $CART_INSTANCE_DIR/pid/postgres.pid )
     fi

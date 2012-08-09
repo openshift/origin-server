@@ -61,9 +61,9 @@ function _move_postgres_service() {
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
 
-PSQL_DIR="$APP_HOME/postgresql-8.4/"
+CART_INSTANCE_DIR="$APP_HOME/postgresql-8.4/"
 
-observe_setup_var_lib_dir "$PSQL_DIR"
+observe_setup_var_lib_dir "$CART_INSTANCE_DIR"
 observe_setup_var_lib_file $APP_HOME/.psql_history
 observe_setup_var_lib_file $APP_HOME/.pgpass
 
@@ -82,7 +82,7 @@ then
     echo "export OPENSHIFT_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_DB_HOST
     echo "export OPENSHIFT_DB_URL='postgresql://$OPENSHIFT_DB_USERNAME:$OPENSHIFT_DB_PASSWORD@$IP:$OPENSHIFT_DB_PORT/'" > $APP_HOME/.env/OPENSHIFT_DB_URL
 
-    sed -i "s,$ORIG_DB_HOST,$IP," $PSQL_DIR/data/postgresql.conf
+    sed -i "s,$ORIG_DB_HOST,$IP," $CART_INSTANCE_DIR/data/postgresql.conf
     echo "$IP:$OPENSHIFT_DB_PORT:*:$OPENSHIFT_DB_USERNAME:$OPENSHIFT_DB_PASSWORD" > $APP_HOME/.pgpass
 
     set_app_info "Connection URL: postgresql://$IP:$OPENSHIFT_DB_PORT/"
