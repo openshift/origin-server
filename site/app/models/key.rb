@@ -88,9 +88,5 @@ class Key < RestApi::Base
     def default(options=nil)
       Key.find('default', options)
     end
-
-    def instantiate_collection(*args)
-      super.select { |item| not item.empty_default? }
-    end
   end
 end

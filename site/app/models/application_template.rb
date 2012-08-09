@@ -78,7 +78,7 @@ class ApplicationTemplate < RestApi::Base
     ApplicationType.new attrs
   end
 
-  cache_method :all, [name, :all], :before => lambda { |e| e.each { |c| c.as = nil } }
+  cache_method :find_every, [name, :find_every], :before => lambda { |e| e.each { |c| c.as = nil } }
 
   private
     def get_metadata(name)

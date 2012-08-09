@@ -123,7 +123,7 @@ module LayoutHelper
   def wizard_steps(items, active, options={})
     content_tag(
       :ol,
-      items.each_with_index.map do |item, index|
+      (items + [options[:and]].compact).each_with_index.map do |item, index|
         name = item[:name]
         content = if index < active and item[:link] and !options[:completed]
           link_to(name, send("#{item[:link]}")).html_safe

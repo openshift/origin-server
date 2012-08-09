@@ -1,0 +1,16 @@
+%h2 Namespace
+%p 
+  Your namespace is unique to your account and is the suffix of the public URLs we assign to your applications.
+  See #{link_to 'the User Guide', add_domains_user_guide_topic_url}
+  for information about adding your own domain names to an application.
+
+- if @domain
+  .well
+    http://applicationname&ndash;
+    %strong.namespace>= @domain.name
+    = ".rhcloud.com"
+  .btn-toolbar
+    = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
+
+- else
+  = render Domain.new
