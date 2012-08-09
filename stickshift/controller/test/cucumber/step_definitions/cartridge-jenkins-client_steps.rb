@@ -69,15 +69,9 @@ Then /^the jenkins-client directory will( not)? exist$/ do | negate |
   app_name = @app['name']
 
   jenkins_client_user_root = "#{$home_root}/#{account_name}/jenkins-client-#{$jenkins_client_version}"
-  begin
-    jenkins_client_dir = Dir.new jenkins_client_user_root
-  rescue Errno::ENOENT
-    jenkins_client_dir = nil
-  end
-
-  unless negate
-    jenkins_client_dir.should be_a(Dir)
+  if negate
+    assert_directory_not_exists jenkins_client_user_root
   else
-    jenkins_client_dir.should be_nil
+    assert_directory_exists jenkins_client_user_root
   end
 end

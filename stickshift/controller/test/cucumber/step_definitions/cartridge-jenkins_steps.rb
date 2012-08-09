@@ -287,16 +287,13 @@ Then /^a jenkins daemon will( not)? be running$/ do |negate|
   acct_uid = @account['uid']
   app_name = @app['name']
 
-  max_tries = 7
-  poll_rate = 3
   exit_test = negate ? lambda { |tval| tval == 0 } : lambda { |tval| tval > 0 }
-  
-  tries = 0
   num_javas = num_procs acct_name, "java"
-  while (not exit_test.call(num_javas) and tries < max_tries)
-    tries += 1
-    sleep poll_rate
-    found = exit_test.call num_javas
+  StickShift::timeout(20) do
+    while not exit_test.call(num_javas)
+      sleep 1
+      num_javas = num_procs acct_name, "java"
+    end
   end
 
   if not negate
@@ -315,11 +312,10 @@ Then /^the jenkins daemon log files will( not)? exist$/ do |negate|
 
   log_list.each do |file_name|
     file_path = "#{log_dir}/#{file_name}"
-    file_exists = File.exists? file_path
-    unless negate
-      file_exists.should be_true "file #{file_path} should exist and does not"
+    if negate
+      assert_file_not_exists file_path
     else
-      file_exists.should be_false "file #{file_path} should not exist and does"
+      assert_file_exists file_path
     end
   end
 end
@@ -415,16 +411,16 @@ end
 
 Then /^the application will be updated$/ do
     # wait for ball to change blue...
-    delay = 20
-    begin
-      sleep 1
-      delay -= 1
-            
-      response = `#{@jenkins_job_command}`
-      $logger.debug "@jenkins_job_command response = #{delay}[#{response}]"
+    job = {'color' => 'purple'}
+    StickShift::timeout(20) do
+      begin
+        sleep 1
+        response = `#{@jenkins_job_command}`
+        $logger.debug "@jenkins_job_command response = #{delay}[#{response}]"
 
-      job = JSON.parse(response)
-    end while job['color'] != 'blue' && 0 < delay
+        job = JSON.parse(response)
+      end while job['color'] != 'blue'
+    end
     job['color'].should be == 'blue' 
     
     app_uuid = @diy_git_url.match(TestApp::SSH_OUTPUT_PATTERN)[1]

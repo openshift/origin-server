@@ -7,6 +7,30 @@
 
 require 'fileutils'
 
+Given /^a new ([^ ]+) application, verify it using ([^ ]+)$/ do |cart_name, proc_name|
+  steps %Q{
+    Given a new #{cart_name} type application
+    Then the application http proxy file will exist
+    And a #{proc_name} process will be running
+    And the application git repo will exist
+    And the application source tree will exist
+    And the application log files will exist
+    When I stop the application
+    Then a #{proc_name} process will not be running
+    When I start the application
+    Then a #{proc_name} process will be running
+    When I status the application
+    Then a #{proc_name} process will be running
+    When I restart the application
+    Then a #{proc_name} process will be running
+    When I destroy the application
+    Then the application http proxy file will not exist
+    And a #{proc_name} process will not be running
+    And the application git repo will not exist
+    And the application source tree will not exist
+  }
+end
+
 Given /^a new ([^ ]+) application, verify create and delete using ([^ ]+)$/ do |cart_name, proc_name|
   steps %Q{
     Given a new #{cart_name} type application
@@ -53,6 +77,7 @@ end
 # The type of cartridge created will be of type cart_name from the step
 # matcher.
 Given /^a new ([^ ]+) type application$/ do | cart_name |
+  record_measure("Runtime Benchmark: Creating cartridge #{cart_name}") do
   @account = StickShift::TestAccount.new
 
   @app = @account.create_app
@@ -61,20 +86,24 @@ Given /^a new ([^ ]+) type application$/ do | cart_name |
 
   @cart.configure
 end
+end
 
 
 # Invokes destroy on the current application.
 When /^I destroy the application$/ do
-  @app.destroy
+  record_measure("Runtime Benchmark: Destroying cartridge #{@cart.name}") do
+    @app.destroy
+  end
 end
 
 
 # Embeds a new cartridge to the current application's gear, and calls
 # configure on the cartridge.
 When /^I embed a ([^ ]+) cartridge into the application$/ do | cart_name |
-  $logger.info("Adding an embedded #{cart_name} cartridge to application #{@app.name}")
-  cart = @gear.add_cartridge(cart_name, StickShift::TestCartridge::Embedded)
-  cart.configure
+  record_measure("Runtime Benchmark: Embedded #{cart_name} cartridge in cartridge #{@cart.name}") do
+    cart = @gear.add_cartridge(cart_name, StickShift::TestCartridge::Embedded)
+    cart.configure
+  end
 end
 
 
@@ -84,12 +113,11 @@ Then /^the application http proxy file will( not)? exist$/ do | negate |
   conf_file_name = "#{@gear.uuid}_#{@account.domain}_#{@app.name}.conf"
   conf_file_path = "#{$libra_httpd_conf_d}/#{conf_file_name}"
 
-  $logger.info("Checking for proxy file at #{conf_file_path}")
-
-  if not negate
-    File.exists?(conf_file_path).should be_true
+  $logger.info("Checking for #{negate} proxy file at #{conf_file_path}")
+  if negate
+    assert_file_not_exists conf_file_path
   else
-    File.exists?(conf_file_path).should be_false
+    assert_file_exists conf_file_path
   end
 end
 
@@ -100,12 +128,11 @@ Then /^the embedded ([^ ]+) cartridge http proxy file will( not)? exist$/ do | c
   conf_file_name = "#{@gear.uuid}_#{@account.domain}_#{@app.name}/#{cart_name}.conf"
   conf_file_path = "#{$libra_httpd_conf_d}/#{conf_file_name}"
 
-  $logger.info("Checking for embedded cartridge proxy file at #{conf_file_path}")
-
-  if not negate
-    File.exists?(conf_file_path).should be_true
+  $logger.info("Checking for #{negate} embedded cartridge proxy file at #{conf_file_path}")
+  if negate
+    assert_file_not_exists conf_file_path
   else
-    File.exists?(conf_file_path).should be_false
+    assert_file_exists conf_file_path
   end
 end
 
@@ -114,17 +141,15 @@ end
 # application.
 Then /^the application git repo will( not)? exist$/ do | negate |
   git_repo = "#{$home_root}/#{@gear.uuid}/git/#{@app.name}.git"
-  status = (File.exists? git_repo and File.directory? git_repo)
+
   # TODO - need to check permissions and SELinux labels
 
-  $logger.info("Checking for git repo at #{git_repo}")
-
-  if not negate
-    status.should be_true
+  $logger.info("Checking for #{negate} git repo at #{git_repo}")
+  if negate
+    assert_directory_not_exists git_repo
   else
-    status.should be_false
+    assert_directory_exists git_repo
   end
-
 end
 
 
@@ -132,17 +157,15 @@ end
 # the current application.
 Then /^the application source tree will( not)? exist$/ do | negate |
   app_root = "#{$home_root}/#{@gear.uuid}/#{@app.name}"
-  status = (File.exists? app_root and File.directory? app_root) 
+
   # TODO - need to check permissions and SELinux labels
 
   $logger.info("Checking for app root at #{app_root}")
-
-  if not negate
-    status.should be_true
+  if negate
+    assert_directory_not_exists app_root
   else
-    status.should be_false
+    assert_directory_exists app_root
   end
-
 end
 
 
@@ -172,17 +195,11 @@ end
 Then /^the embedded ([^ ]+) cartridge directory will( not)? exist$/ do | cart_name, negate |
   user_root = "#{$home_root}/#{@gear.uuid}/#{cart_name}"
 
-  $logger.info("Checking for cartridge root dir at #{user_root}")
-  begin
-    cart_dir = Dir.new user_root
-  rescue Errno::ENOENT
-    cart_dir = nil
-  end
-
-  unless negate
-    cart_dir.should be_a(Dir)
+  $logger.info("Checking for #{negate} cartridge root dir at #{user_root}")
+  if negate
+    assert_directory_not_exists user_root
   else
-    cart_dir.should be_nil
+    assert_directory_exists user_root
   end
 end
 
@@ -192,18 +209,11 @@ end
 Then /^the embedded ([^ ]+) cartridge log files will( not)? exist$/ do | cart_name, negate |
   log_dir_path = "#{$home_root}/#{@gear.uuid}/#{cart_name}/logs"
 
-  $logger.info("Checking for cartridge log dir at #{log_dir_path}")
-  begin
-    log_dir = Dir.new log_dir_path
-    status = (log_dir.count > 0)
-  rescue
-    status = false
-  end
-
-  if not negate
-    status.should be_true
+  $logger.info("Checking for #{negate} cartridge log dir at #{log_dir_path}")
+  if negate
+    assert_directory_not_exists log_dir_path
   else
-    status.should be_false
+    assert_directory_exists log_dir_path
   end
 end
 
@@ -212,40 +222,30 @@ end
 Then /^the embedded ([^ ]+) cartridge subdirectory named ([^ ]+) will( not)? exist$/ do | cart_name, dir_name, negate |
   dir_path = "#{$home_root}/#{@gear.uuid}/#{cart_name}/#{dir_name}"
 
-  $logger.info("Checking for cartridge subdirectory at #{dir_path}")
-  begin
-    log_dir = Dir.new dir_path
-    status = true
-  rescue
-    status = false
-  end
-
-  if not negate
-    status.should be_true
+  $logger.info("Checking for #{negate} cartridge subdirectory at #{dir_path}")
+  if negate
+    assert_directory_not_exists dir_path
   else
-    status.should be_false
+    assert_directory_exists dir_path
   end
 end
 
 
 # Ensures that the named control script exists for the given embedded cartridge of the
 # current application.
-Then /^the embedded ([^ ]+) cartridge control script named ([^ ]+) will( not)? exist$/ do |cart_name, script_name, negate|
-  user_root = "#{$home_root}/#{@gear.uuid}/#{cart_name}"
-  startup_file = "#{user_root}/#{@app.name}_#{script_name}_ctl.sh"
+Then /^the embedded ([^ ]+)\-([\d\.]+) cartridge control script will( not)? exist$/ do |cart_type, cart_version, negate|
+  # rewrite for 10gen-mms-agent
+  cooked = cart_type.gsub('-', '_')
+  startup_file = File.join($home_root,
+                           @gear.uuid,
+                           "#{cart_type}-#{cart_version}",
+                          "#{@app.name}_#{cooked}_ctl.sh")
 
-  $logger.info("Checking for cartridge control script at #{startup_file}")
-
-  begin
-    startfile = File.new startup_file
-  rescue Errno::ENOENT
-    startfile = nil
-  end
-
-  unless negate
-    startfile.should be_a(File)
+  $logger.info("Checking for #{negate} cartridge control script at #{startup_file}")
+  if negate
+    assert_file_not_exists startup_file
   else
-    startfile.should be_nil
+    assert_file_exists startup_file
   end
 end
 
@@ -257,14 +257,18 @@ end
 # the single cartridge directly. There will be no recursive actions for
 # multiple carts associated with an app/gear.
 When /^I (start|stop|status|restart) the application$/ do |action|
-  @cart.run_hook(action)
+  record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
+    @cart.run_hook(action)
+  end
 end
 
 
 # Controls carts within the current gear directly, by cartridge name.
 # The same comments from the similar matcher apply.
 When /^I (start|stop|status|restart) the ([^ ]+) cartridge$/ do |action, cart_name|
-  @gear.carts[cart_name].run_hook(action)
+  record_measure("Runtime Benchmark: Hook #{action} on cart #{@cart.name}") do
+    @gear.carts[cart_name].run_hook(action)
+  end
 end
 
 
@@ -273,23 +277,17 @@ end
 # times to verify the expectations, as some cartridge stop hooks are
 # asynchronous. This doesn't outright eliminate timing issues, but it helps.
 Then /^a (.+) process will( not)? be running$/ do | proc_name, negate |
-  max_tries = 7
-  poll_rate = 3
   exit_test = negate ? lambda { |tval| tval == 0 } : lambda { |tval| tval > 0 }
   exit_test_desc = negate ? "0" : ">0"
- 
-  tries = 0
+
   num_node_processes = num_procs @gear.uuid, proc_name
-
   $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
-  while (not exit_test.call(num_node_processes) and tries < max_tries)
-    tries += 1
-    
-    $logger.info("Waiting #{poll_rate}s for #{proc_name} process count to be #{exit_test_desc} (retry #{tries} of #{max_tries})")
-
-    sleep poll_rate
-
-    num_node_processes = num_procs @gear.uuid, proc_name
+  StickShift::timeout(20) do
+    while (not exit_test.call(num_node_processes))
+      $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
+      sleep 1 
+      num_node_processes = num_procs @gear.uuid, proc_name
+    end
   end
 
   if not negate
@@ -308,21 +306,14 @@ end
 Then /^(\d+) process(es)? named ([^ ]+) will be running$/ do | proc_count, junk, proc_name |
   proc_count = proc_count.to_i
 
-  max_tries = 7
-  poll_rate = 3
-  
-  tries = 0
   num_node_processes = num_procs @gear.uuid, proc_name
-
   $logger.info("Expecting #{proc_count} pid(s) named #{proc_name}, found #{num_node_processes}")
-  while (num_node_processes != proc_count and tries < max_tries)
-    tries += 1
-    
-    $logger.info("Waiting #{poll_rate}s for #{proc_name} process count to equal #{proc_count} (retry #{tries} of #{max_tries})")
-
-    sleep poll_rate
-
-    num_node_processes = num_procs @gear.uuid, proc_name
+  StickShift::timeout(20) do
+    while (num_node_processes != proc_count)
+      $logger.info("Waiting for #{proc_name} process count to equal #{proc_count}")
+      sleep 1
+      num_node_processes = num_procs @gear.uuid, proc_name
+    end
   end
   
   num_node_processes.should be == proc_count
@@ -368,24 +359,26 @@ end
 # some random stuff to a dummy file. The change is then committed and 
 # pushed to the app's Git repo.
 When /^an update is pushed to the application repo$/ do
-  tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
+  record_measure("Runtime Benchmark: Updating #{$temp}/#{@account.name}-#{@app.name} source") do
+    tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
 
-  run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{tmp_git_root}"
+    run "git clone ssh://#{@gear.uuid}@#{@app.name}-#{@account.domain}.dev.rhcloud.com/~/git/#{@app.name}.git #{tmp_git_root}"
 
-  marker_file = File.join(tmp_git_root, '.openshift', 'markers', 'hot_deploy')
-  
-  if @app.hot_deploy_enabled
-    FileUtils.touch(marker_file)
-  else
-    FileUtils.rm_f(marker_file)
-  end
+    marker_file = File.join(tmp_git_root, '.openshift', 'markers', 'hot_deploy')
 
-  Dir.chdir(tmp_git_root) do
-    # Make a change to the app repo
-    run "echo $RANDOM >> cucumber_update_test"
-    run "git add ."
-    run "git commit -m 'Test change'"
-    run "git push"
+    if @app.hot_deploy_enabled
+      FileUtils.touch(marker_file)
+    else
+      FileUtils.rm_f(marker_file)
+    end
+
+    Dir.chdir(tmp_git_root) do
+      # Make a change to the app repo
+      run "echo $RANDOM >> cucumber_update_test"
+      run "git add ."
+      run "git commit -m 'Test change'"
+      run "git push"
+    end
   end
 end
 
@@ -419,5 +412,45 @@ Then /^the tracked application cartridge PIDs should( not)? be changed$/ do |neg
   if diff_expected && diffs.length == 0
     raise "Expected PID differences, but found none. Old PIDs: #{@current_cart_pids.inspect},"\
       " new PIDs: #{new_cart_pids.inspect}"
+  end
+end
+
+Then /^the web console for the metrics\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
+  steps %Q{
+    Then the web console for the metrics-#{version} cartridge at /read.php is#{negate} accessible
+  }
+end
+
+Then /^the web console for the rockmongo\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
+  steps %Q{
+    Then the web console for the rockmongo-#{version} cartridge at /js/collection.js is#{negate} accessible
+  }
+end
+
+Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)? accessible$/ do |cart_type, version, uri, negate|
+  conf_file = File.join($libra_httpd_conf_d,
+                       "#{@gear.uuid}_#{@account.domain}_#{@app.name}",
+                       "#{cart_type}-#{version}.conf")
+
+  # The URL segment for the cart lives in the proxy conf
+  cart_path = `/bin/awk '/ProxyPassReverse/ {printf "%s", $2;}' #{conf_file}`
+  url = "https://127.0.0.1#{cart_path}#{uri}"
+
+  finished = negate ? lambda { |s| s == "503" } : lambda { |s| s == "200"}
+  cmd = "curl -L -k -w %{http_code} -s -o /dev/null -H 'Host: #{@app.name}-#{@account.domain}.dev.rhcloud.com' #{url}"
+  res = `#{cmd}`
+  StickShift::timeout(30) do
+    while not finished.call res
+      res = `#{cmd}`
+      $logger.debug { "Waiting on #{cart_type} to#{negate} be accessible: status #{res}" }
+      sleep 1
+    end 
+  end
+
+  msg = "Unexpected response from #{cmd}"
+  if negate
+    assert_equal "503", res, msg
+  else
+    assert_equal "200", res, msg
   end
 end
