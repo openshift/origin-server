@@ -59,6 +59,18 @@ function wait_to_start() {
 }
 
 
+function _stop_haproxy_ctld_daemon() {
+    haproxy_ctld_daemon stop > /dev/null 2>&1
+}
+
+function _start_haproxy_ctld_daemon() {
+    disable_as="${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling"
+    [ -f "$disable_as" ]  &&  return 0
+    _stop_haproxy_ctld_daemon  ||  :
+    haproxy_ctld_daemon start > /dev/null 2>&1
+}
+
+
 function _start_haproxy_service() {
     set_app_state started
     if ! isrunning
@@ -66,8 +78,7 @@ function _start_haproxy_service() {
         src_user_hook pre_start_${CARTRIDGE_TYPE}
         ping_server_gears
         /usr/sbin/haproxy -f $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/conf/haproxy.cfg > $OPENSHIFT_HOMEDIR/${HAPROXY_CART}/logs/haproxy.log 2>&1
-        haproxy_ctld_daemon stop > /dev/null 2>&1  || :
-        haproxy_ctld_daemon start > /dev/null 2>&1
+        _start_haproxy_ctld_daemon
         wait_to_start
         run_user_hook post_start_${CARTRIDGE_TYPE}
     else
@@ -80,7 +91,7 @@ function _start_haproxy_service() {
 function _stop_haproxy_service() {
     src_user_hook pre_stop_${CARTRIDGE_TYPE}
     set_app_state stopped
-    haproxy_ctld_daemon stop > /dev/null 2>&1
+    _stop_haproxy_ctld_daemon
     [ -f $HAPROXY_PID ]  &&  pid=$( /bin/cat "${HAPROXY_PID}" )
     if `ps -p $pid > /dev/null 2>&1`; then
         /bin/kill $pid
@@ -158,9 +169,9 @@ function reload() {
     else
        echo "`date`: Reloading HAProxy service " 1>&2
        _reload_service
+       _start_haproxy_ctld_daemon
     fi
-    haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
-    haproxy_ctld_daemon start > /dev/null 2>&1
+
     isrunning  &&  _send_client_result "Reloaded HAProxy instance"
 }
 
@@ -168,9 +179,8 @@ function cond_reload() {
     if isrunning; then
         echo "`date`: Conditionally reloading HAProxy service " 1>&2
         _reload_service
-        haproxy_ctld_daemon stop > /dev/null 2>&1   ||  :
-        haproxy_ctld_daemon start > /dev/null 2>&1
-        _send_client_result "Conditionally reloaded HAProxy instance"
+        _start_haproxy_ctld_daemon
+        isrunning  &&  _send_client_result "Conditionally reloaded HAProxy"
     fi
 }
 
