@@ -97,8 +97,9 @@ module ActiveResource
 
     # Executes a GET request.
     # Used to get (find) resources.
+    # Note; removed format.decode wrapper and .get method call
     def get(path, headers = {})
-      with_auth { format.decode(request(:get, path, build_request_headers(headers, :get, self.site.merge(path))).body) }
+      with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) }
     end
 
     # Executes a DELETE request (see HTTP protocol documentation if unfamiliar).

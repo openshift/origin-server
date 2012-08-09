@@ -40,6 +40,25 @@ class RestApiTest < ActiveSupport::TestCase
     {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(@auth_headers)
   end
 
+  class AnonymousApi < RestApi::Base
+    allow_anonymous
+  end
+  class ProtectedApi < RestApi::Base
+  end
+
+  def test_anonymous_api
+    assert AnonymousApi.allow_anonymous?
+    assert AnonymousApi.connection
+  end
+
+  def test_protected_api
+    assert !ProtectedApi.allow_anonymous?
+    assert_raises RestApi::MissingAuthorizationError do
+      ProtectedApi.connection
+    end
+    assert ProtectedApi.connection :as => Test::WebUser.new
+  end
+
   def test_base_connection
     base = RestApi::Base.new :as => @user
     connection = base.send('connection')
