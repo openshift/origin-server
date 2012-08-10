@@ -145,7 +145,7 @@ class LegacyBrokerController < ApplicationController
          @cloud_user.applications.each do |app|
            if app.domain.uuid == domain.uuid
              log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", false, "Domain #{domain.namespace} contains applications")
-             @reply.resultIO << "Cannot remove namespace #{@namespace}. Remove existing app(s) first: "
+             @reply.resultIO << "Cannot remove namespace #{@req.namespace}. Remove existing app(s) first: "
              @reply.resultIO << @cloud_user.applications.map{|a| a.name}.join("\n")
              @reply.exitcode = 106 
              render :json => @reply, :status => :bad_request
