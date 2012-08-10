@@ -1038,7 +1038,7 @@ module GearChanger
           result
       end
 
-      def parse_result(mcoll_reply, app=nil, command=nil)
+      def parse_result(mcoll_reply, app=nil, command=nil, cart=nil)
         result = ResultIO.new
         
         mcoll_result = mcoll_reply[0]
@@ -1081,6 +1081,13 @@ module GearChanger
                   result.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
                 else
                   result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
+                end
+              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
+                if line =~ /^APP_SSH_KEY_ADD: /
+                  key = line['APP_SSH_KEY_ADD: '.length..-1].chomp
+                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
+                else
+                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
                 end
               elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
                 if line =~ /^ENV_VAR_ADD: /
@@ -1173,7 +1180,7 @@ module GearChanger
 
         result = execute_direct(framework, command, arguments)
         begin
-          resultIO = parse_result(result, app, command)
+          resultIO = parse_result(result, app, command, framework)
         rescue StickShift::InvalidNodeException => e
           if command != 'configure' && allow_move
             @id = e.server_identity
@@ -1185,7 +1192,7 @@ module GearChanger
             app.save
             #retry
             result = execute_direct(framework, command, arguments)
-            resultIO = parse_result(result, app, command)
+            resultIO = parse_result(result, app, command, framework)
           else
             raise
           end
