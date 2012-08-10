@@ -136,7 +136,7 @@ export HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 generate_ssh_keys
 
 public_key=$(cat $HAPROXY_DIR/.ssh/haproxy_id_rsa.pub | awk '{print $2}')
-add_ssh_key $public_key
+add_app_ssh_key $CART_NAME $public_key
 
 add_broker_auth_key
 
