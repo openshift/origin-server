@@ -7,7 +7,8 @@ class Application < StickShift::Cartridge
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
-                :scalable, :proxy_cartridge, :init_git_url, :node_profile, :ngears, :usage_records, :destroyed_gears
+                :scalable, :proxy_cartridge, :init_git_url, :node_profile,
+                :ssh_keys, :ngears, :usage_records, :destroyed_gears
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash,
@@ -873,6 +874,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     
     gears = self.gears unless gears
     
+    self.ssh_keys = [] unless self.ssh_keys
     if @user.env_vars || @user.ssh_keys || @user.system_ssh_keys
       tag = ""
       handle = RemoteJob.create_parallel_job
@@ -889,6 +891,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           job = gear.ssh_key_job_add(key_info, nil, key_name)
           RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
         end if @user.system_ssh_keys
+        self.ssh_keys.each do |key_info|
+          job = gear.ssh_key_job_add(key_info, nil, self.name)
+          RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+        end
       }
       RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
         if status != 0
@@ -1347,6 +1353,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   
   def process_cartridge_commands(result)
     commands = result.cart_commands
+    self.ssh_keys = [] unless self.ssh_keys
+    app_jobs = { 'add_ssh_keys' <= [], 'remove_ssh_keys' <= []}
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
@@ -1354,6 +1362,14 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.user.add_system_ssh_key(self.name, key)
       when "SYSTEM_SSH_KEY_REMOVE"
         self.user.remove_system_ssh_key(self.name)
+      when "APP_SSH_KEY_ADD"
+        key = command_item[:args][0]
+        self.ssh_keys << key
+        app_jobs['add_ssh_keys'] << key
+      when "APP_SSH_KEY_REMOVE"
+        # key = command_item[:args][0]
+        key = self.ssh_keys.pop
+        app_jobs['remove_ssh_keys'] << key
       when "ENV_VAR_ADD"
         key = command_item[:args][0]
         value = command_item[:args][1]
@@ -1371,6 +1387,25 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     if user.save_jobs
       user.save
     end
+    handle = RemoteJob.create_parallel_job
+    tag = ""
+    RemoteJob.run_parallel_on_gears(self.gears, handle) { |exec_handle, gear|
+      app_jobs.each do |action,value|
+        case action
+        when "add_ssh_keys"
+          job = gear.ssh_key_job_add(value, nil, self.name)
+          RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+        when "remove_ssh_keys"
+          job = gear.ssh_key_job_remove(value, nil)
+          RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+        end
+      end
+    }
+    RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
+      if status != 0
+        raise StickShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
+      end
+    }
     commands.clear
   end
 
