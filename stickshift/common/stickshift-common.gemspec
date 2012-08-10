@@ -1,16 +1,17 @@
 # OS independent path locations
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
+spec_file = "stickshift-common.spec"
 
 Gem::Specification.new do |s|
   s.name        = "stickshift-common"
-  s.version     = /(Version: )(.*)/.match(File.read("stickshift-common.spec"))[2].strip
-  s.license     = 'ASL 2.0'
+  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = "http://www.openshift.com"
-  s.summary     = %q{Cloud Development Common}
-  s.description = %q{Cloud Development Common}
+  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.rubyforge_project = "stickshift-common"
   s.files       = Dir[lib_dir] + Dir[test_dir]
