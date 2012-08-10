@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin", "*")
-spec_file = "stickshift-node.spec"
+spec_file = "stickshift-controller.spec"
 
 Gem::Specification.new do |s|
   s.name        = "stickshift-controller"
