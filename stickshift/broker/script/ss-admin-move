@@ -61,6 +61,13 @@ if args["--help"]
   exit 1
 end
 
+if timeout
+  unless timeout =~ /^[0-9]+$/
+    puts "ERROR: Timeout must be a positive integer"
+    exit 1
+  end
+end
+
 unless gear_uuid
   puts "ERROR: Please specify gear_uuid for moving gear"
   exit 1
