@@ -30,4 +30,4 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
 
-remove_ssh_key
+remove_app_ssh_key
