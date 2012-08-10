@@ -30,4 +30,5 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
 
-remove_ssh_key
+public_key=$(cat $HAPROXY_DIR/.ssh/haproxy_id_rsa.pub | awk '{print $2}')
+remove_app_ssh_key $public_key
