@@ -581,7 +581,6 @@ module RestApi
 
     protected
       def connection(refresh = false)
-        raise "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as || self.class.allow_anonymous?
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
       end
@@ -642,14 +641,6 @@ module RestApi
 
     def http
       @connection.send(:http)
-    end
-
-    #
-    # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
-    # make GET consistent with other verbs (return response)
-    #
-    def get(path, headers = {})
-      with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) } #changed, remove .body at end, removed format decode
     end
   end
 
