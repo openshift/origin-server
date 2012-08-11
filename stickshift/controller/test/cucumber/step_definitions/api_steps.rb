@@ -10,13 +10,13 @@ Before do
 end
 
 After do |scenario|
-  domains = ["cucumber#{@random}", "cucumberX#{@random}", "cucumberY#{@random}", "app-cucumber#{@random}"]
+  domains = ["api#{@random}", "apiX#{@random}", "apiY#{@random}", "app-api#{@random}"]
   remove_dns_entries(domains)
   @random = nil
 end
 
 Given /^a new user$/ do
-  @random = rand(10000)
+  @random = rand(99999999)
   @username = "rest-test-#{@random}"
   @password = "xyz123"
   
