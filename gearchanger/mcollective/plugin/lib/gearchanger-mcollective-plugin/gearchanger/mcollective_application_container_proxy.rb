@@ -538,6 +538,87 @@ module GearChanger
         job
       end
       
+      def move_cartridge(cart, source_gear, destination_gear)
+        app = source_gear.app
+        prof = app.profile_name_map[app.default_profile]
+        cinst = ComponentInstance::find_component_in_cart(prof, app, cart, app.get_name_prefix)
+        ginst = app.group_instance_map[cinst.group_instance_name]
+        if destination_gear.nil?
+          res, destination_gear = ginst.add_gear(app)
+        end
+        source_container = source_gear.get_proxy
+        destination_container = destination_gear.get_proxy
+
+        idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, source_gear, cart)
+        keep_uid = (source_gear.uid==destination_gear.uid)
+        
+        # pre-move
+        pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
+
+        # rsync
+        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
+
+        # move and post-move
+        post_move_cart(cart, destination_gear, keep_uid, idle)
+
+        # deconfigure old gear
+        source_gear.deconfigure(cinst)
+      end
+
+      def post_move_cart(cart, gear, keep_uid, idle)
+        app = gear.app
+        if embedded_carts.include? cart 
+          if app.scalable and cart.include? app.proxy_cartridge
+            log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{gear.name}"
+            reply.append gear.get_proxy.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+          else
+            log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{gear.name}"
+            embedded_reply = gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
+            component_details = embedded_reply.appInfoIO.string
+            unless component_details.empty?
+              app.set_embedded_cart_info(cart, component_details)
+            end
+            reply.append embedded_reply
+            unless keep_uid
+              log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{gear.name}"
+              reply.append gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
+            end
+          end
+        end
+        if framework_carts.include? cart
+          log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{gear.name}"
+          reply.append gear.get_proxy.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+        end
+        if app.scalable and not cart.include? app.proxy_cartridge
+          begin
+            reply.append gear.get_proxy.expose_port(app, gear, cart)
+          rescue Exception=>e
+            # just pass because some embedded cartridges do not have expose-port hook implemented (e.g. jenkins-client)
+          end
+        end
+      end
+
+      def pre_move_cart(cart, gear, leave_stopped, keep_uid)
+        unless leave_stopped
+          log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
+          do_with_retry('stop') do
+            reply.append gear.get_proxy.stop(gear.app, gear, cart)
+          end
+          if framework_carts.include? cart
+            log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
+            do_with_retry('force-stop') do
+              reply.append gear.get_proxy.force_stop(app, gear, cart)
+            end
+          end
+        end
+        # execute pre_move
+        if embedded_carts.include? cart and not keep_uid
+          if (app.scalable and not cart.include? app.proxy_cartridge) or not app.scalable
+            log_debug "DEBUG: Performing cartridge level pre-move for embedded #{cart} for '#{app.name}' on #{gear.name}"
+            reply.append gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "pre-move", nil, false)
+          end
+        end
+      end
 
       def move_gear_post(app, gear, destination_container, state_map)
         reply = ResultIO.new
