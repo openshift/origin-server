@@ -4,4 +4,4 @@
 # If you change this key, all old signed cookies will become invalid!
 # Make sure the secret is at least 30 characters and all random,
 # no regular words or you'll be exposed to dictionary attacks.
-Broker::Application.config.secret_token = 'be714beb6a20e3bb1ac7fb915d963fce18c58ea8fe983f2ca000d0cb962ab925e342486727a5196b09da8b380371b0934b03bbf6197d6a252afda7710e5a7118'
+Broker::Application.config.secret_token = '2e607ad94f524b6c429ea30d0789c6674d62e1d7f51d9b6f4cbf4c5854f7c0afb0e21846ca05a931be672605c94bfaed186cba93c2ff9c99a89da25d08a2da29'

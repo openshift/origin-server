@@ -24,30 +24,30 @@ gpgcheck= 0
 enabled = 1
 retries = 0
 
-[openshift_origin]
-name    = openshift_origin
-baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
-gpgcheck= 0
-enabled = 1
-retries = 0
+#[openshift_origin]
+#name    = openshift_origin
+#baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
+#gpgcheck= 0
+#enabled = 1
+#retries = 0
 
-[fedora_ruby]
-name    = openshift_origin
-baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
-gpgcheck= 0
-enabled = 1
-retries = 0
+#[fedora_ruby]
+#name    = openshift_origin
+#baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
+#gpgcheck= 0
+#enabled = 1
+#retries = 0
 
-[openshift]
-name=Openshift
-baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch/
-failovermethod=priority
-skip_if_unavailable=1
-gpgkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-beta
-ggpkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-release
-enabled=1
-gpgcheck=1
-retries = 0
+#[openshift]
+#name=Openshift
+#baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch/
+#failovermethod=priority
+#skip_if_unavailable=1
+#gpgkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-beta
+#ggpkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-release
+#enabled=1
+#gpgcheck=1
+#retries = 0
   EOF
   else
   <<-EOF
@@ -97,7 +97,7 @@ end
 
 task :build_setup do
   print "Setting up basic requirements\n"
-  sudo "yum install -y vim git wget tito ruby rubygems java-1.6.0-openjdk jpackage-utils java-1.6.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
+  sudo "yum install -y vim git wget tito ruby rubygems java-1.7.0-openjdk jpackage-utils java-1.7.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
   Rake::Task[:createrepo].invoke
 
   print "Setting up local express.conf\n"
@@ -230,15 +230,24 @@ end
 
 task :install_broker do
   sudo "yum erase -y stickshift-* rubygem-stickshift-*"
-  sudo "yum clean metadata"
-  sudo "yum install -y openshift-origin-broker openshift-origin-node cartridge-* --skip-broken"
+  sudo "yum clean all"
+  sudo "yum install -y openshift-origin-broker"
+  sudo "yum install -y openshift-origin-node"
+  Dir.glob("#{rpmdir}/noarch/cartridge-*").each do |rpm|
+    sudo "yum install -y --skip-broken #{rpm}"
+  end
 end
 
 task :install_node do
   sudo "yum erase -y openshift-origin-node cartridge-* rubygem-stickshift-node rubygem-stickshift-abstract rubygem-stickshift-common"
-  sudo "yum clean metadata"
-  sudo "yum install -y openshift-origin-node cartridge-* --skip-broken"
+  sudo "yum clean all"
+  sudo "yum install -y openshift-origin-node"
+  Dir.glob("#{rpmdir}/noarch/cartridge-*").each do |rpm|
+    sudo "yum install -y --skip-broken #{rpm}"
+  end
 end
+
+#Gem::Specification.find_by_name("stickshift-common").gem_dir
 
 task :clean do
   sudo "rm -rf #{rpmdir}/*"

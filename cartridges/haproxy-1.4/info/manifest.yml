@@ -6,18 +6,14 @@ License:
 License-Url:
 Vendor: http://haproxy.1wt.eu/
 Categories:
-  - cartridge
   - web_proxy
-  - git_host
   - scales
-Website:
-Help-Topics:
-Cart-Data:
-Suggests:
+Website: http://haproxy.1wt.eu/
 
 Provides:
   - "haproxy"
   - "haproxy(version) = 1.4"
+  - web_proxy
 Requires:
 Conflicts:
 Native-Requires:
@@ -27,8 +23,6 @@ Publishes:
   get-balancer-connection-info:
     Type: "NET_TCP:http:http"
 Subscribes:
-  haproxy-colocation-hack:
-    Type: "FILESYSTEM:haproxy:colocate-hack"
   set-proxy:
     Type: "NET_TCP:httpd-proxy-info"
     Required : false
@@ -41,3 +35,4 @@ Subscribes:
 Scaling:
   Min: 1
   Max: 1
+  Min-Managed: 2

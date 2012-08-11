@@ -1,0 +1,19 @@
+development:
+  sessions:
+    default:
+      database: broker_development
+      hosts:
+        - localhost:27017
+      user: stickshift
+      password: mooo
+  options:
+    #allow_dynamic_fields: true
+    #identity_map_enabled: false
+    #include_root_in_json: false
+    #include_type_for_serialization: false
+    #preload_models: false
+    # protect_sensitive_fields: true
+    #raise_not_found_error: true
+    #skip_version_check: false
+    #use_activesupport_time_zone: true
+    #use_utc: false

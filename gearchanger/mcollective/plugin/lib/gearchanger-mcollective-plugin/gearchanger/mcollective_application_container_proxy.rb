@@ -2,6 +2,7 @@ require 'mcollective'
 require 'open-uri'
 
 include MCollective::RPC
+include StickShift
 module GearChanger
     class MCollectiveApplicationContainerProxy < StickShift::ApplicationContainerProxy
       @@C_CONTROLLER = 'stickshift-node'

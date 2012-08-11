@@ -7,7 +7,7 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     super
 
     #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser(\"stickshift\", \"mooo\")' 2>&1 > /dev/null"
+    system "/usr/bin/mongo localhost/broker_development --eval 'db.addUser(\"stickshift\", \"mooo\")' 2>&1 > /dev/null"
   end
 
   test "create and find cloud user" do

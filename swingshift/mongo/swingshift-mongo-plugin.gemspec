@@ -1,31 +1,26 @@
-# -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-lib_dir  = File.join(File.join("lib", "**"), "*")
-test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin","*")
 spec_file = "swingshift-mongo-plugin.spec"
 
+# Maintain your gem's version:
+require "swingshift-mongo-plugin/version"
+
+# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "swingshift-mongo-plugin"
-  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = SwingShift::VERSION
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.homepage    = "http://www.openshift.com"
+  s.summary     = %q{Swingshift plugin for authenticating against a mongodb based user DB}
+  s.description = %q{Provides a MongoDB based user database for authentication}
 
-  s.rubyforge_project = "swingshift-mongo-plugin"
-
-  s.files       = Dir[lib_dir] + Dir[bin_dir]
-  s.test_files  = Dir[test_dir]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["LICENSE", "COPYRIGHT", "Rakefile", "README.md", "swingshift-mongo-plugin.gemspec", "swingshift-mongo-plugin.spec", "Gemfile"]
+  s.test_files = Dir["test/**/*"]
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
-  s.files       += %w(README.md Rakefile Gemfile swingshift-mongo-plugin.spec swingshift-mongo-plugin.gemspec LICENSE COPYRIGHT)
-  s.require_paths = ["lib"]
 
-  s.add_dependency('stickshift-controller')
-  s.add_dependency('json')  
-  s.add_development_dependency('rake')  
-  s.add_development_dependency('bundler')
-  s.add_development_dependency('mocha')
+  s.add_dependency "rails", "~> 3.2.6"
+  s.add_dependency "stickshift-controller"
+  s.add_dependency "stickshift-common"
+  s.add_dependency "mongoid"  
 end

@@ -2,7 +2,8 @@ Name: nodejs-0.6
 Display-Name: Node v0.6 (noarch)
 Description: Cartridge packaging Node.js support for OpenShift
 Version: 0.6.10
-License: ASL 2.0
+License: NodeJS license
+License-Url: https://raw.github.com/joyent/node/v0.8.6/LICENSE
 Vendor: www.nodejs.org
 Categories:
   - cartridge
@@ -44,24 +45,20 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Suggests:
-    
 Provides:
   - "nodejs"
   - "nodejs (version) = 0.6.10"
   - "nodejs (version) = 0.6"
 Requires:
+  - web_proxy
+Group-Overrides:
+  - - cart: nodejs
+    - cart: web_proxy
 Conflicts:
 Native-Requires:
   - nodejs >= 0.6
 Architecture: noarch
-Reservations:
-  - MEM >= 100MB
-Scaling:
-  Min: 1
-  Max: -1
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
@@ -73,12 +70,3 @@ Subscribes:
   set-nosql-db-connection-info:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
-  set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"
-    Required : false
-  set-postgres-connection-info:
-    Type: "NET_TCP:db:postgres"
-    Required : false
-  set-mongo-connection-info:
-    Type: "NET_TCP:db:mongodb"
-    Required : false

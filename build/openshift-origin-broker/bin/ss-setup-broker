@@ -209,7 +209,7 @@ unless build
   end
   
   print "Setup mongo db user\n"
-  print `/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'`
+  print `/usr/bin/mongo localhost/broker_development --eval 'db.addUser("stickshift", "mooo")'`
 end
 
 ### End mongo setup
@@ -253,7 +253,7 @@ system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip} --domain #{no
 
 unless build
   print "Register admin user\n"
-  `mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+  `mongo broker_development --eval 'db.auth_user.update({"user":"admin"}, {"user":"admin","password_hash":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
 end
  
 ["httpd","sshd","qpidd","mcollective","stickshift-broker","stickshift-proxy"].each do |service|
