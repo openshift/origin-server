@@ -14,9 +14,12 @@ Cart-Data:
   - Key: connection_url
     Type: cart_data
     Description: "phpMyAdmin connection URL"
+Categories:
+  - database_support
 Provides:
   - "phpmyadmin"
-Requires: 
+Requires:
+  - "mysql-5.1"
 Conflicts:
 Native-Requires:
 Architecture: noarch
@@ -24,7 +27,7 @@ Reservations:
   - MEM >= 100MB
 Components:
   default:
-    Service-Dependencies: ["mysql-5.1"]
+    Service-Dependencies: []
     Publishes:
       get-serve-info:
         Type: "NET_TCP:db-config:url"
@@ -35,10 +38,6 @@ Components:
       set-mysql-connection-info:
         Type: "NET_TCP:db:mysql"
         Required : true
-Groups:
-  default:
-    Components:
-      default : default
     Scaling:
       Min: 1
       Max: 1

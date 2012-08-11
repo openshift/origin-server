@@ -23,7 +23,7 @@ Requires: rubygem-uplift-bind-plugin
 Requires: rubygem-gearchanger-mcollective-plugin
 Requires: mcollective-qpid-plugin
 Requires: qpid-cpp-server
-Requires: rhc
+#Requires: rhc
 
 BuildArch:     noarch
 

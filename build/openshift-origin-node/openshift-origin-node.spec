@@ -14,13 +14,13 @@ Requires:       emacs-nox
 Requires:       git
 Requires:       ruby
 Requires:       rubygems
-Requires:       java-1.6.0-openjdk
+Requires:       java-1.7.0-openjdk
 Requires:       jpackage-utils
-Requires:       java-1.6.0-openjdk-devel
+Requires:       java-1.7.0-openjdk-devel
 Requires:       openssh-server
 Requires:       lsb
 
-Requires:       rhc
+#Requires:       rhc
 Requires:       mcollective-qpid-plugin
 Requires:       stickshift-mcollective-agent
 Requires:       rubygem-stickshift-node

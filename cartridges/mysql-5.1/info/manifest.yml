@@ -6,7 +6,7 @@ Description: "MySQL is a multi-user, multi-threaded SQL database server."
 Vendor: Oracle
 License: ASL 2.0
 Categories:
-  - cartridge
+  - scales
   - database
 Website: http://www.mysql.com
 Help-Topics:
@@ -40,68 +40,7 @@ Profiles:
         Publishes:
           publish-db-connection-info:
             Type: "NET_TCP:db:connection-info"
-#          get-mysql-connection-info:
-#            Type: "NET_TCP:db:mysql"
-#          get-mysql-jdbc-info:
-#            Type: "NET_TCP:jdbc"
-#          get-db-local-connection-info:
-#            Type: "AFUNIX:db:connection-info"
-    Groups:
-      mysql:
-        Components:
-          mysql-server: mysql-server
         Scaling:
           Min: 1
           Max: 1
-
-  master-slave:
-    Provides: mysql-master-slave
-    Components:
-      master:
-        Publishes:
-          get-master:
-            Type: "NET_TCP:db:mysql:master"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-mysql-connection-info:
-            Type: "NET_TCP:db:mysql"
-          get-mysql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-slave:
-            Type: "NET_TCP:db:mysql:slave"
-      slave:
-        Publishes:
-          get-slave:
-            Type: "NET_TCP:db:mysql:slave"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-mysql-connection-info:
-            Type: "NET_TCP:db:mysql"
-          get-mysql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-master:
-            Type: "NET_TCP:db:mysql:master"
-            Required: True
-    Groups:
-      master:
-        Components:
-          mysql-master: master
-        Scaling:
-          Min: 1
-          Max: 1
-      slaves:
-        Components:
-          mysql-slave: slave
-    Connections:
-      master-slave-connections:
-        Components:
-          - mysql-master
-          - mysql-slave
-    Start-Order:  [master, slaves]
 Default-Profile: singleton-master

@@ -20,11 +20,8 @@ require 'fileutils'
 require 'getoptlong'
 require 'json'
 require "stickshift-common/models/model"
-require "stickshift-common/models/user_model"
 require "stickshift-common/exceptions/ss_exception"
 require "stickshift-common/models/scaling"
-require "stickshift-common/models/component_ref"
-require "stickshift-common/models/group"
 require "stickshift-common/models/connector"
 require "stickshift-common/models/component"
 require "stickshift-common/models/connection"

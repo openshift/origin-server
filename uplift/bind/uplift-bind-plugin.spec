@@ -1,4 +1,4 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+%global ruby_sitelib %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %global gemname uplift-bind-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
@@ -12,7 +12,7 @@ License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.8
+Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)

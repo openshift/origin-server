@@ -13,14 +13,14 @@ License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) = 1.8
+Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
-Requires:       rubygem(json)
-Requires:       rubygem(parseconfig)
-Requires:       rubygem(stickshift-common)
-Requires:       rubygem(mocha)
-Requires:       rubygem(rspec)
-Requires:       rubygem(rcov)
+#Requires:       rubygem(json)
+#Requires:       rubygem(parseconfig)
+#Requires:       rubygem(stickshift-common)
+#Requires:       rubygem(mocha)
+#Requires:       rubygem(rspec)
+#Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
 

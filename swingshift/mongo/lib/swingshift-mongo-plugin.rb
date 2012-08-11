@@ -1,8 +1,7 @@
-module Swingshift
-  module AuthService
-    require 'swingshift-mongo-plugin/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
-  end
-end
+require 'mongoid'
+require "swingshift-mongo-plugin/mongo_auth_service"
+require "swingshift-mongo-plugin/engine"
+StickShift::AuthService.provider = Swingshift::MongoAuthService
 
-require "swingshift-mongo-plugin/lib/swingshift/mongo_auth_service.rb"
-StickShift::AuthService.provider=Swingshift::MongoAuthService
+module SwingShift
+end

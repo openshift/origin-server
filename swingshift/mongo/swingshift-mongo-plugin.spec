@@ -1,4 +1,4 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
+%global ruby_sitelib %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %global gemname swingshift-mongo-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
@@ -12,7 +12,7 @@ License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) = 1.8
+Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
@@ -68,15 +68,6 @@ Broker::Application.configure do
     :privkeyfile => "/var/www/stickshift/broker/config/server_priv.pem",
     :privkeypass => "",
     :pubkeyfile  => "/var/www/stickshift/broker/config/server_pub.pem",
-    
-    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-    :mongo_replica_sets => false,
-    :mongo_host_port => ["localhost", 27017],
-  
-    :mongo_user => "stickshift",
-    :mongo_password => "mooo",
-    :mongo_db => "stickshift_broker_dev",
-    :mongo_collection => "auth_user"
   }
 end
 EOF

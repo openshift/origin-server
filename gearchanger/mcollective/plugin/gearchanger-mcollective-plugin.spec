@@ -12,7 +12,7 @@ License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) = 1.8
+Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
 Requires:       mcollective-client
 Requires:       qpid-cpp-client

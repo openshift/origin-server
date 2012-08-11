@@ -2,11 +2,12 @@ Name: ruby-1.9
 Display-Name: Ruby 1.9
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
 Version: 1.0.0
-License: ASL 2.0
-Vendor:
+License: Ruby License
+License-Url: http://www.ruby-lang.org/en/about/license.txt
+Vendor: Ruby Lang
 Website: www.ruby-lang.org
 Categories:
-  - cartridge
+  - scales
   - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
@@ -44,13 +45,14 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
-    
 Provides:
   - "ruby-1.9"
   - "ruby(version) = 1.9"
 Requires:
-Conflicts:
+  - web_proxy
+Group-Overrides:
+  - - cart: ruby-1.9
+    - cart: web_proxy
 Native-Requires:
   -  sqlite-devel
   -  rubygems
@@ -74,12 +76,7 @@ Native-Requires:
   -  gcc-c++
   -  js
 Architecture: noarch
-Reservations:
-  - MEM >= 100MB
-Start-Order: rack
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
@@ -91,12 +88,3 @@ Subscribes:
   set-nosql-db-connection-info:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
-  set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"
-    Required : false
-  set-postgres-connection-info:
-    Type: "NET_TCP:db:postgres"
-    Required : false
-Scaling:
-  Min: 1
-  Max: -1
