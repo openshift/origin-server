@@ -3,16 +3,17 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin","*")
+spec_file = "swingshift-mongo-plugin.spec"
 
 Gem::Specification.new do |s|
   s.name        = "swingshift-mongo-plugin"
-  s.version     = /(Version: )(.*)/.match(File.read("swingshift-mongo-plugin.spec"))[2].strip
-  s.license     = 'ASL 2.0'
+  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = ""
-  s.summary     = %q{Swingshift plugin for authenticating against a mongodb based user DB}
-  s.description = %q{Provides a MongoDB based user database for authentication}
+  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.rubyforge_project = "swingshift-mongo-plugin"
 
