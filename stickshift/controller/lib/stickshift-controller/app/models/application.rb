@@ -1369,7 +1369,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       when "APP_SSH_KEY_REMOVE"
         key = command_item[:args][0]
         key = self.ssh_keys.delete(key)
-        app_jobs['remove_ssh_keys'] << key
+        app_jobs['remove_ssh_keys'] << key unless key.nil?
       when "ENV_VAR_ADD"
         key = command_item[:args][0]
         value = command_item[:args][1]
