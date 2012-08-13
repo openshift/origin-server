@@ -1,0 +1,25 @@
+ServerRoot "<%= @CART_HOME %>"
+DocumentRoot "<%= ENV['HOME'] %>/app-root/runtime/repo//php"
+Listen 127.0.250.129:8080
+User <%= ENV['USER'] %>
+Group <%= ENV['USER'] %>
+ErrorLog "|/usr/sbin/rotatelogs <%= @CART_HOME %>/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
+CustomLog "|/usr/sbin/rotatelogs <%= @CART_HOME %>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
+php_value include_path ".:<%= ENV['HOME'] %>/app-root/runtime/repo//libs/:<%= @CART_HOME %>/phplib/pear/pear/php/:/usr/share/pear/"
+# TODO: Adjust from ALL to more conservative values
+<Directory "<%= ENV['HOME'] %>/app-root/runtime/repo//php">
+  AllowOverride All
+</Directory>
+
+# TODO: Adjust from ALL to more conservative values
+<IfModule !mod_bw.c>
+    LoadModule bw_module    modules/mod_bw.so
+</IfModule>
+
+<ifModule mod_bw.c>
+  BandWidthModule On
+  ForceBandWidthModule On
+  BandWidth all 500000
+  MaxConnection all 20
+  BandWidthError 510
+</IfModule>

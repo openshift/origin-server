@@ -1,0 +1,7 @@
+.pearrc
+php-5.3/bin
+php-5.3/bin/*
+php-5.3/conf/*
+php-5.3/conf
+php-5.3/conf.d/*
+php-5.3/conf.d

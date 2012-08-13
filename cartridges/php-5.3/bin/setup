@@ -1,0 +1,35 @@
+#!/usr/bin/ruby
+
+require 'erb'
+require 'fileutils'
+
+#Files to be processed
+
+template_list = [ 'conf/httpd_nolog.conf.erb',
+                  'conf/php.ini.erb',
+                  'conf.d/stickshift.conf.erb',
+                  'conf/pearrc.erb',
+                  'env/PHP_5_3_CTL_SCRIPT.erb',
+                  'env/PHP_5_3_DATA_DIR.erb' ]
+
+# Setup Needed Variables
+@CART_TYPE = "php-5.3"
+@CART_HOME = "#{ENV['HOME']}/#{@CART_TYPE}/"
+Dir.chdir(@CART_HOME)
+
+
+# Generate Templates
+template_list.each do | template_name |
+  renderer = ERB.new(File.new(template_name).read, nil, "%")
+  config_file = template_name.sub('.erb', '')
+  File.open(config_file, 'w') { |f| f.write(renderer.result()) }
+end
+
+# Finalization
+`pear -c /tmp/doesnt_exit config-create "#{@CART_HOME}"/phplib/pear/ "#{ENV['HOME']}"/.pearrc > /dev/null 2>&1`
+`pear -c "#{ENV['HOME']}"/.pearrc config-set php_ini "#{@CART_HOME}"/conf/php.ini > /dev/null 2>&1`
+`pear -c "#{ENV['HOME']}"/.pearrc config-set auto_discover 1 > /dev/null 2>&1`
+
+FileUtils.mkdir_p("#{@CART_HOME}/logs")
+FileUtils.mkdir_p("#{@CART_HOME}/data")
+FileUtils.mkdir_p("#{@CART_HOME}/run")
