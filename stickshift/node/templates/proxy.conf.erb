@@ -1,0 +1,4 @@
+<% proxy_pass.each do | proxy | -%>
+ProxyPass <%= proxy['URI'] %> http://<%= proxy['IP'] %>:<%= proxy['port'] %>/ status=I
+ProxyPassReverse <%= proxy['URI'] %> http://<%= proxy['IP'] %>:<%= proxy['port'] %>/ status=I
+<% end -%>

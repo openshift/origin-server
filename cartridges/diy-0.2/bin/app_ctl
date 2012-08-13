@@ -1,0 +1,47 @@
+#!/bin/bash -e
+
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+# Import Environment Variables
+for f in ~/.env/*
+do
+    . $f
+done
+
+if ! [ $# -eq 1 ]
+then
+    echo "Usage: \$0 [start|restart|graceful|graceful-stop|stop]"
+    exit 1
+fi
+
+export CART_HOME="${HOME}/diy-0.2/"
+
+case "$1" in
+    start)
+        _state=`get_app_state`
+        if [ "down" == "$_state" ] ||  ["idle" == "$_state" ]; then
+            echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+            exit 0
+        else
+            set_app_state started
+            echo "START NOT YET DEFINED.  EDIT 'bin/app_ctl'" 1>&2
+            exit 1
+        fi
+    ;;
+    graceful-stop|stop)
+        set_app_state stopped
+        src_user_hook pre_stop_${CARTRIDGE_TYPE}
+        echo "STOP NOT YET DEFINED.  EDIT 'bin/app_ctl'" 1>&2
+        exit 1
+        run_user_hook post_stop_${CARTRIDGE_TYPE}
+        #app_ctl_stop.sh $1
+    ;;
+    restart|graceful)
+        set_app_state started
+        #src_user_hook pre_start_${CARTRIDGE_TYPE}
+        echo "RESTART NOT YET DEFINED.  EDIT 'bin/app_ctl'" 1>&2
+        exit 1
+        #run_user_hook post_start_${CARTRIDGE_TYPE}
+    ;;
+esac

@@ -1,0 +1,24 @@
+#!/usr/bin/ruby
+
+require 'erb'
+require 'fileutils'
+
+#Files to be processed
+
+template_list = [ 'env/DIY_0_2_CTL_SCRIPT.erb']
+
+# Setup Needed Variables
+@CART_TYPE = "diy-0.1"
+@CART_HOME = "#{ENV['HOME']}/#{@CART_TYPE}/"
+Dir.chdir(@CART_HOME)
+
+
+# Generate Templates
+template_list.each do | template_name |
+  renderer = ERB.new(File.new(template_name).read, nil, "%")
+  config_file = template_name.sub('.erb', '')
+  File.open(config_file, 'w') { |f| f.write(renderer.result()) }
+end
+
+# Finalization
+puts "Add more customization steps here"
