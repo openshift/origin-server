@@ -27,6 +27,7 @@ TODO
 - php-5.3/run/pid / status script pid
 - Remove version number from cartridge name
   - Add cartridge version somewhere else (maybe manifest?)
+- What to do with haproxy.
 
 Cartridge Requirements
 ----------------------
