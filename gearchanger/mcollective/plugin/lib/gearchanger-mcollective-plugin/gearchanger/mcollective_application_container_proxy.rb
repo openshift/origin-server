@@ -1163,6 +1163,14 @@ module GearChanger
                 else
                   result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
                 end
+              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
+                if line =~ /^APP_SSH_KEY_ADD: /
+                  key = line['APP_SSH_KEY_ADD: '.length..-1].chomp
+                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [key]})
+                else
+                  key = line['APP_SSH_KEY_REMOVE: '.length..-1].chomp
+                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [key]})
+                end
               elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
                 if line =~ /^ENV_VAR_ADD: /
                   env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
