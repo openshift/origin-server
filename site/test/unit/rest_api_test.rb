@@ -40,6 +40,10 @@ class RestApiTest < ActiveSupport::TestCase
     {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(@auth_headers)
   end
 
+  def anonymous_json_header(is_post=false)
+    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}
+  end
+
   class AnonymousApi < RestApi::Base
     allow_anonymous
   end
@@ -831,7 +835,10 @@ class RestApiTest < ActiveSupport::TestCase
       @count
     end
   end
-  class UncacheableRestApi < RestApi::Base
+
+  class InheritedCacheableRestApi < CacheableRestApi
+    allow_anonymous
+    singleton
   end
 
   def test_cacheable_resource
@@ -858,8 +865,13 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 2, CacheableRestApi.count
     cached.all :as => RestApi::Authorization.new('different')
     assert_equal 2, CacheableRestApi.count
+  end
 
-    assert !UncacheableRestApi.respond_to?(:cached)
+  def test_inherited_cacheable_resource
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/inherited_cacheable_rest_api.json', anonymous_json_header, {:name => 'haproxy-1.4'}.to_json
+    end
+    assert InheritedCacheableRestApi.find :one
   end
 
   def test_cacheable_key_for
@@ -989,7 +1001,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     Rails.cache.clear
-    key = CartridgeType.send(:cache_key_for, :all)
+    key = CartridgeType.send(:cache_key_for, :find_every)
     assert_nil Rails.cache.read(key)
 
     types = CartridgeType.embedded :as => @user
@@ -1012,7 +1024,7 @@ class RestApiTest < ActiveSupport::TestCase
         {:name => 'blacklist', :type => 'standalone', :categories => [:framework, :blacklist]},
       ].to_json
 
-      mock.get '/broker/rest/application_template.json', json_header, [
+      mock.get '/broker/rest/application_templates.json', json_header, [
       ].to_json
     end
     types = ApplicationType.find :all, :as => @user
@@ -1032,7 +1044,7 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/broker/rest/cartridges.json', json_header, [
       ].to_json
 
-      mock.get '/broker/rest/application_template.json', json_header, [
+      mock.get '/broker/rest/application_templates.json', json_header, [
         { 
           :name => 'blacklist',
           :tags => [:framework, :blacklist],
@@ -1404,7 +1416,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
     types = CartridgeType.cached.all :as => @user
     assert types.length > 0
-    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :all))
+    assert Rails.cache.read(CartridgeType.send(:cache_key_for, :find_every))
     types
   end
 

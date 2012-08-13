@@ -76,6 +76,13 @@ module RestApi
           key.map! { |k| k.respond_to?(:cache_key) ? k.cache_key : k } if key.is_a? Array
           key
         end
+
+        def cache_find_method(symbol)
+          cache_method "find_#{symbol}", [name, "find_#{symbol}"], :before => remove_authorization_from_model
+        end
+        def remove_authorization_from_model
+          lambda { |e| Array(e).each { |c| c.as = nil } }
+        end
     end
   end
 end

@@ -16,7 +16,7 @@ class User < RestApi::Base
   end
 
   def plan
-    @plan ||= Plan.find plan_id
+    @plan ||= Aria::MasterPlan.cached.find plan_id
   end
   def plan=(plan)
     @plan_id = plan.is_a?(String) ? plan : plan.id

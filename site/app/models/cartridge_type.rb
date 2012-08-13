@@ -1,7 +1,6 @@
 class CartridgeType < RestApi::Base
   include ActiveModel::Conversion
   extend ActiveModel::Naming
-  include RestApi::Cacheable
   include Comparable
 
   schema do
@@ -104,7 +103,7 @@ class CartridgeType < RestApi::Base
     all(*arguments).select(&:standalone?)
   end
 
-  cache_method :all, [name, :all], :before => lambda { |e| e.each { |c| c.as = nil } }
+  cache_find_method :every
 
   def self.category_compare(a,b)
     [:web, :database].each do |t|

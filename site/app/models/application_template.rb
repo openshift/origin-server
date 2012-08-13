@@ -1,8 +1,4 @@
 class ApplicationTemplate < RestApi::Base
-  include RestApi::Cacheable
-
-  singleton
-
   custom_id :name
 
   def descriptor
@@ -78,7 +74,8 @@ class ApplicationTemplate < RestApi::Base
     ApplicationType.new attrs
   end
 
-  cache_method :find_every, [name, :find_every], :before => lambda { |e| e.each { |c| c.as = nil } }
+  cache_find_method :single
+  cache_find_method :every
 
   private
     def get_metadata(name)

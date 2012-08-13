@@ -78,6 +78,7 @@ end
 module RestApi
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
+    include RestApi::Cacheable
 
     def self.debug
       @debug = true
@@ -317,13 +318,6 @@ module RestApi
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
     #
     class << self
-      def singleton
-        @singleton = true
-      end
-      def singleton?
-        @singleton if defined? @singleton
-      end
-
       attr_accessor_with_default(:collection_name) do
         if singleton?
           element_name
@@ -375,6 +369,21 @@ module RestApi
           instantiate_record(format.decode(connection(options).get(path, headers).body), as) #end add
         end
       end
+
+      def allow_anonymous?
+        self.anonymous_api?
+      end
+      def singleton?
+        self.singleton_api?
+      end
+
+      protected
+        def allow_anonymous
+          self.anonymous_api = true
+        end
+        def singleton
+          self.singleton_api = true
+        end
     end
 
 
@@ -476,13 +485,6 @@ module RestApi
     end
 
     class << self
-      def allow_anonymous
-        @allow_anonymous = true
-      end
-      def allow_anonymous?
-        @allow_anonymous
-      end
-
       def get(custom_method_name, options = {}, call_options = {})
         connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
       end
@@ -590,8 +592,11 @@ module RestApi
         @remote_errors = error
         load_remote_errors(@remote_errors, true, optional)
       end
+
+      class_attribute :anonymous_api, :instance_writer => false
+      class_attribute :singleton_api, :instance_writer => false
   end
-  
+
   #
   # An Authorization object should expose:
   #
