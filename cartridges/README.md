@@ -25,6 +25,8 @@ TODO
 - Initial Git Repo
 - Component level state
 - php-5.3/run/pid / status script pid
+- Remove version number from cartridge name
+  - Add cartridge version somewhere else (maybe manifest?)
 
 Cartridge Requirements
 ----------------------
