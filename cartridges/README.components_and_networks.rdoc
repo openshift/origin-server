@@ -1,0 +1,99 @@
+= NAME
+
+GearComponents and UnixNetwork classes
+
+
+= SYNOPSIS
+
+Broker: create gear --> mcollective 
+
+                  gear = GearContainer.new(...)
+                    components = GearComponents.new(*GearContainer)
+
+                  gear.create
+                    ...
+                    lock
+                    ...
+                    serialize
+                    unlock
+
+
+Broker: add component --> mcollective
+                  gear.components << [cart, component, arg1, arg2, etc...]
+                    ...
+                    lock
+                    deserialize
+
+                    component.cart = Cartridge.new(...yml)
+                    component.addr = UnixNetwork::Addr.new(*GearContainer)
+                    component.port = UnixNetwork::Port.new(*GearContainer, component.cart)
+
+                    Call scripts/hooks
+
+                    ...
+                    serialize
+                    unlock
+
+
+= DESCRIPTION
+
+The new cartridge architecture moves away from calling cartridge
+scripts as root and requires significantly more setup to be done by
+the node services.
+
+ApplicationContainer should be renamed to GearContainer since it
+handles gear setup and configuration rather than the whole
+application.
+
+Modifications to GearContainer class, and new classes are
+proposed to embody the node side of the cartridge API.  These classes
+will absorb much of the current tasks performed by cartridge setup
+scripts.
+
+The GearContainer class will abstract gear-local cartridge
+management away from mcollective.
+
+A new UnixNetwork class and additional cartridge descriptor are
+proposed to move IP address selection and port-proxy setup to the node
+management layer.
+
+
+= NEW FEATURES
+
+== Serialization
+
+GearContainer and its contained classes are serialized into
+gear-local storage so that the component and network configuration can
+be read back in rather than requiring discovery.
+
+== Locking
+
+A per-gear API lock is used to protect meta-data from simultaneous
+calls.
+
+= NEW CLASSES
+
+== StickShift::GearComponents
+
+An array like object which is used by GearContainer to manage
+the set of components in a gear.
+
+Parses cartridge descriptors and perform any gear-local cartridge
+management with full knowledge of the gear configuration.
+
+The list of components contained in a gear are read back as an array.
+
+In the future, component calls (start/stop, etc...) will be created to
+fully encompass component management.
+
+
+== StickShift::UnixNetwork::Addr
+== StickShift::UnixNetwork::Port
+
+Objects which are used to manipulate the IP address allocation, port
+proxy and firewall configuration per gear.
+
+The simple case will be one IP address per gear/component.
+
+The cartridge descriptor provides the set of ports to proxy.
+
