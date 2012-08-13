@@ -18,9 +18,9 @@ Feature: keys
   Scenario Outline: Create key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123567"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123567"
     Then the response should be "201"
-    And the response should be a "key" with attributes "name=cucumber&type=ssh-rsa&content=XYZ123567"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123567"
 
     Scenarios:
      | format | 
@@ -31,13 +31,13 @@ Feature: keys
   Scenario Outline: Create key with with blank, missing and invalid content
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123=567[dfhhfl]"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123=567[dfhhfl]"
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content="
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content="
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa"
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
     
@@ -70,13 +70,13 @@ Feature: keys
   Scenario Outline: Create key with blank, missing and invalid type
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-xyz&content=XYZ123567"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-xyz&content=XYZ123567"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=&content=XYZ123567"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=&content=XYZ123567"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&content=XYZ123567"
+    When I send a POST request to "/user/keys" with the following:"name=api&content=XYZ123567"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
     
@@ -88,11 +88,11 @@ Feature: keys
   Scenario Outline: Retrieve key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a GET request to "/user/keys/cucumber"
+    When I send a GET request to "/user/keys/api"
     Then the response should be "200"
-    And the response should be a "key" with attributes "name=cucumber&type=ssh-rsa&content=XYZ123"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123"
     
     Scenarios:
      | format | 
@@ -102,7 +102,7 @@ Feature: keys
   Scenario Outline: Retrieve non-existent key
     Given a new user
     And I accept "<format>"
-    When I send a GET request to "/user/keys/cucumber"
+    When I send a GET request to "/user/keys/api"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=118"
     
@@ -114,11 +114,11 @@ Feature: keys
   Scenario Outline: Update key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=ssh-rsa&content=ABC890"
+    When I send a PUT request to "/user/keys/api" with the following:"type=ssh-rsa&content=ABC890"
     Then the response should be "200"
-    And the response should be a "key" with attributes "name=cucumber&type=ssh-rsa&content=ABC890"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=ABC890"
     
     Scenarios:
      | format | 
@@ -129,20 +129,20 @@ Feature: keys
   Scenario Outline: Update key with with blank, missing and invalid content
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=ssh-rsa&content="
+    When I send a PUT request to "/user/keys/api" with the following:"type=ssh-rsa&content="
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=ssh-rsa"
+    When I send a PUT request to "/user/keys/api" with the following:"type=ssh-rsa"
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=ssh-rsa&content=ABC8??#@@90"
+    When I send a PUT request to "/user/keys/api" with the following:"type=ssh-rsa&content=ABC8??#@@90"
     Then the response should be "422"
     And the error message should have "field=content&severity=error&exit_code=108"
-    When I send a GET request to "/user/keys/cucumber"
+    When I send a GET request to "/user/keys/api"
     Then the response should be "200"
-    And the response should be a "key" with attributes "name=cucumber&type=ssh-rsa&content=XYZ123"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123"
     
     Scenarios:
      | format | 
@@ -152,20 +152,20 @@ Feature: keys
   Scenario Outline: Update key with blank, missing and invalid type
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=&content=ABC890"
+    When I send a PUT request to "/user/keys/api" with the following:"type=&content=ABC890"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"&content=ABC890"
+    When I send a PUT request to "/user/keys/api" with the following:"&content=ABC890"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
-    When I send a PUT request to "/user/keys/cucumber" with the following:"type=ssh-abc&content=ABC890"
+    When I send a PUT request to "/user/keys/api" with the following:"type=ssh-abc&content=ABC890"
     Then the response should be "422"
     And the error message should have "field=type&severity=error&exit_code=116"
-    When I send a GET request to "/user/keys/cucumber"
+    When I send a GET request to "/user/keys/api"
     Then the response should be "200"
-    And the response should be a "key" with attributes "name=cucumber&type=ssh-rsa&content=XYZ123"
+    And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123"
     
     Scenarios:
      | format | 
@@ -175,7 +175,7 @@ Feature: keys
   Scenario Outline: Update non-existent key
     Given a new user
     And I accept "<format>"
-    When I send a PUT request to "/user/keys/cucumber1" with the following:"type=ssh-rsa&content=ABC890"
+    When I send a PUT request to "/user/keys/api1" with the following:"type=ssh-rsa&content=ABC890"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=118"
     
@@ -187,11 +187,11 @@ Feature: keys
   Scenario Outline: Delete key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber1&type=ssh-rsa&content=XYZ123456"
+    When I send a POST request to "/user/keys" with the following:"name=api1&type=ssh-rsa&content=XYZ123456"
     Then the response should be "201"
-    When I send a DELETE request to "/user/keys/cucumber1"
+    When I send a DELETE request to "/user/keys/api1"
     Then the response should be "204"
     
     Scenarios:
@@ -202,9 +202,9 @@ Feature: keys
   Scenario Outline: Delete last key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a DELETE request to "/user/keys/cucumber"
+    When I send a DELETE request to "/user/keys/api"
     Then the response should be "204"
     
     Scenarios:
@@ -215,7 +215,7 @@ Feature: keys
   Scenario Outline: Delete non-existent key
     Given a new user
     And I accept "<format>"
-    When I send a DELETE request to "/user/keys/cucumber"
+    When I send a DELETE request to "/user/keys/api"
     Then the response should be "404"
     And the error message should have "severity=error&exit_code=118"
     
@@ -227,11 +227,11 @@ Feature: keys
   Scenario Outline: Create duplicate key
     Given a new user
     And I accept "<format>"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ123"
     Then the response should be "201"
-    When I send a POST request to "/user/keys" with the following:"name=cucumber&type=ssh-rsa&content=XYZ1234"
+    When I send a POST request to "/user/keys" with the following:"name=api&type=ssh-rsa&content=XYZ1234"
     Then the response should be "409"
-    When I send a POST request to "/user/keys" with the following:"name=cucumberX&type=ssh-rsa&content=XYZ123"
+    When I send a POST request to "/user/keys" with the following:"name=apiX&type=ssh-rsa&content=XYZ123"
     Then the response should be "409"
     
     Scenarios:

@@ -3,16 +3,17 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 docs_dir  = File.join(File.join("docs", "**"), "*")
+spec_file = "gearchanger-mcollective-plugin.spec"
 
 Gem::Specification.new do |s|
   s.name        = "gearchanger-mcollective-plugin"
-  s.version     = /(Version: )(.*)/.match(File.read("gearchanger-mcollective-plugin.spec"))[2].strip
-  s.license     = 'ASL 2.0'
+  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = ""
-  s.summary     = %q{Gearchanger plugin for managing nodes/gears over mcollective}
-  s.description = %q{Provides a mcollective based plugin to manage nodes/gears}
+  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.rubyforge_project = "gearchanger-mcollective-plugin"
 

@@ -1338,6 +1338,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     case self.framework_cartridge
       when 'php'
         page = 'health_check.php'
+      when 'zend'
+        page = 'health_check.php'
       when 'perl'
         page = 'health_check.pl'
       else

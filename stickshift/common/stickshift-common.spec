@@ -16,7 +16,6 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
-Requires:       rubygem(mongo)
 Requires:       rubygem(rcov)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python

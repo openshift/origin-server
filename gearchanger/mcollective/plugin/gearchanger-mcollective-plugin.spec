@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.1
+Version: 0.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
+- call move hook in start_order - fix for bug#833543 (rchopra@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 - Merge pull request #319 from rajatchopra/master (smitram@gmail.com)

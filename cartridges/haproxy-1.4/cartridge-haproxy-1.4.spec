@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.14.1
+Version: 0.14.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
+- Fix for bugz 845154 - use conditional reload for config changes.
+  (ramr@redhat.com)
+- Merge pull request #322 from ramr/master (rchopra@redhat.com)
+- Fix for bugz 845164 - don't start haproxy if stopped and its a config change
+  via execute connections. (ramr@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 

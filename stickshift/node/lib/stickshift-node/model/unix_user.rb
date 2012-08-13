@@ -151,7 +151,7 @@ module StickShift
       initialize_stickshift_proxy
       
       cmd = %{/usr/bin/killall -s KILL -u '#{@uuid}' 2> /dev/null}
-      (1..10).each do |i|
+      10.times do |i|
         out,err,rc = shellCmd(cmd)
         break unless rc == 0
         sleep 0.5
@@ -173,7 +173,16 @@ module StickShift
       path = File.join(basedir, ".httpd.d", "#{uuid}_*")
       FileUtils.rm_rf(Dir.glob(path))
 
-      out,err,rc = shellCmd("userdel \"#{@uuid}\"")
+      # There's a small race condition where tasks get restarted during teardown.
+      # Kill again after the home directory is gone.
+      cmd = %{/usr/bin/killall -s KILL -u '#{@uuid}' 2> /dev/null}
+      10.times do |i|
+        out,err,rc = shellCmd(cmd)
+        break unless rc == 0
+        sleep 0.5
+      end
+
+      out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
       raise UserDeletionException.new(
             "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
       notify_observers(:after_unix_user_destroy)

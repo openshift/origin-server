@@ -4,16 +4,17 @@ lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin", "*")
 doc_dir  = File.join(File.join("doc", "**"), "*")
+spec_file = "uplift-bind-plugin.spec"
 
 Gem::Specification.new do |s|
   s.name        = "uplift-bind-plugin"
-  s.version     = /(Version: )(.*)/.match(File.read("uplift-bind-plugin.spec"))[2].strip
-  s.license     = 'ASL 2.0'
+  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = ""
-  s.summary     = %q{Uplift plugin for configuring BIND DNS daemon}
-  s.description = %q{Provides a BIND based plugin}
+  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.rubyforge_project = "uplift-bind-plugin"
 
