@@ -61,10 +61,10 @@ class Gear < StickShift::Model
     if ret.exitcode == 0
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
-      app.process_cartridge_commands(ret)
       track_destroy_usage
       self.app.ngears -= 1
       self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+      app.process_cartridge_commands(ret)
       self.app.save
     else
       raise StickShift::NodeException.new("Unable to destroy gear on node", 1, ret)
