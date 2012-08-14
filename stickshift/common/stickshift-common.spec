@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.14.1
+Version: 0.14.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -84,6 +84,10 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
+- Removing unneeded mongo dep (bleanhar@redhat.com)
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 - setup broker/nod script fixes for static IP and custom ethernet devices add
