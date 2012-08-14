@@ -15,6 +15,8 @@ setup_user_vars
 HAPROXY_DIR=`echo $APP_HOME/haproxy-1.4 | tr -s /`
 [ -d "$HAPROXY_DIR" ]  ||   HAPROXY_DIR=`echo $APP_HOME/$application | tr -s /`
 
+. $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
+. $APP_HOME/.env/OPENSHIFT_GEAR_UUID
 
 cat <<EOF > "$HAPROXY_DIR/conf/haproxy.cfg.template"
 #---------------------------------------------------------------------
@@ -83,6 +85,7 @@ listen express $IP:8080
     option httpchk GET /
     balance leastconn
     server  filler $IP2:8080 backup
+    server  local-gear $OPENSHIFT_INTERNAL_IP:8080 maxconn 2 check fall 2 rise 3 inter 2000 cookie local-$OPENSHIFT_GEAR_UUID
 EOF
 
 cp $HAPROXY_DIR/conf/haproxy.cfg.template $HAPROXY_DIR/conf/haproxy.cfg
