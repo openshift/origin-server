@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.15.2
+Version: 0.15.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,15 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #357 from brenton/gemspec_fixes1
+  (openshift+bot@redhat.com)
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+- It was observed while creating and deleting a lot of applications at the same
+  time that sometimes the httpd process gets started back up.
+  (rmillner@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
 - Updating gem versions (admiller@redhat.com)
 - chmod and shebang fixes for Fedora packaging (bleanhar@redhat.com)
