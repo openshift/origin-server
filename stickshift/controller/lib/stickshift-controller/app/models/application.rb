@@ -1368,7 +1368,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         key_name = command_item[:args][0]
         key = command_item[:args][1]
         self.ssh_keys[key_name] = key
-        app_jobs['add_ssh_keys'] << key
+        app_jobs['add_ssh_keys'] << [key_name,key]
       when "APP_SSH_KEY_REMOVE"
         key_name = command_item[:args][0]
         key = self.ssh_keys.delete(key_name)
@@ -1396,8 +1396,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       app_jobs.each do |action,value|
         case action
         when "add_ssh_keys"
-          value.each { |key|
-            job = gear.ssh_key_job_add(key, nil, self.name)
+          value.each { |key_info|
+            key_name,key = key_info
+            job = gear.ssh_key_job_add(key, nil, key_name)
             RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
           }
         when "remove_ssh_keys"
