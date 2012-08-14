@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.14.2
+Version: 0.14.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
+- Add support to make haproxy embeddable into existing applications, keep
+  current app server running and route traffic to local gear and support for
+  disabling autoscaling (via marker file). (ramr@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
 - Fix for bugz 845154 - use conditional reload for config changes.
   (ramr@redhat.com)
