@@ -85,13 +85,6 @@ perl -p -i -e "s/^#MaxSessions .*$/MaxSessions 40/" /etc/ssh/sshd_config
 perl -p -i -e "s/^#MaxStartups .*$/MaxStartups 40/" /etc/ssh/sshd_config
 perl -p -i -e "s/^#auth = .*$/auth = true/" /etc/mongodb.conf
 
-cat <<EOF > /etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE=eth0
-BOOTPROTO=dhcp
-ONBOOT=yes
-NM_MANAGED=no
-EOF
-
 echo 'AcceptEnv GIT_SSH' >> /etc/ssh/sshd_config
 ln -s /usr/bin/sssh /usr/bin/rhcsh
 
