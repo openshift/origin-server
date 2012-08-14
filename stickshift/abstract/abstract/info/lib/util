@@ -775,6 +775,15 @@ function resolve_application_dependencies {
     popd
 }
 
+function create_common_env_vars {
+    create_standard_env_vars
+    create_standard_env_uservars
+    create_standard_network_env_vars
+    create_standard_repo_dir_env_var
+    create_standard_path_env_var
+    observe_setup_env_uservars_dir
+}
+
 # Checks for the presence of the user-specified hot_deploy marker in the app
 # repo. Returns 0 if the marker is present, otherwise 1.
 function hot_deploy_marker_is_present {
