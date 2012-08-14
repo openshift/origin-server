@@ -87,7 +87,7 @@ class BaseController < ActionController::Base
           Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
           @cloud_user = CloudUser.new(subuser_name,nil,nil,nil,{},@parent_user.login)
           @cloud_user.parent_user_login = @parent_user.login
-          @cloud_user.save
+          init_user
         else
           @cloud_user = sub_user
         end
@@ -96,7 +96,7 @@ class BaseController < ActionController::Base
         if @cloud_user.nil?
           Rails.logger.debug "Adding user #{@login}...inside base_controller"
           @cloud_user = CloudUser.new(@login)
-          @cloud_user.save
+          init_user
         end
       end
       
@@ -104,6 +104,16 @@ class BaseController < ActionController::Base
     rescue StickShift::AccessDeniedException
       log_action(@request_id, 'nil', login, "AUTHENTICATE", false, "Access denied")
       request_http_basic_authentication
+    end
+  end
+
+  def init_user()
+    begin
+      @cloud_user.save
+    rescue Exception => e
+      cu = CloudUser.find @login
+      raise unless cu && (@cloud_user.parent_user_login == cu.parent_user_login)
+      @cloud_user = cu
     end
   end
   
