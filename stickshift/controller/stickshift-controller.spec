@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.2
+Version: 0.15.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,20 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
+- Merge pull request #357 from brenton/gemspec_fixes1
+  (openshift+bot@redhat.com)
+- Merge pull request #365 from danmcp/master (openshift+bot@redhat.com)
+- fixing broker extended tests (dmcphers@redhat.com)
+- Merge pull request #363 from danmcp/master (openshift+bot@redhat.com)
+- make tests use more random values (dmcphers@redhat.com)
+- zend server (lnader@redhat.com)
+- Bug 847248 (dmcphers@redhat.com)
+- Fixing my gemspec typo (bleanhar@redhat.com)
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+- Merge pull request #354 from rajatchopra/master (openshift+bot@redhat.com)
+- fix for gear's group_instance_name being stale (rchopra@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
 - Increase URL matcher to 5mins (jhonce@redhat.com)
 - move debugging to logger (jhonce@redhat.com)
