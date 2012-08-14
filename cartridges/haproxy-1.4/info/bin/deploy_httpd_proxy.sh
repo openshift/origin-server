@@ -40,5 +40,7 @@ cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/000
   Alias /health ${CART_INFO_DIR}/configuration/health.html
   ProxyPass /haproxy-status/ http://$IP2:8080/ status=I
   ProxyPassReverse /haproxy-status/ http://$IP2:8080/
+  ProxyPass / http://$IP:8080/ status=I
+  ProxyPassReverse / http://$IP:8080/
 EOF
 
