@@ -45,7 +45,8 @@ uuid   = args['--uuid']
 blocks = args['--blocks']
 inodes = args['--inodes']
 
-if !uuid or !blocks or !inodes
+# modification to at least one parameter (blocks or inodes) must be requested
+if !uuid or (!blocks and !inodes)
   usage
   exit -100
 end

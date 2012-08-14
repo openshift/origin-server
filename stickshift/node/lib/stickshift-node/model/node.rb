@@ -137,6 +137,9 @@ module StickShift
     end
 
     def self.set_quota(uuid, blocksmax, inodemax)
+      cur_quota = get_quota(uuid)
+      inodemax = cur_quota[6] if inodemax.to_s.empty?
+      
       mountpoint = %x[quota #{uuid} | awk '/^.*\\/dev/ {print $1}']
       cmd = "setquota -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
       st, out, errout = systemu cmd
@@ -145,4 +148,3 @@ module StickShift
 
   end
 end
-
