@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.2
+Version: 0.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Merge pull request #357 from brenton/gemspec_fixes1
+  (openshift+bot@redhat.com)
+-  move cartridge code (rchopra@redhat.com)
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+- Merge pull request #354 from rajatchopra/master (openshift+bot@redhat.com)
+- use configure_order for move (rchopra@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
 - call move hook in start_order - fix for bug#833543 (rchopra@redhat.com)
 
