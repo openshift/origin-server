@@ -125,6 +125,7 @@ input:-moz-placeholder, textarea:-moz-placeholder {
  color: #777;
 	}
 
+#new_application .controls input { width: 210px; }
 
 // Disabled and read-only inputs
 input[disabled],
@@ -887,7 +888,7 @@ $cartridgeBorderWidth: 10px;
     right: 3px;
     height: 25px;
     width: 20px;
-    background: transparent url("../images/sprite-vert.png") 2px -228px no-repeat;
+    background: transparent url("../images/sprite-vert.png") 2px -293px no-repeat;
     border: 0;
   }
 }
