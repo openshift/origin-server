@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.2
+Version: 0.15.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
+- Merge pull request #356 from rmillner/BZ847150 (openshift+bot@redhat.com)
+- Remove Mike's email address and replace it with bofh (admiller@redhat.com)
+- Queue multiple requests behind one httpd graceful or restart call for C9.
+  (rmillner@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
 - Create sandbox directory. (rmillner@redhat.com)
 - BZ 845332: Separate out configuration file management from the init script so
