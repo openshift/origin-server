@@ -42,7 +42,8 @@ function _status_node_service() {
 
 
 function _start_node_service() {
-    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock ]; then
+    _state=`get_app_state`
+    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
         return 0
     else
@@ -52,6 +53,8 @@ function _start_node_service() {
             return 0
         fi
     fi
+
+    set_app_state started
 
     #  Got here - it means that we need to start up Node.
 
@@ -107,6 +110,8 @@ function _stop_node_service() {
     fi
 
     if [ -n "$node_pid" ]; then
+        set_app_state stopped
+
         src_user_hook pre_stop_${CARTRIDGE_TYPE}
 
         logf="$OPENSHIFT_LOG_DIR/node.log"
