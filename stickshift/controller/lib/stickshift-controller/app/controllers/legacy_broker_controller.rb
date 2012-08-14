@@ -405,7 +405,13 @@ class LegacyBrokerController < ApplicationController
         if @cloud_user.nil?
           Rails.logger.debug "Adding user #{@login}...inside legacy_controller"
           @cloud_user = CloudUser.new(@login)
-          @cloud_user.save
+          begin
+            @cloud_user.save
+          rescue Exception => e
+            cu = CloudUser.find @login
+            raise unless cu && (@cloud_user.parent_user_login == cu.parent_user_login)
+            @cloud_user = cu
+          end
         end
         @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
       end
