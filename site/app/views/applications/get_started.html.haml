@@ -41,15 +41,22 @@
     -# git/setup
     - if true #FIXME has at least one cartridge with source code
       %h2 Making code changes
+
+      - unless @has_keys
+        %div.well
+          %h4 Set your Public Key
+          %p
+            Before you can upload code, you need to provide us with a <strong>public key</strong>
+            to identify you to our servers. If this is your first time creating a public key
+            #{link_to "read more about SSH keys and remote access", ssh_keys_help_path}.
+          = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
+
       %p 
-        OpenShift uses the
-        = link_to "Git version control system", git_homepage_url
-        to manage the code of your application. Each cartridge has a single Git 
-        %strong repository
-        that you'll use to check in changes to your application. When you
-        %strong push
-        a change to your Git repository we'll automatically deploy your code and restart your application if necessary.
-        = link_to "Learn more about uploading code", git_user_guide_topic_url
+        OpenShift uses the #{link_to "Git version control system", git_homepage_url}
+        to manage the code of your application. Each cartridge has a single Git <strong>repository</strong>
+        that you'll use to check in changes to your application. When you <strong>push</strong>
+        a change to your Git repository we'll automatically deploy your code and restart your 
+        application if necessary. #{link_to "Learn more about uploading code", git_user_guide_topic_url}
 
       - if @has_keys
         - if true #FIXME has a single cartridge with source code
@@ -82,15 +89,6 @@
         - else
           -#FIXME has multiple cartridges with source code
 
-      - else
-        %div.well
-          %h4 Set your Public Key
-          %p
-            Before you can upload code, you need to provide us with a 
-            %strong public key
-            to identify you to our servers. If this is your first time creating a public key
-            = link_to "read our User Guide topic on keys.", ssh_key_user_guide_topic_url
-          = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
 
   .span5
 

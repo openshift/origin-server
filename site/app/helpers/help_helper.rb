@@ -3,14 +3,13 @@ module HelpHelper
   # Given a relative path within the user guide, display the topic
   def user_guide_topic_url(topic)
     locale = 'en-US'
-    # "https://docs.redhat.com/docs/#{locale}/OpenShift_Express/2.0/html/User_Guide/#{topic}" # new docs after removing express
-    "http://docs.redhat.com/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
+    "http://access.redhat.com/knowledge/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
   end
 
-  def ssh_key_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Managing_SSH_Keys.html'
+  def ssh_keys_help_path
+    community_base_url 'developers/remote-access#keys'
   end
-  
+
   def manage_app_cli_user_guide_topic_url
     user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html'
   end
