@@ -12,69 +12,6 @@ function print_help {
     exit 1
 }
 
-function setup_mysql_as_a_service() {
-    [ $# -eq 4 -o $# -eq 3 ] || print_help
-
-    setup_configure "$1" $2 $3 $4
-    check_cartridge_dir_doesnt_exist
-
-    # Source the original application name if any.
-    source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
-
-    # Repo
-    if [ ! -d $git_url ]; then
-        clone_external_git_repo $application $user_id $group_id $uuid $git_url
-    else
-        clone_git_repo $application $user_id $group_id $uuid "MySQL 5.1"
-    fi
-
-    #
-    # Create the core of the application
-    #
-    create_cartridge_instance_dir "$cartridge_type"
-    create_app_dir_symlink "$cartridge_type"
-    MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-    pushd "$MYSQL_DIR" > /dev/null
-    create_standard_app_dirs
-    popd > /dev/null
-
-    #
-    # Find an open localhost IP
-    #
-    IP=`find_open_ip $uid $uuid`
-
-    create_app_ctl_script "$cartridge_type"
-    populate_repo_dir
-    secure_app_dir
-    secure_cart_instance_dir
-    observe_setup_app_and_git_dirs
-    observe_setup_cart_instance_dir
-
-    #
-    # Create environment variables
-    #
-    create_standard_env_vars
-    create_standard_env_uservars
-    create_standard_network_env_vars
-    create_standard_repo_dir_env_var
-    create_standard_path_env_var
-
-    observe_setup_env_uservars_dir
-
-    # And prepend to path variable so that mysql app_ctl.sh script is called.
-    sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
-
-    #  Add apache vhost configuration.
-    export CART_INFO_DIR
-    import_env_vars
-    $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
-
-    disable_stale_detection
-
-    restart_httpd_graceful
-}
-
-
 while getopts 'd' OPTION
 do
     case $OPTION in
@@ -85,7 +22,6 @@ do
     esac
 done
 
-
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
 CART_NAME="mysql"
@@ -94,26 +30,13 @@ cartridge_type="$CART_NAME-$CART_VERSION"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-if [ ! -d "$GEAR_BASE_DIR/$3/$1" ]; then
-    #  This gear is dedicated to running mysql - configure it as such.
-    setup_mysql_as_a_service "$@"
-fi
-
 setup_embedded_configure "$1" $2 $3
 disable_cgroups
 
 MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
-
-#
-# Detect IP
-. $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-IP=$OPENSHIFT_INTERNAL_IP
-
-#
-# Create the core of the application
-#
+source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 
 #todo: review! check remove to allow embedded cartridge for mysql... /jwh
 #if [ -d "$MYSQL_DIR" ]
@@ -129,6 +52,19 @@ if [ -f $APP_HOME/.env/OPENSHIFT_DB_TYPE ]; then
 fi
 
 create_cartridge_instance_dir "$cartridge_type"
+
+source_if_exists "$APP_HOME/.env/OPENSHIFT_INTERNAL_IP"
+IP=$OPENSHIFT_INTERNAL_IP
+
+# This gear is dedicated to running mysql - configure it as such.
+if [ -z "$IP" ]; then
+    prepare_gear_for_standalone_mysql
+fi
+
+#
+# Create the core of the application
+#
+
 pushd "$MYSQL_DIR" > /dev/null
 mkdir -p log etc data socket pid run
 sed "s,RHC_MYSQLDIR,$MYSQL_DIR," $CART_ETC_DIR/my.cnf > $MYSQL_DIR/etc/my.cnf
@@ -150,7 +86,8 @@ secure_app_dir
 secure_cart_instance_dir
 # Secure script and root dir (so they can't chown the script"
 chmod +x "$MYSQL_DIR/"*.sh || error "Failed to chmod new application scripts" 122
-observe_setup_app_and_git_dirs
+observe_setup_var_lib_dir "$APP_HOME/app-root/"
+observe_setup_var_lib_dir "$APP_DIR"
 observe_setup_var_lib_dir "$MYSQL_DIR"
 
 start_mysql

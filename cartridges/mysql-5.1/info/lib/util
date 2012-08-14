@@ -78,3 +78,29 @@ function wait_to_start_as_user {
         done
     fi
 }
+
+function prepare_gear_for_standalone_mysql() {
+    # Find an open localhost IP
+    IP=`find_open_ip $uid $uuid`
+
+    # Create top level application symlink
+    create_app_dir_symlink "$cartridge_type"
+
+    # Create environment variables
+    create_common_env_vars
+
+    create_app_ctl_script "$cartridge_type"
+
+    # And prepend to path variable so that mysql app_ctl.sh script is called.
+    sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
+
+    # Add apache vhost configuration.
+    export CART_INFO_DIR
+    import_env_vars
+    $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+
+    disable_stale_detection
+
+    restart_httpd_graceful
+}
+
