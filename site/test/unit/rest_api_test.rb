@@ -36,14 +36,6 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
-  def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(@auth_headers)
-  end
-
-  def anonymous_json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}
-  end
-
   class AnonymousApi < RestApi::Base
     allow_anonymous
   end
