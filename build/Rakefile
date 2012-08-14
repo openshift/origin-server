@@ -179,10 +179,10 @@ end
 task :devcd => [:build, :livecd] do
 end
 
-task :devbroker => [:build, :install_broker] do
+task :devbroker => [:clean, :build, :install_broker] do
 end
 
-task :devnode => [:build, :install_node] do
+task :devnode => [:clean, :build, :install_node] do
 end
 
 task :restart_services do
