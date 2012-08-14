@@ -53,6 +53,8 @@ function _start_node_service() {
         fi
     fi
 
+    set_app_state started
+
     #  Got here - it means that we need to start up Node.
 
     src_user_hook pre_start_${CARTRIDGE_TYPE}
@@ -107,6 +109,8 @@ function _stop_node_service() {
     fi
 
     if [ -n "$node_pid" ]; then
+        set_app_state stopped
+
         src_user_hook pre_stop_${CARTRIDGE_TYPE}
 
         logf="$OPENSHIFT_LOG_DIR/node.log"
