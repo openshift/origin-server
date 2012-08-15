@@ -198,6 +198,17 @@ function status() {
     print_user_running_processes `id -u`
 }
 
+
+#
+# main():
+#
+
+# Operate on the app server control script first.
+CART_INFO_DIR=$(dirname "$0")
+APP_CTL_PATH=$(echo "$PATH" | sed "s#${CART_INFO_DIR}/:##")
+[[ "$CARTRIDGE_TYPE" =~ haproxy* ]]  ||  PATH=$APP_CTL_PATH app_ctl.sh "$@"
+
+# And then on the haproxy and haproxy_ctld.
 case "$1" in
     start)               start       ;;
     graceful-stop|stop)  stop        ;;
@@ -207,3 +218,4 @@ case "$1" in
     force-stop)          force_stop  ;;
     status)              status      ;;
 esac
+
