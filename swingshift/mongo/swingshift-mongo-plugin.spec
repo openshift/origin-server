@@ -1,64 +1,87 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname swingshift-mongo-plugin
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%global gem_name swingshift-mongo-plugin
+
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
+%{!?ruby_sitelib: %global ruby_sitelib %(ruby -rrbconfig -e 'puts Config::CONFIG["sitelibdir"] ')}
+
+%global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}
+%global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}
+%global gem_cache %{gem_dir}/cache
+%global gem_spec %{gem_dir}/specifications
+
+%endif #end rhel <= 6 && fedora <= 16
 
 Summary:        SwingShift plugin for mongo auth service
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version:        0.8.6
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.9
+
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
+Requires:       ruby(abi) = 1.8
+%endif
+%if 0%{?fedora} >= 17
+Requires:       ruby(abi) = 1.9.1
+%endif
+
+Requires:       rubygem(activeresource)
 Requires:       rubygems
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
+
 Requires:       rubygem(mocha)
 Requires:       stickshift-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
+Requires:       openssl
+
+%if 0%{?fedora} >= 17
+BuildRequires:  rubygems-devel
+%endif
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
-
-%package -n ruby-%{gemname}
-Summary:        SwingShift plugin for mongo auth service
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
 
 %description
 Provides a mongo auth service based plugin
 
-%description -n ruby-%{gemname}
-Provides a mongo auth service based plugin
+%package doc
+Summary:        SwingShift plugin for mongo auth service ri documentation
+
+%description doc
+SwingShift plugin for mongo auth service ri documentation
 
 %prep
 %setup -q
 
 %build
+# Create the gem as gem install only works on a gem file
+gem build %{gem_name}.gemspec
+
+export CONFIGURE_ARGS="--with-cflags='%{optflags}'"
+# gem install compiles any C extensions and installs into a directory
+# We set that to be a local directory so that we can move it into the
+# buildroot in %%install
+gem install -V \
+        --local \
+        --install-dir .%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force \
+        --rdoc \
+        %{gem_name}-%{version}.gem
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{gem_dir}
+cp -a .%{gem_dir}/* %{buildroot}%{gem_dir}/
+
+# If there were programs installed:
 mkdir -p %{buildroot}%{_bindir}
-
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
-
-# Move the gem binaries to the standard filesystem location
-mv %{buildroot}%{gemdir}/bin/* %{buildroot}%{_bindir}
-rm -rf %{buildroot}%{gemdir}/bin
-
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+cp -a ./%{_bindir}/* %{buildroot}%{_bindir}
 
 mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
 cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
@@ -93,19 +116,16 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 
 %files
 %defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
+%doc LICENSE COPYRIGHT Gemfile
+%exclude %{gem_cache}
+%{gem_instdir}
+%{gem_spec}
 %{_bindir}/*
 
 %attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
 
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
+%files doc
+%doc %{gem_docdir}
 
 %changelog
 * Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.6-1

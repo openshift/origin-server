@@ -1,91 +1,123 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-common
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%global gem_name stickshift-common
+
+# Conditionally set required macros for distros without rubygems-devel This can
+# be removed once https://bugzilla.redhat.com/show_bug.cgi?id=788001 is
+# resolved.
+%{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)} 
+
+%global selinux_variants mls strict targeted
 
 Summary:        Cloud Development Common
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version: 0.15.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.9
+Requires:       ruby(abi) >= 1.8
 Requires:       rubygems
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
 
-%if 0%{?rhel}
 Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
-Requires:       rubygem(mongo)
-Requires:       rubygem(simplecov)
-%endif
+Requires:       selinux-policy
 
-BuildRequires:  ruby
+BuildRequires:  ruby-devel
+%if 0%{?rhel} == 6
 BuildRequires:  rubygems
-BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
+%else
+BuildRequires:  rubygems-devel
+%endif
+BuildRequires:  selinux-policy
+BuildRequires:  selinux-policy-devel
+BuildRequires:  hardlink
+BuildRequires:  rubygems
 
-%package -n ruby-%{gemname}
-Summary:        Cloud Development Common Library
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
+BuildArch:      noarch
+Provides:       rubygem(%{gem_name}) = %version
 
 %description
 This contains the Cloud Development Common packaged as a rubygem.
 
-%description -n ruby-%{gemname}
-This contains the Cloud Development Common packaged as a ruby site library.
+%package doc
+Summary:      Stickshift Common rubygem docs
+
+%description doc
+Stickshift Common rubygem ri documentation
 
 %prep
 %setup -q
 
+mkdir SELinux
+cp stickshift.* SELinux
+
 %build
+mkdir -p .%{gem_dir}
+
+# Create the gem as gem install only works on a gem file
+gem build %{gem_name}.gemspec
+
+export CONFIGURE_ARGS="--with-cflags='%{optflags}'"
+# gem install compiles any C extensions and installs into a directory
+# We set that to be a local directory so that we can move it into the
+# buildroot in %%install
+gem install -V \
+        --local \
+        --install-dir ./%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force \
+        --rdoc \
+        %{gem_name}-%{version}.gem
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{gem_dir}
+cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
+rm %{buildroot}%{gem_dir}/cache/%{gem_name}-%{version}.gem
+
 mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
-
-#selinux policy
-cp doc/selinux/stickshift.te %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/stickshift.fc %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/stickshift.if %{buildroot}/usr/share/selinux/packages/%{name}/
-
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
-
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+cd SELinux
+make -f %{_datadir}/selinux/devel/Makefile
+install -p -m 644 -D stickshift.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.pp
+make -f %{_datadir}/selinux/devel/Makefile clean
+cd -
+/usr/sbin/hardlink -cv %{buildroot}%{_datadir}/selinux
 
 %clean
-rm -rf %{buildroot}                                
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/usr/share/selinux/packages/%{name}/
+%{gem_dir}/gems/%{gem_name}-%{version}
+%{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+%doc SELinux/*
+%{_datadir}/selinux/packages/%{name}/
 
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
+%files doc
+%{gem_dir}/doc/%{gem_name}-%{version}
 
 %post
-pushd /usr/share/selinux/packages/%{name}
-rm -f stickshift.pp
-make -f /usr/share/selinux/devel/Makefile
-popd
+if [ "$1" -le "1" ] ; then # First install
+semodule -i %{_datadir}/selinux/packages/%{name}/stickshift.pp 2>/dev/null || :
+fixfiles -R rubygem-stickshift-common restore
+fi
+
+%preun
+if [ "$1" -lt "1" ] ; then # Final removal
+semodule -r stickshift 2>/dev/null || :
+fi
+
+%postun
+if [ "$1" -ge "1" ] ; then # Upgrade
+semodule -i %{_datadir}/selinux/packages/%{name}/stickshift.pp 2>/dev/null || :
+# TODO
+# What other packages should be added here?  Probably anything that could be
+# affected by stickshift.fc, right?
+fixfiles -R rubygem-stickshift-common restore
+fi
 
 %changelog
 * Thu Aug 23 2012 Adam Miller <admiller@redhat.com> 0.15.2-1

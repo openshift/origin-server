@@ -1,105 +1,92 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname gearchanger-mcollective-plugin
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%global gem_name gearchanger-mcollective-plugin
+
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
+%{!?ruby_sitelib: %global ruby_sitelibdir %(ruby -rrbconfig -e 'puts Config::CONFIG["sitelibdir"] ')}
+
+%global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}
+%global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}
+%global gem_cache %{gem_dir}/cache
+%global gem_spec %{gem_dir}/specifications
+
+%endif #end rhel <= 6 && fedora <= 16
 
 Summary:        GearChanger plugin for mcollective service
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version: 0.3.2
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.9
+
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
+Requires:       ruby(abi) = 1.8
+%endif
+%if 0%{?fedora} >= 17
+Requires:       ruby(abi) = 1.9.1
+%endif
+
 Requires:       rubygems
+Requires:       mcollective
 Requires:       mcollective-client
+Requires:       qpid-cpp-server
 Requires:       qpid-cpp-client
 Requires:       ruby-qpid-qmf
-#Requires:       qpid-tools
 Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
 
+%if 0%{?fedora} >= 17
+BuildRequires:  rubygems-devel
+%endif
+
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
-
-%package -n ruby-%{gemname}
-Summary:        GearChanger plugin for mcollective based node/gear manager
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
 
 %description
-GearChanger plugin for mcollective based node/gear manager
-
-%description -n ruby-%{gemname}
 GearChanger plugin for mcollective based node/gear manager
 
 %prep
 %setup -q
 
 %build
-
-%post
-chown root:apache /etc/mcollective/client.cfg
-chmod og+r /etc/mcollective/client.cfg
+# Build and install into the rubygem structure
+gem build %{gem_name}.gemspec
+gem install -V \
+        --local \
+        --install-dir ./%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force %{gem_name}-%{version}.gem
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{gem_dir}
 
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
+cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
-
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
-Broker::Application.configure do
-  config.gearchanger = {
-    :rpc_options => {
-    	:disctimeout => 5,
-    	:timeout => 60,
-    	:verbose => false,
-    	:progress_bar => false,
-    	:filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => []},
-    	:config => "/etc/mcollective/client.cfg"
-    },
-    :districts => {
-        :enabled => false,
-        :require_for_app_create => false,
-        :max_capacity => 6000, #Only used by district create
-        :first_uid => 1000
-    },
-    :node_profile_enabled => false
-  }
-end
-EOF
+mkdir -p %{buildroot}%{_var}/www/stickshift/broker/config/environments/plugin-config
+install -m0644 config/gearchanger-mcollective-plugin.rb %{buildroot}%{_var}/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
 
 %clean
-rm -rf %{buildroot}                                
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
+%dir %{gem_instdir}
+%dir %{gem_dir}
+%doc Gemfile LICENSE
+%{gem_dir}/doc/%{gem_name}-%{version}
+%{gem_dir}/gems/%{gem_name}-%{version}
+%{gem_dir}/cache/%{gem_name}-%{version}.gem
+%{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+%{_var}/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
 
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
+%defattr(-,root,apache,-)
+%attr(0644,-,-) %ghost %{_sysconfdir}/mcollective/client.cfg
 
 %changelog
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.3.2-1

@@ -1,44 +1,50 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-node
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%define appdir %{_localstatedir}/lib/stickshift
+%global gem_name stickshift-node
+
+# Conditionally set required macros for distros without rubygems-devel This can
+# be removed once https://bugzilla.redhat.com/show_bug.cgi?id=788001 is
+# resolved.
+%{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)}
+%{!?gem_instdir: %global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}}
+
+# Used for openshift.com only default to False
+%global hosted 0
+
+%global appdir %{_localstatedir}/lib/stickshift
 
 Summary:        Cloud Development Node
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version: 0.16.9
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
-#Requires:       rubygem(json)
-#Requires:       rubygem(parseconfig)
-#Requires:       rubygem(stickshift-common)
-#Requires:       rubygem(mocha)
-#Requires:       rubygem(rspec)
-#Requires:       rubygem(rcov)
+Requires:       rubygem(json)
+Requires:       rubygem(parseconfig)
+Requires:       rubygem(stickshift-common)
+Requires:       rubygem(rspec)
 Requires:       python
+
+%if %{hosted}
 Requires:       mercurial
+%endif
 
-BuildRequires:  ruby
+BuildRequires:  ruby-devel
+%if 0%{?rhel} == 6
+Requires:       ruby(abi) >= 1.8
 BuildRequires:  rubygems
-BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
+%else
+Requires:       ruby(abi) >= 1.9
+BuildRequires:  rubygems-devel
+%endif
 
-%package -n ruby-%{gemname}
-Summary:        Cloud Development Node Library
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
+BuildArch:      noarch
+Provides:       rubygem(%{gem_name}) = %version
 
 %description
 This contains the Cloud Development Node packaged as a rubygem.
-
-%description -n ruby-%{gemname}
-This contains the Cloud Development Node packaged as a ruby site library.
 
 %prep
 %setup -q
@@ -47,9 +53,8 @@ This contains the Cloud Development Node packaged as a ruby site library.
 
 %install
 rm -rf %{buildroot}
-#mkdir -p %{buildroot}%{_bindir}/ss
 mkdir -p %{buildroot}%{_sysconfdir}/stickshift
-mkdir -p %{buildroot}%{gemdir}
+mkdir -p %{buildroot}%{gem_dir}
 mkdir -p %{buildroot}%{ruby_sitelib}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
@@ -58,45 +63,35 @@ mkdir -p %{buildroot}%{appdir}/.httpd.d
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
 
 # Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
+gem build %{gem_name}.gemspec
+gem install --local --install-dir %{buildroot}%{gem_dir} --force %{gem_name}-%{version}.gem
 
 # Move the gem binaries to the standard filesystem location
-mv %{buildroot}%{gemdir}/bin/* %{buildroot}%{_bindir}
-rm -rf %{buildroot}%{gemdir}/bin
+mv %{buildroot}%{gem_dir}/bin/* %{buildroot}%{_bindir}
+rm -rf %{buildroot}%{gem_dir}/bin
 
 # Move the gem configs to the standard filesystem location
-mv %{buildroot}%{geminstdir}/conf/* %{buildroot}%{_sysconfdir}/stickshift
-
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}%{_sysconfdir}/stickshift
 
 #move the shell binaries into proper location
-mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
-rm -rf %{buildroot}%{geminstdir}/misc
 mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 %clean
-rm -rf %{buildroot}                                
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%{_sysconfdir}/stickshift
+%doc LICENSE COPYRIGHT
 %{_bindir}/*
-%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
+%{gem_dir}/doc/%{gem_name}-%{version}
+%{gem_dir}/gems/%{gem_name}-%{version}
+%{gem_dir}/cache/%{gem_name}-%{version}.gem
+%{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+%config(noreplace) %{_sysconfdir}/stickshift
+%config(noreplace) %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
+
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
 %attr(0755,-,-) %{_var}/lib/stickshift
-
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
 
 %post
 echo "/usr/bin/ss-trap-user" >> /etc/shells

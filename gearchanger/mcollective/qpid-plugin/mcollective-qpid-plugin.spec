@@ -1,7 +1,7 @@
 Summary:        Plugin to enable m-collective communication over amqp 1.0 enabled broker
 Name:           mcollective-qpid-plugin
 Version: 0.2.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
@@ -24,17 +24,13 @@ rm -rf %{buildroot}
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/connector/
-mkdir -p %{buildroot}/usr/share/doc/mcollective-qpid-plugin
-cp src/qpid.rb %{buildroot}/usr/libexec/mcollective/mcollective/connector/
-cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugin/
+mkdir -p %{buildroot}%{_libexecdir}/mcollective/mcollective/connector/                                                                                                                                       
+install -Dp -m0644 src/qpid.rb %{buildroot}%{_libexecdir}/mcollective/mcollective/connector/                                                                                                                 
 
 %files
 %defattr(-,root,root,-)
-/usr/libexec/mcollective/mcollective/connector/qpid.rb
-/usr/share/doc/mcollective-qpid-plugin/COPYRIGHT
-/usr/share/doc/mcollective-qpid-plugin/README.md
-/usr/share/doc/mcollective-qpid-plugin/LICENSE
+%doc COPYRIGHT LICENSE                                                                                                                                                                                       
+%{_libexecdir}/mcollective/mcollective/connector/qpid.rb
 
 %changelog
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
