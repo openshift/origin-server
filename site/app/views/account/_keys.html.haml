@@ -1,7 +1,11 @@
 %h2 Public Keys
-%p 
-  OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
-  = link_to "Read our User Guide topic on keys.", ssh_key_user_guide_topic_url
+%p
+  OpenShift uses a public key to securely encrypt the connection between
+  your local machine and your application and to authorize you to upload
+  code. You must create a private and public key on your local machine
+  and then upload the public key before you can connect to your
+  applications' Git repositories or remotely access your application.
+  = link_to "Learn more about SSH keys.", ssh_keys_help_path
 
 - if keys.empty?
   = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span4' }
