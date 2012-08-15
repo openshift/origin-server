@@ -35,11 +35,38 @@ Given /^I accept "([^\"]*)"$/ do |type|
   @headers = {:accept => type.to_s.downcase}
 end
 
+Given /^an application template UUID$/ do
+  path = sub_random('/application_templates')
+  url = @base_url + path.to_s
+  @request = RestClient::Request.new(:method => :get, :url => url, :headers => @headers)
+  begin
+    @response = @request.execute()
+  rescue => e
+    @response = e.response
+  end
+  
+  # Get a normalized list of templates
+  application_templates = unpacked_data(@response.body)
+
+  @application_template_uuid = application_templates[0]['uuid']
+end
+
 When /^I send a GET request to "([^\"]*)"$/ do |path|
   path = sub_random(path)
   url = @base_url + path.to_s
   @request = RestClient::Request.new(:method => :get, :url => url,
   :user => @username, :password => @password, :headers => @headers)
+  begin
+    @response = @request.execute()
+  rescue => e
+  @response = e.response
+  end
+end
+
+When /^I send an unauthenticated GET request to "([^\"]*)"$/ do |path|
+  path = sub_random(sub_uuid(path))
+  url = @base_url + path.to_s
+  @request = RestClient::Request.new(:method => :get, :url => url, :headers => @headers)
   begin
     @response = @request.execute()
   rescue => e
@@ -204,9 +231,67 @@ Then /^the response descriptor should have "([^\"]*)" as dependencies$/ do |deps
   end
 end
 
+Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
+  items = unpacked_data(@response.body)
+  if items.length < 1
+    raise("I got an empty list of #{list_type}")
+  end
+  if list_type == 'cartridges'
+    items.each do |cartridge|
+      check_cartridge(cartridge)
+    end
+  elsif list_type == 'application templates'
+    items.each do |application_template|
+      check_application_template(application_template)
+    end
+  else
+    raise("I don't recognize list type #{list_type}")
+  end
+end
+
+Then /^the response should be a "([^\"]*)"$/ do |item_type|
+  item = unpacked_data(@response.body)
+  if item_type == 'cartridge'
+    check_cartridge(item)
+  elsif item_type == 'application template'
+    check_application_template(item)
+  else
+    raise("I don't recognize item type #{item_type}")
+  end
+end
+
+def check_cartridge(cartridge)
+  unless cartridge.has_key?("name") && cartridge['name'].match(/\S+/)
+    raise("I found a cartridge without a name")
+  end
+end
+
+def check_application_template(application_template)
+  unless application_template.has_key?("uuid") && application_template['uuid'].match(/\S+/)
+    raise("I found an application without a UUID")
+  end
+end
+
+# Gets a normalized response
+def unpacked_data(response_body)
+  if @accept_type.upcase == 'JSON'
+    data = JSON.parse(@response.body)['data']
+  elsif @accept_type.upcase == 'XML'
+    data = Hash.from_xml(@response.body)['response']['data']['template']
+  end
+  data
+end
+
 def sub_random(value)
   if value and value.include? "<random>"
     value = value.sub("<random>", @random.to_s)
   end
   return value
 end
+
+def sub_uuid(value)
+  if value and value.include? "<uuid>"
+    value = value.sub("<uuid>", @application_template_uuid)
+  end
+  return value
+end  
