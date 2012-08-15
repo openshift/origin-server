@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.31.1
+Version: 0.31.2
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -61,6 +61,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.31.2-1
+- Runtime test Refactor (jhonce@redhat.com)
+- Wait for jenkins server to become stable (jhonce@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.31.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
