@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.3
+Version: 0.15.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,18 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.15.4-1
+- Merge pull request #381 from jwhonce/testing (openshift+bot@redhat.com)
+- Merge pull request #379 from danmcp/master (openshift+bot@redhat.com)
+- Merge pull request #374 from rajatchopra/US2568 (openshift+bot@redhat.com)
+- fixing ctl usage to handle multiple begin and end events
+  (dmcphers@redhat.com)
+- Merge pull request #378 from danmcp/master (openshift+bot@redhat.com)
+- Runtime test Refactor (jhonce@redhat.com)
+- better comment with the ssh key being added (rchopra@redhat.com)
+- Bug 848083 (dmcphers@redhat.com)
+- support for app-local ssh key distribution (rchopra@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
 - Merge pull request #357 from brenton/gemspec_fixes1
   (openshift+bot@redhat.com)
