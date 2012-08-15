@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.3
+Version: 0.15.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.15.4-1
+- Merge pull request #374 from rajatchopra/US2568 (openshift+bot@redhat.com)
+- Merge pull request #375 from mrunalp/dev/US2696 (openshift+bot@redhat.com)
+- US2696: Support for mysql/mongo cartridge level move. (mpatel@redhat.com)
+- support for app-local ssh key distribution (rchopra@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.15.3-1
 - Merge pull request #356 from rmillner/BZ847150 (openshift+bot@redhat.com)
 - Remove Mike's email address and replace it with bofh (admiller@redhat.com)
