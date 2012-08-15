@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.14.3
+Version: 0.14.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
+- Merge pull request #374 from rajatchopra/US2568 (openshift+bot@redhat.com)
+- support for app-local ssh key distribution (rchopra@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Add support to make haproxy embeddable into existing applications, keep
   current app server running and route traffic to local gear and support for
