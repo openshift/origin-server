@@ -7,7 +7,7 @@ class UsageRecord < StickShift::UserModel
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
                   :addtl_fs_gb => "ADDTL_FS_GB" }
 
-  attr_accessor :uuid, :user_id, :event, :time, :sync_time, :user, :usage_type, :gear_uuid, :gear_size, :addtl_fs_gb
+  attr_accessor :uuid, :event, :time, :sync_time, :user, :usage_type, :gear_uuid, :gear_size, :addtl_fs_gb
   primary_key :uuid
   exclude_attributes :user
 
