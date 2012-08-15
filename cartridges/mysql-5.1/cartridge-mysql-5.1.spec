@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.31.2
+Version: 0.31.3
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.31.3-1
+- US2696: Support for mysql/mongo cartridge level move. (mpatel@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.31.2-1
 - Fix for bugz 845162 - MySQL cartridge status hook doesn't correctly show true
   status if pid file contains an invalid pid. (ramr@redhat.com)
