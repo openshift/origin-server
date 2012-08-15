@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.14.2
+Version: 0.14.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -84,6 +84,10 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
+- Merge pull request #377 from brenton/misc1 (openshift+bot@redhat.com)
+- Removing duplicate require (bleanhar@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
 - Removing unneeded mongo dep (bleanhar@redhat.com)
 - gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
