@@ -76,12 +76,18 @@ fi
 #
 # Source database connection variables
 #
-. $MYSQL_DIR/.env/OPENSHIFT_DB_PORT
-. $MYSQL_DIR/.env/OPENSHIFT_DB_HOST
-. $MYSQL_DIR/.env/OPENSHIFT_DB_PASSWORD
-. $MYSQL_DIR/.env/OPENSHIFT_DB_USERNAME
-
-rm -rf $MYSQL_DIR/.env
+if [ -d $MYSQL_DIR/.env ]; then
+    . $MYSQL_DIR/.env/OPENSHIFT_DB_PORT
+    . $MYSQL_DIR/.env/OPENSHIFT_DB_HOST
+    . $MYSQL_DIR/.env/OPENSHIFT_DB_PASSWORD
+    . $MYSQL_DIR/.env/OPENSHIFT_DB_USERNAME
+    rm -rf $MYSQL_DIR/.env
+else
+    . $APP_HOME/.env/OPENSHIFT_DB_PORT
+    . $APP_HOME/.env/OPENSHIFT_DB_HOST
+    . $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
+    . $APP_HOME/.env/OPENSHIFT_DB_USERNAME
+fi
 
 #
 # Setup Environment Variables
