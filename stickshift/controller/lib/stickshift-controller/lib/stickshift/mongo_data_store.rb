@@ -163,6 +163,12 @@ module StickShift
       update( user_collection, { "_id" => user_id },
                                { "$pull" => { "usage_records" => {"gear_uuid" => gear_uuid, "usage_type" => usage_type}}} )
     end
+    
+    def delete_usage_records_by_uuids(user_id, uuids)
+      Rails.logger.debug "MongoDataStore.delete_usage_record_by_gear_uuid(#{user_id}, #{uuids})\n\n"
+      update( user_collection, { "_id" => user_id },
+                               { "$pull" => { "usage_records" => {"uuid" => {"$in" => uuids}} }} )
+    end
 
     def db
       if @replica_set
