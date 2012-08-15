@@ -26,6 +26,12 @@ def create_job
          -e "s,UPSTREAM_APP_TYPE,#{@app_type},g" \
          -e "s,UPSTREAM_APP_NAME,#{@app_name},g" #{@job_xml} | curl -s -w %{http_code} --output /dev/null -X POST -H "Content-Type: application/xml" -H "Expect: " --data-binary @- --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@#{@hostname}/createItem?name=#{@job_name}`
 
+  puts "create_job status: #{status_code}"
+  if not File.exists? File.join('/var/lib/stickshift', @uuid, 'app-root', 'data', 'jobs', @app_name, 'config.xml')
+    puts  'build config does not exist'
+    exit 1
+  end
+
   if status_code != '200'
     exit 1
   end

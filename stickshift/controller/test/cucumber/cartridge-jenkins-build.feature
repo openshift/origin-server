@@ -1,4 +1,5 @@
 @jenkins
+@runtime_extended1
 Feature: Jenkins Application
   Scenario: Create and Deploy a DIY and Jenkins Application
     Given the libra client tools

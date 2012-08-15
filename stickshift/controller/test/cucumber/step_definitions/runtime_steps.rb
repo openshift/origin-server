@@ -7,6 +7,8 @@
 
 require 'fileutils'
 
+# These are provided to reduce duplication of code in feature files.
+#   Scenario Outlines are not used as they interfer with the devenv retry logic (whole feature is retried no example line)
 Given /^a new ([^ ]+) application, verify it using ([^ ]+)$/ do |cart_name, proc_name|
   steps %Q{
     Given a new #{cart_name} type application
@@ -76,18 +78,21 @@ end
 #
 # The type of cartridge created will be of type cart_name from the step
 # matcher.
-Given /^a new ([^ ]+) type application$/ do | cart_name |
+Given /^a(n additional)? new ([^ ]+) type application$/ do | additional, cart_name |
   record_measure("Runtime Benchmark: Creating cartridge #{cart_name}") do
-  @account = StickShift::TestAccount.new
+    if additional 
+      assert_not_nil @account, 'You must create a new application before an additional application can be created'
+    else
+      @account = StickShift::TestAccount.new
+      @app = @account.create_app
+    end
 
-  @app = @account.create_app
-  @gear = @app.create_gear
-  @cart = @gear.add_cartridge(cart_name)
+    @gear = @app.create_gear
 
-  @cart.configure
+    @cart = @gear.add_cartridge(cart_name)
+    @cart.configure
+  end
 end
-end
-
 
 # Invokes destroy on the current application.
 When /^I destroy the application$/ do
@@ -96,13 +101,20 @@ When /^I destroy the application$/ do
   end
 end
 
-
-# Embeds a new cartridge to the current application's gear, and calls
-# configure on the cartridge.
-When /^I embed a ([^ ]+) cartridge into the application$/ do | cart_name |
-  record_measure("Runtime Benchmark: Embedded #{cart_name} cartridge in cartridge #{@cart.name}") do
+# Embeds a new cartridge to the current application's gear
+# Calls configure on the embedded cartridge.
+When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate, cart_name |
+  record_measure("Runtime Benchmark: Configure #{cart_name} cartridge in cartridge #{@cart.name}") do
     cart = @gear.add_cartridge(cart_name, StickShift::TestCartridge::Embedded)
-    cart.configure
+
+    if negate
+      assert_raise(RuntimeError) do
+        exit_code = cart.configure
+      end
+    else
+      exit_code = cart.configure
+      assert_equal 0, exit_code
+    end
   end
 end
 
@@ -382,6 +394,15 @@ When /^an update is pushed to the application repo$/ do
   end
 end
 
+# Asserts the 'cucumber_update_test' file exists after an update
+Then /^the application repo has been updated$/ do
+  assert_file_exist File.join($home_root,
+                              @gear.uuid,
+                              'app-root',
+                              'runtime',
+                              'repo',
+                              'cucumber_update_test')
+end
 
 # Compares the current PID set for the test application to whatever state
 # was last captured and stored in @current_cart_pids. Raises exceptions
@@ -413,18 +434,6 @@ Then /^the tracked application cartridge PIDs should( not)? be changed$/ do |neg
     raise "Expected PID differences, but found none. Old PIDs: #{@current_cart_pids.inspect},"\
       " new PIDs: #{new_cart_pids.inspect}"
   end
-end
-
-Then /^the web console for the metrics\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
-  steps %Q{
-    Then the web console for the metrics-#{version} cartridge at /read.php is#{negate} accessible
-  }
-end
-
-Then /^the web console for the rockmongo\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
-  steps %Q{
-    Then the web console for the rockmongo-#{version} cartridge at /js/collection.js is#{negate} accessible
-  }
 end
 
 Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)? accessible$/ do |cart_type, version, uri, negate|
