@@ -322,6 +322,8 @@ end
 
 When /^I configure a hello_world diy application with jenkins enabled$/ do
     @app = TestApp.create_unique('diy-0.1', 'diy')
+    run "echo -e \"Host #{@app.hostname}\n\tStrictHostKeyChecking no\n\" >> ~/.ssh/config"
+
     register_user(@app.login, @app.password) if $registration_required
     if rhc_create_domain(@app)
       @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=120')
@@ -331,22 +333,22 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
     end
 
     output = `awk <#{$temp}/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
-    @jenkins_user = output[-3]
-    @jenkins_user.should_not be_nil
+    jenkins_user = output[-3]
+    jenkins_user.should_not be_nil
 
-    @jenkins_password = output[-2]
-    @jenkins_password.should_not be_nil
+    jenkins_password = output[-2]
+    jenkins_password.should_not be_nil
 
-    @jenkins_url = output[-1]
-    @jenkins_url.should_not be_nil
+    jenkins_url = output[-1]
+    jenkins_url.should_not be_nil
 
-    $logger.debug "@jenkins_url = #{@jenkins_url}\n@jenkins_user = #{@jenkins_user}\n@jenkins_password = #{@jenkins_password}"
+    $logger.debug "jenkins_url = #{jenkins_url}\njenkins_user = #{jenkins_user}\njenkins_password = #{jenkins_password}"
 
-    @jenkins_job_command = "curl -ksS -X GET #{@jenkins_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"
-    $logger.debug "@jenkins_job_command = #{@jenkins_job_command}"
+    @jenkins_build = "curl -ksS -X GET #{jenkins_url}api/json --user '#{jenkins_user}:#{jenkins_password}'"
+    $logger.debug "@jenkins_build = #{@jenkins_build}"
 
-    response = `#{@jenkins_job_command}`
-    $logger.debug "@jenkins_job_command response = [#{response}]"
+    response = `#{@jenkins_build}`
+    $logger.debug "@jenkins_build response = [#{response}]"
 
     job = JSON.parse(response)
 
@@ -356,56 +358,37 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 end
 
 When /^I push an update to the diy application$/ do
-    output = `awk <#{$temp}/cucumber.log '/^git url:.*diy.git.$/ {print $3}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^ *Git URL:.*diy.git.$/ {print $3}'`.split("\n")
     @diy_git_url = output[-1]
+    $logger.debug "git url: #{@diy_git_url}"
+    assert_not_nil @diy_git_url, "Failed to find Git URL for diy application"
 
     FileUtils.rm_rf 'diy' if File.exists? 'diy'
-    status = Open4::popen4("git clone #{@diy_git_url} diy") do |pid, stdin, stdout, stderr|
-      $logger.debug "git clone: #{stdout.read}"
-      $logger.info  "git clone: #{stderr.read}"
-    end
-    status.to_s.should be == "0"
+    assert_directory_not_exists 'diy'
 
-    current = Dir.pwd
-    begin
-      Dir.chdir "diy"
-      `sed -ie 's/Welcome to Openshift Do-It-Yourself cartridge/Jenkins Builder Testing/' diy/index.html`
+    exit_code = run "git clone #{@diy_git_url} diy"
+    assert_equal 0, exit_code, "Failed to clone diy repo"
 
-      status = Open4::popen4("git commit -a -m 'force build'") do |pid, stdin, stdout, stderr|
-        $logger.debug "git commit: #{stdout.read}"
-        $logger.info  "git commit: #{stderr.read}"
-      end
-      status.to_s.should be == "0"
+    Dir.chdir("diy") do
+      exit_code = run "sed -i 's/Welcome to Openshift Do-It-Yourself cartridge/Jenkins Builder Testing/' diy/index.html"
+      assert_equal 0, exit_code, "Failed to update diy/index.html"
 
-      done = false
-      Timeout::timeout(300) do
-        status = Open4::popen4("git push") do |pid, stdin, stdout, stderr|
-          loop do
-            readers, writers, errors = IO.select([stdout, stderr], nil, nil, 1)
-            readers.each {|fd|
-              begin
-                $logger.debug "git push(#{fd}: #{fd.read_nonblock(256)}"
-              rescue EOFError
-                done = true
-              rescue Errno::ECHILD
-                done = true
-              end
-            } if not readers.nil?
-            break if done || Process::waitpid(pid, Process::WNOHANG)
-          end
+      exit_code = run "git commit -a -m 'force build'"
+      assert_equal 0, exit_code, "Failed to commit update to diy/index.html"
+
+      exit_code = -1
+      begin
+        Timeout::timeout(300) do
+          exit_code = run "git push"
         end
-        status.to_s.should be == "0"
+      rescue Timeout::Error
+        $logger.warn "Timed out during git push. Usually means jenkins cartridge failing"
+        raise
+      rescue => e
+        $logger.error "Unexpected exception #{e.class} during git push: #{e.message}\n#{e.backtrace.join("\n")}"
+        raise
       end
-    rescue Timeout::Error
-      $logger.warn "Timed out while reading results from git push. Usually means jenkins cartridge failing"
-      raise
-    rescue => e
-      $logger.error "Unexpected exception #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
-      raise
-    ensure
-      Dir.chdir current
-      # todo: uncomment when done with development
-      # FileUtils.rm_rf 'diy'
+      assert_equal 0, exit_code, "Failed to push update to diy/index.html"
     end
 end
 
@@ -415,8 +398,8 @@ Then /^the application will be updated$/ do
     StickShift::timeout(20) do
       begin
         sleep 1
-        response = `#{@jenkins_job_command}`
-        $logger.debug "@jenkins_job_command response = #{delay}[#{response}]"
+        response = `#{@jenkins_build}`
+        $logger.debug "@jenkins_build response = #{response}"
 
         job = JSON.parse(response)
       end while job['color'] != 'blue'

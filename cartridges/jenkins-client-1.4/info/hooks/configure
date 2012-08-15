@@ -65,9 +65,20 @@ JENKINS_DNS_NAME=${JENKINS_URL:8} #remove https://
 create_cartridge_instance_dir "$cartridge_type"
 JENKINS_CLIENT_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-if ! $(/usr/bin/wget --no-check-certificate -q https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${JENKINS_DNS_NAME}jnlpJars/jenkins-cli.jar -O "$OPENSHIFT_HOMEDIR/jenkins-client-1.4/jenkins-cli.jar")
+set +e
+code=-1
+for i in 0..30; do
+  code=$(/usr/bin/wget --no-check-certificate -q https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${JENKINS_DNS_NAME}jnlpJars/jenkins-cli.jar -O "$OPENSHIFT_HOMEDIR/jenkins-client-1.4/jenkins-cli.jar")
+  if [ $? == 0 ]; then
+    break
+  fi
+  sleep 1
+done
+set -e
+
+if ! $code
 then
-   client_error "Error contacting Jenkins server."
+   client_error "Error contacting Jenkins server. HTTP Code($code)"
    client_error "Could not download ${JENKINS_URL}jnlpJars/jenkins-cli.jar"
    exit 157
 fi

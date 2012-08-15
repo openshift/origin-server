@@ -10,7 +10,7 @@ module AppHelper
     SSH_OUTPUT_PATTERN = %r|ssh://([^@]+)@([^/]+)|
 
     # attributes to represent the general information of the application
-    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid
+    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid, :git_url
 
     # attributes to represent the state of the rhc_create_* commands
     attr_accessor :create_domain_code, :create_app_code
@@ -63,8 +63,17 @@ module AppHelper
     end
 
     def update_uid(std_output)
-      match = std_output.map {|line| line.match(SSH_OUTPUT_PATTERN)}.compact[0]
-      @uid = match[1]
+      begin
+        match = std_output.map {|line| line.match(SSH_OUTPUT_PATTERN)}.compact[0]
+        @uid = match[1]
+      rescue => e
+        $logger.error "update_uid failed: #{e.message}\n#{std_output}"
+      end
+    end
+
+    def update_git_url(std_output)
+      match = std_output.map {|line| line.match(%r|git url: (.*)|)}
+      @git_url = match.compact.first[1] if not match.nil?
     end
 
     def get_log(prefix)
