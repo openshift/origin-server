@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.3
+Version: 0.2.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Merge pull request #374 from rajatchopra/US2568 (openshift+bot@redhat.com)
+- Merge pull request #375 from mrunalp/dev/US2696 (openshift+bot@redhat.com)
+- US2696: Support for mysql/mongo cartridge level move. (mpatel@redhat.com)
+- support for app-local ssh key distribution (rchopra@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Merge pull request #357 from brenton/gemspec_fixes1
   (openshift+bot@redhat.com)
