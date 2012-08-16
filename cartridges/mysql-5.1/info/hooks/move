@@ -112,13 +112,13 @@ then
     sed -i "s,$ORIG_DB_HOST,$IP," $MYSQL_DIR/etc/my.cnf
     sed -i "s,$old_uuid,$uuid," $MYSQL_DIR/etc/my.cnf
 
-    start_mysql
+    start_db
 
     echo "
 UPDATE user SET Host='$IP' WHERE Host='$ORIG_DB_HOST';
 flush privileges;" | mysql -u $OPENSHIFT_DB_USERNAME -P $OPENSHIFT_DB_PORT -h $IP --password="$OPENSHIFT_DB_PASSWORD" -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to setup root user with new ip" 187
 
-    stop_mysql
+    stop_db
 
     set_app_info "Connection URL: mysql://$IP:$OPENSHIFT_DB_PORT/"
 fi

@@ -11,7 +11,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/postgresql-8.4/info
 source ${CART_INFO_DIR}/lib/util
 
-start_postgresql_as_user
+start_db_as_user 1>&2
 
 echo "$OPENSHIFT_GEAR_NAME" > $OPENSHIFT_DATA_DIR/postgresql_dbname
 echo "$OPENSHIFT_GEAR_UUID" > $OPENSHIFT_DATA_DIR/postgresql_dbuser

@@ -48,7 +48,7 @@ start() {
     then
         src_user_hook pre_start_mysql-5.1
         /usr/bin/mysqld_safe --defaults-file=$MYSQL_DIR/etc/my.cnf >/dev/null 2>&1 &
-        wait_to_start_as_user
+        wait_to_start_db_as_user
         run_user_hook post_start_mysql-5.1
     else
         echo "MySQL already running" 1>&2

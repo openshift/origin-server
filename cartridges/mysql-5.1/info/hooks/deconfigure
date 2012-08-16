@@ -58,7 +58,7 @@ if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
 fi
 
 # Stop mysql before we remove all the variables.
-stop_mysql
+stop_db
 confirm_pid_gone "${MYSQL_DIR}/pid/mysql.pid"
 
 #

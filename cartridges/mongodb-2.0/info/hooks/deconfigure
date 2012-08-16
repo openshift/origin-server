@@ -57,7 +57,7 @@ if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
 fi
 
 
-stop_mongodb
+stop_db
 
 confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 

@@ -35,7 +35,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_basic_hook "$1" $2 $3
 
 MONGODB_DIR="$APP_HOME/$CART_NAME-$CART_VERSION/"
-mongodbctl="$MONGODB_DIR/${application}_mongodb_ctl.sh"
+OPENSHIFT_NOSQL_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
 
 CART_INFO_DIR="${CARTRIDGE_BASE_PATH}/embedded/$CART_NAME-$CART_VERSION/info"
 source $CART_INFO_DIR/lib/util
@@ -44,4 +44,4 @@ source $CART_INFO_DIR/lib/util
 # Start application
 #
 rm -f "$MONGODB_DIR/run/stop_lock"
-start_mongodb
+start_db

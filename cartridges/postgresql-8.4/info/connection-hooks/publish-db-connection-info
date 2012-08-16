@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Publishes the postgresql database connection information.
+
+# Exit on any errors
+set -e
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid"
+    echo "Publish postgresql database connection information"
+
+    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_publish_conn_info
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+
+[ $# -eq 3 ] || print_help
+
+source /etc/stickshift/stickshift-node.conf
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+setup_configure "$1" $2 $3
+
+import_env_vars
+
+# Check scalability and setup entries accordingly.
+if is_a_scalable_app; then
+    postgresql_host=$OPENSHIFT_GEAR_DNS
+    postgresql_port=$OPENSHIFT_DB_PROXY_PORT
+    postgresql_dburl="$OPENSHIFT_DB_TYPE://$OPENSHIFT_DB_USERNAME:$OPENSHIFT_DB_PASSWORD@$postgresql_host:$postgresql_port/"
+    postgresql_dbsocket=""
+    echo -n "OPENSHIFT_DB_GEAR_UUID=$OPENSHIFT_GEAR_UUID; "
+    echo -n "OPENSHIFT_DB_GEAR_DNS=$OPENSHIFT_GEAR_DNS; "
+    echo -n "OPENSHIFT_DB_CTL_ONGEAR_SCRIPT=$OPENSHIFT_DB_CTL_SCRIPT; "
+fi
+
+echo -n "OPENSHIFT_DB_TYPE=$OPENSHIFT_DB_TYPE; "
+echo -n "OPENSHIFT_DB_USERNAME=$OPENSHIFT_DB_USERNAME; "
+echo -n "OPENSHIFT_DB_PASSWORD=$OPENSHIFT_DB_PASSWORD; "
+echo -n "OPENSHIFT_DB_HOST=${postgresql_host:-$OPENSHIFT_DB_HOST}; "
+echo -n "OPENSHIFT_DB_PORT=${postgresql_port:-$OPENSHIFT_DB_PORT}; "
+echo -n "OPENSHIFT_DB_URL=${postgresql_dburl:-$OPENSHIFT_DB_URL}; "
+echo -n "OPENSHIFT_DB_SOCKET=${postgresql_dbsocket:-$OPENSHIFT_DB_SOCKET}; "
+echo -n "OPENSHIFT_DB_POSTGRESQL_84_DUMP=$OPENSHIFT_DB_POSTGRESQL_84_DUMP; "
+echo -n "OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP=$OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP; "
+echo -n "OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE=$OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE; "
+echo -n "OPENSHIFT_DB_POSTGRESQL_84_RESTORE=$OPENSHIFT_DB_POSTGRESQL_84_RESTORE; "
+echo ""
+
