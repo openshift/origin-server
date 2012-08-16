@@ -347,12 +347,14 @@ class RestGear_V1 < BaseObj_V1
 end
 
 class RestGearGroup_V1 < BaseObj_V1
-  attr_accessor :name, :gear_profile, :gears, :cartridges
+  attr_accessor :uuid, :name, :gear_profile, :gears, :cartridges, :links
 
   def initialize(name=nil)
+    self.uuid = uuid
     self.name = name
     self.gear_profile = nil
     self.gears = nil
     self.cartridges = nil
+    self.links = nil
   end
 end

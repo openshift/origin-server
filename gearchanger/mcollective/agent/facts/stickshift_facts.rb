@@ -52,6 +52,8 @@ if File.exists?('/etc/stickshift/resource_limits.conf')
   node_profile = config_file.get_value('node_profile') ? config_file.get_value('node_profile') : 'small'
   max_apps = config_file.get_value('max_apps') ? config_file.get_value('max_apps') : '0'
   max_active_apps = config_file.get_value('max_active_apps') ? config_file.get_value('max_active_apps') : '0'
+  quota_blocks = config_file.get_value('quota_blocks') ? config_file.get_value('quota_blocks') : '1048576'
+  quota_files = config_file.get_value('quota_files') ? config_file.get_value('quota_files') : '40000'
 end
 
 Facter.add(:node_profile) do
@@ -64,6 +66,14 @@ end
 
 Facter.add(:max_active_apps) do
   setcode { max_active_apps }
+end
+
+Facter.add(:quota_blocks) do
+  setcode { quota_blocks }
+end
+
+Facter.add(:quota_files) do
+  setcode { quota_files }
 end
 
 #

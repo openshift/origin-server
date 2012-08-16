@@ -107,6 +107,12 @@ module StickShift
 
     def get_public_hostname
     end
+    
+    def get_quota_blocks
+    end
+
+    def get_quota_files
+    end
 
     def execute_connector(app, gear, cart, connector_name, input_args)
     end
@@ -156,6 +162,12 @@ module StickShift
     def update_namespace(app, cart, new_ns, old_ns)
     end
 
+    def get_quota(gear)
+    end
+    
+    def set_quota(gear, storage_in_gb, inodes)
+    end
+    
     def framework_carts
     end
 
@@ -211,6 +223,12 @@ module StickShift
     end
     
     def get_show_state_job(app, gear)
+    end
+
+    def get_show_gear_quota_job(gear)
+    end
+    
+    def get_update_gear_quota_job(gear, storage_in_gb, inodes)
     end
   end
 end

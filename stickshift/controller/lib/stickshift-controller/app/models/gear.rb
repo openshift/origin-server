@@ -195,6 +195,24 @@ class Gear < StickShift::Model
     get_proxy.add_env_var(app, self, key, value)
   end
   
+  def set_quota(storage_in_gb, inodes)
+    get_proxy.set_quota(self, storage_in_gb, inodes)
+  end
+  
+  def get_quota()
+    get_proxy.get_quota(self)
+  end
+  
+  def gear_quota_job_show()
+    job = get_proxy.get_show_gear_quota_job(self)
+    job
+  end
+  
+  def gear_quota_job_update(storage_in_gb, inodes)
+    job = get_proxy.get_update_gear_quota_job(self, storage_in_gb, inodes)
+    job
+  end
+  
   def app_state_job_show()
     job = get_proxy.get_show_state_job(app, self)
     job
