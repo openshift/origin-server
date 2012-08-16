@@ -790,11 +790,11 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_cartridge_type_find
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
-    type = CartridgeType.find 'haproxy-1.4', :as => @user
+    type = CartridgeType.find 'haproxy-1.4'
 
     # custom attributes
     assert 'Test - haproxy', type.display_name
@@ -874,25 +874,25 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_cartridge_type_find_invalid
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
 
-    type = CartridgeType.new :name => 'haproxy-1.5', :as => @user
+    type = CartridgeType.new :name => 'haproxy-1.5'
     assert_equal 'haproxy-1.5', type.name
     assert_equal 'haproxy-1.5', type.display_name
   end
 
   def test_cartridge_delegate_type
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
 
     cart = Cartridge.new :name => 'haproxy-1.4', :as => @user
-    assert_equal cart.display_name, CartridgeType.find(cart.name, :as => @user).display_name
+    assert_equal cart.display_name, CartridgeType.find(cart.name).display_name
     assert cart.instance_variable_get(:@cartridge_type)
 
     cart = Cartridge.new :name => 'haproxy-1.5', :as => @user
@@ -964,12 +964,12 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_cartridge_type_embedded
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4', :type => 'embedded'},
       ].to_json
     end
 
-    types = CartridgeType.embedded :as => @user
+    types = CartridgeType.embedded
 
     assert_equal 1, types.length
 
@@ -987,7 +987,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_cartridge_type_embedded_cached
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4'},
       ].to_json
     end
@@ -996,10 +996,10 @@ class RestApiTest < ActiveSupport::TestCase
     key = CartridgeType.send(:cache_key_for, :find_every)
     assert_nil Rails.cache.read(key)
 
-    types = CartridgeType.embedded :as => @user
+    types = CartridgeType.embedded
     assert_nil Rails.cache.read(key), "Having the regular call fill the cache may be desirable"
 
-    types = CartridgeType.cached.embedded :as => @user
+    types = CartridgeType.cached.embedded
     assert cached = Rails.cache.read(key)
 
     ActiveResource::HttpMock.reset!
@@ -1010,33 +1010,33 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_application_types
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4', :type => 'standalone'},
         {:name => 'php-5.3', :type => 'standalone', :categories => [:framework]},
         {:name => 'blacklist', :type => 'standalone', :categories => [:framework, :blacklist]},
       ].to_json
 
-      mock.get '/broker/rest/application_templates.json', json_header, [
+      mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
       ].to_json
     end
-    types = ApplicationType.find :all, :as => @user
+    types = ApplicationType.find :all
     assert_equal 1, types.length, types.inspect
     types.each do |type|
-      assert a = ApplicationType.find(type.id, :as => @user)
+      assert a = ApplicationType.find(type.id)
       assert_equal type.id, a.id
       assert_equal type.description, a.description
       assert_equal type.categories, a.categories
     end
 
-    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist', :as => @user) }
+    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
   end
 
   def test_application_templates
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
       ].to_json
 
-      mock.get '/broker/rest/application_templates.json', json_header, [
+      mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
         { 
           :name => 'blacklist',
           :tags => [:framework, :blacklist],
@@ -1059,23 +1059,23 @@ class RestApiTest < ActiveSupport::TestCase
       ].to_json
     end
 
-    types = ApplicationType.find :all, :as => @user
+    types = ApplicationType.find :all
     assert_equal 1, types.length
 
     assert_equal 'Ruby on Rails', types[0].display_name
 
     types.each do |type|
-      assert a = ApplicationType.find(type.id, :as => @user)
+      assert a = ApplicationType.find(type.id)
       assert_equal type.id, a.id
       assert_equal type.description, a.description
       assert_equal type.categories, a.categories
     end
 
-    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist', :as => @user) }
+    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
 
     # template is in_development and excluded
     Rails.env.expects(:production?).returns(true)
-    assert ApplicationType.find(:all, :as => @user).empty?
+    assert ApplicationType.find(:all).empty?
   end
 
   def test_application_job_url
@@ -1404,9 +1404,9 @@ class RestApiTest < ActiveSupport::TestCase
   def mock_types
     types = CartridgeType.send(:type_map).keys.map{ |k| {:name => k} }
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, types.to_json
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, types.to_json
     end
-    types = CartridgeType.cached.all :as => @user
+    types = CartridgeType.cached.all
     assert types.length > 0
     assert Rails.cache.read(CartridgeType.send(:cache_key_for, :find_every))
     types

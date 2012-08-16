@@ -1,7 +1,7 @@
 class ApplicationTypesController < ConsoleController
 
   def index
-    types = ApplicationType.all :as => session_user
+    types = ApplicationType.all
 
     types.sort!
 
@@ -10,7 +10,7 @@ class ApplicationTypesController < ConsoleController
   end
 
   def show
-    @application_type = ApplicationType.find params[:id], :as => session_user
+    @application_type = ApplicationType.find params[:id]
     user_default_domain rescue nil
     @application = Application.new :as => session_user
 

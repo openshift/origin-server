@@ -26,7 +26,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'should load embedded cartridge types from server' do
-    types = CartridgeType.embedded :as => @user
+    types = CartridgeType.embedded
     assert types.length > 0
     types.sort!
 
@@ -45,7 +45,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'should load standalone cartridge types' do
-    types = CartridgeType.standalone :as => @user
+    types = CartridgeType.standalone
     assert types.length > 0
     types.sort!
 
@@ -55,7 +55,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'should load application types' do
-    types = ApplicationType.all :as => @user
+    types = ApplicationType.all
     assert types.length > 0
 
     types.sort!

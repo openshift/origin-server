@@ -1,6 +1,8 @@
 class ApplicationTemplate < RestApi::Base
   custom_id :name
 
+  allow_anonymous
+
   def descriptor
     @descriptor ||= YAML.load(descriptor_yaml) || {}
   end

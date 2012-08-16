@@ -22,13 +22,13 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should be able to find templates" do
-    types = ApplicationType.all :as => @user
+    types = ApplicationType.all
     (templates,) = types.partition{|t| t.template}
     assert_not_equal 0, templates.length, "There should be templates to test against"
   end
 
   test "should show type page" do
-    types = ApplicationType.all :as => @user
+    types = ApplicationType.all
 
     types.each do |t|
       get :show, :id => t.id
@@ -49,7 +49,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "should fill domain info" do
     with_unique_domain
-    t = ApplicationType.all(:as => @user)[0]
+    t = ApplicationType.all[0]
 
     get :show, :id => t.id
     assert_response :success

@@ -6,7 +6,7 @@ class CartridgeTypesController < ConsoleController
     @application = @domain.find_application params[:application_id]
     installed_carts = @application.cartridges
 
-    types = CartridgeType.cached.embedded :as => session_user
+    types = CartridgeType.cached.embedded
 
     @blocked = []
 
@@ -23,7 +23,7 @@ class CartridgeTypesController < ConsoleController
     user_default_domain
     @application = @domain.find_application params[:application_id]
 
-    @cartridge_type = CartridgeType.cached.find params[:id], :as => session_user
+    @cartridge_type = CartridgeType.cached.find params[:id]
     @cartridge = Cartridge.new :as => session_user
   end
 

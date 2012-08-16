@@ -5,10 +5,6 @@ class ScalingControllerTest < ActionController::TestCase
 
   uses_http_mock :sometimes
 
-  def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(auth_headers)
-  end
-
   def mock_domain
     {:id => 'test'}
   end
@@ -52,7 +48,7 @@ class ScalingControllerTest < ActionController::TestCase
 
     allow_http_mock
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.get '/broker/rest/cartridges.json', json_header, [].to_json
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
       mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications.json', json_header, [app].compact.to_json
