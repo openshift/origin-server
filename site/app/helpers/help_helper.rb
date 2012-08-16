@@ -178,6 +178,34 @@ module HelpHelper
     community_base_url 'developers/pricing'
   end
 
+  def legal_url
+    community_base_url 'legal'
+  end
+
+  def policy_url
+    community_base_url 'policy'
+  end
+
+  def services_agreement_url
+    community_base_url 'legal/services_agreement'
+  end
+
+  def acceptable_use_url
+    community_base_url 'legal/acceptable_use'
+  end
+
+  def privacy_policy_url
+    community_base_url 'legal/openshift_privacy'
+  end
+
+  def terms_of_service_url
+    community_base_url 'legal/site_terms'
+  end
+
+  def security_policy_url
+    community_base_url 'policy/security'
+  end
+
   def tax_exempt_help_status
     community_base_url 'policy/tax-exemptions'
   end
