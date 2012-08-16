@@ -54,12 +54,12 @@ Profiles:
     Components:
       postgresql-server:
         Publishes:
-          get-db-connection-info:
+          publish-db-connection-info:
             Type: "NET_TCP:db:connection-info"
-          get-postgre-connection-info:
-            Type: "NET_TCP:db:postgresql"
-          get-postgresql-jdbc-info:
-            Type: "NET_TCP:jdbc"
+#          get-postgre-connection-info:
+#            Type: "NET_TCP:db:postgresql"
+#          get-postgresql-jdbc-info:
+#            Type: "NET_TCP:jdbc"
     Groups:
       postgresql:
         Components:
@@ -72,7 +72,6 @@ Profiles:
     Provides: postgresql-master-slave
     Components:
       master:
-        &master-component
         Publishes:
           get-master:
             Type: "NET_TCP:db:postgresql:master"
@@ -87,10 +86,9 @@ Profiles:
         Subscribes:
           set-slave:
             Type: "NET_TCP:db:postgresql:slave"
-          set-other-master:
-            Type: "NET_TCP:db:postgresql:master"
+#          set-other-master:
+#            Type: "NET_TCP:db:postgresql:master"
       slave:
-        &slave-component
         Publishes:
           get-slave:
             Type: "NET_TCP:db:postgresql:slave"
@@ -116,24 +114,21 @@ Profiles:
       slaves:
         Components:
           postgresql-slave: slave
-        Scaling:
-          Min: 1
-          Max: -1 
     Connections:
       master-slave-connections:
         Components:
           - postgresql-master
           - postgresql-slave
     Start-Order:  [master, slaves]
-  multi-master:
-    Components:
-       master: 
-          *master-component
-    Groups:
-      master:
-        Components:
-          posgresql-master: master
-        Scaling:
-          Min: 1
-          Max: -1
+#  multi-master:
+#    Components:
+#       master: 
+#          *master-component
+#    Groups:
+#      master:
+#        Components:
+#          posgresql-master: master
+#        Scaling:
+#          Min: 1
+#          Max: -1
 Default-Profile: singleton-master

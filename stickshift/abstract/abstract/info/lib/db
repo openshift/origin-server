@@ -1,0 +1,144 @@
+#!/bin/bash
+
+#
+# Utility functions for database gears
+#
+
+[ ! -z "$LI_CONTROLLER_LIB_DB" ] && return 0
+LI_CONTROLLER_LIB_DB=true
+
+# Call as:
+#    source db [dbtype]
+# where dbtype is required and either db or nosql_db.
+case "$1" in
+    'NOSQL_DB'|'nosql_db')
+        _db_calling_type='nosql_db'
+        ;;
+    'DB'|'db')
+        _db_calling_type='db'
+        ;;
+    *)
+        warn "ERROR: Database type required and eihter db or nosql_db."
+        return 1
+        ;;
+esac
+
+
+#
+# Skeleton functions, override for specific cartridges
+#
+function wait_to_start_db {
+    warning "Cartridge does not override wait_to_start_db."
+    sleep 10
+}
+
+function wait_to_start_db_as_user {
+    warning "Cartridge does not override wait_to_start_db_as_user."
+    sleep 10
+}
+
+
+
+#
+# Work functions, less common to override
+#
+function _set_db_env {
+    # Database environment may not be fully formed when this file is
+    # sourced.  Further, functions may be called only when their own
+    # requirements are satisfied and variables may change so source
+    # this at the top of each function.
+    case $_db_calling_type in
+        'nosql_db')
+            _ctl_script="$OPENSHIFT_NOSQL_DB_CTL_SCRIPT"
+            _ctl_ongear_script="$OPENSHIFT_NOSQL_DB_CTL_ONGEAR_SCRIPT"
+            _db_gear_uuid="$OPENSHIFT_NOSQL_DB_GEAR_UUID"
+            _db_gear_dns="$OPENSHIFT_NOSQL_DB_GEAR_DNS"
+            _db_host="$OPENSHIFT_NOSQL_DB_HOST"
+            ;;
+        'db')
+            _ctl_script="$OPENSHIFT_DB_CTL_SCRIPT"
+            _ctl_ongear_script="$OPENSHIFT_DB_CTL_ONGEAR_SCRIPT"
+            _db_gear_uuid="$OPENSHIFT_DB_GEAR_UUID"
+            _db_gear_dns="$OPENSHIFT_DB_GEAR_DNS"
+            _db_host="$OPENSHIFT_DB_HOST"
+            ;;
+        *)
+            warn "ERROR: Database calling type set to unknown value: $_db_calling_type"
+            return 1
+            ;;
+    esac
+}
+
+function start_db {
+    _set_db_env
+    super_run_as_user "$_ctl_script start"
+    wait_to_start_db
+}
+
+function stop_db {
+    _set_db_env
+    super_run_as_user "$_ctl_script stop"
+}
+
+function restart_db {
+    _set_db_env
+    super_run_as_user "$_ctl_script restart"
+}
+
+function is_db_on_dbgear {
+    _set_db_env
+    [[ -n "$_db_gear_uuid"  && \
+        -n "$_db_gear_dns" && \
+        "$OPENSHIFT_APP_UUID" != "$_db_gear_uuid" ]]
+}
+
+function ssh_dbgear {
+    _set_db_env
+   gear_user_and_host="$_db_gear_uuid@$_db_gear_dns"
+   ssh $gear_user_and_host rhcsh "$@"
+}
+
+function control_db_on_dbgear {
+    _set_db_env
+    ssh_dbgear $_ctl_ongear_script $1
+}
+
+function start_db_as_user {
+    _set_db_env
+    if is_db_on_dbgear; then
+        control_db_on_dbgear start
+        return 0
+    fi
+
+    ${_ctl_script} start
+    wait_to_start_db
+}
+
+function stop_db_as_user {
+    _set_db_env
+    if is_db_on_dbgear; then
+        control_db_on_dbgear stop
+        sleep 1
+        return 0
+    fi
+
+    ${_ctl_script} stop
+    sleep 1
+}
+
+function get_db_host_as_user {
+    _set_db_env
+    if is_db_on_dbgear; then
+        case $_db_calling_type in
+            'db')
+                ssh_dbgear 'echo $OPENSHIFT_DB_HOST' 2>/dev/null
+                ;;
+            'nosql_db')
+                ssh_dbgear 'echo $OPENSHIFT_NOSQL_DB_HOST' 2>/dev/null
+                ;;
+        esac
+        return 0
+    fi
+
+    echo $_db_host
+}

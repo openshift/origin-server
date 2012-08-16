@@ -13,11 +13,11 @@ then
     CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mysql-5.1/info
     source ${CART_INFO_DIR}/lib/util
 
-    start_mysql_as_user
+    start_db_as_user
 
     dbhost=${OPENSHIFT_DB_GEAR_DNS:-$OPENSHIFT_DB_HOST}
     OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_host)
-    NEW_IP=$(get_mysql_db_host_as_user)
+    NEW_IP=$(get_db_host_as_user)
     # Prep the mysql database
     (
         /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz

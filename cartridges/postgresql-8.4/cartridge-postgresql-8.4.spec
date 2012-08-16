@@ -1,17 +1,20 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
 Version: 0.12.1
 Release: 1%{?dist}
-Summary: Embedded postgresql support for express
+Summary: Provides embedded PostgreSQL support
 
 Group: Network/Daemons
 License: ASL 2.0
-URL: https://openshift.redhat.com
+URL: http://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
+BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 Requires: postgresql
@@ -37,39 +40,64 @@ Requires: uuid-pgsql
 
 
 %description
-Provides rhc postgresql cartridge support
+Provides PostgreSQL cartridge support to OpenShift
+
 
 %prep
 %setup -q
 
+
 %build
+rm -rf git_template
+cp -r template/ git_template/
+cd git_template
+git init
+git add -f .
+git config user.email "builder@example.com"
+git config user.name "Template builder"
+git commit -m 'Creating template'
+cd ..
+git clone --bare git_template git_template.git
+rm -rf git_template
+touch git_template.git/refs/heads/.gitignore
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+cp -r info %{buildroot}%{cartridgedir}/
+cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
+ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{cartridgedir}/info/hooks/update-namespace
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+
 %files
 %defattr(-,root,root,-)
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
+%attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/lib/
+%attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
+%attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/stickshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+
 
 %changelog
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.12.1-1

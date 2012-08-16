@@ -3,17 +3,11 @@
 [ ! -z "$MONGODB_LIB_UTIL" ] && return 0
 MONGODB_LIB_UTIL=true
 
-function start_mongodb {
-    super_run_as_user "$MONGODB_DIR/${application}_mongodb_ctl.sh start"
-    wait_to_start
-}
+# Source the abstract library first and override its definitions below.
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/db "nosql_db"
 
-function restart_mongodb {
-    super_run_as_user "$MONGODB_DIR/${application}_mongodb_ctl.sh restart"
-    wait_to_start
-}
 
-function wait_to_start {
+function wait_to_start_db {
     i=0
     while (( ! echo "exit" | mongo $IP > /dev/null 2>&1) ||  \
              [ ! -f ${MONGODB_DIR}/pid/mongodb.pid ]) && [ $i -lt 10 ]
@@ -23,36 +17,9 @@ function wait_to_start {
     done
 }
 
-function control_mongodb_on_dbgear {
-   gear_user_and_host="$OPENSHIFT_NOSQL_DB_GEAR_UUID@$OPENSHIFT_NOSQL_DB_GEAR_DNS"
-   ssh $gear_user_and_host rhcsh $OPENSHIFT_NOSQL_DB_CTL_ONGEAR_SCRIPT $1
-}
-
-function stop_mongodb {
-    super_run_as_user "$MONGODB_DIR/${application}_mongodb_ctl.sh stop"
-}
-
-function start_mongodb_as_user {
-    if [[ -n "$OPENSHIFT_NOSQL_DB_GEAR_UUID"  &&  -n "$OPENSHIFT_NOSQL_DB_GEAR_DNS"  &&
-          "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_NOSQL_DB_GEAR_UUID" ]]; then
-        control_mongodb_on_dbgear start
-        return 0
-    fi
-
-    ${OPENSHIFT_NOSQL_DB_CTL_SCRIPT} start
-    wait_to_start
-}
-
-function stop_mongodb_as_user {
-    if [[ -n "$OPENSHIFT_NOSQL_DB_GEAR_UUID"  &&  -n "$OPENSHIFT_NOSQL_DB_GEAR_DNS"  &&
-          "$OPENSHIFT_APP_UUID" != "$OPENSHIFT_NOSQL_DB_GEAR_UUID" ]]; then
-        control_mongodb_on_dbgear stop
-        sleep 1
-        return 0
-    fi
-
-    ${OPENSHIFT_NOSQL_DB_CTL_SCRIPT} stop
-    sleep 1
+function wait_to_start_db_as_user {
+    # TODO: run mongo and determine if its working
+    sleep 10
 }
 
 function prepare_gear_for_standalone_mongodb() {
