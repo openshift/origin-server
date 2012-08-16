@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.5
+Version: 0.15.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,16 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
+- Merge pull request #382 from pravisankar/dev/ravi/story/US2614
+  (openshift+bot@redhat.com)
+- find_all() ':with_plan' option finds all users having either plan_id or
+  pending_plan_id (rpenta@redhat.com)
+- Changes: - Added 'pending_plan_id', 'pending_plan_uptime' fields to CloudUser
+  model - Removed 'vip' field from CloudUser model - find_all() can take
+  ':with_pending_plan' option to list all users with pending plan.
+  (rpenta@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.15.5-1
 - Merge pull request #387 from rmillner/US2102 (openshift+bot@redhat.com)
 - Merge pull request #380 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
