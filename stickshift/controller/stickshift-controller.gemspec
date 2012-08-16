@@ -24,11 +24,8 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "activesupport", "~> 3.0.13"
-  s.add_dependency "json", "1.4.6"
-  s.add_dependency "dnsruby"
   s.add_dependency "stickshift-common"
   s.add_dependency('state_machine')  
-  s.add_dependency('open4')
   s.add_development_dependency('rake')  
   s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')
@@ -36,4 +33,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rcov')
   s.add_development_dependency('cucumber')
   s.add_development_dependency('dnsruby')
+  s.add_development_dependency('open4')
+  s.add_development_dependency("json", "1.4.6")
 end
