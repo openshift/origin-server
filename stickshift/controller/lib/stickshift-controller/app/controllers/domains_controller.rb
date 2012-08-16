@@ -157,7 +157,7 @@ class DomainsController < BaseController
     begin
       dom_available = Domain.namespace_available?(new_namespace)
     rescue Exception => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Failed to check availability '#{namespace}': #{e.message}")
+      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_DOMAIN", false, "Failed to check availability '#{new_namespace}': #{e.message}")
       Rails.logger.error e.backtrace
       @reply = e.kind_of?(StickShift::DNSException) ? RestReply.new(:service_unavailable) : RestReply.new(:internal_server_error)
       error_code = e.respond_to?('code') ? e.code : 1
