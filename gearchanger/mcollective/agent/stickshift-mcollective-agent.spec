@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.2.1
+Version: 0.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
+- adding rest api to fetch and update quota on gear group (abhgupta@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
