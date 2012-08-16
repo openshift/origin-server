@@ -71,6 +71,9 @@ module StickShift
         if opts[:with_usage]
           query["usage_records.0"] = {"$exists" => true}
         end
+        if opts[:with_plan]
+          query["$or"] = [{"pending_plan_id" => {"$ne" => nil}}, {"plan_id" => {"$ne" => nil}}]
+        end
       end
       mcursor = user_collection.find(query, {:fields => []})
       ret = []
@@ -416,6 +419,9 @@ module StickShift
           end
           if opts[:with_usage]
             query["usage_records.0"] = {"$exists" => true}
+          end
+          if opts[:with_plan]
+            query["$or"] = [{"pending_plan_id" => {"$ne" => nil}}, {"plan_id" => {"$ne" => nil}}]
           end
         end
         mcursor = user_collection.find(query)
