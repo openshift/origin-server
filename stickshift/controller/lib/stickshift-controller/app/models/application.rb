@@ -730,6 +730,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
       next if comp_inst.name == "@@app"
       next if comp_inst.parent_cart_name == self.name
+      next if comp_inst.parent_cart_name == self.proxy_cartridge
 
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
