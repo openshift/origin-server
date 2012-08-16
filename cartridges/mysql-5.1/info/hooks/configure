@@ -149,9 +149,8 @@ if is_a_scalable_app; then
 else
     client_result "Connection URL: mysql://$IP:3306/"
     client_result ""
+    client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 fi
-
-client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 
 cart_props "connection_url=mysql://$mysql_ip:$mysql_port/"
 cart_props "username=admin"
