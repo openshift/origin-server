@@ -5,7 +5,7 @@
 
 Summary:        SwingShift plugin for kerberos auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.6
+Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -97,6 +97,9 @@ echo "auth[:pubkeyfile]              - RSA public key file for node-broker authe
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 16 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.7-1
+- new package built with tito
+
 * Wed Aug 15 2012 Jason DeTiberus <jason.detiberus@redhat.com> 0.8.6-1
 - kerberos auth plugin (jason.detiberus@redhat.com)
 
