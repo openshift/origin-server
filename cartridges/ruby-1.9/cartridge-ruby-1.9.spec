@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.4.2
+Version: 0.4.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -202,6 +202,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.4.3-1
+- Fix for bugz 847605 - add hot_deploy instructions to README for ruby-1.8 and
+  ruby-1.9 (ramr@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.4.2-1
 - Enable hot deployment support for Ruby cartridges (ironcladlou@gmail.com)
 
