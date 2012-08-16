@@ -79,9 +79,9 @@ module GearChanger
       # Returns an array with following information
       # [Filesystem, blocks_used, blocks_soft_limit, blocks_hard_limit, inodes_used,
       #  inodes_soft_limit, inodes_hard_limit]
-      def get_quota(uuid)
+      def get_quota(gear)
         args = Hash.new
-        args['--uuid'] = uuid
+        args['--uuid'] = gear.uuid
         reply = execute_direct(@@C_CONTROLLER, 'get-quota', args, false)
 
         output = nil
@@ -102,11 +102,12 @@ module GearChanger
       end
       
       # Set blocks hard limit and inodes ihard limit for uuid
-      def set_quota(uuid, blocks, inodes)
+      def set_quota(gear, storage_in_gb, inodes)
         args = Hash.new
-        args['--uuid']   = uuid
-        args['--blocks'] = blocks
-        args['--inodes'] = inodes
+        args['--uuid']   = gear.uuid
+        # quota command acts on 1K blocks
+        args['--blocks'] = storage_in_gb * 1024 * 1024
+        args['--inodes'] = inodes unless inodes.to_s.empty?
         reply = execute_direct(@@C_CONTROLLER, 'set-quota', args, false)
 
         output = nil
@@ -331,6 +332,14 @@ module GearChanger
         rpc_get_fact_direct('node_profile')
       end
 
+      def get_quota_blocks
+        rpc_get_fact_direct('quota_blocks')
+      end
+
+      def get_quota_files
+        rpc_get_fact_direct('quota_files')
+      end
+
       def execute_connector(app, gear, cart, connector_name, input_args)
         args = Hash.new
         args['--gear-uuid'] = gear.uuid
@@ -535,6 +544,23 @@ module GearChanger
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
         job = RemoteJob.new('stickshift-node', 'app-state-show', args)
+        job
+      end
+
+      def get_show_gear_quota_job(gear)
+        args = Hash.new
+        args['--uuid'] = gear.uuid
+        job = RemoteJob.new('stickshift-node', 'get-quota', args)
+        job
+      end
+      
+      def get_update_gear_quota_job(gear, storage_in_gb, inodes)
+        args = Hash.new
+        args['--uuid']   = gear.uuid
+        # quota command acts on 1K blocks
+        args['--blocks'] = storage_in_gb * 1024 * 1024
+        args['--inodes'] = inodes unless inodes.to_s.empty?
+        job = RemoteJob.new('stickshift-node', 'set-quota', args)
         job
       end
 

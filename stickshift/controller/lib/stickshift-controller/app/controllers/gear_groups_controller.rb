@@ -3,7 +3,7 @@ class GearGroupsController < BaseController
   before_filter :authenticate, :check_version
   include LegacyBrokerHelper
   
-  def show
+  def index
     domain_id = params[:domain_id]
     app_id = params[:application_id]
     
@@ -17,7 +17,7 @@ class GearGroupsController < BaseController
       respond_with @reply, :status => @reply.status
     else
       gear_states = app.show_state()
-      group_instances = app.group_instances.map{ |group_inst| RestGearGroup.new(group_inst, gear_states)}
+      group_instances = app.group_instances.map{ |group_inst| RestGearGroup.new(group_inst, gear_states, get_url, nolinks)}
       @reply = RestReply.new(:ok, "gear_groups", group_instances)
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEAR_GROUPS", true, "Showing gear groups for application '#{app_id}' with domain '#{domain_id}'")
       respond_with @reply, :status => @reply.status

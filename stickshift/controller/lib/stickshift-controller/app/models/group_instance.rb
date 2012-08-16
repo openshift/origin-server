@@ -1,9 +1,13 @@
 class GroupInstance < StickShift::Model
-  attr_accessor :app, :gears, :node_profile, :component_instances, 
+  attr_accessor :uuid, :app, :gears, :node_profile, :component_instances, 
     :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb
+  primary_key :uuid
   exclude_attributes :app
 
+  include LegacyBrokerHelper
+  
   def initialize(app, cartname=nil, profname=nil, groupname=nil, path=nil)
+    self.uuid = StickShift::Model.gen_uuid
     self.app = app
     self.name = path
     self.cart_name = cartname
@@ -31,9 +35,17 @@ class GroupInstance < StickShift::Model
       self.app.group_instance_map[cinst.group_instance_name] = self if ginst==cur_ginst
     }
     self.component_instances = (self.component_instances + ginst.component_instances).uniq unless ginst.component_instances.nil?
-    if not ginst.gears.nil?
+    if not ginst.gears.nil? and ginst.gears.length > 0
       self.gears = [] if self.gears.nil?
       @gears += ginst.gears
+      if self.gears.length == 0
+        self.uuid = ginst.uuid
+      else
+        # Since two gear groups are being merged and the structure is being changed,
+        # we cannot re-use the uuid from either of the two gear groups
+        # Also, how do we merge two group instances that have gears in them
+        # without deleting the gears that exist in them
+      end
     end
     self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, ginst.min, ginst.max)
   end
@@ -83,12 +95,72 @@ class GroupInstance < StickShift::Model
       gear.destroy
       raise e 
     end
+    set_quota(addtl_fs_gb, nil, [gear]) unless addtl_fs_gb.nil?
     app.add_node_settings([gear])
     return [create_result, gear]
   end
 
   def remove_gear(gear)
     gear.destroy
+  end
+
+  def set_quota(storage_in_gb, inodes, gear_list = nil)
+    reply = ResultIO.new
+    tag = ""
+    previous_fs_gb = @addtl_fs_gb
+    gear_list = @gears if gear_list.nil?
+    
+    handle = RemoteJob.create_parallel_job
+    RemoteJob.run_parallel_on_gears(gear_list, handle) { |exec_handle, gear|
+      job = gear.gear_quota_job_update(storage_in_gb, inodes)
+      RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+    }
+
+    RemoteJob.get_parallel_run_results(handle) { |tag, gear_uuid, output, status|
+      if status != 0
+        raise StickShift::NodeException.new("Error setting quota on gear: #{gear_uuid} with status: #{status} and output: #{output}", 143)
+      else
+        @gears.each { |gi_gear|
+          if gi_gear.uuid == gear_uuid
+            # :end usage event for previous quota
+            unless @addtl_fs_gb.nil?
+              @addtl_fs_gb = previous_fs_gb
+              app.track_usage(gi_gear, UsageRecord::EVENTS[:end], usage_type=UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+            end
+            
+            # :begin usage event for new quota
+            @addtl_fs_gb = storage_in_gb - get_cached_min_storage_in_gb()
+            app.track_usage(gi_gear, UsageRecord::EVENTS[:begin], usage_type=UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+            break
+          end
+        }      
+      end
+    }
+
+    reply
+  end
+  
+  def get_quota()
+    additional_storage = @addtl_fs_gb.nil? ? 0 : Integer(@addtl_fs_gb)
+    return { :storage => additional_storage + get_cached_min_storage_in_gb() }
+  end
+
+  def get_cached_min_storage_in_gb()
+    if @gears.nil? or @gears.length == 0
+      return 1
+    else
+      begin
+        quota_blocks_str = get_cached(@node_profile + "quota_blocks", :expires_in => 1.day) {@gears[0].get_proxy.get_quota_blocks}
+        quota_blocks = Integer(quota_blocks_str)
+        # calculate the minimum storage in GB - blocks are 1KB each
+        min_storage = quota_blocks / 1024 / 1024
+      rescue
+        # default to 1GB
+        min_storage = 1
+      end
+    end
+
+    return min_storage
   end
 
   def fulfil_requirements(app)
