@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.31.3
+Version: 0.31.4
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.31.4-1
+- Merge pull request #387 from rmillner/US2102 (openshift+bot@redhat.com)
+- Merge pull request #384 from mrunalp/bugs/848287 (openshift+bot@redhat.com)
+- US2102: Allow PostgreSQL to be embedded in a scalable application.
+  (rmillner@redhat.com)
+- BZ 848287: Pre move not called when move is within district.
+  (mpatel@redhat.com)
+
 * Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.31.3-1
 - US2696: Support for mysql/mongo cartridge level move. (mpatel@redhat.com)
 
