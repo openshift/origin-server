@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.31.4
+Version: 0.31.5
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.31.5-1
+- BZ841750: Only mention rockmongo and phpmyadmin for non-scalable installs.
+  (rmillner@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.31.4-1
 - Merge pull request #387 from rmillner/US2102 (openshift+bot@redhat.com)
 - Merge pull request #384 from mrunalp/bugs/848287 (openshift+bot@redhat.com)
