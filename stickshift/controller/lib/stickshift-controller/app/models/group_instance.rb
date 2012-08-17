@@ -95,7 +95,13 @@ class GroupInstance < StickShift::Model
       gear.destroy
       raise e 
     end
-    set_quota(addtl_fs_gb, nil, [gear]) unless addtl_fs_gb.nil?
+
+    if @addtl_fs_gb.kind_of?(Integer) and @addtl_fs_gb > 0
+      additional_storage = Integer(@addtl_fs_gb)
+      min_storage = get_cached_min_storage_in_gb()
+      set_quota(additional_storage + min_storage, nil, [gear])
+    end
+
     app.add_node_settings([gear])
     return [create_result, gear]
   end
