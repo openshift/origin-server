@@ -1,7 +1,16 @@
 module UserActionLogger
-
   @@action_logger = nil
   
+  # Get the rails logger that logs REST API actions
+  #
+  # == Configuration parameters:
+  # logging_enabled::
+  #   Boolean indicating if action logs should be maintained
+  # log_filepath::
+  #   Path to action log
+  #
+  # == Returns:
+  # Rails logger 
   def get_action_logger()
     unless @@action_logger
       log_file = nil
@@ -13,6 +22,21 @@ module UserActionLogger
     @@action_logger
   end
   
+  # Logs REST API actions
+  #
+  # == Parameters:
+  # request_id::
+  #   ID to uniquely identify the request
+  # user_id::
+  #   ID of the {CloudUser} who requested this REST API operation
+  # login::
+  #   Login of the {CloudUser} who requested this REST API operation
+  # action::
+  #   [String] to identify the operation being performed
+  # success::
+  #   [Boolean] indicating if the operation was successful (Default: true)
+  # description::
+  #   [String] Long description of the operation being performed
   def log_action(request_id, user_id, login, action, success = true, description = "")
     log_level = success ? Logger::DEBUG : Logger::ERROR
     action_logger = get_action_logger()

@@ -1,7 +1,6 @@
 class ApplicationTemplatesController < BaseController
   respond_to :xml, :json
   before_filter :check_version
-  include LegacyBrokerHelper
 
   def index
     templates = ApplicationTemplate.find_all.map{|t| RestApplicationTemplate.new(t, get_url, nolinks)}

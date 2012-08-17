@@ -1,4 +1,6 @@
-class UsageRecord < StickShift::UserModel
+class UsageRecord
+  include Mongoid::Document
+  include Mongoid::Timestamps  
   
   EVENTS = { :begin => "begin",
              :end => "end",
@@ -7,31 +9,15 @@ class UsageRecord < StickShift::UserModel
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
                   :addtl_fs_gb => "ADDTL_FS_GB" }
 
-  attr_accessor :uuid, :event, :time, :sync_time, :user, :usage_type, :gear_uuid, :gear_size, :addtl_fs_gb
-  primary_key :uuid
-  exclude_attributes :user
-
-  def initialize(event=nil, user=nil, time=nil, uuid=nil, usage_type=nil)
-    self.uuid = uuid ? uuid : StickShift::Model.gen_uuid
-    self.event = event
-    self.time = time ? time : Time.now.utc
-    self.user = user
-    self.usage_type = usage_type
-    self.sync_time = nil
-  end
-
-  # Deletes the usage record from the datastore
-  def delete
-    super(user.login)
-  end
-
-  # Saves the usage record to the datastore
-  def save
-    super(user.login)
-  end
+  field :event, type: String
+  field :sync_time, type: DateTime
+  embedded_in :application
+  field :usage_type, type: String  
+  field :gear_uuid, type: Moped::BSON::ObjectId
+  field :gear_size, type: String  
+  field  :addtl_fs_gb, type: Integer
   
   def delete_by_gear_uuid
-    StickShift::DataStore.instance.delete_usage_record_by_gear_uuid(user.login, gear_uuid, usage_type)
+    UsageRecord.where(user: user, gear_uuid: gear_uuid, usage_type: usage_type).delete
   end
-
 end

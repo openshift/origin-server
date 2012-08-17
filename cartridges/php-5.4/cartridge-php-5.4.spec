@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.4 support
 Name:      cartridge-php-5.4
-Version:   0.1.0
+Version:   0.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -103,13 +103,10 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
-%attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %{_sysconfdir}/stickshift/cartridges/%{name}
-%{cartridgedir}/info/changelog
-%{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE

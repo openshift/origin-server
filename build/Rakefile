@@ -23,31 +23,6 @@ baseurl = file://#{rpmdir}/noarch
 gpgcheck= 0
 enabled = 1
 retries = 0
-
-#[openshift_origin]
-#name    = openshift_origin
-#baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
-#gpgcheck= 0
-#enabled = 1
-#retries = 0
-
-#[fedora_ruby]
-#name    = openshift_origin
-#baseurl = http://mirror.openshift.com/pub/fedora-ruby/$basearch
-#gpgcheck= 0
-#enabled = 1
-#retries = 0
-
-#[openshift]
-#name=Openshift
-#baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch/
-#failovermethod=priority
-#skip_if_unavailable=1
-#gpgkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-beta
-#ggpkey=https://openshift.redhat.com/app/repo/RPM-GPG-KEY-redhat-release
-#enabled=1
-#gpgcheck=1
-#retries = 0
   EOF
   else
   <<-EOF
@@ -61,6 +36,13 @@ retries = 0
 [openshift_origin]
 name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
+gpgcheck= 0
+enabled = 1
+retries = 0
+
+[built_rpms]
+name    = built_rpms
+baseurl = file:///root/rpmbuild/RPMS/x86_64/
 gpgcheck= 0
 enabled = 1
 retries = 0
@@ -93,6 +75,14 @@ def build_rpm(specs, rpmdir, test_build=true)
 end
 
 task :default => [:build] do
+end
+
+task :build_f17_passenger do
+  sh 'yum install -y gcc gcc-c++ make wget rpm-build libcurl-devel asciidoc doxygen graphviz httpd-devel libev-devel ruby-devel rubygems-devel tar'
+  sh 'yum install -y "rubygem(rack)" "rubygem(rspec)" "rubygem(mime-types)" source-highlight zlib-devel'
+  sh "wget http://wakko666.fedorapeople.org/rubygem-passenger/rubygem-passenger-3.0.14-10.fc19.src.rpm -O /tmp/rubygem-passenger-3.0.14.srpm"
+  sh "rpmbuild --rebuild /tmp/rubygem-passenger-3.0.14.srpm"
+  sh "createrepo /root/rpmbuild/RPMS/x86_64/"
 end
 
 task :build_setup do

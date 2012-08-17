@@ -37,8 +37,8 @@ module Swingshift
       cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
       cipher.iv = iv = cipher.random_iv
       token = {:app_name => app.name,
-               :login => app.user.login,
-               :creation_time => app.creation_time}
+               :login => app.domain.owner.login,
+               :creation_time => app.created_at}
       encrypted_token = cipher.update(token.to_json)
       encrypted_token << cipher.final
       
@@ -78,7 +78,7 @@ module Swingshift
       raise StickShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
       
-      raise StickShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
+      raise StickShift::AccessDeniedException.new if app.nil? or creation_time != app.created_at
       return {:username => username, :auth_method => :broker_auth}
     end
     

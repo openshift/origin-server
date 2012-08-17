@@ -1,23 +1,12 @@
 class RestCartridge11 < StickShift::Model
-  attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
-                :tags, :website, :help_topics, :links, :properties
+  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :suggests, :requires, :conflicts, :provides,
+  :help_topics, :links, :properties, :display_name, :description
   
-  def initialize(type, cart, app, url, nolinks=false)
+  def initialize(type, cart, app, cinst, url, nolinks=false)
     self.name = cart.name
-    self.type = type
   
-    prop_values = nil
-    if app
-      if cart.categories.include? "web_framework"
-        app.comp_instance_map.each { |cname, cinst|
-          next if cinst.parent_cart_name!=name
-          prop_values = cinst.cart_properties
-          break
-        }
-      else
-        prop_values = app.embedded[name] 
-      end
-    end
+    prop_values = cinst.component_properties unless cinst.nil?
+    self.type = type
     self.version = cart.version
     self.display_name = cart.display_name
     self.description = cart.description
@@ -25,10 +14,14 @@ class RestCartridge11 < StickShift::Model
     self.license_url = cart.license_url
     self.tags = cart.categories
     self.website = cart.website
-    # self.suggests = cart.suggests_feature
-    # self.requires = cart.requires_feature
-    # self.depends = cart.profiles.map { |p| p.components.map { |c| c.depends_service }.flatten }.flatten.uniq
-    # self.conflicts = cart.conflicts_feature
+    self.suggests = cart.suggests
+    self.requires = cart.requires
+    self.conflicts = cart.conflicts
+    if app.nil?
+      self.provides = cart.features
+    else
+      self.provides = app.get_feature(cinst.cartridge_name, cinst.component_name)
+    end
     self.help_topics = cart.help_topics
     
     self.properties = []

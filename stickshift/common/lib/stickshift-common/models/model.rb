@@ -10,6 +10,7 @@ module StickShift
     self.include_root_in_json = false
     include ActiveModel::Serializers::Xml
     include ActiveModel::AttributeMethods
+    include ActiveModel::Observing    
     
     def attributes
       a = {}

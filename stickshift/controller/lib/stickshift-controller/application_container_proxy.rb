@@ -34,7 +34,6 @@ module StickShift
       []
     end
 
-
     def self.blacklisted?(name)
       @proxy_provider.blacklisted_in_impl?(name)
     end
