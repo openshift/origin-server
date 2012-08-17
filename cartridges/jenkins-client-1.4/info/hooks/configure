@@ -102,9 +102,7 @@ else
     if enable_out=$(run_as_user "${CART_INFO_DIR}/bin/jenkins_job_action enable" 2>&1)
     then
         client_result ""
-        client_result "Associated with existing job '${JOB_NAME}' in Jenkins server."
-        client_result "If this was not intended you can remove the jenkins client, remove or rename "
-        client_result "the existing job, and re-add the jenkins client to get a new job created."
+        client_result "Associated with job '${JOB_NAME}' in Jenkins server."
         bldr_url="${JENKINS_DNS_NAME}computer/${OPENSHIFT_GEAR_NAME}bldr/"
         status_code=`curl -s -w %{http_code} --output /dev/null --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@$bldr_url`
         if [ "$status_code" == "200" ]
