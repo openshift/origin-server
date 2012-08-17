@@ -93,6 +93,8 @@ Requires:  ruby193-rubygem-tzinfo
 Requires:  ruby193-rubygem-uglifier
 Requires:  ruby193-rubygem-xml-simple
 Requires:  ruby193-runtime
+Requires:  ruby193-rubygem-daemon_controller
+Requires:  ruby193-rubygem-fastthread
 Requires:  ruby193-rubygem-passenger
 Requires:  ruby193-rubygem-passenger-devel
 Requires:  ruby193-rubygem-passenger-native
