@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.5
+Version: 0.15.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,13 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
+- Merge pull request #397 from rmillner/apachectl (openshift+bot@redhat.com)
+- Fedora 17 does away with the init script method of calling configtest and
+  graceful. (rmillner@redhat.com)
+- Wrong path to stats socket. (rmillner@redhat.com)
+- BZ844876: Needed to be more specific with the filter. (rmillner@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.15.5-1
 - US2102: Allow PostgreSQL to be embedded in a scalable application.
   (rmillner@redhat.com)
