@@ -96,8 +96,10 @@ class GearGroupResourcesController < BaseController
     else
       selected_gear_group = nil
       app.group_instances.each { |group_inst|
-        selected_gear_group = group_inst if group_inst.uuid == gear_group_id
-        break
+        if group_inst.uuid == gear_group_id
+          selected_gear_group = group_inst 
+          break
+        end
       }
       
       if selected_gear_group.nil?
