@@ -29,13 +29,13 @@ rm -rf %{buildroot}
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/agent
-mkdir -p %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter
+mkdir -p %{buildroot}/usr/share/ruby/vendor_ruby/facter/
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
 cp src/stickshift.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
 cp src/stickshift.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp facts/stickshift_facts.rb %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter/
+cp facts/stickshift_facts.rb %{buildroot}/usr/share/ruby/vendor_ruby/facter/
 cp facts/stickshift-facts %{buildroot}/etc/cron.minutely/
 cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
@@ -43,7 +43,7 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %defattr(-,root,root,-)
 /usr/libexec/mcollective/mcollective/agent/stickshift.rb
 /usr/libexec/mcollective/mcollective/agent/stickshift.ddl
-/usr/lib/ruby/site_ruby/1.8/facter/stickshift_facts.rb
+/usr/share/ruby/vendor_ruby/facter/stickshift_facts.rb
 %attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
 %attr(0700,-,-) /etc/cron.minutely/stickshift-facts
 /etc/cron.minutely/stickshift-facts

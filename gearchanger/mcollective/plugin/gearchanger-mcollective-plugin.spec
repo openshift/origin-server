@@ -15,7 +15,6 @@ Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gem_name}
 Version: 0.3.1
 Release:        2%{?dist}
->>>>>>> 63fc29c... add a -doc subpackage to stickshift-common
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com

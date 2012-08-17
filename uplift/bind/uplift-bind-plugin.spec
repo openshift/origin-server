@@ -30,7 +30,7 @@ Requires:       stickshift-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
 
-%if 0%{?rhel} <= 6 || 0%{?fedora} <= 16
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
 Requires:       ruby(abi) = 1.8
 %endif
 %if 0%{?fedora} >= 17

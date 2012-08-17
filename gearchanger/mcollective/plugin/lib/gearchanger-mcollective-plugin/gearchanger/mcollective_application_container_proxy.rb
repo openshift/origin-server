@@ -32,7 +32,7 @@ module GearChanger
         if Rails.configuration.gearchanger[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
-            district_uuid = district.uuid
+            district_uuid = district._id.to_s
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
           elsif Rails.configuration.gearchanger[:districts][:require_for_app_create]
             raise StickShift::NodeException.new("No district nodes available.", 140)
@@ -131,7 +131,7 @@ module GearChanger
         reserved_uid = nil
         if Rails.configuration.gearchanger[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
@@ -146,7 +146,7 @@ module GearChanger
       def unreserve_uid(uid, district_uuid=nil)
         if Rails.configuration.gearchanger[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
@@ -159,7 +159,7 @@ module GearChanger
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.gearchanger[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
@@ -173,9 +173,9 @@ module GearChanger
         result = nil
         (1..10).each do |i|
           args = Hash.new
-          args['--with-app-uuid'] = app.uuid
+          args['--with-app-uuid'] = app._id.to_s
           args['--with-app-name'] = app.name
-          args['--with-container-uuid'] = gear.uuid
+          args['--with-container-uuid'] = gear._id.to_s
           args['--with-container-name'] = gear.name
           args['--with-quota-blocks'] = quota_blocks if quota_blocks
           args['--with-quota-files'] = quota_files if quota_files
@@ -197,9 +197,9 @@ module GearChanger
     
       def destroy(app, gear, keep_uid=false, uid=nil, skip_hooks=false)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
+        args['--with-app-uuid'] = app._id.to_s
         args['--with-app-name'] = app.name
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-container-name'] = gear.name
         args['--with-namespace'] = app.domain.namespace
         args['--skip-hooks'] = true if skip_hooks
@@ -216,8 +216,8 @@ module GearChanger
 
       def add_authorized_ssh_key(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
@@ -227,8 +227,8 @@ module GearChanger
 
       def remove_authorized_ssh_key(app, gear, ssh_key, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-remove', args)
@@ -237,8 +237,8 @@ module GearChanger
 
       def add_env_var(app, gear, key, value)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         args['--with-value'] = value
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
@@ -247,8 +247,8 @@ module GearChanger
       
       def remove_env_var(app, gear, key)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         result = execute_direct(@@C_CONTROLLER, 'env-var-remove', args)
         parse_result(result)
@@ -256,8 +256,8 @@ module GearChanger
     
       def add_broker_auth_key(app, gear, iv, token)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-iv'] = iv
         args['--with-token'] = token
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-add', args)
@@ -266,16 +266,16 @@ module GearChanger
     
       def remove_broker_auth_key(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-remove', args)
         parse_result(result)
       end
 
       def show_state(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         result = execute_direct(@@C_CONTROLLER, 'app-state-show', args)
         parse_result(result)
       end
@@ -284,25 +284,25 @@ module GearChanger
         result_io = ResultIO.new
         cart_data = nil
                   
-        if framework_carts.include? cart
+        #if framework_carts.include? cart
           result_io = run_cartridge_command(cart, app, gear, "configure", template_git_url)
-        elsif embedded_carts.include? cart
-          result_io, cart_data = add_component(app,gear,cart)
-        else
+        #elsif embedded_carts.include? cart
+        #  result_io, cart_data = add_component(app,gear,cart)
+        #else
           #no-op
-        end
+        #end
         
-        return result_io, cart_data
+        return result_io#, cart_data
       end
       
       def deconfigure_cartridge(app, gear, cart)
-        if framework_carts.include? cart
+        #if framework_carts.include? cart
           run_cartridge_command(cart, app, gear, "deconfigure")
-        elsif embedded_carts.include? cart
-          remove_component(app,gear,cart)
-        else
-          ResultIO.new
-        end        
+        #elsif embedded_carts.include? cart
+        #  remove_component(app,gear,cart)
+        #else
+        #  ResultIO.new
+        #end        
       end
       
       def get_public_hostname
@@ -343,7 +343,7 @@ module GearChanger
 
       def execute_connector(app, gear, cart, connector_name, input_args)
         args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args['--gear-uuid'] = gear._id.to_s
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
@@ -452,30 +452,30 @@ module GearChanger
       end
 
       def add_alias(app, gear, cart, server_alias)
-        if framework_carts.include?(cart)
+        #if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "add-alias", server_alias)
-        else
-          ResultIO.new
-        end
+        #else
+        #  ResultIO.new
+        #end
       end
       
       def remove_alias(app, gear, cart, server_alias)
-        if framework_carts.include?(cart)        
+        #if framework_carts.include?(cart)        
           run_cartridge_command(cart, app, gear, "remove-alias", server_alias)
-        else
-          ResultIO.new
-        end
+        #else
+        #  ResultIO.new
+        #end
       end
       
       def update_namespace(app, gear, cart, new_ns, old_ns)
-        mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
+        mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear._id.to_s}")
         parse_result(mcoll_reply)
       end
 
       def get_env_var_add_job(app, gear, key, value)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         args['--with-value'] = value
         job = RemoteJob.new('stickshift-node', 'env-var-add', args)
@@ -484,8 +484,8 @@ module GearChanger
       
       def get_env_var_remove_job(app, gear, key)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         job = RemoteJob.new('stickshift-node', 'env-var-remove', args)
         job
@@ -493,8 +493,8 @@ module GearChanger
   
       def get_add_authorized_ssh_key_job(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
@@ -504,8 +504,8 @@ module GearChanger
       
       def get_remove_authorized_ssh_key_job(app, gear, ssh_key, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         job = RemoteJob.new('stickshift-node', 'authorized-ssh-key-remove', args)
@@ -514,8 +514,8 @@ module GearChanger
 
       def get_broker_auth_key_add_job(app, gear, iv, token)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-iv'] = iv
         args['--with-token'] = token
         job = RemoteJob.new('stickshift-node', 'broker-auth-key-add', args)
@@ -524,26 +524,27 @@ module GearChanger
   
       def get_broker_auth_key_remove_job(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         job = RemoteJob.new('stickshift-node', 'broker-auth-key-remove', args)
         job
       end
 
       def get_execute_connector_job(app, gear, cart, connector_name, input_args)
         args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args['--gear-uuid'] = gear._id.to_s
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
+
         job = RemoteJob.new('stickshift-node', 'connector-execute', args)
         job
       end
 
       def get_show_state_job(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         job = RemoteJob.new('stickshift-node', 'app-state-show', args)
         job
       end
@@ -889,7 +890,7 @@ module GearChanger
 
         move_gear_destroy_old(app, gear, keep_uid, orig_uid, source_container, destination_container)
 
-        log_debug "Successfully moved '#{app.name}' with gear uuid '#{gear.uuid}' from '#{source_container.id}' to '#{destination_container.id}'"
+        log_debug "Successfully moved '#{app.name}' with gear uuid '#{gear._id.to_s}' from '#{source_container.id}' to '#{destination_container.id}'"
         reply
       end
 
@@ -899,7 +900,7 @@ module GearChanger
         begin
           reply.append source_container.destroy(app, gear, keep_uid, orig_uid, true)
         rescue Exception => e
-          log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
+          log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear._id.to_s}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
           raise
         end
         reply
@@ -953,7 +954,7 @@ module GearChanger
         reply.append destination_container.create(app, gear, quota_blocks, quota_files)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{gear._id.to_s}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{gear._id.to_s}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise StickShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -1161,7 +1162,7 @@ module GearChanger
           output = mcoll_result.results[:data][:output]
           result.exitcode = mcoll_result.results[:data][:exitcode]
         else
-          server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
+          server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app._id.to_s, app.name) : nil
           if server_identity && @id != server_identity
             raise StickShift::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
           else
@@ -1296,7 +1297,7 @@ module GearChanger
       
       def run_cartridge_command(framework, app, gear, command, arg=nil, allow_move=true)
 
-        arguments = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
+        arguments = "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'"
         arguments += " '#{arg}'" if arg
 
         result = execute_direct(framework, command, arguments)
@@ -1326,13 +1327,13 @@ module GearChanger
           rescue StickShift::NodeException => e
             if command == 'deconfigure'
               if framework.start_with?('embedded/')
-                if has_embedded_app?(app.uuid, framework[9..-1])
+                if has_embedded_app?(app._id.to_s, framework[9..-1])
                   raise
                 else
                   Rails.logger.debug "DEBUG: Component '#{framework}' in application '#{app.name}' not found on node '#{@id}'.  Continuing with deconfigure."
                 end
               else
-                if has_app?(app.uuid, app.name)
+                if has_app?(app._id.to_s, app.name)
                   raise
                 else
                   Rails.logger.debug "DEBUG: Application '#{app.name}' not found on node '#{@id}'.  Continuing with deconfigure."

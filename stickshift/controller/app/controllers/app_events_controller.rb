@@ -1,12 +1,12 @@
 class AppEventsController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
-  include ::LegacyBrokerHelper
 
   # POST /domains/[domain_id]/applications/[application_id]/events
   def create
     domain_id = params[:domain_id]
     id = params[:application_id]
+    
     event = params[:event]
     server_alias = params[:alias]
     
@@ -68,7 +68,9 @@ class AppEventsController < BaseController
     end
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url, nolinks)
-    render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION",
-                   "Application event '#{event}' successful", true)
+    @reply = RestReply.new(:ok, "application", app)
+    message = Message.new("INFO", msg)
+    @reply.messages.push(message)
+    respond_with @reply, :status => @reply.status
   end
 end

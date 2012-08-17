@@ -1,10 +1,18 @@
+# Class representing a {CloudUser} level ssh key.
+# @!attribute [r] cloud_user
+#   @return [CloudUser] The user this key belongs to.
+# @!attribute [r] name
+#   @return [String] Name of the ssh key. Must be unique for the user.
+# @!attribute [r] type
+#   @return [String] Type of the ssh key. Must be "ssh-rsa" or "ssh-dsa".
+# @!attribute [r] content
+#   @return [String] SSH key content
 class SshKey
   KEY_NAME_MAX_LENGTH = 256 unless defined? KEY_NAME_MAX_LENGTH
   KEY_NAME_MIN_LENGTH = 1 unless defined? KEY_NAME_MIN_LENGTH
   
   include Mongoid::Document
   embedded_in :cloud_user, class_name: CloudUser.name
-  
   field :name, type: String
   field :type, type: String, default: "ssh-rsa"
   field :content, type: String

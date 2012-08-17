@@ -8,6 +8,7 @@ done
 
 source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy.sh
 
 ${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy.sh
 
