@@ -7,10 +7,6 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
 
   setup :with_unique_user
 
-  def json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Rails.configuration.user_agent}.merge!(auth_headers)
-  end
-
   def domain
     {:id => 'test'}
   end
@@ -25,7 +21,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [].to_json
-      mock.get '/broker/rest/cartridges.json', json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
     end
     app
   end
@@ -51,7 +47,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     assert types = assigns(:carts)
     assert types.length > 0
 
-    cached = CartridgeType.cached.all :as => @user
+    cached = CartridgeType.cached.all
     assert cached.all? {|t| (t.categories & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 

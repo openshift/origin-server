@@ -11,7 +11,7 @@ class BuildingController < ConsoleController
     apps = @domain.applications
     @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
     @jenkins_server = apps.find{ |a| a.jenkins_server? } || Application.new(:name => 'jenkins', :cartridge => 'jenkins-1.4', :domain => @domain)
-    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4', :as => session_user
+    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4'
     @cartridge = Cartridge.new :name => @cartridge_type.name
   end
 
@@ -21,7 +21,7 @@ class BuildingController < ConsoleController
     apps = @domain.applications
     @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
     @jenkins_server = apps.find{ |a| a.jenkins_server? }
-    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4', :as => session_user
+    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4'
     @cartridge = Cartridge.new :name => @cartridge_type.name
 
     unless @jenkins_server

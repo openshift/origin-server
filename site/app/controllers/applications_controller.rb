@@ -106,7 +106,7 @@ class ApplicationsController < ConsoleController
   def create
     app_params = params[:application]
 
-    @application_type = ApplicationType.find app_params[:application_type], :as => session_user
+    @application_type = ApplicationType.find app_params[:application_type]
 
     @application = Application.new app_params
     @application.as = session_user

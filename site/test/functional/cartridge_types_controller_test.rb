@@ -22,12 +22,12 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert types = assigns(:carts)
     assert types.length > 0
 
-    cached = CartridgeType.cached.all :as => with_app.as
+    cached = CartridgeType.cached.all
     assert cached.all? {|t| (t.categories & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 
   test "should show type page" do
-    t = CartridgeType.embedded(:as => with_app.as).first
+    t = CartridgeType.embedded.first
     get :show, :application_id => with_app.name, :id => t.name
     assert_response :success
     assert type = assigns(:cartridge_type)
