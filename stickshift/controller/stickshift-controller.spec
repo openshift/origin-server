@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.7
+Version: 0.15.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,16 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.8-1
+- Merge pull request #392 from nhr/US2457_auth_changes
+  (openshift+bot@redhat.com)
+- Merge pull request #390 from brenton/gemspec_fixes2
+  (openshift+bot@redhat.com)
+- minor debug statement cleanup (dmcphers@redhat.com)
+- Refactored per review feedback (nhr@redhat.com)
+- US2457 Relaxed auth for cart type and app templates (nhr@redhat.com)
+- Gemspec fixes for Fedora packaging (bleanhar@redhat.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.7-1
 - Ported DIY cartridge to new framework (jhonce@redhat.com)
 - BugZ# 848940. Fixed expose port REST event to skip calling expose-port on
