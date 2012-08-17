@@ -12,4 +12,7 @@
 
   .span5
     %section
+      = render :partial => 'plan_info'
+
+    %section
       = render :partial => 'keys', :locals => {:keys => @keys}
