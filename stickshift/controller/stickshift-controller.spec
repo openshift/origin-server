@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.6
+Version: 0.15.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.7-1
+- Ported DIY cartridge to new framework (jhonce@redhat.com)
+- BugZ# 848940. Fixed expose port REST event to skip calling expose-port on
+  webproxy cartridge (kraman@gmail.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
 - Merge pull request #382 from pravisankar/dev/ravi/story/US2614
   (openshift+bot@redhat.com)
