@@ -1,6 +1,6 @@
 class CartridgesController < BaseController
   respond_to :xml, :json
-  before_filter :authenticate, :check_version
+  before_filter :check_version
   include LegacyBrokerHelper
   
   def show
@@ -10,7 +10,8 @@ class CartridgesController < BaseController
   # GET /cartridges
   def index
     type = params[:id]
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_CARTRIDGES", true, "List #{type.nil? ? 'all' : type} cartridges")
+    user_info = get_cloud_user_info(@cloud_user)
+    log_action(@request_id, user_info[:uuid], user_info[:login], "LIST_CARTRIDGES", true, "List #{type.nil? ? 'all' : type} cartridges")
     
     cartridges = Array.new
     if type.nil? or type == "standalone"
