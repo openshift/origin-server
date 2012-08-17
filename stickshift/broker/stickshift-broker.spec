@@ -136,9 +136,12 @@ rm -rf $RPM_BUILD_ROOT
 /bin/touch %{brokerdir}/httpd/logs/access_log
 /bin/touch %{_localstatedir}/log/stickshift/user_action.log
 
-#selinux updated
+%if %{with_systemd}
 systemctl --system daemon-reload
+# if under sysv, hopefully we don't need to reload anything
+%endif
 
+#selinux updated
 semanage -i - <<_EOF
 boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
