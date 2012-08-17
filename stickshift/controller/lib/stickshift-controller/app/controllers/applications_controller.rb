@@ -139,11 +139,11 @@ class ApplicationsController < BaseController
     Rails.logger.debug "Validating application"  
     if application.valid?
       begin
-        Rails.logger.debug "Creating application #{application.name}"
+        Rails.logger.debug "Creating application '#{application.name}'"
         application.create
-        Rails.logger.debug "Configuring dependencies #{application.name}"
+        Rails.logger.debug "Configuring dependencies for '#{application.name}'"
         app_configure_reply = application.configure_dependencies
-        Rails.logger.debug "Executing connections for #{application.name}"
+        Rails.logger.debug "Executing connections for '#{application.name}'"
         application.execute_connections
         begin
           Rails.logger.debug "Creating dns"
