@@ -27,7 +27,7 @@ module StickShift
 
       cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
-        next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.0"].include? cart_dir
+        next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.0", "postgresql-8.4"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
         begin
           print "Loading #{cart_dir}..." if ss_debug
@@ -87,7 +87,7 @@ module StickShift
 
       cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
-        next if [".", "..", "embedded", "abstract", "abstract-httpd", "mysql-5.1"].include? cart_dir
+        next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.0", "postgresql-8.4"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
         begin
           cart = StickShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
