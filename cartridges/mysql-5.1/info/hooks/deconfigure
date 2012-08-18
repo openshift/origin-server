@@ -58,6 +58,12 @@ if [ "$MYSQL_DIR" -ef  "$APPLICATION_DIR" ]; then
 fi
 
 # Stop mysql before we remove all the variables.
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_USERNAME"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_PASSWORD"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_HOST"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_PORT"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_CTL_SCRIPT"
+
 stop_db
 confirm_pid_gone "${MYSQL_DIR}/pid/mysql.pid"
 

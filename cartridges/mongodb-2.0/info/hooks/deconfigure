@@ -56,6 +56,12 @@ if [ "mongodb-2.0" = "$OPENSHIFT_GEAR_TYPE" ]; then
    stop_app
 fi
 
+# Stop mongodb before we remove all the variables.
+source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_CTL_SCRIPT"
 
 stop_db
 
