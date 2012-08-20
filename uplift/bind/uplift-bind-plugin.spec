@@ -5,7 +5,7 @@
 
 Summary:        Uplift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.5
+Version:        0.8.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,26 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.6-1
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+- allow ruby versions > 1.8 (mlamouri@redhat.com)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+- Removing requirement to disable NetworkManager so that liveinst works Adding
+  initial support for dual interfaces Adding "xhost +" so that liveinst can
+  continue to work after hostname change to broker.example.com Added delay
+  befor launching firefox so that network is stable Added rndc key generation
+  for Bind Dns plugin instead of hardcoding it (kraman@gmail.com)
+- Add modify application dns and use where applicable (dmcphers@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+
 * Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.8.5-1
 - Adding livecd build scripts Adding a text only minimal version of livecd
   Added ability to access livecd dns from outside VM (kraman@gmail.com)
