@@ -3,7 +3,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.7
+Version:   0.6.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -171,6 +171,141 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.8-1
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #391 from sosiouxme/master (openshift+bot@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- shield systemctl on non-systemd system (lmeyer@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #380 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- adding rest api to fetch and update quota on gear group (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Bug 846555 (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- broker spec fixes for systemd (jason.detiberus@redhat.com)
+- Merge pull request #318 from pravisankar/dev/ravi/story/US1896
+  (kraman@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+- Added 'nolinks' parameter to suppress link generation in the REST API replies
+  to make the output terse and improve general processing speed
+  (rpenta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Don't allow more than one domain for the user (rpenta@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Mongo deleted_gears fix (rpenta@redhat.com)
+- Fixes for Bug 806824 (kraman@gmail.com)
+- Add missing systemu dependency. (mpatel@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- broker sanity test reorg (dmcphers@redhat.com)
+- Merge pull request #242 from ramr/master (smitram@gmail.com)
+- fixing build (abhgupta@redhat.com)
+- fixed test failure (lnader@redhat.com)
+- Fixes for bugz 840030 - Apache blocks access to /icons. Remove these as
+  mod_autoindex has now been turned OFF (see bugz 785050 for more details).
+  (ramr@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #224 from kraman/dev/kraman/bugs/838611
+  (rpenta@redhat.com)
+- Bump API version to 1.1. New version returns framework cartridge and related
+  properties when listing cartridges for an app
+  (.../applications/<id>/cartridges) Builds upon cartridge metadata which was
+  added in 47d1b813a1a74228c9c95734043487d681f799d4. (kraman@gmail.com)
+- Fix for bug 839151 (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #214 from kraman/dev/kraman/bugs/testfix
+  (dmcphers@redhat.com)
+- Adding test user to mongo to allow tests to run (kraman@gmail.com)
+- Merge pull request #209 from lnader/master (rmillner@redhat.com)
+- Merge pull request #198 from brenton/master (kraman@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+- Handling registration for the rest api tests cases when run outside of
+  openshift.com (bleanhar@redhat.com)
+- Adding missing mongodb collection for the rest api tests
+  (bleanhar@redhat.com)
+- Copying the development mongo datastore config to test (bleanhar@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Bug 837926 - changed application_template to application_templates
+  (lnader@redhat.com)
+- blocking requires/conflicts/suggests/depends from RestCartridge model until
+  further agreement on cartridge metadata is made (rchopra@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- update tests for RestUser (lnader@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- changing categories to tags for site functional tests (rchopra@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- cart metadata work merged; depends service added; cartridges enhanced; unit
+  tests updated (rchopra@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- More fixes to bug# 808425 (rpenta@redhat.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+- Removing application unit test, rationale: More than 90%% of the code is
+  stubbed and more time is spent in fixing this useless test
+  (rpenta@redhat.com)
+- Revert "Updating gem versions" (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Fixes for bug 827337, 830309, 811066, and 832374 Exposing initial public ip
+  in the rest response for application creation (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Fix for bug 812046 (abhgupta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Strip out the unnecessary gems from rcov reports and focus it on just the
+  OpenShift code. (rmillner@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- add beginnings of broker integration tests (dmcphers@redhat.com)
+- Merge pull request #102 from pravisankar/master (dmcphers@redhat.com)
+- Broker: Fixed Application unit tests (rpenta@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Fixed template tests  - Needed to loop through results  - Needed to add links
+  attribute to class (fotioslindiakos@gmail.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #86 from pravisankar/master
+  (mmcgrath+openshift@redhat.com)
+- Enable mongo datastore unit tests (rpenta@redhat.com)
+- Fix for bug 823675 - Exposing gear count in application and consumed gears in
+  user object via rest calls (abhgupta@redhat.com)
+
 * Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.6.7-1
 - Fixing /etc/httpd/conf.d/stickshift link to be conpatible with typeless gears
   change Fixing context of action log file (kraman@gmail.com)
