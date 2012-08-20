@@ -555,12 +555,11 @@ module StickShift
         raise ArgumentError, "Supplied ID must be a user name or uid."
       end
 
-      sig="TERM"
+      sig="KILL"
       10.times do |i|
         out,err,rc = shellCmd(%{/usr/bin/killall -s '#{sig}' -u '#{id}' 2> /dev/null})
         break unless rc == 0
         sleep 0.5
-        sig="KILL"
       end
     end
 
