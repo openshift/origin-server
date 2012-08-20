@@ -1359,7 +1359,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def process_cartridge_commands(result)
     commands = result.cart_commands
     self.ssh_keys = {} unless self.ssh_keys
-    app_jobs = { 'add_ssh_keys' => [], 'remove_ssh_keys' => []}
+    app_jobs = { 'add_ssh_keys' => [], 'remove_ssh_keys' => [], 'remove_env_vars' => [] }
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
@@ -1383,6 +1383,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       when "ENV_VAR_REMOVE"
         key = command_item[:args][0]
         self.user.remove_env_var(key)
+      when "APP_ENV_VAR_REMOVE"
+        key = command_item[:args][0]
+        app_jobs['remove_env_vars'] << key unless key.nil?
       when "BROKER_KEY_ADD"
         iv, token = StickShift::AuthService.instance.generate_broker_key(self)
         self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
@@ -1398,6 +1401,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     RemoteJob.run_parallel_on_gears(self.gears, handle) { |exec_handle, gear|
       app_jobs.each do |action,value|
         case action
+        when "remove_env_vars"
+          value.each { |key|
+            job = gear.env_var_job_remove(key)
+            RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+          }
         when "add_ssh_keys"
           value.each { |key_info|
             key_name,key = key_info

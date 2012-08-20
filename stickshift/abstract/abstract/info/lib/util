@@ -366,6 +366,10 @@ function remove_env_var {
     echo "ENV_VAR_REMOVE: $1"
 }
 
+function app_remove_env_var {
+    echo "APP_ENV_VAR_REMOVE: $1"
+}
+
 function add_broker_auth_key {
     echo "BROKER_AUTH_KEY_ADD: "
 }

@@ -1205,6 +1205,9 @@ module GearChanger
                   cart = cart.gsub(".", "-")
                   result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
                 end
+              elsif line =~ /^APP_ENV_VAR_REMOVE: /
+                key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
+                result.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
               elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
                 if line =~ /^ENV_VAR_ADD: /
                   env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
