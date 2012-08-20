@@ -20,6 +20,7 @@ then
     [ -f "$OPENSHIFT_DATA_DIR/postgresql_dbname" ] &&  old_dbname=$(cat "$OPENSHIFT_DATA_DIR/postgresql_dbname")
     [ -f "$OPENSHIFT_DATA_DIR/postgresql_dbuser" ] &&  old_dbuser=$(cat "$OPENSHIFT_DATA_DIR/postgresql_dbuser")
 
+    dbname=${OPENSHIFT_GEAR_NAME}
     dbuser=${OPENSHIFT_DB_GEAR_UUID:-$OPENSHIFT_GEAR_UUID}
 
     # Restore the PostgreSQL databases
@@ -33,9 +34,9 @@ then
     export PGPASSWORD="${OPENSHIFT_DB_PASSWORD}"
 
     /bin/zcat $OPENSHIFT_DATA_DIR/postgresql_dump_snapshot.gz |         \
-        sed "s#$rexp#\\1 DATABASE $OPENSHIFT_GEAR_NAME#g;               \
-             s#$owner_rexp#\\1 \\2 OWNER = \"$OPENSHIFT_GEAR_UUID\"#g;  \
-             s#\\connect $old_dbname#\\connect $OPENSHIFT_GEAR_NAME#g;  \
+        sed "s#$rexp#\\1 DATABASE $dbname#g;                            \
+             s#$owner_rexp#\\1 \\2 OWNER = \"$dbuser\"#g;               \
+             s#\\connect $old_dbname#\\connect $dbname#g;               \
              s#$old_dbuser#$dbuser#g;                                   \
              /$pgrole_rexp/d;" |                                        \
                  /usr/bin/psql -d postgres
