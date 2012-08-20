@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.15.5
+Version: 0.15.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,13 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
+- Updating gem versions (admiller@redhat.com)
+- BZ 848639: The force kill was leaving SystemV IPC entities around, eventually
+  clogging the exec nodes. (rmillner@redhat.com)
+- BZ 849058: Add Postgresql to the list of cartridges which exist in both the
+  top level and embedded level. (rmillner@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.15.5-1
 - Updating gem versions (admiller@redhat.com)
 - Merge pull request #380 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
