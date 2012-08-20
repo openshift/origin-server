@@ -150,12 +150,8 @@ module StickShift
 
       initialize_stickshift_proxy
       
-      cmd = %{/usr/bin/killall -s KILL -u '#{@uuid}' 2> /dev/null}
-      10.times do |i|
-        out,err,rc = shellCmd(cmd)
-        break unless rc == 0
-        sleep 0.5
-      end
+      kill_procs(uuid)
+      purge_sysvipc(uuid)
       
       if @config.get("CREATE_APP_SYMLINKS").to_i == 1
         Dir.foreach(File.dirname(@homedir)) do |dent|
@@ -175,12 +171,8 @@ module StickShift
 
       # There's a small race condition where tasks get restarted during teardown.
       # Kill again after the home directory is gone.
-      cmd = %{/usr/bin/killall -s KILL -u '#{@uuid}' 2> /dev/null}
-      10.times do |i|
-        out,err,rc = shellCmd(cmd)
-        break unless rc == 0
-        sleep 0.5
-      end
+      kill_procs(uuid)
+      purge_sysvipc(uuid)
 
       out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
       raise UserDeletionException.new(
@@ -543,6 +535,64 @@ module StickShift
 
       notify_observers(:after_initialize_stickshift_proxy)
       return rc == 0
+    end
+
+
+    # Private: Kill all processes for a given gear
+    #
+    # Kill all processes owned by the uid or uuid.
+    # Graceful shutdown first, then forcibly.
+    #
+    # Examples:
+    # kill_gear_procs
+    #    => true
+    #    killall -u id
+    #
+    # Raises exception on error.
+    #
+    def kill_procs(id)
+      if id.nil? or id == ""
+        raise ArgumentError, "Supplied ID must be a user name or uid."
+      end
+
+      sig="KILL"
+      10.times do |i|
+        out,err,rc = shellCmd(%{/usr/bin/killall -s '#{sig}' -u '#{id}' 2> /dev/null})
+        break unless rc == 0
+        sleep 0.5
+      end
+    end
+
+    # Private: Purge IPC entities for a given gear
+    #
+    # Enumerate and remove all IPC entities for a given user ID or
+    # user name.
+    #
+    # Examples:
+    # purge_sysvipc
+    #    => true
+    #    ipcs -c
+    #    ipcrm -s id
+    #    ipcrm -m id
+    #
+    # Raises exception on error.
+    #
+    def purge_sysvipc(id)
+      if id.nil? or id == ""
+        raise ArgumentError.new("Supplied ID must be a user name or uid.")
+      end
+
+      ['-m', '-q', '-s' ].each do |ipctype|
+        out,err,rc=shellCmd(%{/usr/bin/ipcs -c #{ipctype} 2> /dev/null})
+        out.lines do |ipcl|
+          next unless ipcl=~/^\d/
+          ipcent = ipcl.split
+          if ipcent[2] == id
+            # The ID may already be gone
+            out,err,rc=shellCmd(%{/usr/bin/ipcrm #{ipctype} #{ipcent[0]}})
+          end
+        end
+      end
     end
   end
 end
