@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.12.2
+Version: 0.12.3
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
+- BZ 849074: backup and restore didnt take into account the secondary gear.
+  (rmillner@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 - US2102: Allow PostgreSQL to be embedded in a scalable application.
   (rmillner@redhat.com)
