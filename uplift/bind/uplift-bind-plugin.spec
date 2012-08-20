@@ -18,6 +18,7 @@ Requires:       rubygem(stickshift-common)
 Requires:       rubygem(json)
 Requires:       bind
 Requires:       bind-utils
+Requires:       rubygem(dnsruby)
 Requires:       stickshift-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
