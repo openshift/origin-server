@@ -8,7 +8,7 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/db "db"
 
 function wait_to_start_db {
     i=0
-    while (( ! echo ";" | mysql -u root -S "${MYSQL_DIR}/socket/mysql.sock" > /dev/null 2>&1) || [ ! -f ${MYSQL_DIR}/pid/mysql.pid ]) && [ $i -lt 10 ]
+    while (( ! echo ";" | mysql -u root -S "${MYSQL_DIR}/socket/mysql.sock" > /dev/null 2>&1) || [ ! -f ${MYSQL_DIR}/pid/mysql.pid ]) && [ $i -lt 30 ]
     do
         sleep 1
         i=$(($i + 1))
@@ -21,7 +21,7 @@ function wait_to_start_db_as_user {
     then
         i=0
         sleep 1
-        while (( ! echo ";" | mysql -h $OPENSHIFT_DB_HOST -P $OPENSHIFT_DB_PORT -u $OPENSHIFT_DB_USERNAME --password="$OPENSHIFT_DB_PASSWORD" > /dev/null 2>&1) || [ ! -f ${MYSQL_DIR}/pid/mysql.pid ]) && [ $i -lt 10 ]
+        while (( ! echo ";" | mysql -h $OPENSHIFT_DB_HOST -P $OPENSHIFT_DB_PORT -u $OPENSHIFT_DB_USERNAME --password="$OPENSHIFT_DB_PASSWORD" > /dev/null 2>&1) || [ ! -f ${MYSQL_DIR}/pid/mysql.pid ]) && [ $i -lt 30 ]
         do
             sleep 1
             i=$(($i + 1))
