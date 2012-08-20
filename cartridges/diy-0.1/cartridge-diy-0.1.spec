@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.31.1
+Version: 0.31.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.31.2-1
+- Add support for .state files to DIY cartridge (jhonce@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.31.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
