@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.31.5
+Version: 0.31.6
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.31.6-1
+- Bug 848866 not waiting long enough for mysql to be ready (jhonce@redhat.com)
+- Add missing variables to mysql stop (rmillner@redhat.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.31.5-1
 - BZ841750: Only mention rockmongo and phpmyadmin for non-scalable installs.
   (rmillner@redhat.com)
