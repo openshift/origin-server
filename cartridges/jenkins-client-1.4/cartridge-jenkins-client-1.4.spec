@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.31.4
+Version: 0.31.5
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -61,6 +61,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.31.5-1
+- BZ848661 (bdecoste@gmail.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.31.4-1
 - Removed bad newline (jhonce@redhat.com)
 
