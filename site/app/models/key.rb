@@ -30,6 +30,8 @@ class Key < RestApi::Base
     if contents
       parts = contents.split
       case parts.length
+      when 0
+        self.type = self.content = nil
       when 1
         self.type = nil
         self.content = parts[0]
@@ -40,7 +42,7 @@ class Key < RestApi::Base
           self.type = nil
           self.content = parts[0]
         end
-      when 3
+      else
         self.type, self.content = parts
       end
     end
