@@ -17,30 +17,38 @@ then
     exit 1
 fi
 
+start() {
+    _state=`get_app_state`
+    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
+        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+        return 0
+    fi
+    set_app_state started
+
+    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start ] &&
+         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+}
+
+stop() {
+    set_app_state stopped
+    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop ] &&
+         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+}
+
 validate_run_as_user
 
 . app_ctl_pre.sh
 
 case "$1" in
     start)
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+        start
     ;;
     graceful-stop|stop)
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+        stop
     ;;
-    restart|graceful)
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
-    ;;
-    reload)
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+    restart|graceful|reload)
+        stop
+        start
     ;;
     status)
         print_user_running_processes `id -u`
