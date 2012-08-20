@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.24.4
+Version: 0.24.5
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.24.5-1
+- Add missing variables (rmillner@redhat.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.24.4-1
 - BZ841750: Only mention rockmongo and phpmyadmin for non-scalable installs.
   (rmillner@redhat.com)
