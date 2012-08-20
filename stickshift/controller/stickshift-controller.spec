@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.8
+Version: 0.15.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.15.9-1
+- Improve database cartridge runtime test coverage (ironcladlou@gmail.com)
+- fix for bug#849385 (rchopra@redhat.com)
+- Merge pull request #399 from abhgupta/bug/849117 (openshift+bot@redhat.com)
+- fix for bug 849098 (abhgupta@redhat.com)
+- fix for bug 849117 (abhgupta@redhat.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.8-1
 - Merge pull request #392 from nhr/US2457_auth_changes
   (openshift+bot@redhat.com)
