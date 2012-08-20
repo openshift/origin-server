@@ -119,6 +119,20 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
 end
 
 
+# Un-embeds a cartridge from the current application's gear by 
+# invoking deconfigure on the named cartridge.
+When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
+  record_measure("Runtime Benchmark: Deconfigure #{cart_name} cartridge in cartridge #{@cart.name}") do
+    raise "No embedded cart named #{cart_name} associated with gear #{gear.uuid}" unless @gear.carts.has_key?(cart_name)
+
+    embedded_cart = @gear.carts[cart_name]
+
+    exit_code = embedded_cart.deconfigure
+    assert_equal 0, exit_code
+  end
+end
+
+
 # Verifies the existence of httpd proxy files associated with
 # the current application.
 Then /^the application http proxy file will( not)? exist$/ do | negate |
