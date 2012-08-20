@@ -5,7 +5,7 @@
 
 Summary:        SwingShift plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.5
+Version:        0.8.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -117,6 +117,19 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.6-1
+- gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
+- Providing a better error message for invalid broker iv/token
+  (kraman@gmail.com)
+- fix for cartridge-jenkins_build.feature cucumber test (abhgupta@redhat.com)
+- Bug 836055 - Bypass authentication by making a direct request to broker with
+  broker_auth_key (kraman@gmail.com)
+- MCollective updates - Added mcollective-qpid plugin - Added mcollective-
+  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  option to support ignoring node profile - Added systemu dependency for
+  mcollective-client (kraman@gmail.com)
+- Updated gem info for rails 3.0.13 (admiller@redhat.com)
+
 * Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.8.5-1
 - Fix for Bugz 825366, 825340. SELinux changes to allow access to
   user_action.log file. Logging authentication failures and user creation for
