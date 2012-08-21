@@ -128,7 +128,7 @@ class GearGroupResourcesController < BaseController
             return
           end
 
-          selected_gear_group.set_quota(num_storage, nil)
+          selected_gear_group.set_quota(num_storage)
           app.save
         rescue Exception => e
           log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "UPDATE_GEAR_GROUP_RESOURCES", false, "Failed to update resources for gear group '#{gear_group_id}': #{e.message}")
