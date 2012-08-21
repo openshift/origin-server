@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.12.3
+Version: 0.12.4
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,15 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
+- Merge pull request #415 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #410 from rmillner/dev/rmillner/bug/849074
+  (openshift+bot@redhat.com)
+- fix for Bug 849035 - env vars should be removed for app when db cartridge is
+  removed (rchopra@redhat.com)
+- BZ 849074: The gear_uuid needed to be updated in additional places.
+  (rmillner@redhat.com)
+
 * Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - BZ 849074: backup and restore didnt take into account the secondary gear.
   (rmillner@redhat.com)
