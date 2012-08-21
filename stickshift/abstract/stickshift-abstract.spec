@@ -12,11 +12,37 @@ Source0:   stickshift-abstract-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildArch: noarch
-Requires: git
-Requires: mod_ssl
+Requires:  git
+Requires:  httpd
+Requires:  facter
+Requires:  mod_ssl
+# abstract/info/connection-hooks/publish-http-url
+Requires:  python
+# abstract/info/connection-hooks/open_ports.sh
+Requires:  socat
+# abstract/info/connection-hooks/nurture_app_push.sh
+Requires:  curl
+# abstract/info/connection-hooks/sync_gears.sh
+Requires:  rsync
+# abstract/info/lib/network
+Requires:  lsof
+# abstract/info/bin/jenkins_build
+Requires:  ruby
+Requires:  rubygems
+Requires:  rubygem(json)
 
 %description
 This contains the common function used while building cartridges.
+
+%package jboss
+Summary: OpenShift Origin common jboss cartridge components
+Requires: %{name} = %{version}
+# abstract-jboss/info/bin/build.sh
+Requires: /usr/bin/mvn
+
+%description jboss
+This contains the common function used while building 
+openshift jboss cartridges.
 
 %prep
 %setup -q
@@ -24,49 +50,52 @@ This contains the common function used while building cartridges.
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
-cp -rv abstract %{buildroot}%{cartdir}/
-cp -rv abstract-httpd %{buildroot}%{cartdir}/
-cp -rv abstract-jboss %{buildroot}%{cartdir}/
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract-httpd
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-httpd
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract-jboss
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-jboss
+
+# Copy over files
+cp -rvp abstract %{buildroot}%{cartdir}/
+cp -rvp abstract-httpd %{buildroot}%{cartdir}/
+cp -rvp abstract-jboss %{buildroot}%{cartdir}/
+# Fix empty files
+echo "# info" >> %{buildroot}%{cartdir}/abstract/info/hooks/info
+echo "# post-install" >> %{buildroot}%{cartdir}/abstract/info/hooks/post-install
+echo "# post-remove" >> %{buildroot}%{cartdir}/abstract/info/hooks/post-remove
+echo "# remove-module" >> %{buildroot}%{cartdir}/abstract/info/hooks/remove-module
+echo "# add-module" >> %{buildroot}%{cartdir}/abstract/info/hooks/add-module
+# Fix permissions
+pushd %{buildroot}%{cartdir}/abstract/info/hooks/
+  chmod 755 *
+  chmod 644 info post-install post-remove remove-module add-module
+popd
+chmod 755 %{buildroot}%{cartdir}/abstract-jboss/info/hooks/configure
+# Remove bundled library
+rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,root,root,-)
+%doc COPYRIGHT LICENSE
+%dir %{_libexecdir}/stickshift/
+%dir %{_libexecdir}/stickshift/cartridges/
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-httpd/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin/
-#%{_libexecdir}/stickshift/cartridges/abstract-httpd/info
-%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/configuration/
-#%{_libexecdir}/stickshift/cartridges/abstract-jboss/info
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin
 %dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
+%{_libexecdir}/stickshift/cartridges/abstract/info/hooks/*
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
 %attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/lib/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/connection-hooks/
-%{_libexecdir}/stickshift/cartridges/abstract/info
-%doc %{_libexecdir}/stickshift/cartridges/abstract/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract/LICENSE
-%doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/LICENSE
-%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/LICENSE
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/connection-hooks/
 
+%files jboss
+%doc COPYRIGHT LICENSE
+%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
+%{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
+%attr(0644,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/configuration/*
 
-%post
 
 %changelog
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
