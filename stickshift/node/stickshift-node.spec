@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.15.6
+Version: 0.15.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,15 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.15.7-1
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #415 from rajatchopra/master (openshift+bot@redhat.com)
+- fix for Bug 849035 - env vars should be removed for app when db cartridge is
+  removed (rchopra@redhat.com)
+- Update comments to match code (jhonce@redhat.com)
+- Revert "Attempt to stop processes with TERM then KILL" (jhonce@redhat.com)
+- Attempt to stop processes with TERM then KILL (jhonce@redhat.com)
+
 * Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
 - Updating gem versions (admiller@redhat.com)
 - BZ 848639: The force kill was leaving SystemV IPC entities around, eventually
