@@ -11,6 +11,7 @@ end
 class BaseController < ActionController::Base
   respond_to :json, :xml
   before_filter :check_version, :only => :show
+  before_filter :check_nolinks
   API_VERSION = 1.1
   SUPPORTED_API_VERSIONS = [1.0,1.1]
 
@@ -132,7 +133,9 @@ class BaseController < ActionController::Base
     ignore_links = params[:nolinks]
     if ignore_links
       ignore_links.downcase!
-      return ["true", "1"].include?(ignore_links)
+      return true if ["true", "1"].include?(ignore_links)
+      return false if ["false", "0"].include?(ignore_links)
+      raise StickShift::UserException.new("Invalid value for 'nolinks'. Valid options: [true, false, 1, 0]", 167)
     end
     return false
   end
@@ -161,13 +164,15 @@ class BaseController < ActionController::Base
     if not SUPPORTED_API_VERSIONS.include? $requested_api_version
       invalid_version = $requested_api_version
       $requested_api_version = API_VERSION
-      @reply = RestReply.new(:not_acceptable)
-      @reply.messages.push(message = Message.new(:error, "Requested API version #{invalid_version} is not supported.  Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}"))
-      respond_with(@reply) do |format|
-        format.xml { render :xml => @reply, :status => @reply.status }
-        format.json { render :json => @reply, :status => @reply.status }
-      end
-      return
+      return render_format_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
+    end
+  end
+
+  def check_nolinks
+    begin
+      nolinks
+    rescue Exception => e
+      return render_format_exception(e)
     end
   end
 
@@ -187,13 +192,113 @@ class BaseController < ActionController::Base
       file.gets.strip.gsub("-","")
     end
   end
-
-  def throw_error(status, msg, error_code, field=nil)
-    @reply = RestReply.new(status)
-    @reply.messages.push(message = Message.new(:error, msg, error_code, field))
-    respond_with(@reply) do |format|
-      format.xml { render :xml => @reply, :status => @reply.status }
-      format.json { render :json => @reply, :status => @reply.status }
+ 
+  def get_cloud_user_info(cloud_user)
+    if cloud_user
+      return { :uuid  => cloud_user.uuid, :login => cloud_user.login }
+    else
+      return { :uuid  => 0, :login => 'anonymous' }
     end
+  end
+
+  def get_error_messages(object, orig_field=nil, display_field=nil)
+    messages = []
+    object.errors.keys.each do |key|
+      field = key.to_s
+      field = display_field if orig_field && (key.to_s == orig_field)
+      err_msgs = object.errors.get(key)
+      err_msgs.each do |err_msg|
+        messages.push(Message.new(:error, err_msg[:message], err_msg[:exit_code], field))
+      end if err_msgs
+    end if object && object.errors && object.errors.keys
+    return messges
+  end
+
+  #Due to the bug in rails, 'format' is explicitly used for PUT, DELETE rest calls
+  def render_response(reply, format=false)
+    if format
+      respond_with(reply) do |fmt|
+        fmt.xml { render :xml => reply, :status => reply.status }
+        fmt.json { render :json => reply, :status => reply.status }
+      end
+    else
+      respond_with reply, :status => reply.status
+    end
+  end
+
+  def render_error_internal(status, msg, err_code=nil, log_tag=nil,
+                            field=nil, msg_type=nil, messages=nil, format=false)
+    reply = RestReply.new(status)
+    user_info = get_cloud_user_info(@cloud_user)
+    if messages && !messages.empty?
+      reply.messages.concat(messages)
+      if log_tag
+        log_msg = []
+        messages.each { |msg| log_msg.push(msg[:message]) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, log_msg.join(', '))
+      end
+    else
+      msg_type = :error unless msg_type
+      reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, msg) if log_tag
+    end
+    render_response(reply, format)
+  end
+
+  def render_exception_internal(ex, log_tag, format)
+    Rails.logger.error ex
+    Rails.logger.error ex.backtrace
+    error_code = ex.respond_to?('code') ? ex.code : 1
+    if ex.kind_of? StickShift::UserException
+      status = :unprocessable_entity
+    elsif ex.kind_of? StickShift::DNSException
+      status = :service_unavailable
+    else
+      status = :internal_server_error
+    end
+    render_error_internal(status, ex.message, error_code, log_tag, nil, nil, nil, format)
+  end
+
+  def render_success_internal(status, type, data, log_tag, log_msg=nil, publish_msg=false,
+                              msg_type=nil, messages=nil, format=false)
+    reply = RestReply.new(status, type, data)
+    user_info = get_cloud_user_info(@cloud_user)
+    if messages && !messages.empty?
+      reply.messages.concat(messages)
+      if log_tag
+        log_msg = []
+        messages.each { |msg| log_msg.push(msg[:message]) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '))
+      end
+    else
+      msg_type = :info unless msg_type
+      reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg) if log_tag
+    end
+    render_response(reply, format)
+  end
+
+  def render_format_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil)
+    render_error_internal(status, msg, err_code, log_tag, field, msg_type, messages, true)
+  end
+
+  def render_format_exception(ex, log_tag=nil)
+    render_exception_internal(ex, log_tag, true)
+  end
+
+  def render_format_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
+    render_success_internal(status, type, data, log_tag, log_msg, publish_msg, msg_type, messages, true)
+  end
+
+  def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil)
+    render_error_internal(status, msg, err_code, log_tag, msg_type, field, messages, false)
+  end
+
+  def render_exception(ex, log_tag=nil)
+    render_exception_internal(ex, log_tag, false)
+  end
+
+  def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
+    render_success_internal(status, type, data, log_tag, log_msg, publish_msg, msg_type, messages, false)
   end
 end
