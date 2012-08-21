@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.9
+Version: 0.15.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.15.10-1
+- cleanup based on test case additions (dmcphers@redhat.com)
+- Merge pull request #409 from rajatchopra/master (openshift+bot@redhat.com)
+- support for removing app local environment variables (rchopra@redhat.com)
+
 * Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.15.9-1
 - Improve database cartridge runtime test coverage (ironcladlou@gmail.com)
 - fix for bug#849385 (rchopra@redhat.com)
