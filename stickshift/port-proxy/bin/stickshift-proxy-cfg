@@ -37,6 +37,24 @@ getaddr() {
     ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
 }
 
+atomicfg() {
+    cfg_old="${cfgfile}"
+    cfgfile="${cfgfile}.editing"
+
+    rm -f "${cfgfile}"
+    cp -a -f "${cfg_old}" "${cfgfile}"
+
+    "$@"
+    retval=$?
+
+    rm -f "${cfg_old}.bak"
+    ln -f "${cfg_old}" "${cfg_old}.bak"
+    mv -f "${cfgfile}" "${cfg_old}"
+    cfgfile="${cfg_old}"
+
+    return $retval
+}
+
 rollcfg() {
     if ! is_running
     then
@@ -210,7 +228,7 @@ case "$1" in
         ;;
     setproxy)
         shift
-        lockwrap setproxies "$@"
+        lockwrap atomicfg setproxies "$@"
         ;;
     showproxy)
         shift
