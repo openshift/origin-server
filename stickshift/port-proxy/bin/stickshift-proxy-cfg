@@ -58,15 +58,22 @@ rollcfg() {
     
     if ! reload
     then
-        echo "stickshift-proxy failed to start"
+        echo "stickshift-proxy failed to reload"
         return 1
     fi
 
     # Wait for the old PID to terminate
     if [ "$oldpid" ]
     then
+        iters=0
         while ps $oldpid &>/dev/null
         do
+            iters=$(( $iters + 1 ))
+            if [ $iters -gt 60 ]
+            then
+                kill $oldpid
+                usleep 500000
+            fi
             usleep 500000
         done
     fi
@@ -76,7 +83,18 @@ rollcfg() {
 
 
 lockwrap() {
-    lockfile ${cfgfile}.lock
+    lockfile -r 10 -l 300 ${cfgfile}.lock &> /dev/null
+    if [ $? -ne 0 ]
+    then
+       for pid in `pidof -x $0`
+       do
+           if [ $pid != $$ ]
+           then
+               echo "ERROR: stickshift-proxy-cfg is blocked on PID $pid."
+               exit 99
+           fi
+       done
+    fi
     oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
     "$@"
     retcode=$?
