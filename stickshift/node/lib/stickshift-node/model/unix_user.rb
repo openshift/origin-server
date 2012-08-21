@@ -302,13 +302,17 @@ module StickShift
     #
     # Returns an nil on success and false on failure.
     def remove_env_var(key, prefix_cloud_name=false)
-      env_dir = File.join(@homedir,".env")
-      if prefix_cloud_name
-        key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
+      status = false
+      [".env", ".env/.uservars"].each do |path|
+        env_dir = File.join(@homedir,path)
+        if prefix_cloud_name
+          key = (@config.get("CLOUD_NAME") || "SS") + "_#{key}"
+        end
+        env_file_path = File.join(env_dir, key)
+        FileUtils.rm_f env_file_path
+        status = status ? true : (File.exists?(env_file_path) ? false : true) 
       end
-      env_file_path = File.join(env_dir, key)
-      FileUtils.rm_f env_file_path
-      File.exists?(env_file_path) ? false : true
+      status
     end
     
     # Public: Add broker authorization keys so gear can communicate with 
