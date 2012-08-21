@@ -37,6 +37,7 @@ Requires:  stickshift-abstract
 Requires:  rubygem-passenger-native
 Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}
+BuildRequires: systemd-units
 Requires:  systemd-units
 %endif
 BuildArch: noarch
