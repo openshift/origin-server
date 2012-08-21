@@ -55,6 +55,7 @@ then
     error "Can not move mysql without OPENSHIFT_DB_PASSWORD" 188
 else
 
+OPENSHIFT_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
 start_db
 
     echo "

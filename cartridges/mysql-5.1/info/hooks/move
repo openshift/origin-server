@@ -61,6 +61,7 @@ fi
 
 # Create simple mysql start / stop script
 ln -sf $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
+OPENSHIFT_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
 
 #
 # Fix permissions

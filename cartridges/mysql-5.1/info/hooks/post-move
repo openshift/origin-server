@@ -40,7 +40,8 @@ IP=$OPENSHIFT_INTERNAL_IP
 . $APP_HOME/.env/OPENSHIFT_DB_PORT
 . $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_DB_USERNAME
-    
+
+OPENSHIFT_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
 start_db
 
     echo "
