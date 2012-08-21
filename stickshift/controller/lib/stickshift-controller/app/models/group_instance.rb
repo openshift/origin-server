@@ -21,6 +21,13 @@ class GroupInstance < StickShift::Model
     self.max = -1
   end
 
+  def self.get(app, id)
+    app.group_instances.each do |ginst|
+      return ginst if ginst.uuid == id
+    end if app.group_instances
+    return nil
+  end
+
   def merge_inst(ginst)
     reused = [self.name, self.cart_name, self.profile_name, self.group_name]
     self.reused_by << reused
