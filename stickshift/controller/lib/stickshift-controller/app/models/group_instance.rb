@@ -110,12 +110,12 @@ class GroupInstance < StickShift::Model
     gear.destroy
   end
 
-  def set_quota(storage_in_gb, inodes, gear_list = nil)
+  def set_quota(storage_in_gb, inodes=nil, gear_list=nil)
     reply = ResultIO.new
     tag = ""
     previous_fs_gb = @addtl_fs_gb
     gear_list = @gears if gear_list.nil?
-    
+
     handle = RemoteJob.create_parallel_job
     RemoteJob.run_parallel_on_gears(gear_list, handle) { |exec_handle, gear|
       job = gear.gear_quota_job_update(storage_in_gb, inodes)
@@ -129,14 +129,15 @@ class GroupInstance < StickShift::Model
         @gears.each { |gi_gear|
           if gi_gear.uuid == gear_uuid
             # :end usage event for previous quota
-            unless @addtl_fs_gb.nil?
+            unless previous_fs_gb.nil? || previous_fs_gb == 0
               @addtl_fs_gb = previous_fs_gb
-              app.track_usage(gi_gear, UsageRecord::EVENTS[:end], usage_type=UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+              app.track_usage(gi_gear, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb])
             end
-            
+
             # :begin usage event for new quota
-            @addtl_fs_gb = storage_in_gb - get_cached_min_storage_in_gb()
-            app.track_usage(gi_gear, UsageRecord::EVENTS[:begin], usage_type=UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+            @addtl_fs_gb = storage_in_gb - get_cached_min_storage_in_gb
+
+            app.track_usage(gi_gear, UsageRecord::EVENTS[:begin], UsageRecord::USAGE_TYPES[:addtl_fs_gb]) if @addtl_fs_gb > 0
             break
           end
         }      
@@ -146,12 +147,12 @@ class GroupInstance < StickShift::Model
     reply
   end
   
-  def get_quota()
+  def get_quota
     additional_storage = @addtl_fs_gb.nil? ? 0 : Integer(@addtl_fs_gb)
-    return { :storage => additional_storage + get_cached_min_storage_in_gb() }
+    return { :storage => additional_storage + get_cached_min_storage_in_gb }
   end
 
-  def get_cached_min_storage_in_gb()
+  def get_cached_min_storage_in_gb
     if @gears.nil? or @gears.length == 0
       return 1
     else
