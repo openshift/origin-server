@@ -1,16 +1,23 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname uplift-bind-plugin
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%global gem_name uplift-bind-plugin
+
+%if 0%{?rhel} <= 6 && 0%{?fedora} <= 16
+
+%global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}
+%global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}
+%global gem_cache %{gem_dir}/cache/%{gem_name}-%{version}.gem 
+%global gem_spec %{gem_dir}/specifications/%{gem_name}-%{version}.gemspec 
+
+%endif #end rhel <= 6 && fedora <= 16
 
 Summary:        Uplift plugin for BIND service
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) >= 1.9
 Requires:       rubygems
@@ -23,47 +30,56 @@ Requires:       stickshift-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
 
+%if 0%{?rhel} <= 6 || 0%{?fedora} <= 16
+Requires:       ruby(abi) = 1.8
+%endif
+%if 0%{?fedora} >= 17
+Requires:       ruby(abi) = 1.9.1
+BuildRequires:  rubygems-devel
+%endif
+
 BuildRequires:  ruby
 BuildRequires:  rubygems
-BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
 
-%package -n ruby-%{gemname}
-Summary:        Uplift plugin for Bind service
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
+BuildArch:      noarch
+
+Provides:       rubygem(%{gem_name}) = %version
 
 %description
-Provides a Bind DNS service based plugin
-
-%description -n ruby-%{gemname}
 Provides a Bind DNS service based plugin
 
 %prep
 %setup -q
 
 %build
+mkdir -p ./%{gem_dir}
+
+# Create the gem as gem install only works on a gem file
+gem build %{gem_name}.gemspec
+
+export CONFIGURE_ARGS="--with-cflags='%{optflags}'"
+# gem install compiles any C extensions and installs into a directory
+# We set that to be a local directory so that we can move it into the
+# buildroot in %%install
+gem install -V \
+        --local \
+        --install-dir ./%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force \
+        --rdoc \
+        %{gem_name}-%{version}.gem
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
-
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
-
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{gem_dir}
+cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 # Add documents/examples
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
 # Compile SELinux policy
-mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin
-cp %{buildroot}%{gemdir}/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
+mkdir -p %{buildroot}%{_prefix}/share/selinux/packages/%{name}
+cp %{buildroot}%{gem_dir}/gems/%{gem_name}-%{version}/doc/examples/dhcpnamedforward.* %{buildroot}%{_prefix}/share/selinux/packages/%{name}/
 
 %post
 
@@ -81,17 +97,14 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc %{_docdir}/%{name}-%{version}
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/usr/share/selinux/packages/rubygem-uplift-bind-plugin
+%doc %{gem_instdir}/Gemfile
+%{gem_dir}/doc/%{gem_name}-%{version}
+%{gem_dir}/gems/%{gem_name}-%{version}
+%{gem_dir}/cache/%{gem_name}-%{version}.gem
+%{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+%dir %{_prefix}/share/selinux/packages/%{name}
+%{_prefix}/share/selinux/packages/%{name}/*
 
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
 
 %changelog
 * Thu Aug 30 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.7-1
