@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin Broker
 Name:           openshift-origin-broker
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -153,6 +153,27 @@ rm -rf %{buildroot}
 %attr(0700,-,-) /usr/libexec/openshift-origin-broker/bin/ss-setup-bind
 
 %changelog
+* Tue Aug 21 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.3-1
+- Removing gateway config for internal device since it causes default route to
+  be setup incorrectly (kraman@gmail.com)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+- OSS build fixes (kraman@gmail.com)
+- specifying the full path of the ip command in its invocation
+  (abhgupta@redhat.com)
+- Removing requirement to disable NetworkManager so that liveinst works Adding
+  initial support for dual interfaces Adding "xhost +" so that liveinst can
+  continue to work after hostname change to broker.example.com Added delay
+  befor launching firefox so that network is stable Added rndc key generation
+  for Bind Dns plugin instead of hardcoding it (kraman@gmail.com)
+- Adding new repo for rhc updates Removing cond restart from stickshift-proxy
+  spec file as it causes livecd build to fail Adding qpid-cpp-server to
+  openshift-origin-broker dependencies (kraman@gmail.com)
+
 * Thu Jul 05 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
   gearchanger plugin - Added mcollective agent and facter plugins - Added
