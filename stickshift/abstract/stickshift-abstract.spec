@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.15.6
+Version: 0.15.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.15.7-1
+- support for removing app local environment variables (rchopra@redhat.com)
+
 * Fri Aug 17 2012 Adam Miller <admiller@redhat.com> 0.15.6-1
 - Merge pull request #397 from rmillner/apachectl (openshift+bot@redhat.com)
 - Fedora 17 does away with the init script method of calling configtest and
