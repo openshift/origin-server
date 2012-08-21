@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.5
+Version: 0.2.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.2.6-1
+- fix for Bug 849035 - env vars should be removed for app when db cartridge is
+  removed (rchopra@redhat.com)
+- support for removing app local environment variables (rchopra@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.2.5-1
 - Merge pull request #380 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
 - adding rest api to fetch and update quota on gear group (abhgupta@redhat.com)
