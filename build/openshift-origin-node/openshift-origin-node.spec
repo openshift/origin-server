@@ -1,6 +1,6 @@
 Summary:        OpenShift Origin Node
 Name:           openshift-origin-node
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/System
 License:        ASL 2.0
@@ -167,6 +167,34 @@ semodule -r stickshift
 rm -rf %{buildroot}                                
 
 %changelog
+* Tue Aug 21 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.3-1
+- remove dhcp assumption from %%post and leave that to scripts
+  (lmeyer@redhat.com)
+- adding not-origin tag to postgres cucumber feature and specifying complete
+  path for ip program (abhgupta@redhat.com)
+- Removing gateway config for internal device since it causes default route to
+  be setup incorrectly (kraman@gmail.com)
+- Merge pull request #317 from CodeBlock/patch-2 (kraman@gmail.com)
+- Add nano and emacs-nox to openshift-origin-node (ricky@elrod.me)
+- setup broker/nod script fixes for static IP and custom ethernet devices add
+  support for configuring different domain suffix (other than example.com)
+  Fixing dependency to qpid library (causes fedora package conflict) Make
+  livecd start faster by doing static configuration during cd build rather than
+  startup Fixes some selinux policy errors which prevented scaled apps from
+  starting (kraman@gmail.com)
+- Restart network on node during setup (kraman@gmail.com)
+- Merge pull request #294 from kraman/dev/kraman/features/origin
+  (kraman@gmail.com)
+- OSS build fixes (kraman@gmail.com)
+- Fix for BZ841681. (mpatel@redhat.com)
+- Removing requirement to disable NetworkManager so that liveinst works Adding
+  initial support for dual interfaces Adding "xhost +" so that liveinst can
+  continue to work after hostname change to broker.example.com Added delay
+  befor launching firefox so that network is stable Added rndc key generation
+  for Bind Dns plugin instead of hardcoding it (kraman@gmail.com)
+- Bugz# 834547. Added gear management commands to start/stop all gears on the
+  node (kraman@gmail.com)
+
 * Thu Jul 05 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
   gearchanger plugin - Added mcollective agent and facter plugins - Added
