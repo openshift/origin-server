@@ -85,18 +85,30 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_has_exit_code
     a = RestApi::Base.new
-    a.errors.instance_variable_set(:@codes, {:a => ['1']})
+    a.errors.instance_variable_set(:@codes, {:a => [1]})
     assert a.has_exit_code? 1
     assert a.has_exit_code? 1, :on => 'a'
     assert a.has_exit_code? 1, :on => :a
     assert !a.has_exit_code?(1, :on => :b)
 
-    a.errors.instance_variable_set(:@codes, {:a => ['1','2']})
+    a.errors.instance_variable_set(:@codes, {:a => [1,2]})
     assert a.has_exit_code? 1
     assert a.has_exit_code? 2
     assert a.has_exit_code? 1, :on => 'a'
     assert a.has_exit_code? 1, :on => :a
     assert !a.has_exit_code?(1, :on => :b)
+  end
+
+  def test_raise_correct_invalid
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 1, 'text' => 'bar'}], :data => nil}.to_json, 500
+    end
+    assert_raise(ActiveResource::ResourceInvalid){ Domain.new(:id => 'a', :as => @user).save! }
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains.json', json_header(true), {:messages => [{:field => 'foo', :exit_code => 103, 'text' => 'bar'}], :data => nil}.to_json, 500
+    end
+    assert_raise(Domain::AlreadyExists){ Domain.new(:id => 'a', :as => @user).save! }
   end
 
   def test_has_exit_code_real

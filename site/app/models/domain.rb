@@ -7,6 +7,10 @@ class Domain < RestApi::Base
     string :suffix
   end
 
+  on_exit_code(102, :on_invalid => (Domain::UserAlreadyHasDomain = Class.new(ActiveResource::ResourceInvalid)))
+  on_exit_code(158, :on_invalid =>  Domain::UserAlreadyHasDomain)
+  on_exit_code(103, :on_invalid => (Domain::AlreadyExists = Class.new(ActiveResource::ResourceInvalid)))
+
   custom_id :id, true # domain id is mutable, FIXME rename method to primary_key
   alias_attribute :name, :id
 

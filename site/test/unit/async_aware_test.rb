@@ -43,4 +43,8 @@ class AsyncAwareTest < ActiveSupport::TestCase
     assert_raise(A){ result obj.join! }
     assert_equal 1, Thread.list.size
   end
+  test "join on thread expiration returns timeout" do
+    obj.async{ sleep(1) }
+    assert_raise(AsyncAware::ThreadTimedOut){ obj.join!(0.01) }
+  end
 end

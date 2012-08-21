@@ -235,6 +235,18 @@ module RestApi
       end
     end
 
+    def raise_on_invalid
+      (errors.instance_variable_get(:@codes) || {}).values.flatten(1).compact.uniq.each do |code|
+        exc = self.class.exception_for_code(code, :on_invalid)
+        raise exc.new(self) if exc
+      end
+      raise(ActiveResource::ResourceInvalid.new(self))
+    end
+
+    def save!
+      save || raise_on_invalid
+    end
+
     def save_with_change_tracking(*args, &block)
       @previously_changed = changes # track changes
       save_without_change_tracking(*args, &block).tap do |valid|
@@ -407,7 +419,7 @@ module RestApi
         response = remote_errors.response
         begin
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
-            self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
+            self.class.translate_api_error(errors, (m['exit_code'].to_i rescue m['exit_code']), m['field'], m['text'])
           end
           Rails.logger.debug "Found errors on the response object: #{errors.inspect}"
           duplicate_errors
@@ -437,7 +449,6 @@ module RestApi
     end
     def has_exit_code?(code, opts=nil)
       codes = errors.instance_variable_get(:@codes) || {}
-      code = code.to_s
       if opts && opts[:on]
         (codes[opts[:on].to_sym] || []).include? code
       else
@@ -453,6 +464,7 @@ module RestApi
         Rails.logger.debug "  Server error: :#{field} \##{code}: #{text}"
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
+          handler = handler[:raise] if Hash === handler
           case handler
           when Proc then return if handler.call errors, code, field, text
           when Class then raise handler, text
@@ -464,7 +476,14 @@ module RestApi
 
         codes = errors.instance_variable_get(:@codes)
         codes = errors.instance_variable_set(:@codes, {}) unless codes
-        (codes[field] ||= []).push(code.to_s)
+        (codes[field] ||= []).push(code)
+      end
+      def exception_for_code(code, type=nil)
+        if @exit_code_conditions
+          handler = @exit_code_conditions[code]
+          handler = handler[type] if type && Hash === handler
+          handler
+        end
       end
     end
 
