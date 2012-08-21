@@ -288,6 +288,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           raise StickShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
         end
       end
+      user.applications = [] unless user.applications
       user.applications << self
       Rails.logger.debug "Creating gears"
       group_instances.uniq.each do |ginst|
