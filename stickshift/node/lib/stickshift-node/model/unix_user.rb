@@ -541,7 +541,8 @@ module StickShift
     # Private: Kill all processes for a given gear
     #
     # Kill all processes owned by the uid or uuid.
-    # Graceful shutdown first, then forcibly.
+    # No reason for graceful shutdown first, the directories and user are going
+    #   to be removed from the system.
     #
     # Examples:
     # kill_gear_procs
@@ -555,9 +556,8 @@ module StickShift
         raise ArgumentError, "Supplied ID must be a user name or uid."
       end
 
-      sig="KILL"
       10.times do |i|
-        out,err,rc = shellCmd(%{/usr/bin/killall -s '#{sig}' -u '#{id}' 2> /dev/null})
+        out,err,rc = shellCmd(%{/usr/bin/killall -s 'KILL' -u '#{id}' 2> /dev/null})
         break unless rc == 0
         sleep 0.5
       end
