@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.2.6
+Version: 0.2.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.2.7-1
+- Merge pull request #417 from danmcp/master (openshift+bot@redhat.com)
+- more ctl usage test cases and related fixes (dmcphers@redhat.com)
+
 * Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.2.6-1
 - fix for Bug 849035 - env vars should be removed for app when db cartridge is
   removed (rchopra@redhat.com)
