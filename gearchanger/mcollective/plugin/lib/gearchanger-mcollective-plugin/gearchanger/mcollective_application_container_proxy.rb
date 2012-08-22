@@ -107,7 +107,7 @@ module GearChanger
         args['--uuid']   = gear.uuid
         # quota command acts on 1K blocks
         args['--blocks'] = storage_in_gb * 1024 * 1024
-        args['--inodes'] = inodes unless inodes.to_s.empty?
+        args['--inodes'] = inodes unless inodes.nil?
         reply = execute_direct(@@C_CONTROLLER, 'set-quota', args, false)
 
         output = nil

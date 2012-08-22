@@ -29,7 +29,7 @@ class Gear < StickShift::Model
         self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
-        self.app.group_instance_map[self.group_instance_name].gears << self
+        self.group_instance.gears << self
         self.app.save
         ret = self.container.create(app,self)
         self.app.track_usage(self, UsageRecord::EVENTS[:begin]) if ret.exitcode == 0
@@ -48,7 +48,7 @@ class Gear < StickShift::Model
         rescue Exception => e
         end
         self.app.ngears -= 1
-        self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+        self.group_instance.gears.delete(self)
         self.app.save
         raise StickShift::NodeException.new("Unable to create gear on node", 1, ret)
       end
@@ -63,7 +63,7 @@ class Gear < StickShift::Model
       self.app.destroyed_gears << @uuid
       track_destroy_usage
       self.app.ngears -= 1
-      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+      self.group_instance.gears.delete(self)
       app.process_cartridge_commands(ret)
       self.app.save
     else
@@ -83,7 +83,7 @@ class Gear < StickShift::Model
       track_destroy_usage
     ensure
       self.app.ngears -= 1
-      self.app.group_instance_map[self.group_instance_name].gears.delete(self)
+      self.group_instance.gears.delete(self)
       self.app.save
     end
   end
@@ -261,8 +261,8 @@ class Gear < StickShift::Model
   end
   
   def cartridges
-    group_instance = app.group_instance_map[group_instance_name]
-    carts = group_instance.component_instances.map{ |comp_instance_name| app.comp_instance_map[comp_instance_name].parent_cart_name }
+    gi = group_instance
+    carts = gi.component_instances.map{ |comp_instance_name| app.comp_instance_map[comp_instance_name].parent_cart_name }
     carts.delete(app.name)
     carts
   end
@@ -286,7 +286,7 @@ class Gear < StickShift::Model
 
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     results = []
-    gi = self.app.group_instance_map[self.group_instance_name]
+    gi = group_instance
     contains_proxy = false
     contains_framework = false    
     contains_mysql = false
@@ -324,7 +324,7 @@ private
 
   def track_destroy_usage
     self.app.track_usage(self, UsageRecord::EVENTS[:end])
-    if self.group_instance.addtl_fs_gb
+    if self.group_instance.addtl_fs_gb && self.group_instance.addtl_fs_gb > 0
       self.app.track_usage(self, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb])
     end
   end
