@@ -37,13 +37,31 @@ getaddr() {
     ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
 }
 
+atomicfg() {
+    cfg_old="${cfgfile}"
+    cfgfile="${cfgfile}.editing"
+
+    rm -f "${cfgfile}"
+    cp -a -f "${cfg_old}" "${cfgfile}"
+
+    "$@"
+    retval=$?
+
+    rm -f "${cfg_old}.bak"
+    ln -f "${cfg_old}" "${cfg_old}.bak"
+    mv -f "${cfgfile}" "${cfg_old}"
+    cfgfile="${cfg_old}"
+
+    return $retval
+}
+
 rollcfg() {
     if ! is_running
     then
         if ! restart
         then
             echo "Error: Proxy has failed"
-            exit 1
+            return 1
         fi
     fi
 
@@ -58,15 +76,22 @@ rollcfg() {
     
     if ! reload
     then
-        echo "stickshift-proxy failed to start"
+        echo "stickshift-proxy failed to reload"
         return 1
     fi
 
     # Wait for the old PID to terminate
     if [ "$oldpid" ]
     then
+        iters=0
         while ps $oldpid &>/dev/null
         do
+            iters=$(( $iters + 1 ))
+            if [ $iters -gt 60 ]
+            then
+                kill $oldpid
+                usleep 500000
+            fi
             usleep 500000
         done
     fi
@@ -76,20 +101,48 @@ rollcfg() {
 
 
 lockwrap() {
-    lockfile ${cfgfile}.lock
+    exec 200>${cfgfile}.lock 201>${cfgfile}.reload.lock
+    flock 200
     oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
     "$@"
     retcode=$?
+    newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+    flock -u 200
     if [ $retcode != 0 ]; then
         echo "Error: Failed to update proxy."
     else
-        newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
         if [ $oldsum != $newsum ]; then
-            rollcfg
-            retcode=$?
+            reqfile=$(mktemp ${cfgfile}.reload.req.XXXXXX)
+            flock 201
+
+            reloadreq=()
+            reloadit=""
+            for f in ${cfgfile}.reload.req.??????
+            do
+                s=$(stat --printf '%s' "$f" )
+                if [ $s -eq 0 ]
+                then
+                    reloadreq=( "${reloadreq[@]}" "$f" )
+                    reloadit="1"
+                fi
+            done
+
+            if [ "$reloadit" ]
+            then
+                rollcfg
+                retcode=$?
+
+                for f in "${reloadreq[@]}"
+                do
+                    echo "$retcode" > "$f"
+                done
+            fi
+
+            retcode=$(cat "$reqfile")
+            rm -f $reqfile
+            flock -u 201
         fi
     fi
-    rm -f ${cfgfile}.lock
     return $retcode
 }
 
@@ -175,7 +228,7 @@ case "$1" in
         ;;
     setproxy)
         shift
-        lockwrap setproxies "$@"
+        lockwrap atomicfg setproxies "$@"
         ;;
     showproxy)
         shift
