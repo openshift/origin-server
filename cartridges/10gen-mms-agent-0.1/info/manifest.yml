@@ -12,6 +12,9 @@ Website: https://mms.10gen.com/
 Help-Topics:
   "MMS Manual": https://mms.10gen.com/help/
 Cart-Data:
+  - Key: connection_url
+    Type: cart_data
+    Description: "10gen-mms-agent-0.1 connection URL"
 Suggests:
     -
 Provides:

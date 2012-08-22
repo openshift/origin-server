@@ -4,6 +4,16 @@ Description: Administer MySQL database over the web
 Version: 1.1.0
 License: ASL 2.0
 Vendor:
+Cart-Data:
+  - Key: "username"
+    Type: cart_data
+    Description: "Admin user on phpmyadmin interface"
+  - Key: "password"
+    Type: cart_data
+    Description: "Password for admin user on phpmyadmin interface"
+  - Key: connection_url
+    Type: cart_data
+    Description: "phpMyAdmin connection URL"
 Provides:
   - "phpmyadmin"
 Requires: 
