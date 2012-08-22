@@ -27,7 +27,14 @@ reload() {
 }
 
 getpid() {
-    cat /var/run/stickshift-proxy.pid 
+    for pidf in /var/run/stickshift-proxy.pid /run/stickshift-proxy.pid
+    do
+        if [ -e "$pidf" ]
+        then
+            cat "$pidf"
+            return
+        fi
+    done
 }
 ###
 
