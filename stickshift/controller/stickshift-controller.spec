@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.15.10
+Version: 0.15.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.15.11-1
+- resolve merge conflicts (rpenta@redhat.com)
+- Merge pull request #417 from danmcp/master (openshift+bot@redhat.com)
+- more ctl usage test cases and related fixes (dmcphers@redhat.com)
+
 * Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.15.10-1
 - cleanup based on test case additions (dmcphers@redhat.com)
 - Merge pull request #409 from rajatchopra/master (openshift+bot@redhat.com)
