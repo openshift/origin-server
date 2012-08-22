@@ -7,34 +7,29 @@ class EmbCartController < BaseController
   def index
     domain_id = params[:domain_id]
     id = params[:application_id]
+
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "LIST_APP_CARTRIDGES") if !domain || !domain.hasAccess?(@cloud_user)
+
     Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
     application = Application.find(@cloud_user,id)
-    if application.nil?
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APP_CARTRIDGES", false, "Application '#{id}' not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
-    end
-    cartridges = Array.new
-    if $requested_api_version >= 1.1
-      cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nolinks))
-    end
+    return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
+                        101, "LIST_APP_CARTRIDGES") unless application
 
-    unless application.embedded.nil?
-      application.embedded.each_key do |key|
-        if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
-        else
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
-        end
-        cartridges.push(cartridge)
+    cartridges = Array.new
+    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nolinks)) if $requested_api_version >= 1.1
+
+    application.embedded.each_key do |key|
+      if $requested_api_version >= 1.1
+        cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+      else
+        cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
       end
-    end
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_APP_CARTRIDGES", true, "Listing cartridges for application #{id} under domain #{domain_id}")
-    @reply = RestReply.new(:ok, "cartridges", cartridges)
-    respond_with @reply, :status => @reply.status
+      cartridges.push(cartridge)
+    end if application.embedded
+    render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES",
+                   "Listing cartridges for application #{id} under domain #{domain_id}")
   end
   
   # GET /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
@@ -42,38 +37,29 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     application_id = params[:application_id]
     id = params[:id]
+
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
+
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
     application = Application.find(@cloud_user,application_id)
-    if application.nil?
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", false, "Application '#{id}' not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
-    end
+    return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'",
+                        101, "SHOW_APP_CARTRIDGE") if !application
     
-    unless application.embedded.nil?
-      application.embedded.each do |key, value|
-        if key == id
-          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", true, "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
-
-          if $requested_api_version >= 1.1
-            cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
-          else
-            cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
-          end
-          @reply = RestReply.new(:ok, "cartridge", cartridge)
-          respond_with @reply, :status => @reply.status
-          return
+    application.embedded.each do |key, value|
+      if key == id
+        if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+        else
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
         end
+        return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE",
+               "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
       end
-    end
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_APP_CARTRIDGE", false, "Cartridge #{id} not found for application #{application_id}")
-    @reply = RestReply.new(:not_found)
-    message = Message.new(:error, "Cartridge not found for application #{application_id}.", 129)
-    @reply.messages.push(message)
-    respond_with @reply, :status => @reply.status
+    end if application.embedded
+    render_error(:not_found, "Cartridge #{id} not found for application #{application_id}",
+                 129, "SHOW_APP_CARTRIDGE")
   end
 
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
@@ -82,117 +68,72 @@ class EmbCartController < BaseController
     id = params[:application_id]
 
     name = params[:name]
-    if name.nil?
-      # :cartridge param is deprecated because it isn't consistent with
-      # the rest of the apis which take :name. Leave it here because
-      # some tools may still use it
-      name = params[:cartridge]
-    end
+    # :cartridge param is deprecated because it isn't consistent with
+    # the rest of the apis which take :name. Leave it here because
+    # some tools may still use it
+    name = params[:cartridge] unless name
     colocate_with = params[:colocate_with]
 
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "EMBED_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
+
     application = Application.find(@cloud_user,id)
-    if(application.nil?)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Application #{id} not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
-    end
+    return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
+                        101, "EMBED_CARTRIDGE") unless application
+
     begin
       #container = StickShift::ApplicationContainerProxy.find_available(application.server_identity)
       container = StickShift::ApplicationContainerProxy.find_available(nil)
       if not check_cartridge_type(name, container, "embedded")
-        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Invalid cartridge '#{name}'")
-        @reply = RestReply.new( :bad_request)
         carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
-        Application.get_available_cartridges("embedded")}
-        message = Message.new(:error, "Invalid cartridge.  Valid values are (#{carts.join(', ')})",109,"cartridge") 
-        @reply.messages.push(message)
-        respond_with @reply, :status => @reply.status
-        return
+                           Application.get_available_cartridges("embedded")}
+        return render_error(:bad_request, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
+                            109, "EMBED_CARTRIDGE", "cartridge")
       end
-    rescue StickShift::NodeException => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. NodeException: #{e.message}")
-      @reply = RestReply.new(:service_unavailable)
-      message = Message.new(:error, e.message, e.code) 
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
     rescue Exception => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, e.message) 
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
+      return render_exception(e, "EMBED_CARTRIDGE")
     end
     
-    if application.scalable && colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Reached gear limit of #{@cloud_user.max_gears}")
-      @reply = RestReply.new(:unprocessable_entity)
-      message = Message.new(:error, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
+    #TODO: Need a proper method to let us know if cart will get its own gear
+    if application.scalable && colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'
+      return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
+                          104, "EMBED_CARTRIDGE")
     end
 
     cart_create_reply = ""
     begin
-      if not colocate_with.nil?
-        application.add_group_override(name, colocate_with)
-      end
+      application.add_group_override(name, colocate_with) if colocate_with
       cart_create_reply = application.add_dependency(name)
-    rescue StickShift::UserException => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{e.message}")
-      @reply = RestReply.new(:unprocessable_entity)
-      message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
-    rescue Exception => e
-      Rails.logger.error e
-      @reply = RestReply.new(:internal_server_error)
-      if e.class==StickShift::NodeException 
-        if !e.resultIO.nil? && !e.resultIO.errorIO.nil?
-          message = Message.new(:error, e.resultIO.errorIO.string.strip, e.resultIO.exitcode, "cartridge")
-        else
-          message = Message.new(:error, "Failed to add #{name} to application #{id} : #{e.message}", e.code)
-        end
+    rescue StickShift::NodeException => e
+      if !e.resultIO.nil? && !e.resultIO.errorIO.nil?
+        return render_error(:internal_server_error, e.resultIO.errorIO.string.strip, e.resultIO.exitcode,
+                            "EMBED_CARTRIDGE", "cartridge")
       else
-        message = Message.new(:error, "Failed to add #{name} to application #{id} due to #{e.message}.")
+        return render_exception(e, "EMBED_CARTRIDGE")
       end
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Failed to embed cartridge #{name} in application #{id}. Exception: #{message.text}")
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
+    rescue Exception => e
+      return render_exception(e, "EMBED_CARTRIDGE")
     end
 
     application = Application.find(@cloud_user,id)
 
-    unless application.embedded.nil?
-      application.embedded.each do |key, value|
-        if key == name
-          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", true, "Embedded cartridge #{name} in application #{id}")
-          if $requested_api_version >= 1.1
-            cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
-          else
-            cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
-          end
-          @reply = RestReply.new(:created, "cartridge", cartridge)
-          message = Message.new(:info, "Added #{name} to application #{id}")
-          @reply.messages.push(message)
-          message = Message.new(:info, cart_create_reply.resultIO.string, 0, :result)
-          @reply.messages.push(message)
-          message = Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo)
-          @reply.messages.push(message)
-
-          respond_with @reply, :status => @reply.status
-          return
+    application.embedded.each do |key, value|
+      if key == name
+        if $requested_api_version >= 1.1
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+        else
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
         end
+        messages = []
+        messages.push(Message.new(:info, "Added #{name} to application #{id}"))
+        messages.push(Message.new(:info, cart_create_reply.resultIO.string, 0, :result))
+        messages.push(Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo))
+        return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", nil, nil, nil, messages)
+
       end
-    end
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "EMBED_CARTRIDGE", false, "Cartridge #{name} not embedded within application #{id}")
+    end if application.embedded
+    render_error(:internal_server_error, "Cartridge #{name} not embedded within application #{id}", nil, "EMBED_CARTRIDGE")
   end
 
   # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
@@ -200,56 +141,27 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     id = params[:application_id]
     cartridge = params[:id]
+
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
+                               "REMOVE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
+
     application = Application.find(@cloud_user,id)
-    if(application.nil?)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Application #{id} not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with(@reply) do |format|
-         format.xml { render :xml => @reply, :status => @reply.status }
-         format.json { render :json => @reply, :status => @reply.status }
-      end
-      return
-    end
+    return render_format_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
+                               101, "REMOVE_CARTRIDGE") unless application
     
-    if application.embedded.nil? or not application.embedded.has_key?(cartridge)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Cartridge #{cartridge} not embedded within application #{id}")
-      @reply = RestReply.new( :bad_request)
-      message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
-      @reply.messages.push(message)
-      respond_with(@reply) do |format|
-         format.xml { render :xml => @reply, :status => @reply.status }
-         format.json { render :json => @reply, :status => @reply.status }
-      end
-      return
-    end
+    return render_format_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
+                               129, "REMOVE_CARTRIDGE") if !application.embedded or !application.embedded.has_key?(cartridge)
 
     begin
       Rails.logger.debug "Removing #{cartridge} from application #{id}"
       application.remove_dependency(cartridge)
     rescue Exception => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", false, "Failed to remove cartridge #{cartridge} from application #{id}: #{e.message}")
-      @reply = RestReply.new(:internal_server_error)
-      error_code = e.respond_to?('code') ? e.code : 1
-      message = Message.new(:error, "Failed to remove #{cartridge} from application #{id} due to:#{e.message}", error_code) 
-      @reply.messages.push(message)
-      respond_with(@reply) do |format|
-         format.xml { render :xml => @reply, :status => @reply.status }
-         format.json { render :json => @reply, :status => @reply.status }
-      end
-      return
+      return render_format_exception(e, "REMOVE_CARTRIDGE")
     end
       
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "REMOVE_CARTRIDGE", true, "Cartridge #{cartridge} removed from application #{id}")
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url, nolinks)
-    @reply = RestReply.new(:ok, "application", app)
-    message = Message.new(:info, "Removed #{cartridge} from application #{id}")
-    @reply.messages.push(message)
-    respond_with(@reply) do |format|
-         format.xml { render :xml => @reply, :status => @reply.status }
-         format.json { render :json => @reply, :status => @reply.status }
-      end
+    render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
 end

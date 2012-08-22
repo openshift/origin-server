@@ -7,20 +7,17 @@ class GearGroupsController < BaseController
     domain_id = params[:domain_id]
     app_id = params[:application_id]
     
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "LIST_GEAR_GROUPS") if !domain || !domain.hasAccess?(@cloud_user)
+
     app = Application.find(@cloud_user,app_id)
+    return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
+                        101, "LIST_GEAR_GROUPS") unless app
     
-    if app.nil?
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEAR_GROUPS", false, "Application '#{app_id}' for domain '#{domain_id}' not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-    else
-      gear_states = app.show_state()
-      group_instances = app.group_instances.map{ |group_inst| RestGearGroup.new(group_inst, gear_states, get_url, nolinks)}
-      @reply = RestReply.new(:ok, "gear_groups", group_instances)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEAR_GROUPS", true, "Showing gear groups for application '#{app_id}' with domain '#{domain_id}'")
-      respond_with @reply, :status => @reply.status
-    end
+    gear_states = app.show_state()
+    group_instances = app.group_instances.map{ |group_inst| RestGearGroup.new(group_inst, gear_states, get_url, nolinks)}
+    render_success(:ok, "gear_groups", group_instances, "LIST_GEAR_GROUPS",
+                   "Showing gear groups for application '#{app_id}' with domain '#{domain_id}'")
   end
 end
