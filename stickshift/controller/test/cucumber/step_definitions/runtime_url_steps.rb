@@ -15,3 +15,9 @@ Then /^the web console for the phpmyadmin\-([\d\.]+) cartridge is( not)? accessi
     Then the web console for the phpmyadmin-#{version} cartridge at /js/sql.js is#{negate} accessible
   }
 end
+
+Then /^the web console for the phpmoadmin\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
+  steps %Q{
+    Then the web console for the phpmoadmin-#{version} cartridge at / is#{negate} accessible
+  }
+end
