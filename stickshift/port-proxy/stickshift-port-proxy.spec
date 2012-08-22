@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.1.3
+Version: 0.1.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -61,6 +61,12 @@ fi
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.1.4-1
+- BZ 848500: Isolate hiccups during editing. (rmillner@redhat.com)
+- Coalesce the reload requests and force reload to finish after 30 seconds.
+  Use flock instead of lockfile so locks die if the script does.
+  (rmillner@redhat.com)
+
 * Thu Aug 09 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Restart proxy if its been stopped. (rmillner@redhat.com)
 - BZ 845332: Separate out configuration file management from the init script so
