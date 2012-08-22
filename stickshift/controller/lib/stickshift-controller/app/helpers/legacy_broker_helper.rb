@@ -27,8 +27,4 @@ module LegacyBrokerHelper
     end
     return true
   end
-  
-  def get_cloud_user_info(cloud_user)
-    cloud_user || { :uuid  => 0, :login => 'anonymous' }
-  end
 end
