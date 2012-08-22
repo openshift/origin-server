@@ -6,16 +6,16 @@ class GearsController < BaseController
   def show
     domain_id = params[:domain_id]
     app_id = params[:application_id]
-    
+
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "LIST_GEARS") if !domain || !domain.hasAccess?(@cloud_user)
+
     app = Application.find(@cloud_user,app_id)
-    
-    if app.nil?
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEARS", false, "Application '#{app_id}' for domain '#{domain_id}' not found")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-    else
+    return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
+                        101, "LIST_GEARS") unless app
+   
+    begin 
       app_gears_info = []
       gears = app.group_instances.uniq.map{ |ginst| ginst.gears }.flatten
 
@@ -23,6 +23,7 @@ class GearsController < BaseController
       rx1 = Regexp.new(/^PROXY_HOST=(.*)/)
       rx2 = Regexp.new(/^PROXY_PORT=(.*)/)
       rx3 = Regexp.new(/^PORT=(.*)/)
+
       gears.each do |gear|
         comp_list = []
         gear.configured_components.each do |cname|
@@ -49,21 +50,19 @@ class GearsController < BaseController
                        'proxy_port' => proxy_port,
                        'internal_port' => internal_port
                       }
-          
           if comp_inst.cart_properties and comp_inst.cart_properties.length > 0
             comp_info = comp_inst.cart_properties.merge comp_info
           end
-
           comp_list.push comp_info
         end
 
         gear_info = RestGear.new(gear.uuid, comp_list)
         app_gears_info.push gear_info
       end
-
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_GEARS", true, "Showing gears for application '#{app_id}' for domain '#{domain_id}'")
-      @reply = RestReply.new(:ok, "gears", app_gears_info)
-      respond_with @reply, :status => @reply.status
+      render_success(:ok, "gears", app_gears_info, "LIST_GEARS",
+                     "Showing gears for application '#{app_id}' for domain '#{domain_id}'")
+    rescue Exception => e
+      return render_exception(e, "LIST_GEARS")
     end
   end
 end

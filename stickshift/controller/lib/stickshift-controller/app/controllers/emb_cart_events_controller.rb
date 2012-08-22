@@ -10,23 +10,15 @@ class EmbCartEventsController < BaseController
     cartridge = params[:cartridge_id]
     event = params[:event]
 
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "CARTRIDGE_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
+
     application = Application.find(@cloud_user,id)
-    if(application.nil?)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Application '#{id}' not found while processing event '#{event}' for cartridge '#{cartridge}'")
-      @reply = RestReply.new(:not_found)
-      message = Message.new(:error, "Application not found.", 101)
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
-    end
-    if application.embedded.nil? or not application.embedded.has_key?(cartridge)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Cartridge #{cartridge} not embedded within application '#{id}'")
-      @reply = RestReply.new( :bad_request)
-      message = Message.new(:error, "The application #{id} is not configured with this embedded cartridge.", 129) 
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status 
-      return
-    end
+    return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
+                        101, "CARTRIDGE_EVENT") unless application
+    return render_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
+                        129, "CARTRIDGE_EVENT") if !application.embedded or !application.embedded.has_key?(cartridge)
 
     begin
       case event
@@ -39,30 +31,15 @@ class EmbCartEventsController < BaseController
         when 'reload'
           application.reload(cartridge)
         else
-          log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'")
-          @reply = RestReply.new(:bad_request)
-          message = Message.new(:error, "Invalid event.  Valid values are start, stop, restart and reload.", 126)
-          @reply.messages.push(message)
-          respond_with @reply, :status => @reply.status   
-          return
+          return render_error(:bad_request, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'",
+                              126, "CARTRIDGE_EVENT")
       end
     rescue Exception => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", false, "Failed to add event #{event} on cartridge #{cartridge} for application #{id}: #{e.message}")
-      Rails.logger.error e
-      @reply = RestReply.new(:internal_server_error)
-      error_code = e.respond_to?('code') ? e.code : 1
-      message = Message.new(:error, "Failed to add event #{event} on cartridge #{cartridge} for application #{id} due to:#{e.message}", error_code) 
-      @reply.messages.push(message)
-      respond_with @reply, :status => @reply.status
-      return
+      return render_exception(e, "CARTRIDGE_EVENT")
     end
-    
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "CARTRIDGE_EVENT", true, "Added event #{event} on cartridge #{cartridge} for application #{id}")
+   
     application = Application.find(@cloud_user, id)
     app = RestApplication.new(application, get_url, nolinks)
-    @reply = RestReply.new(:ok, "application", app)
-    message = Message.new(:info, "Added #{event} on #{cartridge} for application #{id}")
-    @reply.messages.push(message)
-    respond_with @reply, :status => @reply.status
+    render_success(:ok, "application", app, "CARTRIDGE_EVENT", "Added #{event} on #{cartridge} for application #{id}", true) 
   end
 end

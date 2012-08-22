@@ -68,6 +68,13 @@ class Domain < StickShift::UserModel
     end    
   end
   
+  def self.get(user, id)
+    user.domains.each do |domain|
+      return domain if domain.namespace == id
+    end if user.domains
+    return nil
+  end
+
   def delete_dns
     dns_service = StickShift::DnsService.instance
     begin

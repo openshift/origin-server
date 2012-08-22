@@ -4,15 +4,14 @@ class EstimatesController < BaseController
 
   # GET /estimates
   def index
-    log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "LIST_ESTIMATES")
-    @reply = RestReply.new(:ok, "estimates", RestEstimates.new(get_url, nolinks))
-    respond_with @reply, :status => @reply.status
+    render_success(:ok, "estimates", RestEstimates.new(get_url, nolinks), "LIST_ESTIMATES")
   end
 
   # GET /estimates/<id>  
   def show
     obj = params[:id]
     descriptor = params[:descriptor]
+
     begin
       raise StickShift::EstimatesException.new("Invalid estimate object. Estimats only valid for objects: 'application'") if obj != "application"
       raise StickShift::EstimatesException.new("Application 'descriptor' NOT specified") if !descriptor
@@ -62,23 +61,11 @@ class EstimatesController < BaseController
         end
       end if app.group_instance_map
 
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE")
-      @reply = RestReply.new(:ok, "application_estimates", groups)
+      render_success(:ok, "application_estimates", groups, "SHOW_ESTIMATE")
     rescue StickShift::EstimatesException => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, e.message)
-      Rails.logger.error e
-      Rails.logger.debug e.backtrace.inspect
-      @reply = RestReply.new(:unprocessable_entity)
-      message = Message.new(:error, e.message, 130, "estimates")
-      @reply.messages.push(message)
+      return render_error(:unprocessable_entity, e.message, 130, "SHOW_ESTIMATE")
     rescue Exception => e
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Failed to estimate application's gear usage: #{e.message}")
-      Rails.logger.error e
-      Rails.logger.debug e.backtrace.inspect
-      @reply = RestReply.new(:internal_server_error)
-      message = Message.new(:error, "Failed to estimate gear usage of the application.", 131)
-      @reply.messages.push(message)
+      return render_exception(e, "SHOW_ESTIMATE")
     end
-    respond_with @reply, :status => @reply.status
   end
 end

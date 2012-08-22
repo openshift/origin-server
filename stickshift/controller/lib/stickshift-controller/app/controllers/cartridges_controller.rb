@@ -10,8 +10,6 @@ class CartridgesController < BaseController
   # GET /cartridges
   def index
     type = params[:id]
-    user_info = get_cloud_user_info(@cloud_user)
-    log_action(@request_id, user_info[:uuid], user_info[:login], "LIST_CARTRIDGES", true, "List #{type.nil? ? 'all' : type} cartridges")
     
     cartridges = Array.new
     if type.nil? or type == "standalone"
@@ -37,7 +35,7 @@ class CartridgesController < BaseController
         Application.get_available_cartridges(cart_type)
       end
       carts.each do |cart|
-	if $requested_api_version >= 1.1
+	    if $requested_api_version >= 1.1
           cartridge = RestCartridge11.new(cart_type, cart, nil, get_url, nolinks)
         else
           cartridge = RestCartridge10.new(cart_type, cart, nil, get_url, nolinks)
@@ -45,8 +43,6 @@ class CartridgesController < BaseController
         cartridges.push(cartridge)
       end
     end
-    
-    @reply = RestReply.new(:ok, "cartridges", cartridges)
-    respond_with @reply, :status => @reply.status
+    render_success(:ok, "cartridges", cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges") 
   end
 end
