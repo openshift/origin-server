@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.24.6
+Version: 0.24.7
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.24.7-1
+- Clean up DB environment variables during pre-destroy (ironcladlou@gmail.com)
+
 * Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.24.6-1
 - fix for Bug 849035 - env vars should be removed for app when db cartridge is
   removed (rchopra@redhat.com)
