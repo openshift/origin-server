@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "activesupport", "~> 3.0.13"
+  s.add_dependency "mongo"
   s.add_dependency "stickshift-common"
   s.add_dependency('state_machine')  
   s.add_development_dependency('rake')  
