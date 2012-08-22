@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.12.4
+Version: 0.12.5
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
+- Clean up DB environment variables during pre-destroy (ironcladlou@gmail.com)
+
 * Tue Aug 21 2012 Adam Miller <admiller@redhat.com> 0.12.4-1
 - Merge pull request #415 from rajatchopra/master (openshift+bot@redhat.com)
 - Merge pull request #410 from rmillner/dev/rmillner/bug/849074
