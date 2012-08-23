@@ -7,10 +7,22 @@ License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       stickshift-port-proxy-%{version}.tar.gz
 
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+%define with_systemd 1
+%else
+%define with_systemd 0
+%endif
+
 BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:      haproxy
 Requires:      procmail
+%if %{with_systemd}
+BuildRequires: systemd-units
+Requires:  systemd-units
+%endif
 BuildArch:     noarch
+
+
 
 %description
 Script to configure HAProxy to do port forwarding from internal to external port
@@ -23,13 +35,22 @@ Script to configure HAProxy to do port forwarding from internal to external port
 %install
 rm -rf $RPM_BUILD_ROOT
 
+%if %{with_systemd}
+mkdir -p %{buildroot}%{_unitdir}
+%else
 mkdir -p %{buildroot}%{_initddir}
+%endif
 mkdir -p %{buildroot}%{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 mkdir -p %{buildroot}%{_sysconfdir}/stickshift
 mkdir -p %{buildroot}%{_bindir}
 
-mv init-scripts/stickshift-proxy %{buildroot}%{_initddir}
-mv config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
+%if %{with_systemd}
+install -m 644 %{buildroot}%{brokerdir}/systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
+install -m 644 %{buildroot}%{brokerdir}/systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+%else
+install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
+%endif
+install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
 install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
 %clean
@@ -37,13 +58,18 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 # Enable proxy and fix if the config file is missing
-/sbin/chkconfig --add stickshift-proxy || :
 if ! [ -f /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg ]; then
    cp /etc/stickshift/stickshift-proxy.cfg /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
    restorecon /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg || :
 fi
 /sbin/restorecon /var/lib/stickshift/.stickshift-proxy.d/ || :
+
+%if %{with_systemd}
+systemctl --system daemon-reload
+%else
+/sbin/chkconfig --add stickshift-proxy || :
 /sbin/service stickshift-proxy condrestart || :
+%endif
 
 %preun
 if [ "$1" -eq "0" ]; then
@@ -55,7 +81,12 @@ fi
 
 %files
 %defattr(-,root,root,-)
+%if %{with_systemd}
+%attr(0644,-,-) %{_unitdir}/stickshift-proxy.service
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/stickshift-proxy
+%else
 %attr(0750,-,-) %{_initddir}/stickshift-proxy
+%endif
 %attr(0755,-,-) %{_bindir}/stickshift-proxy-cfg
 %dir %attr(0750,root,root) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg

@@ -25,23 +25,18 @@ lockfile=/var/lock/subsys/stickshift-proxy
 pidfile=/var/run/stickshift-proxy.pid
 cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
 
-start() {
-
+pre_start() {
     # Fix internal ip address in case it was changed by the cloud provider
-    baddr=$(stickshift-proxy-cfg getaddr)
-    sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
+    stickshift-proxy-cfg fixaddr
+}
 
-    if $exec -c -q -f $cfgfile; then
-        echo -n $"Starting stickshift-proxy: "
-        daemon --pidfile $pidfile $exec -D -f $cfgfile -p $pidfile
-        retval=$?
-        echo
-        [ $retval -eq 0 ] && touch $lockfile
-        return $retval
-    else
-        echo "Configuration error."
-        return 1
-    fi
+start() {
+    echo -n $"Starting stickshift-proxy: "
+    daemon --pidfile $pidfile $exec -D -f $cfgfile -p $pidfile
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
 }
 
 stop() {
@@ -54,31 +49,21 @@ stop() {
 }
 
 restart() {
-    if $exec -c -q -f $cfgfile
-    then
-        stop
-        start
-    else
-        echo "Configuration error."
-        return 1
-    fi
+    stop
+    start
 }
 
 reload() {
-    if $exec -c -q -f $cfgfile; then
-        echo -n $"Reloading stickshift-proxy: "
-        $exec -D -f $cfgfile -p $pidfile -sf $(cat $pidfile)
-        retval=$?
-        echo
-        return $retval
-    else
-        echo "Configuration error."
-        return 1
-    fi  
+    echo -n $"Reloading stickshift-proxy: "
+    $exec -D -f $cfgfile -p $pidfile -sf $(cat $pidfile)
+    retval=$?
+    echo
+    return $retval
 }
 
 case "$1" in
     start)
+        pre_start
         start
         ;;
     stop)
