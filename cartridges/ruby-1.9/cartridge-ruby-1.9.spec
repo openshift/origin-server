@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.5.0
+Version: 0.5.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -204,6 +204,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.5.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Mon Aug 20 2012 Adam Miller <admiller@redhat.com> 0.4.4-1
 - Fix for bugz 846108 - passenger_status fails due to missing gems. Add missing
   gems to spec. (ramr@redhat.com)
