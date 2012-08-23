@@ -3,7 +3,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.8
+Version:   0.6.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -172,6 +172,16 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Thu Aug 23 2012 Adam Miller <admiller@redhat.com> 0.6.9-1
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- need systemd-units in BuildRequires for _unitdir rpm macro
+  (admiller@redhat.com)
+- cleanup based on test case additions (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+
 * Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.8-1
 - Updating gem versions (admiller@redhat.com)
 - Updating gem versions (admiller@redhat.com)
