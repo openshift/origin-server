@@ -45,8 +45,8 @@ mkdir -p %{buildroot}%{_sysconfdir}/stickshift
 mkdir -p %{buildroot}%{_bindir}
 
 %if %{with_systemd}
-install -m 644 %{buildroot}%{brokerdir}/systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
-install -m 644 %{buildroot}%{brokerdir}/systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+install -m 644 systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
+install -m 644 systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
 %else
 install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
 %endif
