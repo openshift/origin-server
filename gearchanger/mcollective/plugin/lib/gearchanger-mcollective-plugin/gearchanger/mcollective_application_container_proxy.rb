@@ -1138,6 +1138,7 @@ module GearChanger
           mc_args = { :cartridge => cartridge,
                       :action => action,
                       :args => args }
+                      
           rpc_client = rpc_exec_direct('stickshift')
           result = nil
           begin
@@ -1608,23 +1609,25 @@ module GearChanger
           end
         }
 =end
-        begin
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          rpc_client = rpcclient('stickshift', :options => options)
-          mc_args = handle.clone
-          identities = handle.keys
-          rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
-            if mcoll_reply.results[:statuscode] == 0 
-              output = mcoll_reply.results[:data][:output]
-              exitcode = mcoll_reply.results[:data][:exitcode]
-              sender = mcoll_reply.results[:sender]
-              Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
-              
-              handle[sender] = output if exitcode == 0
-            end
-          }
-        ensure
-          rpc_client.disconnect
+        if handle && !handle.empty?
+          begin
+            options = MCollectiveApplicationContainerProxy.rpc_options
+            rpc_client = rpcclient('stickshift', :options => options)
+            mc_args = handle.clone
+            identities = handle.keys
+            rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|
+              if mcoll_reply.results[:statuscode] == 0 
+                output = mcoll_reply.results[:data][:output]
+                exitcode = mcoll_reply.results[:data][:exitcode]
+                sender = mcoll_reply.results[:sender]
+                Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
+                
+                handle[sender] = output if exitcode == 0
+              end
+            }
+          ensure
+            rpc_client.disconnect
+          end
         end
       end
     end
