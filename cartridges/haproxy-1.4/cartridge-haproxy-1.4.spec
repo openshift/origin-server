@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.15.0
+Version: 0.15.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Thu Aug 16 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
 - Add check for cartridge type before federating the call. (ramr@redhat.com)
 - Bug fix for apps with haproxy - we now need to federate to the app server
