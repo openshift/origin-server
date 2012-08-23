@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.13.0
+Version: 0.13.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Tue Aug 14 2012 Adam Miller <admiller@redhat.com> 0.12.2-1
 - Implement started/stopped transitions in state file (ironcladlou@gmail.com)
 
