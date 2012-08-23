@@ -38,7 +38,7 @@ ss-setup-broker: Script to setup the broker and required services on this machin
    -d  |--domain <Domain suffix>        Domain suffix for this cloud (Default: example.com)
        |--skip-node                     Skip node setup (default: false if openshift-broker-node package is installed)
   -?   |--help                          Print this message
-       |--livecd			Used during livecd build. Only makes configuration changes that do not require running services
+       |--build			Used during livecd or AMI build. Only makes configuration changes that do not require running services
 
 USAGE
 end
@@ -55,7 +55,7 @@ opts = GetoptLong.new(
     ["--static-dns",            "-n"  , GetoptLong::OPTIONAL_ARGUMENT],
     ["--skip-node",                     GetoptLong::NO_ARGUMENT],
     ["--domain",                "-d"  , GetoptLong::OPTIONAL_ARGUMENT],
-    ["--livecd",                        GetoptLong::NO_ARGUMENT],
+    ["--build",                         GetoptLong::NO_ARGUMENT],
     ["--help",                  "-?"  , GetoptLong::NO_ARGUMENT])
 
 args = {}
@@ -87,7 +87,7 @@ dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
 use_nm         = File.exist?('/lib/systemd/system/NetworkManager.service')
-livecd         = args["--livecd"]
+build         = args["--build"]
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -181,9 +181,9 @@ if int_eth_device != ext_eth_device
 end
 
 system "chkconfig network on"
-system "service network restart" unless livecd
+system "service network restart" unless build
 
-system "service NetworkManager restart && sleep 5" if use_nm && !livecd
+system "service NetworkManager restart && sleep 5" if use_nm && !build
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
@@ -199,7 +199,7 @@ system "lokkit -p 5672:tcp"  #qpid
 print "Starting mongodb\n"
 system "chkconfig mongod on" 
 
-unless livecd
+unless build
   system "service mongod start"
   
   print "Initializing mongodb database..."
@@ -232,7 +232,7 @@ File.open("/var/named/forwarders.conf", "w") do |f|
 end
 system "/sbin/restorecon -v /var/named/forwarders.conf"
 system "chkconfig named on"
-system "service named restart" unless livecd
+system "service named restart" unless build
 
 print "Update resolve.conf with dns servers\n"
 File.open("/etc/resolv.conf", "w") do |f|
@@ -247,21 +247,21 @@ File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","a") do |f|
   end
 end
 
-system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless livecd
+system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless build
 
 ### End BIND DNS setup
 
-unless livecd
+unless build
   print "Register admin user\n"
   `mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
 end
  
 ["httpd","sshd","qpidd","mcollective","stickshift-broker","stickshift-proxy"].each do |service|
   system "chkconfig #{service} on" 
-  system "service #{service} restart" unless livecd
+  system "service #{service} restart" unless build
 end
 
-unless args["--skip-node"] || livecd || /not installed/.match(`rpm -q openshift-origin-node`)
+unless args["--skip-node"] || build || /not installed/.match(`rpm -q openshift-origin-node`)
   print "Connect node services to local broker\n"
   args = []
   args += ["--external-ip", "#{ext_address.strip}/#{ext_prefix.strip}"] unless ext_dhcp

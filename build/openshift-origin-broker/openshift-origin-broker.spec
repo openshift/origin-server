@@ -140,6 +140,7 @@ cp doc/getting_started.html %{buildroot}/var/www/html
 
 mv bin/ss-register-dns %{buildroot}%{_bindir}
 mv bin/ss-setup-broker %{buildroot}%{_bindir}
+mv bin/complete-origin-setup %{buildroot}%{_bindir}
 mv bin/ss-setup-bind %{buildroot}/usr/libexec/openshift-origin-broker/bin
 %clean
 rm -rf %{buildroot}                                
@@ -150,6 +151,7 @@ rm -rf %{buildroot}
 %attr(0555,apache,apache) /var/www/html
 %attr(0700,-,-) /usr/bin/ss-register-dns
 %attr(0700,-,-) /usr/bin/ss-setup-broker
+%attr(0700,-,-) /usr/bin/complete-origin-setup
 %attr(0700,-,-) /usr/libexec/openshift-origin-broker/bin/ss-setup-bind
 
 %changelog
@@ -182,4 +184,3 @@ rm -rf %{buildroot}
 
 * Fri Jun 29 2012 Krishna Raman <kraman@gmail.com> 0.0.1-1
 - new package built with tito
-
