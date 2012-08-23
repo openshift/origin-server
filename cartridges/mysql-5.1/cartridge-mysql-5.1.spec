@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.32.0
+Version: 0.32.1
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.32.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.31.8-1
 - Merge pull request #418 from mrunalp/bugs/db_ctl_script_missing_var
   (openshift+bot@redhat.com)
