@@ -9,16 +9,10 @@ Then /^the mysql configuration file will( not)? exist$/ do |negate|
   mysql_user_root = "#{$home_root}/#{@gear.uuid}/#{mysql_cart.name}"
   mysql_config_file = "#{mysql_user_root}/etc/my.cnf"
 
-  begin
-    cnffile = File.new mysql_config_file
-  rescue Errno::ENOENT
-    cnffile = nil
-  end
-
-  unless negate
-    cnffile.should be_a(File)
+  if negate
+    assert_file_not_exists mysql_config_file
   else
-    cnffile.should be_nil
+    assert_file_exists mysql_config_file
   end
 end
 

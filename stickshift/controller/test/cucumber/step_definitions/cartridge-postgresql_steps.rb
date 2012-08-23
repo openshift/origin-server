@@ -10,16 +10,10 @@ Then /^the postgresql configuration file will( not)? exist$/ do |negate|
   pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.name}"
   pgsql_config_file = "#{pgsql_user_root}/data/postgresql.conf"
 
-  begin
-    cnffile = File.new pgsql_config_file
-  rescue Errno::ENOENT
-    cnffile = nil
-  end
-
-  unless negate
-    cnffile.should be_a(File)
+  if negate
+    assert_file_not_exists pgsql_config_file
   else
-    cnffile.should be_nil
+    assert_file_exists pgsql_config_file
   end
 end
 

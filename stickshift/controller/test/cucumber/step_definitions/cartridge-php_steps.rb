@@ -45,7 +45,7 @@ Then /^the php application will( not)? be exposed$/ do | negate |
 end
 
 Then /^the php file permissions are correct/ do
-  gear_uuid = @account.name
+  gear_uuid = @gear.uuid
   app_home = "/var/lib/stickshift/#{gear_uuid}"
   uid = Etc.getpwnam(gear_uuid).uid
   gid = Etc.getpwnam(gear_uuid).gid
