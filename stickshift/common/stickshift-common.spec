@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.15.0
+Version: 0.15.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -84,6 +84,9 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Wed Aug 15 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Merge pull request #377 from brenton/misc1 (openshift+bot@redhat.com)
 - Removing duplicate require (bleanhar@redhat.com)
