@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.3.0
+Version: 0.3.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 17 (admiller@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.2.7-1
 - Merge pull request #417 from danmcp/master (openshift+bot@redhat.com)
 - more ctl usage test cases and related fixes (dmcphers@redhat.com)
