@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.12.5
+Version: 0.13.0
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 

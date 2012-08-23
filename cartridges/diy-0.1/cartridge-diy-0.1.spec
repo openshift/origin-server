@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.31.2
+Version: 0.32.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

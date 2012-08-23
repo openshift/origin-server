@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.12.2
+Version: 0.13.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
