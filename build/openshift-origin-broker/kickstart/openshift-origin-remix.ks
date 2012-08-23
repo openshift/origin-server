@@ -76,31 +76,6 @@ cat <<EOF > /usr/bin/launch_openshift_doc.sh
 EOF
 chmod +x /usr/bin/launch_openshift_doc.sh
 
-cat <<EOF > /usr/bin/complete_origin_setup
-#!/usr/bin/ruby
-
-system "service mongod start"
-print "Initializing mongodb database..."
-while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
-  print "."
-  sleep 5
-end
-
-print "Setup mongo db user\n"
-print \`/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'\`
-
-print "Register admin user\n"
-print \`mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'\`
-
-ext_address = \`/sbin/ip addr show dev eth0 | awk '/inet / { split(\$2,a, "/") ; print a[1];}'\`
-system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip}"
-system "/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip #{ext_address}"
-
-system "service stickshift-broker restart"
-system "/sbin/chkconfig livesys-late-openshift off"
-EOF
-chmod +x /usr/bin/complete_origin_setup
-
 cat <<EOF > /etc/rc.d/init.d/livesys-late-openshift
 #!/bin/bash
 #
