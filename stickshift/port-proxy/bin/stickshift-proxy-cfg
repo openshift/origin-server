@@ -27,7 +27,14 @@ reload() {
 }
 
 getpid() {
-    cat /var/run/stickshift-proxy.pid 
+    for pidf in /var/run/stickshift-proxy.pid /run/stickshift-proxy.pid
+    do
+        if [ -e "$pidf" ]
+        then
+            cat "$pidf"
+            return
+        fi
+    done
 }
 ###
 
@@ -35,6 +42,11 @@ getpid() {
 getaddr() {
     # External due to using DNS for gear->gear
     ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+fixaddr() {
+    baddr=$(stickshift-proxy-cfg getaddr)
+    sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
 }
 
 atomicfg() {
@@ -46,6 +58,18 @@ atomicfg() {
 
     "$@"
     retval=$?
+
+    if [ $retval -ne 0 ]
+    then
+        echo "ERROR: Failed to process: $@"
+        return $retval
+    fi
+
+    if ! /usr/sbin/haproxy -c -q -f "${cfgfile}"
+    then
+        echo "ERROR: New configuration is corrupt."
+        return 254
+    fi
 
     rm -f "${cfg_old}.bak"
     ln -f "${cfg_old}" "${cfg_old}.bak"
@@ -102,47 +126,51 @@ rollcfg() {
 
 lockwrap() {
     exec 200>${cfgfile}.lock 201>${cfgfile}.reload.lock
+
     flock 200
     oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
     "$@"
     retcode=$?
     newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
     flock -u 200
+
     if [ $retcode != 0 ]; then
         echo "Error: Failed to update proxy."
-    else
-        if [ $oldsum != $newsum ]; then
-            reqfile=$(mktemp ${cfgfile}.reload.req.XXXXXX)
-            flock 201
-
-            reloadreq=()
-            reloadit=""
-            for f in ${cfgfile}.reload.req.??????
-            do
-                s=$(stat --printf '%s' "$f" )
-                if [ $s -eq 0 ]
-                then
-                    reloadreq=( "${reloadreq[@]}" "$f" )
-                    reloadit="1"
-                fi
-            done
-
-            if [ "$reloadit" ]
-            then
-                rollcfg
-                retcode=$?
-
-                for f in "${reloadreq[@]}"
-                do
-                    echo "$retcode" > "$f"
-                done
-            fi
-
-            retcode=$(cat "$reqfile")
-            rm -f $reqfile
-            flock -u 201
-        fi
+        return $retcode
     fi
+
+    if [ $oldsum != $newsum ]; then
+        reqfile=$(mktemp ${cfgfile}.reload.req.XXXXXX)
+        flock 201
+
+        reloadreq=()
+        reloadit=""
+        for f in ${cfgfile}.reload.req.??????
+        do
+            s=$(stat --printf '%s' "$f" )
+            if [ $s -eq 0 ]
+            then
+                reloadreq=( "${reloadreq[@]}" "$f" )
+                reloadit="1"
+            fi
+        done
+
+        if [ "$reloadit" ]
+        then
+            rollcfg
+            retcode=$?
+
+            for f in "${reloadreq[@]}"
+            do
+                echo "$retcode" > "$f"
+            done
+        fi
+
+        retcode=$(cat "$reqfile")
+        rm -f $reqfile
+        flock -u 201
+    fi
+
     return $retcode
 }
 
@@ -225,6 +253,10 @@ showproxies() {
 case "$1" in
     getaddr)
         getaddr
+        ;;
+    fixaddr)
+        # This can be called from within its own lock, do not deadlock.
+        fixaddr
         ;;
     setproxy)
         shift
