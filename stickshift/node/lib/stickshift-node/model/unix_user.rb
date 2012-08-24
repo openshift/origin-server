@@ -417,9 +417,20 @@ module StickShift
       add_env_var("APP_NAME", @app_name, true)
       add_env_var("APP_UUID", @application_uuid, true)
 
-      add_env_var("DATA_DIR", File.join(gearappdir, "data", "/"), true) {|v|
+      data_dir = File.join(gearappdir, "data", "/")
+      add_env_var("DATA_DIR", data_dir, true) {|v|
         FileUtils.mkdir_p(v, :verbose => @debug)
       }
+      add_env_var("HISTFILE", File.join(data_dir, ".bash_history"))
+      profile = File.join(data_dir, ".bash_profile")
+      File.open(profile, File::WRONLY|File::TRUNC|File::CREAT, 0o0600) {|file|
+        file.write %Q{
+# Warning: Be careful with modifications to this file,
+#          Your changes may cause your application to fail.
+}
+      }
+      FileUtils.chown(@uuid, @uuid, profile, :verbose => @debug)
+
 
       add_env_var("GEAR_DIR", geardir, true)
       add_env_var("GEAR_DNS",
