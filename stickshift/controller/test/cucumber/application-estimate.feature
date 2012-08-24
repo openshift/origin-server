@@ -1,4 +1,5 @@
 @broker_api
+@broker_api1
 Feature: Application estimate
   As an OpenShift user
   Given an application descriptor, I should be able to estimate gear usage and 
