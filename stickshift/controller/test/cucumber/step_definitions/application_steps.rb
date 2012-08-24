@@ -134,8 +134,15 @@ When /^I tidy the application$/ do
 end
 
 When /^I restore the application$/ do
-  File.exist?(@app.snapshot).should be_true
+  assert_file_exists @app.snapshot
   File.size(@app.snapshot).should > 0
+  
+  file_list = `tar ztf #{@app.snapshot}`
+  ["#{@app.name}_ctl.sh", "stickshift.conf", "httpd.pid"].each {|file|
+    assert ! file_list.include?(file), "Found illegal file \'#{file} in snapshot"
+  }
+  assert file_list.include?('app-root/runtime'), "Snapshot missing required files"
+
   rhc_restore(@app)
 end
 
