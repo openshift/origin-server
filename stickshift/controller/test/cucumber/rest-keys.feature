@@ -1,4 +1,5 @@
 @broker_api
+@broker_api1
 Feature: keys
   As an API client
   In order to do things with keys

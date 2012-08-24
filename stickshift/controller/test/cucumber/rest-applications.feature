@@ -1,4 +1,5 @@
 @broker_api
+@broker_api2
 Feature: applications
   As an API client
   In order to do things with domains
