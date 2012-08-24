@@ -37,6 +37,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
 %else
 mkdir -p %{buildroot}%{_initddir}
 %endif
