@@ -51,7 +51,7 @@ module Console
         when :external:
           begin
             symbol = :external
-            path = File.expand_path('~/.openshift/api.yaml')
+            path = File.expand_path('~/.openshift/api.yml')
             Builtin[:openshift].with_indifferent_access.merge(YAML.load(IO.read(path)))
           rescue Exception => e
             raise InvalidConfiguration, <<-EXCEPTION, e.backtrace
@@ -90,8 +90,11 @@ Valid api object:
         EXCEPTION
       end
 
-      @api = config.clone
+      @api = {
+        :user_agent => "openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+      }.with_indifferent_access.merge(config)
       @api[:symbol] = symbol
+      @api.freeze
 
       @api
     end

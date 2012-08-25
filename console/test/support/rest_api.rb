@@ -1,12 +1,20 @@
 class ActiveSupport::TestCase
 
+  def set_domain(domain)
+    @domain = domain
+  end
+
   def setup_domain
-    @domain = Domain.new :name => "#{uuid}", :as => @user
-    unless @domain.save
-      puts @domain.errors.inspect
-      fail 'Unable to create the initial domain, test cannot be run'
+    domain = Domain.new :name => "#{uuid}", :as => @user
+    begin
+      domain.save!
+    rescue Domain::AlreadyExists, Domain::UserAlreadyHasDomain
+      domain.errors.clear
+    rescue => e
+      puts "Domain create failed: #{e.response.errors.inspect}" rescue nil
+      raise
     end
-    @domain
+    set_domain(domain)
   end
 
   def cleanup_user?
@@ -67,4 +75,64 @@ class ActiveSupport::TestCase
       end
     end
   end
+
+  def setup_from_app(app)
+    set_domain Domain.new({:id => app.domain_id, :as => app.as}, true)
+    set_user app.as
+    app
+  end
+
+  def self.api_cache
+    @@cache ||= {}
+  end
+
+  def api_fetch(name, &block)
+    varname = "@#{name}_cached"
+    instance_variable_get(varname) || begin
+      created = if cached = self.class.api_cache[name]
+          block.call(cached) || cached
+        else
+          self.class.api_cache[name] = block.call(nil)
+        end
+      instance_variable_set(varname, created)
+    end
+  end
+
+  def use_app(symbol, &block)
+    api_fetch(symbol) do |cached|
+      if cached
+        setup_from_app(cached)
+      else
+        with_unique_domain
+        app = yield block if block_given?
+        app ||= Application.new :name => uuid
+        app.as ||= @user
+        app.domain_id ||= @domain.id
+        app.save!
+        app
+      end
+    end
+  end
+
+  def with_app
+    use_app(:readable_app) { Application.new({:name => "cart#{uuid}", :cartridge => 'ruby-1.8'}) }
+  end
+
+  def with_scalable_app
+    use_app(:scalable_app) { Application.new({:name => "cart#{uuid}", :cartridge => 'ruby-1.8', :scale => 'true'}) }
+  end
+
+
+  def auth_headers
+   {'Cookie' => "rh_sso=#{@user.ticket}", 'Authorization' => "Basic #{::Base64.encode64s("#{@user.login}:#{@user.password}")}"}
+  end
+
+  def json_header(is_post=false)
+    anonymous_json_header(is_post).merge!(auth_headers)
+  end
+
+  def anonymous_json_header(is_post=false)
+    {(is_post ? 'Content-Type' : 'Accept') => 'application/json', 'User-Agent' => Console.config.api[:user_agent]}
+  end
+
 end

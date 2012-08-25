@@ -21,18 +21,34 @@ module RestApi
     end
   end
 
+  # During retrieval of info about the API, an error occurred
+  class ApiNotAvailable < StandardError ; end
+
+  # Raised when the authorization context is missing
+  class MissingAuthorizationError < StandardError ; end
+
+  # Raised when a newly created resource exists with the same unique primary key
+  class ResourceExistsError < StandardError ; end
+
+  # The server did not return the response we were expecting, possibly a server bug
+  class BadServerResponseError < StandardError ; end
+
   class << self
     #
     # All code in the block will dump detailed HTTP logs
     #
-    def debug(&block)
-      @debug = true
-      yield block
-    ensure
-      @debug = false
+    def debug(set=true,&block)
+      @debug = set
+      if block_given?
+        begin
+          yield block
+        ensure
+          @debug = false
+        end
+      end
     end
     def debug?
-      @debug
+      @debug || ENV['REST_API_DEBUG']
     end
 
     #
@@ -74,30 +90,24 @@ The REST API could not be reached at #{RestApi::Base.site}
         RestApi::Base.instance_variable_get('@symbol')
       end
   end
+end
 
+module RestApi
   # An object which can return info about the REST API
   class Info < RestApi::Base
     self.element_name = 'api'
     singleton
     allow_anonymous
 
+    self.format = :json#ActiveResource::Formats::JsonFormat#.new('version', 'supported_api_versions')
+
     schema do
       string :version, :status
     end
+    has_many :supported_api_versions, :class_name => 'string'
+
     def url
       self.class.site
     end
   end
-
-  # During retrieval of info about the API, an error occurred
-  class ApiNotAvailable < StandardError ; end
-
-  # Raised when the authorization context is missing
-  class MissingAuthorizationError < StandardError ; end
-
-  # Raised when a newly created resource exists with the same unique primary key
-  class ResourceExistsError < StandardError ; end
-
-  # The server did not return the response we were expecting, possibly a server bug
-  class BadServerResponseError < StandardError ; end
 end

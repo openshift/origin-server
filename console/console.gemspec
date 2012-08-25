@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   # match gems available in Fedora.  This may be relaxed at a future 
   # date.
   s.add_dependency 'formtastic', '~> 1.2.3'
+  s.add_dependency 'net-http-persistent', '~> 2.3.2'
   s.add_dependency 'sass', '~> 3.1.7'
   s.add_dependency 'rack', '>= 1.2.5'
   s.add_dependency 'haml', '~> 3.1.2'

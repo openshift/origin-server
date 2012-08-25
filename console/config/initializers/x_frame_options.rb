@@ -18,7 +18,7 @@ class ActionDispatch::Response < Rack::Response
   end
 end
 
-config = RedHatCloud::Application.config
+config = Rails.application.config
 config.action_dispatch.x_frame_options ||= 'SAMEORIGIN'
 
 if config.action_dispatch.x_frame_options

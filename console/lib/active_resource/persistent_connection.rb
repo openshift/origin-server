@@ -234,18 +234,12 @@ module ActiveResource
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         return http unless defined?(@ssl_options)
 
-        http.ca_path     = @ssl_options[:ca_path] if @ssl_options[:ca_path]
-        http.ca_file     = @ssl_options[:ca_file] if @ssl_options[:ca_file]
-
-        http.cert        = @ssl_options[:cert] if @ssl_options[:cert]
-        http.key         = @ssl_options[:key]  if @ssl_options[:key]
-
-        http.cert_store  = @ssl_options[:cert_store]  if @ssl_options[:cert_store]
-        http.ssl_timeout = @ssl_options[:ssl_timeout] if @ssl_options[:ssl_timeout]
-
-        http.verify_mode     = @ssl_options[:verify_mode]     if @ssl_options[:verify_mode]
-        http.verify_callback = @ssl_options[:verify_callback] if @ssl_options[:verify_callback]
-        http.verify_depth    = @ssl_options[:verify_depth]    if @ssl_options[:verify_depth]
+        [:ca_path, :ca_file,
+         :cert, :key, :cert_store, :ssl_timeout,
+         :verify_mode, :verify_callback, :verify_depth
+        ].each do |sym|
+          http.send(:"#{sym}=", @ssl_options[sym]) if @ssl_options[sym]
+        end
 
         http
       end

@@ -9,17 +9,22 @@ require 'active_resource/persistent_connection'
 module ActiveResource
   module Formats
     #
-    # The OpenShift REST API wraps the root resource element whi
-    # to be unwrapped.
+    # The OpenShift REST API wraps the root resource element which must
+    # be unwrapped.
     #
-    module OpenshiftJsonFormat
-      extend ActiveResource::Formats::JsonFormat
-      extend self
+    class OpenshiftJsonFormat
+      include ActiveResource::Formats::JsonFormat
+
+      def initialize(*args)
+        @root_attrs = args
+      end
 
       def decode(json)
         decoded = super
         if decoded.is_a?(Hash) and decoded.has_key?('data')
+          attrs = root_attributes(decoded)
           decoded = decoded['data'] || {}
+          decoded.merge!(attrs) if attrs
         end
         if decoded.is_a?(Array)
           decoded.each { |i| i.delete 'links' }
@@ -27,6 +32,12 @@ module ActiveResource
           decoded.delete 'links'
         end
         decoded
+      end
+
+      def root_attributes(hash)
+        hash.slice('messages', *@root_attrs).tap do |h|
+          puts "Sliced #{h.inspect}"
+        end
       end
     end
   end
@@ -101,7 +112,6 @@ class ActiveResource::Base
 end
 
 module RestApi
-
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
     include RestApi::Cacheable
@@ -112,8 +122,7 @@ module RestApi
     #
     # Connection properties
     #
-    self.format = :openshift_json
-    self.timeout = 60
+    self.format = ActiveResource::Formats::OpenshiftJsonFormat.new
 
     #
     # Update the configuration of the Rest API.  Use instead of
@@ -130,7 +139,19 @@ module RestApi
 
       self.site = url.to_s
       self.prefix = path
-      self.ssl_options = config[:ssl_options] || { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
+
+      [:ssl_options, :idle_timeout, :read_timeout, :open_timeout].each do |sym|
+        self.send(:"#{sym}=", config[sym]) if config[sym]
+      end
+
+      self.headers.delete 'User-Agent'
+      self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
+
+      if config[:http_proxy]
+        self.proxy = config[:http_proxy]
+      elsif not Rails.env.production?
+        self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
+      end
 
       @last_config = config
       @info = false
@@ -177,18 +198,15 @@ module RestApi
         @calculated_attributes ||= {}
       end
 
-      # Sets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
-      def idle_timeout=(timeout)
-        @connection = nil
-        @idle_timeout = timeout
-      end
-
-      # Gets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
-      def idle_timeout
-        if defined?(@idle_timeout)
-          @idle_timeout
-        elsif superclass != Object && superclass.idle_timeout
-          superclass.idle_timeout
+      [:idle_timeout, :read_timeout, :open_timeout].each do |sym|
+        define_method "#{sym}=" do |timeout|
+          @connection = nil
+          instance_variable_set(:"@#{sym}", timeout)
+        end
+        define_method "#{sym}" do
+          instance_variable_get(:"@#{sym}") || begin
+            superclass.idle_timeout if superclass != ActiveResource::Base
+          end
         end
       end
     end
@@ -273,7 +291,6 @@ module RestApi
     def load_attributes_from_response(response)
       if response['Content-Length'] != "0" && response.body.strip.size > 0
         load(self.class.format.decode(response.body))
-        @attributes[:messages] = ActiveSupport::JSON.decode(response.body)['messages']
         @persisted = true
         remove_instance_variable(:@update_id) if @update_id
       end
@@ -622,11 +639,12 @@ module RestApi
           connection.user = user if user
           connection.password = password if password
           connection.auth_type = auth_type if auth_type
-          connection.timeout = timeout if timeout
-          connection.idle_timeout = idle_timeout if idle_timeout
+          [:timeout, :idle_timeout, :read_timeout, :open_timeout].each do |sym|
+            connection.send(:"#{sym}=", send(sym)) if send(sym)
+          end
           connection.ssl_options = ssl_options if ssl_options
           connection.connection_name = 'rest_api'
-          connection.debug_output = $stderr if ENV['REST_API_DEBUG']
+          connection.debug_output = $stderr if RestApi.debug?
           connection
         end
 
@@ -697,24 +715,4 @@ module RestApi
       @connection.send(:http)
     end
   end
-end
-
-class RestApi::Base
-  #
-  # Connection properties
-  #
-  self.format = :openshift_json
-  self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
-  self.timeout = 180
-  self.idle_timeout = 10
-  unless Rails.env.production?
-    self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
-  end
-  self.site = if defined?(Rails) && Rails.configuration.express_api_url
-    Rails.configuration.express_api_url + '/broker/rest'
-  else
-    'http://localhost/broker/rest'
-  end
-
-  headers['User-Agent'] = Rails.configuration.user_agent
 end
