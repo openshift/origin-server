@@ -1,252 +1,136 @@
 class CartridgeType < RestApi::Base
   include ActiveModel::Conversion
   extend ActiveModel::Naming
-
-  class NotFound < StandardError
-  end
+  include Comparable
 
   schema do
-    string :name, :type
+    string :name, 'type'
+    string :tags
   end
 
-  attr_accessor :name, :id, :version, :description
+  custom_id :name
+
+  allow_anonymous
+
+  attr_accessor :version, :description
+  attr_accessor :display_name
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
   attr_accessor :categories, :learn_more_url
+  attr_accessor :conflicts, :requires
   attr_accessor :help_topics
+  attr_accessor :priority
 
-  self.prefix = "#{RestApi::Base.site.path}/cartridges/embedded"
+  self.element_name = 'cartridges'
+
+  def initialize(attributes={},persisted=true)
+    attributes = attributes.with_indifferent_access
+    name = attributes['name'].presence || attributes[:name].presence
+    defaults = self.class.defaults(name)
+    defaults.keys.each{ |k| attributes.delete(k) if attributes[k].blank? }
+    attributes.reverse_merge!(defaults)
+    super attributes, true
+  end
 
   def type
-    @attributes[:type]
+    (@attributes[:type] || :embedded).to_sym
   end
 
-  def type=(type)
-    @attributes[:type]=type
+  def embedded?;    type == :embedded; end
+  def standalone?;  type == :standalone; end
+
+  def display_name
+    @display_name || name
   end
 
-  def initialize(attributes={})
-    @attributes={}
-    attributes.each do |name,value|
-      send("#{name}=", value)
-    end
-    super
+  def categories
+    @categories || []
+  end
+  def categories=(cats)
+    @categories = cats.map{ |c| c.to_sym }.compact.uniq
+  end
+
+  def tags
+    @tags ||= (super || []).map{ |t| t.to_sym}.concat(categories).compact
+  end
+  def tags=(tags)
+    @tags = super
+  end
+
+  def conflicts
+    @conflicts || []
+  end
+
+  def requires
+    @requires || []
+  end
+
+  def help_topics
+    @help_topics || {}
+  end
+
+  def priority
+    @priority || 0
   end
 
   def persisted?
     true
   end
 
-  # FIXME: Right now the restapi only gives the name (id) of the available
-  #        types so we supliment it with info here.  Ideally the REST API
-  #        or some common lookaside cache populates this data
-  @type_map = {
-    "mongodb-2.0" =>
-    {
-      :id => 'mongodb-2.0',
-      :name => 'MongoDB NoSQL Database 2.0',
-      :type => 'embedded',
-      :version => 'MongoDB 2.0',
-      :license => 'ASL 2.0 and AGPLv3',
-      :license_url => 'http://www.mongodb.org/display/DOCS/Licensing',
-      :categories => [:cartridge],
-      :description => 'MongoDB is a scalable, high-performance, open source NoSQL database.',
-      :website => 'http://www.mongodb.org/',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "mysql-5.1" =>
-    {
-      :id => 'mysql-5.1',
-      :name => 'MySQL Database 5.1',
-      :type => 'embedded',
-      :version => 'MySQL 5.1',
-      :license => 'GPLv2 with exceptions',
-      :license_url => 'http://www.mysql.com/about/legal/licensing/index.html',
-      :categories => [:embedded],
-      :description => 'MySQL is a multi-user, multi-threaded SQL database server.',
-      :website => 'http://www.mysql.com/',
-      :requires => [],
-      :conflicts => ['postgresql-8.4'],
-      :help_topics => {
-      }
-    },
-    "cron-1.4" =>
-    {
-      :id => 'cron-1.4',
-      :name => 'Cron 1.4',
-      :type => 'embedded',
-      :version => 'Cron 1.4',
-      :license => 'MIT and BSD and ISC and GPLv2',
-      :license_url => nil,
-      :categories => [:embedded],
-      :description => 'Cron is a daemon that runs specified programs at scheduled times',
-      :website => 'https://fedorahosted.org/cronie/',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "postgresql-8.4" =>
-    {
-      :id => 'postgresql-8.4',
-      :name => 'PostgreSQL Database 8.4',
-      :type => 'embedded',
-      :version => 'PostgreSQL 8.4',
-      :license => 'PostgreSQL',
-      :license_url => "http://www.postgresql.org/about/licence/",
-      :categories => [:embedded],
-      :description => 'PostgreSQL is an advanced Object-Relational database management system',
-      :website => 'http://www.postgresql.org/',
-      :requires => [],
-      :conflicts => ['mysql-5.1'],
-      :help_topics => {
-      }
-    },
-    "10gen-mms-agent-0.1" =>
-    {
-      :id => '10gen-mms-agent-0.1',
-      :name => '10gen - MongoDB Monitoring Service Agent',
-      :type => 'embedded',
-      :version => '10gen MMS Agent 0.1',
-      :license => nil,
-      :license_url => nil,
-      :categories => [:embedded, :blacklist],
-      :description => 'This cartridge provides the agent for connecting to 10gen\'s MongoDB Monitoring Service.  MongoDB Monitoring Service is a publicly available SaaS solution for proactive monitoring of your MongoDB cluster.  You must install the MongoDB cartridge before installing 10gen MMS Agent.',
-      :website => 'http://www.10gen.com/mongodb-monitoring-service',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "phpmyadmin-3.4" =>
-    {
-      :id => 'phpmyadmin-3.4',
-      :name => 'phpMyAdmin 3.4',
-      :type => 'embedded',
-      :version => 'phpMyAdmin 3.4',
-      :license => 'GPLv2',
-      :license_url => 'http://www.phpmyadmin.net/home_page/license.php',
-      :categories => [:embedded],
-      :description => 'Web based MySQL admin tool.  Requires the MySQL cartridge to be installed first.',
-      :website => 'http://www.phpmyadmin.net/',
-      :requires => ['mysql-5.1'],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "metrics-0.1" =>
-    {
-      :id => 'metrics-0.1',
-      :name => 'OpenShift Metrics 0.1',
-      :type => 'embedded',
-      :version => 'Metrics 0.1',
-      :license => nil,
-      :license_url => nil,
-      :categories => [:embedded, :experimental],
-      :description => 'The OpenShift Metrics cartridge.  This is an experimental module.',
-      :website => nil,
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "phpmoadmin-1.0" =>
-    {
-      :id => 'phpmoadmin-1.0',
-      :name => 'phpMoAdmin 1.0',
-      :type => 'embedded',
-      :version => 'phpMoAdmin 1.0',
-      :license => 'GPL v3',
-      :license_url => 'http://www.gnu.org/licenses/gpl-3.0.html',
-      :categories => [:embedded],
-      :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
-      :website => 'http://www.phpmoadmin.com/',
-      :requires => ['mongodb-2.0'],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "rockmongo-1.1" =>
-    {
-      :id => 'rockmongo-1.1',
-      :name => 'RockMongo 1.1',
-      :type => 'embedded',
-      :version => 'RockMongo 1.1',
-      :license => 'BSD',
-      :license_url => 'http://www.opensource.org/licenses/bsd-license.php',
-      :categories => [:embedded],
-      :description => 'Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.',
-      :website => 'http://code.google.com/p/rock-php/wiki/rock_mongo',
-      :requires => ['mongodb-2.0'],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "jenkins-client-1.4" =>
-    {
-      :id => 'jenkins-client-1.4',
-      :name => 'Jenkins Client 1.4',
-      :type => 'embedded',
-      :version => 'Jenkins Client 1.4',
-      :license => 'MIT',
-      :license_url => 'http://www.opensource.org/licenses/mit-license.php',
-      :categories => [:embedded, :blacklist],
-      :description => 'Tool for running and monitoring jobs such as continuous building and testing of your OpenShift applications.  Requires the Jenkins Server Application to be created first.',
-      :website => 'https://jenkins-ci.org/',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    },
-    "haproxy-1.4" =>
-    {
-      :id => 'haproxy-1.4',
-      :name => 'High Availability Proxy',
-      :type => 'embedded',
-      :version => '1.4',
-      :license => '',
-      :license_url => '',
-      :categories => [:embedded, :blacklist],
-      :description => '',
-      :requires => [],
-      :conflicts => [],
-      :help_topics => {
-      }
-    }
-  }
+  def <=>(other)
+    return 0 if name == other.name
+    c = priority - other.priority
+    return c unless c == 0
+    c = self.class.category_compare(categories, other.categories)
+    return c unless c == 0
+    display_name <=> other.display_name
+  end
 
-  class << self
-    def find(*arguments)
-      scope   = arguments.slice!(0)
-      options = arguments.slice!(0) || {}
+  def to_application_type
+    attrs = {:id => name, :name => display_name}
+    [:version, :license, :license_url,
+     :tags, :description, :website,
+     :help_topics, :priority].each do |m|
+      attrs[m] = send(m)
+    end
+    ApplicationType.new attrs
+  end
 
-      path = "#{prefix}.json"
-      rest_types = format.decode(connection(options).get(path, headers).body)
+  def self.embedded(*arguments)
+    all(*arguments).select(&:embedded?)
+  end
 
-      default_types = rest_types.map do |t|
-        name = t['name']
+  def self.standalone(*arguments)
+    all(*arguments).select(&:standalone?)
+  end
 
-        if !@type_map[name].nil?
-          CartridgeType.new(@type_map[name])
-        else
-          CartridgeType.new({:id => name, :name => name, :type => t['type'], :categories => [t['type']]})
-        end
-      end
+  cache_find_method :every
 
-      case scope
-      when String
-        default_types.find { |type| type.id == scope } or raise NotFound
-      when :all
-        default_types
-      when Symbol
-        default_types.find { |type| type.categories.include? scope }
+  def self.category_compare(a,b)
+    [:web, :database].each do |t|
+      if a.include? t
+        return -1 unless b.include? t
       else
-        raise "Unsupported scope"
+        return 1 if b.include? t
       end
     end
+    0
   end
+
+  protected
+    def self.find_single(scope, options)
+      all(options).find{ |t| t.to_param == scope } or new(:name => scope, :as => options[:as])
+    end
+
+    def self.type_map
+      Rails.application.config.cartridge_types_by_name
+    end
+
+    def self.defaults(name)
+      attrs = type_map[name.to_s]
+      Rails.logger.warn "> The cartridge type '#{name}' is not defined - no metadata is available." unless attrs
+      attrs || {}
+    end
+
 end

@@ -1,83 +1,187 @@
-%nav
-  %ul.breadcrumb
-    %li
-      = link_to 'My applications', :applications, :action => :index
-      %span.divider /
-    %li.active= @application.name
+- content_for :full_layout, true
+- content_for :dark_layout, true
 
-%section#app-mast
-  .row
-    .span9
-      %ul.unstyled-flat
-        %li.app-title
-          %h6 Application Name
-          %h1= @application.name
-        %li.app-status
-          -# %h6 Status
-          -# %span Attention
-    .span3.app-settings.right
-      -# %img{:src => 'http://placehold.it/60&text=img'}
-      -# %a{:href => '#'} Settings
-      %a.btn{:href => delete_application_path(@application.name), :style => 'margin-right:10px'} Delete
+- breadcrumb_for_application @application
 
-.row
-  %section#app-cartridges.span8
-    %header
-      %h3.pull-left Cartridges
-      .btn-group.pull-right
-        = link_to('Add +', application_cartridge_types_path(@application.name),
-                           :class => ['btn', 'pull-right'])
-        -# %a.btn{:href => '#'} Remove
-    .cartridge-block
-      .row
-        -# Need to add offset1 to both ul when we add icons
-        %ul.unstyled-flat.cartridge-block-overview.span7
-          %li.span4
-            %h6 Cartridge Name
-            %h2= @application.framework_name
-          %li.span3= "Created #{time_ago_in_words(@application.creation_time)} ago"
-        %ul.unstyled-flat.embedded-cartridge-block.span7
-          %li.span6
-            %h6 Git Repository
-          %li.span6
-            %pre.command-line.git_url
-              = @application.git_url
-    - @application.cartridges.each do |cartridge|
-      .cartridge-block
-        .row
-          %ul.unstyled-flat.cartridge-block-overview.offset1
-            %li.span4
-              %h6 Cartridge Name
-              %h2= cartridge.name
-            %li.span3 
-              -# Status / Gear Image
-  %aside#secondary.span4
-    #app-unique-info
-      %h5 Visibility
-      %ul.unstyled
-        %li External
-      %h5 URL
-      %ul.unstyled
-        %li= link_to @application.web_url, @application.web_url
-      %h5 Aliases
-      %ul.unstyled
-        - if @application.aliases.empty?
-          %li No alias set
-        - else
-          - alias_scheme = @application.web_url.split(':').first
-          - @application.aliases.each do |a|
-            %li= link_to a, "#{alias_scheme}://#{a}"
-    #assistance
-      %h5 Client Tools Help
-      %ul.unstyled
-        %li 
-          %a{:href => 'https://www.redhat.com/openshift/community/sites/default/files/documents/OpenShift_Express-User_Guide-en-US.pdf'} OpenShift User Guide
-        %li 
-          %a{:href => sync_git_with_remote_repo_knowledge_base_url} Sync your OpenShift repo with an existing Git repo
-        - if @application_type.help_topics and not @application_type.help_topics.empty?
-          %h5= @application.framework_name + ' Help'
-          %ul.unstyled
-          - @application_type.help_topics.each do |key, value|
-            %li= link_to key, value
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right.application-info
+      %ul.pull-right.unstyled-flat.bits
+        %li
+          %h6 Gears
+          %span.data #{@application.gear_count} total
+      %h1.name= @application.name
+      .url
+        %strong @
+        = link_to @application.web_url, @application.web_url
 
-= render :partial => 'applications/section_help'
+-#
+  .emblem.span
+    %img{:src => '/app/images/console/gear-bars.png'}
+    .span
+      -# placeholder for gear info
+  .emblem.span
+    %img{:src => '/app/images/console/bolt.png'}
+    .span
+      -# placeholder for bolt info
+  .emblem.span
+    %img{:src => '/app/images/console/mark.png'}
+    .span
+      -# placeholder for mark info
+  .emblem.span
+    %img{:src => '/app/images/console/warning.png'}
+    .span
+      -# placeholder for warning info
+  .total-cost
+    -# cost placeholder
+
+%section#app-specifics
+%section#app-cartridges.span9
+  %header
+    %h3.pull-left Cartridges
+    .pull-right
+      = link_to application_cartridge_types_path(@application), :class => 'btn-add-cart' do
+        Add Cartridge
+        %span.sprite
+
+  -#.cartridge-block
+    .row
+      .span4
+        %h2.indent-left= @application.framework_name
+      .span5
+        %ul.unstyled-flat.bits.indent-right
+          %li
+            %h6 Created
+            %span.data
+              #{time_ago_in_words(@application.creation_time)} ago
+          -#
+            %li
+              %h6 Status
+              %span.data
+                normal
+          -#%li
+            %h6 Type
+            %span.data= @application.framework_name
+          -#
+            %li
+              %img{:src => "/app/images/console/gear-sm.png"}
+    .row
+      .span9
+        .indent-left.indent-right
+          %h6 Git Repository
+          %pre.command-line.git_url
+            = @application.git_url
+  - @gear_groups.each_with_index do |group,g|
+    .gear-group
+      - group.cartridges.each_with_index do |cartridge,c|
+        .cartridge-block
+          .cartridge-border
+            .cartridge-inset
+              .clearfix
+                %ul.pull-right.unstyled-flat.bits
+                  - if c == 0
+                    %li
+                      %h6 Status
+                      %span.data= gear_group_state(group.states)
+                    %li
+                      %h6 Gears
+                      %span.data{:title => gear_group_count_title(cartridge, group.gears.length)}= gear_group_count(group.gears)
+                  - else
+                    %li
+                      %h6 Gears
+                      %span.data{:title => 'This cartridge shares resources with the other cartridges it is grouped with.'} Shared
+
+                      -#%li
+                        %h6 Type
+                        %span.data= cartridge.type
+                      -#
+                        %li
+                          %img{:src => "/app/images/console/gear-sm.png"}
+                %h2= cartridge.display_name
+
+              - if cartridge.git_url
+                - if @has_keys
+                  %h6 
+                    Git Repository
+                  %p
+                    %input#application_git_url.git-url{:readonly => 'readonly', :value => cartridge.git_url, :title => 'The code for your application will be available through this Git repository.'}
+                    - content_for :javascripts do
+                      :javascript
+                        $('#application_git_url').focus(function() {this.select()});
+
+                  %h6= link_to 'Want to log in to your application?', '#', :'data-unhide' => '.ssh.hidden'
+                  .ssh.hidden
+                    %p 
+                      The command below will open a Secure Shell (SSH) session to your application on most 
+                      operating systems.  See our #{link_to 'SSH help page', ssh_help_url} for information 
+                      about connecting with Windows, Mac, and Linux computers.
+                    %p
+                      %input#application_ssh_url.git-url{:readonly => 'readonly', :value => "ssh #{cartridge.ssh_string}", :title => 'Cut and paste this command into a command shell to access your OpenShift application.'}
+                      - content_for :javascripts do
+                        :javascript
+                          $('#application_ssh_url').focus(function() {this.select()});
+
+                - else
+                  %p
+                    You must #{link_to "add an SSH public key to your account", account_path}
+                    before you can upload code or remotely access your application.
+
+              - if cartridge.scales? || cartridge.buildable?
+                .embedded
+                  - if cartridge.scales?
+                    .embedded-cart
+                      - if cartridge.scales.times == 1
+                        = link_to "Scales with HAProxy", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
+                      - else
+                        = link_to "Scaled up with HAProxy x#{cartridge.scales.times}", application_scaling_path(@application), :title => 'Your web cartridge is running multiple copies to handle increased web traffic'
+
+                  - if cartridge.builds?
+                    .embedded-cart 
+                      =link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'
+                      =link_to '(configure)', application_building_path(@application), :title => 'Remove or change your Jenkins configuration'
+                  - elsif cartridge.buildable?
+                    .embedded-cart= link_to "Enable Jenkins builds", application_building_path(@application), :title => 'Jenkins helps you run builds, tests, and deployment steps when you push changes to your application.'
+
+
+  .right.btn-toolbar
+    = link_to application_cartridge_types_path(@application), :class => 'btn btn-primary btn-large' do
+      Add
+      %strong Cartridge
+      %i.icon-add
+
+%aside#app-unique-info.span3
+  %section#app-unique-info
+    -#%h5 Visibility
+    -#%ul.unstyled
+      %li External
+    %h5 Aliases
+    %ul.unstyled
+      - if @application.aliases.empty?
+        %li No alias set
+      - else
+        - alias_scheme = @application.web_url.split(':').first
+        - @application.aliases.each do |a|
+          %li= link_to a, "#{alias_scheme}://#{a}"
+
+  #assistance
+    %h5 New to OpenShift?
+    %ul.unstyled
+      %li= link_to 'See the getting started tips for this app →', get_started_application_path(@application)
+
+    %h5 Need Help?
+    %ul.unstyled
+      %li= link_to 'OpenShift User Guide', user_guide_url
+      %li= link_to 'Sync your OpenShift repo with an existing Git repo', sync_git_with_remote_repo_knowledge_base_url 
+
+  -# %h5 Need Help? #restore later
+    %ul.unstyled
+      %li
+      - if @application_type.help_topics and not @application_type.help_topics.empty?
+        %h5= @application.framework_name + ' Help'
+        %ul.unstyled
+        - @application_type.help_topics.each do |key, value|
+          %li= link_to key, value
+
+  .btn-toolbar
+    = link_to 'Delete this application', delete_application_path(@application), :class => 'btn btn-small'
+

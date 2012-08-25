@@ -1,5 +1,7 @@
 - content_for :javascripts do
-  = javascript_include_tag 'script.js'
+  = javascript_include_tag status_jsonp_url('outage')
+  :javascript
+    window.loader_image = '#{image_path('loader-dark.gif')}';
 
 !!! 5
 -# http://paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither
@@ -8,20 +10,51 @@
     = render "layouts/head"
     = render "layouts/console/stylesheets"
 
-  %body{ :class => "console console-transition #{controller.controller_name} #{controller.action_name}" }
-    = outage_notification
+  %body{ :class => "console #{controller.controller_name} #{controller.action_name}" }
 
     %header
       = render 'layouts/console/header'
 
-    - if content_for? :sub_layout
-      = yield :sub_layout
-    - else
-      .container#content
-        = flashes
-        = yield
+    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
+      .container
+        .row-console
+          - if content_for? :full_layout
+            .row.row-flush-right
+              .grid-wrapper.ribbon
+                .span12.span-flush-right
+                  - if content_for? :breadcrumbs
+                    %nav
+                      = yield :breadcrumbs
+              = yield :top
+              .grid-wrapper.section-body
+                .span12
+                  = flashes
+                = yield
+
+          - else
+            .row.row-flush-right
+              .grid-wrapper.ribbon
+                .span12.span-flush-right
+                  - if content_for? :breadcrumbs
+                    %nav
+                      = yield :breadcrumbs
+                  - else
+                    &nbsp;
+              = yield :top
+              .column-content.grid-wrapper
+                .span12
+                  = flashes
+                  = yield
 
     %footer
-      = render 'layouts/console/footer'
+      = yield :footer
+
+      = render 'layouts/footer'
 
     = render 'layouts/javascripts'
+
+    = render('shared/tracking',
+      :controller => controller.controller_name,
+      :action => controller.action_name,
+      :event => @event ||= '',
+      :evar8 => @evar8 ||= '') if Rails.env.production?

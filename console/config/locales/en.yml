@@ -1,5 +1,10 @@
 en:
+  unknown: 'A system error has occurred.  If the problem persists, please contact Red Hat support.'
+
   rest_api:
     errors:
+      '104': 'You have reached the maximum allowed gears and cannot create another.  You must scale down an application or remove an application or cartridge to continue.'
       '116': 'Type is required and cannot be blank.'
       '121': 'You have already saved this public key with a different name. Provide a different key here.'
+      '151': 'You must create a Jenkins application (to act as a build server) before you can add the Jenkins cartridge to an application.'
+      '153': 'You are currently using more gears than the new plan would allow.  Please scale down or delete applications before downgrading.'

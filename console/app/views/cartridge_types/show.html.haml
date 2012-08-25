@@ -1,23 +1,21 @@
-:css
-  .cartridge_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px;}
-  .cartridge_type > ul.meta > li {display: inline;}
-  .cartridge_type > ul.meta > li > label {display: inline;}
+- breadcrumb_for_application @application, 'Add a Cartridge'
+- content_for :page_title, 'Add a Cartridge'
 
 %h1.invisible Configure New Application
 = cartridge_wizard_steps_create 1
 
-= render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+= render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
 
-= semantic_form_for @cartridge, :url => application_cartridges_path(@application_id), :html => {:class => 'form'} do |f|
+= semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form'} do |f|
   = f.hidden_field :type, :value => @cartridge_type.type
-  = f.hidden_field :name, :value => @cartridge_type.id
-  = f.semantic_errors :name
+  = f.hidden_field :name, :value => @cartridge_type.name
+  = f.semantic_errors :name, :cartridge
   %div
     Do you want to add the
     %strong
-      #{@cartridge_type.name}
+      #{@cartridge_type.display_name}
     cartridge to your application?
   = f.buttons do
-    = link_to "Back", application_cartridge_types_path(@application_id), :class => 'btn'
+    = link_to "Back", application_cartridge_types_path(@application), :class => 'btn'
     = f.commit_button("Add Cartridge")
     = f.loading

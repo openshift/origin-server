@@ -1,0 +1,82 @@
+@import "compass";
+
+.ribbon {
+  position: relative;
+  background-color: #333b3f;
+  @include background-image(linear-gradient(color-stops(#333b3f, #1a2124)));
+  //@include box-shadow(0);
+  color: #bcbdbc;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.18);
+  font-weight: 400;
+  font-size: 11px;
+  min-height: 32px;
+
+  // Expand the ribbon with a border and a negative left margin
+  margin-left: -10px;
+  > div {
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+  }
+
+  &:before {
+    border-left: 10px solid transparent;
+    /*border-top: 10px solid #91010B; red version */
+    border-top: 10px solid #000;
+    bottom: -10px;
+    content: "";
+    height: 0;
+    left: 0;
+    position: absolute;
+    width: 0;
+  }
+  
+  &:after {
+    border-right: 10px solid transparent;
+    border-top: 10px solid #000;
+    bottom: -10px;
+    content: "";
+    height: 0;
+    right: 0;
+    position: absolute;
+    width: 0;
+  }
+
+  .more a {
+    /*background-color: #bb161c; red version */
+    background-color: rgba(0, 0, 0, 0.075);
+    float: right;
+    color: #e0e1dd;
+    text-transform: uppercase;
+    /*border-color: transparent #EB0011; red version */
+    border-color: transparent;
+    border-style: solid;
+    border-width: 1.5em 0 1.5em 1.5em;
+    color: #e0e1dd;
+    display: inline-block;
+    line-height: 0;
+    height: 0;
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .row > .ribbon {
+    @include expand_for_phone();
+    min-height: 26px;
+  }
+}
+/* The ribbon should tuck in on very narrow windows */
+@media (max-width: 810px) {
+  .ribbon {
+    margin-left: 0;
+    > div {
+      border: 0;
+    }
+
+    &:before,
+    &:after {
+      display: none;
+    }
+  }
+}
+

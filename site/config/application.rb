@@ -21,7 +21,7 @@ module RedHatCloud
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
-    config.autoload_paths += Dir["#{config.root}/lib", "#{config.root}/lib/**/"]
+    config.autoload_paths += Dir["#{config.root}/lib"]
     config.autoload_paths += %W(#{config.root}/app/subsites/status)
     config.autoload_paths += %W(#{config.root}/app/subsites/status/lib)
 
@@ -48,5 +48,7 @@ module RedHatCloud
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
+
+    config.user_agent = "openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
   end
 end

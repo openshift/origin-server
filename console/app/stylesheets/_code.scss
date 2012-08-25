@@ -1,11 +1,86 @@
+// Code.scss
+// Code typography styles for the <code> and <pre> elements
+// --------------------------------------------------------
+
+// Inline and block code styles
+code,
 pre {
-	-webkit-border-radius: 0;
-  -moz-border-radius: 0;
-  border-radius: 0;
-	}
+  padding: 0 3px 2px;
+  @include font-family-monospace;
+  font-size: $baseFontSize - 1;
+  color: $grayDark;
+  @include border-radius(0);
+}
+
+// Inline code
+code {
+  padding: 3px 4px;
+  color: #d14;
+  background-color: #f7f7f9;
+  border: 1px solid #e1e1e8;
+}
+
+// Blocks of code
+pre {
+  display: block;
+  padding: $baseLineHeight / 2;
+  margin: 0 0 $baseLineHeight;
+  line-height: $baseLineHeight;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc; // fallback for IE7-8
+  border: 1px solid rgba(0,0,0,.15);
+  @include border-radius(4px);
+  white-space: pre;
+  white-space: pre-wrap;
+  word-break: break-all;
+  word-wrap: break-word;
+
+  // Make prettyprint styles more spaced out for readability
+  &.prettyprint {
+    margin-bottom: $baseLineHeight;
+  }
+
+  // Account for some code outputs that place code tags in pre tags
+  code {
+    padding: 0;
+    color: inherit;
+    background-color: transparent;
+    border: 0;
+  }
+}
 
 pre.cli {
 	color: $cliText;
 	background-color: $cliBackground;
-	border: none;
-	}
+	border: 1px solid #000;
+}
+
+// Enable scrollable blocks of code
+.pre-scrollable {
+  max-height: 340px;
+  overflow-y: scroll;
+}
+
+pre.pre-scrollable-horizontal {
+  overflow-x: auto;
+  white-space: nowrap;
+  }
+
+// GeshiFilter specific, can be moved into a more generic section
+.column-content div.geshifilter {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+
+  // Reset to _type defaults
+  pre {
+    padding: 8.5px;
+    margin: 0 0 9px;
+    line-height: 18px;
+    border: 1px solid #ccc; // fallback for IE7-8
+    border: 1px solid rgba(0,0,0,.15);
+  }
+}
+
+

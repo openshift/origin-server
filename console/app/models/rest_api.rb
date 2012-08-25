@@ -16,6 +16,9 @@ module RestApi
       @ticket = ticket
       @password = password
     end
+    def cache_key
+      login
+    end
   end
 
   class << self

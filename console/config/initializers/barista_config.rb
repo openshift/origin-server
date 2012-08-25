@@ -68,19 +68,19 @@ unless Console.config.disable_js
   end
 
   #
-  # Javascript is assumed to be generated into Rails tmp/javascripts,
-  # either dynamically in development, or by the RPM build in production
-  #
-  options = {
-    :urls => ['/javascripts'],
-    :root => "#{Rails.root}/tmp"
-  }
-
-  #
   # All production environments pregenerate JS using the RPM build, development
-  # environments use autogeneration
+  # environments use autogeneration.  To trigger autogeneration you may need to
+  # run 'rake assets:clean'.
   #
-  Rails.configuration.middleware.delete('Barista::Filter')
-  Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Barista::Filter')
-  Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Rack::Static', options)
+  if Rails.env.development?
+    Rails.configuration.middleware.delete('Barista::Filter')
+    Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Barista::Filter')
+    options = {
+      :urls => ['/javascripts'],
+      :root => "#{Rails.root}/tmp"
+    }
+    Rails.configuration.middleware.insert_before('Rack::Sendfile', 'Rack::Static', options)
+  else
+    Rails.configuration.middleware.delete('Barista::Filter')
+  end
 end

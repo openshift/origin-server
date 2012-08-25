@@ -1,0 +1,40 @@
+// LABELS
+// ------
+
+// Base
+.label {
+  padding: 0 6px;
+  font-size: $baseFontSize * .75;
+  font-weight: bold;
+  color: #111;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+  background-color: #8a8b8c;
+  @include border-radius(3px);
+  text-transform: uppercase;
+} 
+
+// Hover state
+.label:hover {
+  //color: $white;
+  text-decoration: none;
+}
+
+// Colors
+.label-important        { background-color: $errorBackground; }
+//.label-important:hover  { background-color: darken($errorBackground, 10%); }
+
+.label-warning          { background-color: $orange; }
+//.label-warning:hover    { background-color: darken($orange, 10%); }
+
+.label-success          { background-color: $successBackground; }
+//.label-success:hover    { background-color: darken($successBackground, 10%); }
+
+.label-info             { background-color: $infoBackground; }
+//.label-info:hover       { background-color: darken($infoBackground, 10%); }
+
+// Margins between labels
+.labels {
+  .label {
+    margin-left: 4px;
+  }
+}

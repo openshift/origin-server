@@ -3,4 +3,7 @@ vendor/*
 .bundle
 log/*
 tmp/*
-public/stylesheets/.sass-cache/
+public/stylesheets/
+.sass-cache/
+app/subsites/status/db/status.sqlite3
+test/reports/

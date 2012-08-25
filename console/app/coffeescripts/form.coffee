@@ -1,9 +1,15 @@
 $ = jQuery
 
+find_control_group_parent =
+  (child) ->
+    parent = $(child).parentsUntil(".control-group").parent().closest(".control-group")
+    return parent
+
 $ ->
-  $.validator.addMethod "aws_account", ((value) ->
-    (/^[\d]{4}-[\d]{4}-[\d]{4}$/).test value
-  ), "Account numbers should be a 12-digit number separated by dashes. Ex: 1234-5678-9000"
+
+  #  $.validator.addMethod "aws_account", ((value) ->
+  #    (/^[\d]{4}-[\d]{4}-[\d]{4}$/).test value
+  #  ), "Account numbers should be a 12-digit number separated by dashes. Ex: 1234-5678-9000"
 
   $.validator.addMethod "alpha_numeric", ((value) ->
     (/^[A-Za-z0-9]*$/).test value
@@ -13,13 +19,16 @@ $ ->
     errorClass:   'help-inline'
     errorElement: 'p'
     highlight: (element,errorClass,validClass) ->
-      $(element).addClass('error').removeClass(validClass)
+      $(find_control_group_parent(element)).addClass('error').addClass('error-client').removeClass(validClass)
     unhighlight: (element,errorClass,validClass) ->
-      $(element).addClass(validClass).removeClass('error')
+      $el = $(find_control_group_parent(element))
+      $el.removeClass('error-client')
+      if typeof($el.attr('data-server-error')) == 'undefined'
+        $el.removeClass('error')
 
   # /app/account/new
   # /app/account
-  $('#new-user form').validate
+  $('form#new_user_form').validate
     rules:
       # Require email for new users
       "web_user[email_address]":
@@ -36,37 +45,41 @@ $ ->
         equalTo:    "#web_user_password"
 
   # /app/login 
-  $('#login-form form').validate
+  $('form#login_form').validate
     rules:
       "web_user[rhlogin]":
         required: true
       "web_user[password]":
         required: true
 
-  # /app/user/request_password_reset_form
-  $('#password-reset-form form').validate
+  # /payment
+  $('form#payment_method').validate
     rules:
-      "email":
+      "cc_no":
         required: true
-        email: true
+      "cvv":
+        required: true
 
- # Validate application name
-  $.validator.addClassRules
-    domain_name:
-      required: true
-      alpha_numeric: true
-    application_name:
-      required: true
-      alpha_numeric: true
+  $("[data-unhide]").click (event) ->
+    src = $(this)
+    tgt = $(src.attr('data-unhide'))
+    if (tgt)
+      event.preventDefault() if event?
+      src.closest('[data-hide-parent]').addClass('hidden')
+      $('input',tgt.removeClass('hidden')).focus()
 
-  # These forms are inline, so we need to handle them differently
-  # /app/console/application_types/*
-  $('#new_application').validate
-    errorLabelContainer: '#app-errors'
-    errorContainer: '#app-errors'
+  # Show/hide loading icons when form buttons are clicked
+  loading_match = '*[data-loading=true]'
+  ($ 'form '+loading_match).each ->
+    this.src = window.loader_image if window.loader_image
+    finished = ->
+      ($ loading_match).hide()
+      ($ 'input[type=submit][disabled]').removeAttr('disabled')
+    ($ window).bind 'pagehide', finished
+    ($ this).closest('form').bind 'submit', ->
+      this.finished = finished
+      if ($ '.control-group.error-client').length == 0
+        ($ loading_match, this).show()
+        ($ 'input[type=submit]', this).attr('disabled','disabled')
+        true
 
-  # /app/account
-  # /app/account/domain/edit
-  $("#new_domain form").validate
-    errorLabelContainer: '#app-errors'
-    errorContainer: '#app-errors'

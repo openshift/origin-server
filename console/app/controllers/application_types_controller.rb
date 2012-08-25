@@ -1,15 +1,17 @@
 class ApplicationTypesController < ConsoleController
 
   def index
-    types = ApplicationType.find :all
-    @framework_types, types = types.partition { |t| t.categories.include?(:framework) }
-    @popular_types, types = types.partition { |t| t.categories.include?(:popular) }
+    types = ApplicationType.all
+
+    types.sort!
+
+    @template_types, @framework_types = types.partition{ |t| t.template }
+
   end
 
   def show
     @application_type = ApplicationType.find params[:id]
-    logger.debug "Session user #{session_user.inspect}"
-    @domain = Domain.find :first, :as => session_user
+    user_default_domain rescue nil
     @application = Application.new :as => session_user
 
     # hard code for now but we want to get this from the server eventually

@@ -2,36 +2,39 @@
   .navbar-inner
     .container
 
+      %ul.navbar-text.pull-right#utility-nav
+        %li.hidden-phone= link_to "Community", community_url, :class => 'community'
+        %li.hidden-phone= link_to "Developer Center", developers_url, :class => 'developer'
+        %li.dropdown.username.hidden-phone
+          = link_to logged_in_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
+          %ul.dropdown-menu.hidden-phone
+            %li= link_to "My Account", account_path
+            %li= link_to "Sign Out", logout_path, :class => "sign_out"
+        %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
+
+      %a.btn.btn-navbar{'data-target' => '.nav-collapse', 'data-toggle' => 'collapse'}
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+
       .brand
         = link_to root_path do
-          %img.brand-image{:src => image_path('/app/images/logo-24-inside.png')}
-          .brand-text 
+          %span.brand-image
+          %span.brand-text.headline
             %strong> Open
             Shift
 
-      %span.navbar-text.headline 
-        Management Console
+        %span.navbar-text.headline 
+          Management Console
 
-      -#= link_to root_path, :class => 'brand' do
-        Open
-        %strong> Shift
-        %span.trademark> &trade;
-        &nbsp;
-        Management Console
-
-      .nav-collapse
+      .nav-collapse.collapse
         = navigation_tabs do
           = navigation_tab :applications, :action => :index, :name => "My Applications"
-          = navigation_tab :application_types, :name => "Create a New Application"
+          = navigation_tab :application_types, :name => "Create Application"
           = navigation_tab :console, :action => :help, :name => "Help"
-          -#= navigation_tab :help, :show
-          -#= navigation_tab :user, :action => :show
-
-      %ul.navbar-text.pull-right#utility-nav
-        %li= link_to "Community", community_url
-        %li= link_to "My Account", account_path
-        - if logout_path
-          %li= link_to "Sign Out", logout_path
-
-      = render :partial => 'layouts/console/identity', :local => {:user => session_user}
-
+          = navigation_tab :account, :action => :show, :name => "My Account"
+        %ul.nav.visible-phone
+          %li= link_to "Community", community_url, :class => 'community'
+          %li= link_to "Developer Center", developers_url, :class => 'developer'
+        %ul.nav.visible-phone
+          %li= link_to "Sign Out", logout_path, :class => "sign_out"

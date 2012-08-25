@@ -20,30 +20,43 @@ class CartridgesControllerTest < ActionController::TestCase
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.inspect
+    assert_response :success
+    assert_template :next_steps
   end
 
   test "should create two cartridges" do
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.inspect
+    assert_response :success
+    assert_template :next_steps
 
     post_form = get_post_form
     post_form[:cartridge][:name] = 'cron-1.4'
     post(:create, post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.inspect
+
+    assert_response :success
+    assert_template :next_steps
   end
 
   test "should error out if cartridge is installed" do
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
     assert cart.errors.empty?, cart.errors.inspect
+    assert_response :success
+    assert_template :next_steps
 
     post(:create, get_post_form)
+    assert_response :success
     assert cart = assigns(:cartridge)
     assert !cart.errors.empty?
     assert cart.errors[:base].present?
     assert_equal 1, cart.errors[:base].length
+
+    assert_response :success
+    assert_template 'cartridge_types/show'
   end
 
   def get_post_form

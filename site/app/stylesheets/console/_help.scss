@@ -1,0 +1,53 @@
+.help-block {
+  color: #cfcfcf;
+}
+
+.help-block-multiple {
+  background: transparent;
+}
+
+
+#help {
+  padding: 35px 0 0px 0;
+  margin: 0;
+  background-color: #070707;
+  
+  ul li {
+	  list-style: none;
+  }
+  
+  .container {
+  	border-bottom:1px dotted #2a2b2c;
+  }
+}
+
+#help p {
+  color: #808080;
+}
+#help h4 {
+  text-transform: uppercase;
+  font-size: 100%;
+  color: #707070;
+  padding-bottom: 4px;
+}
+#help a {
+  font-size: 22px;
+  color: #EB0011;
+  font-weight: 200;
+}
+
+@media (max-width: 479px) {
+  #help ul li {
+    text-align: center;
+  }
+}
+
+@media (max-width: 767px) {
+  #help ul li {
+    margin-left:0;
+    margin-bottom: 25px;
+    border-right: 0;
+    width: 100%;
+    float: none;
+  }
+}

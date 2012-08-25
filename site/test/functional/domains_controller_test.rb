@@ -38,19 +38,29 @@ class DomainsControllerTest < ActionController::TestCase
     assert_redirected_to account_path
   end
 
+  test "should clear domain session cache" do
+    session[:domain] = 'foo'
+    post :create, {:domain => get_post_form}
+
+    assert domain = assigns(:domain)
+    assert domain.errors.empty?, domain.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:domain]
+  end
+
   test "should assign errors on empty name" do
     post :create, {:domain => get_post_form.merge(:name => '')}
 
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
+    assert_equal 1, domain.errors[:name].length
     assert_template :new
   end
 
   test "should assign errors on long name" do
     post :create, {:domain => get_post_form.merge(:name => 'aoeu'*2000)}
-    
+
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
@@ -80,17 +90,17 @@ class DomainsControllerTest < ActionController::TestCase
     assert_template :new
   end
 
-  test "should allow only one domain" do
-    with_domain
+  #test "should allow only one domain" do
+  #  with_domain
 
-    post :create, {:domain => {:name => unique_name}}
+  #  post :create, {:domain => {:name => unique_name}}
 
-    assert domain = assigns(:domain)
-    assert !domain.errors.empty?
-    assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length, domain.errors.inspect
-    assert_template :new
-  end
+  #  assert domain = assigns(:domain)
+  #  assert !domain.errors.empty?
+  #  assert domain.errors[:name].present?, domain.errors.inspect
+  #  assert_equal 1, domain.errors[:name].length, domain.errors.inspect
+  #  assert_template :new
+  #end
 
   test "should show edit domain page" do
     with_domain
@@ -110,6 +120,18 @@ class DomainsControllerTest < ActionController::TestCase
     assert_redirected_to account_path
   end
 
+  test "should update domain and clear session cache" do
+    with_particular_user
+    session[:domain] = 'foo'
+
+    put :update, {:domain => {:name => unique_name}}
+
+    assert domain = assigns(:domain)
+    assert domain.errors.empty?, domain.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:domain]
+  end
+
   test "update should assign errors on empty name" do
     with_particular_user
 
@@ -118,8 +140,8 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 2, domain.errors[:name].length, "Bug 812060 has been fixed, change to 1"
-    assert_template :new
+    assert_equal 1, domain.errors[:name].length
+    assert_template :edit
   end
 
   test "update should assign errors on long name" do
@@ -131,7 +153,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   test "update should assign errors on invalid name" do
@@ -143,12 +165,12 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   test "update should assign errors on duplicate name" do
     with_particular_user
-    assert (domain = Domain.new(get_post_form.merge(:as => unique_user))).save, domain.errors.inspect
+    assert (domain = Domain.new(get_post_form.merge(:name => "d#{new_uuid[0..12]}", :as => unique_user))).save, domain.errors.inspect
 
     put :update, {:domain => {:name => domain.name}}
 
@@ -156,7 +178,7 @@ class DomainsControllerTest < ActionController::TestCase
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
     assert_equal 1, domain.errors[:name].length
-    assert_template :new
+    assert_template :edit
   end
 
   def get_post_form

@@ -1,93 +1,127 @@
 - lots_of_applications = @applications.length > 10
-- application_partial = lots_of_applications ? 'applications/application_compact' : 'applications/application_overview'
 
-%nav
-  %ul.breadcrumb
-    %li
-      = link_to 'My applications', :applications, :action => :index
+- content_for :full_layout, true
+- content_for :dark_layout, true
+- content_for :footer do 
+  %section#help
+    .container
+      %ul.row
+        %li.span4
+          %h4 Updates
+          = link_to 'Latest News', openshift_blog_url, :target => '_blank'
+          %p Check out what's happening in OpenShift
+        %li.span4
+          %h4 Need Help?
+          = link_to 'Find Answers Online', console_help_url
+          %p The help page brings together all our resources
+        %li.span4
+          %h4 Participate
+          = link_to 'Check out the forum', post_to_forum_url, :target => '_blank'
+          %p Our community is what makes OpenShift strong
 
-%section#console-mast
-  .row
-    %ul.unstyled-flat
-      %li.span5
-        %h1 All Applications
-      -#
-        %li.span5
-          %img{:src => 'http://placehold.it/60&text=img'}
-          %img{:src => 'http://placehold.it/60&text=img'}
-          %img{:src => 'http://placehold.it/60&text=img'}
-          %img{:src => 'http://placehold.it/60&text=img'}
-        %li.span2
-          .account-total $0.00
-      %li.span7.right
-        = link_to 'Create a New Application', application_types_path, :class => ['btn', 'btn-large'], :style => 'margin-right:10px'
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right
+      %h1 All Applications
 
-.row
-  %section#app-list.span8
-    %header
-      %h3.invisible 
-        Application list
+-#
+  .emblem.span
+    %img{:src => '/app/images/console/gear-bars.png'}
+    .span
+      -# placeholder for gear info
+  .emblem.span
+    %img{:src => '/app/images/console/bolt.png'}
+    .span
+      -# placeholder for bolt info
+  .emblem.span
+    %img{:src => '/app/images/console/mark.png'}
+    .span
+      -# placeholder for mark info
+  .emblem.span
+    %img{:src => '/app/images/console/warning.png'}
+    .span
+      -# placeholder for warning info
+  .total-cost
+    -# cost placeholder
+
+%section#app-list.span7
+  %header
+    %h3.invisible Application list
+  .row.tile-dark
     - @applications.each do |application|
-      .app-block
-        .row
-          %ul.unstyled-flat
-            -#
-              %li.span1.wordpress
-                %img{:src => 'http://placehold.it/60&text=img', :alt => 'wordpress logo'}
-            %li.span6
-              %h2= application.name
-              = link_to application.web_url, application.web_url
-            - # hardcode this for now until we can deal with edge cases better
-            - if application.framework != 'jenkins-1.4'
-              %li.span2
-                %a.pull-right.btn{:href => "#{application_path(application)}"} Details
+      .grid-wrapper.tile-click
+        .span7.application-info
+          %h2.name= link_to application.name, application_path(application), :class => 'tile-target'
+          .url
+            %strong @
+            = link_to application.web_url, application.web_url
+          -#%span.span2
+            -#.emblem
+              %img{:src => "/app/images/console/gear-bars.png"}
+              %span.gear-numbers
+                -# gear number placeholder
+          %i.sprite.tile-arrow
 
-  %section#account-digest.span4
-    #assistance
-      %h5 OpenShift Help
-      %ul.unstyled
-        - console_help_links.each do |l|
-          %li= link_to l[:name], l[:href]
-        %li= link_to 'More help »', console_help_path
+  .btn-toolbar.base.right
+    = link_to application_types_path, :class => 'btn btn-primary btn-large' do
+      Add
+      %strong Application
+      %i.icon-add
 
-      %h5 Popular FAQs
-      %ul.unstyled
-        - console_faq_links.each do |l|
-          %li= link_to l[:name], l[:href]
-        %li= link_to 'More FAQs »', faq_url
-  -#
-    %header.invisible Billing, usage and charts
-    %table.table.table-striped.table-condensed
-      %thead.invisible
-        %tr
-          %th column heading                
-          %th column heading                
-          %th column heading                
-          %th column heading                
-          %th column heading       
-      %tbody
-        %tr
-          %td 1
-          %td App name
-          %td 4/10
-          %td 40%
-          %td $0.00
-        %tr
-          %td 2
-          %td App name
-          %td 4/10
-          %td 40%
-          %td $0.00
-        %tr
-          %td 3
-          %td App name
-          %td 4/10
-          %td 40%
-          %td $0.00
-    %ul.thumbnails
-      %li.span5
-        %a.thumbnail{:href => '#'}
-          %figure
-            %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
-            
-= render :partial => 'applications/section_help'
+%section#account-digest.span5
+  .digest-bg
+    %aside#secondary
+      #assistance
+        %h5 OpenShift Help
+        %ul.unstyled
+          - console_help_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More help »', console_help_path
+
+        %h5 Popular FAQs
+        %ul.unstyled
+          - console_faq_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More FAQs »', faq_url
+-#
+  %header.invisible Billing, usage and charts
+  %table.table.table-striped.table-condensed
+    %thead.invisible
+      %tr
+        %th column heading
+        %th column heading
+        %th column heading
+        %th column heading
+        %th column heading
+    %tbody
+      %tr
+        %td 1
+        %td App name
+        %td 4/10
+        %td 40%
+        %td $0.00
+      %tr
+        %td 2
+        %td App name
+        %td 4/10
+        %td 40%
+        %td $0.00
+      %tr
+        %td 3
+        %td App name
+        %td 4/10
+        %td 40%
+        %td $0.00
+  %ul.thumbnails
+    %li.span5
+      %a.thumbnail{:href => '#'}
+        %figure
+          %img{:src => 'http://placehold.it/470x168&text=Chart+A'}
+
+-# FIXME: Refactor me into an unobtrusive javascript function
+- content_for :javascripts do
+  :javascript
+    jQuery('.tile-click').click(function() {
+      a = $('h2 > a', this)[0];
+      window.location = a.href
+    });

@@ -1,0 +1,44 @@
+-# This is implemented custom here rather than integrating into Formtastic because of its specific nature
+.control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}}
+  %label.control-label Public URL
+  .controls
+    .input-prepend-append
+      %span.add-on-first http://
+
+      = form.text_field :name, 
+        :value => "#{application.name}", 
+        :autofocus => true, 
+        :maxlength => 32, 
+        :placeholder => 'Application name', 
+        :class => "application_name #{'error' if application.errors.include? :name}"
+
+      -# If the user has a domain, use it, otherwise prompt them for that field
+      - if @domain and @domain.persisted?
+
+        %span.add-on-last> -#{@domain.name}.#{Rails.configuration.base_domain}
+
+      - else
+
+        %span.add-on-middle> &ndash;
+        = form.text_field :domain_name, 
+          :value => "#{application.domain_name}", 
+          :placeholder => 'Namespace', 
+          :maxlength => 16, 
+          :class => "domain_name #{'error' if application.errors.include? :domain_name}"
+        %span.add-on-last>= ".#{Rails.configuration.base_domain}"
+    -#.row.control-group.error
+      #app-errors.span
+    .row
+      - if @domain and @domain.persisted?
+        .help-block.span6
+          Your application name uniquely identifies the application and becomes part of your public 
+          URL. You can add your own domain names to the application later.
+      - else
+        .help-block-multiple.span8
+          %strong Application name
+          %p
+            Your application name uniquely identifies the application and becomes part of your public 
+            URL. You can add your own domain names to the application later.
+          %strong Namespace
+          %p
+            Because this is your first application, you need to set a name under which your applications will be grouped

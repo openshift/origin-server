@@ -6,7 +6,7 @@ class CartridgesController < ConsoleController
   end
 
   def show
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:application_id]
     @application_type = ApplicationType.find @application.framework
     Rails.logger.debug @application.cartridges
@@ -28,15 +28,11 @@ class CartridgesController < ConsoleController
 
     if @cartridge.save
       @wizard = true
-      messages = @cartridge.attributes[:messages]
-      @cartridge_message = ""
 
-      unless messages.nil?
-        result = messages.find { |m| m[:field] == "result" }
-        @cartridge_message = result[:text] if result.respond_to?(:has_key?) && result.has_key?(:text)
-      end
+      message = @cartridge.remote_results
+      flash.now[:info_pre] = message
 
-      render 'cartridges/next_steps'
+      render :next_steps
     else
       Rails.logger.debug @cartridge.errors.inspect
       @application_id = @application.id
@@ -45,7 +41,7 @@ class CartridgesController < ConsoleController
   end
 
   def next_steps
-    @domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?

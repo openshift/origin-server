@@ -1,13 +1,20 @@
+- breadcrumb_for_application @application, @wizard ? 'Next steps' : 'Get Started'
+
 - if @wizard
   = app_wizard_steps_create 2, :completed => true
   %h1.invisible Get Started
-  %p Your application has been created. If you're new to OpenShift check out these tips for where to go next.
+  %section
+    = flashes
+    %p.larger Your application has been created. If you're new to OpenShift check out these tips for where to go next.
 
 - else
   %h1 Get Started
-  %p Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
+  %section
+    = flashes
+    %p.larger Looking for tips on what to build or where to go next?  We've organized some helpful hints for you.
 
-.row
+
+%section.row
   .span7
     -# application url
     %h2 Accessing your application
@@ -18,8 +25,13 @@
       - else
         If your application exposes services to the Internet they will be available at
 
-      .well.application-url
-        = link_to @application.web_url, @application.web_url
+      - if @template
+        .alert.alert-info
+          Your application is currently being created. Preconfigured applications take a little longer to get ready.
+          If you try to access your application and get a 503 error, it means the deployment is in progress.
+
+      %p.well.application-url.larger
+        = link_to @application.web_url, @application.web_url, :target => '_blank'
 
     %p 
       The 
@@ -29,15 +41,22 @@
     -# git/setup
     - if true #FIXME has at least one cartridge with source code
       %h2 Making code changes
+
+      - unless @has_keys
+        %div.well
+          %h4 Set your Public Key
+          %p
+            Before you can upload code, you need to provide us with a <strong>public key</strong>
+            to identify you to our servers. If this is your first time creating a public key
+            #{link_to "read more about SSH keys and remote access", ssh_keys_help_path}.
+          = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
+
       %p 
-        OpenShift uses the
-        = link_to "Git version control system", git_homepage_url
-        to manage the code of your application. Each cartridge has a single Git 
-        %strong repository
-        that you'll use to check in changes to your application. When you
-        %strong push
-        a change to your Git repository we'll automatically deploy your code and restart your application if necessary.
-        = link_to "Learn more about uploading code", git_user_guide_topic_url
+        OpenShift uses the #{link_to "Git version control system", git_homepage_url}
+        to manage the code of your application. Each cartridge has a single Git <strong>repository</strong>
+        that you'll use to check in changes to your application. When you <strong>push</strong>
+        a change to your Git repository we'll automatically deploy your code and restart your 
+        application if necessary. #{link_to "Learn more about uploading code", git_user_guide_topic_url}
 
       - if @has_keys
         - if true #FIXME has a single cartridge with source code
@@ -70,58 +89,57 @@
         - else
           -#FIXME has multiple cartridges with source code
 
-      - else
-        %div.alert.alert-info
-          %h4 Set your Public Key
-          %p
-            Before you can upload code, you need to provide us with a 
-            %strong public key
-            to identify you to our servers. If this is your first time creating a public key
-            = link_to "read our User Guide topic on keys.", ssh_key_user_guide_topic_url
-          = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span6' }
 
   .span5
-
-    -# client
-    %h2 Managing your application
-    %p 
-      Most of the capabilities of OpenShift are exposed through our command line tool, 
-      %strong rhc.
-      Whether it's adding cartridges, checking uptime, or pulling log files from
-      the server, you can quickly put a finger on the pulse of your application.
-      = link_to "Follow these steps to install the client", install_cli_knowledge_base_url
-      on Linux, Mac OS X, or Windows.
-    %p
-      After installing the command line tool follow our User Guide
-      = link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url 
 
     -# cartridges
     %h2 Adding capabilities
     %p
-      You may now
-      = link_to'add cartridges to provide extra functionality for your application.', application_cartridge_types_path(@application.name)
-    %p
       Cartridges are the components of an OpenShift application, and include databases, build systems,
-      and management capabilities. Adding a cartridge to an application provides the desired capability
-      without forcing you to administrate or update that feature. 
-    %p
+      and management capabilities. <strong>#{link_to 'Adding a cartridge', application_cartridge_types_path(@application)}</strong> such as 
+      #{link_to 'MySQL', application_cartridge_type_path(@application, 'mysql-5.1')} or #{link_to 'MongoDB', application_cartridge_type_path(@application, 'mongodb-2.0')}
+      to an application provides the desired capability without forcing you to administrate or update that feature.
+    -#%p
       To run a PHP application with MySQL (the M and P in LAMP) you 
       %strong embed
       the MySQL cartridge into your application. OpenShift gives your PHP code access to your new MySQL database, but
       manages the database server for you.
-    %p
-      You can see the 
-      = link_to "list of available cartridges online", manage_cartridges_user_guide_topic_url
-      or from the command line with
-    %pre.cli
+    %p 
+      = link_to "Add a cartridge to your application now", application_cartridge_types_path(@application)
+      -#or from the command line with
+    -#%pre.cli
       = preserve do
         :escaped
           rhc app cartridge list
-    %p
+    -#%p
       You may also add a cartridge to your application by running
-    %pre.cli
+    -#%pre.cli
       = preserve do
         :escaped
           rhc app cartridge add -a #{@application.name} -c <cart_id>
 
+    -# client
+    %h2 Managing your application
+
+    %h3 RHC Client Tools
+
+    %p
+      Most of the capabilities of OpenShift are exposed through our command line tool, 
+      %strong rhc.
+      Whether it's adding cartridges, checking uptime, or pulling log files from
+      the server, you can quickly put a finger on the pulse of your application.
+      #{link_to "Follow these steps to install the client", getting_started_path(:anchor => 'install_client_tools')}
+      on Linux, Mac OS X, or Windows.
+    %p
+      After installing the command line tool follow our User Guide 
+      #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }.
+
+    %h3 JBoss Developer Studio
+
+    %p
+      The JBoss Developer Studio is a full featured IDE with OpenShift integration built in.
+      It gives you the ability to create, edit and deploy applications without having to
+      leave the IDE.  Links to download, install and use the JBoss Developer Studio for Linux,
+      Mac OS X, or Windows can be found on the
+      #{link_to("JBoss Developer Studio tools page.", "#{client_tools_help_url}")}
     -# tech specific

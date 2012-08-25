@@ -1,4 +1,4 @@
-:css
+-#:css
   .application_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px; cursor: pointer;}
   .application_type:hover {background-color: #e0e0e0;}
   .application_type:active {background-color: #CC0000; color: white}
@@ -7,27 +7,50 @@
 
 %h1.invisible Create a New Application
 = app_wizard_steps_create 0
+= flashes
+
 -#%p Get started by choosing what kind of application you want to create.  Use the search box to filter the list of types or click on a category in the drop down to narrow down your choice.
-%p
-  Choose a web programming framework for your application. After you create the application you can add
-  %strong cartridges
-  to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
+%section
+  %p.larger
+    Choose a web programming cartridge#{ %{ (from scratch) or kick the tires with a preconfigured application} unless @template_types.empty?}. After you create the application you can add
+    %strong cartridges
+    to enable additional capabilities like databases, metrics, and continuous build support with Jenkins.
 
-.row
-  - @framework_types.each_slice((@framework_types.length/2.0).ceil).each do |types|
-    .span6
-      = render :collection => types, :partial => 'application_types/application_type'
+- unless @template_types.empty?
+  %section
+    %h3.divide Instant Applications
+    %p
+      The preconfigured applications below contain a web cartridge, any other required cartridges (such as a database), and all of the code needed to get you up and running in seconds.
+    .row
+      - @template_types.each_slice((@template_types.length/2.0).ceil).each do |types|
+        .span6
+          = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
 
--# unless @popular_types.empty?
+    .gutter.italics
+      %h5 Didn't Find What You Were Looking For?
+      %p
+        If you would like to try another framework, #{link_to 'more quickstarts are available here', get_started_quickstart_url, :target => '_blank'}.
+        If there are other applications you would like to see here or as quickstarts, please #{link_to "suggest or vote for it", suggest_features_url}.
+
+%section
+  %h3.divide Web Cartridges
+  %p
+    The web cartridge is the heart of your application, handling incoming web requests and dishing out web pages, business APIs, or the content for your next hot mobile app.
   .row
-    .span7
-      %h2 Popular Types
-      %p These applications have been selected by the OpenShift team to get you started in a hurry. These are good choices when you want to learn more about how OpenShift works.
-      = render @popular_types
-    .span5
-      = yield :frameworks
--# else
-  = yield :frameworks
+    - @framework_types.each_slice((@framework_types.length/2.0).ceil).each do |types|
+      .span6
+        = render :collection => types, :partial => 'application_types/application_type', :locals => {:classes => 'tile tile-click'}
+
+  -# unless @popular_types.empty?
+    .row
+      .span7
+        %h2 Popular Types
+        %p These applications have been selected by the OpenShift team to get you started in a hurry. These are good choices when you want to learn more about how OpenShift works.
+        = render @popular_types
+      .span5
+        = yield :frameworks
+  -# else
+    = yield :frameworks
 
 - content_for :javascripts do
   :javascript

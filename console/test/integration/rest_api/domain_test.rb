@@ -10,6 +10,13 @@ class RestApiDomainTest < ActiveSupport::TestCase
     cleanup_domain
   end
 
+  def test_load_setup_domain
+    setup_domain
+    setup_domain
+    assert @domain
+    assert @domain.errors.empty?
+  end
+
   def test_domains_get
     setup_domain
     domains = Domain.find :all, :as => @user

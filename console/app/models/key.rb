@@ -23,7 +23,6 @@ class Key < RestApi::Base
   end
 
   belongs_to :user
-  self.prefix = "#{RestApi::Base.site.path}/user/"
 
   attr_alters :raw_content, [:content, :type]
   # Raw content is decomposed into content and type
@@ -31,6 +30,8 @@ class Key < RestApi::Base
     if contents
       parts = contents.split
       case parts.length
+      when 0
+        self.type = self.content = nil
       when 1
         self.type = nil
         self.content = parts[0]
@@ -41,7 +42,7 @@ class Key < RestApi::Base
           self.type = nil
           self.content = parts[0]
         end
-      when 3
+      else
         self.type, self.content = parts
       end
     end
@@ -88,10 +89,6 @@ class Key < RestApi::Base
   class << self
     def default(options=nil)
       Key.find('default', options)
-    end
-
-    def instantiate_collection(*args)
-      super.select { |item| not item.empty_default? }
     end
   end
 end

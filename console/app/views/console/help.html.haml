@@ -38,10 +38,11 @@
     %h2 Create
     %p
       %strong Just starting with OpenShift?
-    %p Get your first application up off the ground through the application creation wizard.  #{link_to 'Create an app now', application_types_path, :class => 'btn btn-success'}
+    %p Get your first application up off the ground through the application creation wizard.
+    %p #{link_to 'Create an app now', application_types_path, :class => 'btn btn-primary'}
     %p If you prefer the command line, #{link_to 'our Getting Started page', getting_started_path} will help you install the client tools, create your application, and make your first change.
     %p 
-      Our #{link_to 'GitHub page', openshift_github_url} has tutorials for creating apps based many different technologies like 
+      Our #{link_to 'Get Started Fast page', developers_get_started_fast_url} has tutorials for creating apps based many different technologies like 
       #{link_to 'Drupal', openshift_github_project_url('drupal-example')},
       #{link_to 'Ruby on Rails', openshift_github_project_url('rails-example')}, and
       #{link_to 'Wordpress', openshift_github_project_url('wordpress-example')}. If you don't see your favorite framework, #{link_to 'let us know', mailto_openshift_url}.
@@ -50,7 +51,8 @@
     %h2 Learn
     %p 
       %strong Want to explore our platform?
-    %p #{link_to 'The User Guide', user_guide_url} is the first destination for new developers and is our most-accessible reference.
+    %p #{link_to 'The Developer Center', developers_url} is the first destination for new developers to find the information you need about OpenShift.
+    %p When you're looking for a great reference for understanding OpenShift, look no further than the #{link_to 'the User Guide', user_guide_url}.  It covers the entire experience and can be downloaded as HTML or PDF when you're on the go.
     %p Our technology highlight pages bring together what you need to know - #{link_to 'JBoss', jboss_resources_url} and #{link_to 'MongoDB', mongodb_resources_url} are up now, with more to come.
     %p For some great technology dives #{link_to 'see our Videos page', videos_url}.
     -# Some of our favorites are below.
@@ -59,7 +61,7 @@
     %h2 Troubleshoot
     %p 
       %strong Hit a bump in the road?
-    %p Our #{link_to 'community forums', forums_url} are watched round the clock by an army of developers, evangelists, and OpenShift devotees.
+    %p Our #{link_to 'community forum', post_to_forum_url} is watched round the clock by an army of developers, evangelists, and OpenShift devotees.
     %form.form-search{:method => 'get', :action => community_search_url}
       %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums'}
       %button.search{:type => 'submit', :value => 'Search'}
@@ -70,8 +72,10 @@
     %h2 Engage
     %p 
       %strong Need to know what's new?
-    %p The OpenShift newsletter is a great way to track the latest news. #{link_to 'Subscribe today', newsletter_signup_url, :class => 'btn btn-success'}
-    %p Follow us on Twitter at #{link_to '#openshift', openshift_twitter_url} or read the #{link_to 'OpenShift blog', openshift_blog_url}.
+    %p The OpenShift newsletter is a great way to track the latest news.
+    %p #{link_to 'Subscribe today', newsletter_signup_url, :class => 'btn btn-primary'}
+    %p OpenShift is #{link_to "powered by open source ", opensource_community_url} and can be #{link_to "run on your laptop", opensource_download_path}. #{link_to "Get involved today", get_involved_url} and help drive our evolution.
+    %p Follow us on Twitter at #{link_to '@openshift', openshift_twitter_url} or read the #{link_to 'OpenShift blog', openshift_blog_url}.
     %p If you've found a real humdinger of a problem with the console, site, or community - #{link_to 'file a bug', open_bug_url, :target => '_blank' } and we'll try to make it right.
 
 -#%section.row

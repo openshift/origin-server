@@ -1,55 +1,24 @@
-:css
+-#:css
   .application_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px;}
   .application_type > ul.meta > li {display: inline;}
   .application_type > ul.meta > li > label {display: inline;}
 
 %h1.invisible Configure New Application
 = app_wizard_steps_create 1
+= flashes
 
-= render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true}
+= render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true, :classes => 'tile'}
 
 = semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|
   = f.hidden_field :application_type, :value => @application_type.id
 
+  - errors = @application.errors.full_messages.present?
   = f.semantic_errors :name, :domain_name, :node_profile
 
   = f.inputs do
-    -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group.control-group-important
-      %label.control-label Public URL
-      .controls
-        .input-prepend-append
-          %span.add-on-first http://
+    = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @application}
 
-          = f.text_field :name, :value => "#{@application.name}", :autofocus => true, :maxlength => 32, :placeholder => 'Application name', :class => @application.errors[:name].present? ? 'error application_name' : 'application_name'
-
-          -# If the user has a domain, use it, otherwise prompt them for that field
-          - if @domain and @domain.persisted?
-
-            %span.add-on-last> -#{@domain.name}#{RestApi.application_domain_suffix}
-
-          - else
-
-            %span.add-on-middle> &ndash;
-            = f.text_field :domain_name, :value => "#{@application.domain_name}", :placeholder => 'Namespace', :maxlength => 16, :class => @application.errors[:domain_name].present? ? 'error domain_name' : 'domain_name'
-            %span.add-on-last>= RestApi.application_domain_suffix
-        .row.control-group.error
-          #app-errors.span
-        .row
-          - if @domain and @domain.persisted?
-            .help-block.span6
-              Your application name uniquely identifies the application and becomes part of your public 
-              URL. You can add your own domain names to the application later.
-          - else
-            .help-block-multiple.span6
-              %strong Application name
-              %p
-                Your application name uniquely identifies the application and becomes part of your public 
-                URL. You can add your own domain names to the application later.
-              %strong Namespace
-              %p
-                Because this is your first application, you need to set a name under which your applications will be grouped
-    - if @gear_sizes and @gear_sizes.length > 1
+    -# if @gear_sizes and @gear_sizes.length > 1
       .control-group
         %label{:for => :gear_profile, :class => "control-label"} Gear Size
         = f.input :gear_profile, :collection => options_for_select(@gear_sizes, @gear_sizes[0]), :include_blank => false, :class => @application.errors[:node_profile].present? ? 'error' : '', :label => false
@@ -61,7 +30,6 @@
               %strong small
               gear size provides plenty of resources to run in.  If you require
               more resources you may change it here.
-
 
   = f.buttons do
     = link_to "Back", application_types_path, :class => 'btn'

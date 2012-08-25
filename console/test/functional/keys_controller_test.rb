@@ -81,6 +81,12 @@ class KeysControllerTest < ActionController::TestCase
     assert_redirected_to account_path
   end
 
+  test "should destroy default key" do
+    (key = Key.new(get_post_form.merge(:name => 'default', :as => @user))).save!
+    delete :destroy, :id => key.id
+    assert_redirected_to account_path
+  end
+
   test "should assign errors on empty name" do
     post :create, {:key => get_post_form.merge(:name => '')}
 
@@ -129,6 +135,16 @@ class KeysControllerTest < ActionController::TestCase
     assert !key.errors.empty?
     assert key.errors[:name].present?, key.errors.inspect
     assert_equal 1, key.errors[:name].length
+  end
+
+  test "should clear session cache" do
+    session[:has_sshkey] = 'true'
+    post :create, {:key => get_post_form}
+
+    assert key = assigns(:key)
+    assert key.errors.empty?, key.errors.inspect
+    assert_redirected_to account_path
+    assert_nil session[:key]
   end
 
   def get_post_form

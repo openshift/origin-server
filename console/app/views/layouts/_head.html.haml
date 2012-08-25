@@ -6,11 +6,14 @@
 
 -# Allow views to modify title if desired
 %title
-  OpenShift by Red Hat
-  - if content_for?(:page_title)
-    |
+  - if content_for? :page_title
     = yield :page_title
-  
+    |
+  - elsif content_for? :title
+    = yield :title
+    |
+  OpenShift by Red Hat
+
 %meta{ :name => "description", :content => "" }/
 %meta{ :name => "author", :content => "" }/
 

@@ -1,47 +1,33 @@
-:css
-  .cartridge_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px; cursor: pointer;}
-  .cartridge_type:hover {background-color: #e0e0e0;}
-  .cartridge_type:active {background-color: #CC0000; color: white}
-  .cartridge_type > ul.meta > li > label {display: inline;}
-  .cartridge_type.installed:hover {background-color: #F5F5F5;}
-  .cartridge_type.installed:active {background-color: #F5F5F5;}
-  .cartridge_type.installed{color:#959595; cursor: auto;}
-  .cartridge_type.installed > h3 {color:#959595 !important;}
-  .cartridge_type.inactive:hover {background-color: #F5F5F5;}
-  .cartridge_type.inactive:active {background-color: #F5F5F5;}
-  .cartridge_type.inactive{color:#959595; cursor: auto;}
-  .cartridge_type.inactive > h3 {color:#959595 !important;}
+- breadcrumb_for_application @application, 'Add a Cartridge'
+- content_for :page_title, 'Add a Cartridge'
 
-%h1.invisible Add a New Cartidge
+%h1.invisible Add a New Cartridge
 = cartridge_wizard_steps_create 0
-- if @framework.id == 'haproxy-1.4'
-  .alert 
-    Cartridges are currently unable to be embedded in a scaled application. 
-    We will be adding support shortly!
-    In the mean time, some are available as standalone applications.
--else
-  %p
-    Choose a cartridge to add to your application.
 
 %section.row
-  - @cart_types.in_groups(3, false).each do |types|
-    .span4
-      = render :collection => types, :partial => 'cartridge_types/cartridge_type'
-  - if @cart_types.empty?
+  - if @carts.empty?
     .alert.alert-info There are no cartridges that can be installed
 
-%section.row
-  - unless @installed_cart_types.empty?
-    .span6
-      %h2 Installed cartridges
-      = render :collection => @installed_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true}
+  - else
+    .span8
+      %p Choose a cartridge to add to your application.
+      .row
+        - @carts.in_groups(2, false).each do |types|
+          .span4
+            = render :collection => types, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application}
 
-  - unless @requires_cart_types.empty? and @conflicts_cart_types.empty? and @blocked_cart_types.empty?
-    .span6
-      %h2 Cartridges that cannot be installed
-      = render :collection => @requires_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :requires}
-      = render :collection => @conflicts_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :conflicts}
-      = render :collection => @blocked_cart_types, :partial => 'cartridge_types/cartridge_type', :locals => {:hide_link => true, :reason => :blocked}
+
+  - unless @installed.empty? and @requires.empty? and @conflicts.empty? and @blocked.empty?
+    .span4
+      - unless @installed.empty?
+        %h3 Installed
+        = render :collection => @installed, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application, :inactive => true, :reason => :installed}
+
+      - unless @requires.empty? and @conflicts.empty? and @blocked.empty?
+        %h3 Has Dependencies
+        = render :collection => @requires, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application, :inactive => true, :reason => :requires}
+        = render :collection => @conflicts, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application, :inactive => true, :reason => :conflicts}
+        = render :collection => @blocked, :partial => 'cartridge_types/cartridge_type', :locals => {:application => @application, :inactive => true, :reason => :blocked}
 
 - content_for :javascripts do
   :javascript

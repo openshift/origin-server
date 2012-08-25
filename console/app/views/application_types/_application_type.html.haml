@@ -1,11 +1,14 @@
-= div_for application_type do
-
-  - if application_type.categories.include? :new
-    %span.label.label-important.pull-right Recently Added
+= div_for application_type, :class => defined?(classes) ? classes : nil do
+  %span.labels
+    - if application_type.categories.include? :new
+      %span.label.label-info.pull-right Recently Added
+    - if application_type.categories.include? :experimental
+      %span.label.pull-right Experimental
 
   %h3= application_type.name
 
   - if defined? extra_info
+
     %ul.unstyled.meta
 
       -# if application_type.license
@@ -26,7 +29,13 @@
           %label Version:
           %span= application_type.version
 
-  %p= application_type.description
+  - if application_type.description.html_safe?
+    = application_type.description
+  - else
+    %p= application_type.description
+
+  - if application_type.categories.include? :in_development
+    %p This template is development only and will not be accessible in production
 
   - if application_type.learn_more_url
     = link_to "Learn more", application_type.learn_more_url
@@ -38,6 +47,8 @@
         - application_type.provides.each do |provided|
           %li= provided
 
+  - if defined? extra_info and application_type.template
+    = render :partial => application_type.template
+
   - unless defined? hide_link
     = link_to "Select »", application_type_path(application_type), :class => 'btn'
-

@@ -37,12 +37,7 @@ class KeysController < ConsoleController
 
   def destroy
     @key = Key.find params[:id], :as => session_user
-    if @key.default? #FIXME: Bug 789786 prevents deletion of 'default' key
-	    @key.content = 'nossh'
-      @key.save!
-    else
-      @key.destroy
-    end
+    @key.destroy
     redirect_to account_path
   end
 end

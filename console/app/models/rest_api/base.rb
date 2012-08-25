@@ -4,6 +4,7 @@ require 'active_resource/associations'
 require 'active_resource/reflection'
 require 'active_support/concern'
 require 'active_model/dirty'
+require 'active_resource/persistent_connection'
 
 module ActiveResource
   module Formats
@@ -18,7 +19,7 @@ module ActiveResource
       def decode(json)
         decoded = super
         if decoded.is_a?(Hash) and decoded.has_key?('data')
-          decoded = decoded['data']
+          decoded = decoded['data'] || {}
         end
         if decoded.is_a?(Array)
           decoded.each { |i| i.delete 'links' }
@@ -83,9 +84,14 @@ class ActiveResource::Base
         self.class.const_get(resource_name)
       end
     rescue NameError
-      if self.class.const_defined?(resource_name)
-        resource = self.class.const_get(resource_name)
-      else
+      begin
+        if self.class.const_defined?(resource_name)
+          resource = self.class.const_get(resource_name)
+        else
+          resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
+        end
+      rescue NameError # invalid constant name (starting by number for example)
+        resource_name = 'Constant' + resource_name
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
       end
       resource.prefix = self.class.prefix
@@ -98,6 +104,7 @@ module RestApi
 
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
+    include RestApi::Cacheable
 
     # Exclude the root from JSON
     self.include_root_in_json = false
@@ -105,7 +112,6 @@ module RestApi
     #
     # Connection properties
     #
-    # self.proxy = 'http://file.rdu.redhat.com:3128'
     self.format = :openshift_json
     self.timeout = 60
 
@@ -130,6 +136,17 @@ module RestApi
       @info = false
     end
     self.configuration = Console.config.api
+
+    #
+    # ActiveResource doesn't have a hierarchy for headers
+    #
+    class << self
+      def headers
+        @headers ||= begin
+          (superclass != ActiveResource::Base) ? superclass.headers.dup : {}
+        end
+      end
+    end
 
     #
     # ActiveResource doesn't fully support alias_attribute
@@ -159,26 +176,79 @@ module RestApi
       def calculated_attributes
         @calculated_attributes ||= {}
       end
+
+      # Sets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
+      def idle_timeout=(timeout)
+        @connection = nil
+        @idle_timeout = timeout
+      end
+
+      # Gets the number of seconds after which persistent Net::HTTP connections to the REST API should time out.
+      def idle_timeout
+        if defined?(@idle_timeout)
+          @idle_timeout
+        elsif superclass != Object && superclass.idle_timeout
+          superclass.idle_timeout
+        end
+      end
     end
 
     def load(attributes)
+      raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
+      @prefix_options, attributes = split_options(attributes)
 
-      if self.class.aliased_attributes
-        attributes = attributes.dup
-        self.class.aliased_attributes.each do |from,to|
-          value = attributes.delete(from)
-          send("#{to}=", value) unless value.nil?
-        end
-        super attributes
-      else
-        super
+      attributes = attributes.dup
+      aliased = self.class.aliased_attributes
+      calculated = self.class.calculated_attributes
+      known = self.class.known_attributes
+
+      aliased.each do |from,to|
+        value = attributes.delete(from)
+        send("#{to}=", value) unless value.nil?
       end
-      self.class.calculated_attributes.each_key do |attr| 
-        if attributes.has_key?(attr) 
-          send("#{attr}=", attributes[attr])
+
+      attributes.each do |key, value|
+        if !known.include? key.to_s and !calculated.include? key and respond_to?("#{key}=") 
+          send("#{key}=", value)
+        else
+          @attributes[key.to_s] =
+            case value
+              when Array
+                resource = find_or_create_resource_for_collection(key)
+                value.map do |attrs|
+                  if attrs.is_a?(Hash)
+                    attrs[:as] = as if resource.method_defined? :as=
+                    resource.new(attrs)
+                  else
+                    attrs.duplicable? ? attrs.dup : attrs
+                  end
+                end
+              when Hash
+                resource = find_or_create_resource_for(key)
+                value[:as] = as if resource.method_defined? :as=
+                resource.new(value)
+              else
+                value.dup rescue value
+            end
         end
       end
+
+      calculated.each_key { |key| send("#{key}=", attributes[key]) if attributes.include?(key) }
       self
+    end
+
+    #
+    # Ensure user authorization info is duplicated
+    #
+    def dup
+      super.tap do |resource|
+        resource.as = @as
+      end
+    end
+    def clone
+      super.tap do |resource|
+        resource.as = @as
+      end
     end
 
     # Track persistence state, merged from 
@@ -186,8 +256,7 @@ module RestApi
     #
     def initialize(attributes = {}, persisted=false)
       @persisted = persisted
-      @as = attributes[:as]
-      attributes.delete :as
+      @as = attributes.delete :as
       super attributes
     end
 
@@ -210,12 +279,24 @@ module RestApi
       end
     end
 
-    def save(*args)
+    def raise_on_invalid
+      (errors.instance_variable_get(:@codes) || {}).values.flatten(1).compact.uniq.each do |code|
+        exc = self.class.exception_for_code(code, :on_invalid)
+        raise exc.new(self) if exc
+      end
+      raise(ActiveResource::ResourceInvalid.new(self))
+    end
+
+    def save!
+      save || raise_on_invalid
+    end
+
+    def save_with_change_tracking(*args, &block)
       @previously_changed = changes # track changes
-      @changed_attributes.clear
-      valid = super
-      remove_instance_variable(:@update_id) if @update_id && valid
-      valid
+      save_without_change_tracking(*args, &block).tap do |valid|
+        remove_instance_variable(:@update_id) if @update_id && valid
+        @changed_attributes.clear
+      end
 
     rescue ActiveResource::ConnectionError => error
       # if the server returns a body that has messages, filter them through
@@ -224,6 +305,7 @@ module RestApi
       # would
       raise unless set_remote_errors(error, true)
     end
+    alias_method_chain :save, :change_tracking
 
     # Copy calculated attribute errors
     def valid?
@@ -263,6 +345,7 @@ module RestApi
       end
 
       def custom_id(name, mutable=false)
+        raise "Name #{name.inspect} must be a symbol" unless name.is_a?(Symbol) && !name.is_a?(Class)
         @primary_key = name
         @update_id = nil
         if mutable
@@ -300,13 +383,6 @@ module RestApi
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
     #
     class << self
-      def singleton
-        @singleton = true
-      end
-      def singleton?
-        @singleton if defined? @singleton
-      end
-
       attr_accessor_with_default(:collection_name) do
         if singleton?
           element_name
@@ -321,7 +397,7 @@ module RestApi
         #begin changes
         path = "#{prefix(prefix_options)}#{collection_name}"
         unless singleton?
-          raise ArgumentError, 'id is required for non-singleton resources' if id.nil?
+          raise ArgumentError, "id is required for non-singleton resources #{self}" if id.nil?
           path << "/#{URI.escape id.to_s}"
         end
         path << ".#{format.extension}#{query_string(query_options)}"
@@ -358,6 +434,21 @@ module RestApi
           instantiate_record(format.decode(connection(options).get(path, headers).body), as) #end add
         end
       end
+
+      def allow_anonymous?
+        self.anonymous_api?
+      end
+      def singleton?
+        self.singleton_api?
+      end
+
+      protected
+        def allow_anonymous
+          self.anonymous_api = true
+        end
+        def singleton
+          self.singleton_api = true
+        end
     end
 
 
@@ -381,7 +472,7 @@ module RestApi
         response = remote_errors.response
         begin
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
-            self.class.translate_api_error(errors, m['exit_code'], m['field'], m['text'])
+            self.class.translate_api_error(errors, (m['exit_code'].to_i rescue m['exit_code']), m['field'], m['text'])
           end
           Rails.logger.debug "Found errors on the response object: #{errors.inspect}"
           duplicate_errors
@@ -405,22 +496,56 @@ module RestApi
       end
     end
 
+    #FIXME may be refactored
+    def remote_results
+      (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'].presence }.compact
+    end
+    def has_exit_code?(code, opts=nil)
+      codes = errors.instance_variable_get(:@codes) || {}
+      if opts && opts[:on]
+        (codes[opts[:on].to_sym] || []).include? code
+      else
+        codes.values.any?{ |c| c.include? code }
+      end
+    end
+
     class << self
       def on_exit_code(code, handles=nil, &block)
         (@exit_code_conditions ||= {})[code] = handles || block
       end
       def translate_api_error(errors, code, field, text)
-        Rails.logger.debug "Server error: :#{field} \##{code}: #{text}"
+        Rails.logger.debug "  Server error: :#{field} \##{code}: #{text}"
         if @exit_code_conditions
           handler = @exit_code_conditions[code]
+          handler = handler[:raise] if Hash === handler
           case handler
           when Proc then return if handler.call errors, code, field, text
           when Class then raise handler, text
           end
         end
         message = I18n.t(code, :scope => [:rest_api, :errors], :default => text.to_s)
-        errors.add( (field || 'base').to_sym, message) unless message.blank?
+        field = (field || 'base').to_sym
+        errors.add(field, message) unless message.blank?
+
+        codes = errors.instance_variable_get(:@codes)
+        codes = errors.instance_variable_set(:@codes, {}) unless codes
+        (codes[field] ||= []).push(code)
       end
+      def exception_for_code(code, type=nil)
+        if @exit_code_conditions
+          handler = @exit_code_conditions[code]
+          handler = handler[type] if type && Hash === handler
+          handler
+        end
+      end
+    end
+
+
+    #
+    # Override method from CustomMethods to handle body objects
+    #
+    def get(custom_method_name, options = {})
+      self.class.send(:instantiate_collection, self.class.format.decode(connection.get(custom_method_element_url(custom_method_name, options), self.class.headers).body), as, prefix_options ) #changed
     end
 
     #
@@ -432,6 +557,9 @@ module RestApi
     end
 
     class << self
+      def get(custom_method_name, options = {}, call_options = {})
+        connection(call_options).get(custom_method_collection_url(custom_method_name, options), headers)
+      end
       def delete(id, options = {})
         connection(options).delete(element_path(id, options)) #changed
       end
@@ -440,38 +568,26 @@ module RestApi
       # Make connection specific to the instance, and aware of user context
       #
       def connection(options = {}, refresh = false)
+        c = shared_connection(options, refresh)
         if options[:as]
-          update_connection(UserAwareConnection.new(site, format, options[:as]))
+          UserAwareConnection.new(c, options[:as])
         elsif allow_anonymous?
-          update_connection(ActiveResource::Connection.new(site, format))
+          c
         else
           raise RestApi::MissingAuthorizationError
         end
-        #elsif defined?(@connection) || superclass == Object
-        #  #'Accessing RestApi without a user object'
-        #  @connection = update_connection(ActiveResource::Connection.new(site, format)) if @connection.nil? || refresh
-        #  @connection
-        #else
-        #  superclass.connection
-        #end
       end
 
-      # possibly needed to decode gets
-      #def get(custom_method_name, options = {})
-      #  self.class.format.decode(connection(options).get(custom_method_collection_url(custom_method_name, options), headers).body) #changed
-      #end
-
-      private
-        def update_connection(connection)
-          connection.proxy = proxy if proxy
-          connection.user = user if user
-          connection.password = password if password
-          connection.auth_type = auth_type if auth_type
-          connection.timeout = timeout if timeout
-          connection.ssl_options = ssl_options if ssl_options
-          connection
+      def shared_connection(options = {}, refresh = false)
+        if defined?(@connection) || superclass == Object || superclass == ActiveResource::Base
+          @connection = update_connection(ActiveResource::PersistentConnection.new(site, format)) if refresh || @connection.nil?
+          @connection
+        else
+          superclass.shared_connection(options, refresh)
         end
+      end
 
+      protected
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
@@ -483,7 +599,7 @@ module RestApi
             as = options[:as]
             case from = options[:from]
             when Symbol
-              instantiate_collection(get(from, options[:params]), as) #changed
+              instantiate_collection(format.decode(get(from, options[:params], options).body), as) #changed
             when String
               path = "#{from}#{query_string(options[:params])}"
               instantiate_collection(format.decode(connection(options).get(path, headers).body) || [], as) #changed
@@ -500,33 +616,45 @@ module RestApi
           end
         end
 
+      private
+        def update_connection(connection)
+          connection.proxy = proxy if proxy
+          connection.user = user if user
+          connection.password = password if password
+          connection.auth_type = auth_type if auth_type
+          connection.timeout = timeout if timeout
+          connection.idle_timeout = idle_timeout if idle_timeout
+          connection.ssl_options = ssl_options if ssl_options
+          connection.connection_name = 'rest_api'
+          connection.debug_output = $stderr if ENV['REST_API_DEBUG']
+          connection
+        end
+
         def instantiate_collection(collection, as, prefix_options = {}) #changed
           collection.collect! { |record| instantiate_record(record, as, prefix_options) } #changed
         end
 
         def instantiate_record(record, as, prefix_options = {}) #changed
+          record[:as] = as # changed - called before new so that nested resources are created
           new(record, true).tap do |resource| #changed for persisted flag
             resource.prefix_options = prefix_options
-            resource.as = as #added
           end
         end
     end
 
+    #
+    # The user under whose context we will be accessing the remote server
+    #
+    def as
+      @as
+    end
     def as=(as)
       @connection = nil
       @as = as
     end
-    
-    protected
-      #
-      # The user under whose context we will be accessing the remote server
-      #
-      def as
-        return @as
-      end
 
+    protected
       def connection(refresh = false)
-        raise RestApi::MissingAuthorizationError, "All RestApi model classes must have the 'as' attribute set in order to make remote requests" unless as || self.class.allow_anonymous?
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
       end
@@ -536,18 +664,22 @@ module RestApi
         @remote_errors = error
         load_remote_errors(@remote_errors, true, optional)
       end
+
+      class_attribute :anonymous_api, :instance_writer => false
+      class_attribute :singleton_api, :instance_writer => false
   end
 
   #
   # A connection class that contains an authorization object to connect as
   #
-  class UserAwareConnection < ActiveResource::Connection
+  class UserAwareConnection < ActiveResource::PersistentConnection
 
     # The authorization context
-    attr :as
+    attr_reader :as
 
-    def initialize(url, format, as)
-      super url, format
+    def initialize(connection, as)
+      super connection.site, connection.format
+      @connection = connection
       @as = as
       @user = @as.login if @as.respond_to? :login
       @password = @as.password if @as.respond_to? :password
@@ -560,5 +692,29 @@ module RestApi
       end
       headers
     end
+
+    def http
+      @connection.send(:http)
+    end
   end
+end
+
+class RestApi::Base
+  #
+  # Connection properties
+  #
+  self.format = :openshift_json
+  self.ssl_options = { :verify_mode => OpenSSL::SSL::VERIFY_NONE }
+  self.timeout = 180
+  self.idle_timeout = 10
+  unless Rails.env.production?
+    self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
+  end
+  self.site = if defined?(Rails) && Rails.configuration.express_api_url
+    Rails.configuration.express_api_url + '/broker/rest'
+  else
+    'http://localhost/broker/rest'
+  end
+
+  headers['User-Agent'] = Rails.configuration.user_agent
 end

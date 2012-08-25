@@ -29,7 +29,23 @@ module LayoutHelper
   #
   def flashes
     return if @flashed_once || flash.nil?; @flashed_once = true
-    render :partial => 'layouts/new_flashes', :locals => {:flash => flash}
+    tags = []
+    flash.each do |key, value|
+      (value.kind_of?(Array) ? value : [value]).each do |value|
+        next if value.blank?
+        tags << content_tag(flash_element_for(key), value, :class => alert_class_for(key))
+      end
+    end
+    content_tag(:div, tags.join.html_safe, :id => 'flash') unless tags.empty?
+  end
+
+  def flash_element_for(key)
+    case key
+    when :info_pre
+      :pre
+    else
+      :div
+    end
   end
 
   def alert_class_for(key)
@@ -42,6 +58,8 @@ module LayoutHelper
       'alert alert-error'
     when :info
       'alert alert-info'
+    when :info_pre
+      'cli'
     else
       Rails.logger.debug "Handling alert key #{key.inspect}"
       'alert'
@@ -105,13 +123,18 @@ module LayoutHelper
   def wizard_steps(items, active, options={})
     content_tag(
       :ol,
-      items.each_with_index.map do |item, index|
+      (items + [options[:and]].compact).each_with_index.map do |item, index|
         name = item[:name]
         content = if index < active and item[:link] and !options[:completed]
           link_to(name, send("#{item[:link]}")).html_safe
         else
           name
         end
+
+        content = content_tag(:span, [
+          content_tag(:i, index+1),
+          content].join.html_safe)
+
         classes = if index < active
           'completed'
         elsif index == active
@@ -119,8 +142,33 @@ module LayoutHelper
         end
         content_tag(:li, content, :class => classes)
       end.join.html_safe,
-      :class => 'wizard-steps'
+      :class => 'wizard'
     )
+  end
+
+  def breadcrumbs_for_each(items)
+    last_index = items.length - 1
+    content_for :breadcrumbs, content_tag(
+      :ul,
+      items.each_with_index.map do |crumb, index|
+        content = crumb
+        active_tag = ""
+        if index == last_index
+          active_tag = "active"
+        else
+          content += breadcrumb_divider
+        end
+
+        content_tag(:li, content, :class => active_tag)
+      end.join.html_safe,
+      :class => 'breadcrumb')
+  end
+
+  def breadcrumb_for_application(application, *args)
+    breadcrumbs_for_each [
+      link_to('My Applications', :applications, :action => :index),
+      link_to(application.name, application),
+    ] + args
   end
 
   def take_action(link, text, *args)

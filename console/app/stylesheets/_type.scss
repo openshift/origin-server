@@ -1,53 +1,246 @@
-h1, h2, h3, h4, h5, .headline, .nav, .section-top {
-	font-family: $headerFontFamily;
-	font-weight: normal;
-	}
-h1, h2, h3, h4, h5 {
-	color: #000;
-	}
+// Typography.scss
+// Headings, body text, lists, code, and more for a versatile and durable typography system
+// ----------------------------------------------------------------------------------------
+
+
+// BODY TEXT
+// ---------
+
 p {
-	margin: 5px 0 13px;
-	}
+  margin: 0 0 $baseLineHeight;
+  font-family: $baseFontFamily;
+  font-size: $baseFontSize;
+  line-height: $baseLineHeight;
+  small {
+    font-size: $baseFontSize - 2;
+    color: $grayLight;
+  }
+}
+.lead {
+  margin-bottom: $baseLineHeight;
+  font-size: 20px;
+  font-weight: 200;
+  line-height: $baseLineHeight * 1.5;
+}
+
+// HEADINGS
+// --------
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-family: $headerFontFamily;
+  font-weight: normal;
+  color: #000;
+  text-rendering: optimizelegibility; // Fix the character spacing for headings
+  small {
+    font-weight: normal;
+    color: $grayLight;
+  }
+}
+h1 + h2 {
+	margin-bottom: 0;
+}
+h2 + h3, h2 + h4, h3 + h4, h3 + h5 {
+  padding-top: $baseLineHeight / 2;
+}
+p + h2, p + h3, p + h4 {
+	padding-top: $baseLineHeight;
+}
 h1 {
   font-size: 30px;
-  line-height: 36px;
-  margin-bottom: 10px;
-	}
+  line-height: $baseLineHeight * 2;
+}
 h2 {
   font-size: 22px;
-  line-height: 36px;
-  margin-bottom: 8px;
-	}
+  line-height: $baseLineHeight * 2;
+}
 h3 {
   line-height: 27px;
   font-size: 18px;
-  margin-bottom: 8px;
-	}
+  line-height: $baseLineHeight * 1.5;
+  small {
+    font-size: 14px;
+  }
+}
 h4 {
-	font-size: 16px;
-	}
+  font-size: 16px;
+  line-height: $baseLineHeight;
+  small {
+    font-size: 12px;
+  }
+}
 h5 {
-	font-size: 14px;
-	}
+  font-size: 14px;
+  line-height: $baseLineHeight;
+}
 h6 {
-	font-size: 11px;
-	}
-	
+  font-size: 11px;
+  line-height: $baseLineHeight;
+  text-transform: uppercase;
+}
+
+@media (max-width:480px) {
+	h1 {font-size:24px;line-height: $baseLineHeight * 1.5;}
+	h2 {font-size: 19.5px;line-height: $baseLineHeight * 1.25;}
+	h3 {font-size: 16.5px;line-height: $baseLineHeight;}
+	h4 {font-size: 14px;}
+	h5 {font-size: 13px;}
+}
+
 footer h3 {
-	text-transform:uppercase;
-	}
+  text-transform:uppercase;
+}
 
 .align-right {
   text-align: right;
 }
 
-// external links get a northeast arrow to indicate they are external
-a.external:after { 
-  content: " \279A"; 
+// LISTS
+// -----
+
+// Unordered and Ordered lists
+ul, ol {
+  padding: 0;
+  margin: 0 0 $baseLineHeight 25px;
 }
+ul ul,
+ul ol,
+ol ol,
+ol ul {
+  margin-bottom: 0;
+}
+ul {
+  list-style: disc;
+}
+ol {
+  list-style: decimal;
+}
+li {
+  line-height: $baseLineHeight;
+}
+ul.unstyled,
+ol.unstyled {
+  margin-left: 0;
+  list-style: none;
+}
+ul.spaced-items li, ol.spaced-items li {
+  margin-bottom: 10px;
+}
+
+// Description Lists
+dl {
+  margin-bottom: $baseLineHeight;
+}
+dt,
+dd {
+  line-height: $baseLineHeight;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  margin: 0 0 10px 10px;
+}
+
+// MISC
+// ----
+
+// Horizontal rules
+hr {
+  margin: $baseLineHeight 0;
+  border: 0;
+  border-top: 1px solid $hrBorder;
+  border-bottom: 1px solid $white;
+}
+
+// Emphasis
+strong {
+  font-weight: bold;
+}
+em {
+  font-style: italic;
+}
+.muted {
+  color: $grayLight;
+}
+
+// Abbreviations and acronyms
+abbr {
+  font-size: 90%;
+  text-transform: uppercase;
+  border-bottom: 1px dotted #ddd;
+  cursor: help;
+}
+
+// Blockquotes
+blockquote {
+  padding: 0 0 0 15px;
+  margin: 0 0 $baseLineHeight;
+  border-left: 5px solid $grayLighter;
+  p {
+    margin-bottom: 0;
+    @include font-shorthand(16px,300,$baseLineHeight * 1.25);
+  }
+  small {
+    display: block;
+    line-height: $baseLineHeight;
+    color: $grayLight;
+    &:before {
+      content: '\2014 \00A0';
+    }
+  }
+
+  // Float right with text-align: right
+  &.pull-right {
+    float: right;
+    padding-left: 0;
+    padding-right: 15px;
+    border-left: 0;
+    border-right: 5px solid $grayLighter;
+    p,
+    small {
+      text-align: right;
+    }
+  }
+}
+
+// Quotes
+q:before,
+q:after,
+blockquote:before, 
+blockquote:after {
+  content: "";
+}
+
+// Addresses
+address {
+  display: block;
+  margin-bottom: $baseLineHeight;
+  line-height: $baseLineHeight;
+  font-style: normal;
+}
+
+// Misc
+small {
+  font-size: 100%;
+}
+cite {
+  font-style: normal;
+}
+
+
+a.external:after { 
+  content: "\279A";
+  font-size: $baseFontSize - 1;
+  vertical-align: text-bottom;
+}
+a.external img[alt="external"] {
+  display: none;
+}
+
 
 p.larger { 
   font-size: 14px; 
+  line-height: 21px;
 }
 dl.larger {
   > dt {
@@ -55,6 +248,44 @@ dl.larger {
     line-height: 23px; 
   }
   > dd {
-    margin-bottom: 15px; 
+    margin-bottom: 20px; 
   }
+}
+
+
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  word-wrap: break-word;
+}
+
+
+ol.unstyled {
+  margin-left: 0;
+  list-style: none;
+}
+
+
+ul.regular,
+ol.regular {
+  margin: 0 0 9px 30px;
+  padding: 0;
+}
+
+
+ul.unstyled-flat {
+  list-style: none;
+
+  > li {
+    list-style: none;
+    float:left;
+  }
+}
+
+.headline, .nav, .section-top, .btn-navbar {
+	font-family: $headerFontFamily;
+  font-weight: normal;
 }

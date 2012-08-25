@@ -35,6 +35,50 @@
   visibility: hidden;
 }
 
+// DEVICE SPECIFIC CLASSES
+// ------------------
+
+.visible-phone {
+  display: none !important;
+}
+
+.visible-tablet {
+  display: none !important;
+}
+
+.hidden-desktop {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .visible-phone {
+    display: inherit !important;
+  }
+  .hidden-phone {
+    display: none !important;
+  }
+  .hidden-desktop {
+    display: inherit !important;
+  }
+  .visible-desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+  .visible-tablet {
+    display: inherit !important;
+  }
+  .hidden-tablet {
+    display: none !important;
+  }
+  .hidden-desktop {
+    display: inherit !important;
+  }
+  .visible-desktop {
+    display: none !important ;
+  }
+}
 
 
 // UP TO LANDSCAPE PHONE
@@ -52,26 +96,6 @@
   .page-header h1 small {
     display: block;
     line-height: $baseLineHeight;
-  }
-
-  // Make span* classes full width
-  input[class*="span"],
-  select[class*="span"],
-  textarea[class*="span"],
-  .uneditable-input {
-    display: block;
-    width: 100%;
-    min-height: 28px; /* Make inputs at least the height of their button counterpart */
-    /* Makes inputs behave like true block-level elements */
-    -webkit-box-sizing: border-box; /* Older Webkit */
-       -moz-box-sizing: border-box; /* Older FF */
-        -ms-box-sizing: border-box; /* IE8 */
-            box-sizing: border-box; /* CSS3 spec*/
-  }
-  // But don't let it screw up prepend/append inputs
-  .input-prepend input[class*="span"],
-  .input-append input[class*="span"] {
-    width: auto;
   }
 
   // Update checkboxes for iOS
@@ -137,6 +161,26 @@
     width: auto;
     padding: 0 20px;
   }
+  
+  // Make span* classes full width
+  input[class*="span"],
+  select[class*="span"],
+  textarea[class*="span"],
+  .uneditable-input {
+    display: block;
+    width: 100%;
+    min-height: 26px; /* Make inputs at least the height of their button counterpart */
+    /* Makes inputs behave like true block-level elements */
+    -webkit-box-sizing: border-box; /* Older Webkit */
+       -moz-box-sizing: border-box; /* Older FF */
+        -ms-box-sizing: border-box; /* IE8 */
+            box-sizing: border-box; /* CSS3 spec*/
+  }
+  // But don't let it screw up prepend/append inputs
+  .input-prepend input[class*="span"],
+  .input-append input[class*="span"] {
+    width: auto;
+  }
 
   // ADDED: containers which don't need gutters in small layouts
   .container-inset {
@@ -155,6 +199,7 @@
   .row > [class*="span"],
   .row > .grid-wrapper,
   .row > .grid-wrapper > [class*="span"],
+  .row > .grid-wrapper > div > [class*="span"],
   .row-fluid > [class*="span"] {
     float: none;
     display: block;
@@ -259,7 +304,7 @@
   }
   // Nav collapse clears brand
   .navbar .nav-collapse {
-    clear: left;
+    clear: both;
   }
   // Block-level the nav
   .navbar .nav {
@@ -278,43 +323,6 @@
   .navbar .nav .nav-header {
     color: $navbarText;
     text-shadow: none;
-  }
-  // Nav and dropdown links in navbar
-  .navbar .nav > li > a,
-  .navbar .dropdown-menu a {
-    padding: 6px 15px;
-    font-weight: bold;
-    color: $navbarLinkColor;
-    @include border-radius(3px);
-  }
-  .navbar .dropdown-menu li + li a {
-    margin-bottom: 2px;
-  }
-  .navbar .nav > li > a:hover,
-  .navbar .dropdown-menu a:hover {
-    background-color: $navbarBackground;
-  }
-  // Dropdowns in the navbar
-  .navbar .dropdown-menu {
-    position: static;
-    top: auto;
-    left: auto;
-    float: none;
-    display: block;
-    max-width: none;
-    margin: 0 15px;
-    padding: 0;
-    background-color: transparent;
-    border: none;
-    @include border-radius(0);
-    @include box-shadow(none);
-  }
-  .navbar .dropdown-menu:before,
-  .navbar .dropdown-menu:after {
-    display: none;
-  }
-  .navbar .dropdown-menu .divider {
-    display: none;
   }
   // Forms in navbar
   .navbar-form,
@@ -337,10 +345,6 @@
     padding-left:  10px;
     padding-right: 10px;
   }
-  // Navbar button
-  .btn-navbar {
-    display: block;
-  }
 
   // Hide everything in the navbar save .brand and toggle button */
   .nav-collapse {
@@ -350,14 +354,13 @@
 }
 
 
-
 // DEFAULT DESKTOP
 // ---------------
 
 @media (min-width: 980px) {
   .is-above-980 { content: 'true'; }
   .nav-collapse.collapse {
-    height: auto !important;
+    //height: auto !important;
   }
 }
 

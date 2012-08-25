@@ -35,4 +35,31 @@ class RestApiApplicationTest < ActiveSupport::TestCase
       assert_equal app.send(key), saved_app.send(key) unless value.nil?
     end
   end
+
+  def test_retrieve_gears
+    setup_domain
+    app = Application.create :name => 'test', :domain => @domain, :cartridge => 'php-5.3', :as => @user
+
+    assert gears = app.gears
+    assert_equal 1, gears.length
+  end
+
+  def test_retrieve_gear_groups
+    app = Application.create :name => 'test', :domain => setup_domain, :cartridge => 'php-5.3', :as => @user
+
+    cart = Cartridge.new :name => 'php-5.3'
+
+    assert groups = app.gear_groups
+
+    assert_equal 1, groups.length
+    group = groups[0]
+    assert group.is_a? GearGroup
+    assert group.name
+    assert_equal [cart], group.cartridges
+    assert_equal 1, group.gears.length
+    gear = group.gears[0]
+    assert gear.is_a? Gear
+    assert_equal :started, gear.state
+    assert gear.id
+  end
 end

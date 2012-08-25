@@ -5,7 +5,9 @@ class ConsoleController < Console.config.parent_controller.constantize
 
   layout 'console'
 
-  before_filter :require_login
+  before_filter :authenticate_user!
+  include DomainAware
+  include SshkeyAware
 
   def index
     redirect_to applications_path

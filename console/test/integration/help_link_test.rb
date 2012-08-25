@@ -2,7 +2,9 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class HelpLinkTest < ActionDispatch::IntegrationTest
   class << self
-    def urls_from_module(mod, obj)
+    def urls_from_module(mod)
+      obj = Class.new { include mod }.new
+
       mod.public_instance_methods.collect do |name|
         mod.instance_method(name)
       end.select do |m|
@@ -36,11 +38,7 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
     end
   end
 
-  class TestLinks
-    include HelpHelper
-    include CommunityHelper
-  end
-
-  urls_from_module(HelpHelper, TestLinks.new).each_pair &method(:create_test)
-  urls_from_module(CommunityHelper, TestLinks.new).each_pair &method(:create_test)
+  urls_from_module(HelpHelper).each_pair &method(:create_test)
+  urls_from_module(ApplicationHelper).each_pair &method(:create_test)
+  urls_from_module(CommunityHelper).each_pair &method(:create_test)
 end

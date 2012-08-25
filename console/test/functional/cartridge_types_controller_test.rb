@@ -1,54 +1,48 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class CartridgeTypesControllerTest < ActionController::TestCase
-  def setup
-    #with_domain
-    with_unique_domain
-    @application_type = ApplicationType.find 'ruby-1.8'
-    @app = Application.new :name => uuid, :as => @user
-    @app.cartridge = @application_type.cartridge || @application_type.id
-    @app.domain = @domain
-    @app.save
 
-    assert @app.errors.empty?, @app.errors.inspect
+  test "should show index" do
+    get :index, :application_id => with_app.name
+    assert_response :success
+
+    assert app = assigns(:application)
+    assert_equal with_app.name, app.name
+    assert domain = assigns(:domain)
+    assert_equal with_app.domain_id, domain.id
+
+    assert types = assigns(:installed)
+    assert_equal 0, types.length
+    assert types = assigns(:conflicts)
+    assert_equal 0, types.length
+    assert types = assigns(:requires)
+    assert types.length > 0
+    assert types = assigns(:blacklist)
+    assert types.length > 0
+    assert types = assigns(:carts)
+    assert types.length > 0
+
+    cached = CartridgeType.cached.all
+    assert cached.all? {|t| (t.categories & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 
-  test "should list cartridges" do
-    get_index
-    assert cart_types = assigns(:cart_types)
-    assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
-    assert_equal 0, installed_cart_types.length
+  test "should show type page" do
+    t = CartridgeType.embedded.first
+    get :show, :application_id => with_app.name, :id => t.name
+    assert_response :success
+    assert type = assigns(:cartridge_type)
+    assert_equal t.name, type.name
+    assert assigns(:cartridge)
+    assert assigns(:application)
+    assert assigns(:domain)
   end
 
-  test "should list cartridges with one marked as installed" do
-    get_index
-    assert cart_types = assigns(:cart_types)
-    assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
-    assert_equal 0, installed_cart_types.length
-
-    num_cart_types = cart_types.length
-
-    @cartridge = Cartridge.new get_cart_params
-
-    @cartridge.application = @app
-    @cartridge.as = @user
-    assert @cartridge.save
-
-    get_index
-    assert cart_types = assigns(:cart_types)
-    assert cart_types.length > 0
-    assert installed_cart_types = assigns(:installed_cart_types)
-    assert_equal 1, installed_cart_types.length
-    assert_equal num_cart_types - 1, cart_types.length
-  end
-
-  def get_index
-    get :index, {:application_id => @app.id, :domain_id => @domain.id}
-  end
-
-  def get_cart_params
-    {:name => 'cron-1.4', :type => 'embedded'}
+  test "should not raise on missing type" do
+    # We allow arbitrary cartridges, but we may want to change that
+    #assert_raise(StandardError) do
+      get :show, :application_id => with_app.name, :id => 'missing_cartridge_type'
+      assert_response :success
+    #end
   end
 end
+

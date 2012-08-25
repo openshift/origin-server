@@ -1,13 +1,19 @@
-= div_for cartridge_type, :class => cartridge_type.categories.join(" ") do
+- inactive = inactive if defined? inactive
+- reason = reason if defined? reason
+- extra_info = extra_info if defined? extra_info
+- hide_link = hide_link if defined? hide_link
 
-  - if cartridge_type.categories.include? :installed
-    %span.label.pull-right Installed
-  - if cartridge_type.categories.include? :experimental
+- classes = "tile #{cartridge_type.categories.join(' ')}"
+- classes += " inactive" if inactive
+- classes += " tile-click" unless inactive or hide_link
+= div_for cartridge_type, :class => classes do
+
+  - if not inactive and cartridge_type.categories.include? :experimental
     %span.label.pull-right Experimental
 
-  %h3= cartridge_type.name
+  %h3= cartridge_type.display_name
 
-  - if defined? extra_info
+  - if extra_info
     %ul.unstyled.meta
 
       -# if cartridge_type.license
@@ -28,28 +34,28 @@
           %label Version:
           %span= cartridge_type.version
 
-  - if cartridge_type.description
+  - if not (inactive and reason == :installed) and cartridge_type.description.present?
     %p= cartridge_type.description
 
   - if cartridge_type.learn_more_url
     = link_to "Learn more", cartridge_type.learn_more_url
 
-  - if defined? extra_info and cartridge_type.provides
+  - if extra_info and cartridge_type.provides
     %div
       %h4 What you get:
       %ul
         - cartridge_type.provides.each do |provided|
           %li= provided
 
-  - if defined? reason
+  - if reason
     - case reason
     - when :requires
-      .alert Requires #{cartridge_type.requires.join(',')}
+      .warning Requires #{cartridge_type.requires.join(',')}
     - when :conflicts
-      .alert Conflicts with #{cartridge_type.conflicts.join(',')}
+      .warning Conflicts with #{cartridge_type.conflicts.join(',')}
     - when :blocked
-      .alert Cannot be added to #{@application.framework_name}
+      .warning Cannot be added to #{application.framework_name}
 
-  - unless defined? hide_link
-    = link_to "Select »", application_cartridge_type_path(@application_id, cartridge_type), :class => 'btn'
+  - unless hide_link or inactive
+    = link_to "Select »", application_cartridge_type_path(application, cartridge_type), :class => 'btn'
 

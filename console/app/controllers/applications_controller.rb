@@ -73,11 +73,12 @@ class ApplicationsController < ConsoleController
   def index
     # replace domains with Applications.find :all, :as => session_user
     # in the future
-    domain = Domain.find :one, :as => session_user rescue nil
-    return redirect_to application_types_path, :notice => 'Create your first application now!' if domain.nil? || domain.applications.empty?
+    #domain = Domain.find :one, :as => session_user rescue nil
+    user_default_domain rescue nil
+    return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
 
     @applications_filter = ApplicationsFilter.new params[:applications_filter]
-    @applications = @applications_filter.apply(domain.applications)
+    @applications = @applications_filter.apply(@domain.applications)
   end
 
   def destroy
@@ -91,23 +92,15 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
-    # we get here from the details page or applications list page
-    # be safe by redirecting the cancel button to the referer
-    # only if it comes from the same domain (defaults to
-    # application_details_path if referer isn't set)
-    server_name = request.env['SERVER_NAME']
-    http_referer = request.env['HTTP_REFERER']
-    if !http_referer.nil?
-      http_referer = URI(http_referer)
-      @referer = http_referer.path if http_referer.host == server_name
-    end
+    @referer = application_path(@application)
   end
 
   def new
-    redirect_to application_type_path(ApplicationType.find_empty)
+    redirect_to application_types_path
   end
 
   def create
@@ -124,38 +117,53 @@ class ApplicationsController < ConsoleController
     @domain = Domain.find :first, :as => session_user
     unless @domain
       @domain = Domain.create :name => @application.domain_name, :as => session_user
-      Rails.logger.debug "Unable to create domain, #{@domain.errors.inspect}"
       unless @domain.persisted?
+        logger.debug "Unable to create domain, #{@domain.errors.inspect}"
         @application.valid? # set any errors on the application object
         #FIXME: Ideally this should be inferred via associations between @domain and @application
         @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
-        Rails.logger.debug "Found errors during domain creation #{@application.errors.inspect}"
+        logger.debug "Found errors during domain creation #{@application.errors.inspect}"
         return render 'application_types/show'
       end
     end
 
     @application.domain = @domain
-    @application.cartridge = @application_type.cartridge || @application_type.id
+    if @application_type.template
+      @application.template = @application_type.template.uuid
+    else
+      @application.cartridge = @application_type.cartridge || @application_type.id
+    end
 
     if @application.save
-      redirect_to get_started_application_path(@application, :wizard => true)
+      message = @application.remote_results
+
+      unless @application_type.template.nil?
+        t = @application_type.template
+        message = [message,t.credentials_message] if t.credentials
+      end
+
+      redirect_to get_started_application_path(@application, :wizard => true, :template => !@application_type.template.nil?), :flash => {:info_pre => message}
     else
-      Rails.logger.debug @application.errors.inspect
+      logger.debug @application.errors.inspect
       render 'application_types/show'
     end
   end
 
   def show
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
-    @application_type = ApplicationType.find @application.framework
+    @gear_groups = @application.gear_groups
+    sshkey_uploaded?
   end
 
   def get_started
-    @domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => session_user
+    user_default_domain
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
-    @has_keys = true if Key.first :as => session_user
+    @template = !params[:template].nil?
+    sshkey_uploaded?
   end
 end

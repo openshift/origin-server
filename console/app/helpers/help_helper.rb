@@ -3,20 +3,19 @@ module HelpHelper
   # Given a relative path within the user guide, display the topic
   def user_guide_topic_url(topic)
     locale = 'en-US'
-    # "https://docs.redhat.com/docs/#{locale}/OpenShift_Express/2.0/html/User_Guide/#{topic}" # new docs after removing express
-    "http://docs.redhat.com/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
+    "http://access.redhat.com/knowledge/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
   end
 
-  def ssh_key_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Managing_SSH_Keys.html'
+  def ssh_keys_help_path
+    community_base_url 'developers/remote-access#keys'
   end
-  
+
   def manage_app_cli_user_guide_topic_url
     user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html'
   end
 
   def deploy_hook_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift_Express.html'
+    user_guide_topic_url 'sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift.html'
   end
 
   def add_domains_user_guide_topic_url
@@ -26,25 +25,77 @@ module HelpHelper
   def manage_cartridges_user_guide_topic_url
     user_guide_topic_url 'sect-User_Guide-Adding_and_Managing_Database_Instances.html#form-User_Guide-Adding_Database_Back_Ends_to_Your_Applications-Command_Options_for_Controlling_Cartridges'
   end
-  
+
+  def cartridge_list_url
+    community_base_url 'developers/technologies'
+  end
+
   def git_user_guide_topic_url
     user_guide_topic_url 'sect-User_Guide-OpenShift_Web_Interface-Editing_and_Deploying_Applications.html'
   end
+
+  def get_involved_url
+    community_base_url 'get-involved'
+  end
   
-  def install_cli_knowledge_base_url
-    community_base_url 'kb/kb-e1000/installing-openshift-express-client-tools-on-non-rpm-based-systems'
+  def suggest_features_url
+    community_base_url 'ideas'
+  end
+
+  def openshift_blog_url
+    community_base_url 'blogs'
+  end
+
+  def opensource_community_url
+    community_base_url 'open-source'
+  end
+
+  def get_involved_developers_url
+    community_base_url 'developers/get-involved'
+  end
+
+  def get_started_quickstart_url
+    community_base_url 'developers/get-started'
+  end
+
+  def developers_url
+    community_base_url 'developers'
+  end
+
+  def developers_path
+    community_base_url 'developers'
+  end
+
+  def ssh_help_url
+    community_base_url 'developers/remote-access'
+  end
+
+  def client_tools_help_url
+    community_base_url 'developers/tools'
+  end
+
+  def developers_get_started_path
+    community_base_url 'developers/get-started'
+  end
+
+  def livecd_wiki_url(anchor=nil)
+    community_base_url "wiki/getting-started-with-openshift-origin-livecd#{anchor.present? ? "##{anchor}" : ''}"
   end
 
   def post_to_forum_url
-    community_base_url 'forums/express'
+    community_base_url 'forums/openshift'
   end
 
   def events_url
     community_base_url 'events/'
   end
+  
+  def jenkins_help_url
+    community_base_url 'jenkins'
+  end
 
   def forums_url
-    community_base_url 'forums/'
+    community_base_url 'forums/openshift'
   end
 
   def knowledge_base_url
@@ -53,6 +104,10 @@ module HelpHelper
 
   def faq_url
    community_base_url 'faq'
+  end
+
+  def developers_get_started_fast_url
+    community_base_url 'developers/get-started'
   end
 
   def community_search_url
@@ -68,35 +123,101 @@ module HelpHelper
   end
 
   def jboss_resources_url
-    community_base_url 'page/jboss-resources'
+    community_base_url 'developers/jboss'
   end
 
   def videos_url
     community_base_url 'videos'
   end
 
+  def blog_post_url(post)
+    community_base_url "blogs/#{post}"
+  end
+
+  def community_document_url(file)
+    community_base_url "sites/default/files/documents/#{file}"
+  end
+
   def mongodb_resources_url
-    community_base_url 'page/mongodb-resources'
+    community_base_url 'developers/mongodb'
+  end
+
+  def scaling_help_url
+    community_base_url 'developers/scaling'
   end
 
   def user_guide_url
     user_guide_topic_url 'index.html'
   end
 
+  def getting_started_path(opts=nil)
+    community_base_url "get-started", opts
+  end
+
+  def product_overview_path(opts=nil)
+    community_base_url "paas", opts
+  end
+
+  def opensource_download_path(opts=nil)
+    community_base_url "open-source/download-origin", opts
+  end
+
+  def getting_started_guide_url
+    community_base_url 'developers/install-the-client-tools'
+  end
+
+  def cli_on_windows_user_guide_topic_url
+    community_base_url 'developers/install-the-client-tools#windows'
+  end
+
   def git_homepage_url
     "http://git-scm.com/"
   end
 
+  def pricing_url
+    community_base_url 'developers/pricing'
+  end
+
+  def legal_url
+    community_base_url 'legal'
+  end
+
+  def policy_url
+    community_base_url 'policy'
+  end
+
+  def services_agreement_url
+    community_base_url 'legal/services_agreement'
+  end
+
+  def acceptable_use_url
+    community_base_url 'legal/acceptable_use'
+  end
+
+  def privacy_policy_url
+    community_base_url 'legal/openshift_privacy'
+  end
+
+  def terms_of_service_url
+    community_base_url 'legal/site_terms'
+  end
+
+  def security_policy_url
+    community_base_url 'policy/security'
+  end
+
+  def tax_exempt_help_status
+    community_base_url 'policy/tax-exemptions'
+  end
+
   def console_help_links
     [
+      {:href => developers_url,
+       :name => 'Developer Center'},
       {:href => user_guide_url,
        :name => 'OpenShift User Guide'},
-      {:href => install_cli_knowledge_base_url,
+      {:href => getting_started_path,
        :name => 'Installing OpenShift client tools on Mac OSX, Linux, and Windows'},
-      {:href => rails_quickstart_guide_url,
-       :name => 'Ruby on Rails Quickstart Guide'},
-      {:href => community_base_url('kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app'),
-       :name => 'How can I add JBoss modules to an OpenShift App'},
       {:href => sync_git_with_remote_repo_knowledge_base_url,
        :name => 'Sync your OpenShift repo with an existing Git repo'}
     ]
@@ -111,12 +232,16 @@ module HelpHelper
     ]
   end
 
-  def community_url
+  def community_path
     community_base_url('')
   end
 
+  def community_url
+    community_path
+  end
+
   private
-    def community_base_url(path)
-      "https://www.redhat.com/openshift/community/#{path}"
+    def community_base_url(path, opts=nil)
+      "/community/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
     end
 end

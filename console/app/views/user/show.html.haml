@@ -1,11 +1,34 @@
-- content_for :page_title do
-  My Account
+- content_for :page_title, 'My Account'
 
 %h1 My Account
 = flashes
 .row
   .span7
-    = render :partial => 'user/identity', :locals => {:user => @user}
+    %section
+      = div_for @user do
+        %h2 Personal Information
+
+        %p
+          OpenShift currently allows access via an existing Red Hat account or through an account created with your e-mail and password.
+
+        %table.table
+          %thead
+            %tr
+              %th{:title => 'The account name you will use to log in'} Login
+              - if @show_email
+                %th Email
+              %th Account Type
+          - @identities.each do |i|
+            %tr
+              %td= i.id
+              - if @show_email
+                %td= i.email
+              %td= i.url.present? ? link_to(i.type_name, i.url, :class => 'external') : i.type_name
+
+        .btn-toolbar
+          = link_to "Change password...", edit_account_password_path, :class => 'btn'
+          -#%li= link_to "Terms of Use", legal_site_terms_path
+          -#%li= link_to "Privacy Policy", legal_openshift_privacy_path
 
     %section
       %h2 Namespace
@@ -29,8 +52,12 @@
     %section
       %h2 Public Keys
       %p 
-        OpenShift uses public keys to securely encrypt the connection between your local machine and your application and to authorize you to upload code. You must create a private and public key on your local machine and then upload the public key before you can connect to your applications' Git repositories.
-        = link_to "Read our User Guide topic on keys.", ssh_key_user_guide_topic_url
+        OpenShift uses a public key to securely encrypt the connection between 
+        your local machine and your application and to authorize you to upload 
+        code. You must create a private and public key on your local machine 
+        and then upload the public key before you can connect to your 
+        applications' Git repositories or remotely access your application.
+        = link_to "Learn more about SSH keys.", ssh_keys_help_path
 
       - if @keys.empty?
         = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span4' }
@@ -38,7 +65,7 @@
         %table.table.table-condensed.table-striped
           - @keys.each do |key|
             %tr{:id => "#{key.name}_sshkey"}
-              %td= key.name
+              %td.sshkey-name= key.name
               %td.code.sshkey= key.display_content
               %td= link_to 'Delete', key_path(key), :class => 'btn btn-mini btn-danger delete_button', :method => :delete, :confirm => "Are you sure you want to delete your key '#{key.name}'?"
         .btn-toolbar
