@@ -6,44 +6,6 @@ require 'active_support/concern'
 require 'active_model/dirty'
 require 'active_resource/persistent_connection'
 
-module ActiveResource
-  module Formats
-    #
-    # The OpenShift REST API wraps the root resource element which must
-    # be unwrapped.
-    #
-    class OpenshiftJsonFormat
-      include ActiveResource::Formats::JsonFormat
-
-      def initialize(*args)
-        @root_attrs = args
-      end
-
-      def decode(json)
-        decoded = super
-        if decoded.is_a?(Hash) and decoded.has_key?('data')
-          attrs = root_attributes(decoded)
-          decoded = decoded['data'] || {}
-          decoded.merge!(attrs) if attrs
-        end
-        if decoded.is_a?(Array)
-          decoded.each { |i| i.delete 'links' }
-        else
-          decoded.delete 'links'
-        end
-        decoded
-      end
-
-      def root_attributes(hash)
-        hash.slice('messages', *@root_attrs).tap do |h|
-          puts "Sliced #{h.inspect}"
-        end
-      end
-    end
-  end
-end
-
-
 class ActiveResource::Connection
   #
   # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb
@@ -112,6 +74,38 @@ class ActiveResource::Base
 end
 
 module RestApi
+
+  #
+  # The OpenShift REST API wraps the root resource element which must
+  # be unwrapped.
+  #
+  class OpenshiftJsonFormat
+    include ActiveResource::Formats::JsonFormat
+
+    def initialize(*args)
+      @root_attrs = args
+    end
+
+    def decode(json)
+      decoded = super
+      if decoded.is_a?(Hash) and decoded.has_key?('data')
+        attrs = root_attributes(decoded)
+        decoded = decoded['data'] || {}
+      end
+      if decoded.is_a?(Array)
+        decoded.each{ |i| i.delete 'links'; i.merge!(attrs) if attrs }
+      else
+        decoded.delete 'links'
+        decoded.merge!(attrs) if attrs
+      end
+      decoded
+    end
+
+    def root_attributes(hash)
+      hash.slice('messages', *@root_attrs)
+    end
+  end
+
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
     include RestApi::Cacheable
@@ -122,7 +116,7 @@ module RestApi
     #
     # Connection properties
     #
-    self.format = ActiveResource::Formats::OpenshiftJsonFormat.new
+    self.format = OpenshiftJsonFormat.new
 
     #
     # Update the configuration of the Rest API.  Use instead of
@@ -485,7 +479,7 @@ module RestApi
     #
     def load_remote_errors(remote_errors, save_cache=false, optional=false)
       case self.class.format
-      when ActiveResource::Formats[:openshift_json]
+      when OpenshiftJsonFormat
         response = remote_errors.response
         begin
           ActiveSupport::JSON.decode(response.body)['messages'].each do |m|

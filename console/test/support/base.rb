@@ -40,7 +40,7 @@ class ActiveSupport::TestCase
     session[:login] = user.login
     session[:user] = user
     session[:ticket] = user.ticket || '123'
-    session[:streamline_type] = user.streamline_type
+    session[:streamline_type] = user.streamline_type if user.respond_to? :streamline_type
     @request.cookies['rh_sso'] = session[:ticket]
     @request.env['HTTPS'] = 'on'
     user

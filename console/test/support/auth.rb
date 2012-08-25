@@ -28,8 +28,8 @@ module RestApiAuth
   # different server.
   #
   def with_configured_user
-    config = RestApi::Configuration.activate(:external)
-    if config[:authorization] == :passthrough
+    config = Console.config.api
+    if config[:login]
       @user = Test::WebUser.new :login => config[:login], :password => config[:password]
     else
       @with_unique_user = true
@@ -51,7 +51,9 @@ class ActionController::TestCase
   alias_method :with_configured_api_user, :with_configured_user
   def with_configured_user
     user = with_configured_api_user
-    @controller.stubs(:require_login)
-    @controller.stubs(:session_user).returns(user)
+    user_to_session(user)
+    user
+    #@controller.stubs(:require_login)
+    #@controller.stubs(:session_user).returns(user)
   end
 end

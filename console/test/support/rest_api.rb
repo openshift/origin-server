@@ -1,5 +1,12 @@
 class ActiveSupport::TestCase
 
+  def uuid
+    @ts ||= new_uuid
+  end
+  def new_uuid
+    "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
+  end
+
   def set_domain(domain)
     @domain = domain
   end

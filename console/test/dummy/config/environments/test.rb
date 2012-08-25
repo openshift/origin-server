@@ -36,7 +36,7 @@ Dummy::Application.configure do
   config.active_support.deprecation = :stderr
 
   Console.configure do |config|
-    config.api = :none
+    config.api = :external
   end
 end
 

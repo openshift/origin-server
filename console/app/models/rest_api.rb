@@ -98,8 +98,7 @@ module RestApi
     self.element_name = 'api'
     singleton
     allow_anonymous
-
-    self.format = :json#ActiveResource::Formats::JsonFormat#.new('version', 'supported_api_versions')
+    self.format = :json
 
     schema do
       string :version, :status

@@ -39,6 +39,5 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
   end
 
   urls_from_module(HelpHelper).each_pair &method(:create_test)
-  urls_from_module(ApplicationHelper).each_pair &method(:create_test)
   urls_from_module(CommunityHelper).each_pair &method(:create_test)
 end

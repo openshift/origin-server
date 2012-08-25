@@ -130,6 +130,12 @@ class RestApiTest < ActiveSupport::TestCase
     object
   end
 
+  def test_decode
+    assert obj = RestApi::OpenshiftJsonFormat.new.decode({:data => {:foo => :bar}}.to_json)
+    assert_equal 'bar', obj['foo']
+    assert_nil obj[:foo]
+  end
+
   def test_has_user_agent
     agent = User.headers['User-Agent']
     assert Console.config.api[:user_agent] =~ %r{\Aopenshift_console/0.0.0 \(.*?\)\Z}
