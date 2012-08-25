@@ -2,6 +2,6 @@ source 'http://rubygems.org'
 
 gemspec
 
-group :development do
-  gem 'mocha'
+group :development, :test do
+  gem 'ci_reporter', '~> 1.7.0', :require => nil
 end

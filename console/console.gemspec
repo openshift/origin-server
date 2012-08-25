@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir['test/**/*']
 
   #s.required_rubygems_version = s::Requirement.new('>= 1.3.6')
-  s.add_dependency 'rails', '~> 3.0.10'
+  s.add_dependency 'rails', '~> 3.0.13'
 
   # Console gem dependencies are explicitly specific since they must
   # match gems available in Fedora.  This may be relaxed at a future 
@@ -27,8 +27,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'haml', '~> 3.1.2'
   s.add_dependency 'compass', '~> 0.11.5'
   s.add_dependency 'barista', '~> 1.2.1'
+  s.add_dependency 'rdiscount', '~> 1.6.3'
 
   # Temporarily removed because of issues with Bundler < 1.0.22
-  #s.add_development_dependency 'mocha', '~> 0.9.8'
+  s.add_development_dependency 'mocha', '~> 0.9.8'
+  s.add_development_dependency 'webmock', '~> 1.6.4'
   #s.add_dependency '', '~> '
 end
