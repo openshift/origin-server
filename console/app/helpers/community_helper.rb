@@ -1,10 +1,5 @@
 module CommunityHelper
 
-  # Given a relative path within the user guide, display the topic
-  def community_url
-    "http://www.redhat.com/openshift/community"
-  end
-
   def newsletter_signup_url
     'http://makara.nurturehq.com/makara/newsletter_signup.html'
   end
@@ -25,20 +20,40 @@ module CommunityHelper
     'http://www.twitter.com/#!/openshift'
   end
 
-  def openshift_blog_url
-    'https://www.redhat.com/openshift/blogs'
-  end
-
   def open_bug_url
-    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift%20Express'
+    'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift'
   end
 
   def openshift_github_url
     'https://github.com/openshift'
   end
 
-  def openshift_github_project_url(project, *args)
-    "https://github.com/openshift/#{project}/#{args.join('/')}"
+  def client_tools_url
+    openshift_github_project_url 'rhc'
+  end
+
+  def crankcase_url
+    openshift_github_project_url 'crankcase'
+  end
+
+  def crankcase_source_path_url(path)
+    "#{openshift_github_project_url('crankcase')}/tree/master/#{path}"
+  end
+
+  def cartridges_source_url
+    crankcase_source_path_url 'cartridges'
+  end
+
+  def crankcase_srpm_url
+   "http://mirror.openshift.com/pub/crankcase/fedora-16/SRPMS/"
+  end
+
+  def openshift_github_project_url(project)
+    "https://github.com/openshift/#{project}"
+  end
+
+  def red_hat_account_url
+    'https://www.redhat.com/wapps/ugc'
   end
 
   def mailto_openshift_url
@@ -49,4 +64,7 @@ module CommunityHelper
     link_to "openshift@redhat.com", mailto_openshift_url
   end
 
+  def status_jsonp_url(id)
+    status_js_path :id => id
+  end
 end
