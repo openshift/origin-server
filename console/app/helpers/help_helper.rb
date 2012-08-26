@@ -242,6 +242,6 @@ module HelpHelper
 
   private
     def community_base_url(path, opts=nil)
-      "/community/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
+      "https://openshift.redhat.com/community/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
     end
 end
