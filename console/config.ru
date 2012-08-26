@@ -1,5 +1,5 @@
-require ::File.expand_path('../test/dummy/config/environment',  __FILE__)
+require ::File.expand_path('../test/rails_app/config/environment',  __FILE__)
 
 map '/' do
-  run Dummy::Application
+  run RailsApp::Application
 end

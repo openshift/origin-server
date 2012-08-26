@@ -1,3 +1,4 @@
 test/dummy/log
 test/dummy/tmp
 test/dummy/public/stylesheets
+test/rails_app/log
