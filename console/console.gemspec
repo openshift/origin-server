@@ -4,7 +4,7 @@ require "console/version"
 
 Gem::Specification.new do |s|
   s.name = 'console'
-  s.version = Console::VERSION
+  s.version = Console::VERSION::STRING
 
   s.summary = %q{Openshift Origin Management Console}
   s.description = %q{The OpenShift Origin console is a Rails engine that provides an easy-to-use interface for managing OpenShift Origin applications.}
