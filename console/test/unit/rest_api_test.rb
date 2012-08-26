@@ -136,6 +136,14 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil obj[:foo]
   end
 
+  def test_remote_results
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/bases/1.json', json_header, {:messages => [{:field => 'result', :text => 'text'}],:data => {}}.to_json
+    end
+    assert obj = RestApi::Base.find(1, :as => @user)
+    assert_equal ['text'], obj.remote_results
+  end
+
   def test_has_user_agent
     agent = User.headers['User-Agent']
     assert Console.config.api[:user_agent] =~ %r{\Aopenshift_console/0.0.0 \(.*?\)\Z}

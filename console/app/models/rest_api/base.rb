@@ -473,6 +473,13 @@ module RestApi
       end
     end
 
+    class MessageHash < Hash
+      def initialize(hash)
+        hash.each_pair{ |k,v| self[k] = v }
+      end
+    end
+    has_many :messages, :class_name => 'rest_api/base/message_hash'
+
     #FIXME may be refactored
     def remote_results
       (attributes[:messages] || []).select{ |m| m['field'] == 'result' }.map{ |m| m['text'].presence }.compact

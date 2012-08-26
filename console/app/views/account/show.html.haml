@@ -1,0 +1,15 @@
+- content_for :page_title, 'My Account'
+
+%h1 My Account
+= flashes
+.row
+  .span7
+    %section
+      = render :partial => 'user', :locals => {:user => @user}
+
+    %section
+      = render :partial => 'domain', :locals => {:domain => @domain}
+
+  .span5
+    %section
+      = render :partial => 'keys', :locals => {:keys => @keys}

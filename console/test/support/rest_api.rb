@@ -38,6 +38,11 @@ class ActiveSupport::TestCase
     end
   end
 
+  def with_unique_domain
+    with_configured_user # FIXME: test for non-unique
+    setup_domain
+  end
+
   #
   # Create a domain and user that are shared by all tests in the test suite, 
   # and is only destroyed at the very end of the suite.  If you do not clean
@@ -48,10 +53,10 @@ class ActiveSupport::TestCase
     with_configured_user
     once :domain do
       domain = Domain.first :as => @user
-      domain.destroy_recursive if domain
-      @@domain = setup_domain
+      @@domain = domain || setup_domain
       if cleanup_domain?
         lambda do
+          puts "deleting domain"
           begin
             @@domain.destroy_recursive
           rescue ActiveResource::ResourceNotFound

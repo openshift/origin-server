@@ -17,6 +17,9 @@ module Test
     def rhhogin
       login
     end
+    def persisted?
+      true
+    end
   end
 end
 

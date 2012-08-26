@@ -33,17 +33,17 @@ class ActiveSupport::TestCase
   setup { Rails.cache.clear }
 
   def setup_user(unique=false)
-    @user = user_to_session(WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com")
+    set_user(WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com")
   end
 
-  def user_to_session(user)
+  def set_user(user)
     session[:login] = user.login
     session[:user] = user
-    session[:ticket] = user.ticket || '123'
+    session[:ticket] = user.ticket
     session[:streamline_type] = user.streamline_type if user.respond_to? :streamline_type
     @request.cookies['rh_sso'] = session[:ticket]
     @request.env['HTTPS'] = 'on'
-    user
+    @user = user
   end
 
   def mock_controller_user(extends=nil)
