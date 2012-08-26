@@ -93,7 +93,7 @@ Valid api object:
       end
 
       @api = {
-        :user_agent => "openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+        :user_agent => "openshift_console/#{Console::VERSION::STRING} (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
       }.with_indifferent_access.merge(config)
       @api[:symbol] = symbol
       @api.freeze

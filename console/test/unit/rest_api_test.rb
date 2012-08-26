@@ -146,7 +146,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_has_user_agent
     agent = User.headers['User-Agent']
-    assert Console.config.api[:user_agent] =~ %r{\Aopenshift_console/0.0.0 \(.*?\)\Z}
+    assert Console.config.api[:user_agent] =~ %r{\Aopenshift_console/[\w\.]+ \(.*?\)\Z}, Console.config.api[:user_agent]
     assert_equal Console.config.api[:user_agent], agent
     assert_equal RestApi::Base.headers['User-Agent'], agent
   end
