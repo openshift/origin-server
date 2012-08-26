@@ -15,4 +15,8 @@ module ConsoleHelper
 
   def outage_notification
   end
+
+  def product_title
+    'OpenShift Origin'
+  end
 end
