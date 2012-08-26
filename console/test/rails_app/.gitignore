@@ -1,0 +1,9 @@
+public/app
+vendor/*
+.bundle
+log/*
+tmp/*
+public/stylesheets/
+.sass-cache/
+app/subsites/status/db/status.sqlite3
+test/reports/
