@@ -53,7 +53,7 @@ module Console
 
         legend  = html_options.dup.delete(:name).to_s
         legend %= parent_child_index(html_options[:parent]) if html_options[:parent]
-        legend  = template.content_tag(:legend, template.content_tag(:span, Formtastic::Util.html_safe(legend))) unless legend.blank?
+        legend  = template.content_tag(:legend, template.content_tag(:span, ::Formtastic::Util.html_safe(legend))) unless legend.blank?
 
         if block_given?
           contents = if template.respond_to?(:is_haml?) && template.is_haml?
@@ -66,10 +66,10 @@ module Console
         # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
         contents = contents.join if contents.respond_to?(:join)
         fieldset = template.content_tag(:fieldset,
-          Formtastic::Util.html_safe(legend) << Formtastic::Util.html_safe(contents), #changed
+          ::Formtastic::Util.html_safe(legend) << ::Formtastic::Util.html_safe(contents), #changed
           html_options.except(:builder, :parent)
         )
-        template.concat(fieldset) if block_given? && !Formtastic::Util.rails3?
+        template.concat(fieldset) if block_given? && !::Formtastic::Util.rails3?
         fieldset
       end
 
@@ -96,7 +96,7 @@ module Console
         return nil if full_errors.blank?
         #html_options[:class] ||= "errors"
         template.content_tag(:ul, html_options) do
-          Formtastic::Util.html_safe(full_errors.map { |error| template.content_tag(:li, error) }.join)
+          ::Formtastic::Util.html_safe(full_errors.map { |error| template.content_tag(:li, error) }.join)
         end
       end
 
@@ -148,7 +148,7 @@ module Console
 
         # moved hint/error output inside basic_input_helper
 
-        template.content_tag(:div, Formtastic::Util.html_safe(inline_input_for(method, options)), wrapper_html) #changed to move to basic_input_helper
+        template.content_tag(:div, ::Formtastic::Util.html_safe(inline_input_for(method, options)), wrapper_html) #changed to move to basic_input_helper
       end
 
       def parts(method, options, &block)
@@ -176,7 +176,7 @@ module Console
         end
 
         label(method, label_options) <<
-          template.content_tag(:div, Formtastic::Util.html_safe(control_content), {:class => 'controls'}) #added class
+          template.content_tag(:div, ::Formtastic::Util.html_safe(control_content), {:class => 'controls'}) #added class
         # end changes
       end
 
@@ -222,7 +222,7 @@ module Console
         label_options = options_for_label(options).merge(:input_name => input_name)
         label_options[:for] ||= html_options[:id]
         label(method, label_options) <<
-          template.content_tag(:div, Formtastic::Util.html_safe(select_html), {:class => 'controls'})
+          template.content_tag(:div, ::Formtastic::Util.html_safe(select_html), {:class => 'controls'})
       end
 
       def boolean_input(method, options)
