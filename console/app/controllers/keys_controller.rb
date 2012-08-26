@@ -7,7 +7,7 @@ class KeysController < ConsoleController
   def create
     @first = true if params[:first]
     @key ||= Key.new params[:key]
-    @key.as = session_user
+    @key.as = current_user
 
     if @key.save
       redirect_to (@first ? :back : account_path), :flash => {:success => 'Your public key has been created'} rescue redirect_to account_path
@@ -23,7 +23,7 @@ class KeysController < ConsoleController
   rescue Key::DuplicateName
     if @first
       if @key.default?
-        @key = Key.default(:as => session_user).load(params[:key])
+        @key = Key.default(:as => current_user).load(params[:key])
       else
         @key.make_unique! "#{@key.name}%s"
       end
@@ -36,7 +36,7 @@ class KeysController < ConsoleController
   end
 
   def destroy
-    @key = Key.find params[:id], :as => session_user
+    @key = Key.find params[:id], :as => current_user
     @key.destroy
     redirect_to account_path
   end

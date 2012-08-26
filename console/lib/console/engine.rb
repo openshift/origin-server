@@ -22,3 +22,5 @@ module Console
     end
   end
 end
+
+require 'console/rails/routes'

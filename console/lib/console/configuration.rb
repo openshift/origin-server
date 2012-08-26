@@ -25,6 +25,7 @@ module Console
     config_accessor :disable_js
     config_accessor :disable_passthrough
     config_accessor :parent_controller
+    config_accessor :cartridge_type_metadata
 
     Builtin = {
       :openshift => {
@@ -100,6 +101,10 @@ Valid api object:
     end
     def api
       @api
+    end
+
+    def cartridge_type_metadata
+      @cartridge_type_metadata || File.expand_path(File.join('config', 'cartridge_types.yml'), Console::Engine.root)
     end
   end
 

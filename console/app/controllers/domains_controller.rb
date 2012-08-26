@@ -5,7 +5,7 @@ class DomainsController < ConsoleController
 
   def create
     @domain = Domain.new params[:domain]
-    @domain.as = session_user
+    @domain.as = current_user
 
     if @domain.save
       redirect_to account_path, :flash => {:success => 'Your domain has been created'}
@@ -15,12 +15,12 @@ class DomainsController < ConsoleController
   end
 
   def edit
-    @domain = Domain.find :one, :as => session_user
+    @domain = Domain.find :one, :as => current_user
     redirect_to new_domain_path unless @domain
   end
 
   def update
-    @domain = Domain.find(:one, :as => session_user).load(params[:domain])
+    @domain = Domain.find(:one, :as => current_user).load(params[:domain])
     if @domain.save
       redirect_to account_path, :flash => {:success => 'Your domain has been changed.  Your public URLs will now be different'}
     else

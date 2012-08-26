@@ -119,40 +119,6 @@ module RestApi
     self.format = OpenshiftJsonFormat.new
 
     #
-    # Update the configuration of the Rest API.  Use instead of
-    # setting static variables directly.
-    #
-    def self.configuration=(config)
-      url = URI.parse(config[:url])
-      path = url.path
-      if path[-1..1] == '/'
-        url.path = path[0..-2]
-      else
-        path = "#{path}/"
-      end
-
-      self.site = url.to_s
-      self.prefix = path
-
-      [:ssl_options, :idle_timeout, :read_timeout, :open_timeout].each do |sym|
-        self.send(:"#{sym}=", config[sym]) if config[sym]
-      end
-
-      self.headers.delete 'User-Agent'
-      self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
-
-      if config[:http_proxy]
-        self.proxy = config[:http_proxy]
-      elsif not Rails.env.production?
-        self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
-      end
-
-      @last_config = config
-      @info = false
-    end
-    self.configuration = Console.config.api
-
-    #
     # ActiveResource doesn't have a hierarchy for headers
     #
     class << self
@@ -709,4 +675,45 @@ module RestApi
       @connection.send(:http)
     end
   end
+
+  class Base
+    self.idle_timeout = 10
+    self.open_timeout = 3
+    self.read_timeout = 180
+
+    #
+    # Update the configuration of the Rest API.  Use instead of
+    # setting static variables directly.
+    #
+    def self.configuration=(config)
+      url = URI.parse(config[:url])
+      path = url.path
+      if path[-1..1] == '/'
+        url.path = path[0..-2]
+      else
+        path = "#{path}/"
+      end
+
+      self.site = url.to_s
+      self.prefix = path
+
+      [:ssl_options, :idle_timeout, :read_timeout, :open_timeout].each do |sym|
+        self.send(:"#{sym}=", config[sym]) if config[sym]
+      end
+
+      self.headers.delete 'User-Agent'
+      self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
+
+      if config[:http_proxy]
+        self.proxy = config[:http_proxy]
+      elsif not Rails.env.production?
+        self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
+      end
+
+      @last_config = config
+      @info = false
+    end
+    self.configuration = Console.config.api
+  end
 end
+

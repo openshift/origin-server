@@ -51,9 +51,7 @@ class ActionController::TestCase
   alias_method :with_configured_api_user, :with_configured_user
   def with_configured_user
     user = with_configured_api_user
-    user_to_session(user)
-    user
-    #@controller.stubs(:require_login)
-    #@controller.stubs(:session_user).returns(user)
+    @controller.stubs(:authenticate_user!)
+    @controller.stubs(:current_user).returns(user)
   end
 end

@@ -15,8 +15,4 @@ module ConsoleHelper
 
   def outage_notification
   end
-
-  def session_user
-    controller.session_user
-  end
 end

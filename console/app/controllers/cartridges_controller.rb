@@ -15,16 +15,16 @@ class CartridgesController < ConsoleController
 
   def create
     cart_params = params[:cartridge]
-    @domain = Domain.find :one, :as => session_user
+    @domain = Domain.find :one, :as => current_user
     @application = @domain.find_application params[:application_id]
     # TODO: check for app errors and redirect to app list if error
 
     @cartridge = Cartridge.new cart_params
 
     @cartridge.application = @application
-    @cartridge.as = session_user
+    @cartridge.as = current_user
 
-    @cartridge_type = CartridgeType.find cart_params[:name], :as => session_user
+    @cartridge_type = CartridgeType.find cart_params[:name], :as => current_user
 
     if @cartridge.save
       @wizard = true

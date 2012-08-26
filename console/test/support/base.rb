@@ -52,7 +52,7 @@ class ActiveSupport::TestCase
     @user
   end
 
-  def assert_session_user(user)
+  def assert_current_user(user)
     assert_equal user.login, session[:login]
     assert_equal user.ticket, session[:ticket]
   end

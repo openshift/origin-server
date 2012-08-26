@@ -24,7 +24,7 @@ class CartridgeTypesController < ConsoleController
     @application = @domain.find_application params[:application_id]
 
     @cartridge_type = CartridgeType.cached.find params[:id]
-    @cartridge = Cartridge.new :as => session_user
+    @cartridge = Cartridge.new :as => current_user
   end
 
   def conflicts?(cart_type)

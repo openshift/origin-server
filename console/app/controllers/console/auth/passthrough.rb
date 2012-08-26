@@ -24,18 +24,19 @@ module Console::Auth::Passthrough
   end
 
   included do
+    helper_method :current_user, :user_signed_in?, :previously_signed_in?
   end
 
   module InstanceMethods
     # return the current authenticated user or nil
-    def session_user
+    def current_user
       @authenticated_user
     end
 
     # This method should test authentication and handle if the user
     # is unauthenticated
-    def require_login
-      authenticate_or_request_with_http_basic("Authenticate to #{RestApi::Base.site.to_s}") do |login,password|
+    def authenticate_user!
+      authenticate_or_request_with_http_basic("Authenticate to #{RestApi.info.url}") do |login,password|
         if login.present?
           @authenticated_user = PassthroughUser.new :login => login, :password => password
         else
@@ -44,8 +45,12 @@ module Console::Auth::Passthrough
       end
     end
 
-    def logged_in?
-      not session_user.nil?
+    def user_signed_in?
+      not current_user.nil?
+    end
+
+    def previously_signed_in?
+      cookies[:prev_login] ? true : false
     end
   end
 end

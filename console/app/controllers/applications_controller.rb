@@ -71,9 +71,9 @@ end
 class ApplicationsController < ConsoleController
 
   def index
-    # replace domains with Applications.find :all, :as => session_user
+    # replace domains with Applications.find :all, :as => current_user
     # in the future
-    #domain = Domain.find :one, :as => session_user rescue nil
+    #domain = Domain.find :one, :as => current_user rescue nil
     user_default_domain rescue nil
     return redirect_to application_types_path, :notice => 'Create your first application now!' if @domain.nil? || @domain.applications.empty?
 
@@ -82,7 +82,7 @@ class ApplicationsController < ConsoleController
   end
 
   def destroy
-    @domain = Domain.find :one, :as => session_user
+    @domain = Domain.find :one, :as => current_user
     @application = @domain.find_application params[:id]
     if @application.destroy
       redirect_to applications_path, :flash => {:success => "The application '#{@application.name}' has been deleted"}
@@ -92,7 +92,7 @@ class ApplicationsController < ConsoleController
   end
 
   def delete
-    #@domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => current_user
     user_default_domain
     @application = @domain.find_application params[:id]
 
@@ -109,14 +109,14 @@ class ApplicationsController < ConsoleController
     @application_type = ApplicationType.find app_params[:application_type]
 
     @application = Application.new app_params
-    @application.as = session_user
+    @application.as = current_user
 
     @gear_sizes = ["small"]
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
-    @domain = Domain.find :first, :as => session_user
+    @domain = Domain.find :first, :as => current_user
     unless @domain
-      @domain = Domain.create :name => @application.domain_name, :as => session_user
+      @domain = Domain.create :name => @application.domain_name, :as => current_user
       unless @domain.persisted?
         logger.debug "Unable to create domain, #{@domain.errors.inspect}"
         @application.valid? # set any errors on the application object
@@ -150,7 +150,7 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    #@domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => current_user
     user_default_domain
     @application = @domain.find_application params[:id]
     @gear_groups = @application.gear_groups
@@ -158,7 +158,7 @@ class ApplicationsController < ConsoleController
   end
 
   def get_started
-    #@domain = Domain.find :one, :as => session_user
+    #@domain = Domain.find :one, :as => current_user
     user_default_domain
     @application = @domain.find_application params[:id]
 

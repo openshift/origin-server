@@ -75,14 +75,10 @@ module ActiveResource
       @debug_output = debug_output
     end
 
-    # Sets the number of seconds after which HTTP requests to the remote service should time out.
-    def timeout=(timeout)
-      @timeout = timeout
-    end
-
-    # Sets the number of seconds after which HTTP persistent connections should time out.
-    def idle_timeout=(timeout)
-      @idle_timeout = timeout
+    [:idle_timeout, :read_timeout, :open_timeout, :timeout].each do |sym|
+      define_method :"#{sym}=" do |value|
+        instance_variable_set(:"@#{sym}", value)
+      end
     end
 
     # Hash of options applied to Net::HTTP instance when +site+ protocol is 'https'.
@@ -216,12 +212,8 @@ module ActiveResource
           http.read_timeout = @timeout
         end
 
-        if @debug_output
-          http.debug_output = @debug_output
-        end
-
-        if @idle_timeout
-          http.idle_timeout = @idle_timeout
+        [:read_timeout, :open_timeout, :idle_timeout].each do |sym|
+          http.send(:"#{sym}=", instance_variable_get(:"@#{sym}")) if instance_variable_get(:"@#{sym}")
         end
 
         http
