@@ -3,7 +3,7 @@ module Console
     MAJOR = 1
     MINOR = 0
     MICRO = 0
-    #PRE  = ''
-    STRING = [MAJOR,MINOR,MICRO].compact.join('.')
+    PRE  = 'alpha'
+    STRING = [MAJOR,MINOR,MICRO,PRE].compact.join('.')
   end
 end

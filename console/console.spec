@@ -6,7 +6,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gemname}
-Version:        1.0.0
+Version:        1.0.0.alpha
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
