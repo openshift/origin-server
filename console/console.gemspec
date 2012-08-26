@@ -6,16 +6,15 @@ Gem::Specification.new do |s|
   s.name = 'console'
   s.version = Console::VERSION
 
-  s.summary = %q{Openshift Application Console}
-  s.description = %q{The OpenShift application console is a Rails engine that provides an easy-to-use interface for managing your OpenShift applications.}
-  s.authors = ["Clayton Coleman"]
-  s.email = ['smarterclayton@gmail.com']
-  s.homepage = 'https://github.com/openshift/console'
+  s.summary = %q{Openshift Origin Management Console}
+  s.description = %q{The OpenShift Origin console is a Rails engine that provides an easy-to-use interface for managing OpenShift Origin applications.}
+  s.authors = ["Clayton Coleman", "Fabiano Franz", "Dan McPherson", "Matt Hicks", "Emily Dirsh", "Fotios Lindakos", 'J5']
+  s.email = ['ccoleman@redhat.com', 'ffranz@redhat.com','dmcphers@redhat.com', 'mhicks@redhat.com', 'edirsh@redhat.com', 'fotios@redhat.com', 'johnp@redhat.com']
+  s.homepage = 'https://github.com/openshift/crankcase/tree/master/console'
 
   s.files = Dir['Gemfile', 'LICENSE.md', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*']
   s.test_files = Dir['test/**/*']
 
-  #s.required_rubygems_version = s::Requirement.new('>= 1.3.6')
   s.add_dependency 'rails', '~> 3.0.13'
 
   # Console gem dependencies are explicitly specific since they must
@@ -30,7 +29,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'barista', '~> 1.2.1'
   s.add_dependency 'rdiscount', '~> 1.6.3'
 
-  # Temporarily removed because of issues with Bundler < 1.0.22
   s.add_development_dependency 'mocha', '~> 0.9.8'
   s.add_development_dependency 'webmock', '~> 1.6.4'
   #s.add_dependency '', '~> '

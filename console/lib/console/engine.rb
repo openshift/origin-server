@@ -11,6 +11,7 @@ require 'console/configuration'
 module Console
   class Engine < Rails::Engine
     #FIXME: Remove in Rails 3.1+
+    raise "Code needs changes for rails != 3.0" if Rails.version[0..3] != '3.0.'
     initializer "console.include_helpers" do |app|
       ActiveSupport.on_load(:action_controller) do
         config.helpers_path += Console::Engine.config.paths.app.helpers.to_a
@@ -24,3 +25,5 @@ module Console
 end
 
 require 'console/rails/routes'
+require 'console/rails/app_redirector'
+require 'console/rails/filter_hash'

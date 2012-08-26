@@ -1,9 +1,10 @@
-require 'bootstrap_form_builder.rb'
 require 'active_model/errors'
+require 'console/formtastic/bootstrap_form_builder'
 
 #
 # Minor backport from Rails 3.1, may break hash behavior of errors
 #
+raise "Code needs changes for rails != 3.0" if Rails.version[0..3] != '3.0.'
 module ActiveModel
   class Errors
     # Do the error messages include an error with key +error+?
@@ -95,4 +96,4 @@ Formtastic::SemanticFormBuilder.i18n_lookups_by_default = true
 # specifying that class here.  Defaults to SemanticFormBuilder.
 # Formtastic::SemanticFormHelper.builder = MyCustomBuilder
 
-Formtastic::SemanticFormHelper.builder = BootstrapFormBuilder
+Formtastic::SemanticFormHelper.builder = Console::Formtastic::BootstrapFormBuilder
