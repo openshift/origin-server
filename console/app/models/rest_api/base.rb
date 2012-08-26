@@ -684,7 +684,7 @@ module RestApi
   end
 
   class Base
-    self.idle_timeout = 10
+    self.idle_timeout = 4
     self.open_timeout = 3
     self.read_timeout = 180
 

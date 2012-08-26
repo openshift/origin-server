@@ -25,6 +25,7 @@ module Console
     config_accessor :disable_js
     config_accessor :disable_passthrough
     config_accessor :parent_controller
+    config_accessor :disable_account
     config_accessor :cartridge_type_metadata
 
     Builtin = {
@@ -112,6 +113,7 @@ Valid api object:
     config.disable_js = false
     config.disable_css = false
     config.disable_passthrough = false
+    config.disable_account = false
     config.parent_controller = 'ApplicationController'
     config.api = nil
   end

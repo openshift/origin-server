@@ -39,7 +39,7 @@ class ActiveSupport::TestCase
   end
 
   def with_unique_domain
-    with_configured_user # FIXME: test for non-unique
+    with_unique_user # FIXME: test for non-unique
     setup_domain
   end
 
@@ -136,7 +136,10 @@ class ActiveSupport::TestCase
 
 
   def auth_headers
-   {'Cookie' => "rh_sso=#{@user.ticket}", 'Authorization' => "Basic #{::Base64.encode64s("#{@user.login}:#{@user.password}")}"}
+   h = {}
+   h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
+   h['Authorization'] = "Basic #{::Base64.encode64s("#{@user.login}:#{@user.password}")}" if @user.login
+   h
   end
 
   def json_header(is_post=false)

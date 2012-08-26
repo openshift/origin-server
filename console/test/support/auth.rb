@@ -36,7 +36,7 @@ module RestApiAuth
       @user = Test::WebUser.new :login => config[:login], :password => config[:password]
     else
       @with_unique_user = true
-      @user = Test::WebUser.new :login => "#{name}#{uuid}@test1.com"
+      @user = Test::WebUser.new :login => "#{uuid}@test1.com", :password => 'foo'
     end
   end
 end
@@ -53,8 +53,19 @@ class ActionController::TestCase
   #
   alias_method :with_configured_api_user, :with_configured_user
   def with_configured_user
-    user = with_configured_api_user
-    @controller.stubs(:authenticate_user!)
-    @controller.stubs(:current_user).returns(user)
+    set_user(with_configured_api_user)
+    #@controller.stubs(:authenticate_user!)
+    #@controller.stubs(:current_user).returns(user)
+  end
+  def set_user(user)
+    #@controller.stubs(:current_user).returns(user)
+    #super
+    @request.env['HTTP_AUTHORIZATION'] = "Basic #{::Base64.encode64s("#{user.login}:#{user.password}")}" if user.password
+    @request.cookies['rh_sso'] = user.ticket if user.ticket
+    @request.env['HTTPS'] = 'on'
+    @user = user
+  end
+  def with_unique_user
+    with_configured_user
   end
 end

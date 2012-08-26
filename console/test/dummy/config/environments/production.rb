@@ -45,7 +45,11 @@ Dummy::Application.configure do
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
-end
-Console.configure do |c|
-  c.api = :openshift
+
+  Console.configure do |c|
+    c.api = :none
+  end
+
+  # base domain
+  config.base_domain = 'dev.rhcloud.com'
 end

@@ -16,7 +16,7 @@ class BuildingController < ConsoleController
   end
 
   def create
-    @domain = Domain.find :one, :as => session_user
+    @domain = Domain.find :one, :as => current_user
     user_default_domain
     apps = @domain.applications
     @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
@@ -29,7 +29,7 @@ class BuildingController < ConsoleController
         :name => params[:application][:name],
         :cartridge => 'jenkins-1.4',
         :domain => @domain,
-        :as => session_user)
+        :as => current_user)
 
       if @jenkins_server.save
         message = @jenkins_server.remote_results
@@ -68,7 +68,7 @@ class BuildingController < ConsoleController
   end
 
   def destroy
-    @domain = Domain.find :one, :as => session_user
+    @domain = Domain.find :one, :as => current_user
     @application = @domain.find_application params[:application_id]
     if @application.destroy_build_cartridge
       redirect_to application_path(@application), :flash => {:success => "#{@application.name} is no longer building through Jenkins."}
