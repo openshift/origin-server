@@ -61,6 +61,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
+    assert assigns(:domain)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length, app.errors.inspect
@@ -74,6 +75,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
+    assert assigns(:domain)
     assert !app.errors.empty?
     assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length, app.errors.inspect

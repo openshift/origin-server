@@ -49,7 +49,4 @@ Dummy::Application.configure do
   Console.configure do |c|
     c.api = :none
   end
-
-  # base domain
-  config.base_domain = 'dev.rhcloud.com'
 end

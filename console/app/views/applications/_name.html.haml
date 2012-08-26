@@ -15,7 +15,7 @@
       -# If the user has a domain, use it, otherwise prompt them for that field
       - if @domain and @domain.persisted?
 
-        %span.add-on-last> -#{@domain.name}.#{Rails.configuration.base_domain}
+        %span.add-on-last> -#{@domain.name}.#{RestApi.application_domain_suffix}
 
       - else
 
@@ -25,7 +25,7 @@
           :placeholder => 'Namespace', 
           :maxlength => 16, 
           :class => "domain_name #{'error' if application.errors.include? :domain_name}"
-        %span.add-on-last>= ".#{Rails.configuration.base_domain}"
+        %span.add-on-last>= ".#{RestApi.application_domain_suffix}"
     -#.row.control-group.error
       #app-errors.span
     .row

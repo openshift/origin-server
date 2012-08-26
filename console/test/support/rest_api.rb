@@ -43,30 +43,6 @@ class ActiveSupport::TestCase
     setup_domain
   end
 
-  #
-  # Create a domain and user that are shared by all tests in the test suite, 
-  # and is only destroyed at the very end of the suite.  If you do not clean
-  # up after creating applications you will hit the application limit for
-  # this user.
-  #
-  def with_domain
-    with_configured_user
-    once :domain do
-      domain = Domain.first :as => @user
-      @@domain = domain || setup_domain
-      if cleanup_domain?
-        lambda do
-          puts "deleting domain"
-          begin
-            @@domain.destroy_recursive
-          rescue ActiveResource::ResourceNotFound
-          end
-        end
-      end
-    end
-    @domain = @@domain
-  end
-
   def delete_keys
     Key.find(:all, :as => @user).map(&:destroy)
   end
@@ -108,6 +84,31 @@ class ActiveSupport::TestCase
         end
       instance_variable_set(varname, created)
     end
+  end
+
+  def use_domain(symbol=nil, &block)
+    api_fetch(symbol) do |cached|
+      if cached
+        set_domain cached
+        set_user cached.as
+        cached
+      else
+        if block_given?
+          set_domain(yield block)
+        else
+          with_unique_domain
+        end
+      end
+    end
+  end
+
+  #
+  # Create or retrieve a domain and user.  Does not guarantee that the domain is
+  # empty.  If other tests are running in parallel altering the domain may result
+  # in errors.
+  #
+  def with_domain
+    use_domain(:any)
   end
 
   def use_app(symbol, &block)

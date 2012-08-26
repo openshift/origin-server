@@ -38,8 +38,5 @@ Dummy::Application.configure do
   Console.configure do |config|
     config.api = :external
   end
-
-  # base domain
-  config.base_domain = 'dev.rhcloud.com'
 end
 

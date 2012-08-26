@@ -14,6 +14,7 @@ module Console
     initializer "console.include_helpers" do |app|
       ActiveSupport.on_load(:action_controller) do
         config.helpers_path += Console::Engine.config.paths.app.helpers.to_a
+        puts config.helpers_path.inspect
       end
     end
     initializer "console.static_assets" do |app|

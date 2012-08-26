@@ -34,11 +34,11 @@ module Console
         #:ssl_options => {},
         #:proxy => '',
         :authorization => :passthrough,
-        :suffix => '.rhcloud.com'
+        :suffix => 'rhcloud.com'
       },
       :local => {
         :url => 'https://localhost/broker/rest',
-        :suffix => '.rhcloud.com'
+        :suffix => 'dev.rhcloud.com'
       }
     }
     Builtin.freeze

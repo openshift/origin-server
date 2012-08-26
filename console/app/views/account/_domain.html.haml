@@ -6,9 +6,7 @@
 
 - if @domain
   .well
-    http://applicationname&ndash;
-    %strong.namespace>= @domain.name
-    = ".rhcloud.com"
+    http://applicationname&ndash;<strong class="namespace">#{@domain.name}</strong>.#{RestApi.application_domain_suffix}
   .btn-toolbar
     = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
 

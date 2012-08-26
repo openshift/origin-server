@@ -82,7 +82,11 @@ The REST API could not be reached at #{RestApi::Base.site}
 
     # FIXME: replace with a dynamic call to api.json
     def application_domain_suffix
-      config[:suffix] || '.rhcloud.com'
+      config[:suffix]
+    end
+
+    def site
+      RestApi::Base.site
     end
 
     private

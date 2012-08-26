@@ -36,7 +36,7 @@ module Console::Auth::Passthrough
     # This method should test authentication and handle if the user
     # is unauthenticated
     def authenticate_user!
-      authenticate_or_request_with_http_basic("Authenticate to #{RestApi.info.url}") do |login,password|
+      authenticate_or_request_with_http_basic("Authenticate to #{RestApi.site.host}") do |login,password|
         if login.present?
           @authenticated_user = PassthroughUser.new :login => login, :password => password
         else
