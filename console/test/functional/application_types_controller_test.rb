@@ -4,6 +4,12 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   setup :with_unique_user
 
+  test 'should show index with proper title' do
+    get :index
+    assert_response :success
+    assert_select 'head title', 'OpenShift Origin'
+  end
+
   test "should show index" do
     get :index
     assert_response :success
