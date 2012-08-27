@@ -44,7 +44,7 @@ module RestApiAuth
   end
 
   def setup_user(unique=false)
-    set_user(WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com")
+    set_user(Test::WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :login=>"app_test1#{unique ? uuid : ''}@test1.com")
   end
 
   def set_user(user)
@@ -65,7 +65,7 @@ module RestApiAuth
   # FIXME: Reconcile with other usage
   def unique_user
     id = new_uuid
-    WebUser.new :email_address=>"app_test1#{id}@test1.com", :rhlogin=>"app_test1#{id}@test1.com"
+    Test::WebUser.new :email_address=>"app_test1#{id}@test1.com", :login=>"app_test1#{id}@test1.com"
   end
 
   #
@@ -77,8 +77,6 @@ module RestApiAuth
     @with_unique_user = true
   end
 end
-
-puts "old!"
 
 class ActiveSupport::TestCase
   # All tests should be able to authentictae
@@ -92,9 +90,8 @@ class ActionController::TestCase
   # this, update ~/.openshift/api.yaml to point to a
   # different server.
   #
-  alias_method :with_configured_api_user, :with_configured_user
   def with_configured_user
-    set_user(with_configured_api_user)
+    set_user(super)
     #@controller.stubs(:authenticate_user!)
     #@controller.stubs(:current_user).returns(user)
   end

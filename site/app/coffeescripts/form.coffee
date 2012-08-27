@@ -26,6 +26,40 @@ $ ->
       if typeof($el.attr('data-server-error')) == 'undefined'
         $el.removeClass('error')
 
+  # /app/account/new
+  # /app/account
+  $('form#new_user_form').validate
+    rules:
+      # Require email for new users
+      "web_user[email_address]":
+        required:   true
+        email:      true
+      # Require old password for password change
+      "web_user[old_password]" :
+        required:   true
+      "web_user[password]":
+        required:   true
+        minlength:  6
+      "web_user[password_confirmation]":
+        required:   true
+        equalTo:    "#web_user_password"
+
+  # /app/login 
+  $('form#login_form').validate
+    rules:
+      "web_user[rhlogin]":
+        required: true
+      "web_user[password]":
+        required: true
+
+  # /payment
+  $('form#payment_method').validate
+    rules:
+      "cc_no":
+        required: true
+      "cvv":
+        required: true
+
   $("[data-unhide]").click (event) ->
     src = $(this)
     tgt = $(src.attr('data-unhide'))
