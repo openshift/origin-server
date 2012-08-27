@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    openshift_origin_console (1.0.0.alpha)
+    openshift_origin_console (0.0.0)
       barista (~> 1.2.1)
       compass (~> 0.11.5)
       formtastic (~> 1.2.3)
