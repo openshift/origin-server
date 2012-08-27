@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "console/version"
 
 Gem::Specification.new do |s|
-  s.name = 'console'
+  s.name = 'openshift_origin_console'
   s.version = Console::VERSION::STRING
 
   s.summary = %q{Openshift Origin Management Console}

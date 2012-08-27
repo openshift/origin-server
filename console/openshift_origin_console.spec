@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname console
+%global gemname openshift_origin_console
 %global gemversion %(echo %{version} | cut -d'.' -f1-3)
 %global geminstdir %{gemdir}/gems/%{gemname}-%{gemversion}
 
