@@ -1,5 +1,11 @@
 require 'ci/reporter/rake/test_unit'
 
+class Rake::Task
+  def abandon
+    @actions.clear
+  end
+end
+
 namespace :test do
 
   namespace :prepare do
