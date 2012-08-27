@@ -6,7 +6,8 @@ class RestApiKeyTest < ActiveSupport::TestCase
   def setup
     with_configured_user
     once :remove_keys do
-      lambda { Key.find(:all, :as => @user).map(&:destroy) }
+      user = @user
+      lambda { Key.find(:all, :as => user).map(&:destroy) rescue nil }
     end
   end
   def teardown
