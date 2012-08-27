@@ -1,7 +1,6 @@
 class GearGroupResourcesController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
-  include LegacyBrokerHelper
   
   def show
     index

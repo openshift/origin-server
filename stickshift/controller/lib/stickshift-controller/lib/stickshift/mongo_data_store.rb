@@ -605,7 +605,7 @@ module StickShift
                                          {"apps" => {"$exists" => false}}] },
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})
       raise StickShift::UserException.new("Could not delete domain." +
-                                          "Domain has valid applications.", 136) if hash == nil
+                                          "Domain has valid applications.", 128) if hash == nil
     end
 
     #district
