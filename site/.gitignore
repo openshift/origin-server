@@ -7,3 +7,4 @@ public/stylesheets/
 .sass-cache/
 app/subsites/status/db/status.sqlite3
 test/reports/
+app/subsites/status/db/status.sqlite3

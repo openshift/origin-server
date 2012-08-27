@@ -49,6 +49,6 @@ module RedHatCloud
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
 
-    config.user_agent = "openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+    config.user_agent = Console.config.api[:user_agent]#"openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
   end
 end
