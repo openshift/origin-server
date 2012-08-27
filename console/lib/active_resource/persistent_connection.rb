@@ -128,7 +128,6 @@ module ActiveResource
         result = ActiveSupport::Notifications.instrument("request.active_resource") do |payload|
           payload[:method]      = method
           payload[:request_uri] = "#{site.scheme}://#{site.host}:#{site.port}#{path}"
-          #payload[:result]      = http.send(method, path, *arguments)
           req = case method
             when :get
               req = Net::HTTP::Get.new path, arguments[0]

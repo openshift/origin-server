@@ -20,7 +20,7 @@ module RestApi
       call = "#{color(event.payload.delete(:method), BOLD, true)} #{event.payload.delete(:request_uri)}"
 
       result = event.payload[:result]
-      query = {:code => result.code}.map{ |k,v| "#{k}: #{color(v, BOLD, true)}" }.join(', ')
+      query = {:code => result.code}.map{ |k,v| "#{k}: #{color(v, BOLD, true)}" }.join(', ') if result
 
       debug "  #{color(name, BLUE, true)} #{call} [ #{query} ]"
     end

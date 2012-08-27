@@ -12,7 +12,6 @@ class RestApiTest < ActiveSupport::TestCase
   def setup
     ActiveResource::HttpMock.reset!
 
-    RestApi::Base.site = "https://mock.test/broker/rest"
     RestApi.instance_variable_set('@info', nil)
 
     @ts = "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
