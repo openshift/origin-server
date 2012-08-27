@@ -27,6 +27,7 @@ module Console
     config_accessor :parent_controller
     config_accessor :disable_account
     config_accessor :cartridge_type_metadata
+    config_accessor :include_helpers
 
     Builtin = {
       :openshift => {
@@ -115,6 +116,7 @@ Valid api object:
     config.disable_passthrough = false
     config.disable_account = false
     config.parent_controller = 'ApplicationController'
+    config.include_helpers = true
     config.api = nil
   end
 end

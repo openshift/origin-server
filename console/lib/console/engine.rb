@@ -14,7 +14,11 @@ module Console
     raise "Code needs changes for rails != 3.0" if Rails.version[0..3] != '3.0.'
     initializer "console.include_helpers" do |app|
       ActiveSupport.on_load(:action_controller) do
-        config.helpers_path += Console::Engine.config.paths.app.helpers.to_a
+        if Console.config.include_helpers
+          puts "config.helpers_path BEFORE #{config.helpers_path.inspect}"
+          config.helpers_path += Console::Engine.config.paths.app.helpers.to_a
+          puts "config.helpers_path AFTER  #{config.helpers_path.inspect}"
+        end
       end
     end
     initializer "console.static_assets" do |app|

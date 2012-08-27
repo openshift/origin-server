@@ -1,4 +1,4 @@
-module CommunityHelper
+module Console::CommunityHelper
 
   def newsletter_signup_url
     'http://makara.nurturehq.com/makara/newsletter_signup.html'

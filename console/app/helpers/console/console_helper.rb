@@ -1,4 +1,4 @@
-module ConsoleHelper
+module Console::ConsoleHelper
 
   def openshift_url(relative='')
     "https://openshift.redhat.com/app/#{relative}"

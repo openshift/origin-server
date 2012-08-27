@@ -1,7 +1,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 
 
-class ModelHelperTest < ActionView::TestCase
+class Console::ModelHelperTest < ActionView::TestCase
 
   def test_gear_group_states
     assert_equal 'Started', gear_group_states([:started])

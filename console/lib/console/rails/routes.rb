@@ -5,7 +5,7 @@ module ActionDispatch::Routing
       opts = args.extract_options!
       openshift_console_routes
       openshift_account_routes unless (Array(opts[:skip]).include? :account || Console.config.disable_account)
-      root :to => 'console_index#index', :via => :get
+      root :to => 'console_index#index', :via => :get, :as => :console
     end
 
     protected

@@ -1,4 +1,4 @@
-module ModelHelper
+module Console::ModelHelper
   def gear_group_states(states)
     return states[0].to_s.humanize if states.uniq.length == 1
     "#{states.count{ |s| s == :started }}/#{states.length} started"

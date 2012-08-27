@@ -1,4 +1,4 @@
-module HelpHelper
+module Console::HelpHelper
 
   # Given a relative path within the user guide, display the topic
   def user_guide_topic_url(topic)

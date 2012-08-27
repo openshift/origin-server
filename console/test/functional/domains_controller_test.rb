@@ -10,8 +10,7 @@ class DomainsControllerTest < ActionController::TestCase
 
   def with_particular_user
     if @@user
-      @user = @@user
-      user_to_session(@user)
+      set_user(@@user)
     else
       @@user = @user
     end

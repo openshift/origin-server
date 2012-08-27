@@ -1,6 +1,6 @@
 require 'enumerator'
 
-module LayoutHelper
+module Console::LayoutHelper
 
   def navigation_tabs(options={}, &block)
     content = capture &block
