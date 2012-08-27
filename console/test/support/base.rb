@@ -32,31 +32,6 @@ class ActiveSupport::TestCase
   teardown { $VERBOSE = false }
   setup { Rails.cache.clear }
 
-  def setup_user(unique=false)
-    set_user(WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com")
-  end
-
-  def set_user(user)
-    session[:login] = user.login
-    session[:user] = user
-    session[:ticket] = user.ticket
-    session[:streamline_type] = user.streamline_type if user.respond_to? :streamline_type
-    @request.cookies['rh_sso'] = session[:ticket]
-    @request.env['HTTPS'] = 'on'
-    @user = user
-  end
-
-  def mock_controller_user(extends=nil)
-    @controller.expects(:current_user).at_least(0).returns(@user)
-    @user.expects(:extends).at_least(0).with(extends).returns(@user) if extends
-    @user
-  end
-
-  def assert_current_user(user)
-    assert_equal user.login, session[:login]
-    assert_equal user.ticket, session[:ticket]
-  end
-
   #
   # In any test case where css_select is valid, take a form object or selector
   # and extract the data from that form.  Yields a block and returns either

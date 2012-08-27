@@ -39,12 +39,53 @@ module RestApiAuth
       @user = Test::WebUser.new :login => "#{uuid}@test1.com", :password => 'foo'
     end
   end
+  def with_unique_user
+    with_configured_user
+  end
+
+  def setup_user(unique=false)
+    set_user(WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :rhlogin=>"app_test1#{unique ? uuid : ''}@test1.com")
+  end
+
+  def set_user(user)
+    @request.env['HTTP_AUTHORIZATION'] = "Basic #{::Base64.encode64s("#{user.login}:#{user.password}")}" if user.password
+    @request.cookies['rh_sso'] = user.ticket if user.ticket
+    @request.env['HTTPS'] = 'on'
+    @user = user
+  end
+
+  def assert_current_user(user)
+    assert_equal user.login, session[:login]
+    assert_equal user.ticket, session[:ticket]
+  end
+
+  # 
+  # Create a new, unique user
+  #
+  # FIXME: Reconcile with other usage
+  def unique_user
+    id = new_uuid
+    WebUser.new :email_address=>"app_test1#{id}@test1.com", :rhlogin=>"app_test1#{id}@test1.com"
+  end
+
+  #
+  # Create and authenticate a user that is unique per test case,
+  # without any session information.
+  #
+  def with_simple_unique_user
+    @user = RestApi::Authorization.new "rest-api-test-#{uuid}@test1.com"
+    @with_unique_user = true
+  end
+end
+
+puts "old!"
+
+class ActiveSupport::TestCase
+  # All tests should be able to authentictae
+  include RestApiAuth
 end
 
 class ActionController::TestCase
-  # All ActionControllers should be able to authentictae
-  include RestApiAuth
-
   #
   # Functional tests are designed to run against the 
   # production OpenShift service by default.  To change
@@ -57,15 +98,10 @@ class ActionController::TestCase
     #@controller.stubs(:authenticate_user!)
     #@controller.stubs(:current_user).returns(user)
   end
-  def set_user(user)
-    #@controller.stubs(:current_user).returns(user)
-    #super
-    @request.env['HTTP_AUTHORIZATION'] = "Basic #{::Base64.encode64s("#{user.login}:#{user.password}")}" if user.password
-    @request.cookies['rh_sso'] = user.ticket if user.ticket
-    @request.env['HTTPS'] = 'on'
-    @user = user
-  end
-  def with_unique_user
-    with_configured_user
+
+  def mock_controller_user(extends=nil)
+    @controller.expects(:current_user).at_least(0).returns(@user)
+    @user.expects(:extends).at_least(0).with(extends).returns(@user) if extends
+    @user
   end
 end

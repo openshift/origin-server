@@ -3,7 +3,7 @@ require File.expand_path('../../../test_helper', __FILE__)
 class RestApiCartridgeTypeTest < ActiveSupport::TestCase
 
   def setup
-    with_simple_unique_user
+    with_configured_user
   end
 
   def log_types(types)
