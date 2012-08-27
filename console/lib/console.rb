@@ -1,5 +1,5 @@
-require 'console/engine.rb'
 require 'console/version.rb'
+require 'console/engine.rb'
 
 module Console
   class AccessDenied < StandardError ; end

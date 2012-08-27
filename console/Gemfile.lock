@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    console (1.0.0.alpha)
+    openshift_origin_console (1.0.0.alpha)
       barista (~> 1.2.1)
       compass (~> 0.11.5)
       formtastic (~> 1.2.3)
@@ -119,6 +119,6 @@ PLATFORMS
 
 DEPENDENCIES
   ci_reporter (~> 1.7.0)
-  console!
   mocha (~> 0.9.8)
+  openshift_origin_console!
   webmock (~> 1.6.4)

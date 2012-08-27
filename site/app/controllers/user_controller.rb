@@ -1,5 +1,3 @@
-require 'recaptcha'
-
 class UserController < Console::UserController
 
   protect_from_forgery :except => :create_external
