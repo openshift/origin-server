@@ -83,7 +83,7 @@ end
 Then /^the application will be updated$/ do
     # wait for ball to change blue...
     job = {'color' => 'purple'}
-    StickShift::timeout(20) do
+    StickShift::timeout(300) do
       begin
         sleep 1
         response = `#{@jenkins_build}`
