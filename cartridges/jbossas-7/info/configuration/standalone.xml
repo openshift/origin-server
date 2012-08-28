@@ -97,22 +97,22 @@
                     </security>
                 </datasource>
                 <datasource jndi-name="java:jboss/datasources/MysqlDS" enabled="${mysql.enabled}" use-java-context="true" pool-name="MysqlDS">
-                    <connection-url>jdbc:mysql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
+                    <connection-url>jdbc:mysql://${env.OPENSHIFT_MYSQL_DB_HOST}:${env.OPENSHIFT_MYSQL_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
                     <driver>mysql</driver>
                     <security>
-                      <user-name>${env.OPENSHIFT_DB_USERNAME}</user-name>
-                      <password>${env.OPENSHIFT_DB_PASSWORD}</password>
+                      <user-name>${env.OPENSHIFT_MYSQL_DB_USERNAME}</user-name>
+                      <password>${env.OPENSHIFT_MYSQL_DB_PASSWORD}</password>
                     </security>
                     <validation>
                       <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
                 	</validation>
                 </datasource>
                 <datasource jndi-name="java:jboss/datasources/PostgreSQLDS" enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS" use-ccm="true">
-                    <connection-url>jdbc:postgresql://${env.OPENSHIFT_DB_HOST}:${env.OPENSHIFT_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
+                    <connection-url>jdbc:postgresql://${env.OPENSHIFT_POSTGRESQL_DB_HOST}:${env.OPENSHIFT_POSTGRESQL_DB_PORT}/${env.OPENSHIFT_APP_NAME}</connection-url>
                     <driver>postgresql</driver>
                     <security>
-                      <user-name>${env.OPENSHIFT_DB_USERNAME}</user-name>
-                      <password>${env.OPENSHIFT_DB_PASSWORD}</password>
+                      <user-name>${env.OPENSHIFT_POSTGRESQL_DB_USERNAME}</user-name>
+                      <password>${env.OPENSHIFT_POSTGRESQL_DB_PASSWORD}</password>
                     </security>
                     <validation>
                       <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
@@ -257,13 +257,13 @@
             <stack name="tcp">
                 <transport type="TCP" socket-binding="jgroups-tcp"> 
                 	<property name="external_addr">${env.OPENSHIFT_GEAR_DNS}</property>
-                    <property name="external_port">${env.OPENSHIFT_JBOSS_CLUSTER_PROXY_PORT}</property>
+                    <property name="external_port">${env.OPENSHIFT_JBOSSAS_CLUSTER_PROXY_PORT}</property>
                     <property name="bind_port">7600</property>
                     <property name="bind_addr">${env.OPENSHIFT_INTERNAL_IP}</property>
                 </transport>
                 <protocol type="TCPPING">
                 	<property name="timeout">30000</property>
-                	<property name="initial_hosts">${env.OPENSHIFT_JBOSS_CLUSTER}</property>
+                	<property name="initial_hosts">${env.OPENSHIFT_JBOSSAS_CLUSTER}</property>
                 	<property name="port_range">0</property>
                 	<property name="num_initial_members">1</property>
                 </protocol>
@@ -281,7 +281,7 @@
                 <protocol type="AUTH">
                         <property name="auth_class">org.jgroups.auth.MD5Token</property>
                         <property name="token_hash">SHA</property>
-                        <property name="auth_value">${env.OPENSHIFT_JBOSS_CLUSTER}</property>
+                        <property name="auth_value">${env.OPENSHIFT_JBOSSAS_CLUSTER}</property>
                 </protocol>
                 <!--protocol type="pbcast.STATE_TRANSFER"/>
                 <protocol type="pbcast.FLUSH"/-->

@@ -182,7 +182,7 @@ end
 # Verifies the existence of an exported source tree associated with
 # the current application.
 Then /^the application source tree will( not)? exist$/ do | negate |
-  app_root = "#{$home_root}/#{@gear.uuid}/#{@app.name}"
+  app_root = "#{$home_root}/#{@gear.uuid}/#{@cart.name}"
 
   # TODO - need to check permissions and SELinux labels
 
@@ -198,7 +198,7 @@ end
 # Verifies the existence of application log files associated with the
 # current application.
 Then /^the application log files will( not)? exist$/ do | negate |
-  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{@app.name}/logs"
+  log_dir_path = "#{$home_root}/#{@gear.uuid}/#{@cart.name}/logs"
 
   $logger.info("Checking for log dir at #{log_dir_path}")
 
@@ -283,8 +283,10 @@ end
 # the single cartridge directly. There will be no recursive actions for
 # multiple carts associated with an app/gear.
 When /^I (start|stop|status|restart) the application$/ do |action|
-  record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
-    @cart.run_hook(action)
+  StickShift::timeout(60) do
+    record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
+      @cart.run_hook(action)
+    end
   end
 end
 
@@ -324,7 +326,32 @@ Then /^a (.+) process will( not)? be running$/ do | proc_name, negate |
 end
 
 
-# Verifies that exactly the specified number of the named processed
+# Verifies that a process named proc_name and associated with the current
+# application will be running (or not). The step will retry up to max_tries
+# times to verify the expectations, as some cartridge stop hooks are
+# asynchronous. This doesn't outright eliminate timing issues, but it helps.
+Then /^a (.+) process for ([^ ]+) will( not)? be running$/ do | proc_name, label, negate |
+  exit_test = negate ? lambda { |tval| tval == 0 } : lambda { |tval| tval > 0 }
+  exit_test_desc = negate ? "0" : ">0"
+
+  num_node_processes = num_procs @gear.uuid, proc_name, label
+  $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
+  StickShift::timeout(20) do
+    while (not exit_test.call(num_node_processes))
+      $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
+      sleep 1 
+      num_node_processes = num_procs @gear.uuid, proc_name, label
+    end
+  end
+
+  if not negate
+    num_node_processes.should be > 0
+  else
+    num_node_processes.should be == 0
+  end
+end
+
+# Verifies that exactly the specified number of the named processes
 # are currently running.
 #
 # Could maybe be consolidated with the other similar step with some
@@ -345,11 +372,31 @@ Then /^(\d+) process(es)? named ([^ ]+) will be running$/ do | proc_count, junk,
   num_node_processes.should be == proc_count
 end
 
-
-# Performs some hackery to enable git pushes to the test application
-# repo, such as:
+# Verifies that exactly the specified number of the named processes
+# with arguments matching 'label' are currently running.
 #
-#   - Adding an /etc/hosts entry for the application to work around
+# Could maybe be consolidated with the other similar step with some
+# good refactoring.
+Then /^(\d+) process(es)? named ([^ ]+) for ([^ ]+) will be running$/ do | proc_count, junk, proc_name, label |
+  proc_count = proc_count.to_i
+
+  num_node_processes = num_procs @gear.uuid, proc_name, label
+  $logger.info("Expecting #{proc_count} pid(s) named #{proc_name}, found #{num_node_processes}")
+  StickShift::timeout(20) do
+    while (num_node_processes != proc_count)
+      $logger.info("Waiting for #{proc_name} process count to equal #{proc_count}")
+      sleep 1
+      num_node_processes = num_procs @gear.uuid, proc_name, label
+    end
+  end
+  
+  num_node_processes.should be == proc_count
+end
+
+
+# Makes the application publicly accessible.
+#
+#   - Adds an /etc/hosts entry for the application to work around
 #     the lack of DNS
 #   - Adds the test pubkey to the authorized key list for the host
 #   - Disables strict host key checking for the host to suppress
@@ -357,7 +404,7 @@ end
 #
 # This is not pretty. If it can be made less hackish and faster, it
 # could be moved into the generic application setup step.
-When /^the application is prepared for git pushes$/ do
+When /^the application is made publicly accessible$/ do
   ssh_key = IO.read($test_pub_key).chomp.split[1]
   run "echo \"127.0.0.1 #{@app.name}-#{@account.domain}.dev.rhcloud.com # Added by cucumber\" >> /etc/hosts"
   run "ss-authorized-ssh-key-add -a #{@gear.uuid} -c #{@gear.uuid} -s #{ssh_key} -t ssh-rsa -m default"

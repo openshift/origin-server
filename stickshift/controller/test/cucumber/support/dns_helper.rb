@@ -36,15 +36,18 @@ module DnsHelper
   #
   # Returns entries Array on success
   def remove_dns_entries(entries=[])
-    entries.each do |domain|
-      yes = dns_service.namespace_available?(domain)
-      if !yes
-      #puts "deregistering #{domain}"
-      dns_service.deregister_namespace(domain)
+    if not entries.empty?
+      entries.each do |domain|
+        yes = dns_service.namespace_available?(domain)
+        if !yes
+        #puts "deregistering #{domain}"
+        dns_service.deregister_namespace(domain)
+        end
       end
+
+      dns_service.publish
+      dns_service.close
     end
-    dns_service.publish
-    dns_service.close
   end
 
 end

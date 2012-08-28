@@ -1,4 +1,6 @@
 #!/bin/bash
+source /etc/stickshift/stickshift-node.conf
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 include_git="$1"
 
@@ -23,10 +25,11 @@ echo "Removing old data dir: ~/app-root/data/*" 1>&2
 
 restore_tar.sh $include_git
 
-for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /_RESTORE$/) print ENVIRON[a] }'`
+for db in $(get_attached_databases)
 do
-    echo "Running extra restore: $(/bin/basename $cmd)" 1>&2
-    $cmd
+    restore_cmd=${CARTRIDGE_BASE_PATH}/${db}/info/bin/restore.sh
+    echo "Running extra restore for $db" 1>&2
+    $restore_cmd
 done
 
 if [ "$include_git" = "INCLUDE_GIT" ]

@@ -50,6 +50,7 @@ Then /^the postgresql admin user will have access$/ do
     dbconn = PGconn.connect(pgsql_cart.db.ip, 5432, '', '', 'postgres',
                             pgsql_cart.db.username, pgsql_cart.db.password)
   rescue PGError
+    $logger.error("Couldn't connect to Postgres, ip=#{pgsql_cart.db.ip}, user=#{pgsql_cart.db.username}, pwd=#{pgsql_cart.db.password}")
     dbconn = nil
  end
 

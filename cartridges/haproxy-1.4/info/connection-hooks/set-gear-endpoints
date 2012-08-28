@@ -81,7 +81,10 @@ import_env_vars
 # Defines.
 HAPROXY_CONF_DIR=$APP_HOME/$CART_NAME-$CART_VERSION/conf
 HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
-FRAMEWORK_INFO_DIR=${CARTRIDGE_BASE_PATH}/$OPENSHIFT_GEAR_TYPE/info
+
+framework_carts=($(get_installed_framework_carts))
+primary_framework_cart=${framework_carts[0]}
+FRAMEWORK_INFO_DIR=${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info
 
 # Array containing current endpoints.
 declare -A curr_endpoints

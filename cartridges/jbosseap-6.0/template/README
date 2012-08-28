@@ -136,18 +136,18 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
-    System.getenv("OPENSHIFT_GEAR_NAME")  - Application name
-    System.getenv("OPENSHIFT_GEAR_DIR")   - Application dir
-    System.getenv("OPENSHIFT_DATA_DIR")  - For persistent storage (between pushes)
-    System.getenv("OPENSHIFT_TMP_DIR")   - Temp storage (unmodified files deleted after 10 days)
+    System.getenv("OPENSHIFT_APP_NAME")   - Application name
+    System.getenv("OPENSHIFT_DATA_DIR")   - For persistent storage (between pushes)
+    System.getenv("OPENSHIFT_TMP_DIR")    - Temp storage (unmodified files deleted after 10 days)
 
 When embedding a database using 'rhc app cartridge add', you can reference environment
-variables for username, host and password:
+variables for username, host and password. For example, when embedding MySQL 5.1, the 
+following variables will be available:
 
-    System.getenv("OPENSHIFT_DB_HOST")      - DB host
-    System.getenv("OPENSHIFT_DB_PORT")      - DB Port
-    System.getenv("OPENSHIFT_DB_USERNAME")  - DB Username
-    System.getenv("OPENSHIFT_DB_PASSWORD")  - DB Password
+    System.getenv("OPENSHIFT_MYSQL_DB_HOST")      - DB host
+    System.getenv("OPENSHIFT_MYSQL_DB_PORT")      - DB Port
+    System.getenv("OPENSHIFT_MYSQL_DB_USERNAME")  - DB Username
+    System.getenv("OPENSHIFT_MYSQL_DB_PASSWORD")  - DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

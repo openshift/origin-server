@@ -3,13 +3,13 @@
 Feature: cron Embedded Cartridge
 
   Scenario: Add Remove cron to one application
-    Given a new perl-5.10 type application
+    # Change back the perl-5.10 when refactor is done
+    Given a new php-5.3 type application
     And I embed a cron-1.4 cartridge into the application
     And cron is running
 
     Then the embedded cron-1.4 cartridge directory will exist
     And the embedded cron-1.4 cartridge subdirectory named log will exist
-    And the embedded cron-1.4 cartridge control script will exist
     And the embedded cron-1.4 cartridge subdirectory named run will exist
     And cron jobs will be enabled
 

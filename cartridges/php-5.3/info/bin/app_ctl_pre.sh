@@ -6,4 +6,6 @@ do
     . $f
 done
 
-export PHPRC="${OPENSHIFT_GEAR_DIR}conf/php.ini"
+cartridge_type="php-5.3"
+
+export PHPRC="${OPENSHIFT_HOMEDIR}/$cartridge_type/conf/php.ini"

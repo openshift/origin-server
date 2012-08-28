@@ -87,7 +87,6 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/app_ctl_impl.sh %{buildroot}%{cartridgedir}/info/bin/app_ctl_impl.sh
-ln -s %{cartridgedir}/../abstract-jboss/info/bin/build.sh %{buildroot}%{cartridgedir}/info/bin/build.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy_httpd_proxy.sh %{buildroot}%{cartridgedir}/info/bin/deploy_httpd_proxy.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/deploy.sh %{buildroot}%{cartridgedir}/info/bin/deploy.sh
 ln -s %{cartridgedir}/../abstract-jboss/info/bin/tidy.sh %{buildroot}%{cartridgedir}/info/bin/tidy.sh
@@ -107,7 +106,6 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartr
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartridgedir}/info/hooks/configure
-ln -s %{cartridgedir}/../abstract-jboss/info/configuration/jenkins_job_template.xml %{buildroot}%{cartridgedir}/info/configuration/jenkins_job_template.xml
 
 %post
 # To modify an alternative you should:

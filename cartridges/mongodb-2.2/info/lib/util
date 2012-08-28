@@ -24,23 +24,12 @@ function wait_to_start_db_as_user {
 
 function prepare_gear_for_standalone_mongodb() {
     # Find an open localhost IP
-    IP=`find_open_ip $uid $uuid`
-
-    # Create top level application symlink
-    create_app_dir_symlink "$cartridge_type"
-
-    # Create environment variables
-    create_common_env_vars
-
-    create_app_ctl_script "$cartridge_type"
-
-    # And prepend to path variable so that mongodb app_ctl.sh script is called.
-    sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
+    PROXY_IP=`find_open_ip $uid $uuid`
 
     #  Add apache vhost configuration.
-    export CART_INFO_DIR
+    create_standard_path_env_var
     import_env_vars
-    $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+    $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $PROXY_IP
 
     disable_stale_detection
 

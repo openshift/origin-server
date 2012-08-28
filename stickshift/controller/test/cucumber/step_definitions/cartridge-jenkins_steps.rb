@@ -58,7 +58,7 @@ When /^I push an update to the diy application$/ do
     assert_equal 0, exit_code, "Failed to clone diy repo"
 
     Dir.chdir("diy") do
-      exit_code = run "sed -i 's/Welcome to Openshift Do-It-Yourself cartridge/Jenkins Builder Testing/' diy/index.html"
+      exit_code = run "sed -i 's/Welcome to OpenShift/Jenkins Builder Testing/' diy/index.html"
       assert_equal 0, exit_code, "Failed to update diy/index.html"
 
       exit_code = run "git commit -a -m 'force build'"

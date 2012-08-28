@@ -6,10 +6,13 @@ do
     . $f
 done
 
+cart_instance_dir=$OPENSHIFT_HOMEDIR/ruby-1.8
+ruby_tmp_dir=$cart_instance_dir/tmp
+
 if [ -z "$BUILD_NUMBER" ]
 then
   USED_BUNDLER=false
-  if [ -d ${OPENSHIFT_GEAR_DIR}tmp/.bundle ]
+  if [ -d ${ruby_tmp_dir}/.bundle ]
   then
     USED_BUNDLER=true
   fi
@@ -17,18 +20,18 @@ then
   if $USED_BUNDLER
   then
     echo 'Restoring previously bundled RubyGems (note: you can commit .openshift/markers/force_clean_build at the root of your repo to force a clean bundle)'
-    mv ${OPENSHIFT_GEAR_DIR}tmp/.bundle ${OPENSHIFT_REPO_DIR}
-    if [ -d ${OPENSHIFT_REPO_DIR}vendor ]
+    mv ${ruby_tmp_dir}/.bundle ${OPENSHIFT_REPO_DIR}
+    if [ -d ${OPENSHIFT_REPO_DIR}/vendor ]
     then
-      mv ${OPENSHIFT_GEAR_DIR}/tmp/vendor/bundle ${OPENSHIFT_REPO_DIR}vendor/
+      mv ${ruby_tmp_dir}/vendor/bundle ${OPENSHIFT_REPO_DIR}/vendor/
     else
-      mv ${OPENSHIFT_GEAR_DIR}tmp/vendor ${OPENSHIFT_REPO_DIR}
+      mv ${ruby_tmp_dir}/vendor ${OPENSHIFT_REPO_DIR}
     fi
-    rm -rf ${OPENSHIFT_GEAR_DIR}tmp/.bundle ${OPENSHIFT_GEAR_DIR}tmp/vendor
+    rm -rf ${ruby_tmp_dir}/.bundle ${ruby_tmp_dir}/vendor
   fi
   
   # If .bundle isn't currently committed and a Gemfile is then bundle install
-  if [ -f ${OPENSHIFT_REPO_DIR}Gemfile ]
+  if [ -f ${OPENSHIFT_REPO_DIR}/Gemfile ]
   then
       if ! git show master:.bundle > /dev/null 2>&1
       then

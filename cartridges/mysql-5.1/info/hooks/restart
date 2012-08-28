@@ -31,12 +31,10 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
-
-MYSQL_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-
+MYSQL_DIR=$APP_HOME/$cartridge_type
 
 #
 # Restart application
 #
 rm -f "$MYSQL_DIR/run/stop_lock"
-super_run_as_user "$MYSQL_DIR/${application}_mysql_ctl.sh restart"
+super_run_as_user "${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/app_ctl.sh restart"

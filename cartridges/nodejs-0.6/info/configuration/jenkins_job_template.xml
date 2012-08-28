@@ -65,7 +65,7 @@
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 # Sync libs - Faster builds
-rsync -l UPSTREAM_SSH:~/UPSTREAM_APP_NAME/node_modules/ ~/${OPENSHIFT_GEAR_NAME}/node_modules/   || :
+rsync -l UPSTREAM_SSH:~/nodejs-0.6/node_modules/ ~/nodejs-0.6/node_modules/   || :
 
 # Build/update libs and run user pre_build and build
 . ci_build.sh
@@ -78,8 +78,8 @@ rsync -l UPSTREAM_SSH:~/UPSTREAM_APP_NAME/node_modules/ ~/${OPENSHIFT_GEAR_NAME}
 $GIT_SSH UPSTREAM_SSH 'ctl_all stop'
 
 # Push content back to application
-rsync -l ~/${OPENSHIFT_GEAR_NAME}/node_modules/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/node_modules/  ||  :
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/
+rsync -l ~/nodejs-0.6/node_modules/ UPSTREAM_SSH:~/nodejs-0.6/node_modules/  ||  :
+rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/nodejs-0.6/repo/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh

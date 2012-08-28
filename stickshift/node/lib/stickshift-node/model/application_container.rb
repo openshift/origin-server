@@ -119,8 +119,7 @@ module StickShift
     # Examples
     #
     #   load_env
-    #   # => {"OPENSHIFT_GEAR_DIR"=>"/var/lib/UUID/mysql-5.3",
-    #         "OPENSHIFT_APP_NAME"=>"myapp"}
+    #   # => {"OPENSHIFT_APP_NAME"=>"myapp"}
     #
     # Returns env Array
     def load_env

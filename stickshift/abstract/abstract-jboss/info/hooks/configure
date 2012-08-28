@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+
 source "/etc/stickshift/stickshift-node.conf"
 
 # Creates a jboss instance
@@ -75,13 +77,15 @@ __EOF__
 }
 
 function create_jboss_network_env_vars {
-  echo "export OPENSHIFT_JBOSS_CLUSTER_PORT='7600'" > $APP_HOME/.env/OPENSHIFT_JBOSS_CLUSTER_PORT
-  echo "export OPENSHIFT_JBOSS_CLUSTER='$IP[7600]'" > $APP_HOME/.env/OPENSHIFT_JBOSS_CLUSTER
-  echo "export OPENSHIFT_JBOSS_CLUSTER_PROXY_PORT='7600'" > $APP_HOME/.env/OPENSHIFT_JBOSS_CLUSTER_PROXY_PORT
-  echo "export OPENSHIFT_JBOSS_CLUSTER_REMOTING='$IP:4447'" > $APP_HOME/.env/OPENSHIFT_JBOSS_CLUSTER_REMOTING
-  echo "export OPENSHIFT_JBOSS_REMOTING_PORT='4447'" > $APP_HOME/.env/OPENSHIFT_JBOSS_REMOTING_PORT
-  echo "export OPENSHIFT_JBOSS_MESSAGING_PORT='5445'" > $APP_HOME/.env/OPENSHIFT_JBOSS_MESSAGING_PORT
-  echo "export OPENSHIFT_JBOSS_MESSAGING_THROUGHPUT_PORT='5455'" > $APP_HOME/.env/OPENSHIFT_JBOSS_MESSAGING_THROUGHPUT_PORT
+  CART_NS=$(get_cartridge_namespace_from_path)
+
+  echo "export OPENSHIFT_${CART_NS}_CLUSTER_PORT='7600'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_CLUSTER_PORT
+  echo "export OPENSHIFT_${CART_NS}_CLUSTER='$IP[7600]'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_CLUSTER
+  echo "export OPENSHIFT_${CART_NS}_CLUSTER_PROXY_PORT='7600'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_CLUSTER_PROXY_PORT
+  echo "export OPENSHIFT_${CART_NS}_CLUSTER_REMOTING='$IP:4447'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_CLUSTER_REMOTING
+  echo "export OPENSHIFT_${CART_NS}_REMOTING_PORT='4447'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_REMOTING_PORT
+  echo "export OPENSHIFT_${CART_NS}_MESSAGING_PORT='5445'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_MESSAGING_PORT
+  echo "export OPENSHIFT_${CART_NS}_MESSAGING_THROUGHPUT_PORT='5455'" > $APP_HOME/.env/OPENSHIFT_${CART_NS}_MESSAGING_THROUGHPUT_PORT
 }
 
 while getopts 'd' OPTION
@@ -114,11 +118,9 @@ mkdir -p $M2_DIR
 JAVA_PREFS_DIR=`echo $APP_HOME/.java | tr -s /`
 mkdir -p $JAVA_PREFS_DIR
 
-# Redirect the configure script output for debugging
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
 mkdir -p ${APP_JBOSS_TMP_DIR}
-logfile=${APP_JBOSS_TMP_DIR}/${cartridge_type}-configure-$$.log
-exec > $logfile 2>&1
+
 
 #
 # Find an open localhost IP
@@ -129,7 +131,6 @@ IP=`find_open_ip $uid $uuid`
 # Create jboss base for application, every app gets its own jboss instance
 #
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 pushd "$JBOSS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
 mkdir -p ${jboss_version}/{bin,standalone/configuration}
@@ -181,8 +182,6 @@ if [ -f $concrete_configure ]; then
     $concrete_configure $JBOSS_CARTRIDGE_ROOT $APP_JBOSS
 fi
 
-create_app_ctl_script "$cartridge_type"
-
 populate_repo_dir
 
 # Copy the example WAR to the deployments directories
@@ -201,12 +200,13 @@ chown -R $user_id.$group_id $JAVA_PREFS_DIR
 #
 # Create environment variables
 #
-create_standard_env_vars
+create_standard_cart_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
+create_cart_network_env_vars $IP
 create_jboss_network_env_vars
 create_standard_repo_dir_env_var
-if [ -e $APP_HOME/$application/repo/.openshift/markers/java7 ];
+if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
 then
 	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 else

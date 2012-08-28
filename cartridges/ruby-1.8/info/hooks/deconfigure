@@ -46,8 +46,6 @@ else
 
     confirm_log_files_inactive "$RUBYCART_INSTANCE_DIR/logs"
 
-    rm_app_dir
-
     rm_cartridge_instance_dir "$cartridge_type"
     
     enable_cgroups

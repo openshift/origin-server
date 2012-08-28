@@ -109,6 +109,11 @@ sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 start_app
 
 #
+# Setup environment variables
+#
+echo "export OPENSHIFT_HAPROXY_LOG_DIR='$HAPROXY_DIR/logs/'" > $APP_HOME/.env/OPENSHIFT_HAPROXY_LOG_DIR
+
+#
 # Create virtualhost definition for apache
 #
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP

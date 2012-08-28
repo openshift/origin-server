@@ -35,8 +35,6 @@ disable_cgroups
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
 
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
-source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
 
 HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 

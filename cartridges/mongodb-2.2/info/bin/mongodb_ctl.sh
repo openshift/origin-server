@@ -21,16 +21,18 @@ unset LD_LIBRARY_PATH
 
 export STOPTIMEOUT=10
 
+cartridge_type="mongodb-2.2"
+
+MONGODB_DIR="$OPENSHIFT_HOMEDIR/$cartridge_type/"
+
 if whoami | grep -q root
 then
     echo 1>&2
     echo "Please don't run script as root, try:" 1>&2
-    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID $MONGODB_DIR/${OPENSHIFT_GEAR_NAME}_mongodb_ctl.sh" 1>&2
+    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${CART_INFO_DIR}/info/bin/mongodb_ctl.sh" 1>&2
     echo 2>&1
     exit 15
 fi
-
-MONGODB_DIR="$OPENSHIFT_HOMEDIR/mongodb-2.2/"
 
 function isrunning() {
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
@@ -79,7 +81,9 @@ function _start_mongod() {
 }
 
 function start() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.2" ] && set_app_state started
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state started
+    fi
 
     if ! isrunning
     then
@@ -92,7 +96,9 @@ function start() {
 }
 
 function stop() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.2" ] && set_app_state stopped
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state stopped
+    fi
 
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
     	pid=$( /bin/cat $MONGODB_DIR/pid/mongodb.pid )

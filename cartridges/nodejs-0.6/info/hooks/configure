@@ -42,7 +42,6 @@ fi
 # Create the core of the application
 #
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 NODEJS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$NODEJS_INSTANCE_DIR" > /dev/null
 create_standard_app_dirs
@@ -61,8 +60,6 @@ popd > /dev/null
 # Find an open localhost IP
 #
 IP=`find_open_ip $uid $uuid`
-
-create_app_ctl_script "$cartridge_type"
 
 populate_repo_dir
 
@@ -86,16 +83,14 @@ chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc  \
 #
 # Create environment variables
 #
-create_standard_env_vars
+create_standard_cart_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
+create_cart_network_env_vars $IP
 create_standard_repo_dir_env_var
 create_standard_path_env_var
 
 observe_setup_env_uservars_dir
-
-# And prepend to path variable so that Node app_ctl.sh script is called.
-sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
 if [ ! -d $git_url ]; then
     #

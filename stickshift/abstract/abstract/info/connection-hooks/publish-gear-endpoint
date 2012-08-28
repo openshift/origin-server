@@ -33,6 +33,8 @@ setup_basic_hook "$@"
 
 import_env_vars
 
+cartridge_type=$(get_cartridge_name_from_path)
+
 # Get gear ip address.
 if ! gip=$(facter ipaddress); then
    gip=$(python -c "import socket; print socket.gethostbyname('$(hostname)')")
@@ -41,4 +43,4 @@ fi
 #
 # Publish this gear's endpoint.
 # 
-echo "${OPENSHIFT_GEAR_UUID}@${gip}:${OPENSHIFT_GEAR_NAME};$OPENSHIFT_GEAR_DNS"
+echo "${OPENSHIFT_GEAR_UUID}@${gip}:${cartridge_type};$OPENSHIFT_GEAR_DNS"

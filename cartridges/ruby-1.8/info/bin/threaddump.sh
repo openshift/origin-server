@@ -6,6 +6,9 @@ do
     . $f
 done
 
+cartridge_type="ruby-1.8"
+cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_type
+
 if ! [ $# -eq 2 ]
 then
     echo "Usage: \$0 APP_ID UUID"
@@ -21,7 +24,7 @@ if [ "$PID" = "" ]; then
         _state=`cat "$_state_file"`
     fi
 
-    if [ -f ${OPENSHIFT_GEAR_DIR}run/stop_lock -o stopped = "$_state" ]; then
+    if [ -f ${cartridge_dir}/run/stop_lock -o stopped = "$_state" ]; then
         echo "Application is stopped.  You must start the application and access it by its URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
     else
         # idle = "$_state"

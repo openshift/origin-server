@@ -73,7 +73,7 @@ alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 $GIT_SSH UPSTREAM_SSH 'ctl_all stop'
 
 # Push content back to application
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/
+rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/runtime/repo
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh

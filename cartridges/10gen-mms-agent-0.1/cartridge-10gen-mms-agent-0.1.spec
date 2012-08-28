@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/10gen-mms-agent-0.1
 
 Name: cartridge-10gen-mms-agent-0.1
 Version: 1.15.2
@@ -37,6 +38,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %clean
@@ -48,6 +50,7 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
+%attr(0755,-,-) %{frameworkdir}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml

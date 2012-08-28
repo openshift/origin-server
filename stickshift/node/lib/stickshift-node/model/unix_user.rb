@@ -186,6 +186,10 @@ module StickShift
       path = File.join(basedir, ".httpd.d", "#{uuid}_*")
       FileUtils.rm_rf(Dir.glob(path))
 
+      cartdir = @config.get("CARTRIDGE_BASE_PATH")
+      out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
+      Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
+
       # There's a small race condition where tasks get restarted during teardown.
       # Kill again after the home directory is gone.
       kill_procs(uuid)
@@ -193,7 +197,7 @@ module StickShift
 
       out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
       raise UserDeletionException.new(
-            "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
+            "ERROR: unable to destroy user account(#{rc}): #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
 
@@ -265,8 +269,7 @@ module StickShift
     #
     # Examples
     #
-    #  add_env_var('OPENSHIFT_DB_TYPE',
-    #               'mysql-5.3')
+    #  add_env_var('mysql-5.3')
     #  # => 36
     #
     # Returns the Integer value for how many bytes got written or raises on
@@ -306,7 +309,7 @@ module StickShift
     #
     # Examples
     #
-    #   remove_env_var('OPENSHIFT_DB_TYPE')
+    #   remove_env_var('OPENSHIFT_MONGODB_DB_URL')
     #   # => nil
     #
     # Returns an nil on success and false on failure.
@@ -389,8 +392,8 @@ module StickShift
     #   # ~/.tmp/
     #   # ~/.sandbox/$uuid
     #   # ~/.env/
-    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
-    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, \
+    #   #   GEAR_DNS, GEAR_NAME, PATH, REPO_DIR, TMP_DIR, HISTFILE
     #   # ~/app-root
     #   # ~/app-root/data
     #   # ~/app-root/runtime/repo
@@ -450,7 +453,6 @@ module StickShift
       FileUtils.chown(@uuid, @uuid, profile, :verbose => @debug)
 
 
-      add_env_var("GEAR_DIR", geardir, true)
       add_env_var("GEAR_DNS",
                   "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)

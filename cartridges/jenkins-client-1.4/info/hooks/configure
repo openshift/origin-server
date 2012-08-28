@@ -53,9 +53,8 @@ echo "export OPENSHIFT_CI_TYPE='jenkins-1.4'" > $APP_HOME/.env/OPENSHIFT_CI_TYPE
 echo "export PATH=\$PATH:${CART_INFO_DIR}/bin/" > $APP_HOME/.env/PATH_JENKINS_CLIENT
 
 . $APP_HOME/.env/OPENSHIFT_HOMEDIR
-. $APP_HOME/.env/OPENSHIFT_GEAR_NAME
 . $APP_HOME/.env/OPENSHIFT_GEAR_UUID
-. $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
+. $APP_HOME/.env/OPENSHIFT_APP_NAME
 . $APP_HOME/.env/JENKINS_URL
 . $APP_HOME/.env/JENKINS_USERNAME
 . $APP_HOME/.env/JENKINS_PASSWORD
@@ -84,15 +83,19 @@ fi
 
 echo $JENKINS_PASSWORD > "$JENKINS_CLIENT_DIR/.password"
 
+
+framework_carts=($(get_installed_framework_carts))
+primary_framework_cart=${framework_carts[0]}
+
 # Maybe allow cartridges to create their own jenkins job
-if [ -f "${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/configuration/jenkins_job_template.xml" ]
+if [ -f "${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml" ]
 then
-    JOB_XML="${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/configuration/jenkins_job_template.xml"
+    JOB_XML="${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/configuration/jenkins_job_template.xml"
 else
     JOB_XML="$CART_INFO_DIR/configuration/jenkins_job_template.xml"
 fi
 
-JOB_NAME=${OPENSHIFT_GEAR_NAME}-build
+JOB_NAME=${OPENSHIFT_APP_NAME}-build
 
 if out=$(${CART_INFO_DIR}/bin/jenkins_create_job "${namespace}" "${CLOUD_DOMAIN}" "$JOB_XML" 2>&1)
 then
@@ -103,7 +106,7 @@ else
     then
         client_result ""
         client_result "Associated with job '${JOB_NAME}' in Jenkins server."
-        bldr_url="${JENKINS_DNS_NAME}computer/${OPENSHIFT_GEAR_NAME}bldr/"
+        bldr_url="${JENKINS_DNS_NAME}computer/${OPENSHIFT_APP_NAME}bldr/"
         status_code=`curl -s -w %{http_code} --output /dev/null --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@$bldr_url`
         if [ "$status_code" == "200" ]
         then
@@ -122,7 +125,7 @@ else
 fi
 client_result "Job URL: ${JENKINS_URL}job/${JOB_NAME}/"
 client_result ""
-client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_GEAR_NAME"
+client_result "Jenkins client 1.4 has been added to: $OPENSHIFT_APP_NAME"
 
 cart_props "job_url=${JENKINS_URL}job/${JOB_NAME}/"
 

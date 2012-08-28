@@ -31,12 +31,11 @@ then
   idle=true
 fi
 
+
+cartridge_type=$(get_cartridge_name_from_path)
+
 setup_basic_vars
-
-. $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
-cartridge_type=$OPENSHIFT_GEAR_TYPE
-
-CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info
+CART_INFO_DIR=$CARTRIDGE_BASE_PATH/${cartridge_type}/info
 
 observe_setup_app_home
 observe_setup_app_and_git_dirs

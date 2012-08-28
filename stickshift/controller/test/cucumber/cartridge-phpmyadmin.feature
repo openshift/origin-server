@@ -3,7 +3,7 @@
 Feature: phpMyAdmin Embedded Cartridge
 
   Scenario: Add Remove phpMyAdmin to one application
-    Given a new perl-5.10 type application
+    Given a new php-5.3 type application
     
     When I embed a mysql-5.1 cartridge into the application
     And I embed a phpmyadmin-3.4 cartridge into the application
@@ -11,7 +11,6 @@ Feature: phpMyAdmin Embedded Cartridge
     And 4 processes named httpd will be running
     And the embedded phpmyadmin-3.4 cartridge directory will exist
     And the embedded phpmyadmin-3.4 cartridge log files will exist
-    And the embedded phpmyadmin-3.4 cartridge control script will exist
 
     When I stop the phpmyadmin-3.4 cartridge
     Then 2 processes named httpd will be running
@@ -31,4 +30,3 @@ Feature: phpMyAdmin Embedded Cartridge
     And the embedded phpmyadmin-3.4 cartridge http proxy file will not exist
     And the embedded phpmyadmin-3.4 cartridge directory will not exist
     And the embedded phpmyadmin-3.4 cartridge log files will not exist
-    And the embedded phpmyadmin-3.4 cartridge control script will not exist

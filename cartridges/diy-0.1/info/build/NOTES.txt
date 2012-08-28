@@ -1,4 +1,4 @@
-raw 0.1
+diy 0.1
 
 BUILD: Using standard RHEL RPM
 (Installed and updated via yum)

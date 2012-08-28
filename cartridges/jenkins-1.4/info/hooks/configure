@@ -91,7 +91,6 @@ check_cartridge_dir_doesnt_exist
 # Setup the base of the application
 #
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
 JENKINS_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 pushd "$JENKINS_INSTANCE_DIR" > /dev/null
@@ -138,8 +137,6 @@ fi
 #
 IP=`find_open_ip $uid $uuid`
 
-create_app_ctl_script "$cartridge_type"
-
 populate_repo_dir
 
 secure_app_dir
@@ -153,9 +150,10 @@ observe_setup_cart_instance_dir
 #
 # Create environment variables
 #
-create_standard_env_vars
+create_standard_cart_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
+create_cart_network_env_vars $IP
 create_standard_repo_dir_env_var
 create_standard_path_env_var
 

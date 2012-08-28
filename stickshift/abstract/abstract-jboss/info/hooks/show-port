@@ -26,6 +26,9 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+CART_NS=$(get_cartridge_namespace_from_path)
+OPENSHIFT_JBOSS_CLUSTER_PORT=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CLUSTER_PORT")
+
 setup_configure "$1" $2 $3
 
 import_env_vars
@@ -49,14 +52,14 @@ cart_data "PROXY_PORT=$proxy_port"
 cart_data "HOST=$OPENSHIFT_INTERNAL_IP"
 cart_data "PORT=$OPENSHIFT_INTERNAL_PORT"
 
-cart_data "JBOSS_CLUSTER_PROXY_HOST=$OPENSHIFT_GEAR_DNS"
-cart_data "JBOSS_CLUSTER_PROXY_PORT=$cluster_port"
-cart_data "JBOSS_CLUSTER_HOST=$OPENSHIFT_INTERNAL_IP"
-cart_data "JBOSS_CLUSTER_PORT=$OPENSHIFT_JBOSS_CLUSTER__PORT"
+cart_data "${CART_NS}_CLUSTER_PROXY_HOST=$OPENSHIFT_GEAR_DNS"
+cart_data "${CART_NS}_CLUSTER_PROXY_PORT=$cluster_port"
+cart_data "${CART_NS}_CLUSTER_HOST=$OPENSHIFT_INTERNAL_IP"
+cart_data "${CART_NS}_CLUSTER_PORT=$OPENSHIFT_JBOSS_CLUSTER_PORT"
 
-cart_data "JBOSS_MESSAGING_PORT=$messaging_port"
-cart_data "JBOSS_MESSAGING_THROUGHPUT_PORT=$messaging_throughput_port"
-cart_data "JBOSS_REMOTING_PORT=$remoting_port"
+cart_data "${CART_NS}_MESSAGING_PORT=$messaging_port"
+cart_data "${CART_NS}_MESSAGING_THROUGHPUT_PORT=$messaging_throughput_port"
+cart_data "${CART_NS}_REMOTING_PORT=$remoting_port"
 
 
 exit 0

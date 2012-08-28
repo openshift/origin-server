@@ -32,12 +32,11 @@ setup_embedded_configure "$1" $2 $3
 disable_cgroups
 
 PHPMYADMIN_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-PHPMYADMIN_CTL_SCRIPT="$PHPMYADMIN_DIR/${application}_phpmyadmin_ctl.sh"
 
-if [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_USERNAME" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_PASSWORD" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_HOST" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_DB_PORT" ] ||
+if [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST" ] ||
+   [ ! -f "$APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT" ] ||
    [ ! -d "$APP_HOME/mysql-5.1" ]
 then
     client_error ""
@@ -80,11 +79,6 @@ IP=`embedded_find_open_ip $uid $APP_HOME`
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 
 #
-# Create simple phpmyadmin start / stop script
-#
-ln -s $CART_INFO_DIR/bin/phpmyadmin_ctl.sh $PHPMYADMIN_CTL_SCRIPT
-
-#
 # Add config to show disabled pages instead of default apache Forbidden page
 #
 ln -s $CART_INFO_DIR/configuration/disabled_pages.conf $PHPMYADMIN_DIR/conf.d/disabled_pages.conf
@@ -99,18 +93,13 @@ chown root.root -R "$PHPMYADMIN_DIR/conf" "$PHPMYADMIN_DIR/conf.d"
 chown root.root "$PHPMYADMIN_DIR"
 observe_setup_var_lib_dir "$PHPMYADMIN_DIR"
 
-#
-# Create environment variables. This MUST be before starting phpmyadmin as the CTL script relies on these.
-#
-echo "export OPENSHIFT_PHPMYADMIN_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_IP
-echo "export OPENSHIFT_PHPMYADMIN_GEAR_DIR='$PHPMYADMIN_DIR/'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_GEAR_DIR
-echo "export OPENSHIFT_PHPMYADMIN_CTL_SCRIPT='$PHPMYADMIN_CTL_SCRIPT'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_CTL_SCRIPT
-
+create_standard_cart_env_vars
+create_cart_network_env_vars $IP
 
 #
 # Start the server
 #
-run_as_user "$PHPMYADMIN_CTL_SCRIPT start" || error "Failed to start ${application}" 121
+run_as_user "${CART_INFO_DIR}/bin/app_ctl.sh start" || error "Failed to start ${application}" 121
 
 
 #
@@ -122,22 +111,22 @@ restart_httpd_graceful
 
 
 # Grab the env vars so we can print them
-. $APP_HOME/.env/OPENSHIFT_DB_USERNAME
-. $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
 . $APP_HOME/.env/OPENSHIFT_GEAR_DNS
 
 
 client_result ""
 client_result "phpMyAdmin 3.4 added.  Please make note of these MySQL credentials again:"
 client_result ""
-client_result "   Root User: $OPENSHIFT_DB_USERNAME"
-client_result "   Root Password: $OPENSHIFT_DB_PASSWORD"
+client_result "   Root User: $OPENSHIFT_MYSQL_DB_USERNAME"
+client_result "   Root Password: $OPENSHIFT_MYSQL_DB_PASSWORD"
 client_result ""
 client_result "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 
 cart_props "connection_url=https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
-cart_props "username=$OPENSHIFT_DB_USERNAME"
-cart_props "password=$OPENSHIFT_DB_PASSWORD"
+cart_props "username=$OPENSHIFT_MYSQL_DB_USERNAME"
+cart_props "password=$OPENSHIFT_MYSQL_DB_PASSWORD"
 
 set_app_info "URL: https://$OPENSHIFT_GEAR_DNS/phpmyadmin/"
 enable_cgroups

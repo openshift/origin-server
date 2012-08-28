@@ -9,14 +9,14 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info/configuration"
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbosseap-6.0/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
-if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
+if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
-	OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.stg.xml"
-elif `echo $OPENSHIFT_GEAR_DNS | grep -qe "\.rhcloud\.com"`
+  OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.stg.xml"
+elif `echo $OPENSHIFT_GEAR_DNS | grep -q .rhcloud.com`
 then
-	OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
+  OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
 fi
 
 resource_limits_file=`readlink -f /etc/stickshift/resource_limits.conf`
@@ -101,10 +101,10 @@ then
     then
         echo "Found pom.xml... attempting to build with 'mvn -e clean package -Popenshift -DskipTests'"
         if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
-		then
-			export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-		else
-        	export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+    then
+      export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+    else
+          export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
         fi
         export M2_HOME=/etc/alternatives/maven-3.0
         export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"

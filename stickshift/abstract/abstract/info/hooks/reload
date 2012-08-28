@@ -29,10 +29,11 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+cartridge_type=$(get_cartridge_name_from_path)
+
 setup_basic_hook "$1" $2 $3
 
 #
-# Start application
+# Reload application
 #
-run_as_user "$APP_DIR/${application}_ctl.sh reload"
-
+run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh reload" 

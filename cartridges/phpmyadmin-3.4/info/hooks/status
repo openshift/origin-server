@@ -32,8 +32,6 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 setup_basic_hook "$1" $2 $3
 
 PHPMYADMIN_DIR=`echo $APP_HOME/phpmyadmin-3.4 | tr -s /` # ensure that there aren't double /'s
-PHPMYADMIN_CTL_SCRIPT="$PHPMYADMIN_DIR/${application}_phpmyadmin_ctl.sh"
-
 
 #
 # Start application

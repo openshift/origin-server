@@ -28,13 +28,11 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+cartridge_type=$(get_cartridge_name_from_path)
+
 setup_basic_hook "$1" $2 $3
 
 check_app_dir_exists
-
-. $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
-
-CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info
 
 #
 # Tidy up
@@ -45,7 +43,7 @@ run_as_user "${CARTRIDGE_BASE_PATH}/abstract/info/bin/tidy.sh $application $name
 
 if [ -f $CART_INFO_DIR/bin/tidy.sh ]
 then
-  run_as_user "$CART_INFO_DIR/bin/tidy.sh $application $namespace $uuid"
+  run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/tidy.sh $application $namespace $uuid"
 fi
 start_app
 client_message "Starting app..."

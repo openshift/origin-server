@@ -41,12 +41,10 @@ else
 
     stop_app
 
-    RUBYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
-    confirm_pid_gone "${RUBYCART_INSTANCE_DIR}/run/httpd.pid"
+    cart_instance_dir=$(get_cartridge_instance_dir "$cartridge_type")
+    confirm_pid_gone "${cart_instance_dir}/run/httpd.pid"
 
-    confirm_log_files_inactive "$RUBYCART_INSTANCE_DIR/logs"
-
-    rm_app_dir
+    confirm_log_files_inactive "$cart_instance_dir/logs"
 
     rm_cartridge_instance_dir "$cartridge_type"
 

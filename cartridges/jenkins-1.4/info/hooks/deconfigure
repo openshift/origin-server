@@ -45,13 +45,11 @@ else
 
     destroy_git_repo $application $uuid
 
-    jenkins_pid=`pgrep -U $uid -f ".*java.*-jar.*jenkins.war.*--httpListenAddress=${OPENSHIFT_INTERNAL_IP}.*" 2> /dev/null`
+    jenkins_pid=`pgrep -U $uid -f ".*java.*-jar.*jenkins.war.*--httpListenAddress=${OPENSHIFT_JENKINS_IP}.*" 2> /dev/null`
 
     stop_app
 
     force_kill $jenkins_pid
-
-    rm_app_dir
 
     rm_cartridge_instance_dir "$cartridge_type"
 

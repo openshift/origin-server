@@ -4,7 +4,6 @@
 
 # Exit on any errors
 set -e
-#set -x
 
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -54,9 +53,6 @@ uuid=$4
 setup_basic_vars
 
 . $APP_HOME/.env/OPENSHIFT_HOMEDIR
-. $APP_HOME/.env/OPENSHIFT_GEAR_TYPE
-
-CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$OPENSHIFT_GEAR_TYPE/info
 
 mv_symlink $old_namespace $new_namespace $application
 

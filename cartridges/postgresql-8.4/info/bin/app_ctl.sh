@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
+export cartridge_type="postgresql-8.4"
+
 source /etc/stickshift/stickshift-node.conf
-CART_NAME="postgresql"
-CART_VERSION="8.4"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -19,13 +19,23 @@ fi
 
 validate_run_as_user
 
-. app_ctl_pre.sh
-
-postgresql_ctl="$OPENSHIFT_HOMEDIR/$CART_NAME-$CART_VERSION/${OPENSHIFT_GEAR_NAME}_postgresql_ctl.sh"
+cmd=""
 
 case "$1" in
-    start)                    "$postgresql_ctl" start    ;;
-    restart|reload|graceful)  "$postgresql_ctl" restart  ;;
-    stop|graceful-stop)       "$postgresql_ctl" stop     ;;
-    status)                   "$postgresql_ctl" status   ;;
+    start)                    cmd="start"    ;;
+    restart|reload|graceful)  cmd="restart"  ;;
+    stop|graceful-stop)       cmd="stop"     ;;
+    status)                   cmd="status"   ;;
 esac
+
+if [ "${cmd}" == "" ]; then
+    exit 0
+fi
+
+if [ -f $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_POSTGRESQL_DB_GEAR_UUID ]; then
+    posttgresql_ctl="ssh $OPENSHIFT_POSTGRESQL_DB_GEAR_UUID@$OPENSHIFT_POSTGRESQL_DB_GEAR_DNS rhcsh ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/postgresql_ctl.sh $cmd"
+else
+    postgresql_ctl="$CARTRIDGE_BASE_PATH/$cartridge_type/info/bin/postgresql_ctl.sh $cmd"
+fi
+
+$postgresql_ctl

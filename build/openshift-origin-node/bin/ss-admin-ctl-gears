@@ -3,6 +3,8 @@ lockfile=/var/lock/subsys/stickshift-gears
 numparallel=5
 timeout=90
 
+source /usr/libexec/stickshift/cartridges/abstract/info/lib/util
+
 # colors, use like: echo "${RED}FAILED!!!${NORM}"
 RED=$(echo -e "\033[31m")
 GREEN=$(echo -e "\033[32m")
@@ -46,36 +48,6 @@ function homedir() {
     grep "^$1:" /etc/passwd | cut -d: -f 6
 }
 
-function gearcarts() {
-    # GEARNAME=$1
-    (
-        for env_var in `homedir $1`/.env/*_CTL_SCRIPT
-        do
-            source $env_var
-        done
-        for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a ~ /DB_CTL_SCRIPT$/) print ENVIRON[a] }'`
-        do
-            echo "$cmd"
-        done
-        for cmd in `awk 'BEGIN { for (a in ENVIRON) if ((a ~ /_CTL_SCRIPT$/) && !(a ~ /DB_CTL_SCRIPT$/) && (a != "OPENSHIFT_GEAR_CTL_SCRIPT")) print ENVIRON[a] }'`
-        do
-            echo "$cmd"
-        done
-        for cmd in `awk 'BEGIN { for (a in ENVIRON) if (a == "OPENSHIFT_GEAR_CTL_SCRIPT") print ENVIRON[a] }'`
-        do
-            echo "$cmd"
-        done
-    )
-}
-
-function apptype() {
-    # USERNAME=$1
-    # APPNAME=$2
-    _HOMEDIR=`homedir $1`
-    _APP_TYPE=`cat $_HOMEDIR/git/${2}.git/description | cut -d' ' -f 1`
-    echo $_APP_TYPE
-}
-
 RETVAL=0
 GROUP_RETVAL=0
 
@@ -109,10 +81,13 @@ startgear() {
     local OUTFILE=$(mktemp /var/run/stickshift/stickshift_init-startgear-$1.XXXXXXXX)
     trap "return_terminate $1 $OUTFILE" USR1
     echo "Starting $1..." >> $OUTFILE 2>&1
-    ( for GEARNAME in `gearcarts $1`
-      do
-          startcart $1 $GEARNAME >> $OUTFILE 2>&1
-      done ) &
+    (
+        APP_HOME=$(homedir $1)
+        for CART in $(get_start_order)
+        do
+          startcart $1 $CART >> $OUTFILE 2>&1
+        done
+    ) &
     wait
     return_output $OUTFILE
 }
@@ -122,25 +97,30 @@ stopgear() {
     local OUTFILE=$(mktemp /var/run/stickshift/stickshift_init-stopgear-$1.XXXXXXXX)
     trap "return_terminate $1 $OUTFILE" USR1
     echo "Stopping $1..." >> $OUTFILE 2>&1
-    ( for GEARNAME in `gearcarts $1 | tac`
-      do
-          stopcart $1 $GEARNAME >> $OUTFILE 2>&1
-      done ) &
+    (
+        APP_HOME=$(homedir $1)
+        for CART in $(get_stop_order)
+        do
+          stopcart $1 $CART >>$OUTFILE 2>&1
+        done
+    ) &
     wait
     return_output $OUTFILE
 }
 
 startcart() {
     # GEARNAME=$1
-    # CARTSCRIPT=$2
+    # CART=$2
     uid=$(id -u "$1")
-    source /var/lib/stickshift/$1/.env/OPENSHIFT_RUN_DIR
-    if [ -f "${OPENSHIFT_RUN_DIR}/stop_lock" ]
+
+    locks=$(ls $(homedir $1)/*/run/stop_lock 2>/dev/null |grep -ve 'app-root|git' |wc -l)
+    if [ "$locks" -gt 0 ]
     then
         echo "$1 is locked"
     else
-        print_column -n 59 "    $(basename $2)"
-        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $2 start)
+        print_column -n 59 "    $2"
+        script_name=/usr/libexec/stickshift/cartridges/$2/info/bin/app_ctl.sh
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t stickshift_t $script_name start)
         RETVAL=$?
         if [ $RETVAL -eq 0 ]
         then
@@ -154,15 +134,15 @@ startcart() {
         fi
         echo
     fi
-    unset OPENSHIFT_RUN_DIR
 }
 
 stopcart() {
     # GEARNAME=$1
-    # CARTSCRIPT=$2
+    # CART=$2
     uid=$(id -u "$1")
-    print_column -n 59 "    $(basename $2)"
-    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $2 stop)
+    print_column -n 59 "    $2"
+    script_name=/usr/libexec/stickshift/cartridges/$2/info/bin/app_ctl.sh
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $script_name stop)
     RETVAL=$?
     if [ $RETVAL -eq 0 ]
     then
@@ -235,22 +215,27 @@ case "$1" in
 
     # check for $1 (user) and $2 (appname)
     # This won't scale forever, but works fine in the '100 or so' range
-    for ctl_script in `/bin/find /var/lib/stickshift/ -maxdepth 3 -mindepth 3 -type f -name "*_ctl.sh"`
+    for gear in $(grep ':StickShift guest:' /etc/passwd | cut -d: -f6)
     do
-        script_name=$(basename $ctl_script)
-        run_as=$( echo $ctl_script | awk -F/ '{print $5}')
-        echo -n "    Checking http for ${script_name%_ctl.sh}"
-        uid=$(id -u "$run_as")
-        daemon --user=$run_as --pidfile=httpd_${script_name} runcon -t stickshift_t $ctl_script status
-        RETVAL=$?
-        echo
-        if [ $RETVAL -eq 0 ]
-        then
-            echo_success
-        else
-            GROUP_RETVAL=$(($GROUP_RETVAL+1))
-            echo_failure
-        fi
+        for cartridge in $(ls -d $gear/* |grep -v 'app-root|git')
+        do
+            cartridge=$(basename $cartridge)
+            script_name=/usr/libexec/stickshift/cartridges/$cartridge/info/bin/app_ctl.sh
+            runas=$(basename $gear)
+            uid=$(id -u "$run_as")
+            source_if_exists $gear/.env/SS_APP_NAME
+            echo -n "    Checking http for ${SS_APP_NAME:-${runas}}"
+            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t stickshift_t $script_name status
+            RETVAL=$?
+            echo
+            if [ $RETVAL -eq 0 ]
+            then
+                echo_success
+            else
+                GROUP_RETVAL=$(($GROUP_RETVAL+1))
+                echo_failure
+            fi
+        done
     done
     echo
     ;;

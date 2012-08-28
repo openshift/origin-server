@@ -21,7 +21,7 @@ class Haproxy_attr
 end
 
 class HaproxyUtils
-    @@log = Logger.new("#{ENV['OPENSHIFT_LOG_DIR']}/validate_config.log")
+    @@log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
     def self.parse_gear_registry_info(ginfo)
         gbits = ginfo.split(";")
         uuid = gbits[0].split("@")[0]
@@ -75,7 +75,8 @@ class HaproxyUtils
 
         if repaired
             @@log.info("GEAR_INFO - validate: Configuration was modified, reloading haproxy")
-            exec "#{ENV['OPENSHIFT_GEAR_CTL_SCRIPT']} reload"
+            ENV["CARTRIDGE_TYPE"] = "haproxy-1.4"
+            exec "app_ctl.sh reload"
         end
     end
 end
@@ -114,7 +115,7 @@ class Haproxy
         @gear_remove_pct = 49.9
         @gear_up_pct = 90.0
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
-        @log = Logger.new("#{ENV['OPENSHIFT_LOG_DIR']}/scale_events.log")
+        @log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/scale_events.log")
 
         @status={}
 
