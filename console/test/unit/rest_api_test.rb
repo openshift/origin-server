@@ -783,10 +783,10 @@ class RestApiTest < ActiveSupport::TestCase
       ].to_json
     end
     app = Application.new :name => 'testapp1', :domain => Domain.new(:id => '1', :as => @user)
-    assert 1, (gears = app.gears).length
-    assert 'abc', (gear = gears[0]).uuid
-    assert 1, gear.components.length
-    assert 'ruby-1.8', gear.components[0].name
+    assert_equal 1, (gears = app.gears).length
+    assert_equal 'abc', (gear = gears[0]).uuid
+    assert_equal 1, gear.components.length
+    assert_equal 'ruby-1.8', gear.components[0].name
   end
 
   def test_domain_id_tracks_changes
@@ -821,14 +821,13 @@ class RestApiTest < ActiveSupport::TestCase
     type = CartridgeType.new :name => 'haproxy-1.4', :display_name => 'Test - haproxy', :website => 'test'
 
     # custom attributes
-    assert 'Test - haproxy', type.display_name
-    assert 'haproxy-1.4', type.name
-    assert type.name, type.id
-    assert 'test', type.website
+    assert_equal 'Test - haproxy', type.display_name
+    assert_equal 'haproxy-1.4', type.name
+    assert_equal 'test', type.website
 
     # default values
-    assert [:embedded], type.type
-    assert '1.4', type.version
+    assert_equal :embedded, type.type
+    assert_equal '1.4', type.version
   end
 
   def test_cartridge_type_find
@@ -840,14 +839,13 @@ class RestApiTest < ActiveSupport::TestCase
     type = CartridgeType.find 'haproxy-1.4'
 
     # custom attributes
-    assert 'Test - haproxy', type.display_name
-    assert 'haproxy-1.4', type.name
-    assert type.name, type.id
-    assert 'test', type.website
+    assert_equal 'High Availability Proxy', type.display_name
+    assert_equal 'haproxy-1.4', type.name
+    assert_nil type.website
 
     # default values
-    assert [:embedded], type.type
-    assert '1.4', type.version
+    assert_equal :embedded, type.type
+    assert_equal '1.4', type.version
   end
 
   class CacheableRestApi < RestApi::Base

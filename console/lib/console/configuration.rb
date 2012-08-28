@@ -46,12 +46,12 @@ module Console
 
     def api=(config=nil)
       config = case config
-        when nil:
+        when nil
           symbol = :local
           config = Builtin[:local]
-        when :none:
+        when :none
           return false
-        when :external:
+        when :external
           begin
             symbol = :external
             path = File.expand_path('~/.openshift/api.yml')
@@ -70,7 +70,7 @@ password: my_password
   #{e.message}
             EXCEPTION
           end
-        when Symbol:
+        when Symbol
           symbol = config
           Builtin[config] || config
         else
