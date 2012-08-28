@@ -1,5 +1,5 @@
 class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :build_info
   include LegacyBrokerHelper
 
   def initialize(app, url, nolinks=false)
@@ -18,6 +18,7 @@ class RestApplication < StickShift::Model
     self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
     self.ssh_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}"
     self.health_check_path = app.health_check_path
+    self.build_info = RestBuildInfo.new(app)
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"
 
