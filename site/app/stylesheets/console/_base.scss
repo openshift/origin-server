@@ -24,3 +24,35 @@ h1,h2,h3,h4,h5,h6 {
 		}
 a {color:#7EABB6;}
 a:hover,a:active {color:#b1e5f2;}
+
+%console-background {
+  background-image:
+    image-url('images/mts.png'),
+    -moz-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
+  background-image:
+    image-url('images/mts.png'),
+    -webkit-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
+  background-image:
+    image-url('images/mts.png'),
+    -ms-repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
+  background-image:
+    image-url('images/mts.png'),
+    repeating-linear-gradient(110deg, #1f1f1f 0px, #1e1e1e 10px, #1f1f1f 10px, #202020 20px);
+  background-repeat:   repeat-x, repeat;
+  background-position: 297px 101%, center bottom;
+}
+%console-background-ie9 {
+  background-image:    image-url('images/mts.png');
+  background-repeat:   repeat-x;
+  background-position: 297px 101%;
+}
+%navbar-background {
+	background: black image-url("images/stars.png") left top repeat-x;
+}
+%brand-image {
+  background: image-url('images/logo-24-inside.png') no-repeat left;
+  height: 32px;
+  width: 40px;
+  margin-top: -3px;
+  vertical-align: middle;
+}

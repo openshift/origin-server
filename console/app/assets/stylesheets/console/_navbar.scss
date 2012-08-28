@@ -1,7 +1,8 @@
 .navbar {
 	margin: 0;
-	background: black url("../images/stars.png") left top repeat-x;
+	background: black;
 	border-bottom: 2px solid #383838;
+  @extend %navbar-background !optional;
 }
 .navbar .navbar-inner {
 	min-height: 84px;
@@ -48,12 +49,8 @@
   white-space: nowrap;
 
   .brand-image {
-    display: inline-block;
-    background: url('../images/logo-24-inside.png') no-repeat left;
-    height: 32px;
-    width: 40px;
-    margin-top: -3px;
-    vertical-align: middle;
+    display: none;
+    @extend %brand-image !optional;
   }
 
   a {

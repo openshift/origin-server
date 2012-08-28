@@ -30,7 +30,7 @@
 #utility-nav .dropdown.open .dropdown-toggle {
   color: #CACBCC;
 	background-color: #444;
-  background:rgba(70, 70, 70, 0.75) url("../images/console/arrow-down.png") 95% 15px no-repeat;
+  background:rgba(70, 70, 70, 0.75) image-url("console/arrow-down.png") 95% 15px no-repeat;
   @include border-radius($radius: 3px 3px 0 0);
   
   &:hover, &:active {
@@ -39,7 +39,7 @@
 }
 #utility-nav .dropdown-toggle {
 	background-color: #444;
-  background:rgba(70, 70, 70, 0.25) url("../images/console/arrow-down.png") 95% 15px no-repeat;
+  background:rgba(70, 70, 70, 0.25) image-url("console/arrow-down.png") 95% 15px no-repeat;
   padding: 0 25px 0 10px;
   color: #CACBCC;
   white-space: nowrap;

@@ -48,6 +48,6 @@ RailsApp::Application.configure do
   config.active_support.deprecation = :notify
 
   Console.configure do |c|
-    c.api = :none
+    c.api = :external
   end
 end

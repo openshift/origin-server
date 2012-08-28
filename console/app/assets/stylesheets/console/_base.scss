@@ -15,23 +15,12 @@ Color palette
 161   0  12    a1000c     Dark Red
 
 */
-@import "console/base";
 
-@import "variables";
-@import "bootstrap/variables";
-@import "bootstrap/mixins";
-@import "mixins";
-
-
-@import "console/navbar";
-@import "console/help";
-@import "console/breadcrumbs";
-@import "console/ribbon";
-@import "console/buttons";
-@import "bootstrap/dropdowns";
-@import "console/dropdowns";
-@import "console/tile";
-@import "console/application";
-
-@import "console/core";
-
+body {
+		font-weight: normal;
+    }
+h1,h2,h3,h4,h5,h6 {
+		color: #fafbfc;
+		}
+a {color:#7EABB6;}
+a:hover,a:active {color:#b1e5f2;}

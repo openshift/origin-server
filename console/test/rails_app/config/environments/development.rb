@@ -6,12 +6,6 @@ RailsApp::Application.configure do
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
 
-  # Do not compress assets
-  config.assets.compress = false
-
-  # Expands the lines which load the assets
-  config.assets.debug = true
-
   config.reload_plugins = true
 
   # Log error messages when you accidentally call methods on nil.
@@ -29,6 +23,15 @@ RailsApp::Application.configure do
 
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
+
+  # Do not compress assets
+  config.assets.compress = false
+
+  # Expands the lines which load the assets
+  config.assets.debug = true
+
+  config.sass.style = :nested
+  config.sass.line_comments = true
 
   Console.configure do |config|
     config.api = :external
