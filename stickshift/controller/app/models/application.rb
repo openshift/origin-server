@@ -1283,6 +1283,46 @@ class Application
     
     [computed_start_order, computed_stop_order]
   end
+
+  def start(target_component=nil, stop_on_failure=true)
+    args = {'comp_inst_id' => comp_inst.id, 'group_instance_id' => group_inst.component_name}
+    op = PendingAppOps.new(op_type: :start_component, args: comp_inst.to_hash)
+    pending_ops.push(op)
+    run_jobs
+
+#    start_order, stop_order = self.calculate_component_orders
+#    self.start_order.each do |comp_inst|
+#      next if !target_component.nil? and (comp_inst.cartridge_name != target_component)
+#
+#      begin
+#        group_inst = comp_inst.group_instance
+#        #run_on_gears(group_inst.gears, reply) do |gear, r|
+#        #  r.append gear.start(comp_inst)
+#        #end
+#        #get_proxy.start(app, self, comp_inst.cartridge_name)
+#        
+#      rescue Exception => e
+#        gear_exception = e.message[:exception]
+#        self.stop(target_component, false, false) if stop_on_failure
+#        raise gear_exception
+#      end
+#    end
+  end
+  
+  def stop(force=false)
+  end
+  
+  def restart
+  end
+  
+  def reload
+  end
+  
+  def status
+  end
+  
+  def tidy
+  end
   
   # Gets a feature name for the cartridge/component combination
   #
@@ -1299,4 +1339,41 @@ class Application
     prof = cart.get_profile_for_component component_name
     (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
   end
+  
+  def track_usage(gear, event, usage_type=UsageRecord::USAGE_TYPES[:gear_usage])
+    if Rails.configuration.usage_tracking[:datastore_enabled]
+      now = Time.now.utc
+      uuid = StickShift::Model.gen_uuid
+      self.usage_records = [] unless usage_records
+      usage_record = UsageRecord.new(event, user, now, uuid, usage_type)
+      case usage_type
+      when UsageRecord::USAGE_TYPES[:gear_usage]
+        usage_record.gear_uuid = gear.uuid
+        usage_record.gear_size = gear.group_instance.gear_profile
+      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+        usage_record.gear_uuid = gear.uuid
+        usage_record.addtl_fs_gb = gear.group_instance.addtl_fs_gb
+      end
+      self.usage_records << usage_record
+  
+      self.class.notify_observers(:track_usage, {:gear_uuid => gear.uuid, :login => gear.app.user.login, :event => event, :time => now, :uuid => uuid, :usage_type => usage_type, :gear_size => gear.group_instance.gear_profile, :addtl_fs_gb => gear.group_instance.addtl_fs_gb})
+    end
+    if Rails.configuration.usage_tracking[:syslog_enabled]
+      usage_string = "User: #{user.login}  Event: #{event}"
+      case usage_type
+      when UsageRecord::USAGE_TYPES[:gear_usage]
+        usage_string += "   Gear: #{gear.uuid}   Gear Size: #{gear.group_instance.gear_profile}"
+      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+        usage_string += "   Gear: #{gear.uuid}   Addtl File System GB: #{gear.group_instance.addtl_fs_gb}"
+      end
+      begin
+        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
+      rescue Exception => e
+        # Can't fail because of a secondary logging error
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
+    end
+  end
+
 end

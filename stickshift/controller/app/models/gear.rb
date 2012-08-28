@@ -167,7 +167,7 @@ class Gear
     end    
     return @container
   end
-  
+
   def update_configuration(args)
     add_keys = args["add_keys_attrs"]
     remove_keys = args["remove_keys_attrs"]
@@ -184,9 +184,17 @@ class Gear
       remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
     }
   end
-  
-  # Convinience method to get the {Application}
+
+  # Convenience method to get the {Application}
   def app
     @app ||= group_instance.application
   end
+
+  def track_destroy_usage
+    self.app.track_usage(self, UsageRecord::EVENTS[:end])
+    if self.group_instance.addtl_fs_gb && self.group_instance.addtl_fs_gb > 0
+      self.app.track_usage(self, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb])
+    end
+  end
+
 end
