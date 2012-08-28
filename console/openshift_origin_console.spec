@@ -6,7 +6,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gemname}
-Version:        0.0.1
+Version:        0.0.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -72,6 +72,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Aug 28 2012 Clayton Coleman <ccoleman@redhat.com> 0.0.2-1
+- Ruby 1.9 removes #id on Object, to_key must be properly implemented.  Also
+  make the passthrough object show as unpersisted. (ccoleman@redhat.com)
+- Add gemfile flags for test-unit on 1.9 ruby (ccoleman@redhat.com)
+- Ruby 1.9 compat (ccoleman@redhat.com)
+- Ensure version can be run without bundler. (ccoleman@redhat.com)
+
 * Mon Aug 27 2012 Clayton Coleman <ccoleman@redhat.com> 0.0.1-1
 - new package built with tito
 
