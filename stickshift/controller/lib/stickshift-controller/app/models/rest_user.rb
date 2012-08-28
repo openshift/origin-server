@@ -1,10 +1,11 @@
 class RestUser < StickShift::Model
-  attr_accessor :login, :consumed_gears, :max_gears, :plan_id, :usage_account_id, :links
+  attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links
   
   def initialize(cloud_user, url, nolinks=false)
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
     self.max_gears = cloud_user.max_gears
+    self.capabilities = cloud_user.capabilities
     self.plan_id = cloud_user.plan_id
     self.usage_account_id = cloud_user.usage_account_id
     @links = {
