@@ -108,6 +108,7 @@ module RestApi
       string :version, :status
     end
     has_many :supported_api_versions, :class_name => 'string'
+    has_one :data, :class_name => 'rest_api/base/attribute_hash'
 
     def url
       self.class.site

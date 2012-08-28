@@ -19,7 +19,7 @@ module Console::Auth::Passthrough
     end
 
     def persisted?
-      true
+      false
     end
   end
 

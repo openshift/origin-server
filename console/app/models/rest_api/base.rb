@@ -336,13 +336,9 @@ module RestApi
             @update_id = @attributes[name] if @update_id.nil?
             @attributes[name] = val
           end
-          define_method :to_param do
-            @update_id || @attributes[name]
-          end
-        else
-          define_method :to_param do
-            @attributes[name]
-          end
+        end
+        define_method :to_key do
+          persisted? ? [@update_id || @attributes[name]] : nil
         end
       end
     end
@@ -473,12 +469,12 @@ module RestApi
       end
     end
 
-    class MessageHash < Hash
+    class AttributeHash < Hash
       def initialize(hash)
         hash.each_pair{ |k,v| self[k] = v }
       end
     end
-    has_many :messages, :class_name => 'rest_api/base/message_hash'
+    has_many :messages, :class_name => 'rest_api/base/attribute_hash'
 
     #FIXME may be refactored
     def remote_results
