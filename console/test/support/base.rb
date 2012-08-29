@@ -3,6 +3,10 @@ require 'mocha'
 require 'webmock/test_unit'
 WebMock.allow_net_connect!
 
+def inline_test(file)
+  require "#{Console::Engine.root}/#{Pathname.new(file).relative_path_from(Rails.application.root)}"
+end
+
 class ActiveSupport::TestCase
 
   def self.isolate(&block)
