@@ -38,6 +38,6 @@ class HelpLinkTest < ActionDispatch::IntegrationTest
     end
   end
 
-  urls_from_module(Console::HelpHelper).each_pair &method(:create_test)
-  urls_from_module(Console::CommunityHelper).each_pair &method(:create_test)
+  urls_from_module(Console::HelpHelper).each_pair{ |name,uri| self.create_test(name,uri) }
+  urls_from_module(Console::CommunityHelper).each_pair{ |name,uri| self.create_test(name,uri) }
 end
