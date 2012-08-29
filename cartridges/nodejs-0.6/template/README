@@ -60,6 +60,15 @@ deplist.txt
 A list of node modules to install, line by line on the server. This will happen
 when the user does a git push.
 
+development mode
+================
+
+If you want dynamic reloading of javascript files in "deployment" mode, you can either use
+the hot_deploy marker or add the following to package.json.
+"scripts": { "start" : "supervisor <relative-from-repo-dir-path-to>/server.js" }, 
+
+This will run Node with Supervisor ((https://npmjs.org/package/supervisor).
+
 
 Additional information
 ======================
