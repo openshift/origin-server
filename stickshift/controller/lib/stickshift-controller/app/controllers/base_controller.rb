@@ -21,6 +21,7 @@ class BaseController < ActionController::Base
     blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
     links = {
       "API" => Link.new("API entry point", "GET", URI::join(get_url, "api")),
+      "GET_ENVIRONMENT" => Link.new("Get environment information", "GET", URI::join(get_url, "environment")),
       "GET_USER" => Link.new("Get user information", "GET", URI::join(get_url, "user")),      
       "LIST_DOMAINS" => Link.new("List domains", "GET", URI::join(get_url, "domains")),
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
