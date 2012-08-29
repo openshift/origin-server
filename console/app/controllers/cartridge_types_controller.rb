@@ -11,7 +11,7 @@ class CartridgeTypesController < ConsoleController
     @blocked = []
 
     @installed, types = types.partition{ |t| installed_carts.any?{ |c| c.name == t.name } }
-    @blacklist, types = types.partition{ |t| t.categories.include?(:blacklist) }
+    @blacklist, types = types.partition{ |t| t.tags.include?(:blacklist) }
 
     @conflicts, types = types.partition{ |t| conflicts? t }
     @requires, types  = types.partition{ |t| requires? t }

@@ -17,7 +17,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :provides
   attr_accessor :cartridge
   attr_accessor :website, :license, :license_url
-  attr_accessor :categories, :learn_more_url
+  attr_accessor :learn_more_url
   attr_accessor :conflicts, :requires
   attr_accessor :help_topics
   attr_accessor :priority
@@ -44,6 +44,7 @@ class CartridgeType < RestApi::Base
     @display_name || name
   end
 
+  # Legacy, use #tags
   def categories
     @categories || []
   end
@@ -52,10 +53,11 @@ class CartridgeType < RestApi::Base
   end
 
   def tags
-    @tags ||= (super || []).map{ |t| t.to_sym}.concat(categories).compact
+    @tags ||= (super || [] rescue []).map{ |t| t.to_sym}.concat(categories).compact
   end
   def tags=(tags)
-    @tags = super
+    @tags = nil
+    @attributes[:tags] = tags
   end
 
   def conflicts
@@ -82,7 +84,7 @@ class CartridgeType < RestApi::Base
     return 0 if name == other.name
     c = priority - other.priority
     return c unless c == 0
-    c = self.class.category_compare(categories, other.categories)
+    c = self.class.tag_compare(tags, other.tags)
     return c unless c == 0
     display_name <=> other.display_name
   end
@@ -107,8 +109,8 @@ class CartridgeType < RestApi::Base
 
   cache_find_method :every
 
-  def self.category_compare(a,b)
-    [:web, :database].each do |t|
+  def self.tag_compare(a,b)
+    [:web_framework, :database].each do |t|
       if a.include? t
         return -1 unless b.include? t
       else

@@ -33,15 +33,15 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     log_types(types)
 
     assert type = types.find{ |t| t.name.starts_with?('phpmyadmin-') }
-    assert type.requires.find{ |r| r.starts_with?('mysql-') }, type.requires
+    assert type.requires.find{ |r| r.starts_with?('mysql-') }, type.requires.inspect
     assert type.tags.include? :administration
     assert_not_equal type.name, type.display_name
 
     assert (required = types.select{ |t| t.requires.present? }).length > 1
-    assert types.all?{ |t| t.categories.present? }
+    assert types.all?{ |t| t.tags.present? }
     assert types.all?{ |t| t.tags.present? }
     assert types.any?{ |t| t.description.html_safe? }
-    assert types.all?{ |t| t.tags & t.categories = t.categories }
+    assert types.all?{ |t| t.tags & t.tags = t.tags }
   end
 
   test 'should load standalone cartridge types' do
@@ -52,6 +52,12 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     log_types(types)
 
     assert types[0].name.starts_with?('jbosseap-')
+  end
+
+  test 'should load metadata from broker' do
+    assert type = CartridgeType.find('zend-5.6')
+    assert type.tags.include?(:web_framework), type.tags.inspect
+    assert_not_equal type.name, type.display_name
   end
 
   test 'should load application types' do
@@ -73,6 +79,6 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert template.git_project_url
     assert_equal type.id, template.name
     assert template.git_project_url
-    assert_same template.tags, template.categories
+    assert_same template.tags, template.tags
   end
 end
