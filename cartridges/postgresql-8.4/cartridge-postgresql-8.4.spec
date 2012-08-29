@@ -17,7 +17,8 @@ BuildArch: noarch
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
-Requires: postgresql
+Requires: postgresql >= 8.4
+Requires: postgresql < 9
 Requires: postgresql-server
 Requires: postgresql-libs
 Requires: postgresql-devel

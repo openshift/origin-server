@@ -7,7 +7,6 @@ License-Url: http://www.ruby-lang.org/en/about/license.txt
 Vendor: Ruby Lang
 Website: www.ruby-lang.org
 Categories:
-  - scales
   - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers

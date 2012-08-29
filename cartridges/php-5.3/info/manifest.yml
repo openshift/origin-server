@@ -62,7 +62,6 @@ Native-Requires:
   - "php-mysql"
   - "php-pgsql"
   - "php-pear"
-Architecture: noarch
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"

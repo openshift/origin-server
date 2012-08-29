@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Destroys PostgreSQL instance
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid"
+
+    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_deconfigure
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+
+[ $# -eq 3 ] || print_help
+
+cartridge_type="postgresql-8.4"
+source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
+
+setup_embedded_deconfigure "$1" $2 $3
+disable_cgroups
+
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
+source ${CART_INFO_DIR}/lib/util
+
+CART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+
+source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
+
+#
+# Teardown port proxy (ignore failures or missing hook)
+#
+( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
+
+# For non-embedded (dedicated) postgresql gear, destroy the git repo and stop app.
+APPLICATION_DIR=`readlink -fn "$APP_DIR"`
+if [ "$CART_INSTANCE_DIR" -ef "$APPLICATION_DIR" ]; then
+   $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
+
+   # Destroy git repo and stop app.
+   destroy_git_repo $application $uuid
+
+   enable_stale_detection
+
+   stop_app
+fi
+
+# Stop postgresql before we remove all the variables.
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_USERNAME"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_PASSWORD"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_HOST"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_PORT"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_CTL_SCRIPT"
+
+stop_db
+confirm_pid_gone "${CART_INSTANCE_DIR}/pid/postgres.pid"
+
+#
+# Remove environment variables
+#
+if [ "$OPENSHIFT_DB_TYPE" = "postgresql" ]; then
+   /bin/rm -f $APP_HOME/.env/OPENSHIFT_DB_USERNAME $APP_HOME/.env/OPENSHIFT_DB_PASSWORD $APP_HOME/.env/OPENSHIFT_DB_TYPE $APP_HOME/.env/OPENSHIFT_DB_HOST $APP_HOME/.env/OPENSHIFT_DB_PORT $APP_HOME/.env/OPENSHIFT_DB_SOCKET $APP_HOME/.env/OPENSHIFT_DB_URL $APP_HOME/.env/OPENSHIFT_DB_CTL_SCRIPT $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_DUMP $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_RESTORE $APP_HOME/.env/OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE
+fi
+
+# For non-embedded (dedicated) postgresql gear, destroy the gear.
+if [ "$CART_INSTANCE_DIR" -ef "$APPLICATION_DIR" ]; then
+    # Blow away the directories.
+    rm_app_dir
+
+    # Remove apache vhost configuration.
+    rm_httpd_proxy $uuid $namespace $application
+fi
+
+rm_cartridge_instance_dir "$cartridge_type"
+enable_cgroups

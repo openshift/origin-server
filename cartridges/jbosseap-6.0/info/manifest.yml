@@ -5,7 +5,6 @@ Version: 6.0.0
 License: ASL 2.0
 Vendor:  jboss.com
 Categories:
-  - cartridge
   - web_framework
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
 Help-Topics:
@@ -44,7 +43,6 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
 Provides:
   - "jbosseap"
   - "jbosseap(version) = 6.0.0"
@@ -52,18 +50,13 @@ Provides:
   - "jboss-eap6.0"
   - "jboss-eap6.0.0"
 Requires:
-Conflicts:
-Native-Requires:
-  - java-1.6.0
-  - maven3
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
+  - web_proxy
+Group-Overrides:
+  - - cart: jbosseap
+    - cart: web_proxy
 Profiles:
   standalone:
     Provides: jbosseap-standalone, jboss-eap6.0-standalone, jboss-eap6.0.0-standalone
-    Reservations:
-      - MEM >= 100MB
     Components:
       jbosseap-server:
         &jbosseap-server-component
@@ -93,11 +86,4 @@ Profiles:
             Type: "NET_TCP:jbosseap-cluster-info"
           set_jboss_remoting:
             Type: "NET_TCP:jbosseap-remoting-info"
-    Groups:
-      app-servers:
-        Components:
-          jbosseap-server: jbosseap-server
-        Scaling:
-          Min: 1
-          Max: -1
 Default-Profile: standalone
