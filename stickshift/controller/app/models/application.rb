@@ -414,6 +414,7 @@ class Application
     end
     #needs to be set and run after all the gears are in place
     ops.push(PendingAppOps.new(op_type: :set_connections, args: {"connections"=> connections}, flag_req_change: true))
+    ops.push(PendingAppOps.new(op_type: :execute_connections))
     
     owner = self.domain.owner
     begin
@@ -990,7 +991,7 @@ class Application
           end
           
           op.completed
-          self.reload
+          self.reload if op.op_type != :delete_app
         end
         return true
       ensure

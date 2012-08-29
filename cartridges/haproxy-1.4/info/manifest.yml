@@ -8,6 +8,7 @@ Vendor: http://haproxy.1wt.eu/
 Categories:
   - web_proxy
   - scales
+  - embedded  
 Website: http://haproxy.1wt.eu/
 Provides:
   - "haproxy"

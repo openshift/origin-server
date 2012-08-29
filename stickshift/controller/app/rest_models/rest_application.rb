@@ -1,14 +1,14 @@
 class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :scalable
   
   def initialize(app, url, nolinks=false)
-    self.embedded = []
+    self.embedded = {}
     app.requires(true).each do |feature|
       cart = CartridgeCache.find_cartridge(feature)
       if cart.categories.include? "web_framework"
-        self.framework = feature
+        self.framework = cart.name
       else
-        self.embedded << feature
+        self.embedded[cart.name] = {info: {}}
       end
     end
 
@@ -20,34 +20,24 @@ class RestApplication < StickShift::Model
     self.domain_id = app.domain.namespace
 
     #self.gear_profile = app.node_profile
-    #self.scalable = app.scalable
+    self.scalable = true
     #self.scale_min,self.scale_max = app.scaling_limits
 
     self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
     self.app_url = "http://#{app.fqdn}/"
     self.ssh_url = "ssh://#{app.ssh_uri}"
-
     #self.health_check_path = app.health_check_path
-    cart_type = "embedded"
-    cache_key = "cart_list_#{cart_type}"
-    
+  
     unless nolinks
-      carts = nil
-      #if app.scalable
-      #  carts = Application::SCALABLE_EMBEDDED_CARTS
-      #else
-        carts = CacheHelper.get_cached(cache_key, :expires_in => 21600.seconds) do
-          CartridgeCache.find_cartridge_by_category("embedded")
-        end
-      #end
+      carts = CartridgeCache.cartridge_names("embedded")
       # Update carts list
       # - remove already embedded carts
       # - remove conflicting carts
-      #app.embedded.keys.each do |cname|
-      #  carts -= [cname]
-      #  cinfo = CartridgeCache.find_cartridge(cname)
-      #  carts -= cinfo.conflicts_feature if defined?(cinfo.conflicts_feature)
-      #end if !app.embedded.empty?
+      self.embedded.keys.each do |cname|
+        carts -= [cname]
+        cinfo = CartridgeCache.find_cartridge(cname)
+        carts -= cinfo.conflicts if defined?(cinfo.conflicts)
+      end
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),

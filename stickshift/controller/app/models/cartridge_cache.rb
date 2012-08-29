@@ -18,12 +18,12 @@ class CartridgeCache
       CacheHelper.get_cached("cart_names_all", :expires_in => 1.day) { cartridges.map{ |cart| cart.name } }
     else
       cart_type = "web_framework" if cart_type == "standalone"
-      find_cartridge_by_category(cart_type).map{ |cart| cart.name } }
+      find_cartridge_by_category(cart_type).map{ |cart| cart.name }
     end
   end
   
   def self.find_cartridge_by_category(cat)
-    get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
+    CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
   end
 
   # Returns the first cartridge that provides the specified feature.

@@ -22,7 +22,10 @@ class LegacyBrokerController < BaseController
   def user_info_post
     unless @cloud_user.nil?
       user_info = {}
+      user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
       user_info["rhlogin"] = @cloud_user.login
+      user_info["uuid"] = @cloud_user._id.to_s      
+      user_info["namespace"] = @cloud_user.domains.first.namespace
 
       #FIXME: This is redundant, for now keeping it for backward compatibility
       if @cloud_user.ssh_keys.length > 0
@@ -34,11 +37,18 @@ class LegacyBrokerController < BaseController
         user_info["ssh_type"] = ""
       end
       
-      user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
+      user_info["ssh_keys"] = {}
+      @cloud_user.ssh_keys.each do |key|
+        user_info["ssh_keys"][key.name] = {type: key.type, key: key.content}
+      end
+      
+      user_info["max_gears"] = @cloud_user.max_gears
+      user_info["consumed_gears"] = @cloud_user.consumed_gears
+      user_info["capabilities"] = @cloud_user.capabilities
+      
       # this is to support old version of client tools
       app_info = {}
-        
-      user_info["domains"] = @cloud_user.domains.map { |domain|
+      user_info["domains"] = @cloud_user.domains.map do |domain|
         d_hash = {}
         d_hash["namespace"] = domain.namespace
 
@@ -61,7 +71,7 @@ class LegacyBrokerController < BaseController
           end
         end
         d_hash
-      }
+      end
       
       log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_USER_INFO")
       @reply.data = {:user_info => user_info, :app_info => app_info}.to_json

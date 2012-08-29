@@ -1,6 +1,6 @@
 class RestCartridge11 < StickShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, :suggests, :requires, :conflicts, :provides,
-  :help_topics, :links, :properties, :display_name, :description
+    :help_topics, :links, :properties, :display_name, :description
   
   def initialize(type, cart, app, cinst, url, nolinks=false)
     self.name = cart.name
@@ -17,6 +17,9 @@ class RestCartridge11 < StickShift::Model
     self.suggests = cart.suggests
     self.requires = cart.requires
     self.conflicts = cart.conflicts
+    self.type = "standalone"
+    self.type = "embedded" if cart.categories.include? "embedded"
+    
     if app.nil?
       self.provides = cart.features
     else
