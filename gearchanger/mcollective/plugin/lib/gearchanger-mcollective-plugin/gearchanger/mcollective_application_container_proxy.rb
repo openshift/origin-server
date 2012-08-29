@@ -284,25 +284,25 @@ module GearChanger
         result_io = ResultIO.new
         cart_data = nil
                   
-        #if framework_carts.include? cart
+        if framework_carts.include? cart
           result_io = run_cartridge_command(cart, app, gear, "configure", template_git_url)
-        #elsif embedded_carts.include? cart
-        #  result_io, cart_data = add_component(app,gear,cart)
-        #else
+        elsif embedded_carts.include? cart
+          result_io, cart_data = add_component(app,gear,cart)
+        else
           #no-op
-        #end
+        end
         
         return result_io#, cart_data
       end
       
       def deconfigure_cartridge(app, gear, cart)
-        #if framework_carts.include? cart
+        if framework_carts.include? cart
           run_cartridge_command(cart, app, gear, "deconfigure")
-        #elsif embedded_carts.include? cart
-        #  remove_component(app,gear,cart)
-        #else
-        #  ResultIO.new
-        #end        
+        elsif embedded_carts.include? cart
+          remove_component(app,gear,cart)
+        else
+          ResultIO.new
+        end        
       end
       
       def get_public_hostname
@@ -452,19 +452,19 @@ module GearChanger
       end
 
       def add_alias(app, gear, cart, server_alias)
-        #if framework_carts.include?(cart)
+        if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "add-alias", server_alias)
-        #else
-        #  ResultIO.new
-        #end
+        else
+          ResultIO.new
+        end
       end
       
       def remove_alias(app, gear, cart, server_alias)
-        #if framework_carts.include?(cart)        
+        if framework_carts.include?(cart)        
           run_cartridge_command(cart, app, gear, "remove-alias", server_alias)
-        #else
-        #  ResultIO.new
-        #end
+        else
+          ResultIO.new
+        end
       end
       
       def update_namespace(app, gear, cart, new_ns, old_ns)
@@ -1075,7 +1075,7 @@ module GearChanger
       end
       
       def framework_carts
-        @framework_carts ||= CartridgeCache.cartridge_names('standalone')
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework')
       end
       
       def embedded_carts

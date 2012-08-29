@@ -8,10 +8,7 @@ class RestDomain < StickShift::Model
     unless nolinks      
       valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.owner)
       blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
-
-      carts = CacheHelper.get_cached("cart_list_standalone", :expires_in => 21600.seconds) do
-        CartridgeCache.find_cartridge_by_category("web_framework").map{|c| c.name}
-      end
+      carts = CartridgeCache.cartridge_names("web_framework")
 
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),

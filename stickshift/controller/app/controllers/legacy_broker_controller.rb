@@ -218,9 +218,7 @@ class LegacyBrokerController < BaseController
     
     cart_type = "web_framework" if cart_type == "standalone"
     cache_key = "cart_list_#{cart_type}"                                                                                                                                         
-    carts = CacheHelper.get_cached(cache_key, :expires_in => 21600.seconds) {
-      CartridgeCache.find_cartridge_by_category(cart_type).map{|c| c.name}
-    }
+    carts = CartridgeCache.cartridge_names(cart_type)
     log_action('nil', 'nil', 'nil', "LEGACY_CART_LIST")
     @reply.data = { :carts => carts }.to_json
     render :json => @reply
@@ -367,7 +365,7 @@ class LegacyBrokerController < BaseController
   # Raise an exception if cartridge type isn't supported
   def check_cartridge_type(framework, cart_type)
     cart_type = "web_framework" if cart_type == "standalone"
-    carts = CartridgeCache.find_cartridge_by_category(cart_type).map{ |c| c.name }
+    carts = CartridgeCache.cartridge_names(cart_type)
     unless carts.include?(framework)
       if cart_type == 'web_framework'
         raise StickShift::UserException.new(110), "Invalid application type (-t|--type) specified: '#{framework}'.  Valid application types are (#{carts.join(', ')})."
