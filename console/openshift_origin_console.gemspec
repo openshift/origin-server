@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email = ['ccoleman@redhat.com', 'ffranz@redhat.com','dmcphers@redhat.com', 'mhicks@redhat.com', 'edirsh@redhat.com', 'fotios@redhat.com', 'johnp@redhat.com']
   s.homepage = 'https://github.com/openshift/crankcase/tree/master/console'
 
-  s.files = Dir['Gemfile', 'LICENSE.md', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*']
+  s.files = Dir['Gemfile', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*']
   s.test_files = Dir['test/**/*']
 
   s.add_dependency 'rails', '~> 3.0.13'
