@@ -19,35 +19,35 @@ class RestApplication < StickShift::Model
     self.gear_count = app.num_gears
     self.domain_id = app.domain.namespace
 
-    self.gear_profile = app.node_profile
-    self.scalable = app.scalable
-    self.scale_min,self.scale_max = app.scaling_limits
+    #self.gear_profile = app.node_profile
+    #self.scalable = app.scalable
+    #self.scale_min,self.scale_max = app.scaling_limits
 
     self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
     self.app_url = "http://#{app.fqdn}/"
     self.ssh_url = "ssh://#{app.ssh_uri}"
 
-    self.health_check_path = app.health_check_path
+    #self.health_check_path = app.health_check_path
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"
     
     unless nolinks
       carts = nil
-      if app.scalable
-        carts = Application::SCALABLE_EMBEDDED_CARTS
-      else
-        carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-          Application.get_available_cartridges("embedded")
+      #if app.scalable
+      #  carts = Application::SCALABLE_EMBEDDED_CARTS
+      #else
+        carts = CacheHelper.get_cached(cache_key, :expires_in => 21600.seconds) do
+          CartridgeCache.find_cartridge_by_category("embedded")
         end
-      end
+      #end
       # Update carts list
       # - remove already embedded carts
       # - remove conflicting carts
-      app.embedded.keys.each do |cname|
-        carts -= [cname]
-        cinfo = CartridgeCache.find_cartridge(cname)
-        carts -= cinfo.conflicts_feature if defined?(cinfo.conflicts_feature)
-      end if !app.embedded.empty?
+      #app.embedded.keys.each do |cname|
+      #  carts -= [cname]
+      #  cinfo = CartridgeCache.find_cartridge(cname)
+      #  carts -= cinfo.conflicts_feature if defined?(cinfo.conflicts_feature)
+      #end if !app.embedded.empty?
 
       self.links = {
         "GET" => Link.new("Get application", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),

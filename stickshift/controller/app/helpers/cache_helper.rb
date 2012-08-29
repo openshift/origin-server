@@ -1,4 +1,4 @@
-module LegacyBrokerHelper
+module CacheHelper
   # Helper method to maintain cached informtaion
   # 
   # == Parameters:

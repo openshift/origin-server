@@ -1,0 +1,1 @@
+class StickShift::GearLimitReachedException < StickShift::SSException; end
