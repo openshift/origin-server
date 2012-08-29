@@ -140,7 +140,7 @@ class BaseApi_V1 < BaseObj_V1
   def initialize
     self.links = {
          "API" => Link_V1.new("GET", "api"),
-         "GET_USER" => Link_V1.new("GET", "user"),
+         "GET_ENVIRONMENT" => Link_V1.new("GET", "environment"),
          "GET_USER" => Link_V1.new("GET", "user"),
          "LIST_DOMAINS" => Link_V1.new("GET", "domains"),
          "ADD_DOMAIN" => Link_V1.new("POST", "domains", [
