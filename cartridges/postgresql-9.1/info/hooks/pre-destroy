@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Publishes the postgresql database connection information.
+
+# Exit on any errors
+set -e
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid"
+    echo "Publish postgresql database connection information"
+
+    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_publish_conn_info
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+
+[ $# -eq 3 ] || print_help
+
+source /etc/stickshift/stickshift-node.conf
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+app_remove_env_var OPENSHIFT_DB_GEAR_UUID
+app_remove_env_var OPENSHIFT_DB_GEAR_DNS
+app_remove_env_var OPENSHIFT_DB_CTL_SCRIPT
+app_remove_env_var OPENSHIFT_DB_CTL_ONGEAR_SCRIPT
+app_remove_env_var OPENSHIFT_DB_TYPE
+app_remove_env_var OPENSHIFT_DB_USERNAME
+app_remove_env_var OPENSHIFT_DB_PASSWORD
+app_remove_env_var OPENSHIFT_DB_HOST
+app_remove_env_var OPENSHIFT_DB_PORT
+app_remove_env_var OPENSHIFT_DB_URL
+app_remove_env_var OPENSHIFT_DB_SOCKET
+app_remove_env_var OPENSHIFT_DB_POSTGRESQL_84_DUMP
+app_remove_env_var OPENSHIFT_DB_POSTGRESQL_84_DUMP_CLEANUP
+app_remove_env_var OPENSHIFT_DB_POSTGRESQL_84_EMBEDDED_TYPE
+app_remove_env_var OPENSHIFT_DB_POSTGRESQL_84_RESTORE

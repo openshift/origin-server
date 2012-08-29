@@ -9,16 +9,10 @@ Categories:
   - web_proxy
   - scales
 Website: http://haproxy.1wt.eu/
-
 Provides:
   - "haproxy"
   - "haproxy(version) = 1.4"
   - web_proxy
-Requires:
-Conflicts:
-Native-Requires:
-  - "haproxy >= 1.4"
-Architecture: noarch
 Publishes:
   get-balancer-connection-info:
     Type: "NET_TCP:http:http"
@@ -35,4 +29,3 @@ Subscribes:
 Scaling:
   Min: 1
   Max: 1
-  Min-Managed: 2

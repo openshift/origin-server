@@ -6,7 +6,7 @@ Description: MySQL DB Server
 Vendor: Oracle
 License: ASL 2.0
 Categories:
-  - scales
+  - embedded
   - database
 Website: http://www.mysql.com
 Help-Topics:
@@ -27,9 +27,6 @@ Cart-Data:
 Suggests:
   - phpmyadmin-3.4
 Provides: mysql
-Native-Requires: 
-  - mysql-server
-  - mysql-devel
 Conflicts:
   - postgresql-8.4
 Profiles:

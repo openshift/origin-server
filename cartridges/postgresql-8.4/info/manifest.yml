@@ -1,11 +1,10 @@
 Name: postgresql-8.4
 Version: 8.4
-Architecture: noarch
 Display-Name: postgres v8.4 
 Description: Postgres DB Server
 Vendor: 
 Categories:
-  - cartridge
+  - embedded
   - database
 License: ASL 2.0
 Website: http://www.postgresql.org
@@ -27,7 +26,6 @@ Cart-Data:
 Provides: rhc-cartridge-postgresql
 Conflicts:
   - mysql-5.1
-Suggests:
 Native-Requires: 
   - postgresql
   - postgresql-server
@@ -56,79 +54,6 @@ Profiles:
         Publishes:
           publish-db-connection-info:
             Type: "NET_TCP:db:connection-info"
-#          get-postgre-connection-info:
-#            Type: "NET_TCP:db:postgresql"
-#          get-postgresql-jdbc-info:
-#            Type: "NET_TCP:jdbc"
-    Groups:
-      postgresql:
-        Components:
-          postgresql-server: postgresql-server
         Scaling:
           Min: 1
           Max: 1
-
-  master-slave:
-    Provides: postgresql-master-slave
-    Components:
-      master:
-        Publishes:
-          get-master:
-            Type: "NET_TCP:db:postgresql:master"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-postgresql-connection-info:
-            Type: "NET_TCP:db:postgresql"
-          get-postgresql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-slave:
-            Type: "NET_TCP:db:postgresql:slave"
-#          set-other-master:
-#            Type: "NET_TCP:db:postgresql:master"
-      slave:
-        Publishes:
-          get-slave:
-            Type: "NET_TCP:db:postgresql:slave"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-postgresql-connection-info:
-            Type: "NET_TCP:db:postgresql"
-          get-postgresql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-master:
-            Type: "NET_TCP:db:postgresql:master"
-            Required: True
-    Groups:
-      master:
-        Components:
-          postgresql-master: master
-        Scaling:
-          Min: 1
-          Max: 1
-      slaves:
-        Components:
-          postgresql-slave: slave
-    Connections:
-      master-slave-connections:
-        Components:
-          - postgresql-master
-          - postgresql-slave
-    Start-Order:  [master, slaves]
-#  multi-master:
-#    Components:
-#       master: 
-#          *master-component
-#    Groups:
-#      master:
-#        Components:
-#          posgresql-master: master
-#        Scaling:
-#          Min: 1
-#          Max: -1
-Default-Profile: singleton-master

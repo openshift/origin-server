@@ -6,7 +6,6 @@ License: GPLv2+ or Artistic
 License-Url: http://www.gnu.org/licenses/gpl-2.0.html or http://www.perlfoundation.org/artistic_license_1_0
 Vendor:  The Perl Foundation
 Categories:
-  - scales
   - web_framework
 Website: "http://www.perl.org"
 Help-Topics:
@@ -58,7 +57,6 @@ Native-Requires:
   -  perl-MongoDB
   -  ImageMagick-perl
   -  perl-App-cpanminus
-Architecture: noarch
 Publishes:
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"

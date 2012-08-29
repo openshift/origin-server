@@ -5,7 +5,6 @@ Version: 7.1.0
 License: ASL 2.0
 Vendor:  jboss.org
 Categories:
-  - cartridge
   - web_framework
 Website: http://www.jboss.org
 Help-Topics:
@@ -44,7 +43,6 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
 Provides:
   - "jboss"
   - "jboss(version) = 7.1.0"
@@ -52,13 +50,10 @@ Provides:
   - "jboss-as7"
   - "jboss-as7.1"
 Requires:
-Conflicts:
-Native-Requires:
-  - java-1.6.0
-  - maven3
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
+  - web_proxy
+Group-Overrides:
+  - - cart: jboss
+    - cart: web_proxy
 Profiles:
   standalone:
     Provides: jboss-standalone, jboss-as7-standalone, jboss-as7.1-standalone
@@ -66,7 +61,6 @@ Profiles:
       - MEM >= 100MB
     Components:
       jbossas-server:
-        &jbossas-server-component
         Publishes:
           get-doc-root:
             Type: "FILESYSTEM:doc-root"
@@ -93,11 +87,4 @@ Profiles:
             Type: "NET_TCP:jboss-cluster-info"
           set_jboss_remoting:
             Type: "NET_TCP:jboss-remoting-info"
-    Groups:
-      app-servers:
-        Components:
-          jbossas-server: jbossas-server
-        Scaling:
-          Min: 1
-          Max: -1
 Default-Profile: standalone

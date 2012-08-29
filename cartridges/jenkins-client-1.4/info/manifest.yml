@@ -5,8 +5,7 @@ Version: 1.0.0
 License: ASL 2.0
 Vendor: 
 Categories:
-  - cartridge
-  - web_framework
+  - embedded
   - builds
 Cart-Data:
   - Key: "job_url"
@@ -17,13 +16,6 @@ Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Provides:
   - "jenkins-client"
-Requires:
-Conflicts:
-Native-Requires:
-Architecture: noarch
-Reservations:
-  - MEM >= 10MB
-Service-Dependencies: ["jenkins-1.4"]
 Publishes:
   colocate-with-haproxy-hack:
     Type: "FILESYSTEM:haproxy:colocate-hack"
@@ -34,4 +26,4 @@ Subscribes:
     Type: "NET_TCP:jenkins:url"
 Scaling:
   Min: 1
-  Max: -1
+  Max: 1
