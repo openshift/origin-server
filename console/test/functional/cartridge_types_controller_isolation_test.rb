@@ -17,7 +17,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
   def mock_app
     Rails.cache.clear # cart metadata is mocked
     allow_http_mock
-    ActiveResource::HttpMock.respond_to(true) do |mock|
+    ActiveResource::HttpMock.respond_to({},true) do |mock|
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [].to_json
