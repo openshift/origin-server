@@ -132,7 +132,12 @@ class Application
     self.usage_records = []
     self.pending_ops = []
     self.save
-    self.requires=attrs[:features] unless (attrs.nil? or attrs[:features].nil?)
+    begin 
+      self.requires=attrs[:features] unless (attrs.nil? or attrs[:features].nil?)
+    rescue Exception => e
+      self.delete
+      raise e
+    end
   end
   
   # Adds an additional namespace to the application. This function supports the first step of the update namespace workflow.
@@ -278,7 +283,7 @@ class Application
     features = component_instances.map {|ci| get_feature(ci.cartridge_name, ci.component_name)}.uniq
     
     if include_pending
-      self.pending_ops.each do |op|
+      self.pending_ops.where(:state.ne => :completed).each do |op|
         case op.op_type
         when :create_group_instance
           features += op[:args]["components"].map {|comp_spec| get_feature(comp_spec["cart"], comp_spec["comp"])}.uniq
@@ -303,6 +308,7 @@ class Application
   # StickShift::UserException if there are existing operations in progress that will change application structure.  
   def destroy_app
     self.requires = []
+    pending_ops.push(PendingAppOps.new(op_type: :delete_app))
   end
   
   # Updates the feature requirements of the application and create tasks to perform the update.
@@ -317,7 +323,7 @@ class Application
   # == Raises:
   # StickShift::UserException if there are existing operations in progress that will change application structure.  
   def requires=(features, group_overrides=nil)
-    if self.pending_ops.where(flag_req_change: true).count > 0
+    if self.pending_ops.where(:state.ne => :completed, flag_req_change: true).count > 0
       raise StickShift::UserException.new("Cannot change application requirements at the moment. There are pending changes in progress.")
     end
     
@@ -415,7 +421,7 @@ class Application
         sleep 1
       end
       if owner.consumed_gears + num_gears > owner.capabilities["max_gears"]
-        raise StickShift::UserException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
+        raise StickShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
       end
       owner.consumed_gears += num_gears
       pending_ops.push(*ops)
@@ -775,12 +781,14 @@ class Application
   #
   # == Returns:
   # True on success or False if unable to acquire the lock or no pending jobs.
-  def run_jobs
+  def run_jobs(result_io=nil)
+    result_io = ResultIO.new if result_io.nil?
+    
     return true if(self.pending_ops.count == 0)
     if(Lock.lock_application(self))
       begin
-        while(self.pending_ops.count > 0)
-          op = self.pending_ops.first
+        ops = self.pending_ops.where(:state.ne => :completed)
+        ops.each do |op|
           op.inc(:retry_count, 1)
 
           case op.op_type
@@ -810,7 +818,6 @@ class Application
           when :create_group_instance
             #{group_instance_id: change[:to], components: change[:added], scale: change[:scale]}
             contains_web_proxy = false
-            result_io = ResultIO.new  
                         
             if self.group_instances.where(_id: op.args["group_instance_id"]).count == 0
               component_instances = op.args["components"].map { |comp_spec| 
@@ -836,13 +843,11 @@ class Application
           when :destroy_group_instance
             #{"group_instance_id"=>"50342afa6892dfbc10000003"}
             ginst = self.group_instances.find_by(_id: op.args["group_instance_id"])
-            result_io = ResultIO.new  
             result_io.append ginst.destroy_instance
             ginst.destroy
           when :add_components
             #{"group_instance_id"=>"50342afa6892dfbc10000003", "components"=>[{"comp"=>"mysql-server", "cart"=>"mysql-5.1"}]}
             component_instances = []
-            result_io = ResultIO.new
                         
             op.args["components"].each do |comp_spec|
               component_instance = ComponentInstance.new(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"], group_instance_id: op.args["group_instance_id"])
@@ -879,7 +884,6 @@ class Application
           when :remove_components
             #{"group_instance_id"=>"50342afa6892dfbc10000003", "components"=>[{"comp"=>"mysql-server", "cart"=>"mysql-5.1"}]}
             component_instances = []
-            result_io = ResultIO.new
                         
             op.args["components"].each do |comp_spec|
               begin
@@ -981,10 +985,12 @@ class Application
             rescue Mongoid::Errors::DocumentNotFound
               #ignore. if the group instance does not exist then there is no need to remove aliases.
             end
+          when :delete_app
+            self.destroy
           end
           
           op.completed
-          pending_ops.delete(op)
+          self.reload
         end
         return true
       ensure

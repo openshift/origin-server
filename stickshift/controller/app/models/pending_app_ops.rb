@@ -18,11 +18,11 @@ class PendingAppOps
   include Mongoid::Timestamps
   embedded_in :application, class_name: Application.name
   field :op_type,   type: Symbol
-  field :state,    type: Symbol
-  field :arguments, type: Hash
+  field :state,    type: Symbol, default: :init
+  field :arguments, type: Hash, default: {}
   field :flag_req_change, type: Boolean, default: false
   field :parent_op_id, type: Moped::BSON::ObjectId
-  field :retry_count, type: Integer
+  field :retry_count, type: Integer, default: 0
 
   # Sets the [PendingDomainOps] Domain level operation that spawned this operation.
   #
@@ -40,7 +40,7 @@ class PendingAppOps
   
   # Marks the operation as completed on the parent operation.
   def completed
-    self.set(:state, "completed")
+    self.set(:state, :completed)
     parent_op.child_completed(application) unless parent_op_id.nil?
   end
 end

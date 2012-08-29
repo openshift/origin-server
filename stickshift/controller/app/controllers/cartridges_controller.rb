@@ -9,8 +9,6 @@ class CartridgesController < BaseController
   # GET /cartridges
   def index
     type = params[:id]
-    log_action(@request_id, @cloud_user._id, @cloud_user.login, "LIST_CARTRIDGES", true, "List #{type.nil? ? 'all' : type} cartridges")
-    
     if type.nil?
       cartridges = CartridgeCache.cartridges
     else

@@ -261,7 +261,7 @@ class GroupInstance
   def destroy_instance
     result_io = ResultIO.new
     if app_dns
-      self.remove_alias(self.application.fqdn)
+      #self.remove_alias(self.application.fqdn)
       dns = StickShift::DnsService.instance
       begin
         dns.deregister_application(application.name, application.domain.namespace)

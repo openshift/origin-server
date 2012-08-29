@@ -1,17 +1,16 @@
 class RestDomain < StickShift::Model
   attr_accessor :id, :suffix, :links
-  include LegacyBrokerHelper
   
   def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
     self.suffix = Rails.application.config.ss[:domain_suffix] 
     
     unless nolinks      
-      valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
+      valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.owner)
       blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
 
-      carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) do
-        Application.get_available_cartridges("standalone")
+      carts = CacheHelper.get_cached("cart_list_standalone", :expires_in => 21600.seconds) do
+        CartridgeCache.find_cartridge_by_category("web_framework").map{|c| c.name}
       end
 
       self.links = {

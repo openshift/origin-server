@@ -19,6 +19,8 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
+  
+  DEFAULT_SSH_KEY_NAME = "default"
 
   field :login, type: String
   field :capabilities, type: Hash, default: {"subaccounts" => false, "gear_sizes" => ["small"], "max_gears" => 3}
@@ -90,6 +92,10 @@ class CloudUser
       key.delete
     end
     self
+  end
+  
+  def domains
+    Domain.where(owner: self) + Domain.where(user_ids: self._id)
   end
   
   # Runs all jobs in :init phase and stops at the first failure.
