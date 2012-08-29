@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/postgresql-8.4
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
-Name: cartridge-postgresql-8.4
+Name: cartridge-postgresql-9.1
 Version: 0.0.1
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
