@@ -69,7 +69,7 @@ module RestApiAuth
   # FIXME: Reconcile with other usage
   def unique_user
     id = new_uuid
-    new_user.new :email_address=>"app_test1#{id}@test1.com", :login=>"app_test1#{id}@test1.com"
+    new_user :email_address=>"app_test1#{id}@test1.com", :login=>"app_test1#{id}@test1.com"
   end
 
   #
