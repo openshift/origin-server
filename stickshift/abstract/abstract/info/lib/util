@@ -4,6 +4,28 @@
 SS_CONTROLLER_LIB_UTIL=true
 source /etc/stickshift/stickshift-node.conf
 
+# Determines if the given file is present in the given commit with
+# the provided status (e.g. add, delete, modified). Returns 0 if
+# there is a match, otherwise 1.
+function commit_contains_file_with_status () {
+  sha1=$1
+  filename=$2
+  status=$3
+
+  match_present=1
+
+  # compare the diff list filenames with the argument filename
+  list=$(git show --pretty="format:" --name-only --diff-filter=[${status}] $sha1)
+  for tmpfile in ${list}; do
+    if [ "$tmpfile" == "${filename}" ]; then
+      match_present=0
+      break
+    fi
+  done
+
+  return $match_present
+}
+
 function source_if_exists {
     [ -f "$1" ]  &&  source "$1"
     return 0

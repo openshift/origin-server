@@ -55,7 +55,7 @@ function stop_app () {
   # 1. The marker is being added and was not present in the first place
   if ! $hot_deploy_preexists && $hot_deploy_added; then
     echo "Will add new hot deploy marker"
-    stop_required=false
+    stop_required=true
   fi
 
   # 2. The marker is already present and is not modified with this commit
