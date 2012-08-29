@@ -508,7 +508,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil key.type
 
     key.name = 'a'
-    assert_equal key.name, key.to_param
 
     key.raw_content = 'ssh-rsa key'
     assert_equal 'ssh-rsa', key.type
@@ -578,6 +577,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil domain.name
     assert_nil domain.name
     assert !domain.changed?
+    domain.expects(:persisted?).at_least_once.returns(true)
     domain.name = '1'
     assert domain.changed?
     assert domain.id_changed?
@@ -766,11 +766,11 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_app_domain_object_assignment
     domain = Domain.new :id => "1"
-    app = Application.new :name => 'testapp1', :domain => domain
+    app = Application.new({:name => 'testapp1', :domain => domain}, true)
     assert_equal domain.id, app.domain_id
     assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
 
-    app = Application.new :name => 'testapp1'
+    app = Application.new({:name => 'testapp1'}, true)
     app.domain = domain
     assert_equal domain.id, app.domain_id
     assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)

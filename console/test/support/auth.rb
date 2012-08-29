@@ -24,6 +24,10 @@ module Test
 end
 
 module RestApiAuth
+  def new_user(opts=nil)
+    Test::WebUser.new opts
+  end
+
   #
   # Integration tests are designed to run against the 
   # production OpenShift service by default.  To change
@@ -33,10 +37,10 @@ module RestApiAuth
   def with_configured_user
     config = Console.config.api
     if config[:login]
-      @user = Test::WebUser.new :login => config[:login], :password => config[:password]
+      @user = new_user :login => config[:login], :password => config[:password]
     else
       @with_unique_user = true
-      @user = Test::WebUser.new :login => "#{uuid}@test1.com", :password => 'foo'
+      @user = new_user :login => "#{uuid}@test1.com", :password => 'foo'
     end
   end
   def with_unique_user
@@ -44,7 +48,7 @@ module RestApiAuth
   end
 
   def setup_user(unique=false)
-    set_user(Test::WebUser.new :email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :login=>"app_test1#{unique ? uuid : ''}@test1.com")
+    set_user(new_user(:email_address=>"app_test1#{unique ? uuid : ''}@test1.com", :login=>"app_test1#{unique ? uuid : ''}@test1.com"))
   end
 
   def set_user(user)
@@ -65,7 +69,7 @@ module RestApiAuth
   # FIXME: Reconcile with other usage
   def unique_user
     id = new_uuid
-    Test::WebUser.new :email_address=>"app_test1#{id}@test1.com", :login=>"app_test1#{id}@test1.com"
+    new_user.new :email_address=>"app_test1#{id}@test1.com", :login=>"app_test1#{id}@test1.com"
   end
 
   #
