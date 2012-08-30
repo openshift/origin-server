@@ -23,30 +23,16 @@ baseurl = file://#{rpmdir}/noarch
 gpgcheck= 0
 enabled = 1
 retries = 0
-  EOF
-  else
-  <<-EOF
-[local_build]
-name    = local_build
-baseurl = file://#{rpmdir}/noarch
-gpgcheck= 0
-enabled = 1
-retries = 0
 
-[openshift_origin]
-name    = openshift_origin
-baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
-gpgcheck= 0
-enabled = 1
-retries = 0
-
-[built_rpms]
-name    = built_rpms
-baseurl = file:///root/rpmbuild/RPMS/x86_64/
+[passenger]
+name    = passenger
+baseurl = http://www.krishnaraman.net/downloads/rubygem-passenger-f17
 gpgcheck= 0
 enabled = 1
 retries = 0
   EOF
+  else
+    raise "RHEL not supported yet"
   end
 end
 
@@ -77,17 +63,9 @@ end
 task :default => [:build] do
 end
 
-task :build_f17_passenger do
-  sh 'yum install -y gcc gcc-c++ make wget rpm-build libcurl-devel asciidoc doxygen graphviz httpd-devel libev-devel ruby-devel rubygems-devel tar'
-  sh 'yum install -y "rubygem(rack)" "rubygem(rspec)" "rubygem(mime-types)" source-highlight zlib-devel'
-  sh "wget http://wakko666.fedorapeople.org/rubygem-passenger/rubygem-passenger-3.0.14-10.fc19.src.rpm -O /tmp/rubygem-passenger-3.0.14.srpm"
-  sh "rpmbuild --rebuild /tmp/rubygem-passenger-3.0.14.srpm"
-  sh "createrepo /root/rpmbuild/RPMS/x86_64/"
-end
-
 task :build_setup do
   print "Setting up basic requirements\n"
-  sudo "yum install -y vim git wget tito ruby rubygems java-1.7.0-openjdk jpackage-utils java-1.7.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo"
+  sudo "yum install -y vim git wget tito ruby rubygems java-1.7.0-openjdk jpackage-utils java-1.7.0-openjdk-devel emacs fedora-kickstarts livecd-tools tig mock createrepo rubygems-devel"
   Rake::Task[:createrepo].invoke
 
   print "Setting up local express.conf\n"
@@ -232,6 +210,7 @@ task :install_broker do
   Dir.glob("#{rpmdir}/noarch/cartridge-*").each do |rpm|
     sudo "yum install -y --skip-broken #{rpm}"
   end
+  sudo "chmod 644 /etc/mcollective/client.cfg"
 end
 
 task :install_node do
