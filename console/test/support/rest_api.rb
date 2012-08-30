@@ -139,7 +139,7 @@ class ActiveSupport::TestCase
   def auth_headers
    h = {}
    h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
-   h['Authorization'] = "Basic #{::Base64.encode64s("#{@user.login}:#{@user.password}")}" if @user.login
+   h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
    h
   end
 

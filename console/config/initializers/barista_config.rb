@@ -1,4 +1,4 @@
-unless Console.config.disable_js
+unless true #Console.config.disable_js
   # 
   # Configure barista.to generate to tmp/javascripts, and configure Rack
   # to attempt to serve JS out of tmp/javascripts for the /app/javascripts path

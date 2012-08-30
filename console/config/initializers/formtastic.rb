@@ -1,15 +1,16 @@
-require 'active_model/errors'
 require 'console/formtastic/bootstrap_form_builder'
 
 #
 # Minor backport from Rails 3.1, may break hash behavior of errors
 #
-raise "Code needs changes for rails != 3.0" if Rails.version[0..3] != '3.0.'
-module ActiveModel
-  class Errors
-    # Do the error messages include an error with key +error+?
-    def include?(error)
-      (v = self[error]) && v.any?
+if Rails.version[0..3] == '3.0.'
+  require 'active_model/errors'
+  module ActiveModel
+    class Errors
+      # Do the error messages include an error with key +error+?
+      def include?(error)
+        (v = self[error]) && v.any?
+      end
     end
   end
 end

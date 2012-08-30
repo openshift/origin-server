@@ -2,7 +2,8 @@ require 'rails/engine'
 
 # Engines must explicitly require dependencies
 require 'sass'
-require 'barista'
+require 'haml'
+#require 'barista'
 require 'formtastic'
 require 'pp'
 
@@ -10,17 +11,9 @@ require 'console/configuration'
 
 module Console
   class Engine < Rails::Engine
-
-    #FIXME: Remove in Rails 3.1+
-    raise "Code needs changes for rails != 3.0" if Rails.version[0..3] != '3.0.'
-    initializer "console.include_helpers" do |app|
-      ActiveSupport.on_load(:action_controller) do
-        config.helpers_path += Console::Engine.config.paths.app.helpers.to_a if Console.config.include_helpers
-      end
-    end
-    initializer "console.static_assets" do |app|
-      # Goes after an application's static assets (fallthrough)
-      app.middleware.insert_after 'ActionDispatch::Static', ::ActionDispatch::Static, "#{root}/public"
+     config.before_initialize do
+      Haml.init_rails(binding)
+      Haml::Template.options[:format] = :html5
     end
   end
 end

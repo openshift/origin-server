@@ -87,7 +87,7 @@ module RestApi
     end
 
     def decode(json)
-      decoded = super
+      decoded = ActiveSupport::JSON.decode(json)
       if decoded.is_a?(Hash) and decoded.has_key?('data')
         attrs = root_attributes(decoded)
         decoded = decoded['data'] || {}
@@ -152,7 +152,7 @@ module RestApi
       def attr_alters(from, *args)
         targets = (calculated_attributes[from] ||= [])
         targets.concat(args.flatten.uniq)
-        define_attribute_methods [from]
+        define_attribute_method from
       end
       def calculated_attributes
         @calculated_attributes ||= {}
@@ -171,9 +171,28 @@ module RestApi
       end
     end
 
-    def load(attributes)
+    #
+    # Ensure user authorization info is duplicated
+    #
+    def dup
+      super.tap do |resource|
+        resource.as = @as
+      end
+    end
+    def clone
+      super.tap do |resource|
+        resource.as = @as
+      end
+    end
+
+    def initialize(attributes = {}, persisted=false)
+      @as = attributes.delete :as
+      super attributes, persisted
+    end
+
+    def load(attributes, remove_root=false)
       raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
-      @prefix_options, attributes = split_options(attributes)
+      self.prefix_options, attributes = split_options(attributes)
 
       attributes = attributes.dup
       aliased = self.class.aliased_attributes
@@ -189,12 +208,13 @@ module RestApi
         if !known.include? key.to_s and !calculated.include? key and respond_to?("#{key}=") 
           send("#{key}=", value)
         else
-          @attributes[key.to_s] =
+          self.attributes[key.to_s] =
             case value
               when Array
-                resource = find_or_create_resource_for_collection(key)
+                resource = nil
                 value.map do |attrs|
                   if attrs.is_a?(Hash)
+                    resource ||= find_or_create_resource_for_collection(key)
                     attrs[:as] = as if resource.method_defined? :as=
                     resource.new(attrs)
                   else
@@ -206,54 +226,24 @@ module RestApi
                 value[:as] = as if resource.method_defined? :as=
                 resource.new(value)
               else
-                value.dup rescue value
+                value.duplicable? ? value.dup : value
             end
         end
       end
 
       calculated.each_key { |key| send("#{key}=", attributes[key]) if attributes.include?(key) }
+      @changed_attributes.clear if @changed_attributes
       self
     end
 
-    #
-    # Ensure user authorization info is duplicated
-    #
-    def dup
-      super.tap do |resource|
-        resource.as = @as
+    def attributes=(attrs)
+      attrs.with_indifferent_access.slice(*(
+        self.class.known_attributes + 
+        self.class.aliased_attributes.keys
+      )).each_pair do |k,v|
+        send(:"#{k}=", v)
       end
-    end
-    def clone
-      super.tap do |resource|
-        resource.as = @as
-      end
-    end
-
-    # Track persistence state, merged from 
-    # https://github.com/railsjedi/rails/commit/9333e0de7d1b8f63b19c99d21f5f65fef0ce38c3
-    #
-    def initialize(attributes = {}, persisted=false)
-      @persisted = persisted
-      @as = attributes.delete :as
-      super attributes
-    end
-
-    # changes to instantiate_record tracked below
-
-    def new?
-      !persisted?
-    end
-
-    def persisted?
-      @persisted
-    end
-
-    def load_attributes_from_response(response)
-      if response['Content-Length'] != "0" && response.body.strip.size > 0
-        load(self.class.format.decode(response.body))
-        @persisted = true
-        remove_instance_variable(:@update_id) if @update_id
-      end
+      self
     end
 
     def raise_on_invalid
@@ -269,10 +259,11 @@ module RestApi
     end
 
     def save_with_change_tracking(*args, &block)
-      @previously_changed = changes # track changes
       save_without_change_tracking(*args, &block).tap do |valid|
-        remove_instance_variable(:@update_id) if @update_id && valid
-        @changed_attributes.clear
+        if valid
+          @previously_changed = changes
+          @changed_attributes.clear
+        end
       end
 
     rescue ActiveResource::ConnectionError => error
@@ -305,40 +296,17 @@ module RestApi
     end
 
     class << self
-
-      # ActiveResources doesn't completely support ActiveModel::Dirty
-      # so implement it for mutable attributes
-      def mutable_attribute(name)
-        # we need to unset this so that define_attribute_methods
-        # doesn't just return
-        @attribute_methods_generated = false
-        define_attribute_methods [:"#{name}"]
-        define_method :"#{name}=" do |val|
-          m = method "#{name}_will_change!"
-          m.call unless val == @attributes[name]
-
-          @attributes[name] = val
-        end
-      end
-
       def custom_id(name, mutable=false)
         raise "Name #{name.inspect} must be a symbol" unless name.is_a?(Symbol) && !name.is_a?(Class)
-        @primary_key = name
-        @update_id = nil
-        if mutable
-          # we need to unset this so that define_attribute_methods
-          # doesn't just return
-          @attribute_methods_generated = false
-          define_attribute_methods [:"#{name}"]
-          define_method :"#{name}=" do |val|
-            m = method "#{name}_will_change!"
-            m.call unless val == @attributes[name]
-            @update_id = @attributes[name] if @update_id.nil?
-            @attributes[name] = val
-          end
+
+        define_attribute_method name
+
+        define_method :"#{name}=" do |s|
+          send(:"#{name}_will_change!") if !send(:"#{name}_changed?") && attributes[name] != s
+          attributes[name] = s
         end
-        define_method :to_key do
-          persisted? ? [@update_id || @attributes[name]] : nil
+        define_method 'to_key' do
+          persisted? ? [send(:"#{name}_was") || send(name)] : nil
         end
       end
     end
@@ -356,11 +324,14 @@ module RestApi
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
     #
     class << self
-      attr_accessor_with_default(:collection_name) do
-        if singleton?
-          element_name
-        else 
-          ActiveSupport::Inflector.pluralize(element_name)
+      attr_accessor :collection_name
+      def collection_name
+        @collection_name ||= begin
+          if singleton?
+            element_name
+          else 
+            ActiveSupport::Inflector.pluralize(element_name)
+          end
         end
       end
 
@@ -634,6 +605,10 @@ module RestApi
       @as = as
     end
 
+    def to_json(options={})
+      super({:root => nil}.merge(options))
+    end
+
     protected
       def connection(refresh = false)
         @connection = nil if refresh
@@ -648,7 +623,34 @@ module RestApi
 
       class_attribute :anonymous_api, :instance_writer => false
       class_attribute :singleton_api, :instance_writer => false
-  end
+
+      # supports presence of AttributeMethods and Dirty
+      def attribute(s)
+        #puts "attribute[#{s}] #{caller.join("  \n")}"
+        attributes[s]
+      end
+
+      def method_missing(method_symbol, *arguments) #:nodoc:
+        #puts "in method missing of RestApi::Base #{method_symbol}"
+        method_name = method_symbol.to_s
+
+        if method_name =~ /(=|\?)$/
+          case $1
+          when "="
+            res = :"#{method_name}_will_change!"
+            send(res) if respond_to?(res) && attributes[name] != arguments.first
+            attributes[$`] = arguments.first
+          when "?"
+            attributes[$`]
+          end
+        else
+          return attributes[method_name] if attributes.include?(method_name)
+          # not set right now but we know about it
+          return nil if known_attributes.include?(method_name)
+          super
+        end
+      end
+    end
 
   #
   # A connection class that contains an authorization object to connect as

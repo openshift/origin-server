@@ -3,6 +3,11 @@ source 'http://rubygems.org'
 gemspec
 
 group :development, :test do
-  gem 'ci_reporter', '~> 1.7.0', :require => nil
+  #gem 'ci_reporter', '~> 1.7.0', :require => nil
   gem 'test-unit' if RUBY_VERSION.to_f >= 1.9
+end
+group :assets do
+  gem 'sass-rails', "  ~> 3.2.3"
+  gem 'coffee-rails', "~> 3.2.1"
+  gem 'uglifier', '>= 1.0.3'
 end

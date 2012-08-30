@@ -1,7 +1,24 @@
 class ApplicationTemplate < RestApi::Base
+  allow_anonymous
+
+  schema do
+    string :descriptor_yaml, :display_name
+  end
+
   custom_id :name
 
-  allow_anonymous
+  [:description, :website, :version, :git_url, :git_project_url].each do |s|
+    define_attribute_method s
+    define_method s do
+      metadata.attributes[s]
+    end
+  end
+  {:name => 'Name', :provides => 'Requires'}.each_pair do |s,v|
+    define_attribute_method s
+    define_method s do
+      descriptor[v]
+    end
+  end
 
   def descriptor
     @descriptor ||= YAML.load(descriptor_yaml) || {}
@@ -24,7 +41,7 @@ class ApplicationTemplate < RestApi::Base
   end
 
   def credentials
-    creds = get_metadata(:credentials)
+    creds = metadata.attributes[:credentials]
     creds.map{|x| x.attributes.to_hash } unless creds.nil?
   end
 
@@ -45,26 +62,30 @@ class ApplicationTemplate < RestApi::Base
     str
   end
 
-  def method_missing(method, *args, &block)
+  #def attribute(s)
+  #  return get_metadata(s) if [:description, :website, :version, :git_url, :git_project_url].include?(s.to_sym)
+  #  attr = {:name => 'Name', :provides => 'Requires'}[s.to_sym]
+  #  return get_descriptor(attr) if attr
+  #  super
+  #end
+
+  #def method_missing(method, *args, &block)
     # These attributes are defined in the metadata
-    metadata = [:description, :website, :version, :git_url, :git_project_url]
+  #  metadata = [:description, :website, :version, :git_url, :git_project_url]
 
     # These attributes are defined in the descriptor
-    descriptor_map = {
-      :name => 'Name',
-      :provides => 'Requires'
-    }
+  #  descriptor_map = 
 
     # See if we know about the missing method
-    case method
-    when *metadata
-      get_metadata(method)
-    when *descriptor_map.keys
-      get_descriptor(descriptor_map[method])
-    else
-      super
-    end
-  end
+  #  case method
+  #  when *metadata
+  ##    get_metadata(method)
+  #  when *descriptor_map.keys
+  #    get_descriptor(descriptor_map[method])
+  #  else
+  #    super
+  #  end
+  #end
 
   def to_application_type
     attrs = { :id => name, :name => display_name }
@@ -78,13 +99,4 @@ class ApplicationTemplate < RestApi::Base
 
   cache_find_method :single
   cache_find_method :every
-
-  private
-    def get_metadata(name)
-      metadata.attributes[name]
-    end
-
-    def get_descriptor(name)
-      descriptor[name]
-    end
 end

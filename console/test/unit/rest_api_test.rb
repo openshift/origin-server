@@ -418,16 +418,15 @@ class RestApiTest < ActiveSupport::TestCase
 
     domain.name = 'b'
 
-    assert_equal 'a', domain.instance_variable_get(:@update_id)
+    assert_equal 'a', domain.id_was
     assert_equal 'b', domain.id
     assert_equal 'b', domain.name
     assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
     assert domain.save
 
-    domain = Domain.first :as => @user
-    domain.load({:name => 'b'})
-
-    assert_equal 'a', domain.instance_variable_get(:@update_id)
+    domain = Domain.new({:name => 'a'}, true)
+    domain.attributes = {:name => 'b'}
+    assert_equal 'a', domain.id_was
     assert_equal 'b', domain.id
     assert_equal 'b', domain.name
     assert_equal '/broker/rest/domains/a.json', domain.send(:element_path)
@@ -446,15 +445,18 @@ class RestApiTest < ActiveSupport::TestCase
       mock.put '/broker/rest/domains/a.json', json_header(true), {:id => 'b'}.to_json
     end
     t = DomainWithValidation.first :as => @user
-    assert_nil t.instance_variable_get(:@update_id)
-
+    assert_equal 'a', t.id_was
+    assert t.persisted?
+    assert !t.changed?, t.inspect
     t.name = 'ab'
+    assert t.changed?
     assert !t.save, t.pretty_inspect
-    assert_equal 'a', t.instance_variable_get(:@update_id)
+    assert t.changed?
+    assert_equal 'a', t.id_was, t.inspect
 
     t.name = 'b'
     assert t.save
-    assert_nil t.instance_variable_get(:@update_id)
+    assert_equal 'b', t.id_was
   end
 
   def test_info_raises_error
@@ -473,9 +475,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_key_make_unique_noop
-    key = Key.new :name => 'key'
-    key.instance_variable_set :@persisted, true
-    key.instance_variable_set :@update_id, key.name
+    key = Key.new({:name => 'key'}, true)
     key.expects(:connection).never.expects(:as).never
     assert_equal 'key', key.make_unique!.name
   end
@@ -539,6 +539,10 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal contents.split(' ')[1], key.content
   end
 
+  def test_domain_to_json
+    assert_equal '{"id":5}', Domain.new(:id => 5).to_json
+  end
+
   def test_domain_throws_on_find_one
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [].to_json
@@ -577,7 +581,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_nil domain.name
     assert_nil domain.name
     assert !domain.changed?
-    domain.expects(:persisted?).at_least_once.returns(true)
+    domain = Domain.new({:id => 1}, true)
     domain.name = '1'
     assert domain.changed?
     assert domain.id_changed?
@@ -765,8 +769,9 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_app_domain_object_assignment
-    domain = Domain.new :id => "1"
+    domain = Domain.new({:id => "1"}, true)
     app = Application.new({:name => 'testapp1', :domain => domain}, true)
+    assert_equal 'testapp1', app.to_param
     assert_equal domain.id, app.domain_id
     assert_equal '/broker/rest/domains/1/applications/testapp1.json', app.send(:element_path)
 
@@ -812,7 +817,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert !d.changed?, d.pretty_inspect
 
     d.id = '2'
-    assert_equal '1', d.instance_variable_get(:@update_id)
+    assert_equal '1', d.id_was
     assert d.save
     assert_equal '2', d.id
   end
@@ -948,7 +953,7 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_clone
-    d = Domain.new :id => 1, :as => @user
+    d = Domain.new :id => '1', :as => @user
     d2 = d.clone
     assert_same d.send(:as), d2.send(:as)
   end
@@ -1047,6 +1052,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert type = CartridgeType.cached.find('haproxy-1.4')
     assert_equal 'haproxy-1.4', type.name
     assert_nil type.send(:as)
+    assert_equal CartridgeType._to_partial_path, type.to_partial_path
   end
 
   def test_application_types

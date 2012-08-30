@@ -1,4 +1,3 @@
-require 'ci/reporter/rake/test_unit'
 
 class Rake::Task
   def abandon
@@ -8,13 +7,15 @@ class Rake::Task
 end
 
 namespace :test do
-
   namespace :prepare do
     task :ci_reporter do
       # removed deletion of test cases
-      path = File.join(Gem.loaded_specs["ci_reporter"].full_gem_path, 'lib', 'ci', 'reporter', 'rake', 'test_unit_loader.rb')
-      test_loader = CI::Reporter.maybe_quote_filename path
-      ENV["TESTOPTS"] = "#{ENV["TESTOPTS"]} #{test_loader}"
+      if Gem.loaded_specs['ci_reporter']
+        require 'ci/reporter/rake/test_unit'
+        path = File.join(Gem.loaded_specs["ci_reporter"].full_gem_path, 'lib', 'ci', 'reporter', 'rake', 'test_unit_loader.rb')
+        test_loader = CI::Reporter.maybe_quote_filename path
+        ENV["TESTOPTS"] = "#{ENV["TESTOPTS"]} #{test_loader}"
+      end
     end
   end
   task 'test:prepare' => 'test:prepare:ci_reporter'

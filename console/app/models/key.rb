@@ -57,7 +57,7 @@ class Key < RestApi::Base
 
   Inf = 1.0/0.0 # Replace with Float::INFINITY in 1.9 ruby
   def make_unique!(format='key %s')
-    unless persisted? && @update_id == name
+    unless persisted?
       keys = Key.find(:all, :as => as)
       if keys.any? {|k| k.name == name }
         self.name = format % (2..keys.length+2).find do |i|

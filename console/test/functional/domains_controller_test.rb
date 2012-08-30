@@ -161,8 +161,8 @@ class DomainsControllerTest < ActionController::TestCase
     put :update, {:domain => {:name => '@@@@'}}
 
     assert domain = assigns(:domain)
-    assert !domain.errors.empty?
-    assert domain.errors[:name].present?, domain.errors.inspect
+    assert !domain.errors.empty?, domain.inspect
+    assert domain.errors[:name].present?, domain.inspect
     assert_equal 1, domain.errors[:name].length
     assert_template :edit
   end

@@ -1,4 +1,4 @@
-unless Console.config.disable_css
+unless true #Console.config.disable_css
   #
   # Stylesheets are assumed to be generated into Rails tmp/stylesheets,
   # either dynamically in development, or by the RPM build in production

@@ -20,7 +20,8 @@ class DomainsController < ConsoleController
   end
 
   def update
-    @domain = Domain.find(:one, :as => current_user).load(params[:domain])
+    @domain = Domain.find(:one, :as => current_user)
+    @domain.attributes = params[:domain]
     if @domain.save
       redirect_to account_path, :flash => {:success => 'Your domain has been changed.  Your public URLs will now be different'}
     else

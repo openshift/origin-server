@@ -27,6 +27,9 @@ module RestApi
             def self.name
               superclass.name
             end
+            def to_partial_path
+              self.class.superclass._to_partial_path
+            end
 
             eigenclass = (class << self; self; end)
             class_opts[:caches].each_pair do |m, opts|

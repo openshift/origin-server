@@ -142,7 +142,7 @@ class ApplicationsController < ConsoleController
         message = [message,t.credentials_message] if t.credentials
       end
 
-      redirect_to get_started_application_path(@application, :wizard => true, :template => !@application_type.template.nil?), :flash => {:info_pre => message}
+      redirect_to get_started_application_path(@application, :wizard => true, :template => (@application_type.template.present? || nil)), :flash => {:info_pre => message}
     else
       logger.debug @application.errors.inspect
       render 'application_types/show'

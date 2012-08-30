@@ -14,7 +14,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     setup_domain
 
     app = Application.new :as => @user
-    assert_raise(ActiveResource::ResourceNotFound) { app.save }
+    assert_raise(ActiveResource::MissingPrefixParam) { app.save }
 
     app.domain = @domain
 

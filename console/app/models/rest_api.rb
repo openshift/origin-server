@@ -102,7 +102,11 @@ module RestApi
     self.element_name = 'api'
     singleton
     allow_anonymous
-    self.format = :json
+    self.format = Class.new(OpenshiftJsonFormat) do
+      def decode(json)
+        ActiveSupport::JSON.decode(json)
+      end
+    end.new
 
     schema do
       string :version, :status
