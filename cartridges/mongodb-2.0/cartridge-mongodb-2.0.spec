@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.25.1
+Version: 0.25.2
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.25.2-1
+- Add support to move postgres cart from/to gears. (mpatel@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.25.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 
