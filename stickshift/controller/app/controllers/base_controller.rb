@@ -192,7 +192,7 @@ class BaseController < ApplicationController
     if not SUPPORTED_API_VERSIONS.include? $requested_api_version
       invalid_version = $requested_api_version
       $requested_api_version = API_VERSION
-      return render_format_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
+      return render_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
     end
   end
 
@@ -200,7 +200,7 @@ class BaseController < ApplicationController
     begin
       nolinks
     rescue Exception => e
-      return render_format_exception(e)
+      return render_exception(e)
     end
   end
 
