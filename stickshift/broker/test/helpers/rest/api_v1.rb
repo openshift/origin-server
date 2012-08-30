@@ -25,6 +25,8 @@ class RestApi_V1 < RestApi
       when 'user'
         obj = RestUser_V1.to_obj(data)
         self.response.compare(obj)
+      when 'environment'
+        raise_ex("Environment response not a hash") unless data.kind_of?(Hash)
       when 'cartridges'
         data.each do |cart_hash|
           obj = RestCartridge_V1.to_obj(cart_hash)
@@ -88,6 +90,9 @@ end
 api_get_v1 = RestApi_V1.new("/api")
 api_get_v1.response = BaseApi_V1.new
 api_get_v1.response_type = "links"
+
+environment_get_v1 = RestApi_V1.new("/environment")
+environment_get_v1.response_type = "environment"
 
 user_get_v1 = RestApi_V1.new("/user")
 user_get_v1.response = RestUser_V1.new
@@ -277,6 +282,7 @@ domain_delete_v1 = RestApi_V1.new("/domains/#{dom_id}", "DELETE")
 
 REST_CALLS_V1 = [
                   api_get_v1,
+                  environment_get_v1,
                   user_get_v1,
                   cartridge_list_get_v1,
                   estimates_list_get_v1,
