@@ -5,7 +5,7 @@
 
 Summary:        Uplift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.6
+Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -94,6 +94,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 30 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.7-1
+- adding dnsruby dependency in bind plugin gemspec and spec file
+  (abhgupta@redhat.com)
+
 * Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.6-1
 - gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
 - allow ruby versions > 1.8 (mlamouri@redhat.com)
