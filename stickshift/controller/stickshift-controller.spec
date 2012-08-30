@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.16.1
+Version: 0.16.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,20 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
+- Add <broker>/rest/environment REST call to expose env variables like
+  domain_suffix, etc. (rpenta@redhat.com)
+- Expose capabilities in the Rest user model (rpenta@redhat.com)
+- Fix for 851345, cleanup gear group resources rest api (rpenta@redhat.com)
+- Increase timeout for jenkins job (jhonce@redhat.com)
+- Merge pull request #436 from danmcp/master (openshift+bot@redhat.com)
+- reorg broker extended tests (dmcphers@redhat.com)
+- Patch for BZ850962 (jhonce@redhat.com)
+- Merge pull request #428 from jwhonce/testing (openshift+bot@redhat.com)
+- optimize nolinks (dmcphers@redhat.com)
+- Removed unused stepdefs (jhonce@redhat.com)
+- Introduce cucumber formatter to print out unused steps (jhonce@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 - Merge pull request #422 from brenton/gemspec_fixes3
