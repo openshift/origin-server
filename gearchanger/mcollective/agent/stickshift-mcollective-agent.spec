@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.3.1
+Version: 0.3.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Bug 852139: Prevent emails to mailbox. (mpatel@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 
