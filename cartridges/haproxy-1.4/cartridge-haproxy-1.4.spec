@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.15.1
+Version: 0.15.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.15.2-1
+- Fix a bug where first 3 parameters are not being ignored and set as env vars
+  for mysql in a scaled app. (ramr@redhat.com)
+- If the haproxy gear is added to the list of serving gears, this creates an
+  infinite loop in sync_gears -- remove the haproxy gear from the list in the
+  gear-registry.db (ramr@redhat.com)
+- Fix for bugz 851315 - user's deploy hook is not called on local gear.
+  (ramr@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.15.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 
