@@ -169,7 +169,10 @@ class RestUser_V1 < BaseObj_V1
         Param_V1.new("name", "string"),                                        
         Param_V1.new("type", "string", ["ssh-rsa", "ssh-dss"]),                            
         Param_V1.new("content", "string"),      
-      ])                                                                                              
+      ]),
+      "DELETE_USER" => Link_V1.new("DELETE", "user", nil, [
+        OptionalParam_V1.new("force", "boolean", [true, false], false)
+      ])
     } unless $nolinks 
   end
 

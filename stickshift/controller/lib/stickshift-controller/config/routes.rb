@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   scope "/rest" do
     resource :api, :only => [:show], :controller => :base
     resource :environment, :only => [:show], :controller => :environment
-    resource :user, :only => [:show], :controller => :user do
+    resource :user, :only => [:show, :destroy], :controller => :user do
       resources :keys, :controller => :keys, :constraints => { :id => /[\w]+/ } 
     end
     resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }

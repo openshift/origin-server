@@ -211,25 +211,19 @@
     Rails.logger.debug "deleting user #{@login}"
     reply = ResultIO.new
     begin
-      if self.applications
-        self.applications.each do |app|
-          reply.append(app.cleanup_and_delete())
-        end
-      end
-      if self.domains
-        self.domains.each do |domain|
-          reply.append(domain.delete)
-        end
-      end
+      self.applications.each do |app|
+        reply.append(app.cleanup_and_delete())
+      end if self.applications
+      self.domains.each do |domain|
+        reply.append(domain.delete)
+      end if self.domains
     rescue Exception => e
       Rails.logger.error "Failed to delete user #{self.login} #{e.message}"
       Rails.logger.debug e.backtrace
       raise StickShift::UserException.new("User deletion failed due to #{e.message}", 132, reply)
     end
-    reply.resultIO << "User #{@login} deleted successfully.\n"
     super(@login)
-    reply
-    end
+  end
 
   def self.find(login)
     super(login,login)
