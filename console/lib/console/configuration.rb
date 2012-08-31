@@ -21,8 +21,7 @@ module Console
  class Configuration #:nodoc:
     include ActiveSupport::Configurable
 
-    config_accessor :disable_css
-    config_accessor :disable_js
+    config_accessor :disable_static_assets
     config_accessor :disable_passthrough
     config_accessor :parent_controller
     config_accessor :disable_account
@@ -111,8 +110,7 @@ Valid api object:
   end
 
   configure do |config|
-    config.disable_js = false
-    config.disable_css = false
+    config.disable_static_assets = false
     config.disable_passthrough = false
     config.disable_account = false
     config.parent_controller = 'ApplicationController'
