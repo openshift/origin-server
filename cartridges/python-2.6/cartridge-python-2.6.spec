@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.97.1
+Version:   0.97.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Aug 31 2012 William DeCoste <wdecoste@redhat.com> 0.97.2-1
+- daemon mode
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.97.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
