@@ -4,6 +4,167 @@
 SS_CONTROLLER_LIB_UTIL=true
 source /etc/stickshift/stickshift-node.conf
 
+function post_start_app () {
+
+    stickshift_broker_server=$1
+
+    restart_on_add=${2-false}                   
+    echo "restart_on_add=$restart_on_add"
+
+	if [ -z $OPENSHIFT_SKIP_GIT_HOOKS ]
+	then
+	    if [ "$OPENSHIFT_CI_TYPE" = "jenkins-1.4" ] && [ -n "$JENKINS_URL" ]
+	    then
+	        set -e
+	        jenkins_build.sh
+	        set +e
+	    else
+	        if [ "$OPENSHIFT_CI_TYPE" = "jenkins-1.4" ]
+	        then
+	            echo "!!!!!!!!"
+	            echo "Jenkins client installed but a Jenkins server does not exist!"
+	            echo "You can remove the jenkins client with rhc app cartridge remove -a $OPENSHIFT_GEAR_NAME -c jenkins-client-1.4"
+	            echo "Continuing with local build/deployment."
+	            echo "!!!!!!!!"
+	        fi
+	
+	        set_app_state building
+	
+	        # Do any cleanup before the next build
+	        pre_build.sh
+	
+	        # Lay down new code, run internal build steps, then user build
+	        build.sh
+	
+	        set_app_state deploying
+	
+	        # Deploy new build, run internal deploy steps, then user deploy
+	        deploy.sh
+	        
+	        hot_deploy_added=false
+	        
+	        if $restart_on_add ; then
+	  
+		        while read old_sha1 new_sha1 refname ; do
+		          # Detect the addition of the marker
+		          if commit_contains_file_with_status "$new_sha1" ".openshift/markers/hot_deploy" "A"; then
+		            hot_deploy_added=true
+		            break
+		          fi
+		        done
+		    fi
+	
+	        echo "hot_deploy_added=${hot_deploy_added}"
+	        
+	        # Start the app
+	        if hot_deploy_marker_is_present && ! $hot_deploy_added ; then
+	            echo "App will not be started due to presence of hot_deploy marker"
+	        else
+	            start_app.sh
+	        fi
+	
+	        # Run any steps required after startup
+	        post_deploy.sh
+	    fi
+	
+	    # Not running inside a build
+	    nurture_app_push.sh $stickshift_broker_server
+	fi
+}
+
+# Stops the app (or not), taking into account the hot_deploy marker.
+function pre_stop_app () {
+
+  restart_on_add=${1-false}                   
+  echo "restart_on_add=$restart_on_add"
+   
+  # We ONLY want to disable this if the hot deploy marker will be present
+  # following the commit application.
+  stop_required=true
+
+  # All our decisions will be based on these three states. It is
+  # assumed that added/deleted are mutually exclusive states.
+  hot_deploy_preexists=false
+  hot_deploy_added=false
+  hot_deploy_deleted=false
+
+
+  # Check to see if the marker is already on disk
+  if hot_deploy_marker_is_present; then
+    hot_deploy_preexists=true
+  fi
+
+
+  # Peek into the inbound push and see if the marker state is being updated
+  # in any notable way
+  while read old_sha1 new_sha1 refname ; do
+    # Detect the addition of the marker
+    if commit_contains_file_with_status "$new_sha1" ".openshift/markers/hot_deploy" "A"; then
+      hot_deploy_added=true
+      break
+    fi
+
+    # Detect the deletion of the marker
+    if commit_contains_file_with_status "$new_sha1" ".openshift/markers/hot_deploy" "D"; then
+      hot_deploy_deleted=true
+      break
+    fi
+  done
+
+  # Debug use
+  #echo "hot_deploy_added=${hot_deploy_added}"
+  #echo "hot_deploy_deleted=${hot_deploy_deleted}"
+  #echo "hot_deploy_preexists=${hot_deploy_preexists}"
+
+  # There are only two cases which should cause the stop to be disabled:
+  # 1. The marker is being added and was not present in the first place
+  if ! $hot_deploy_preexists && $hot_deploy_added; then
+    echo "Will add new hot deploy marker"
+    
+    if $restart_on_add ; then
+      stop_required=true
+    else
+      stop_required=false
+    fi
+  fi
+
+  # 2. The marker is already present and is not modified with this commit
+  if $hot_deploy_preexists && ! $hot_deploy_added && ! $hot_deploy_deleted; then
+    echo "Existing hot deploy marker will remain unchanged"
+    stop_required=false
+  fi
+
+
+  # And finally...
+  if $stop_required; then
+    stop_app.sh
+  else
+    echo "App will not be stopped due to presence of hot_deploy marker"
+  fi
+}
+
+# Determines if the given file is present in the given commit with
+# the provided status (e.g. add, delete, modified). Returns 0 if
+# there is a match, otherwise 1.
+function commit_contains_file_with_status () {
+  sha1=$1
+  filename=$2
+  status=$3
+
+  match_present=1
+
+  # compare the diff list filenames with the argument filename
+  list=$(git show --pretty="format:" --name-only --diff-filter=[${status}] $sha1)
+  for tmpfile in ${list}; do
+    if [ "$tmpfile" == "${filename}" ]; then
+      match_present=0
+      break
+    fi
+  done
+
+  return $match_present
+}
+
 function source_if_exists {
     [ -f "$1" ]  &&  source "$1"
     return 0
@@ -17,10 +178,6 @@ function source_if_exists {
 #
 # Returns 0 on success
 function start_app {
-    for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
-    do
-        . $env_var
-    done
 
     set_app_state started
 
@@ -50,10 +207,6 @@ function start_app {
 }
 
 function stop_app {
-    for env_var in  $APP_HOME/.env/*_CTL_SCRIPT
-    do
-        . $env_var
-    done
 
     set_app_state stopped
 
