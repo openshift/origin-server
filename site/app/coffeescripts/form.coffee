@@ -44,7 +44,7 @@ $ ->
         required:   true
         equalTo:    "#web_user_password"
 
-  # /app/login 
+  # /app/login
   $('form#login_form').validate
     rules:
       "web_user[rhlogin]":
@@ -57,7 +57,30 @@ $ ->
     rules:
       "cc_no":
         required: true
+        creditcard: true
       "cvv":
+        required: true
+
+  # /app/account/plans/<plan>/upgrade/edit
+  $('form#new_streamline_full_user').validate
+    rules:
+      "streamline_full_user[streamline_full_user][first_name]":
+        required: true
+      "streamline_full_user[streamline_full_user][last_name]":
+        required: true
+      "streamline_full_user[aria_billing_info][first_name]":
+        required: true
+      "streamline_full_user[aria_billing_info][last_name]":
+        required: true
+      "streamline_full_user[aria_billing_info][address1]":
+        required: true
+      "streamline_full_user[aria_billing_info][city]":
+        required: true
+      "streamline_full_user[aria_billing_info][state]":
+        required: true
+      "streamline_full_user[aria_billing_info][country]":
+        required: true
+      "streamline_full_user[aria_billing_info][zip]":
         required: true
 
   $("[data-unhide]").click (event) ->
@@ -82,4 +105,3 @@ $ ->
         ($ loading_match, this).show()
         ($ 'input[type=submit]', this).attr('disabled','disabled')
         true
-
