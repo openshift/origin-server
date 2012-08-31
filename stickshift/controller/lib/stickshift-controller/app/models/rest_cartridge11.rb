@@ -1,6 +1,6 @@
 class RestCartridge11 < StickShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
-  :help_topics, :links, :properties
+  attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
+                :tags, :website, :help_topics, :links, :properties
   
   def initialize(type, name, app, url, nolinks=false)
     self.name = name
@@ -20,6 +20,8 @@ class RestCartridge11 < StickShift::Model
     end
     cart = CartridgeCache.find_cartridge(name)
     self.version = cart.version
+    self.display_name = cart.display_name
+    self.description = cart.description
     self.license = cart.license
     self.license_url = cart.license_url
     self.tags = cart.categories

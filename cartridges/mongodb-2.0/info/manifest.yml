@@ -1,6 +1,6 @@
 Name: mongodb-2.0
-Display-Name: MongoDB v2.0.0 (x86-64)
-Description: "MongoDB is an open source, document-oriented database designed for both scalability and ease of development"
+Display-Name: MongoDB NoSQL Database 2.0
+Description: "MongoDB is a scalable, high-performance, open source NoSQL database."
 Version: 2.0.0
 License: ASL 2.0
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
