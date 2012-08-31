@@ -71,6 +71,7 @@ module StickShift
       h["Provides"] = @provides unless @provides.nil? || @provides.empty?
       h["Start-Order"] = @start_order unless @start_order.nil? || @start_order.empty?
       h["Stop-Order"] = @stop_order unless @stop_order.nil? || @stop_order.empty?
+      h["Configure-Order"] = @configure_order unless @configure_order.nil? || @configure_order.empty?
   
       if self.components.length == 1 && self.components.first.generated
         comp_h = self.components.first.to_descriptor

@@ -9,8 +9,6 @@
 #   @return [Integer] User set minimum number of gears.
 # @!attribute [rw] user_max
 #   @return [Integer] User set maximum number of gears.
-# @!attribute [rw] current_scale
-#   @return [Integer] The number of gears that this {GroupInstance} should have
 # @!attribute [r] gear_profile
 #   @return [String] Gear profile of all gears under this {GroupInstance}
 # @!attribute [rw] component_instances
@@ -29,7 +27,6 @@ class GroupInstance
   field :max, type: Integer, default: -1
   field :user_min, type: Integer, default: 1
   field :user_max, type: Integer, default: -1
-  field :current_scale, type: Integer, default: 1
   
   field :gear_profile, type: String, default: "small"
   field :component_instances, type: Array, default: []
@@ -46,109 +43,77 @@ class GroupInstance
   #   Specified that this group instance hosts the primary application DNS endpoint.
   #   @Note used when this gear is hosting the web_proxy component
   def initialize(attrs = nil, options = nil)
-    super
-    self._id = attrs[:custom_id] unless attrs[:custom_id].nil?
+    custom_id = attrs[:custom_id]
+    attrs.delete(:custom_id)
+    super(attrs, options)
+    self._id = custom_id unless custom_id.nil?
   end
-
-  # Creates gears within the group instance to satisfy the min gears scaling requirement. This method will also add application aliases to all gears.
-  # Destroys gears within the group instance to satisfy the max gears scaling requirement.
-  #
-  # Each gear is assigned a gear-specific DNS entry.The first gear is assigned the application DNS entry if this instance hosts the web_proxy component.
-  # SSH keys and Environment variables are not added by this method.
-  #
-  # @note The first gear of the group instance is assigned with the application name and _id if the group_instance hosts the web_proxy component.
-  #   This is done for backward compatibility reasons and will be removed once typeless gears transition is completed.
-  def update_scale
+  
+  def create_gears(gear_ids=[])
     result_io = ResultIO.new
-    min = self.min < self.user_min ? self.user_min : self.min
-    max = self.max
-    max = self.user_max if ((self.user_max != -1) && ((self.max == -1) || (self.user_max < self.max)))
-
-    self.current_scale = max if ((current_scale > max) && max != -1)
-    self.current_scale = min if (current_scale < min)
-
-    #scale up
-    if gears.count < self.current_scale
-      new_gears = []
-      while(gears.count < self.current_scale) do
-        gear = Gear.new
-        #TODO: Remove when typeless gears is completed
-        if(app_dns && gears.count==0)
-          gear._id = application._id.dup
-          gear.name = application.name
-        else
-          gear.name = gear._id.to_s[0..9]
-        end
-        #END-TODO#
-        
-        gears.push gear
-        new_gears.push gear
-        begin
-          result_io.append gear.create
-          
-          #register application DNS entry
-          if self.app_dns && gears[0] == gear
-            #TODO: Uncomment when typeless gears is completed
-            #self.add_alias(self.application.fqdn)
-            
-            application.aliases.each { |fqdn| self.add_alias(fqdn) }
-            dns = StickShift::DnsService.instance
-            begin
-              begin
-                dns.deregister_application(application.name, application.domain.namespace)
-              rescue Exception => e
-                #ignoring
-                Rails.logger.debug e
-              end
-              dns.register_application(application.name, application.domain.namespace, self.gears[0].public_hostname)
-              dns.publish
-            ensure
-              dns.close
-            end
-          end
-        rescue StickShift::NodeException => e
-          result_io.append e.resultIO
-          e.resultIO = result_io
-          gears.delete gear
-          new_gears.delete gear
-          raise
-        end
+    gear_ids.each do |gear_id|
+      return if self.gears.where(_id: gear_id).count == 1
+      
+      gear = Gear.new
+      gear._id = gear_id
+      #TODO: Remove when typeless gears is completed
+      if(app_dns && gear_id == application._id.to_s)
+        gear.name = application.name
+      else
+        gear.name = gear._id.to_s[0..9]
       end
-      ssh_keys = self.application.app_ssh_keys.map{|k| k.attributes}
-      ssh_keys += self.application.domain.owner.ssh_keys.map{|k| k.attributes}
-      ssh_keys += CloudUser.find(self.application.domain.user_ids).map{|u| u.ssh_keys.map{|k| k.attributes}}.flatten
+      #END-TODO#
+      
+      gears.push gear
       begin
-        result_io.append GroupInstance.update_configuration(ssh_keys, [], self.application.domain.env_vars, [], new_gears)
-      rescue
-        gear_ids = new_gears.map{|g| g._id.to_s}
-        self.application.pending_ops.push(PendingAppOps.new(op_type: :update_configuration, args: {"group_instance_id" => _id.to_s, "gear_ids" => gear_ids}))
-        self.component_instances.each do |component_instance_id|
-          self.application.pending_ops.push(PendingAppOps.new(op_type: :configure_component_on_gears, args: {"group_instance_id" => _id.to_s, "gear_ids" => gear_ids, "component_instance_id" => component_instance_id}, flag_req_change: true))
+        result_io.append gear.create
+        
+        #register application DNS entry
+        if self.app_dns && gears[0] == gear
+          #TODO: Uncomment when typeless gears is completed
+          #self.add_alias(self.application.fqdn)
+          
+          application.aliases.each { |fqdn| self.add_alias(fqdn) }
+          dns = StickShift::DnsService.instance
+          begin
+            begin
+              dns.deregister_application(application.name, application.domain.namespace)
+            rescue Exception => e
+              #ignoring
+              Rails.logger.debug e
+            end
+            dns.register_application(application.name, application.domain.namespace, self.gears[0].public_hostname)
+            dns.publish
+          ensure
+            dns.close
+          end
         end
+      rescue StickShift::NodeException => e
+        result_io.append e.resultIO
+        e.resultIO = result_io
+        gears.delete gear
+        raise
+      rescue Exception => e
+        gear.destroy_gear
         raise
       end
-      
-      pending_component_ids = self.component_instances
-      self.application.component_instances.find(self.component_instances).each do |component_instance|
-        result_io.append configure_component_on_gears(component_instance, new_gears)
-        if result_io.exitcode != 0
-          gear_ids = new_gears.map{|g| g._id.to_s}
-          pending_component_ids.each do |component_instance_id|
-            self.application.pending_ops.push(PendingAppOps.new(op_type: :configure_component_on_gears, args: {"group_instance_id" => _id.to_s, "gear_ids" => gear_ids, "component_instance_id" => component_instance_id}, flag_req_change: true))
-          end
-          raise "Unable to complte configuration of #{component_instance.cartridge_name} on #{gear_ids.join(",")}"
+    end
+    result_io
+  end
+  
+  def destroy_gears(gear_ids=[])
+    result_io = ResultIO.new
+    self.gears.find(gear_ids).each do |gear|
+      if self.gears[0] == gear && self.app_dns
+        begin
+          dns.deregister_application(application.name, application.domain.namespace)
+        rescue Exception => e
+          #ignoring
+          Rails.logger.debug e
         end
-        pending_component_ids.delete component_instance._id
       end
-      self.application.pending_ops.push(PendingAppOps.new(op_type: :execute_connections, args: {}))
+      result_io.append gear.destroy_gear
     end
-    
-    #scale down
-    if(gears.count > self.current_scale)
-      GroupInstance.run_on_gears(self.gears[self.current_scale..gears.count], result_io, false) { |gear,result_io| result_io.append gear.destroy }
-      self.application.pending_ops.push(PendingAppOps.new(op_type: :execute_connections, args: {}))      
-    end
-    
     result_io
   end
   
@@ -272,7 +237,7 @@ class GroupInstance
         dns.close
       end
     end
-    GroupInstance.run_on_gears(gears, result_io, false) { |gear,result_io| result_io.append gear.destroy }
+    GroupInstance.run_on_gears(gears, result_io, false) { |gear,result_io| result_io.append gear.destroy_gear }
     application.component_instances.in(_id: self.component_instances).union.in(_id: self.singleton_instances).delete
     result_io
   end
@@ -280,7 +245,7 @@ class GroupInstance
   # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
   def to_hash
     comps = resolve_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {min: self.min, max: self.max, current: self.current_scale}, _id: _id}
+    {component_instances: comps, scale: {min: self.min, max: self.max, user_min: self.user_min, user_max: self.user_max, current: self.gears.length}, _id: _id}
   end
   
   # Register a DNS alias for the {GroupInstance}.

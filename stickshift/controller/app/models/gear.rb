@@ -79,7 +79,7 @@ class Gear
   # Exit codes:
   #   success = 0
   # @raise [StickShift::NodeException] on failure
-  def destroy
+  def destroy_gear
     dns = StickShift::DnsService.instance
     begin
       begin
@@ -92,6 +92,7 @@ class Gear
       result_io = get_proxy.destroy(app,self)
       app.process_commands(result_io)
       raise StickShift::NodeException.new("Unable to destroy gear on node", result_io.exitcode, result_io) if result_io.exitcode != 0
+      self.destroy
       return result_io
     ensure
       dns.close

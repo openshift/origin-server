@@ -74,6 +74,7 @@ rm -rf %{buildroot}%{gem_dir}/bin
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}%{_sysconfdir}/stickshift
 
 #move the shell binaries into proper location
+mv misc/bin/* %{buildroot}%{_bindir}
 mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 %clean

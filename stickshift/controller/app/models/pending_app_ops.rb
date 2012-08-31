@@ -19,7 +19,7 @@ class PendingAppOps
   embedded_in :application, class_name: Application.name
   field :op_type,   type: Symbol
   field :state,    type: Symbol, default: :init
-  field :arguments, type: Hash, default: {}
+  field :args, type: Hash, default: {}
   field :flag_req_change, type: Boolean, default: false
   field :parent_op_id, type: Moped::BSON::ObjectId
   field :retry_count, type: Integer, default: 0

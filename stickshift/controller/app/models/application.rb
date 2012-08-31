@@ -52,6 +52,7 @@ class Application
   field :aliases, type: Array, default: []
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
+  field :component_configure_order, type: Array, default: []
   embeds_many :connections, class_name: ConnectionInstance.name
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
@@ -362,28 +363,81 @@ class Application
     connections, new_group_instances = elaborate(features, group_overrides)
     current_group_instance = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instance,new_group_instances)
-    
-    app_dns_ginst_op = nil
+    calculate_ops(changes,moves,connections)
+  end
+  
+  # Scales the specified group instance up or down
+  #
+  # == Parameters:
+  # ginst_id::
+  #   ID of the group instance to scale
+  #
+  # scale_by::
+  #   Number of gears to add (+ve) or remove (-ve)
+  def scale_by(ginst_id, scale_by)
+    current_group_instance = self.group_instances.map { |gi| gi.to_hash }
+    changes = []
+    current_group_instance.each do |ginst|
+      if ginst[:_id].to_s == ginst_id
+        min = ginst[:scale][:min] > ginst[:scale][:user_min] ? ginst[:scale][:min] : ginst[:scale][:user_min]
+        max = ginst[:scale][:max]
+        max = ginst[:scale][:user_max] if (ginst[:scale][:user_max] != ginst[:scale][:max]) && ginst[:scale][:max] == -1
+        final_scale = ginst[:scale][:current] + scale_by
+        final_scale = min if final_scale < min
+        final_scale = max if ((final_scale > max) && (max != -1))
+        
+        changes << {
+          :from=>ginst_id, :to=>ginst_id,
+          :added=>[], :removed=>[], :from_scale=>ginst[:scale],
+          :to_scale=>{:min=>ginst[:scale][:min], :max=>ginst[:scale][:max], :current=>final_scale}
+        }
+      end
+    end
+    calculate_ops(changes)  
+  end
+  
+  # Given a set of changes, moves and connections, calculates all the operations required to update the application.
+  #
+  # == Parameters:
+  # changes::
+  #   Changes needed to the current_group_instances to make it match the new_group_instances. (Includes all adds/removes). (Output of {#compute_diffs} or {#scale_by})
+  #
+  # moves::
+  #   A list of components which need to move from one group instance to another. (Output of {#compute_diffs})
+  #   
+  # connections::
+  #   An array of connections. (Output of {#elaborate})
+  def calculate_ops(changes,moves=[],connections=nil)
+    app_dns_ginst_found = false
     num_gears = 0
     ops = []
-    changes.each do |change|
-      if change[:from].nil?
-        num_gears += change[:to_scale][:min]
-        pending_op = PendingAppOps.new(op_type: :create_group_instance, args: {"app_dns" => false, "group_instance_id"=> change[:to], "components"=> change[:added], "scale"=> change[:scale]}, flag_req_change: true)
-        ops.push(pending_op)
-        
-        #identify if app dns should be pointing at this gear group
-        if app_dns_ginst_op.nil?
-          pending_op.args["components"].each do |comp_spec|
-            cart = CartridgeCache.find_cartridge(comp_spec["cart"])
-            if (cart.categories.include?("web_proxy") || cart.categories.include?("web_framework"))
-              pending_op.args["app_dns"] = true 
-              break
-            end
+    config_order, start_order, stop_order = calculate_component_orders
+    
+    # Create group instances and gears in preperation formove or add component operations
+    create_ginst_changes = changes.select{ |change| change[:from].nil? }
+    create_ginst_changes.map! do |change|
+      is_app_dns_ginst = false
+      #identify if app dns should be pointing at this gear group
+      unless app_dns_ginst_found
+        change[:added].each do |comp_spec|
+          cart = CartridgeCache.find_cartridge(comp_spec["cart"])
+          if (cart.categories.include?("web_proxy") || cart.categories.include?("web_framework"))
+            app_dns_ginst_found = is_app_dns_ginst = true
+            break
           end
-          app_dns_ginst_op = pending_op
         end
       end
+      
+      ginst_scale = change[:to_scale][:min] 
+      num_gears += ginst_scale        
+      
+      ops.push(PendingAppOps.new(op_type: :create_group_instance, args: {"app_dns" => is_app_dns_ginst, "group_instance_id"=> change[:to], "scale"=> change[:to_scale]}, flag_req_change: true))
+      ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
+      ids[0] = self._id.to_s if is_app_dns_ginst
+      
+      ops.push(PendingAppOps.new(op_type: :create_gears, args: {"group_instance_id"=> change[:to], "gear_ids"=> ids}, flag_req_change: true))
+      change[:gear_ids] = ids
+      change
     end
     
     moves.each do |move|
@@ -397,25 +451,82 @@ class Application
           ops.push(PendingAppOps.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> change[:from]}, flag_req_change: true))
         else
           scale_change = 0
-          if change[:from_scale][:current] < change[:to_scale][:min]
-            scale_change += change[:to_scale][:min] - change[:from_scale][:current]
-          end
-          if((change[:from_scale][:current] > change[:to_scale][:max]) && (change[:to_scale][:max] != -1))
-            scale_change -= change[:from_scale][:current] - change[:to_scale][:max]
+          if change[:to_scale][:current].nil?
+            if change[:from_scale][:current] < change[:to_scale][:min]
+              scale_change += change[:to_scale][:min] - change[:from_scale][:current]
+            end
+            if((change[:from_scale][:current] > change[:to_scale][:max]) && (change[:to_scale][:max] != -1))
+              scale_change -= change[:from_scale][:current] - change[:to_scale][:max]
+            end
+          else
+            scale_change += (change[:to_scale][:current] - change[:from_scale][:current])
           end
           num_gears += scale_change
-          final_scale = change[:from_scale][:current] + scale_change
           
-          ops.push(PendingAppOps.new(op_type: :scale_to, args: {"group_instance_id"=> change[:from], "to_scale"=> final_scale})) unless scale_change == 0
-          ops.push(PendingAppOps.new(op_type: :add_components, args: {"group_instance_id"=> change[:from], "components"=> change[:added]}, flag_req_change: true)) if change[:added].length > 0
+          #remove old components. Additions are done later
           ops.push(PendingAppOps.new(op_type: :remove_components, args: {"group_instance_id"=> change[:from], "components"=> change[:removed]}, flag_req_change: true)) if change[:removed].length > 0
+
+          if scale_change > 0
+            ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
+            ops.push(PendingAppOps.new(op_type: :create_gears, args: {"group_instance_id"=> change[:from], "gear_ids"=> ids}, flag_req_change: true))
+            ops.push(PendingAppOps.new(op_type: :configure_components_on_gears, args: {"group_instance_id"=> change[:from], "gear_ids"=> ids}, flag_req_change: true))
+            
+            ssh_keys = (self.app_ssh_keys + self.domain.system_ssh_keys + self.domain.owner.ssh_keys + CloudUser.find(self.domain.user_ids).map{|u| u.ssh_keys}.flatten)
+            ssh_keys = ssh_keys.map{|k| k.attributes}
+            env_vars = self.domain.env_vars
+            ops.push(PendingAppOps.new(op_type: :update_configuration, args: {"group_instance_id"=> change[:from], "gear_ids"=> ids, 
+              "add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, flag_req_change: true)) if (ssh_keys.length + env_vars.length) > 0
+          end
+          
+          if scale_change < 0
+            self.group_instance.find(_id: change[:from]).gears[-scale_change..-1].map{ |g| g._id._to_s}
+            ops.push(PendingAppOps.new(op_type: :destroy_gears, args: {"group_instance_id"=> change[:from], "gear_ids"=> ids}, flag_req_change: true))
+          end
         end
       end
     end
-    #needs to be set and run after all the gears are in place
-    ops.push(PendingAppOps.new(op_type: :set_connections, args: {"connections"=> connections}, flag_req_change: true))
-    ops.push(PendingAppOps.new(op_type: :execute_connections))
     
+    # Add components in configure_order
+    comp_addition_changes = changes.select{ |change| !change[:added].nil? }
+    comp_ginst_map = {}
+    added_comps = []
+    comp_addition_changes.each do |change| 
+      added_comps += change[:added]
+      change[:added].each{ |comp_spec| comp_ginst_map[comp_spec] = change[:to] }
+    end
+    config_order = calculate_configure_order(added_comps)
+    config_order.each do |comp_spec|
+      ginst_id = comp_ginst_map[comp_spec]
+      ops.push(PendingAppOps.new(op_type: :add_component, args: {"group_instance_id"=> ginst_id, "component"=> comp_spec}, flag_req_change: true))
+    end
+    
+    #### Add the required ssh keys and env varaibles ####
+    ssh_keys = (self.app_ssh_keys + self.domain.system_ssh_keys + self.domain.owner.ssh_keys + CloudUser.find(self.domain.user_ids).map{|u| u.ssh_keys}.flatten)
+    ssh_keys = ssh_keys.map{|k| k.attributes}
+    env_vars = self.domain.env_vars
+    create_ginst_changes.each do |change|
+      ops.push(PendingAppOps.new(op_type: :update_configuration, args: {"group_instance_id"=> change[:to], "gear_ids"=> change[:gear_ids],
+          "add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, flag_req_change: true)) if (ssh_keys.length + env_vars.length) > 0
+    end
+    
+    unless connections.nil?
+      #needs to be set and run after all the gears are in place
+      ops.push(PendingAppOps.new(op_type: :set_connections, args: {"connections"=> connections}, flag_req_change: true))
+    end
+    ops.push(PendingAppOps.new(op_type: :execute_connections, flag_req_change: true))
+    try_reserve_gears(num_gears, ops)
+  end
+  
+  # Persists change operation only if the additonal number of gears requested are available on the domain owner
+  #
+  # == Parameters:
+  # num_gears::
+  #   Number of gears to add or remove
+  #
+  # ops::
+  #   Array of pending operations. 
+  #   @see {PendingAppOps}
+  def try_reserve_gears(num_gears, ops)
     owner = self.domain.owner
     begin
       until Lock.lock_user(owner)
@@ -615,7 +726,7 @@ class Application
   #
   # == Returns:
   # changes::
-  #   Changes needed to th current_group_instances to make it match the new_group_instances. (Includes all adds/removes)
+  #   Changes needed to the current_group_instances to make it match the new_group_instances. (Includes all adds/removes)
   # moves::
   #   A list of components which need to move from one group instance to another
   def compute_diffs(current_group_instances, new_group_instances)
@@ -641,8 +752,8 @@ class Application
       from_id = nil
       from_comp_insts = []
       to_comp_insts   = []
-      from_scale      = {min: 1, max: 100, current: 0}
-      to_scale        = {min: 1, max: 100}      
+      from_scale      = {min: 1, max: MAX_SCALE, user_min: 1, user_max: MAX_SCALE, current: 0}
+      to_scale        = {min: 1, max: MAX_SCALE}
       
       unless current_group_instances[from].nil?
         from_comp_insts = current_group_instances[from][:component_instances]
@@ -810,51 +921,42 @@ class Application
               gears = ginst.gears.find(op.args["gear_ids"])
             end
             GroupInstance.update_configuration(op.args["add_keys_attrs"], op.args["remove_keys_attrs"], op.args["add_env_vars"], op.args["remove_env_vars"], gears)
-          when :update_gear_configuration
-            #todo recovery
-            raise "no impl"
-          when :configure_component_on_gears
-            #todo recovery
-            raise "no impl"
-          when :create_group_instance
-            #{group_instance_id: change[:to], components: change[:added], scale: change[:scale]}
-            contains_web_proxy = false
-                        
-            if self.group_instances.where(_id: op.args["group_instance_id"]).count == 0
-              component_instances = op.args["components"].map { |comp_spec| 
-                ComponentInstance.new(cartridge_name: comp_spec["cart"], 
-                  component_name: comp_spec["comp"], 
-                  group_instance_id: op.args["group_instance_id"]) 
-              }
-              self.component_instances.push *component_instances
-              ginst = GroupInstance.new(custom_id: Moped::BSON::ObjectId.from_string(op.args["group_instance_id"].to_s), app_dns: op.args["app_dns"])
-              self.group_instances.push ginst
-              result_io.append ginst.update_scale
-            else
-              ginst = self.group_instances.find(op.args["group_instance_id"])
-              component_instances = self.component_instances.where(group_instance_id: op.args["group_instance_id"])
-            end
-
-            component_instances.each do |component_instance|
-              result_io.append ginst.add_component(component_instance)
+          when :configure_components_on_gears
+            ginst = self.group_instances.find(op.args["group_instance_id"])
+            gears = ginst.gears.find(op.args["gear_ids"])
+            comp_map = {}
+            component_instances = self.component_instances.find(ginst.singleton_instances + ginst.component_instances)
+            component_instances.each{ |c| comp_map[c.to_hash] = c }
+            ordered_component_instances = calculate_configure_order(comp_map.keys).map{|k| comp_map[k]}
+            should_config_singletons = (op.args["gear_ids"][0] == ginst.gears[0]._id.to_s)
+            
+            ordered_component_instances.each do |component_instance|
+              if component_instance.is_singleton?
+                result_io.append GroupInstance.configure_component_on_gears(component_instance, [ginst.gears[0]]) if should_config_singletons
+              else
+                result_io.append GroupInstance.configure_component_on_gears(component_instance, gears)
+              end
               if result_io.exitcode != 0
                 raise StickShift::NodeException.new("Unable to configure component #{component_instance.cartridge_name}::#{component_instance.component_name}", result_io.exitcode, result_io)
               end
             end
+          when :create_group_instance
+            self.group_instances.push GroupInstance.new(custom_id: Moped::BSON::ObjectId.from_string(op.args["group_instance_id"].to_s), app_dns: op.args["app_dns"])
           when :destroy_group_instance
             #{"group_instance_id"=>"50342afa6892dfbc10000003"}
             ginst = self.group_instances.find_by(_id: op.args["group_instance_id"])
             result_io.append ginst.destroy_instance
             ginst.destroy
-          when :add_components
-            #{"group_instance_id"=>"50342afa6892dfbc10000003", "components"=>[{"comp"=>"mysql-server", "cart"=>"mysql-5.1"}]}
-            component_instances = []
-                        
-            op.args["components"].each do |comp_spec|
+          when :add_component
+            #{"group_instance_id"=>"50342afa6892dfbc10000003", "component"=>{"comp"=>"mysql-server", "cart"=>"mysql-5.1"}}
+            comp_spec = op.args["component"]
+            begin
+              component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"], group_instance_id: op.args["group_instance_id"])
+            rescue Mongoid::Errors::DocumentNotFound
               component_instance = ComponentInstance.new(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"], group_instance_id: op.args["group_instance_id"])
-              component_instances.push component_instance
+              self.component_instances.push(component_instance)
             end
-            
+
             begin
               ginst =  self.group_instances.find(op.args["group_instance_id"])
             rescue Mongoid::Errors::DocumentNotFound
@@ -865,22 +967,16 @@ class Application
               result_io.append ginst.create
             end
 
-            component_instances.each do |component_instance|
-              #only configure the component if it was not already configured in a previoud attempt for this group instance
-              if(self.component_instances.where(cartridge_name: component_instance.cartridge_name, component_name: component_instance.component_name, group_instance_id: ginst._id).count == 0)
-                result_io.append ginst.add_component(component_instance)
-                self.component_instances.push component_instances
-                if result_io.exitcode != 0
-                  self.component_instances.delete component_instances
-                  begin
-                    result_io.append ginst.remove_component(component_instance)
-                  rescue Exception
-                    Rails.logger.debug "Error while removing component #{component_instance.cartridge_name} from app #{_id} after failed installation. Will retry"
-                    #Ignore
-                  end
-                  raise StickShift::NodeException.new("Unable to configure component #{component_instance.cartridge_name}::#{component_instance.component_name}", result_io.exitcode, result_io)
-                end
+            result_io.append ginst.add_component(component_instance)
+            if result_io.exitcode != 0
+              self.component_instances.delete component_instances
+              begin
+                result_io.append ginst.remove_component(component_instance)
+              rescue Exception
+                Rails.logger.debug "Error while removing component #{component_instance.cartridge_name} from app #{_id} after failed installation. Will retry"
+                #Ignore
               end
+              raise StickShift::NodeException.new("Unable to configure component #{component_instance.cartridge_name}::#{component_instance.component_name}", result_io.exitcode, result_io)
             end
           when :remove_components
             #{"group_instance_id"=>"50342afa6892dfbc10000003", "components"=>[{"comp"=>"mysql-server", "cart"=>"mysql-5.1"}]}
@@ -914,11 +1010,12 @@ class Application
           when :move_component
             #todo
             raise "no impl"
-          when :scale_to
-            #{"group_instance_id"=> change[:from], "num_gears"=> scale_change}
+          when :create_gears
             ginst = self.group_instances.find(op.args["group_instance_id"])
-            ginst.current_scale = op.args["to_scale"]
-            ginst.update_scale
+            ginst.create_gears(op.args["gear_ids"])
+          when :destroy_gears  
+            ginst = self.group_instances.find(op.args["group_instance_id"])
+            ginst.destroy_gears(op.args["gear_ids"])
           when :set_connections
             conns = []
             op.args["connections"].each do |conn_info|
@@ -939,7 +1036,9 @@ class Application
               pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
               tag = conn._id.to_s
               
-              pub_ginst.gears.each do |gear|
+              pub_ginst.gears.each_index do |idx|
+                break if (pub_inst.is_singleton? && idx > 0)
+                gear = pub_ginst.gears[idx]
                 input_args = [gear.name, self.domain.namespace, gear._id.to_s]
                 job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, input_args)
                 RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -964,7 +1063,10 @@ class Application
                 input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
 
                 Rails.logger.debug "Output of publisher - '#{pub_out}'"
-                sub_ginst.gears.each do |gear|
+                sub_ginst.gears.each_index do |idx|
+                  break if (sub_inst.is_singleton? && idx > 0)
+                  gear = sub_ginst.gears[idx]
+                  
                   input_args = [gear.name, self.domain.namespace, gear._id.to_s, input_to_subscriber]
                   job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, input_args)
                   RemoteJob.add_parallel_job(handle, tag, gear, job)
@@ -987,6 +1089,7 @@ class Application
               #ignore. if the group instance does not exist then there is no need to remove aliases.
             end
           when :delete_app
+            self.pending_ops.clear
             self.destroy
           end
           
@@ -1000,6 +1103,48 @@ class Application
     else
       return false
     end
+  end
+  
+  # Returns the configure order specified in the application descriptor or processes the configure
+  # orders for each component and returns the final order (topological sort).
+  # @note This is calculates seperately from start/stop order as this function is usually used to 
+  #   compute the {PendingAppOps} while start/stop order applies to already configured components.
+  #
+  # == Parameters:
+  # comp_specs::
+  #   Array of components specs to order.
+  # 
+  # == Returns:
+  # {ComponentInstance} objects ordered by calculated configure order
+  def calculate_configure_order(comp_specs)
+    configure_order = ComponentOrder.new
+    comps = []
+    categories = {}
+        
+    comp_specs.each do |comp_inst|
+      cart = CartridgeCache.find_cartridge(comp_inst["cart"])
+      prof = cart.get_profile_for_component(comp_inst["comp"])
+      
+      comps << {cart: cart, prof: prof}
+      [[comp_inst["cart"]],cart.categories,cart.provides,prof.provides].flatten.each do |cat|
+        categories[cat] = [] if categories[cat].nil?
+        categories[cat] << comp_inst
+      end
+      configure_order.add_component_order([comp_inst])
+    end
+    
+    #use the map to build DAG for order calculation
+    comps.each do |comp_spec|
+      configure_order.add_component_order(comp_spec[:prof].configure_order.map{|c| categories[c]}.flatten)
+    end
+    
+    #calculate configure order using tsort
+    if self.component_configure_order.empty?
+      computed_configure_order = configure_order.tsort
+    else
+      computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
+    end
+    computed_configure_order
   end
 
   # Returns the start/stop order specified in the application descriptor or processes the stat and stop
