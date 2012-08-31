@@ -1,6 +1,8 @@
 #!/bin/bash
 
 source "/etc/stickshift/stickshift-node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
 STOPTIMEOUT=10
 FMT="%a %b %d %Y %H:%M:%S GMT%z (%Z)"
 
@@ -83,12 +85,26 @@ function _start_node_service() {
        fi
     } >> $logf
 
+    supervisor=false
     if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-        npm start -d >> $logf 2>&1 &
+        formatted=`cat $OPENSHIFT_REPO_DIR/package.json | python -mjson.tool`
+        start=`echo $formatted | grep supervisor | grep start`
+        if [ -n "$start" ]; then
+                supervisor=true
+        fi
+    fi
+
+    if hot_deploy_marker_is_present && ! $supervisor
+    then
+        supervisor $node_opts -- $node_app $node_args >> $logf 2>&1 &
     else
-        #  Backward compatibility.
-        print_missing_package_json_warning
-        node $node_opts $node_app $node_app_args >> $logf 2>&1 &
+        if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
+                npm start -d >> $logf 2>&1 &
+        else
+                #  Backward compatibility.
+                print_missing_package_json_warning
+                node $node_opts $node_app $node_app_args >> $logf 2>&1 &
+        fi
     fi
 
     ret=$?

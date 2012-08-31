@@ -22,6 +22,6 @@ if [ -z $OPENSHIFT_SKIP_GIT_HOOKS ]
 then
     if [ -z "$OPENSHIFT_CI_TYPE" ] || [ -z "$JENKINS_URL" ]
     then
-        pre_stop_app
+        pre_stop_app true
     fi
 fi
