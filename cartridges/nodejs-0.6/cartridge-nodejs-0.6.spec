@@ -23,7 +23,7 @@ Requires: nodejs-mongodb
 Requires: nodejs-mysql
 Requires: nodejs-node-static
 Requires: nodejs-pg
-#Requires: nodejs-supervisor
+Requires: nodejs-supervisor
 
 
 %description
