@@ -87,7 +87,8 @@ function _start_node_service() {
 
     supervisor=false
     if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-        start=`grep supervisor $OPENSHIFT_REPO_DIR/package.json | grep scripts | grep start`
+        formatted=`cat $OPENSHIFT_REPO_DIR/package.json | python -mjson.tool`
+        start=`echo $formatted | grep supervisor | grep start`
         if [ -n "$start" ]; then
                 supervisor=true
         fi
