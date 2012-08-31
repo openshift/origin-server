@@ -3,7 +3,7 @@ source 'http://rubygems.org'
 gemspec
 
 group :development, :test do
-  #gem 'ci_reporter', '~> 1.7.0', :require => nil
+  gem 'ci_reporter', '~> 1.7.0', :require => nil
   gem 'test-unit' if RUBY_VERSION.to_f >= 1.9
 end
 group :assets do
