@@ -5,7 +5,7 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 [Service]
 Type=forking
 PIDFile=/run/stickshift-proxy.pid
-EnvironmentFile=/etc/sysconfig/stickshift-proxy
+EnvironmentFile=/etc/sysconfig/stickshift-proxy/stickshift-proxy.env
 ExecStartPre=stickshift-proxy-cfg fixaddr
 ExecStart=@/usr/sbin/haproxy stickshift-proxy -D -f $STICKSHIFT_PROXY_CONFIG -p /run/stickshift-proxy.pid
 ExecReload=@/usr/sbin/haproxy stickshift-proxy -D -f $STICKSHIFT_PROXY_CONFIG -p /run/stickshift-proxy.pid -sf $MAINPID
