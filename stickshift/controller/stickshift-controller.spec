@@ -25,7 +25,6 @@ Requires:       ruby(abi) >= 1.8
 Requires:       rubygems
 Requires:       rubygem(state_machine)
 Requires:       rubygem(stickshift-common)
-Requires:       rubygem(mongo)
 
 %if 0%{?rhel} == 6
 BuildRequires:  rubygems
