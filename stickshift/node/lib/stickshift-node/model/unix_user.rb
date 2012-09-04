@@ -378,7 +378,7 @@ module StickShift
     #   # Creates:
     #   # ~
     #   # ~/.tmp/
-    #   # ~/.sandbox
+    #   # ~/.sandbox/$uuid
     #   # ~/.env/
     #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
     #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
@@ -402,6 +402,10 @@ module StickShift
       sandbox_dir = File.join(homedir, ".sandbox")
       FileUtils.mkdir_p sandbox_dir
       FileUtils.chmod(0o0000, sandbox_dir)
+
+      sandbox_uuid_dir = File.join(sandbox_dir, @uuid)
+      FileUtils.mkdir_p sandbox_uuid_dir
+      FileUtils.chmod(0o1755, sandbox_uuid_dir)
 
       env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
