@@ -130,7 +130,7 @@
   :categories: 
   - :embedded
   - :productivity
-  - :builds
+  - :ci_builder
   :display_name: Jenkins Client 1.4
   :license: MIT
   :help_topics: {}
@@ -247,6 +247,7 @@
   :categories: 
   - :productivity
   - :web_framework
+  - :ci
   :display_name: Jenkins Server
   :version: "1.4"
   :name: jenkins-1.4

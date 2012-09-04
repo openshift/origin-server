@@ -1418,6 +1418,38 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal [cart_a], new_groups[0].cartridges
   end
 
+  def test_gear_group_simplify_jenkins
+    mock_types
+
+    gear1 = Gear.new :id => 1, :state => 'started'
+    cart_a = Cartridge.new :name => 'jenkins-1.4'
+    groups = [
+      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
+    ]
+    app = Application.new :git_url => 'http://localhost'
+    new_groups = GearGroup.simplify(groups, app)
+
+    assert_equal 1, new_groups.length
+    assert_equal [gear1], new_groups[0].gears
+    assert_equal [cart_a], new_groups[0].cartridges
+  end
+
+  def test_gear_group_simplify_with_incorrect_tagging
+    mock_types([{:name => 'buildable_framework', :tags => [:ci_builder, :web_framework]}])
+
+    gear1 = Gear.new :id => 1, :state => 'started'
+    cart_a = Cartridge.new :name => 'buildable_framework'
+    groups = [
+      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
+    ]
+    app = Application.new :git_url => 'http://localhost'
+    new_groups = GearGroup.simplify(groups, app)
+
+    assert_equal 1, new_groups.length
+    assert_equal [gear1], new_groups[0].gears
+    assert_equal [cart_a], new_groups[0].cartridges
+  end
+
   def test_gear_group_simplify_scaled_zero
     mock_types
 
@@ -1450,8 +1482,8 @@ class RestApiTest < ActiveSupport::TestCase
   # Prime the cartridge type cache so lookups are valid.  Call after 
   # HttpMock.respond_to or use respond_to(false).
   #
-  def mock_types
-    types = CartridgeType.send(:type_map).keys.map{ |k| {:name => k} }
+  def mock_types(extra=[])
+    types = CartridgeType.send(:type_map).keys.map{ |k| {:name => k} }.concat(extra)
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, types.to_json
     end
