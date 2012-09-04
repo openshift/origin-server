@@ -74,14 +74,18 @@ class GroupInstance
           #self.add_alias(self.application.fqdn)
           
           application.aliases.each { |fqdn| self.add_alias(fqdn) }
-          dns = StickShift::DnsService.instance
           begin
             begin
+              dns = StickShift::DnsService.instance              
               dns.deregister_application(application.name, application.domain.namespace)
+              dns.publish
             rescue Exception => e
               #ignoring
               Rails.logger.debug e
+            ensure
+              dns.close
             end
+            dns = StickShift::DnsService.instance            
             dns.register_application(application.name, application.domain.namespace, self.gears[0].public_hostname)
             dns.publish
           ensure

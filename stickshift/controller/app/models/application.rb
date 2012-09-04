@@ -80,42 +80,7 @@ class Application
   def extended_validator
     notify_observers(:validate_application)
   end
-  
-  # Register a DNS alias for the application.
-  #
-  # == Parameters:
-  # fqdn::
-  #   Fully qualified domain name of the alias to associate with this application
-  #
-  # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
-  #
-  # == Raises:
-  # StickShift::UserException if the alias is already been associated with an application.
-  def add_alias(fqdn)
-    raise StickShift::UserException.new("Alias #{fqdn} is already registered") if Application.where(aliases: fqdn).count > 0
-    aliases.push(fqdn)
-    pending_op = PendingAppOps.new(op_type: :add_alias, args: {"fqdn" => fqdn})
-    pending_ops.push(pending_op)
-    return pending_op
-  end
-  
-  # Removes a DNS alias for the application.
-  #
-  # == Parameters:
-  # fqdn::
-  #   Fully qualified domain name of the alias to remove from this application
-  #
-  # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
-  def remove_alias(fqdn)
-    return unless aliases.include? fqdn
-    aliases.delete(fqdn)
-    pending_op = PendingAppOps.new(op_type: :remove_alias, args: {"fqdn" => fqdn})
-    pending_ops.push(pending_op)
-    return pending_op
-  end
-  
+    
   # Initializes the application
   #
   # == Parameters:
@@ -894,6 +859,7 @@ class Application
   # == Returns:
   # True on success or False if unable to acquire the lock or no pending jobs.
   def run_jobs(result_io=nil)
+    self.reload
     result_io = ResultIO.new if result_io.nil?
     
     return true if(self.pending_ops.count == 0)
@@ -1093,15 +1059,17 @@ class Application
             self.destroy
           end
           
-          op.completed
-          self.reload if op.op_type != :delete_app
+          if op.op_type != :delete_app
+            op.completed
+            self.reload
+          end
         end
-        return true
+        true
       ensure
         Lock.unlock_application(self)
       end
     else
-      return false
+      false
     end
   end
   
@@ -1217,5 +1185,75 @@ class Application
     h["Group-Overrides"] = self.group_overrides unless self.group_overrides.empty?
     
     h
+  end
+
+  def start
+  end
+  
+  def stop(force=false)
+  end
+  
+  def restart
+  end
+  
+  def reload
+  end
+  
+  def status
+  end
+  
+  def tidy
+  end
+  
+  # Register a DNS alias for the application.
+  #
+  # == Parameters:
+  # fqdn::
+  #   Fully qualified domain name of the alias to associate with this application
+  #
+  # == Returns:
+  # {PendingAppOps} object which tracks the progess of the operation.
+  #
+  # == Raises:
+  # StickShift::UserException if the alias is already been associated with an application.
+  def add_alias(fqdn)
+    raise StickShift::UserException.new("Alias #{fqdn} is already registered") if Application.where(aliases: fqdn).count > 0
+    aliases.push(fqdn)
+    pending_op = PendingAppOps.new(op_type: :add_alias, args: {"fqdn" => fqdn})
+    pending_ops.push(pending_op)
+    return pending_op
+  end
+  
+  # Removes a DNS alias for the application.
+  #
+  # == Parameters:
+  # fqdn::
+  #   Fully qualified domain name of the alias to remove from this application
+  #
+  # == Returns:
+  # {PendingAppOps} object which tracks the progess of the operation.
+  def remove_alias(fqdn)
+    return unless aliases.include? fqdn
+    aliases.delete(fqdn)
+    pending_op = PendingAppOps.new(op_type: :remove_alias, args: {"fqdn" => fqdn})
+    pending_ops.push(pending_op)
+    return pending_op
+  end
+  
+  def expose_port
+  end
+  
+  def conceal_port
+  end
+  
+  def show_port
+  end
+  
+  def system_messages
+  end
+  
+  def feature_provided_by_cartridge(cartridge_name)
+    component_instance = self.component_instances.find(cartridge_name: cartridge_name)
+    get_feature(component_instance.cartridge_name, component_instance.component_name)
   end
 end

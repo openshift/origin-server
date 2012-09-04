@@ -143,17 +143,17 @@ class LegacyBrokerController < BaseController
     end
 
     if @req.alter
-      Rails.logger.debug "Updating namespace for domain #{domain.uuid} from #{domain.namespace} to #{@req.namespace}"
+      Rails.logger.debug "Updating namespace for domain #{domain._id.to_s} from #{domain.namespace} to #{@req.namespace}"
       raise StickShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if StickShift::ApplicationContainerProxy.blacklisted? @req.namespace   
       begin
         if domain.namespace != @req.namespace
           domain.namespace = @req.namespace     
           @reply.append domain.save
-          log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_ALTER_DOMAIN", true, "Updated namespace for domain #{domain.uuid} to #{@req.namespace}")
+          log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_ALTER_DOMAIN", true, "Updated namespace for domain #{domain._id.to_s} to #{@req.namespace}")
         end
       rescue Exception => e
-       log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_ALTER_DOMAIN", false, "Failed to updated namespace for domain #{domain.uuid} to #{@req.namespace}")
-       Rails.logger.error "Failed to update domain #{domain.uuid} from #{domain.namespace} to #{@req.namespace} #{e.message}"
+       log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_ALTER_DOMAIN", false, "Failed to updated namespace for domain #{domain._id.to_s} to #{@req.namespace}")
+       Rails.logger.error "Failed to update domain #{domain._id.to_s} from #{domain.namespace} to #{@req.namespace} #{e.message}"
        Rails.logger.error e.backtrace
        raise
       end
@@ -173,7 +173,7 @@ class LegacyBrokerController < BaseController
        end
        if not @cloud_user.applications.empty?
          @cloud_user.applications.each do |app|
-           if app.domain.uuid == domain.uuid
+           if app.domain == domain
              log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_DELETE_DOMAIN", false, "Domain #{domain.namespace} contains applications")
              @reply.resultIO << "Cannot remove namespace #{@req.namespace}. Remove existing app(s) first: "
              @reply.resultIO << @cloud_user.applications.map{|a| a.name}.join("\n")
@@ -251,7 +251,7 @@ class LegacyBrokerController < BaseController
       end
 
       if app.valid?
-        @reply.append app.run_jobs
+        app.run_jobs(@reply)
         case @req.cartridge
         when 'php'
           page = 'health_check.php'
@@ -260,7 +260,7 @@ class LegacyBrokerController < BaseController
         else
           page = 'health'
         end
-        @reply.data = {:health_check_path => page, :uuid => app.uuid}.to_json
+        @reply.data = {:health_check_path => page, :uuid => app._id.to_s}.to_json
         log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_CREATE_APP", true, "Created application #{app.name}")
         @reply.resultIO << "Successfully created application: #{app.name}" if @reply.resultIO.length == 0
       else
@@ -273,29 +273,29 @@ class LegacyBrokerController < BaseController
     when 'deconfigure'
       app = get_app_from_request(@cloud_user)
       app.destroy_app
-      @reply.append app.run_jobs
+      app.run_jobs(@reply)
       @reply.resultIO << "Successfully destroyed application: #{app.name}"
     when 'start'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.start(app.framework)
+      @reply.append app.start
     when 'stop'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.stop(app.framework)
+      @reply.append app.stop
     when 'restart'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.restart(app.framework)
+      @reply.append app.restart
     when 'force-stop'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.force_stop(app.framework)
+      @reply.append app.force_stop
     when 'reload'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.reload(app.framework)
+      @reply.append app.reload
     when 'status'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.status(app.framework)
+      @reply.append app.status
     when 'tidy'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.tidy(app.framework)
+      @reply.append app.tidy
     when 'add-alias'
       app = get_app_from_request(@cloud_user)
       @reply.append app.add_alias @req.server_alias
@@ -304,16 +304,16 @@ class LegacyBrokerController < BaseController
       @reply.append app.remove_alias @req.server_alias
     when 'threaddump'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.threaddump(app.framework)
+      @reply.append app.threaddump
     when 'expose-port'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.expose_port(app.framework)
+      @reply.append app.expose_port
     when 'conceal-port'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.conceal_port(app.framework)
+      @reply.append app.conceal_port
     when 'show-port'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.show_port(app.framework)
+      @reply.append app.show_port
     when 'system-messages'
       app = get_app_from_request(@cloud_user)
       @reply.append app.system_messages
@@ -340,12 +340,13 @@ class LegacyBrokerController < BaseController
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
     case @req.action
     when 'configure'
-      if app.scalable && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && @req.cartridge != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
+      begin
+        @reply.append app.requires += [@req.cartridge]      
+      rescue StickShift::GearLimitReachedException => e
         raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
-      @reply.append app.add_dependency(@req.cartridge)
     when 'deconfigure'
-      @reply.append app.remove_dependency(@req.cartridge)
+      @reply.append app.requires -= [feature_provided_by_cartridge(@req.cartridge)]
     when 'start'
       @reply.append app.start(@req.cartridge)      
     when 'stop'

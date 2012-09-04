@@ -30,3 +30,6 @@ Subscribes:
 Scaling:
   Min: 1
   Max: 1
+Configure-Order:
+  - php-5.4
+  - web_proxy

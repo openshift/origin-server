@@ -30,13 +30,12 @@ module Uplift
       @keyname = access_info[:keyname]
       @keyvalue = access_info[:keyvalue]
       @zone = access_info[:zone]
+      
+      @dns_con = Dnsruby::Resolver.new(:nameserver => @server, :port => @port, :retry_times => 10)
+      @dns_con.src_port = @src_port if @src_port
     end
 
     def dns
-      if not @dns_con
-        @dns_con = Dnsruby::Resolver.new(:nameserver => @server, :port => @port)
-        @dns_con.src_port = @src_port if @src_port
-      end
       @dns_con
     end
 
@@ -117,7 +116,8 @@ module Uplift
     end
 
     def close
+      @dns_con.close
+      @dns_con = nil
     end
-    
   end
 end
