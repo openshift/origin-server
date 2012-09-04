@@ -16,6 +16,10 @@ module Console::ConsoleHelper
   def outage_notification
   end
 
+  def product_branding
+    content_tag(:span, "<strong>Open</strong>Shift Origin".html_safe, :class => 'brand-text headline')
+  end
+
   def product_title
     'OpenShift Origin'
   end

@@ -205,6 +205,7 @@ module RestApi
       end
 
       attributes.each do |key, value|
+        #Rails.logger.debug "Found nil key when deserializing #{attributes.inspect}" if key.nil?
         if !known.include? key.to_s and !calculated.include? key and respond_to?("#{key}=") 
           send("#{key}=", value)
         else

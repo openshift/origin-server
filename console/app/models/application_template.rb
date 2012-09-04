@@ -5,6 +5,14 @@ class ApplicationTemplate < RestApi::Base
     string :descriptor_yaml, :display_name
   end
 
+  #class Metadata < RestApi::Base
+  #  has_one :credential
+  #  class Credential < RestApi::Base
+  #  end
+  #end
+
+  #has_one :metadata
+
   custom_id :name
 
   [:description, :website, :version, :git_url, :git_project_url].each do |s|
