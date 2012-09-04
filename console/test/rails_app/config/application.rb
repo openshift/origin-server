@@ -9,7 +9,7 @@ require "rails/test_unit/railtie"
 # support for that here to prevent Node (which supplies V8) from conflicting.
 ENV['EXECJS_RUNTIME'] = 'SpiderMonkey'
 
-Bundler.require
+Bundler.require *Rails.groups(:default, :assets => %w(development test)) if defined?(Bundler)
 require "console/engine"
 
 module RailsApp
@@ -41,6 +41,12 @@ module RailsApp
 
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
+
+    # Enable the asset pipeline
+    config.assets.enabled = true
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
   end
 end
 

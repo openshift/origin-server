@@ -2,12 +2,15 @@ source 'http://rubygems.org'
 
 gemspec
 
-group :development, :test do
-  gem 'ci_reporter', '~> 1.7.0', :require => nil
-  gem 'test-unit' if RUBY_VERSION.to_f >= 1.9
+group :test do
+  gem 'ci_reporter',  '~> 1.7.0', :require => nil
+  gem 'test-unit'     if RUBY_VERSION.to_f >= 1.9
+  gem 'mocha',        '~> 0.9.8'
+  gem 'webmock',      '~> 1.6.4'
 end
 group :assets do
-  gem 'sass-rails', "  ~> 3.2.3"
-  gem 'coffee-rails', "~> 3.2.1"
-  gem 'uglifier', '>= 1.0.3'
+  gem 'sass-rails',   '~> 3.2.5'
+  gem 'coffee-rails', '~> 3.2.2'
+  gem 'jquery-rails', '~> 2.0.2'
+  gem 'uglifier',     '>= 1.2.6'
 end

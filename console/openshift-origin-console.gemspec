@@ -29,7 +29,5 @@ Gem::Specification.new do |s|
 #  s.add_dependency 'barista', '~> 1.2.1'
   s.add_dependency 'rdiscount', '~> 1.6.3'
 
-  s.add_development_dependency 'mocha', '~> 0.9.8'
-  s.add_development_dependency 'webmock', '~> 1.6.4'
   #s.add_dependency '', '~> '
 end

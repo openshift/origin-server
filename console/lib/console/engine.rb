@@ -1,4 +1,5 @@
 require 'rails/engine'
+require 'sprockets/railtie'
 
 # Engines must explicitly require dependencies
 require 'sass'

@@ -62,6 +62,9 @@ GEM
     hike (1.2.1)
     i18n (0.6.0)
     journey (1.0.4)
+    jquery-rails (2.0.3)
+      railties (>= 3.1.0, < 5.0)
+      thor (~> 0.14)
     json (1.7.5)
     mail (2.4.4)
       i18n (>= 0.4.0)
@@ -126,10 +129,11 @@ PLATFORMS
 
 DEPENDENCIES
   ci_reporter (~> 1.7.0)
-  coffee-rails (~> 3.2.1)
+  coffee-rails (~> 3.2.2)
+  jquery-rails (~> 2.0.2)
   mocha (~> 0.9.8)
   openshift-origin-console!
-  sass-rails (~> 3.2.3)
+  sass-rails (~> 3.2.5)
   test-unit
-  uglifier (>= 1.0.3)
+  uglifier (>= 1.2.6)
   webmock (~> 1.6.4)

@@ -120,6 +120,9 @@ class CartridgeType < RestApi::Base
     0
   end
 
+  class Property < RestApi::Base
+  end
+
   protected
     def self.find_single(scope, options)
       all(options).find{ |t| t.to_param == scope } or new(:name => scope, :as => options[:as])
