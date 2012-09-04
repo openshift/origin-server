@@ -14,89 +14,57 @@ class Gear
   field :server_identity, type: String
   field :uid, type: Integer
   field :name, type: String
+  field :host_singletons, type: Boolean, default: false
+  field :app_dns, type: Boolean, default: false
 
   # Initializes the gear
   def initialize(attrs = nil, options = nil)
-    super
-    
+    custom_id = attrs[:custom_id]
+    attrs.delete(:custom_id)
+    super(attrs, options)
+    self._id = custom_id unless custom_id.nil?
     #@todo: Remove when typeless gears is completed
-    name = self._id.to_s[0..9]
+    self.name = self._id.to_s[0..9]
   end
   
-  # Finds a Node and creates a Gear on it. If creation fails, it attempts to delete the partially created gear.
-  #
-  # == Returns:
-  # A {ResultIO} object with with output or error messages from the Node.
-  # Exit codes:
-  #   success = 0
-  #   failure = 5
-  # @raise [StickShift::NodeException] on failure
-  def create
-    result_io = nil
-    
-    dns = StickShift::DnsService.instance
-    begin
-      @container = StickShift::ApplicationContainerProxy.find_available #(group_instance.gear_profile)
-      self.set :server_identity, @container.id
-      self.set :uid, @container.reserve_uid
-      dns.register_application(self.name, self.group_instance.application.domain.namespace, public_hostname)
-      dns.publish      
-      result_io = @container.create(app,self)
-    rescue Exception => e
-      begin
-        dns.deregister_application(self.name, self.group_instance.application.domain.namespace)
-        dns.publish
-      rescue Exception => e
-        Rails.logger.debug e.inspect
-        #ignore
-      end
-      Rails.logger.debug e.message
-      Rails.logger.debug e.backtrace.join("\n")
-      result_io = ResultIO.new
-      result_io.errorIO << e.message
-      result_io.exitcode = 5
-    ensure
-      dns.close
-    end
-
-    ## recovery action if creation failed above
-    if result_io.exitcode != 0
-      begin
-        get_proxy.destroy(self.app, self)
-      rescue Exception => e
-        Rails.logger.debug e.message
-        Rails.logger.debug e.backtrace.join("\n")
-      end
-      raise StickShift::NodeException.new("Unable to create gear on node", 1, result_io)
-    end
-    return result_io
+  def reserve_uid
+    @container = StickShift::ApplicationContainerProxy.find_available(group_instance.gear_size)
+    self.set :server_identity, @container.id
+    self.set :uid, @container.reserve_uid
   end
   
-  # Destorys the Gear on the Node that is running it.
-  #
-  # == Returns:
-  # A {ResultIO} object with with output or error messages from the Node.
-  # Exit codes:
-  #   success = 0
-  # @raise [StickShift::NodeException] on failure
+  def unreserve_uid
+    @container.unreserve_uid(self.uid)
+    self.set :server_identity, nil
+    self.set :uid, nil
+  end
+  
+  def create_gear
+    @container.create(app,self)
+  end
+  
   def destroy_gear
+    @container.destroy(app,self)
+  end
+  
+  def register_dns
     dns = StickShift::DnsService.instance
     begin
-      begin
-        dns.deregister_application(self.name, self.group_instance.application.domain.namespace)
-        dns.publish
-      rescue Exception => e
-        Rails.logger.debug e
-      end
-
-      result_io = get_proxy.destroy(app,self)
-      app.process_commands(result_io)
-      raise StickShift::NodeException.new("Unable to destroy gear on node", result_io.exitcode, result_io) if result_io.exitcode != 0
-      self.destroy
-      return result_io
+      dns.register_application(self.name, self.group_instance.application.domain.namespace, public_hostname)
+      dns.publish
     ensure
       dns.close
-    end
+    end  
+  end
+  
+  def deregister_dns
+    dns = StickShift::DnsService.instance
+    begin
+      dns.deregister_application(self.name, self.group_instance.application.domain.namespace, public_hostname)
+      dns.publish
+    ensure
+      dns.close
+    end  
   end
   
   # Installs the specified component on the gear.
@@ -191,6 +159,24 @@ class Gear
       @container = StickShift::ApplicationContainerProxy.instance(self.server_identity)
     end    
     return @container
+  end
+  
+  def update_configuration(args)
+    add_keys = args["add_keys_attrs"]
+    remove_keys = args["remove_keys_attrs"]
+    add_envs = args["add_env_vars"]
+    remove_envs = args["remove_env_vars"]
+    tag = ""
+    
+    handle = RemoteJob.create_parallel_job
+    RemoteJob.run_parallel_on_gears([self], handle) { |exec_handle, gear|
+      add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
+      remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
+      
+      add_envs.each     {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
+      remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
+    }
+    RemoteJob.execute_parallel_jobs(handle)
   end
   
   # Convinience method to get the {Application}

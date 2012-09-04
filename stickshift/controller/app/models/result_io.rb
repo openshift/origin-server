@@ -49,6 +49,34 @@ class ResultIO
     self
   end
   
+  
+  #CART_DATA: PROXY_HOST=504605c568-localns.example.com
+  #CART_DATA: PROXY_PORT=35531
+  #CART_DATA: HOST=127.0.250.1
+  #CART_DATA: PORT=3306
+  #CLIENT_RESULT: 
+  #CLIENT_RESULT: MySQL 5.1 database added.  Please make note of these credentials:
+  #CLIENT_RESULT: 
+  #CLIENT_RESULT:    Root User: admin
+  #CLIENT_RESULT:    Root Password: K-8R3IIgd2Q5
+  #CLIENT_RESULT:    Database Name: myapp
+  #CLIENT_RESULT: 
+  #CLIENT_RESULT: Connection URL: mysql://504605c568-localns.example.com:35531/
+  #CLIENT_RESULT: MySQL gear-local connection URL: mysql://127.0.250.1:3306/
+  #CLIENT_RESULT: 
+  #CART_PROPERTIES: connection_url=mysql://504605c568-localns.example.com:35531/
+  #CART_PROPERTIES: username=admin
+  #CART_PROPERTIES: password=K-8R3IIgd2Q5
+  #CART_PROPERTIES: database_name=myapp
+  #APP_INFO: Connection URL: mysql://504605c568-localns.example.com:35531/
+  #
+  #
+  #elsif line =~ /^CART_DATA: /
+  #  result.data << line['CART_DATA: '.length..-1]
+  #elsif line =~ /^CART_PROPERTIES: /
+  #  property = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
+  #  result.cart_properties[property[0]] = property[1]
+  
   # Returns the output of this {ResultIO} object as a string. Primarily used for debug output.
   def to_s
     str = "--DEBUG--\n#{@debugIO.string}\n" +

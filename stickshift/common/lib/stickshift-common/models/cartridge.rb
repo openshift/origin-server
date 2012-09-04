@@ -35,6 +35,10 @@ module StickShift
       @_profile_map[profile].components
     end
     
+    def has_component?(component_name)
+      !get_component(component_name).nil?
+    end
+    
     def get_component(component_name)
       profiles.each{ |p| return p.get_component(component_name) unless p.get_component(component_name).nil? }
     end

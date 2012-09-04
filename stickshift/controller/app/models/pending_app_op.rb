@@ -7,22 +7,25 @@
 #   @return [Symbol] Operation state. One of init, queued or completed
 # @!attribute [r] arguments
 #   @return [Hash] Arguments hash
-# @!attribute [r] flag_req_change
-#   @return [Boolean] True if this operation causes gears or connections to be added or removed
-# @!attribute [rw] parent_op_id
-#   @return [Moped::BSON::ObjectId] ID of the {PendingDomainOps} operation that this operation is part of
 # @!attribute [r] retry_count
 #   @return [Integer] Number of times this operation has been attmpted
-class PendingAppOps
+class PendingAppOp
   include Mongoid::Document
-  include Mongoid::Timestamps
-  embedded_in :application, class_name: Application.name
-  field :op_type,   type: Symbol
-  field :state,    type: Symbol, default: :init
-  field :args, type: Hash, default: {}
-  field :flag_req_change, type: Boolean, default: false
-  field :parent_op_id, type: Moped::BSON::ObjectId
-  field :retry_count, type: Integer, default: 0
+  embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name
+  field :op_type,           type: Symbol
+  field :state,             type: Symbol,   default: :init
+  field :args,              type: Hash
+  field :prereq,            type: Array
+  field :retry_count,       type: Integer,  default: 0
+  field :retry_rollback_op, type: Moped::BSON::ObjectId
+
+  def args
+    self.attributes["args"] || {}
+  end
+
+  def prereq
+    self.attributes["prereq"] || []
+  end
 
   # Sets the [PendingDomainOps] Domain level operation that spawned this operation.
   #

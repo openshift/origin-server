@@ -22,6 +22,15 @@ class CartridgeCache
     end
   end
   
+  def self.find_cartridge_by_component(component_name)
+    carts = self.cartridges
+    carts.each do |cart|
+      return cart if cart.has_component?(component_name)
+      return cart if cart.name == component_name
+    end
+    return nil
+  end
+  
   def self.find_cartridge_by_category(cat)
     CacheHelper.get_cached("cartridges_by_cat_#{cat}", :expires_in => 1.day) {cartridges.select{|cart| cart.categories.include?(cat) }}
   end
