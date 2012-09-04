@@ -25,7 +25,7 @@ class LegacyBrokerController < BaseController
       user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
       user_info["rhlogin"] = @cloud_user.login
       user_info["uuid"] = @cloud_user._id.to_s      
-      user_info["namespace"] = @cloud_user.domains.first.namespace
+      user_info["namespace"] = @cloud_user.domains.first.namespace if @cloud_user.domains.count > 0
 
       #FIXME: This is redundant, for now keeping it for backward compatibility
       if @cloud_user.ssh_keys.length > 0
@@ -418,9 +418,10 @@ class LegacyBrokerController < BaseController
       if auth  
         @login = auth[:username]
         @auth_method = auth[:auth_method]
-
-        @cloud_user = CloudUser.find_by(login: @login)
-        if @cloud_user.nil?
+        
+        begin
+          @cloud_user = CloudUser.find_by(login: @login)
+        rescue Mongoid::Errors::DocumentNotFound
           Rails.logger.debug "Adding user #{@login}...inside legacy_controller"
           @cloud_user = CloudUser.new(login: @login)
           begin

@@ -26,11 +26,11 @@ retries = 0
 
 [passenger]
 name    = passenger
-baseurl = http://www.krishnaraman.net/downloads/rubygem-passenger-f17
+baseurl = http://wakko666.fedorapeople.org/rubygem-passenger
 gpgcheck= 0
 enabled = 1
 retries = 0
-  EOF
+EOF
   else
     raise "RHEL not supported yet"
   end
@@ -196,6 +196,8 @@ end
 task :createrepo do
   sh "mkdir -p #{rpmdir}/noarch"
   sh "createrepo #{rpmdir}/noarch"
+  sudo("wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo")
+  sudo("rpm --import http://pkg.jenkins-ci.org/redhat/jenkins-ci.org.key")
   File.open("#{rpmdir}/ss.repo", 'w') do |out|
     out << repo_string(rpmdir)
   end
