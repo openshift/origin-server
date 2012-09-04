@@ -7,7 +7,7 @@ Vendor:
 Categories:
   - cartridge
   - web_framework
-  - builds
+  - ci_builder
 Cart-Data:
   - Key: "job_url"
     Type: cart_data
