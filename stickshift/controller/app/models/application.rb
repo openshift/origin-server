@@ -995,7 +995,18 @@ class Application
             self.connections = conns
           when :execute_connections
             handle = RemoteJob.create_parallel_job
+            #expose port
+            self.group_instances.each do |group_instance|
+              component_instances = group_instance.resolve_component_instances
+              group_instance.gears.each do |gear|
+                component_instances.each do |component_instance|
+                  job = gear.get_expose_port_job(component_instance.cartridge_name)
+                  RemoteJob.add_parallel_job(handle, "expose-ports::#{component_instance._id.to_s}", gear, job)
+                end
+              end
+            end
             
+            #publishers
             sub_jobs = []
             self.connections.each do |conn|
               pub_inst = self.component_instances.find(conn.from_comp_inst_id)
@@ -1014,11 +1025,17 @@ class Application
             RemoteJob.execute_parallel_jobs(handle)
             RemoteJob.get_parallel_run_results(handle) do |tag, gear, output, status|
               if status==0
-                pub_out[tag] = [] if pub_out[tag].nil?
-                pub_out[tag].push("'#{gear}'='#{output}'")
+                if tag.start_with?("expose-ports::")
+                  component_instance_id = tag[14..-1]
+                  self.component_instances.find(component_instance_id).process_properties(output)
+                else
+                  pub_out[tag] = [] if pub_out[tag].nil?
+                  pub_out[tag].push("'#{gear}'='#{output}'")
+                end
               end
             end
             
+            #subscribers
             handle = RemoteJob.create_parallel_job
             self.connections.each do |conn|            
               sub_inst = self.component_instances.find(conn.to_comp_inst_id)

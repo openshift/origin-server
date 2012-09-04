@@ -439,6 +439,18 @@ module GearChanger
         end          
       end
       
+      def get_expose_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'expose-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
+      def get_conceal_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'conceal-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
+      def get_show_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'show-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
       def expose_port(app, gear, cart)
         run_cartridge_command(cart, app, gear, "expose-port")
       end
