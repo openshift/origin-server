@@ -52,7 +52,6 @@ module RestApiAuth
   end
 
   def set_user(user)
-    #@request.env['HTTP_AUTHORIZATION'] = "Basic #{ActiveSupport::Base64.encode64s("#{user.login}:#{user.password}")}" if user.password
     @request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials(user.login, user.password) if user.password
     @request.cookies['rh_sso'] = user.ticket if user.ticket
     @request.env['HTTPS'] = 'on'
