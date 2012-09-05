@@ -22,6 +22,7 @@ class BuildingControllerTest < ActionController::TestCase
     with_unique_user
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.delete '/broker/rest/domains/test/applications/test/cartridges/jenkins-client-1.4.json', json_header, {}.to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
@@ -72,6 +73,13 @@ class BuildingControllerTest < ActionController::TestCase
     assert_redirected_to new_application_building_path(app)
   end
 
+  test "should destroy" do
+    delete :destroy, with_app
+    assert app = assigns(:application)
+    assert assigns(:domain)
+    assert_redirected_to application_path(app)
+  end
+
   test "should see new page without a jenkins app" do
     get :new, with_app
     assert app = assigns(:application)
@@ -113,7 +121,7 @@ class BuildingControllerTest < ActionController::TestCase
     post :create, app_args
 
     # Check that the flash text matches our desired message
-    assert_match /^The Jenkins server has not yet registered with DNS/, flash[:info_pre]
+    assert_match /^The Jenkins server is not yet registered with DNS/, flash[:info_pre]
   end
 
   test "should show if all components exist" do

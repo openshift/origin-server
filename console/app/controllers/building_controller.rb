@@ -41,7 +41,7 @@ class BuildingController < ConsoleController
     @cartridge.application = @application
 
     success, attempts = @cartridge.save, 1
-    while (!success && @cartridge.has_exit_code?(157, :on => :cartridge) && attempts < 6)
+    while (!success && @cartridge.has_exit_code?(157, :on => :cartridge) && attempts < 2)
       logger.debug "  Jenkins server could not be contacted, sleep and then retry\n    #{@cartridge.errors.inspect}"
       sleep(10)
       success = @cartridge.save
@@ -52,7 +52,7 @@ class BuildingController < ConsoleController
       redirect_to application_building_path(@application), :flash => {:info_pre => @cartridge.remote_results.concat(message || []).concat(['Your application is now building with Jenkins.'])}
     else
       if @cartridge.has_exit_code?(157, :on => :cartridge)
-        message = 'The Jenkins server has not yet registered with DNS. Wait a few minutes before trying to add new cartridges to the application.'
+        message = 'The Jenkins server is not yet registered with DNS. Please wait a few minutes before trying again.'
       else
         @cartridge.errors.full_messages.each{ |m| @jenkins_server.errors.add(:base, m) }
       end

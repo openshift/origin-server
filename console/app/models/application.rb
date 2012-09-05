@@ -87,7 +87,7 @@ class Application < RestApi::Base
 
   # FIXME it is assumed that eventually this will be server functionality
   def destroy_build_cartridge
-    cart = Cartridge.new :application => self, :as => as, :name => 'jenkins-client-1.4'
+    cart = Cartridge.new({:application => self, :as => as, :name => 'jenkins-client-1.4'}, true)
     cart.destroy.tap{ |success| cart.errors.full_messages.each{ |m| errors.add(:base, m) } unless success }
   end
 
