@@ -15,6 +15,7 @@ BuildArch: noarch
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
+Requires: java
 Requires: jenkins
 Requires: jenkins-plugin-openshift
 
