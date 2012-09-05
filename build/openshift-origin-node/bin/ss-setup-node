@@ -212,7 +212,12 @@ system "perl -p -i -e 's/^(# )?INTERNAL_ETH_DEV=.*$/INTERNAL_ETH_DEV=#{int_eth_d
 system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
 system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/client.cfg"
 system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/server.cfg"
-        
+
+# Restore SELinux default security contexts.
+system "/sbin/restorecon /var/lib/stickshift || :"
+system "/sbin/restorecon /var/lib/stickshift/.httpd.d/ || :"
+
+
 config_lines = File.open('/etc/stickshift/stickshift-node.conf').readlines
 File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
   config_lines.each do |line|
