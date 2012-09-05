@@ -1,3 +1,5 @@
+require File.expand_path('../coverage_helper.rb', __FILE__)
+
 unless defined? Rails.application
   ENV["RAILS_ENV"] = "test"
 

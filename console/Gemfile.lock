@@ -114,6 +114,10 @@ GEM
       railties (~> 3.2.0)
       sass (>= 3.1.10)
       tilt (~> 1.3)
+    simplecov (0.6.4)
+      multi_json (~> 1.0)
+      simplecov-html (~> 0.5.3)
+    simplecov-html (0.5.3)
     sprockets (2.1.3)
       hike (~> 1.2)
       rack (~> 1.0)
@@ -143,6 +147,7 @@ DEPENDENCIES
   mocha (~> 0.9.8)
   openshift-origin-console!
   sass-rails (~> 3.2.5)
+  simplecov (~> 0.6.4)
   test-unit
   uglifier (>= 1.2.6)
   webmock (~> 1.6.4)
