@@ -16,7 +16,7 @@ BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
 #https://issues.jenkins-ci.org/browse/JENKINS-15047
-Requires: java
+Requires: java >= 1.6
 Requires: jenkins
 Requires: jenkins-plugin-openshift
 
