@@ -158,8 +158,19 @@ module Console::HelpHelper
     community_base_url "paas", opts
   end
 
+  def opensource_process_url
+    community_base_url "wiki/community-process"
+  end
+
+  def opensource_architecture_url
+    community_base_url "wiki/architecture-overview"
+  end
+
   def opensource_download_path(opts=nil)
     community_base_url "open-source/download-origin", opts
+  end
+  def opensource_download_url(opts=nil)
+    opensource_download_path opts
   end
 
   def getting_started_guide_url
