@@ -15,7 +15,6 @@ Color palette
 161   0  12    a1000c     Dark Red
 
 */
-@import "console/base";
 
 @import "variables";
 @import "bootstrap/variables";
@@ -23,6 +22,7 @@ Color palette
 @import "mixins";
 @import "console/mixins";
 
+@import "console/base";
 @import "console/navbar";
 @import "console/help";
 @import "console/breadcrumbs";

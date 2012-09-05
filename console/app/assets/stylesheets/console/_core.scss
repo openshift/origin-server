@@ -209,12 +209,12 @@ ol.wizard li a {
 
 .section-console {
   background-color: #1f1f1f;
-  @extend %console-background !optional;
+  @include console_background;
 }
 
 .ie9 .section-console {
   background-color: #1f1f1f;
-  @extend %console-background-ie9 !optional;
+  @include console_background_ie9;
 }
 @media (max-width: 767px) {
   .ie9 .section-console {
