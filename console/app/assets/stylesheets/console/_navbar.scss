@@ -2,7 +2,7 @@
 	margin: 0;
 	background: black;
 	border-bottom: 2px solid #383838;
-  @extend %navbar-background !optional;
+  @include navbar_background;
 }
 .navbar .navbar-inner {
 	min-height: 84px;
@@ -50,7 +50,7 @@
 
   .brand-image {
     display: none;
-    @extend %brand-image !optional;
+    @include brand_image;
   }
 
   a {

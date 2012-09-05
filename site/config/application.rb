@@ -9,9 +9,7 @@ require "rails/test_unit/railtie"
 # support for that here to prevent Node (which supplies V8) from conflicting.
 ENV['EXECJS_RUNTIME'] = 'SpiderMonkey'
 
-# If you have a Gemfile, require the gems listed there, including any gems
-# you've limited to :test, :development, or :production.
-Bundler.require(:default, Rails.env) if defined?(Bundler)
+Bundler.require *Rails.groups(:default, :assets => %w(development test)) if defined?(Bundler)
 
 module RedHatCloud
   class Application < Rails::Application
@@ -52,5 +50,20 @@ module RedHatCloud
     config.user_agent = Console.config.api[:user_agent]#"openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
 
     Console.config.include_helpers = false
+
+    # Enable the asset pipeline
+    config.assets.enabled = true
+    config.assets.compress = true
+    config.assets.js_compressor = :uglifier
+    config.assets.precompile += %w(application.js common.css console.css site.css overpass.css)
+
+    if config.respond_to? :sass
+      config.sass.style = :compressed
+      config.sass.line_comments = false
+      config.sass.relative_assets = true
+    end
+
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
   end
 end

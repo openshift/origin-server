@@ -1,6 +1,9 @@
 //= require jquery
 //= require jquery_ujs
-//= require bootstrap/bootstrap-collapse
-//= require bootstrap/bootstrap-transition
-//= require bootstrap/bootstrap-dropdown
+//= require jquery_validate.min
+//= require jquery_cookie
+//= require plugins
+//= require bootstrap-collapse
+//= require bootstrap-transition
+//= require bootstrap-dropdown
 //= require_tree .
