@@ -10,6 +10,8 @@ SimpleCov.start 'rails' do
   # Filters - these files will be ignored.
   add_filter 'app/models/rest_api/railties'
 
+  merge_timeout 1000
+
   # Groups - general categories of test areas
   #add_group('Controllers') { |src_file| src_file.filename.include?(File.join(%w[lib rhc commands])) }
   #add_group('REST API')    { |src_file| src_file.filename.include?(File.join(%w[lib rhc])) }

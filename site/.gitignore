@@ -9,3 +9,4 @@ app/subsites/status/db/status.sqlite3
 test/reports/
 app/subsites/status/db/status.sqlite3
 public/assets
+test/coverage
