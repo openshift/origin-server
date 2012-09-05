@@ -61,6 +61,7 @@ Cart-Data:
     Description: "Admin user's passowrd on jenkins server"
 Suggests:
 Provides:
+  - "jenkins-1.4"
   - "jenkins"
   - "jenkins(version) = 1.4"
 Requires:

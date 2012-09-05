@@ -18,12 +18,20 @@ class ComponentInstance
   
   # @return [Boolean] true if the component does not scale.
   def is_singleton?
-    CartridgeCache.find_cartridge(cartridge_name).get_component(component_name).is_singleton?
+    get_component.is_singleton?
   end
   
   # Helper method called by {Application#process_commands} to process component hook output and extract the component_properties
   def process_properties(result_io)
     # @todo
+  end
+  
+  def get_cartridge
+    CartridgeCache.find_cartridge(cartridge_name)
+  end
+  
+  def get_component
+    get_cartridge.get_component(component_name)
   end
   
   # @return [Hash] a simplified hash representing this {ComponentInstance} object which is used by {Application#compute_diffs}

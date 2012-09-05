@@ -29,6 +29,7 @@ Suggests:
   - 10gen-mms-agent-0.1
   - rockmongo
 Provides:
+  - "mongodb-2.0"
   - "mongodb"
   - "mongodb(version) = 2.0.0"
 Profiles:

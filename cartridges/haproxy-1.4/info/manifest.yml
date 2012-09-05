@@ -11,7 +11,8 @@ Categories:
   - embedded  
 Website: http://haproxy.1wt.eu/
 Provides:
-  - "haproxy"
+  - haproxy-1.4
+  - haproxy
   - "haproxy(version) = 1.4"
   - web_proxy
 Publishes:

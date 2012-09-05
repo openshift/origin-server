@@ -46,6 +46,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - "python-2.6"
   - "wsgi"
   - "wsgi (version) = 3.2"
 Requires:

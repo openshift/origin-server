@@ -11,10 +11,6 @@
 #   @return [Integer] User set maximum number of gears.
 # @!attribute [r] gear_profile
 #   @return [String] Gear profile of all gears under this {GroupInstance}
-# @!attribute [rw] component_instances
-#   @return [Array[Moped::BSON::ObjectId]] IDs of non-singleton {ComponentInstance}s that are part of this {GroupInstance}
-# @!attribute [rw] singleton_instances
-#   @return [Array[Moped::BSON::ObjectId]] IDs of singleton {ComponentInstance}s that are part of this {GroupInstance}
 # @!attribute [r] gears
 #   @return [Array[Gear]] List of gears that are part of this {GroupInstance}
 # @!attribute [r] app_dns
@@ -29,7 +25,6 @@ class GroupInstance
   field :user_max, type: Integer, default: -1
   
   field :gear_size, type: String, default: "small"
-  field :singleton_instances, type: Array, default: []
   embeds_many :gears, class_name: Gear.name
   
   # Initializes the application

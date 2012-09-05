@@ -17,6 +17,8 @@ class PendingAppOpGroup
   field :args,              type: Hash
   field :parent_op_id, type: Moped::BSON::ObjectId
   embeds_many :pending_ops, class_name: PendingAppOp.name
+  field :num_gears_added,   type: Integer, default: 0
+  field :num_gears_removed,   type: Integer, default: 0
   
   def initialize(attrs = nil, options = nil)
     if !attrs.nil? and attrs.has_key?(:parent_op)
@@ -45,11 +47,13 @@ class PendingAppOpGroup
             component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
           end
         end
+        
+        
         case op.op_type
         when :create_group_instance
           application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))
         when :init_gear
-          group_instance.gears.push(Gear.new(custom_id: op.args["gear_id"]))
+          group_instance.gears.push(Gear.new(custom_id: op.args["gear_id"], group_instance: group_instance, host_singletons: op.args["host_singletons"], app_dns: op.args["app_dns"]))
           application.save
         when :delete_gear
           gear.delete
@@ -70,7 +74,7 @@ class PendingAppOpGroup
         when :create_gear
           gear.create
         when :register_dns          
-          gear.register_dns          
+          gear.register_dns
         when :deregister_dns          
           gear.deregister_dns          
         when :destroy_gear
@@ -81,7 +85,7 @@ class PendingAppOpGroup
           application.set_connections(op.args["connections"])
         when :execute_connections
           application.execute_connections
-        end
+        end        
         op.set(:state, :completed)
       end
     end

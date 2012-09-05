@@ -318,12 +318,13 @@ class Application
 
   # Returns the ssh URL to access the gear hosting the web_proxy component 
   def ssh_uri
-    web_proxy_ginst = group_instances.find_by(app_dns: true)
-    unless web_proxy_ginst.nil?
-      "#{web_proxy_ginst.gears[0]._id}@#{fqdn}"
-    else
-      ""
+    self.group_instances.each do |group_instance|
+      if group_instance.gears.where(app_dns: true).count > 0
+        gear = group_instance.gears.find_by(app_dns: true)
+        return "#{gear._id}@#{fqdn}"
+      end
     end
+    ""
   end
 
   # Retrieves the gear state for all gears within the application.
@@ -541,14 +542,14 @@ class Application
     if add_ssh_keys.length > 0
       keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs})
-      Application.where(_id: self._id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash } , "$pushAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } , "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_ssh_keys.length > 0
       keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs})
-      Application.where(_id: self._id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash } , "$pullAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } , "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
-    pending_ops.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
+    pending_op_groups.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
       "add_keys_attrs" => domain_keys_to_add.map{|k| k.attributes.dup},
       "remove_keys_attrs" => domain_keys_to_rm.map{|k| k.attributes.dup},
       "add_env_vars" => env_vars_to_add,
@@ -563,7 +564,7 @@ class Application
   # True on success or False if unable to acquire the lock or no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    self.reload    
+    self.reload
     return true if(self.pending_op_groups.count == 0)
     if(Lock.lock_application(self))
       begin
@@ -575,24 +576,24 @@ class Application
             when :remove_namespace
             when :update_configuration
               ops = calculate_update_existing_configurtion_ops(op_group.args)
-              op_group.push(*ops)
+              op_group.pending_ops.push(*ops)
             when :update_ssh_keys
             when :add_components
               features = self.requires + op_group.args["features"]
               group_overrides = op_group.args["group_overrides"] || []
               ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
-              try_reserve_gears(add_gear_count, op_group, ops)
+              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :remove_components
               features = self.requires - op_group.args["features"]
               group_overrides = op_group.args["group_overrides"] || []
               ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
-              try_reserve_gears(add_gear_count, op_group, ops)
+              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :delete_app
               self.pending_op_groups.clear
               self.delete
             when :scale_by
               ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
-              try_reserve_gears(add_gear_count, op_group, ops)
+              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :add_alias
             when :remove_alias
             end
@@ -600,8 +601,10 @@ class Application
 
           if op_group.op_type != :delete_app
             op_group.execute
+            unreserve_gears(op_group)
             op_group.delete
           end
+          self.reload          
         end
         true
       ensure
@@ -671,7 +674,7 @@ class Application
     calculate_ops(changes)
   end
   
-  def calculate_gear_create_ops(ginst_id, gear_ids, comp_specs, component_ops, ginst_op_id=nil, is_scale_up=false)
+  def calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false)
     pending_ops = []
     ssh_keys = (self.app_ssh_keys + self.domain.system_ssh_keys + self.domain.owner.ssh_keys + CloudUser.find(self.domain.user_ids).map{|u| u.ssh_keys}.flatten)
     ssh_keys = ssh_keys.map{|k| k.attributes}
@@ -679,7 +682,9 @@ class Application
     
     gear_id_prereqs = {}
     gear_ids.each do |gear_id|
-      create_gear_op  = PendingAppOp.new(op_type: :init_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
+      host_singletons = (gear_id == singleton_gear_id)
+      app_dns = (host_singletons && hosts_app_dns)
+      create_gear_op  = PendingAppOp.new(op_type: :init_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
       create_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
       reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
       init_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
@@ -694,7 +699,7 @@ class Application
     ops = calculate_update_new_configurtion_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
     
-    ops = calculate_add_component_ops(comp_specs, ginst_id, gear_id_prereqs, component_ops, is_scale_up, ginst_op_id)
+    ops = calculate_add_component_ops(comp_specs, ginst_id, gear_id_prereqs, singleton_gear_id, component_ops, is_scale_up, ginst_op_id)
     pending_ops.push(*ops)
     pending_ops
   end
@@ -711,33 +716,49 @@ class Application
     pending_ops
   end
   
-  def calculate_add_component_ops(comp_specs, group_instance_id, gear_id_prereqs, component_ops, is_scale_up, new_group_instance_op_id)
+  def calculate_add_component_ops(comp_specs, group_instance_id, gear_id_prereqs, singleton_gear_id, component_ops, is_scale_up, new_group_instance_op_id)
     ops = []
     
-    configure_order = calculate_configure_order(comp_specs)
     comp_specs.each do |comp_spec|
-      component_ops[comp_spec] = [] if component_ops[comp_spec].nil?
+      component_ops[comp_spec] = {new_component: nil, adds: []} if component_ops[comp_spec].nil?
+      is_singleton = CartridgeCache.find_cartridge(comp_spec["cart"]).get_component(comp_spec["comp"]).is_singleton?
       
       new_component_op_id = []
       unless is_scale_up
         new_component_op = PendingAppOp.new(op_type: :new_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec}, prereq: [new_group_instance_op_id])
+        component_ops[comp_spec][:new_component] = new_component_op
         new_component_op_id = [new_component_op._id.to_s]
         ops.push new_component_op
       end
       
-      gear_id_prereqs.each do |gear_id, prereq_id|
-        ops.push(PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec}, prereq: new_component_op_id + [prereq_id]))
-      end
+      if is_singleton
+        if gear_id_prereqs.keys.include?(singleton_gear_id)
+          prereq_id = gear_id_prereqs[singleton_gear_id]
+          op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec}, prereq: new_component_op_id + [prereq_id])
+          ops.push op
+          component_ops[comp_spec][:adds].push op
+        end
+      else
+        gear_id_prereqs.each do |gear_id, prereq_id|
+          op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec}, prereq: new_component_op_id + [prereq_id])
+          ops.push op
+          component_ops[comp_spec][:adds].push op
+        end
+      end      
     end
     ops
   end
   
-  def calculate_remove_component_ops(comp_specs, group_instance_id)
+  def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
     ops = []
     comp_specs.each do |comp_spec|
-      ginst = self.group_instances.find(group_instance_id)
-      ginst.gears.each do |gear|
-        ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec}))
+      component_instance = self.component_instances.find(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
+      if component_instances.is_singleton?
+        ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
+      else
+        group_instance.gears.each do |gear|
+          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec}))
+        end
       end
       ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
     end
@@ -773,7 +794,21 @@ class Application
       ginst_op = PendingAppOp.new(op_type: :create_group_instance, args: {"group_instance_id"=> ginst_id})
       pending_ops.push(ginst_op)
       gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
-      ops = calculate_gear_create_ops(ginst_id, gear_ids, change[:added], component_ops, ginst_op._id.to_s)
+      
+      comp_specs = change[:added]
+      app_dns_ginst = false
+      comp_specs.each do |comp_spec|
+        cats = CartridgeCache.find_cartridge(comp_spec["cart"]).categories
+        app_dns_ginst = true if cats.include?("web_framework") || cats.include?("web_proxy")
+      end
+      
+      if app_dns_ginst
+        singleton_gear_id = gear_ids[0] = self._id.to_s
+      else
+        singleton_gear_id = gear_ids[0]
+      end
+
+      ops = calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, ginst_op._id.to_s, false, app_dns_ginst)
       pending_ops.push *ops
     end
     
@@ -804,29 +839,31 @@ class Application
           else
             scale_change += (change[:to_scale][:current] - change[:from_scale][:current])
           end
-          num_gears += scale_change
           
-          ginst = self.group_instance.find(_id: change[:from])
-          ops = calculate_remove_component_ops(change[:removed], change[:from])
+          ginst = self.group_instances.find(change[:from])
+          singleton_gear = ginst.gears.find_by(host_singletons: true)
+          ops = calculate_remove_component_ops(change[:removed], ginst, singleton_gear)
           pending_ops.push(*ops)
           
           gear_id_prereqs = {}
           ginst.gears.each{|g| gear_id_prereqs[g._id.to_s] = []}
-          
-          ops = calculate_add_component_ops(change[:added], change[:from], gear_id_prereqs, component_ops)
+          ops = calculate_add_component_ops(change[:added], change[:from], gear_id_prereqs, singleton_gear._id.to_s, component_ops, false, nil)
           pending_ops.push(*ops)
     
           if scale_change > 0
             add_gears += scale_change
-            comp_specs = self.component_instances.find_by(group_instance_id: change[:from]).map{|c| c.to_hash}
+            comp_specs = self.component_instances.where(group_instance_id: change[:from]).map{|c| c.to_hash}
+            group_instance = self.group_instances.find(change[:from])
+            singleton_gear = group_instance.gears.find_by(host_singletons: true)
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
-            ops = calculate_gear_create_ops(change[:from], gear_ids, comp_specs, component_ops, true)
+            
+            ops = calculate_gear_create_ops(change[:from], gear_ids, singleton_gear._id.to_s, comp_specs, component_ops, nil, true)
             pending_ops.push *ops
           end
           
           if scale_change < 0
             remove_gears += -scale_change
-            ginst = self.group_instance.find(_id: change[:from])
+            ginst = self.group_instances.find(change[:from])
             gears = ginst.gears[-scale_change..-1]
             remove_ids = gears.map{|g| g._id.to_s}
             ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids)
@@ -835,6 +872,16 @@ class Application
         end
       end
     end
+    
+    config_order = calculate_configure_order(component_ops.keys)
+    config_order.each_index do |idx|
+      next if idx == 0
+      prereq_ids = component_ops[config_order[idx-1]][:adds].map{|op| op._id.to_s}
+      
+      component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
+      component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
+    end
+    binding.pry
     
     all_ops_ids = pending_ops.map{ |op| op._id.to_s }
     unless connections.nil?
@@ -938,18 +985,37 @@ class Application
   # ops::
   #   Array of pending operations. 
   #   @see {PendingAppOps}
-  def try_reserve_gears(num_gears, op_group, ops)
+  def try_reserve_gears(num_gears_added, num_gears_removed, op_group, ops)
+    binding.pry
     owner = self.domain.owner
     begin
       until Lock.lock_user(owner)
         sleep 1
       end
-      if owner.consumed_gears + num_gears > owner.capabilities["max_gears"]
+      owner.reload
+      if owner.consumed_gears + num_gears_added > owner.capabilities["max_gears"]
         raise StickShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
       end
-      owner.consumed_gears += num_gears
+      owner.consumed_gears += num_gears_added
       op_group.pending_ops.push ops
+      op_group.num_gears_added = num_gears_added
+      op_group.num_gears_removed = num_gears_removed
       op_group.save
+      owner.save
+    ensure
+      Lock.unlock_user(owner)
+    end
+  end
+  
+  def unreserve_gears(op_group)
+    return if op_group.num_gears_removed == 0
+    owner = self.domain.owner
+    begin
+      until Lock.lock_user(owner)
+        sleep 1
+      end
+      owner.reload
+      owner.consumed_gears -= op_group.num_gears_removed
       owner.save
     ensure
       Lock.unlock_user(owner)

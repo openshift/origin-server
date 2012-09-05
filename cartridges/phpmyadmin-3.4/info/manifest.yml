@@ -17,6 +17,7 @@ Categories:
   - database_support
   - embedded
 Provides:
+  - "phpmyadmin-3.4"
   - "phpmyadmin"
 Requires:
   - "mysql-5.1"

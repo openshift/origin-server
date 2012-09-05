@@ -10,6 +10,7 @@ Categories:
 Help-Topics:
   "Getting Started Guide": https://openshift.redhat.com/community/blogs/getting-started-with-cron-jobs-on-openshift
 Provides: 
+  - cron-1.4
   - cron
   - scheduler-service
   - cron-service

@@ -21,10 +21,17 @@ class Gear
   def initialize(attrs = nil, options = nil)
     custom_id = attrs[:custom_id]
     attrs.delete(:custom_id)
+    group_instance = attrs[:group_instance]
+    attrs.delete(:group_instance)
+    
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
     #@todo: Remove when typeless gears is completed
-    self.name = self._id.to_s[0..9]
+    if app_dns
+      self.name = group_instance.application.name
+    else
+      self.name = self._id.to_s[0..9]
+    end
   end
   
   def reserve_uid
@@ -176,7 +183,6 @@ class Gear
       add_envs.each     {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
       remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
     }
-    RemoteJob.execute_parallel_jobs(handle)
   end
   
   # Convinience method to get the {Application}
