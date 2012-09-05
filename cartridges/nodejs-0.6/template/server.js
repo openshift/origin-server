@@ -54,8 +54,9 @@ function terminator(sig) {
 //  Process on exit and signals.
 process.on('exit', function() { terminator(); });
 
+// Removed 'SIGPIPE' from the list - bugz 852598.
 ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGILL', 'SIGTRAP', 'SIGABRT', 'SIGBUS',
- 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGPIPE', 'SIGTERM'
+ 'SIGFPE', 'SIGUSR1', 'SIGSEGV', 'SIGUSR2', 'SIGTERM'
 ].forEach(function(element, index, array) {
     process.on(element, function() { terminator(element); });
 });
