@@ -1,85 +1,84 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts RbConfig::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-controller
-%global geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%global gem_name stickshift-controller
+
+%if 0%{?el6}%{?fc16}
+%global rubyabi 1.8
+%global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%global gem_cache %{gem_dir}/cache/%{gem_name}-%{version}.gem
+%global gem_docdir %{gem_dir}/doc/%{gem_name}-%{version}
+%global gem_instdir %{gem_dir}/gems/%{gem_name}-%{version}
+%global gem_libdir %{gem_instdir}/lib
+%global gem_spec %{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
+%endif
+
 
 Summary:        Cloud Development Controller
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version: 0.16.5
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.9
-Requires:       rubygems
 
-%if 0%{?rhel}
-Requires:       rubygem(activemodel)
-Requires:       rubygem(highline)
-Requires:       rubygem(cucumber)
-Requires:       rubygem(json_pure)
-Requires:       rubygem(mocha)
-Requires:       rubygem(mongo)
-Requires:       rubygem(parseconfig)
+Requires:       ruby(abi) >= 1.8
+Requires:       rubygems
 Requires:       rubygem(state_machine)
-Requires:       rubygem(dnsruby)
 Requires:       rubygem(stickshift-common)
-Requires:       rubygem(open4)
-Requires:       rubygem(simplecov)
-Requires:       rubygem(dnsruby)
+Requires:       rubygem(mongo)
+
+%if 0%{?rhel} == 6
+BuildRequires:  rubygems
+%else
+BuildRequires:  rubygems-devel
 %endif
 
 BuildRequires:  ruby
-BuildRequires:  rubygems
 BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
-
-%package -n ruby-%{gemname}
-Summary:        Cloud Development Controller Library
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
+Provides:       rubygem(%{gem_name}) = %version
 
 %description
 This contains the Cloud Development Controller packaged as a rubygem.
 
-%description -n ruby-%{gemname}
-This contains the Cloud Development Controller packaged as a ruby site library.
+%package doc
+Summary: Cloud Development Controller docs
+
+%description doc
+Cloud Development Controller ri documentation 
 
 %prep
 %setup -q
 
 %build
+mkdir -p .%{gem_dir}
+
+# Create the gem as gem install only works on a gem file
+gem build %{gem_name}.gemspec
+
+gem install -V \
+        --local \
+        --install-dir ./%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force \
+        --rdoc \
+        %{gem_name}-%{version}.gem
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
-
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
-
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
-
-%clean
-rm -rf %{buildroot}                                
+mkdir -p %{buildroot}%{gem_dir}
+cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
+rm -rf %{buildroot}%{gem_instdir}/test
 
 %files
-%defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{version}
-%{gemdir}/gems/%{gemname}-%{version}
-%{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
+%doc %{gem_instdir}/Gemfile
+%doc %{gem_instdir}/LICENSE 
+%doc %{gem_instdir}/README.md
+%doc %{gem_instdir}/COPYRIGHT
+%{gem_instdir}
+%{gem_cache}
+%{gem_spec}
 
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
+%files doc
+%{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
@@ -95,6 +94,9 @@ rm -rf %{buildroot}
 - Fix for Bug 852268 (jhonce@redhat.com)
 - Return display_name, description fields in RestCartridge model
   (rpenta@redhat.com)
+
+* Wed Sep 05 2012 Adam Miller <admiller@redhat.com> 0.16.2-2
+- refactor spec file to bring in line with Fedora guidelines
 
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
 - Add <broker>/rest/environment REST call to expose env variables like
