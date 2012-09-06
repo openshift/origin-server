@@ -10,7 +10,7 @@
 - if keys.empty?
   = render :partial => 'keys/simple_form', :locals => { :key => Key.new, :input_class => 'span4' }
 - else
-  %table.table.table-condensed.table-striped
+  %table.table.table-condensed.table-striped.table-fixed
     - keys.each do |key|
       %tr{:id => "#{key.name}_sshkey"}
         %td.sshkey-name= key.name

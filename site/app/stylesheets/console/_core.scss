@@ -832,8 +832,8 @@ $cartridgeBorderWidth: 10px;
 .form-search {
   position: relative;
   > .search-query {
-  	padding-left:10px;
-  	padding-right:30px;
+  	padding-left:8px;
+  	padding-right:0;
     border-radius: 3px;
   	// width:83%;
     // width: -moz-available;
@@ -843,7 +843,7 @@ $cartridgeBorderWidth: 10px;
     top: 1px;
     right: 3px;
     height: 25px;
-    width: 20px;
+    width: 23px;
     background: transparent url("../images/sprite-vert.png") 2px -293px no-repeat;
     border: 0;
   }
