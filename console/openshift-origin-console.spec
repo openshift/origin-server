@@ -21,6 +21,7 @@ Requires:       rubygem(mocha)
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildRequires:  rubygem(rake)
+BuildRequires:  rubygem(bundler)
 BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
 
@@ -46,6 +47,15 @@ rake --trace version["%{version}"]
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+
+# Temporary BEGIN
+bundle install
+# Temporary END
+pushd test/rails_app/
+bundle exec rake assets:precompile
+rm -rf tmp/cache/*
+echo > log/production.log
+popd
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
