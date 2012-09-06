@@ -349,21 +349,89 @@ class Application
   end
 
   def start(feature=nil)
+    if feature.nil?
+      pending_ops.push(PendingAppOps.new(op_type: :start_app))
+    else
+      pending_ops.push(PendingAppOps.new(op_type: :start_feature, args: {"feature" => feature}))    
+    end
+  end
+  
+  def start_component(component_name, cartridge_name=nil)
+    pending_ops.push(PendingAppOps.new(op_type: :start_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
   end
   
   def stop(feature=nil, force=false)
+    if feature.nil?
+      pending_ops.push(PendingAppOps.new(op_type: :stop_app))
+    else
+      pending_ops.push(PendingAppOps.new(op_type: :stop_feature, args: {"feature" => feature}))    
+    end
+  end
+  
+  def stop_component(component_name, cartridge_name=nil, force=false)
+    pending_ops.push(PendingAppOps.new(op_type: :stop_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name, "force" => force}))
   end
   
   def restart(feature=nil)
+    if feature.nil?
+      pending_ops.push(PendingAppOps.new(op_type: :restart_app))
+    else
+      pending_ops.push(PendingAppOps.new(op_type: :restart_feature, args: {"feature" => feature}))    
+    end
+  end
+  
+  def restart_component(component_name, cartridge_name=nil)
+    pending_ops.push(PendingAppOps.new(op_type: :restart_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
   end
   
   def reload(feature=nil)
+    if feature.nil?
+      pending_ops.push(PendingAppOps.new(op_type: :reload_app))
+    else
+      pending_ops.push(PendingAppOps.new(op_type: :reload_feature, args: {"feature" => feature}))    
+    end
   end
   
-  def status
+  def reload_component(component_name, cartridge_name=nil)
+    pending_ops.push(PendingAppOps.new(op_type: :reload_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
   end
   
   def tidy
+    pending_ops.push(PendingAppOps.new(op_type: :tidy_app))
+  end
+  
+  def show_port
+    #todo
+    raise "noimpl"
+  end
+  
+  def status(feature=nil)
+    result_io = ResultIO.new
+    component_instances = get_components_for_feature(feature)
+    component_instances.each do |component_instance|
+      GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
+        r.append gear.status(comp_inst)
+      end
+    end
+    result_io
+  end
+  
+  def component_status(component_name, cartridge_name=nil)
+    if cartridge_name.nil?
+      component_instance = self.component_instances.find(component_name: component_name)
+    else
+      component_instance = self.component_instances.find(component_name: component_name, cartridge_name: cartridge_name)
+    end
+    
+    GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
+      r.append gear.status(comp_inst)
+    end
+    result_io
+  end
+  
+  def system_messages
+    #todo
+    raise "noimpl"
   end
   
   # Register a DNS alias for the application.
@@ -399,18 +467,6 @@ class Application
     op_group = PendingAppOpGroup.with_single_op(:remove_alias, {"fqdn" => fqdn})
     self.pending_op_groups.push op_group
     op_group
-  end
-  
-  def expose_port
-  end
-  
-  def conceal_port
-  end
-  
-  def show_port
-  end
-  
-  def system_messages
   end
   
   def set_connections(connections)
@@ -573,7 +629,9 @@ class Application
           if op_group.pending_ops.count == 0
             case op_group.op_type
             when :add_namespace
+              #todo
             when :remove_namespace
+              #todo
             when :update_configuration
               ops = calculate_update_existing_configurtion_ops(op_group.args)
               op_group.pending_ops.push(*ops)
@@ -595,7 +653,35 @@ class Application
               ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
               try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :add_alias
+              #todo
             when :remove_alias
+              #todo
+            when :start_app
+              #todo
+            when :start_feature
+              #todo
+            when :start_component
+              #todo
+            when :stop_app
+              #todo
+            when :stop_feature
+              #todo
+            when :stop_component
+              #todo
+            when :restart_app
+              #todo
+            when :restart_feature
+              #todo
+            when :restart_component
+              #todo
+            when :reload_app
+              #todo
+            when :reload_feature
+              #todo
+            when :reload_component
+              #todo
+            when :tidy_app
+              #todo
             end
           end
 
@@ -1283,31 +1369,6 @@ class Application
     
     [computed_start_order, computed_stop_order]
   end
-
-  def start(target_component=nil, stop_on_failure=true)
-    args = {'comp_inst_id' => comp_inst.id, 'group_instance_id' => group_inst.component_name}
-    op = PendingAppOps.new(op_type: :start_component, args: comp_inst.to_hash)
-    pending_ops.push(op)
-    run_jobs
-
-#    start_order, stop_order = self.calculate_component_orders
-#    self.start_order.each do |comp_inst|
-#      next if !target_component.nil? and (comp_inst.cartridge_name != target_component)
-#
-#      begin
-#        group_inst = comp_inst.group_instance
-#        #run_on_gears(group_inst.gears, reply) do |gear, r|
-#        #  r.append gear.start(comp_inst)
-#        #end
-#        #get_proxy.start(app, self, comp_inst.cartridge_name)
-#        
-#      rescue Exception => e
-#        gear_exception = e.message[:exception]
-#        self.stop(target_component, false, false) if stop_on_failure
-#        raise gear_exception
-#      end
-#    end
-  end
   
   def stop(force=false)
   end
@@ -1338,6 +1399,13 @@ class Application
     cart = CartridgeCache.find_cartridge cartridge_name
     prof = cart.get_profile_for_component component_name
     (prof.provides.length > 0 && prof.name != cart.default_profile) ? prof.provides.first : cart.provides.first
+  end
+  
+  def get_components_for_feature(feature)
+    cart = CartridgeCache.find_cartridge(feature)
+    raise StickShift::UserException.new("No cartridge found that provides #{feature}") if cart.nil?
+    prof = cart.profile_for_feature(feature)
+    prof.components.map{ |comp| self.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name) }
   end
   
   def track_usage(gear, event, usage_type=UsageRecord::USAGE_TYPES[:gear_usage])
