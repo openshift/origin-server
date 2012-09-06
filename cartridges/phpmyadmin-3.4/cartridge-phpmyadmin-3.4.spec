@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
-Version: 0.19.2
+Version: 0.19.3
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -59,6 +59,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.19.3-1
+- Fix for bugz 852518 - Failed move due to httpd.pid file being empty.
+  (ramr@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.19.2-1
 - Fix for bugz 852518 - Failed move due to httpd.pid file being empty.
   (ramr@redhat.com)
