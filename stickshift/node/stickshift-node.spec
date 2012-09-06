@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.16.4
+Version: 0.16.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -109,6 +109,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
+- Fix for bugz 852216 - zend /sandbox should be root owned if possible.
+  (ramr@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.4-1
 - Updating gem versions (admiller@redhat.com)
 - Gemfile.lock updates (admiller@redhat.com)
