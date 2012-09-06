@@ -14,8 +14,8 @@ module StickShift
       self.scaling.max == 1
     end
     
-    def from_descriptor(spec_hash = {})
-      self.name = spec_hash["Name"] || "default"
+    def from_descriptor(profile, spec_hash = {})
+      self.name = spec_hash["Name"] || profile.name
       if spec_hash["Publishes"]
         spec_hash["Publishes"].each do |n, p|
           conn = Connector.new(n).from_descriptor(p)

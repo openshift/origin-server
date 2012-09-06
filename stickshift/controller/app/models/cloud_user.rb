@@ -58,7 +58,7 @@ class CloudUser
   end
   
   # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propogated to the
-  # domains/applicaiton that the user has access to.
+  # domains/application that the user has access to.
   def add_ssh_key(key)
     domains = Domain.where(owner: self) + Domain.where(user_ids: self._id)
     if domains.count > 0
@@ -73,13 +73,13 @@ class CloudUser
   end
   
   # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propogated to the
-  # domains/applicaiton that the user has access to.
+  # domains/application that the user has access to.
   def update_ssh_key(key)
     raise "noimpl"
   end
   
   # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propogated to the
-  # domains/applicaiton that the user has access to.
+  # domains/application that the user has access to.
   def remove_ssh_key(name)
     key = self.ssh_keys.find_by(name: name)
     domains = Domain.where(owner: self) + Domain.where(user_ids: self._id)

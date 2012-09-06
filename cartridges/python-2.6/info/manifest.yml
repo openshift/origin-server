@@ -52,8 +52,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: python-2.6
-    - cart: web_proxy
+  - components:
+    - python-2.6
+    - web_proxy
 Native-Requires:
   - python
   - mod_wsgi = 3.2

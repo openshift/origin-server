@@ -79,7 +79,7 @@ module StickShift
 
       if spec_hash.has_key?("Profiles")
         spec_hash["Profiles"].each do |pname, p|
-          profile = Profile.new.from_descriptor(p)
+          profile = Profile.new.from_descriptor(self, p)
           profile.name = pname
           @profiles << (profile)
           @_profile_map[profile.name] = profile
@@ -89,8 +89,8 @@ module StickShift
            "Provides", "Requires", "Conflicts", "Native-Requires"].each do |k|
           spec_hash.delete(k)
         end
-        p = Profile.new.from_descriptor(spec_hash)
-        p.name = "default"
+        p = Profile.new.from_descriptor(self, spec_hash)
+        p.name = self.name
         p.generated = true
         @profiles << p
         @_profile_map[p.name] = p

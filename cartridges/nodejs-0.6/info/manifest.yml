@@ -51,8 +51,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: nodejs
-    - cart: web_proxy
+  - components:
+    - nodejs
+    - web_proxy
 Architecture: noarch
 Publishes:
   publish-http-url:

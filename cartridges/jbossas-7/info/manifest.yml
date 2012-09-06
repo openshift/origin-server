@@ -52,8 +52,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: jboss
-    - cart: web_proxy
+  - components:
+    - jboss
+    - web_proxy
 Profiles:
   standalone:
     Provides: jboss-standalone, jboss-as7-standalone, jboss-as7.1-standalone

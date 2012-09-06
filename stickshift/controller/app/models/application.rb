@@ -574,10 +574,10 @@ class Application
       when "SYSTEM_SSH_KEY_REMOVE"
         domain_keys_to_rm.push({"name" => self.name})
       when "APP_SSH_KEY_ADD"
-        add_ssh_keys << ApplicationSshKey.new(name: "applicaiton-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
+        add_ssh_keys << ApplicationSshKey.new(name: "application-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
       when "APP_SSH_KEY_REMOVE"
         begin
-          remove_ssh_keys << self.app_ssh_keys.find_by(name: "applicaiton-" + command_item[:args][0])
+          remove_ssh_keys << self.app_ssh_keys.find_by(name: "application-" + command_item[:args][0])
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
         end
@@ -633,9 +633,10 @@ class Application
             when :remove_namespace
               #todo
             when :update_configuration
-              ops = calculate_update_existing_configurtion_ops(op_group.args)
+              ops = calculate_update_existing_configuration_ops(op_group.args)
               op_group.pending_ops.push(*ops)
             when :update_ssh_keys
+              #todo
             when :add_components
               features = self.requires + op_group.args["features"]
               group_overrides = op_group.args["group_overrides"] || []
@@ -708,7 +709,7 @@ class Application
     calculate_ops(changes, moves, connections)
   end
   
-  def calculate_update_existing_configurtion_ops(args, prereqs={})
+  def calculate_update_existing_configuration_ops(args, prereqs={})
     ops = []
     
     if (args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or args.has_key?("add_env_vars") or args.has_key?("remove_env_vars"))
@@ -724,7 +725,7 @@ class Application
     ops
   end
   
-  def calculate_update_new_configurtion_ops(args, group_instance_id, gear_id_prereqs)
+  def calculate_update_new_configuration_ops(args, group_instance_id, gear_id_prereqs)
     ops = []
     
     if (args.has_key?("add_keys_attrs") or args.has_key?("remove_keys_attrs") or args.has_key?("add_env_vars") or args.has_key?("remove_env_vars"))
@@ -782,7 +783,7 @@ class Application
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
     
-    ops = calculate_update_new_configurtion_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
+    ops = calculate_update_new_configuration_ops({"add_keys_attrs" => ssh_keys, "add_env_vars" => env_vars}, ginst_id, gear_id_prereqs)
     pending_ops.push(*ops)
     
     ops = calculate_add_component_ops(comp_specs, ginst_id, gear_id_prereqs, singleton_gear_id, component_ops, is_scale_up, ginst_op_id)
@@ -967,7 +968,6 @@ class Application
       component_ops[config_order[idx]][:new_component].prereq += prereq_ids unless component_ops[config_order[idx]][:new_component].nil?
       component_ops[config_order[idx]][:adds].each { |op| op.prereq += prereq_ids }
     end
-    binding.pry
     
     all_ops_ids = pending_ops.map{ |op| op._id.to_s }
     unless connections.nil?
@@ -1021,7 +1021,7 @@ class Application
       from_id = nil
       from_comp_insts = []
       to_comp_insts   = []
-      from_scale      = {min: 1, max: MAX_SCALE, user_min: 1, user_max: MAX_SCALE, current: 0}
+      from_scale      = {min: 1, max: MAX_SCALE, current: 0, filesystem_gb: 0}
       to_scale        = {min: 1, max: MAX_SCALE}
       
       unless current_group_instances[from].nil?
@@ -1072,7 +1072,6 @@ class Application
   #   Array of pending operations. 
   #   @see {PendingAppOps}
   def try_reserve_gears(num_gears_added, num_gears_removed, op_group, ops)
-    binding.pry
     owner = self.domain.owner
     begin
       until Lock.lock_user(owner)
@@ -1197,81 +1196,72 @@ class Application
       end
     end
     
-    #calculate group overrides
+    #cleanup group_overrides
     group_overrides.map! do |override_spec|
-      processed_spec = []
-      override_spec.each do |component_spec|
-        component_spec = {"cart" => component_spec} if component_spec.class == String
-        if component_spec["comp"].nil?
-          feature = component_spec["cart"]
-          profiles.each do |prof_spec|
-            if prof_spec[:cartridge].features.include?(feature) ||  prof_spec[:cartridge].name == feature
-              prof_spec[:profile].components.each do |comp|
-                processed_spec << {"cart"=> prof_spec[:cartridge].name, "comp"=> comp.name}
-              end
-            end
-          end
-        else
-          processed_spec << component_spec
-        end
+      processed_spec = {components: []}
+      component_spec = override_spec["components"]
+      
+      component_spec.each do |comp_spec|
+        comp_spec = {"comp" => comp_spec} if comp_spec.class == String
+        component = component_instances.select{|ci| ci[:component].name == comp_spec["comp"] && (comp_spec["cart"].nil? || ci[:cartridge].name == comp_spec["cart"])}
+        next if component.size == 0
+        component = component.first
+        
+        processed_spec[:components] << {"cart"=> component[:cartridge].name, "comp"=> component[:component].name}
       end
+      
+      processed_spec[:filesystem_gb] = override_spec["filesystem_gb"] || 0
+      processed_spec[:max_gears] = override_spec["max_gears"] || MAX_SCALE
+      processed_spec[:min_gears] = override_spec["min_gears"] || 1
       processed_spec
-    end
-    
-    component_instances.map! do |comp_spec|
-      {"comp"=> comp_spec[:component].name, "cart"=> comp_spec[:cartridge].name}
-    end
+    end    
     
     #build group_instances
     group_instances = []
-    component_instances.each do |comp_spec|
+    component_instances.each do |component_instance|
+      comp_spec = {"comp"=> component_instance[:component].name, "cart"=> component_instance[:cartridge].name}
+      
       #look to see if already accounted for
       next if group_instances.reject{ |g| !g[:component_instances].include?(comp_spec) }.count > 0
 
       #look for any group_overrides for this component
-      grouped_components = group_overrides.reject {|o_spec| !o_spec.include?(comp_spec) }.flatten
+      relevant_group_overrides = group_overrides.reject {|o_spec| !o_spec[:components].include?(comp_spec) }
+      grouped_components = relevant_group_overrides.map{ |o_spec| o_spec[:components] }.flatten
+      
+      scale = {min: 1, max: MAX_SCALE, current: 1, filesystem_gb: 0}
+      relevant_group_overrides.each do |o_spec|
+        scale[:current] = scale[:min] = o_spec[:min_gears] if (!o_spec[:min_gears].nil? && o_spec[:min_gears] > scale[:min])
+        scale[:max] = o_spec[:max_gears] if (!o_spec[:max_gears].nil? && (scale[:max] == MAX_SCALE || scale[:max] > o_spec[:max_gears]))
+        scale[:filesystem_gb] += o_spec[:filesystem_gb] unless o_spec[:filesystem_gb].nil? 
+      end
       
       #no group overrides, component can sit in its own group
       if grouped_components.length == 0
-        group_instances << { component_instances: [comp_spec] , _id: Moped::BSON::ObjectId.new}
+        scale[:max] = 1 if component_instance[:component].is_singleton?
+        group_instances << { component_instances: [comp_spec], scale: scale, _id: Moped::BSON::ObjectId.new}
       else
         #found group overrides, component must sit with other components. 
-        #Will possibly require merging exisitng group_instances
         
+        #locate any group instances computed in earlier passes that have components that must be grouped.
+        #these group instances will be merged
         existing_g_insts = []
+
         grouped_components.each do |g_comp_spec|
           existing_g_insts += group_instances.reject{ |g_inst| !g_inst[:component_instances].include?(g_comp_spec) }
         end
         
-        existing_g_inst_components = []
-        existing_g_insts.each do |g_comp_spec|
-          existing_g_inst_components += g_comp_spec[:component_instances]
+        existing_components = []
+        existing_g_insts.each do |ginst|
+          existing_components += ginst[:component_instances]
+          
+          scale[:current] = scale[:min] = ginst[:scale][:min] if ginst[:scale][:min] > scale[:min]
+          scale[:max] = ginst[:scale][:max] if (scale[:max] == MAX_SCALE || scale[:max] > ginst[:scale][:max])
+          scale[:filesystem_gb] += ginst[:scale][:filesystem_gb]
         end
-              
-        existing_g_insts.each {|g_inst| group_instances.delete(g_inst)}
-        group_instances  << { component_instances: existing_g_inst_components + [comp_spec] , _id: Moped::BSON::ObjectId.new}
+
+        group_instances -= existing_g_insts     
+        group_instances  << { component_instances: existing_components + [comp_spec], scale: scale, _id: Moped::BSON::ObjectId.new}
       end
-    end
-    
-    #calculate scale factor
-    proc_g_insts = group_instances
-    group_instances = []
-    proc_g_insts.each do |proc_g_inst|
-      scale = {min:1, max: MAX_SCALE, current: 1}
-      num_singletons = 0
-      proc_g_inst[:component_instances].each do |comp_spec|
-        comp = CartridgeCache.find_cartridge(comp_spec["cart"]).get_component(comp_spec["comp"])
-        if comp.is_singleton?
-          num_singletons += 1
-        else
-          scale[:min] = comp.scaling.min if comp.scaling.min > scale[:min]
-          scale[:max] = comp.scaling.max if (comp.scaling.max != MAX_SCALE) && (scale[:max] == MAX_SCALE || comp.scaling.max < scale[:max])
-          scale[:current] = scale[:min]
-        end
-      end
-      scale[:max] = 1 if proc_g_inst[:component_instances].length == num_singletons
-      proc_g_inst[:scale] = scale
-      group_instances << proc_g_inst
     end
     
     [connections, group_instances]

@@ -23,8 +23,8 @@ module StickShift
       @_component_name_map[comp_name]
     end
     
-    def from_descriptor(spec_hash = {})
-      self.name = spec_hash["Name"] || "default"
+    def from_descriptor(cartridge, spec_hash = {})
+      self.name = spec_hash["Name"] || cartridge.name
       self.provides = spec_hash["Provides"] || []
       self.start_order = spec_hash["Start-Order"] || []
       self.stop_order = spec_hash["Stop-Order"] || []
@@ -38,14 +38,14 @@ module StickShift
       
       if spec_hash.has_key?("Components")
         spec_hash["Components"].each do |cname, c|
-         comp = Component.new.from_descriptor(c)
+         comp = Component.new.from_descriptor(self, c)
          comp.name = cname
          @components << comp
          @_component_name_map[comp.name] = comp
        end
       else
         comp_spec_hash = spec_hash.dup.delete_if{|k,v| !["Publishes", "Subscribes","Scaling"].include?(k) }
-        c = Component.new.from_descriptor(comp_spec_hash)
+        c = Component.new.from_descriptor(self, comp_spec_hash)
         c.generated = true
         @components << c
         @_component_name_map[c.name] = c

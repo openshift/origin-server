@@ -50,8 +50,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: ruby-1.8
-    - cart: web_proxy
+  - components:
+    - ruby-1.8
+    - web_proxy
 Native-Requires:
   -  sqlite-devel
   -  rubygems

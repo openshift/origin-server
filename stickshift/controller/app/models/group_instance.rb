@@ -93,7 +93,7 @@ class GroupInstance
   # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
   def to_hash
     comps = all_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {min: self.min, max: self.max, user_min: self.user_min, user_max: self.user_max, current: self.gears.length}, _id: _id}
+    {component_instances: comps, scale: {current: self.gears.length}, _id: _id}
   end
 
   protected

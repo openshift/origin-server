@@ -50,8 +50,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: perl-5.10
-    - cart: web_proxy
+  - components:
+    - perl-5.10
+    - web_proxy
 Conflicts:
 Native-Requires:
   -  mod_perl

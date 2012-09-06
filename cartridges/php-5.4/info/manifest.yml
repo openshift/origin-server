@@ -52,8 +52,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: php-5.4
-    - cart: web_proxy
+  - components:
+    - php-5.4
+    - web_proxy
 Native-Requires:
   - "php >= 5.4.5"
   - "php < 5.5.0"

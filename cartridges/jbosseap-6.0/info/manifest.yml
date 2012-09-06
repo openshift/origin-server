@@ -53,8 +53,9 @@ Provides:
 Requires:
   - web_proxy
 Group-Overrides:
-  - - cart: jbosseap
-    - cart: web_proxy
+  - components:
+    - jbosseap
+    - web_proxy
 Profiles:
   standalone:
     Provides: jbosseap-standalone, jboss-eap6.0-standalone, jboss-eap6.0.0-standalone
