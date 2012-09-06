@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.97.1
+Version: 0.97.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
+- Adding >= 1.6 to the java require to avoid pulling in gcj
+  (bleanhar@redhat.com)
+- Adding a link to the Jira issue for the Jenkins spec (bleanhar@redhat.com)
+- Adding a java require to the jenkins cartridge spec (bleanhar@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.97.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
