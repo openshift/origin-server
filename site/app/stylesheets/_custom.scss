@@ -96,22 +96,6 @@ textarea:focus {
   vertical-align: middle;
 	}
 
-// FORM FIELD FEEDBACK STATES
-// --------------------------
-
-// Warning
-.control-group.warning {
-  @include formFieldState($warningBackground, $warningBackground, $warningBackground);
-}
-// Error
-.control-group.error {
-  @include formFieldState($errorBackground, $errorBackground, $errorBackground);
-}
-// Success
-.control-group.success {
-  @include formFieldState($successBackground, $successBackground, $successBackground);
-}
-
 
 
 /* Print styles */
