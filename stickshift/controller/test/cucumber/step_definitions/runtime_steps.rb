@@ -448,6 +448,11 @@ Then /^the tracked application cartridge PIDs should( not)? be changed$/ do |neg
     raise "Expected PID differences, but found none. Old PIDs: #{@current_cart_pids.inspect},"\
       " new PIDs: #{new_cart_pids.inspect}"
   end
+
+  # verify BZ852268 fix
+  state_file = File.join($home_root, @gear.uuid, 'app-root', 'runtime', '.state')
+  state = File.read(state_file).chomp
+  assert_equal 'started', state
 end
 
 Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)? accessible$/ do |cart_type, version, uri, negate|
