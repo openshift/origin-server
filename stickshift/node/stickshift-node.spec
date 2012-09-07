@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.16.5
+Version: 0.16.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,14 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
+- Merge pull request #461 from jwhonce/bz853582 (openshift+bot@redhat.com)
+- Merge pull request #460 from ramr/master (openshift+bot@redhat.com)
+- Update gem version (dmcphers@redhat.com)
+- BZ853852 Adding logging to help determine issue (jhonce@redhat.com)
+- One more fix for bugz  852486 - rubygem-stickshift-node is running restorecon
+  against /var/lib/stickshift (ramr@redhat.com)
+
 * Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
 - Fix for bugz 852216 - zend /sandbox should be root owned if possible.
   (ramr@redhat.com)
