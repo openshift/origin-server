@@ -69,7 +69,7 @@ class ApplicationTemplate < RestApi::Base
   def to_application_type
     attrs = { :id => name, :name => display_name }
 
-    [:categories, :description, :website, :version, :template, :provides].each do |m|
+    [:tags, :description, :website, :version, :template, :provides].each do |m|
       attrs[m] = send(m)
     end
 

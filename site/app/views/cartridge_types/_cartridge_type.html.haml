@@ -3,12 +3,12 @@
 - extra_info = extra_info if defined? extra_info
 - hide_link = hide_link if defined? hide_link
 
-- classes = "tile #{cartridge_type.categories.join(' ')}"
+- classes = "tile #{cartridge_type.tags.join(' ')}"
 - classes += " inactive" if inactive
 - classes += " tile-click" unless inactive or hide_link
 = div_for cartridge_type, :class => classes do
 
-  - if not inactive and cartridge_type.categories.include? :experimental
+  - if not inactive and cartridge_type.tags.include? :experimental
     %span.label.pull-right Experimental
 
   %h3= cartridge_type.display_name
