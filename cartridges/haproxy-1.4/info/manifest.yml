@@ -1,6 +1,6 @@
 Name: haproxy-1.4
-Display-Name: haproxy v1.4
-Description: "Cartridge packaging HAProxy versions 1.4 which can be used as a load balancer and scaling agent for web frameworks"
+Display-Name: HAProxy 1.4
+Description: "HAProxy can be used as a load balancer and scaling agent for web frameworks"
 Version: 1.4.20
 License:
 License-Url:
