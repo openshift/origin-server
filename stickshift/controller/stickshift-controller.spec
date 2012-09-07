@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.16.2
+Version: 0.16.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.3-1
+- Fix for Bug 852268 (jhonce@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
 - Add <broker>/rest/environment REST call to expose env variables like
   domain_suffix, etc. (rpenta@redhat.com)
