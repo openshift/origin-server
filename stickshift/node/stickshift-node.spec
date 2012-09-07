@@ -100,7 +100,6 @@ rm -rf %{buildroot}
 
 %post
 echo "/usr/bin/ss-trap-user" >> /etc/shells
-restorecon -r %{_var}/lib/stickshift
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
