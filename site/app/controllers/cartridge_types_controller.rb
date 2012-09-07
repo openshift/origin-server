@@ -16,7 +16,8 @@ class CartridgeTypesController < ConsoleController
     @conflicts, types = types.partition{ |t| conflicts? t }
     @requires, types  = types.partition{ |t| requires? t }
 
-    @carts = types
+    @installed.sort!; @conflicts.sort!; @requires.sort!
+    @carts = types.sort!
   end
 
   def show

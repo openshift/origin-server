@@ -165,6 +165,10 @@
   :name: jbosseap-6.0
   :priority: -1
   :license_url: http://www.apache.org/licenses/LICENSE-2.0
+- :name: zend-5.6
+  :priority: -1
+  :categories:
+  - :new
 - :description: The leading open source Java EE6 application server for enterprise Java applications.  Popular development frameworks include Seam, CDI, Weld, and Spring.
   :type: standalone
   :categories: 
