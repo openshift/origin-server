@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.97.2
+Version: 0.97.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.3-1
+- Merge pull request #450 from smarterclayton/switch_to_newer_broker_tags
+  (openshift+bot@redhat.com)
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+- Use the agreed on newer broker tags for jenkins and jenkins-client
+  (ccoleman@redhat.com)
+
 * Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
 - Adding >= 1.6 to the java require to avoid pulling in gcj
   (bleanhar@redhat.com)
