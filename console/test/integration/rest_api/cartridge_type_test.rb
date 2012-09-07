@@ -40,8 +40,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert (required = types.select{ |t| t.requires.present? }).length > 1
     assert types.all?{ |t| t.tags.present? }
     assert types.all?{ |t| t.tags.present? }
-    assert types.any?{ |t| t.description.html_safe? }
-    assert types.all?{ |t| t.tags & t.tags = t.tags }
+    assert types.all?{ |t| (t.tags & t.categories) == t.categories }
   end
 
   test 'should load standalone cartridge types' do

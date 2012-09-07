@@ -255,6 +255,9 @@
       padding-right: $gridGutterWidthTablet;
     }
   }
+  
+  body:first-of-type .row-flush-right .span-flush-right {padding-right:19px;} /* Target Chrome bug 851389 */
+  
   // For use in inlined elements in combination with existing padding
   .gutter { 
     margin-left: $gridGutterWidthTablet;
