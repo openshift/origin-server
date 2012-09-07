@@ -116,7 +116,7 @@ class GearGroup < RestApi::Base
     #
     def move_features(to)
       cartridges.delete_if do |c|
-        if c.tags.include?(:builds)
+        if c.tags.include?(:ci_builder) and not c.tags.include?(:web_framework)
           to.cartridges.select{ |d| d.tags.include?(:web_framework) }.each{ |d| d.builds_with(c, self) }.present?
         end
       end
