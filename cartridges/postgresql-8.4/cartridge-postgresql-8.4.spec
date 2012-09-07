@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.13.2
+Version: 0.13.3
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,13 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - Add support to move postgres cart from/to gears. (mpatel@redhat.com)
 
