@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.97.1
+Version: 0.97.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.97.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 
