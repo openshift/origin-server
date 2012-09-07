@@ -1,6 +1,6 @@
 Name: ruby-1.8
-Display-Name: ruby v1.8 (noarch)
-Description: Cartridge packaging ruby support running on Phusion Passenger
+Display-Name: Ruby 1.8
+Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9 for new applications."
 Version: 1.0.0
 License: ASL 2.0
 Vendor:  

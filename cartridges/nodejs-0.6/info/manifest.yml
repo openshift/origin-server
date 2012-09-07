@@ -1,6 +1,6 @@
 Name: nodejs-0.6
-Display-Name: Node v0.6 (noarch)
-Description: Cartridge packaging Node.js support for OpenShift
+Display-Name: Node.js 0.6
+Description: "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices."
 Version: 0.6.10
 License: ASL 2.0
 Vendor: www.nodejs.org
