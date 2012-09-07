@@ -42,6 +42,8 @@ module StickShift
 
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
+      Syslog.open('stickshift-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
+
       @config = StickShift::Config.instance
       
       @container_uuid = container_uuid
@@ -163,7 +165,20 @@ module StickShift
         end
       end
 
+      # FIXME: logging and repeated deletes added for debugging. Once root issue
+      #        has been determined this can be cleaned up.
+      dirs = list_home_dir(@homedir)
       FileUtils.rm_rf(@homedir)
+      if File.exists?(@homedir)
+        Syslog.alert "1st attempt to remove \'#{@homedir}\' from filesystem failed."
+        Syslog.alert "Dirs  #{@uuid} => #{dirs}"
+        Syslog.alert "Procs #{@uuid} => #{`ps -u #{@uuid}`}"
+
+        FileUtils.rm_rf(@homedir)
+        if File.exists?(@homedir)
+          Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed."
+        end
+      end
 
       basedir = @config.get("GEAR_BASE_DIR")
       path = File.join(basedir, ".httpd.d", "#{uuid}_*")
@@ -179,7 +194,6 @@ module StickShift
             "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
       notify_observers(:after_unix_user_destroy)
     end
-
 
     # Public: Append an SSH key to a users authorized_keys file
     #
@@ -290,6 +304,18 @@ module StickShift
     end
 
     
+    # Public: list directories (cartridges) in home directory
+    # @param  [String] home directory
+    # @return [String] comma separated list of directories
+    def list_home_dir(home_dir)
+      results = []
+      Dir.foreach(home_dir) do |entry|
+        next if entry =~ /^\.{1,2}/   # Ignore ".", "..", or hidden files
+        results << entry
+      end
+      results.join(', ')
+    end
+
     # Public: Remove an environment variable from a given gear.
     #
     # key - String name of the environment variable to remove.
