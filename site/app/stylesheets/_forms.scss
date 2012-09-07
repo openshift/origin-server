@@ -212,7 +212,8 @@ textarea {
   @include transition($transition);
 }
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: rgba(82,168,236,.8);
   $shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
   @include box-shadow($shadow);
@@ -221,8 +222,7 @@ textarea:focus {
 }
 input[type="file"]:focus,
 input[type="radio"]:focus,
-input[type="checkbox"]:focus,
-select:focus {
+input[type="checkbox"]:focus {
   @include box-shadow(none); // override for file inputs
   @include tab-focus();
 }
@@ -298,12 +298,21 @@ textarea[readonly] {
 input:focus:required:invalid,
 textarea:focus:required:invalid,
 select:focus:required:invalid {
-  color: #b94a48;
-  border-color: #ee5f5b;
+  //color: $errorBackground;
+  //border-color: $errorBackground;
+  background-color: #fff;
+  background-position: right center;
   &:focus {
-    border-color: darken(#ee5f5b, 10%);
-    @include box-shadow(0 0 6px lighten(#ee5f5b, 20%));    
+    //border-color: darken(#ee5f5b, 10%);
+    //@include box-shadow(0 0 6px lighten(#ee5f5b, 20%));    
   }
+}
+ 
+input:focus:required:valid,
+select:focus:required:valid,
+textarea:focus:required:valid { 
+	background-color: #fff;
+	border: 1px solid $successBackground; 
 }
 
 
@@ -485,6 +494,11 @@ select:focus:required:invalid {
   vertical-align: middle;
 }
 
+.controls,
+.control-group {
+    position: relative; // needed for focus validation message
+}
+
 // Margin to space out fieldsets
 .control-group {
   margin-bottom: $baseLineHeight / 2;
@@ -502,7 +516,7 @@ legend + .control-group {
 .form-horizontal {
   // Increase spacing between groups
   .control-group {
-    margin-bottom: $baseLineHeight;
+    margin-bottom: $baseLineHeight / 2;
     @include clearfix();
   }
   // Float the labels left

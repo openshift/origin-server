@@ -16,9 +16,12 @@
 }
 
 .alert a, .alert a:hover, alert a:active {
-  color:#fff;
   text-decoration:underline;
   }
+.alert-error a, .alert-error a:hover, alert-error a:active,
+.alert-danger a, .alert-danger a:hover, alert-danger a:active {
+  color:#fff;
+}
 
 // Adjust close link position
 .alert .close {
@@ -53,6 +56,12 @@
 .alert-info {
   background-color: $infoBackground;
   border-color: $infoBorder;
+  a {
+    color: $linkColorBlue;
+    &:hover, &:active {
+      color: $openshiftBrightRed;
+    }
+  }
 }
 .alert-info,
 .alert-info .alert-heading {
