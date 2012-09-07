@@ -1,69 +1,61 @@
+%{!?scl:%global pkg_name %{name}}
+%{?scl:%scl_package rubygem-%{gem_name}}
 %global gem_name stickshift-common
-
-# Conditionally set required macros for distros without rubygems-devel This can
-# be removed once https://bugzilla.redhat.com/show_bug.cgi?id=788001 is
-# resolved.
-%{!?gem_dir: %global gem_dir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)} 
-
-%global selinux_variants mls strict targeted
+%global rubyabi 1.9.1
 
 Summary:        Cloud Development Common
-Name:           rubygem-%{gem_name}
-Version: 0.15.2
+Name:           %{?scl:%scl_prefix}rubygem-%{gem_name}
+Version:        0.15.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/crankcase/source/rubygem-%{gem_name}/%{gem_name}-%{version}.gem
+Source1:        stickshift.fc
+Source2:        stickshift.if
+Source3:        stickshift.te
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) >= 1.8
-Requires:       rubygems
+Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:       %{?scl:%scl_prefix}ruby
+Requires:       %{?scl:%scl_prefix}rubygems
+Requires:       %{?scl:%scl_prefix}rubygem(activemodel)
+Requires:       %{?scl:%scl_prefix}rubygem(json)
+Requires:       %{?scl:%scl_prefix}rubygem(rcov)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
-
-Requires:       rubygem(activemodel)
-Requires:       rubygem(json)
-Requires:       selinux-policy
-
-BuildRequires:  ruby-devel
-%if 0%{?rhel} == 6
-BuildRequires:  rubygems
-%else
-BuildRequires:  rubygems-devel
-%endif
-BuildRequires:  selinux-policy
-BuildRequires:  selinux-policy-devel
-BuildRequires:  hardlink
-BuildRequires:  rubygems
-
+BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires:  %{?scl:%scl_prefix}ruby 
+BuildRequires:  %{?scl:%scl_prefix}rubygems
+BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
+BuildRequires:  selinux-policy-targeted
+BuildRequires:  policycoreutils-python
 BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
+Provides:       %{?scl:%scl_prefix}rubygem(%{gem_name}) = %version
+
+%package -n ruby-%{gem_name}
+Summary:        Cloud Development Common Library
+Requires:       rubygem(%{gem_name}) = %version
+Provides:       ruby(%{gem_name}) = %version
 
 %description
 This contains the Cloud Development Common packaged as a rubygem.
 
-%package doc
-Summary:      Stickshift Common rubygem docs
-
-%description doc
-Stickshift Common rubygem ri documentation
+%description -n ruby-%{gem_name}
+This contains the Cloud Development Common packaged as a ruby site library.
 
 %prep
-%setup -q
-
-mkdir SELinux
-cp stickshift.* SELinux
+%{?scl:scl enable %scl "}
+gem unpack %{SOURCE0}
+%setup -q -D -T -n  %{gem_name}-%{version}
+gem spec %{SOURCE0} -l --ruby > %{gem_name}.gemspec
+%{?scl:"}
 
 %build
-mkdir -p .%{gem_dir}
+mkdir -p ./%{gem_dir}
 
-# Create the gem as gem install only works on a gem file
+%{?scl:scl enable %scl - << \EOF}
 gem build %{gem_name}.gemspec
-
 export CONFIGURE_ARGS="--with-cflags='%{optflags}'"
-# gem install compiles any C extensions and installs into a directory
-# We set that to be a local directory so that we can move it into the
-# buildroot in %%install
 gem install -V \
         --local \
         --install-dir ./%{gem_dir} \
@@ -71,33 +63,44 @@ gem install -V \
         --force \
         --rdoc \
         %{gem_name}-%{version}.gem
+%{?scl:EOF}
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
-rm %{buildroot}%{gem_dir}/cache/%{gem_name}-%{version}.gem
 
+# Setup Selinux
+rm -rf selinux
+mkdir selinux
 mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
-cd SELinux
-make -f %{_datadir}/selinux/devel/Makefile
+cd selinux
+cp %{SOURCE1} .
+cp %{SOURCE2} .
+cp %{SOURCE3} .
+make -f /usr/share/selinux/devel/Makefile
+install -p -m 644 -D stickshift.fc %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.fc
+install -p -m 644 -D stickshift.if %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.if
+install -p -m 644 -D stickshift.te %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.te
 install -p -m 644 -D stickshift.pp %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.pp
-make -f %{_datadir}/selinux/devel/Makefile clean
 cd -
-/usr/sbin/hardlink -cv %{buildroot}%{_datadir}/selinux
 
 %clean
-rm -rf %{buildroot}
+rm -rf %{buildroot}                                
 
 %files
-%defattr(-,root,root,-)
-%{gem_dir}/gems/%{gem_name}-%{version}
-%{gem_dir}/specifications/%{gem_name}-%{version}.gemspec
-%doc SELinux/*
+%dir %{gem_instdir}
+%doc %{gem_instdir}/LICENSE
+%doc %{gem_instdir}/COPYRIGHT
+%doc %{gem_docdir}
+%doc %{gem_instdir}/Gemfile
+%doc %{gem_instdir}/Rakefile
+%doc %{gem_instdir}/README.md
+%doc %{gem_instdir}/%{gem_name}.gemspec
+%{gem_spec}
 %{_datadir}/selinux/packages/%{name}/
-
-%files doc
-%{gem_dir}/doc/%{gem_name}-%{version}
+%exclude %{gem_cache}
+%exclude %{gem_libdir}
+%exclude %{gem_instdir}/rubygem-%{gem_name}.spec
 
 %post
 if [ "$1" -le "1" ] ; then # First install
