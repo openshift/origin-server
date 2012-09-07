@@ -51,7 +51,7 @@ class ApplicationType
       when :all
         find_every(*arguments)
       when Symbol
-        find_every(*arguments).select { |t| t.categories.include? option }
+        find_every(*arguments).select { |t| t.tags.include? option }
       else
         raise "Unsupported scope"
       end
@@ -65,7 +65,7 @@ class ApplicationType
         templates = ApplicationTemplate.cached.all.map(&:to_application_type)
 
         templates.concat(cartridges).select do |t|
-          not (t.categories.include?(:blacklist) or (Rails.env.production? and t.categories.include?(:in_development)))
+          not (t.tags.include?(:blacklist) or (Rails.env.production? and t.tags.include?(:in_development)))
         end
       end
   end

@@ -935,18 +935,18 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id nil } }
   end
 
-  def test_cartridge_type_category_sort
+  def test_cartridge_type_tag_sort
     [
-      [ 1,  [:database],  [:web]],
-      [ 1,  [:foo],       [:web]],
-      [ 1,  [:foo],       [:database]],
-      [ 0,  [:web],       [:web]],
-      [ 0,  [:database],  [:database]],
-      [ 0,  [:foo],       [:bar]],
-      [-1,  [:web],       [:database]],
-      [-1,  [:web],       [:foo]],
+      [ 1,  [:database],      [:web_framework]],
+      [ 1,  [:foo],           [:web_framework]],
+      [ 1,  [:foo],           [:database]],
+      [ 0,  [:web_framework], [:web_framework]],
+      [ 0,  [:database],      [:database]],
+      [ 0,  [:foo],           [:bar]],
+      [-1,  [:web_framework], [:database]],
+      [-1,  [:web_framework], [:foo]],
     ].each do |val, a, b|
-      assert_equal val, CartridgeType.category_compare(a, b)
+      assert_equal val, CartridgeType.tag_compare(a, b)
     end
   end
 
@@ -1029,8 +1029,8 @@ class RestApiTest < ActiveSupport::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4', :type => 'standalone'},
-        {:name => 'php-5.3', :type => 'standalone', :categories => [:framework]},
-        {:name => 'blacklist', :type => 'standalone', :categories => [:framework, :blacklist]},
+        {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]},
+        {:name => 'blacklist', :type => 'standalone', :tags => [:framework, :blacklist]},
       ].to_json
 
       mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
@@ -1086,6 +1086,8 @@ class RestApiTest < ActiveSupport::TestCase
       assert_equal type.id, a.id
       assert_equal type.description, a.description
       assert_equal type.categories, a.categories
+      assert_equal type.tags, a.tags
+      assert_equal a.categories, a.tags
     end
 
     assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
@@ -1162,15 +1164,15 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_cartridge_buildable
-    t = CartridgeType.new :name => 'test', :categories => []
+    t = CartridgeType.new :name => 'test', :tags => []
     c = Cartridge.new :name => 'test', :as => @user
     c.instance_variable_set(:@cartridge_type, t)
     assert !c.buildable?
-    t.categories.push(:web)
+    t.tags.push(:web_framework)
     assert !c.buildable?
     c.git_url = 'https://localhost'
     assert c.buildable?
-    t.categories.clear
+    t.tags.clear
     assert !c.buildable?
   end
 
@@ -1393,7 +1395,7 @@ class RestApiTest < ActiveSupport::TestCase
     gear2 = Gear.new :id => 2, :state => 'started'
     gear3 = Gear.new :id => 3, :state => 'started'
     cart_a = Cartridge.new :name => 'a'
-    cart_b = Cartridge.new :name => 'php-5.3' #only cartridges with category :web scale
+    cart_b = Cartridge.new :name => 'php-5.3' #only cartridges with category :web_framework scale
     cart_c = Cartridge.new :name => 'c'
     cart_proxy = Cartridge.new :name => 'haproxy-1.4'
     groups = [

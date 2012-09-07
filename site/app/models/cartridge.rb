@@ -15,7 +15,7 @@ class Cartridge < RestApi::Base
   belongs_to :application
   has_one :cartridge_type
 
-  delegate :display_name, :categories, :priority, :to => :cartridge_type, :allow_nil => false
+  delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
 
   def type
     @attributes[:type]
@@ -46,7 +46,7 @@ class Cartridge < RestApi::Base
   end
 
   def buildable?
-    git_url.present? and categories.include? :web
+    git_url.present? and tags.include? :web_framework
   end
   def builds
     @builds || BuildRelation::Null
