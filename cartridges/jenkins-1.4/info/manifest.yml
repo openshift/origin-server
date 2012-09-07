@@ -7,7 +7,7 @@ Vendor:
 Categories:
   - cartridge
   - web_framework
-  - builds
+  - ci
 Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
