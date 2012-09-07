@@ -45,7 +45,7 @@ module RestApi
                         opts[:before].call(result) if opts[:before]
                       end
                     end
-                  rescue TypeError => e
+                  rescue ArgumentError, TypeError => e
                     Rails.logger.warn e
                     parent.send(m, *args, &blk)
                   end
