@@ -10,7 +10,8 @@ Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/crankcase/source/rubygem-%{gem_name}/%{gem_name}-%{version}.gem
+#Source0:        http://mirror.openshift.com/pub/crankcase/source/rubygem-%{gem_name}/%{gem_name}-%{version}.gem
+Source0:				rubygem-%{gem_name}-%{version}
 Source1:        stickshift.fc
 Source2:        stickshift.if
 Source3:        stickshift.te
@@ -20,7 +21,6 @@ Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
 Requires:       %{?scl:%scl_prefix}rubygem(activemodel)
 Requires:       %{?scl:%scl_prefix}rubygem(json)
-Requires:       %{?scl:%scl_prefix}rubygem(rcov)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
 BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
@@ -45,9 +45,10 @@ This contains the Cloud Development Common packaged as a ruby site library.
 
 %prep
 %{?scl:scl enable %scl "}
-gem unpack %{SOURCE0}
-%setup -q -D -T -n  %{gem_name}-%{version}
-gem spec %{SOURCE0} -l --ruby > %{gem_name}.gemspec
+#gem unpack %{SOURCE0}
+#%setup -q -D -T -n  %{gem_name}-%{version}
+%setup -q -D -n  %{gem_name}-%{version}
+#gem spec %{SOURCE0} -l --ruby > %{gem_name}.gemspec
 %{?scl:"}
 
 %build
@@ -63,6 +64,9 @@ gem install -V \
         --force \
         --rdoc \
         %{gem_name}-%{version}.gem
+cp  stickshift.fc %{_sourcedir}
+cp  stickshift.if %{_sourcedir}
+cp  stickshift.te %{_sourcedir}
 %{?scl:EOF}
 
 %install
@@ -77,6 +81,7 @@ cd selinux
 cp %{SOURCE1} .
 cp %{SOURCE2} .
 cp %{SOURCE3} .
+
 make -f /usr/share/selinux/devel/Makefile
 install -p -m 644 -D stickshift.fc %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.fc
 install -p -m 644 -D stickshift.if %{buildroot}%{_datadir}/selinux/packages/%{name}/stickshift.if
@@ -92,14 +97,16 @@ rm -rf %{buildroot}
 %doc %{gem_instdir}/LICENSE
 %doc %{gem_instdir}/COPYRIGHT
 %doc %{gem_docdir}
+%doc %{gem_instdir}/.yardoc
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/Rakefile
 %doc %{gem_instdir}/README.md
 %doc %{gem_instdir}/%{gem_name}.gemspec
 %{gem_spec}
+%{gem_libdir}
 %{_datadir}/selinux/packages/%{name}/
 %exclude %{gem_cache}
-%exclude %{gem_libdir}
+
 %exclude %{gem_instdir}/rubygem-%{gem_name}.spec
 
 %post

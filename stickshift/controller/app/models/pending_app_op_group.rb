@@ -35,7 +35,11 @@ class PendingAppOpGroup
   
   def execute
     while(pending_ops.where(:state.ne => :completed).count > 0) do
+      handle = RemoteJob.create_parallel_job
+      parallel_job_ops = []
+      
       eligible_ops.each do|op|
+        use_parallel_job = false
         group_instance = application.group_instances.find(op.args["group_instance_id"]) unless op.args["group_instance_id"].nil? or op.op_type == :create_group_instance
         gear = group_instance.gears.find(op.args["gear_id"]) unless group_instance.nil? or op.args["gear_id"].nil? or op.op_type == :init_gear
         if op.args.has_key?("comp_spec")
@@ -80,13 +84,30 @@ class PendingAppOpGroup
         when :destroy_gear
           gear.destroy_gear          
         when :update_configuration
-          gear.update_configuration(op.args)
+          gear.update_configuration(op.args,handle)
+          use_parallel_job = true
         when :set_connections
           application.set_connections(op.args["connections"])
         when :execute_connections
           application.execute_connections
-        end        
-        op.set(:state, :completed)
+        when :set_additional_filesystem_gb
+          group_instance.set(:addtl_fs_gb, op.args["additional_filesystem_gb"])
+        when :set_gear_additional_filesystem_gb
+          gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
+          use_parallel_job = true
+        end
+        
+        if use_parallel_job 
+          parallel_job_ops.push op
+        else
+          op.set(:state, :completed)
+        end
+      end
+
+      if parallel_job_ops.lenhtj > 0
+        RemoteJob.execute_parallel_jobs(handle)
+        parallel_job_ops.each{ |op| op.state = :completed }
+        self.application.save
       end
     end
   end

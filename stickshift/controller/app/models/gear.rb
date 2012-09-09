@@ -34,6 +34,15 @@ class Gear
     end
   end
   
+  def self.base_filesystem_gb(gear_size)
+    CacheHelper.get_cached(gear_size + "_quota_blocks", :expires_in => 1.day) {
+      proxy = ApplicationContainerProxy.find_one(gear_size)
+      quota_blocks = Integer(proxy.get_quota_blocks)
+      # calculate the minimum storage in GB - blocks are 1KB each
+      quota_blocks / 1024 / 1024
+    }
+  end
+  
   def reserve_uid
     @container = StickShift::ApplicationContainerProxy.find_available(group_instance.gear_size)
     self.set :server_identity, @container.id
@@ -168,26 +177,27 @@ class Gear
     return @container
   end
 
-  def update_configuration(args)
+  def update_configuration(args, remote_job_handle)
     add_keys = args["add_keys_attrs"]
     remove_keys = args["remove_keys_attrs"]
     add_envs = args["add_env_vars"]
     remove_envs = args["remove_env_vars"]
     tag = ""
     
-    handle = RemoteJob.create_parallel_job
-    RemoteJob.run_parallel_on_gears([self], handle) { |exec_handle, gear|
-      add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
-      remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
-      
-      add_envs.each     {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
-      remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
-    }
+    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
+    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
+                                                              
+    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
+    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
   end
 
   # Convenience method to get the {Application}
   def app
     @app ||= group_instance.application
+  end
+  
+  def set_addtl_fs_gb(filesystem_gb, remote_job_handle)
+    RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, filesystem_gb,""))
   end
 
   def track_destroy_usage

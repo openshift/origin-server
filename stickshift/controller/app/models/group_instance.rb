@@ -25,6 +25,7 @@ class GroupInstance
   field :user_max, type: Integer, default: -1
 
   field :gear_size, type: String, default: "small"
+  field :addtl_fs_gb, type: Integer, default: 0
   embeds_many :gears, class_name: Gear.name
   
   # Initializes the application
@@ -93,7 +94,7 @@ class GroupInstance
   # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
   def to_hash
     comps = all_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {current: self.gears.length}, _id: _id}
+    {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: addtl_fs_gb, gear_size: gear_size}, _id: _id}
   end
 
   protected

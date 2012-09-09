@@ -82,7 +82,7 @@ module GearChanger
       #  inodes_soft_limit, inodes_hard_limit]
       def get_quota(gear)
         args = Hash.new
-        args['--uuid'] = gear.uuid
+        args['--uuid'] = gear._id.to_s
         reply = execute_direct(@@C_CONTROLLER, 'get-quota', args, false)
 
         output = nil
@@ -105,7 +105,7 @@ module GearChanger
       # Set blocks hard limit and inodes ihard limit for uuid
       def set_quota(gear, storage_in_gb, inodes)
         args = Hash.new
-        args['--uuid']   = gear.uuid
+        args['--uuid']   = gear._id.to_s
         # quota command acts on 1K blocks
         args['--blocks'] = storage_in_gb * 1024 * 1024
         args['--inodes'] = inodes unless inodes.nil?
@@ -563,14 +563,14 @@ module GearChanger
 
       def get_show_gear_quota_job(gear)
         args = Hash.new
-        args['--uuid'] = gear.uuid
+        args['--uuid'] = gear._id.to_s
         job = RemoteJob.new('stickshift-node', 'get-quota', args)
         job
       end
       
       def get_update_gear_quota_job(gear, storage_in_gb, inodes)
         args = Hash.new
-        args['--uuid']   = gear.uuid
+        args['--uuid']   = gear._id.to_s
         # quota command acts on 1K blocks
         args['--blocks'] = storage_in_gb * 1024 * 1024
         args['--inodes'] = inodes unless inodes.to_s.empty?
@@ -598,7 +598,7 @@ module GearChanger
         pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
 
         # rsync
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{source_gear._id.to_s}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{destination_gear._id.to_s}/#{cart}"; ssh-agent -k`
 
         # move and post-move
         post_move_cart(cart, destination_gear, keep_uid, idle)
