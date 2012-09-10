@@ -23,7 +23,7 @@ class CartridgeTypesControllerTest < ActionController::TestCase
     assert types.length > 0
 
     cached = CartridgeType.cached.all
-    assert cached.all? {|t| (t.categories & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
+    assert cached.all? {|t| (t.tags & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 
   test "should show type page" do

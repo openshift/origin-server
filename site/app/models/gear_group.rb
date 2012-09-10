@@ -87,8 +87,8 @@ class GearGroup < RestApi::Base
       end
     end
 
-    web, groups = groups.partition{ |g| g.exposes? {|c| c.categories.include?(:web)} }
-    data, groups = groups.partition{ |g| g.exposes? {|c| c.categories.include?(:database)} }
+    web, groups = groups.partition{ |g| g.exposes? {|c| c.tags.include?(:web_framework)} }
+    data, groups = groups.partition{ |g| g.exposes? {|c| c.tags.include?(:database)} }
 
     tiers.concat(web).concat(data).concat(groups)
     tiers.delete_if {|t| t.send(:move_features, tiers[0]) }
@@ -109,15 +109,15 @@ class GearGroup < RestApi::Base
     #
     def scales_with(carts, from, counts)
       @scales = true
-      cartridges.select{ |c| carts.include?(c.name) && c.categories.include?(:web) }.each{ |c| c.scales_with(SCALING_CART_NAME, from, counts[c.name]) }
+      cartridges.select{ |c| carts.include?(c.name) && c.tags.include?(:web_framework) }.each{ |c| c.scales_with(SCALING_CART_NAME, from, counts[c.name]) }
     end
     #
     # Return true if the group is now empty
     #
     def move_features(to)
       cartridges.delete_if do |c|
-        if c.categories.include?(:builds)
-          to.cartridges.select{ |d| d.categories.include?(:web) }.each{ |d| d.builds_with(c, self) }.present?
+        if c.tags.include?(:ci_builder) and not c.tags.include?(:web_framework)
+          to.cartridges.select{ |d| d.tags.include?(:web_framework) }.each{ |d| d.builds_with(c, self) }.present?
         end
       end
       if self != to && cartridges.empty?
@@ -129,7 +129,7 @@ class GearGroup < RestApi::Base
     # create a gear group without scaling or the scaled cartridge (assumes that this cart IS scaled)
     def without_scaling
       other = self.clone
-      other.cartridges.reject!{ |c| c.categories.include?(:web) or c.categories.include?(:scales) }
+      other.cartridges.reject!{ |c| c.tags.include?(:web_framework) or c.tags.include?(:scales) }
       other if other.cartridges.present?
     end
 

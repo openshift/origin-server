@@ -1,8 +1,8 @@
 = div_for application_type, :class => defined?(classes) ? classes : nil do
   %span.labels
-    - if application_type.categories.include? :new
+    - if application_type.tags.include? :new
       %span.label.label-info.pull-right Recently Added
-    - if application_type.categories.include? :experimental
+    - if application_type.tags.include? :experimental
       %span.label.pull-right Experimental
 
   %h3= application_type.name
@@ -34,7 +34,7 @@
   - else
     %p= application_type.description
 
-  - if application_type.categories.include? :in_development
+  - if application_type.tags.include? :in_development
     %p This template is development only and will not be accessible in production
 
   - if application_type.learn_more_url
