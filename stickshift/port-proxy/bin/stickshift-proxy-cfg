@@ -7,7 +7,8 @@
 
 source /etc/stickshift/stickshift-node.conf
 
-cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
+cfgfile=/etc/stickshift/stickshift-proxy.cfg
+vardir=${GEAR_BASE_DIR}/.stickshift-proxy.d
 
 
 ### 
@@ -125,7 +126,7 @@ rollcfg() {
 
 
 lockwrap() {
-    exec 200>${cfgfile}.lock 201>${cfgfile}.reload.lock
+    exec 200>${vardir}/lock 201>${vardir}/reload-lock
 
     flock 200
     oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
@@ -140,12 +141,12 @@ lockwrap() {
     fi
 
     if [ $oldsum != $newsum ]; then
-        reqfile=$(mktemp ${cfgfile}.reload.req.XXXXXX)
+        reqfile=$(mktemp ${vardir}/reload-req.XXXXXX)
         flock 201
 
         reloadreq=()
         reloadit=""
-        for f in ${cfgfile}.reload.req.??????
+        for f in ${vardir}/reload-req.??????
         do
             s=$(stat --printf '%s' "$f" )
             if [ $s -eq 0 ]

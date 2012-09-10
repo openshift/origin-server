@@ -23,7 +23,7 @@ exec=/usr/sbin/haproxy
 prog=haproxy
 lockfile=/var/lock/subsys/stickshift-proxy
 pidfile=/var/run/stickshift-proxy.pid
-cfgfile=/var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
+cfgfile=/etc/stickshift/stickshift-proxy.cfg
 
 pre_start() {
     # Fix internal ip address in case it was changed by the cloud provider
