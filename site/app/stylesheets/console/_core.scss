@@ -2,15 +2,6 @@
   word-wrap: break-word;
   text-shadow: none;
 }
-#console-mast {
-	background: #f0f0f0;
-	}
-	#console-mast h1 {
-		margin: 15px 0 10px 20px;
-		}
-	#console-mast ul li {
-		padding: 10px 0;
-		}
 .account-total {
 	font-size: 250%;
 	margin-top: 20px;
@@ -628,26 +619,25 @@ $cartridgeBorderWidth: 10px;
 }
 
 #secondary {
-	font-size: 90%;
-	}
-	#secondary a {
-		color: inherit;
-		}
-	#secondary a:hover {
-		color: #fff;
-		text-decoration: none;
-		}
-	#secondary h5 {
-		margin: 0 0 3px 0;
-		text-transform: uppercase;
-		}
-	#secondary #assistance ul,
-  #secondary #app-unique-info ul {
-		margin-bottom: 25px;
-		}
-	#app-unique-info h5 {
-		border-bottom: 1px solid #222222;
-		}
+  a {
+  color: inherit;
+  }
+  &:hover {
+    color: #fff;
+    text-decoration: none;
+  }
+  h5 {
+    margin: 0 0 3px 0;
+  }
+}
+
+#assistance ul,
+#app-unique-info ul {
+  margin-bottom: 25px;
+  }
+#app-unique-info h5 {
+  border-bottom: 1px solid #222222;
+  }
 .section-console h6 {
 	color: #9a9b9c;
  	font-weight: normal;
