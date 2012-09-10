@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.97.2
+Version: 0.97.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 10 2012 Troy Dawson <tdawson@redhat.com> 0.97.3-1
+- Merge pull request #463 from ramr/master (openshift+bot@redhat.com)
+- Fix for bugz 855262 - local gear of scalable pythong app is down after git
+  push is completed. (ramr@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
 - Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
   (openshift+bot@redhat.com)
