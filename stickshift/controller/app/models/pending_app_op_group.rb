@@ -38,21 +38,20 @@ class PendingAppOpGroup
       handle = RemoteJob.create_parallel_job
       parallel_job_ops = []
       
-      eligible_ops.each do|op|
+      eligible_ops.each do |op|
         use_parallel_job = false
         group_instance = application.group_instances.find(op.args["group_instance_id"]) unless op.args["group_instance_id"].nil? or op.op_type == :create_group_instance
         gear = group_instance.gears.find(op.args["gear_id"]) unless group_instance.nil? or op.args["gear_id"].nil? or op.op_type == :init_gear
         if op.args.has_key?("comp_spec")
           comp_name = op.args["comp_spec"]["comp"]
-          cart_name = op.args["comp_spec"]["cart"]          
+          cart_name = op.args["comp_spec"]["cart"]
           if op.op_type == :new_component
             component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
           else
             component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
           end
         end
-        
-        
+
         case op.op_type
         when :create_group_instance
           application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))
@@ -82,7 +81,17 @@ class PendingAppOpGroup
         when :deregister_dns          
           gear.deregister_dns          
         when :destroy_gear
-          gear.destroy_gear          
+          gear.destroy_gear
+        when :start_component
+          gear.start(comp_name)
+        when :stop_component
+          gear.stop(comp_name)
+        when :restart_component
+          gear.restart(comp_name)
+        when :reload_component
+          gear.rload(comp_name)
+        when :tidy_component
+          gear.tidy(comp_name)
         when :update_configuration
           gear.update_configuration(op.args,handle)
           use_parallel_job = true

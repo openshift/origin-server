@@ -289,7 +289,7 @@ class LegacyBrokerController < BaseController
       @reply.append app.force_stop
     when 'reload'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.reload
+      @reply.append app.rload
     when 'status'
       app = get_app_from_request(@cloud_user)
       @reply.append app.status
@@ -356,7 +356,7 @@ class LegacyBrokerController < BaseController
     when 'status'
       @reply.append app.status(@req.cartridge)      
     when 'reload'
-      @reply.append app.reload(@req.cartridge)
+      @reply.append app.rload(@req.cartridge)
     else
       raise StickShift::UserException.new("Invalid action #{@req.action}", 111)           
     end

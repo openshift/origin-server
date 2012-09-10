@@ -28,7 +28,7 @@ class AppCartEventsController < BaseController
         when 'restart'
           application.restart(cartridge)          
         when 'reload'
-          application.reload(cartridge)
+          application.rload(cartridge)
         else
           return render_error(:bad_request, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'",
                               126, "CARTRIDGE_EVENT")

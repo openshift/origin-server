@@ -80,7 +80,7 @@ class Gear
       dns.publish
     ensure
       dns.close
-    end  
+    end
   end
   
   # Installs the specified component on the gear.
@@ -128,8 +128,9 @@ class Gear
   # @see BasicObject::method_missing
   # @see http://www.ruby-doc.org/core-1.9.3/BasicObject.html
   def method_missing(sym, *args, &block)
-    new_args = args.dup.unshift(app,self)
-    return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym,false)
+    sym = :reload if sym == :rload
+    new_args = args.dup.unshift(app, self)
+    return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
     super(sym, *args, &block)
   end
   

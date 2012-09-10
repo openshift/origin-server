@@ -8,7 +8,7 @@
 # @!attribute [r] arguments
 #   @return [Hash] Arguments hash
 # @!attribute [r] retry_count
-#   @return [Integer] Number of times this operation has been attmpted
+#   @return [Integer] Number of times this operation has been attempted
 class PendingAppOp
   include Mongoid::Document
   embedded_in :pending_app_op_group, class_name: PendingAppOpGroup.name

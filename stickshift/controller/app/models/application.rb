@@ -255,9 +255,9 @@ class Application
       self.pending_op_groups.each do |op_group|
         case op_group.op_type
         when :add_components
-          features += op[:args]["features"]
+          features += op_group[:args]["features"]
         when :remove_components
-          features -= op[:args]["features"]
+          features -= op_group[:args]["features"]
         end
       end
     end
@@ -354,55 +354,95 @@ class Application
   end
 
   def start(feature=nil)
+    result_io = ResultIO.new
+    op_group = nil
     if feature.nil?
-      pending_ops.push(PendingAppOps.new(op_type: :start_app))
+      op_group = PendingAppOpGroup.new(op_type: :start_app)
     else
-      pending_ops.push(PendingAppOps.new(op_type: :start_feature, args: {"feature" => feature}))
+      op_group = PendingAppOpGroup.new(op_type: :start_feature, args: {"feature" => feature})
     end
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def start_component(component_name, cartridge_name=nil)
-    pending_ops.push(PendingAppOps.new(op_type: :start_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
+    result_io = ResultIO.new
+    op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def stop(feature=nil, force=false)
+    result_io = ResultIO.new
+    op_group = nil
     if feature.nil?
-      pending_ops.push(PendingAppOps.new(op_type: :stop_app))
+      op_group = PendingAppOpGroup.new(op_type: :stop_app)
     else
-      pending_ops.push(PendingAppOps.new(op_type: :stop_feature, args: {"feature" => feature}))
+      op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature})
     end
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def stop_component(component_name, cartridge_name=nil, force=false)
-    pending_ops.push(PendingAppOps.new(op_type: :stop_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name, "force" => force}))
+    result_io = ResultIO.new
+    op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force})
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def restart(feature=nil)
+    result_io = ResultIO.new
+    op_group = nil
     if feature.nil?
-      pending_ops.push(PendingAppOps.new(op_type: :restart_app))
+      op_group = PendingAppOpGroup.new(op_type: :restart_app)
     else
-      pending_ops.push(PendingAppOps.new(op_type: :restart_feature, args: {"feature" => feature}))
+      op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature})
     end
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def restart_component(component_name, cartridge_name=nil)
-    pending_ops.push(PendingAppOps.new(op_type: :restart_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
+    result_io = ResultIO.new
+    op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
-  def reload(feature=nil)
+  def rload(feature=nil)
+    result_io = ResultIO.new
+    op_group = nil
     if feature.nil?
-      pending_ops.push(PendingAppOps.new(op_type: :reload_app))
+      op_group = PendingAppOpGroup.new(op_type: :reload_app)
     else
-      pending_ops.push(PendingAppOps.new(op_type: :reload_feature, args: {"feature" => feature}))
+      op_group = PendingAppOpGroup.new(op_type: :reload_feature, args: {"feature" => feature})
     end
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def reload_component(component_name, cartridge_name=nil)
-    pending_ops.push(PendingAppOps.new(op_type: :reload_component, args: {"component_name" => component_name, "cartridge_name" => cartridge_name}))
+    result_io = ResultIO.new
+    op_group = PendingAppOpGroup.new(op_type: :reload_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def tidy
-    pending_ops.push(PendingAppOps.new(op_type: :tidy_app))
+    result_io = ResultIO.new
+    op_group = PendingAppOpGroup.new(op_type: :tidy_app)
+    self.pending_op_groups.push op_group
+    self.run_jobs(result_io)
+    result_io
   end
 
   def show_port
@@ -631,6 +671,7 @@ class Application
       begin
         while self.pending_op_groups.count > 0
           op_group = self.pending_op_groups.first
+          op_group.pending_ops
           if op_group.pending_ops.count == 0
             case op_group.op_type
             when :add_namespace
@@ -669,32 +710,15 @@ class Application
             when :remove_alias
               #need rollback
               #todo
-            when :start_app
-              #todo
-            when :start_feature
-              #todo
-            when :start_component
-              #todo
-            when :stop_app
-              #todo
-            when :stop_feature
-              #todo
-            when :stop_component
-              #todo
-            when :restart_app
-              #todo
-            when :restart_feature
-              #todo
-            when :restart_component
-              #todo
-            when :reload_app
-              #todo
-            when :reload_feature
-              #todo
-            when :reload_component
-              #todo
-            when :tidy_app
-              #todo
+            when :start_app, :stop_app, :restart_app, :reload_app, :tidy_app
+              ops = calculate_ctl_app_component_ops(op_group.op_type)
+              op_group.pending_ops.push(*ops)
+            when :start_feature, :stop_feature, :restart_feature, :reload_feature
+              ops = calculate_ctl_feature_component_ops(op_group.op_type, op_group.args['feature'])
+              op_group.pending_ops.push(*ops)
+            when :start_component, :stop_component, :restart_component, :reload_component
+              ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
+              op_group.pending_ops.push(*ops)
             end
           end
 
@@ -848,6 +872,60 @@ class Application
       end
     end
     ops
+  end
+
+  def calculate_ctl_component_ops(op_type, comp_spec)
+    component_instance = self.component_instances.find(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp'])
+    ops = []
+    add_component_ops(op_type, component_instance, ops)
+    ops
+  end
+  
+  def calculate_ctl_app_component_ops(op_type)
+    ops = []
+    start_order, stop_order = calculate_component_orders
+    order = (op_type == :stop_app) ? stop_order : start_order
+    order.each do |component_instance|
+      add_component_ops(op_type_to_comp_op_type(op_type), component_instance, ops)
+    end
+    ops
+  end
+  
+  def calculate_ctl_feature_component_ops(op_type, feature)
+    ops = []
+    component_instances = get_components_for_feature(feature)
+    start_order, stop_order = calculate_component_orders
+    order = op_type == :stop_feature ? stop_order : start_order
+    order.each do |component_instance|
+      if component_instances.include? component_instance
+        add_component_ops(op_type_to_comp_op_type(op_type), component_instance, ops)
+      end
+    end
+    ops
+  end
+  
+  def add_component_ops(op_type, component_instance, ops)
+    component_instance.group_instance.gears.each do |gear| 
+      op = PendingAppOp.new(op_type: op_type, args: {'group_instance_id' => component_instance.group_instance._id, 'gear_id' => gear._id, 'comp_spec' => {'cart' => component_instance.cartridge_name, 'comp' => component_instance.component_name}})
+      ops.push op
+    end
+  end
+  
+  def op_type_to_comp_op_type(op_type)
+    comp_op_type = nil
+    case op_type
+    when :start_app, :start_feature
+      comp_op_type = :start_component 
+    when :stop_app, :stop_feature
+      comp_op_type = :stop_component
+    when :restart_app, :restart_feature
+      comp_op_type = :restart_component 
+    when :reload_app, :reload_feature
+      comp_op_type = :reload_component 
+    when :tidy_app
+      comp_op_type = :tidy_component
+    end
+    comp_op_type
   end
 
   def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
@@ -1340,7 +1418,7 @@ class Application
     computed_configure_order
   end
 
-  # Returns the start/stop order specified in the application descriptor or processes the stat and stop
+  # Returns the start/stop order specified in the application descriptor or processes the start and stop
   # orders for each component and returns the final order (topological sort).
   #
   # == Returns:
@@ -1389,21 +1467,6 @@ class Application
     end
 
     [computed_start_order, computed_stop_order]
-  end
-
-  def stop(force=false)
-  end
-
-  def restart
-  end
-
-  def reload
-  end
-
-  def status
-  end
-
-  def tidy
   end
 
   # Gets a feature name for the cartridge/component combination
