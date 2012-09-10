@@ -638,16 +638,20 @@ class Application
             when :remove_namespace
               #todo
             when :update_configuration
+              #skip undo
               ops = calculate_update_existing_configuration_ops(op_group.args)
               op_group.pending_ops.push(*ops)
             when :update_ssh_keys
+              #skip undo
               #todo
             when :add_components
+              #need rollback
               features = self.requires + op_group.args["features"]
               group_overrides = op_group.args["group_overrides"] || []
               ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
               try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :remove_components
+              #no rollback
               features = self.requires - op_group.args["features"]
               group_overrides = op_group.args["group_overrides"] || []
               ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
@@ -656,11 +660,14 @@ class Application
               self.pending_op_groups.clear
               self.delete
             when :scale_by
+              #need rollback
               ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
               try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
             when :add_alias
+              #need rollback
               #todo
             when :remove_alias
+              #need rollback
               #todo
             when :start_app
               #todo

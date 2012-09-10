@@ -104,7 +104,7 @@ class PendingAppOpGroup
         end
       end
 
-      if parallel_job_ops.lenhtj > 0
+      if parallel_job_ops.length > 0
         RemoteJob.execute_parallel_jobs(handle)
         parallel_job_ops.each{ |op| op.state = :completed }
         self.application.save

@@ -184,11 +184,11 @@ class Gear
     remove_envs = args["remove_env_vars"]
     tag = ""
     
-    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
-    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
-                                                              
-    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
-    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
+    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, self.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
+    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, self.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
+                                                                                           
+    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, self.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?                                                   
+    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, self.env_var_job_remove(env["key"]))} unless remove_envs.nil?
   end
 
   # Convenience method to get the {Application}
