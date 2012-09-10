@@ -14,6 +14,9 @@ class RestUser < StickShift::Model
         Param.new("name", "string", "Name of the key"),
         Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
+      ]),
+      "DELETE_USER" => Link.new("Delete user. Only applicable for subaccount users.", "DELETE", URI::join(url, "user"), nil, [
+        OptionalParam.new("force", "boolean", "Force delete user. i.e. delete any domains and applications under this user", [true, false], false)
       ])
     } unless nolinks
   end
