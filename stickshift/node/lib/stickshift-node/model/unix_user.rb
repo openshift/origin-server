@@ -165,18 +165,20 @@ module StickShift
         end
       end
 
-      # FIXME: logging and repeated deletes added for debugging. Once root issue
-      #        has been determined this can be cleaned up.
-      dirs = list_home_dir(@homedir)
-      FileUtils.rm_rf(@homedir)
       if File.exists?(@homedir)
-        Syslog.alert "1st attempt to remove \'#{@homedir}\' from filesystem failed."
-        Syslog.alert "Dirs  #{@uuid} => #{dirs}"
-        Syslog.alert "Procs #{@uuid} => #{`ps -u #{@uuid}`}"
-
+        # FIXME: logging and repeated deletes added for debugging. Once root issue
+        #        has been determined this can be cleaned up.
+        dirs = list_home_dir(@homedir)
         FileUtils.rm_rf(@homedir)
         if File.exists?(@homedir)
-          Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed."
+          Syslog.alert "1st attempt to remove \'#{@homedir}\' from filesystem failed."
+          Syslog.alert "Dirs  #{@uuid} => #{dirs}"
+          Syslog.alert "Procs #{@uuid} => #{`ps -u #{@uuid}`}"
+
+          FileUtils.rm_rf(@homedir)
+          if File.exists?(@homedir)
+            Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed."
+          end
         end
       end
 
