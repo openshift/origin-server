@@ -1,4 +1,6 @@
-# OpenShift Origin Management Console (openshift-origin-console)
+# OpenShift Origin Management Console
+
+RubyGem: openshift-origin-console
 
 The OpenShift Origin management console allow you to manage your OpenShift
 applications from the comfort of your browser or mobile phone. The
