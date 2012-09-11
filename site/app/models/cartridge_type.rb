@@ -82,9 +82,9 @@ class CartridgeType < RestApi::Base
 
   def <=>(other)
     return 0 if name == other.name
-    c = priority - other.priority
-    return c unless c == 0
     c = self.class.tag_compare(tags, other.tags)
+    return c unless c == 0
+    c = priority - other.priority
     return c unless c == 0
     display_name <=> other.display_name
   end

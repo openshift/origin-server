@@ -39,7 +39,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
 
     assert (required = types.select{ |t| t.requires.present? }).length > 1
     assert types.all?{ |t| t.tags.present? }
-    assert types.all?{ |t| t.tags & t.categories = t.categories }
+    assert types.all?{ |t| (t.tags & t.categories).sort.uniq == t.categories.sort.uniq }
   end
 
   test 'should load standalone cartridge types' do
@@ -78,5 +78,10 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert_equal type.id, template.name
     assert template.git_project_url
     assert_same template.tags, template.tags
+  end
+
+  test 'sort cartridges' do
+    array = ['diy-0.1','mongodb-2.0'].map{ |s| Cartridge.new(:name => s) }
+    assert_equal array.map(&:name), array.sort.map(&:name)
   end
 end
