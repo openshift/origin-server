@@ -32,8 +32,8 @@ Given /^a new client created (.+) application$/ do |type|
   if rhc_create_domain(@app)
     rhc_create_app(@app)
   end
-  raise "Could not create domain" unless @app.create_domain_code == 0
-  raise "Could not create application" unless @app.create_app_code == 0
+  raise "Could not create domain: #{@app.create_domain_code}" unless @app.create_domain_code == 0
+  raise "Could not create application #{@app.create_app_code}" unless @app.create_app_code == 0
 end
 
 When /^(\d+) (.+) applications are created$/ do |app_count, type|
@@ -44,6 +44,8 @@ When /^(\d+) (.+) applications are created$/ do |app_count, type|
     if rhc_create_domain(app)
       rhc_create_app(app)
     end
+    raise "Could not create domain: #{app.create_domain_code}"  unless app.create_domain_code == 0
+    raise "Could not create application #{app.create_app_code}" unless app.create_app_code == 0
     app
   end
 end
