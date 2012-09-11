@@ -60,7 +60,7 @@ Profiles:
   standalone:
     Provides: jbosseap-standalone, jboss-eap6.0-standalone, jboss-eap6.0.0-standalone
     Components:
-      jbosseap-server:
+      jbosseap-6.0:
         &jbosseap-server-component
         Publishes:
           get-doc-root:

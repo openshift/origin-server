@@ -243,15 +243,8 @@ class LegacyBrokerController < BaseController
       check_cartridge_type(@req.cartridge, "standalone")
       raise StickShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if StickShift::ApplicationContainerProxy.blacklisted? @req.app_name
       
-      #@req.node_profile
       begin
-        app = Application.new(domain: domain, features: [@req.cartridge], name: @req.app_name)
-      rescue StickShift::GearLimitReachedException => e
-        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
-      end
-
-      if app.valid?
-        app.run_jobs(@reply)
+        app = Application.create_app(@req.app_name, [@req.cartridge], domain, @req.node_profile, @reply)
         case @req.cartridge
         when 'php'
           page = 'health_check.php'
@@ -263,17 +256,18 @@ class LegacyBrokerController < BaseController
         @reply.data = {:health_check_path => page, :uuid => app._id.to_s}.to_json
         log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_CREATE_APP", true, "Created application #{app.name}")
         @reply.resultIO << "Successfully created application: #{app.name}" if @reply.resultIO.length == 0
-      else
+      rescue StickShift::GearLimitReachedException => e
+        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+      rescue StickShift::ApplicationValidationException => e
         log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_CREATE_APP", false, "Invalid application: #{app.errors.first[1][:message]}")
-        @reply.resultIO << app.errors.first[1][:message]
-        @reply.exitcode = app.errors.first[1][:exit_code]
+        @reply.resultIO << e.app.errors.first[1][:message]
+        @reply.exitcode = e.app.errors.first[1][:exit_code]
         render :json => @reply, :status => :bad_request 
         return
       end
     when 'deconfigure'
       app = get_app_from_request(@cloud_user)
-      app.destroy_app
-      app.run_jobs(@reply)
+      @reply.append app.destroy_app
       @reply.resultIO << "Successfully destroyed application: #{app.name}"
     when 'start'
       app = get_app_from_request(@cloud_user)
@@ -289,7 +283,7 @@ class LegacyBrokerController < BaseController
       @reply.append app.force_stop
     when 'reload'
       app = get_app_from_request(@cloud_user)
-      @reply.append app.rload
+      @reply.append app.reload_config
     when 'status'
       app = get_app_from_request(@cloud_user)
       @reply.append app.status
@@ -333,7 +327,7 @@ class LegacyBrokerController < BaseController
     check_cartridge_type(@req.cartridge, "embedded")
     
     # making this check here for the specific actions, so that the error codes for other conditions are not affected
-    if ['deconfigure', 'start', 'stop', 'restart', 'status', 'reload'].include?(@req.action) and ( app.embedded.nil? or not app.embedded.has_key?(@req.cartridge) )
+    if ['deconfigure', 'start', 'stop', 'restart', 'status', 'reload'].include?(@req.action) and (app.component_instances.where(cartridge_name: @req.cartridge).count == 0)
       raise StickShift::UserException.new("The application #{app.name} is not configured with the embedded cartridge #{@req.cartridge}.", 129) 
     end
 
@@ -341,12 +335,12 @@ class LegacyBrokerController < BaseController
     case @req.action
     when 'configure'
       begin
-        @reply.append app.requires += [@req.cartridge]      
+        @reply.append app.add_features [@req.cartridge]
       rescue StickShift::GearLimitReachedException => e
         raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
     when 'deconfigure'
-      @reply.append app.requires -= [feature_provided_by_cartridge(@req.cartridge)]
+      @reply.append app.remove_features [feature_provided_by_cartridge(@req.cartridge)]
     when 'start'
       @reply.append app.start(@req.cartridge)      
     when 'stop'
@@ -356,7 +350,7 @@ class LegacyBrokerController < BaseController
     when 'status'
       @reply.append app.status(@req.cartridge)      
     when 'reload'
-      @reply.append app.rload(@req.cartridge)
+      @reply.append app.reload_config(@req.cartridge)
     else
       raise StickShift::UserException.new("Invalid action #{@req.action}", 111)           
     end

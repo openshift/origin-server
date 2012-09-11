@@ -36,7 +36,7 @@ Profiles:
   basic:
     Provides: mongodb-basic-mode
     Components:
-      mongod:
+      mongodb-2.0:
         Publishes:
           publish-nosql-db-connection-info:
             Type: "NET_TCP:nosqldb:connection-info"

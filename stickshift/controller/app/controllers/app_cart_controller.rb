@@ -70,8 +70,7 @@ class AppCartController < BaseController
     end
 
     begin
-      app_requires = application.requires + [name]
-      application.requires = app_requires
+      application.add_feature(name)
     rescue StickShift::UserException => e
       return render_error(:bad_request, "Invalid cartridge. #{e.message}", 109, "EMBED_CARTRIDGE", "cartridge")
     end
@@ -111,7 +110,7 @@ class AppCartController < BaseController
         raise StickShift::UserException.new("Invalid cartridge #{id}")
       end
       
-      application.requires -= [feature]
+      application.remove_feature(feature)
     rescue StickShift::UserException => e
       return render_error(:bad_request, "Application is currently busy performing another operation. Please try again in a minute.", 129, "REMOVE_CARTRIDGE")
     rescue Mongoid::Errors::DocumentNotFound

@@ -61,7 +61,7 @@ Profiles:
     Reservations:
       - MEM >= 100MB
     Components:
-      jbossas-server:
+      jbossas-7:
         Publishes:
           get-doc-root:
             Type: "FILESYSTEM:doc-root"

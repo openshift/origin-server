@@ -14,16 +14,14 @@ Provides:
   - cron
   - scheduler-service
   - cron-service
-Components:
-  executor:
-    Publishes:
-      get-job-listing:
-        Type: "STRING:jobs"
-    Subscribes:
-      add-job:
-        Type: "STRING:job"
-      remove-job:
-        Type: "STRING:job"
+Publishes:
+  get-job-listing:
+    Type: "STRING:jobs"
+Subscribes:
+  add-job:
+    Type: "STRING:job"
+  remove-job:
+    Type: "STRING:job"
 Scaling:
   Min: 1
   Max: 1

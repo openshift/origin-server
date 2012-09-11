@@ -38,10 +38,10 @@ class AppEventsController < BaseController
           application.restart
           msg = "Application #{id} has restarted"
         when "expose-port"
-          application.expose_port
+          #deprecated, no-op
           msg = "Application #{id} has exposed port"
         when "conceal-port"
-          application.conceal_port
+          #deprecated, no-op
           msg = "Application #{id} has concealed port"
         when "show-port"
           r = application.show_port
@@ -54,10 +54,12 @@ class AppEventsController < BaseController
           application.remove_alias(server_alias)
           msg = "Application #{id} has removed alias"
         when "scale-up"
-          application.scaleup
+          web_framework_component_instance = application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+          application.scaleby(web_framework_component_instance.group_instance_id, 1)
           msg = "Application #{id} has scaled up"
         when "scale-down"
-          application.scaledown
+          web_framework_component_instance = application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
+          application.scaleby(web_framework_component_instance.group_instance_id, -1)
           msg = "Application #{id} has scaled down"
         else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",

@@ -18,6 +18,7 @@ class PendingAppOp
   field :prereq,            type: Array
   field :retry_count,       type: Integer,  default: 0
   field :retry_rollback_op, type: Moped::BSON::ObjectId
+  field :saved_values,      type: Hash, default: []
 
   def args
     self.attributes["args"] || {}

@@ -76,7 +76,7 @@ class Gear
   def deregister_dns
     dns = StickShift::DnsService.instance
     begin
-      dns.deregister_application(self.name, self.group_instance.application.domain.namespace, public_hostname)
+      dns.deregister_application(self.name, self.group_instance.application.domain.namespace)
       dns.publish
     ensure
       dns.close
@@ -128,7 +128,7 @@ class Gear
   # @see BasicObject::method_missing
   # @see http://www.ruby-doc.org/core-1.9.3/BasicObject.html
   def method_missing(sym, *args, &block)
-    sym = :reload if sym == :rload
+    sym = :reload if sym == :reload_config
     new_args = args.dup.unshift(app, self)
     return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
     super(sym, *args, &block)
@@ -198,6 +198,7 @@ class Gear
   end
   
   def set_addtl_fs_gb(filesystem_gb, remote_job_handle)
+    return if filesystem_gb == 0
     RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, filesystem_gb,""))
   end
 

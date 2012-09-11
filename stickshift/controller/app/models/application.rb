@@ -81,6 +81,22 @@ class Application
     notify_observers(:validate_application)
   end
 
+  def self.create_app(application_name, features, domain, default_gear_size, result_io)
+    app = Application.new(domain: domain, features: features, name: application_name, default_gear_size: default_gear_size)
+    if app.valid?
+      begin
+        Application.run_in_application_lock(app){ app.run_jobs(result_io) }
+      rescue Exception => e
+        app.delete
+        raise e
+      end
+      app
+    else
+      app.delete
+      raise StickShift::ApplicationValidationException.new(app)
+    end
+  end
+
   # Initializes the application
   #
   # == Parameters:
@@ -102,7 +118,7 @@ class Application
     self.pending_op_groups = []
     self.save
     begin
-      add_components(features, group_overrides)
+      add_features(features, group_overrides)
     rescue Exception => e
       self.delete
       raise e
@@ -121,9 +137,13 @@ class Application
   # == Returns:
   # {PendingAppOps} object which tracks the progess of the operation.
   def update_namespace(new_namespace, parent_op=nil)
-    op_group = PendingAppOpGroup.new(op_name: :add_namespace, args: {"new_namespace" => new_namespace}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_name: :add_namespace, args: {"new_namespace" => new_namespace}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Removes an existing namespace to the application. This function supports the second step of the update namespace workflow.
@@ -138,9 +158,13 @@ class Application
   # == Returns:
   # {PendingAppOps} object which tracks the progess of the operation.
   def remove_namespace(old_namespace, parent_op=nil)
-    op_group = PendingAppOpGroup.new(op_name: :remove_namespace, args: {"old_namespace" => old_namespace}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_name: :remove_namespace, args: {"old_namespace" => old_namespace}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Adds the given ssh key to the application.
@@ -165,9 +189,13 @@ class Application
       end
       k
     }
-    op_group = PendingAppOpGroup.new(op_name: :update_configuration,  args: {"add_keys_attrs" => key_attrs}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    return pending_op
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_name: :update_configuration,  args: {"add_keys_attrs" => key_attrs}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Updates the given ssh key on the application. It uses the user+key name to identify the key to update.
@@ -188,9 +216,13 @@ class Application
       k["name"] = user_id.to_s + "-" + k["name"]
       k
     }
-    op_group = PendingAppOpGroup.new(op_name: :update_ssh_keys, args: {"keys" => keys_attrs}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_name: :update_ssh_keys, args: {"keys" => keys_attrs}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Removes the given ssh key from the application. If multiple users share the same key, only the specified users key is removed
@@ -216,21 +248,33 @@ class Application
       end
       k
     }
-    op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"remove_keys_attrs" => key_attrs}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"remove_keys_attrs" => key_attrs}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def add_env_variables(vars, parent_op=nil)
-    op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"add_env_variables" => vars}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"add_env_variables" => vars}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def remove_env_variables(vars, parent_op=nil)
-    op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"remove_env_variables" => vars}, parent_op: parent_op)
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_name: :update_configuration, args: {"remove_env_variables" => vars}, parent_op: parent_op)
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Returns the total number of gears currently used by this application
@@ -254,9 +298,9 @@ class Application
     if include_pending
       self.pending_op_groups.each do |op_group|
         case op_group.op_type
-        when :add_components
+        when :add_features
           features += op_group[:args]["features"]
-        when :remove_components
+        when :remove_features
           features -= op_group[:args]["features"]
         end
       end
@@ -267,28 +311,43 @@ class Application
 
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
-  def add_components(features, group_overrides=nil)
-    unless group_overrides.nil?
-      self.set(:group_overrides, group_overrides)
-    end
+  def add_features(features, group_overrides=nil)
+    Application.run_in_application_lock(self) do
+      unless group_overrides.nil?
+        self.set(:group_overrides, group_overrides)
+      end
 
-    self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_components, args: {"features" => features, "group_overrides" => group_overrides})
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides})
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
-  def remove_components(features, group_overrides=nil)
-    unless group_overrides.nil?
-      self.set(:group_overrides, group_overrides)
+  def remove_features(features, group_overrides=nil)
+    Application.run_in_application_lock(self) do
+      unless group_overrides.nil?
+        self.set(:group_overrides, group_overrides)
+      end
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides})
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
     end
-    self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_components, args: {"features" => features, "group_overrides" => group_overrides})
   end
 
   # Destroys all gears on the application.
   # @note {#run_jobs} must be called in order to perform the updates
   def destroy_app
-    self.remove_components(self.requires)
-    self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app)
+    Application.run_in_application_lock(self) do
+      self.remove_features(self.requires)
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app)
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Updates the component grouping overrides of the application and create tasks to perform the update.
@@ -299,9 +358,14 @@ class Application
   #   A list of component grouping overrides to use while creating gears
   def group_overrides=(group_overrides)
     super
-    pending_op = PendingAppOpGroup.new(op_type: :add_components, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new)
-    pending_op_groups.push pending_op
-    self.save
+    Application.run_in_application_lock(self) do    
+      pending_op = PendingAppOpGroup.new(op_type: :add_features, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new)
+      pending_op_groups.push pending_op
+      self.save
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Scales the group instance that runs this component
@@ -313,7 +377,12 @@ class Application
   # scale_by::
   #   Number of gears to add (+ve) or remove (-ve)
   def scale_by(group_instance_id, scale_by)
-    self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by})
+    Application.run_in_application_lock(self) do
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by})
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Returns the fully qualified domain name where the application can be accessed
@@ -361,88 +430,106 @@ class Application
     else
       op_group = PendingAppOpGroup.new(op_type: :start_feature, args: {"feature" => feature})
     end
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
+    Application.run_in_application_lock(self) do
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
-  def start_component(component_name, cartridge_name=nil)
-    result_io = ResultIO.new
-    op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
+  def start_component(component_name, cartridge_name)
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_type: :start_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def stop(feature=nil, force=false)
-    result_io = ResultIO.new
-    op_group = nil
-    if feature.nil?
-      op_group = PendingAppOpGroup.new(op_type: :stop_app)
-    else
-      op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature})
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = nil
+      if feature.nil?
+        op_group = PendingAppOpGroup.new(op_type: :stop_app)
+      else
+        op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature})
+      end
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
     end
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
   end
 
-  def stop_component(component_name, cartridge_name=nil, force=false)
-    result_io = ResultIO.new
-    op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force})
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
+  def stop_component(component_name, cartridge_name, force=false)
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_type: :stop_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}, "force" => force})
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def restart(feature=nil)
-    result_io = ResultIO.new
-    op_group = nil
-    if feature.nil?
-      op_group = PendingAppOpGroup.new(op_type: :restart_app)
-    else
-      op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature})
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = nil
+      if feature.nil?
+        op_group = PendingAppOpGroup.new(op_type: :restart_app)
+      else
+        op_group = PendingAppOpGroup.new(op_type: :restart_feature, args: {"feature" => feature})
+      end
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
     end
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
   end
 
-  def restart_component(component_name, cartridge_name=nil)
-    result_io = ResultIO.new
-    op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
-  end
-
-  def rload(feature=nil)
-    result_io = ResultIO.new
-    op_group = nil
-    if feature.nil?
-      op_group = PendingAppOpGroup.new(op_type: :reload_app)
-    else
-      op_group = PendingAppOpGroup.new(op_type: :reload_feature, args: {"feature" => feature})
+  def restart_component(component_name, cartridge_name)
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_type: :restart_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
     end
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
   end
 
-  def reload_component(component_name, cartridge_name=nil)
-    result_io = ResultIO.new
-    op_group = PendingAppOpGroup.new(op_type: :reload_component, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
+  def reload_config(feature=nil)
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = nil
+      if feature.nil?
+        op_group = PendingAppOpGroup.new(op_type: :reload_app_config)
+      else
+        op_group = PendingAppOpGroup.new(op_type: :reload_feature_config, args: {"feature" => feature})
+      end
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
+  def reload_component_config(component_name, cartridge_name)
+    Application.run_in_application_lock(self) do
+      op_group = PendingAppOpGroup.new(op_type: :reload_component_config, args: {"comp_spec" => {"comp" => component_name, "cart" => cartridge_name}})
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def tidy
-    result_io = ResultIO.new
-    op_group = PendingAppOpGroup.new(op_type: :tidy_app)
-    self.pending_op_groups.push op_group
-    self.run_jobs(result_io)
-    result_io
+    Application.run_in_application_lock(self) do
+      result_io = ResultIO.new
+      op_group = PendingAppOpGroup.new(op_type: :tidy_app)
+      self.pending_op_groups.push op_group
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def show_port
@@ -461,7 +548,7 @@ class Application
     result_io
   end
 
-  def component_status(component_name, cartridge_name=nil)
+  def component_status(component_name, cartridge_name)
     if cartridge_name.nil?
       component_instance = self.component_instances.find(component_name: component_name)
     else
@@ -491,11 +578,15 @@ class Application
   # == Raises:
   # StickShift::UserException if the alias is already been associated with an application.
   def add_alias(fqdn)
-    raise StickShift::UserException.new("Alias #{fqdn} is already registered") if Application.where(aliases: fqdn).count > 0
-    aliases.push(fqdn)
-    op_group = PendingAppOpGroup.with_single_op(:add_alias, {"fqdn" => fqdn})
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      raise StickShift::UserException.new("Alias #{fqdn} is already registered") if Application.where(aliases: fqdn).count > 0
+      aliases.push(fqdn)
+      op_group = PendingAppOpGroup.with_single_op(:add_alias, {"fqdn" => fqdn})
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   # Removes a DNS alias for the application.
@@ -507,11 +598,15 @@ class Application
   # == Returns:
   # {PendingAppOps} object which tracks the progess of the operation.
   def remove_alias(fqdn)
-    return unless aliases.include? fqdn
-    aliases.delete(fqdn)
-    op_group = PendingAppOpGroup.with_single_op(:remove_alias, {"fqdn" => fqdn})
-    self.pending_op_groups.push op_group
-    op_group
+    Application.run_in_application_lock(self) do
+      return unless aliases.include? fqdn
+      aliases.delete(fqdn)
+      op_group = PendingAppOpGroup.with_single_op(:remove_alias, {"fqdn" => fqdn})
+      self.pending_op_groups.push op_group
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
   end
 
   def set_connections(connections)
@@ -667,71 +762,89 @@ class Application
     result_io = ResultIO.new if result_io.nil?
     self.reload
     return true if(self.pending_op_groups.count == 0)
-    if(Lock.lock_application(self))
-      begin
-        while self.pending_op_groups.count > 0
-          op_group = self.pending_op_groups.first
-          op_group.pending_ops
-          if op_group.pending_ops.count == 0
-            case op_group.op_type
-            when :add_namespace
-              #todo
-            when :remove_namespace
-              #todo
-            when :update_configuration
-              #skip undo
-              ops = calculate_update_existing_configuration_ops(op_group.args)
-              op_group.pending_ops.push(*ops)
-            when :update_ssh_keys
-              #skip undo
-              #todo
-            when :add_components
-              #need rollback
-              features = self.requires + op_group.args["features"]
-              group_overrides = op_group.args["group_overrides"] || []
-              ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
-              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-            when :remove_components
-              #no rollback
-              features = self.requires - op_group.args["features"]
-              group_overrides = op_group.args["group_overrides"] || []
-              ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
-              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-            when :delete_app
-              self.pending_op_groups.clear
-              self.delete
-            when :scale_by
-              #need rollback
-              ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
-              try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
-            when :add_alias
-              #need rollback
-              #todo
-            when :remove_alias
-              #need rollback
-              #todo
-            when :start_app, :stop_app, :restart_app, :reload_app, :tidy_app
-              ops = calculate_ctl_app_component_ops(op_group.op_type)
-              op_group.pending_ops.push(*ops)
-            when :start_feature, :stop_feature, :restart_feature, :reload_feature
-              ops = calculate_ctl_feature_component_ops(op_group.op_type, op_group.args['feature'])
-              op_group.pending_ops.push(*ops)
-            when :start_component, :stop_component, :restart_component, :reload_component
-              ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
-              op_group.pending_ops.push(*ops)
-            end
+    begin
+      while self.pending_op_groups.count > 0
+        op_group = self.pending_op_groups.first
+        op_group.pending_ops
+        if op_group.pending_ops.count == 0
+          case op_group.op_type
+          when :add_namespace
+            #todo
+          when :remove_namespace
+            #todo
+          when :update_configuration
+            ops = calculate_update_existing_configuration_ops(op_group.args)
+            op_group.pending_ops.push(*ops)
+          when :update_ssh_keys
+            #todo
+          when :add_features
+            #need rollback
+            features = self.requires + op_group.args["features"]
+            group_overrides = op_group.args["group_overrides"] || []
+            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
+            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
+          when :remove_features
+            #need rollback
+            features = self.requires - op_group.args["features"]
+            group_overrides = op_group.args["group_overrides"] || []
+            ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
+            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
+          when :delete_app
+            self.pending_op_groups.clear
+            self.delete
+          when :scale_by
+            #need rollback
+            ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
+            try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
+          when :add_alias
+            #need rollback
+            #todo
+          when :remove_alias
+            #need rollback
+            #todo
+          when :start_app, :stop_app, :restart_app, :reload_app_config, :tidy_app
+            ops = calculate_ctl_app_component_ops(op_group.op_type)
+            op_group.pending_ops.push(*ops)
+          when :start_feature, :stop_feature, :restart_feature, :reload_feature_config
+            ops = calculate_ctl_feature_component_ops(op_group.op_type, op_group.args['feature'])
+            op_group.pending_ops.push(*ops)
+          when :start_component, :stop_component, :restart_component, :reload_component_config
+            ops = calculate_ctl_component_ops(op_group.op_type, op_group.args['comp_spec'])
+            op_group.pending_ops.push(*ops)
           end
-
-          if op_group.op_type != :delete_app
-            op_group.execute
-            unreserve_gears(op_group)
-            op_group.delete
-          end
-          self.reload
         end
-        true
+    
+        if op_group.op_type != :delete_app
+          op_group.execute
+          unreserve_gears(op_group.num_gears_removed)
+          op_group.delete
+          self.reload            
+        end
+      end
+      true
+    rescue Exception => e_orig
+      #rollback
+      begin
+        op_group.execute_rollback
+      rescue Exception => e_rollback
+        Rails.logger.error "Error during rollback"
+        Rails.logger.error e_rollback.message
+        Rails.logger.error e_rollback.backtrace.inspect
       ensure
-        Lock.unlock_application(self)
+        num_gears_recovered = op_group.num_gears_added - op_group.num_gears_created + op_group.num_gears_rolled_back + op_group.num_gears_destroyed
+        unreserve_gears(num_gears_recovered)
+        op_group.delete
+      end
+      raise e_orig
+    end
+  end
+  
+  def self.run_in_application_lock(application, &block)
+    if(Lock.lock_application(application))
+      begin
+        yield block
+      ensure
+        Lock.unlock_application(application)
       end
     else
       false
@@ -812,7 +925,10 @@ class Application
       reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
       init_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
-      fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [init_gear_op._id.to_s])
+      fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+        args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
+        prereq: [init_gear_op._id.to_s],
+        saved_values: {"additional_filesystem_gb" => 0})
       pending_ops.push(create_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(init_gear_op)
@@ -875,7 +991,7 @@ class Application
   end
 
   def calculate_ctl_component_ops(op_type, comp_spec)
-    component_instance = self.component_instances.find(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp'])
+    component_instance = self.component_instances.find_by(cartridge_name: comp_spec['cart'], component_name: comp_spec['comp'])
     ops = []
     add_component_ops(op_type, component_instance, ops)
     ops
@@ -920,8 +1036,8 @@ class Application
       comp_op_type = :stop_component
     when :restart_app, :restart_feature
       comp_op_type = :restart_component 
-    when :reload_app, :reload_feature
-      comp_op_type = :reload_component 
+    when :reload_app_config, :reload_feature_config
+      comp_op_type = :reload_component_config 
     when :tidy_app
       comp_op_type = :tidy_component
     end
@@ -931,7 +1047,7 @@ class Application
   def calculate_remove_component_ops(comp_specs, group_instance, singleton_gear)
     ops = []
     comp_specs.each do |comp_spec|
-      component_instance = self.component_instances.find(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
+      component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
       if component_instances.is_singleton?
         ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
       else
@@ -1032,10 +1148,18 @@ class Application
 
           #add/remove fs space from existing gears
           if group_instance.addtl_fs_gb != change[:to_scale][:additional_filesystem_gb]
-            op = PendingAppOp.new(op_type: :set_additional_filesystem_gb, args: {"group_instance_id"=> group_instance._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: op_ids)
+            op = PendingAppOp.new(op_type: :set_additional_filesystem_gb, 
+              args: {"group_instance_id"=> group_instance._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
+              prereq: op_ids, 
+              saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb})
             pending_ops.push op
             group_instance.gears.each do |gear|
-              pending_ops.push(PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [op._id.to_s]))
+              pending_ops.push(
+                PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+                  args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
+                  saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb}, 
+                  prereq: [op._id.to_s])
+                )
             end
           end
 
@@ -1075,7 +1199,8 @@ class Application
     all_ops_ids = pending_ops.map{ |op| op._id.to_s }
     unless connections.nil?
       #needs to be set and run after all the gears are in place
-      set_connections_op = PendingAppOp.new(op_type: :set_connections, args: {"connections"=> connections}, prereq: all_ops_ids)
+      saved_connections = self.connections.map{|conn| conn.to_hash}
+      set_connections_op = PendingAppOp.new(op_type: :set_connections, args: {"connections"=> connections}, prereq: all_ops_ids, saved_values: {current_connections: saved_connections})
       execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: [set_connections_op._id.to_s])
       pending_ops.push set_connections_op
       pending_ops.push execute_connection_op
@@ -1195,15 +1320,15 @@ class Application
     end
   end
 
-  def unreserve_gears(op_group)
-    return if op_group.num_gears_removed == 0
+  def unreserve_gears(num_gears_removed)
+    return if num_gears_removed == 0
     owner = self.domain.owner
     begin
       until Lock.lock_user(owner)
         sleep 1
       end
       owner.reload
-      owner.consumed_gears -= op_group.num_gears_removed
+      owner.consumed_gears -= num_gears_removed
       owner.save
     ensure
       Lock.unlock_user(owner)

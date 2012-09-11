@@ -35,7 +35,7 @@ Profiles:
   singleton-master:
     Provides: mysql-singleton-master
     Components:
-      mysql-server:
+      mysql-5.1:
         Publishes:
           publish-db-connection-info:
             Type: "NET_TCP:db:connection-info"

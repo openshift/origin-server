@@ -16,5 +16,15 @@ class ConnectionInstance
   field :to_comp_inst_id, type: Moped::BSON::ObjectId
   field :from_connector_name, :type => String
   field :to_connector_name, :type => String
-  field :connection_type, :type => String  
+  field :connection_type, :type => String
+  
+  def to_hash
+    {
+      "from_comp_inst" => self.application.component_instances.find(from_comp_inst_id).to_hash,
+      "to_comp_inst" => self.application.component_instances.find(to_comp_inst_id).to_hash,
+      "from_connector_name" => from_connector_name,
+      "to_connector_name" => to_connector_name,
+      "connection_type" => connection_type
+    }
+  end
 end

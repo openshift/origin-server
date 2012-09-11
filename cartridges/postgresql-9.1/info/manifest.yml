@@ -52,7 +52,7 @@ Profiles:
   singleton-master:
     Provides: postgresql-singleton-master
     Components:
-      postgresql-server:
+      postgresql-9.1:
         Publishes:
           publish-db-connection-info:
             Type: "NET_TCP:db:connection-info"

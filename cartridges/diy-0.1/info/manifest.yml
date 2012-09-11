@@ -10,7 +10,7 @@ Categories:
 Website:
 Help-Topics:
   "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift
-Ca-Data:
+Cart-Data:
   - Key: OPENSHIFT_LOG_DIR
     Type: environemnt
     Description: "Directory to store application log files."
