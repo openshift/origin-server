@@ -2,6 +2,10 @@ require 'enumerator'
 
 module Console::LayoutHelper
 
+  def in_columns_of(count, arr)
+    arr.enum_for(:each_with_index).inject(Array.new(count) {[]}){ |a, (item,i)| a[i % count] << item; a }
+  end
+
   def navigation_tabs(options={}, &block)
     content = capture &block
     content_tag(:ul, content, :class => 'nav')
