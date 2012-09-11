@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.16.3
+Version: 0.16.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.16.4-1
+- increase mongo connection timeout (rchopra@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.3-1
 - Fix for Bug 852268 (jhonce@redhat.com)
 - Return display_name, description fields in RestCartridge model
