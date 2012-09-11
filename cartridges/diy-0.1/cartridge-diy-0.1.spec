@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.32.2
+Version: 0.32.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.32.3-1
+- Merge pull request #466 from smarterclayton/bug849950_diy_missing_proper_tag
+  (openshift+bot@redhat.com)
+- Bug 849950 - DIY cart does not have the web_framework tag
+  (ccoleman@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.32.2-1
 - Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
   (openshift+bot@redhat.com)
