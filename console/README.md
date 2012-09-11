@@ -75,13 +75,36 @@ management console!
 
 ### Run it on production!
 
-You can also run your console against our OpenShift hosted service -
-run:
+You can also run your console against our OpenShift hosted service using
+your own account.  To run:
 
     $ cd test/rails_app
     $ CONSOLE_API_MODE=openshift bundle exec rails s
 
 You will need to provide your own credentials to access the console.
+
+### Host it on OpenShift
+
+Take it one step further and run OpenShift on OpenShift (note: we accept
+no responsibility for universe ending catastrophe).
+
+1.  Create an application on OpenShift based on Ruby 1.9
+
+        $ rhc app create -a console -t ruby-1.9
+
+2.  Copy the contents of the OpenShift Origin console/ directory into your new application
+
+        $ cp -R crankcase/console/* console/
+        $ cd console
+        $ git add .
+        $ git commit -m "Initial source from Origin"
+        $ git push
+
+    Note: this loses version history - there should be some Git-fu that
+makes this less painful.
+
+3.  Visit the console on OpenShift and log in - you should see your
+    applications presented.
 
 ## Developing / Contributing
 
