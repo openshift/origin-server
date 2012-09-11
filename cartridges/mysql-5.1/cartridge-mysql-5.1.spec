@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mysql-5.1
 
 Name: cartridge-mysql-5.1
-Version: 0.32.2
+Version: 0.32.3
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.32.3-1
+- BZ 852395: Exit from deconfigure when db type doesn't match.
+  (mpatel@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.32.2-1
 - Return display_name, description fields in RestCartridge model
   (rpenta@redhat.com)
