@@ -140,7 +140,7 @@ class Gear_scale_ctl
   def load_env(opts)
     env = {}
     # Load environment variables into a hash
-    
+
     Dir["/var/lib/stickshift/#{opts['uuid']}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
@@ -178,7 +178,7 @@ USAGE
   exit! 255
 end
 
-config = StickShift::Config.instance
+config = StickShift::Config.new
 
 opts = {
     'server' => config.get('BROKER_HOST')
