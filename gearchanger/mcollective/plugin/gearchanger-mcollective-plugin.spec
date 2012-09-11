@@ -61,28 +61,12 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
-Broker::Application.configure do
-  config.gearchanger = {
-    :rpc_options => {
-    	:disctimeout => 5,
-    	:timeout => 60,
-    	:verbose => false,
-    	:progress_bar => false,
-    	:filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => []},
-    	:config => "/etc/mcollective/client.cfg"
-    },
-    :districts => {
-        :enabled => false,
-        :require_for_app_create => false,
-        :max_capacity => 6000, #Only used by district create
-        :first_uid => 1000
-    },
-    :node_profile_enabled => false
-  }
-end
-EOF
+mkdir -p %{buildroot}/etc/stickshift/plugins.d
+cp conf/gearchanger-mcollective-plugin.conf %{buildroot}/etc/stickshift/plugins.d/gearchanger-mcollective-plugin.conf
+
+mkdir -p %{buildroot}/var/www/stickshift/broker/config/initializers/
+cp conf/gearchanger-mcollective-plugin.rb %{buildroot}/var/www/stickshift/broker/config/initializers/gearchanger-mcollective-plugin.rb
+cp conf/gearchanger-mcollective-plugin.conf %{buildroot}/var/www/stickshift/broker/config/initializers/gearchanger-mcollective-plugin-defaults.conf
 
 %clean
 rm -rf %{buildroot}                                
@@ -95,7 +79,9 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
+%config(noreplace) %{_sysconfdir}/stickshift/plugins.d/gearchanger-mcollective-plugin.conf
+/var/www/stickshift/broker/config/initializers/gearchanger-mcollective-plugin.rb
+/var/www/stickshift/broker/config/initializers/gearchanger-mcollective-plugin-defaults.conf
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

@@ -65,15 +65,11 @@ cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin
 cp %{buildroot}%{gemdir}/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
 
-%post
+mkdir -p %{buildroot}/var/www/stickshift/broker/config/initializers/
+cp conf/uplift-bind-plugin.rb %{buildroot}/var/www/stickshift/broker/config/initializers/uplift-bind-plugin.rb
+cp conf/uplift-bind-plugin-defaults.conf %{buildroot}/var/www/stickshift/broker/config/initializers/uplift-bind-plugin-defaults.conf
 
-echo " The uplift-bind-plugin requires the following config entries to be present:"
-echo " * dns[:server]              - The Bind server IP"
-echo " * dns[:port]                - The Bind server Port"
-echo " * dns[:keyname]             - The API user"
-echo " * dns[:keyvalue]            - The API password"
-echo " * dns[:zone]                - The DNS Zone"
-echo " * dns[:domain_suffix]       - The domain suffix for applications"
+%post
 
 %clean
 rm -rf %{buildroot}                                
@@ -88,6 +84,8 @@ rm -rf %{buildroot}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 /usr/share/selinux/packages/rubygem-uplift-bind-plugin
+/var/www/stickshift/broker/config/initializers/uplift-bind-plugin.rb
+/var/www/stickshift/broker/config/initializers/uplift-bind-plugin-defaults.conf
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
