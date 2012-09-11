@@ -75,12 +75,6 @@ rm -rf %{buildroot}
 /usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
 /usr/bin/openssl rsa    -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
 
-echo "The following variables need to be set in your rails config to use swingshift-kerberos-plugin:"
-echo "auth[:salt]                    - salt for the password hash"
-echo "auth[:privkeyfile]             - RSA private key file for node-broker authentication"
-echo "auth[:privkeypass]             - RSA private key password"
-echo "auth[:pubkeyfile]              - RSA public key file for node-broker authentication"
-
 %files
 %defattr(-,root,root,-)
 %dir %{geminstdir}
