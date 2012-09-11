@@ -32,18 +32,20 @@ class TestUnixUserModel < Test::Unit::TestCase
     assert File.symlink?(link), "Symlink #{link} not found"
   end
 
-  def test_initialize
-    gear_uuid = Process.euid.to_s
-    user_uid = Process.euid.to_s
-    app_name = 'UnixUserTestCase'
-    gear_name = app_name
-    namespace = 'jwh201204301647'
-    verbose = false
+  def setup
+    @gear_uuid = Process.euid.to_s
+    @user_uid = Process.euid.to_s
+    @app_name = 'UnixUserTestCase'
+    @gear_name = @app_name
+    @namespace = 'jwh201204301647'
+    @verbose = false
+  end
 
-    FileUtils.rm_rf("/tmp/homedir", :verbose => verbose) if File.directory?("/tmp/homedir")
-    o = StickShift::UnixUser.new(gear_uuid, gear_uuid, user_uid, app_name,
-                                 gear_name, namespace,
-                                 nil, nil, verbose)
+  def test_initialize
+    FileUtils.rm_rf("/tmp/homedir", :verbose => @verbose) if File.directory?("/tmp/homedir")
+    o = StickShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
+                                 @gear_name, @namespace,
+                                 nil, nil, @verbose)
     assert_not_nil o
 
     o.initialize_homedir("/tmp/", "/tmp/homedir/", "stickshift/abstract/")
@@ -51,13 +53,45 @@ class TestUnixUserModel < Test::Unit::TestCase
     assert ! File.symlink?("/tmp/homedir/data"), 'found deprecated data symlink'
     assert ! File.directory?("/tmp/homedir/app"), 'found deprecated app directory'
     assert_directory?("/tmp/homedir/app-root")
-    assert File.exist?("/tmp/homedir/app-root/runtime/.state"), '.state file missing'
     assert_directory?("/tmp/homedir/app-root/runtime/")
+    assert File.exist?("/tmp/homedir/app-root/runtime/.state"), '.state file missing'
     assert_symlink?("/tmp/homedir/app-root/repo")
     assert_directory?("/tmp/homedir/.tmp")
     assert_directory?("/tmp/homedir/.env")
+    assert_directory?("/tmp/homedir/.sandbox")
     assert_directory?("/tmp/.httpd.d")
-    assert_directory?("/tmp/.httpd.d/#{gear_uuid}_#{namespace}_#{app_name}")
+    assert_directory?("/tmp/.httpd.d/#{@gear_uuid}_#{@namespace}_#{@app_name}")
   end
+
+# This tests cannot be run because expected polyinstantiation of /tmp causes system /tmp to be chmod 760.
+#  def test_authorized_keys
+#    o = StickShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
+#                                 @gear_name, @namespace,
+#                                 nil, nil, @verbose)
+#    options  = 'command="/usr/bin/trap-user",no-X11-forwarding'
+#    key_type = 'ssh-rsa'
+#    key      = 'XXYYZZ=='
+#    comment  = 'OPENSHIFT-47c106d0952f407ba3dea5f80b98eb2bdefault'
+#    path = "/tmp/mock_authorized_keys"
+#    File.open(path, File::WRONLY|File::TRUNC|File::CREAT, 0o0440) {|file|
+#      file.write("#{options} #{key_type} #{key} #{comment}\n")
+#    }
+#
+#    keys = o.read_ssh_keys(path)
+#    assert_equal 1, keys.size
+#    assert keys.include? comment
+#
+#    o.write_ssh_keys(path, keys)
+#
+#    keys = o.read_ssh_keys(path)
+#    assert_equal 1, keys.size
+#    assert keys.include? comment
+
+    # @homedir private these tests cannot be run
+    #o.add_ssh_key(key, key_type, comment)
+    #keys = o.read_ssh_keys(path)
+    #assert_equal 1, keys.size
+    #assert keys.include? comment
+#  end
 end
 
