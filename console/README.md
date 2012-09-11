@@ -61,9 +61,7 @@ Step 4: Run the tests
 
 will execute our entire console test suite against your OpenShift Origin server.
 
-Step 5: 
-
-To actually launch the console, we'll run the included Rails application
+Step 5: To actually launch the console, we'll run the included Rails application
 for OpenShift Origin.
 
     $ cd test/rails_app
