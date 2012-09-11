@@ -21,8 +21,8 @@ require 'fileutils'
 require 'getoptlong'
 require 'json'
 require 'parseconfig'
+require "openshift-origin-common/config"
 require "openshift-origin-node/version"
-require "openshift-origin-node/config"
 require "openshift-origin-node/environment"
 require "openshift-origin-node/model/application_container"
 require "openshift-origin-node/model/node"

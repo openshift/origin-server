@@ -66,16 +66,6 @@ cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
 cp %{buildroot}%{gemdir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
 
-%post
-
-echo " The openshift-origin-dns-bind requires the following config entries to be present:"
-echo " * dns[:server]              - The Bind server IP"
-echo " * dns[:port]                - The Bind server Port"
-echo " * dns[:keyname]             - The API user"
-echo " * dns[:keyvalue]            - The API password"
-echo " * dns[:zone]                - The DNS Zone"
-echo " * dns[:domain_suffix]       - The domain suffix for applications"
-
 %clean
 rm -rf %{buildroot}                                
 

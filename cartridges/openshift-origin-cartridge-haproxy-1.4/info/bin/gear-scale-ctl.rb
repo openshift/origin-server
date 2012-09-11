@@ -178,7 +178,7 @@ USAGE
   exit! 255
 end
 
-config = OpenShift::Config.instance
+config = OpenShift::Config.new
 
 opts = {
     'server' => config.get('BROKER_HOST')

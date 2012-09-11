@@ -25,7 +25,7 @@ module OpenShift
     def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
       carts = []
 
-      cartridge_path = OpenShift::Config.instance.get("CARTRIDGE_BASE_PATH")
+      cartridge_path = OpenShift::Config.new.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
         next if [".", "..", "embedded", "abstract", "abstract-httpd"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
@@ -69,7 +69,7 @@ module OpenShift
       output = ""
       cart_found = false
 
-      cartridge_path = OpenShift::Config.instance.get("CARTRIDGE_BASE_PATH")
+      cartridge_path = OpenShift::Config.new.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
         next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.2", "postgresql-8.4"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
