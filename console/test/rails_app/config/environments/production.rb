@@ -48,6 +48,6 @@ RailsApp::Application.configure do
   config.active_support.deprecation = :notify
 
   Console.configure do |c|
-    c.api = :local
+    c.api = (ENV['CONSOLE_API_MODE'] || 'openshift').to_sym
   end
 end
