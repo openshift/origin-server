@@ -44,18 +44,17 @@ JENKINS_CLIENT_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 if [ -n "$JENKINS_URL" ]
 then
   #
-  # Disable job
+  # Delete job
   #
-  if out=$(run_as_user "${CART_INFO_DIR}/bin/jenkins_job_action disable" 2>&1)
+  if out=$(run_as_user "${CART_INFO_DIR}/bin/jenkins_job_action doDelete" 2>&1)
   then
-      # Existing job was disabled
+      # Existing job was deleted
       client_result ""
-      client_result "The corresponding job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins has been disabled."
-      client_result "You can re-enable or delete as desired."
+      client_result "The corresponding job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins has been deleted."
   else
-      # An error occurred disabling existing job
+      # An error occurred deleting existing job
       client_result ""
-      client_result "Could not disable job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins server:"
+      client_result "Could not delete job '${OPENSHIFT_GEAR_NAME}-build' in Jenkins server:"
       client_result "   $out"
       client_result "Continuing anyway."
   fi
