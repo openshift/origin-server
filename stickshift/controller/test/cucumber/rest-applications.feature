@@ -147,7 +147,23 @@ Feature: applications
      | format | 
      | JSON | 
      | XML | 
-
+  
+  Scenario Outline: Threaddump application
+    Given a new user
+    And I accept "<format>"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=ruby-1.8.7"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=thread-dump"
+    Then the response should be "200"
+    When I send a DELETE request to "/domains/api<random>/applications/app"
+    Then the response should be "204"
+    
+    Scenarios:
+     | format | 
+     | JSON | 
+     | XML | 
   Scenario Outline: Add and remove application alias
     Given a new user
     And I accept "<format>"
@@ -352,7 +368,7 @@ Feature: applications
      | JSON | 
      | XML | 
      
-    Scenario Outline: add application or application event to a non-existent domain
+  Scenario Outline: add application or application event to a non-existent domain
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains/bogus/applications" with the following:"name=app&cartridge=jbossas-7"
