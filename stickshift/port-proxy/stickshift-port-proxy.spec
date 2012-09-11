@@ -13,9 +13,7 @@ Source0:       stickshift-port-proxy-%{version}.tar.gz
 %define with_systemd 0
 %endif
 
-BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:      haproxy
-Requires:      procmail
 %if %{with_systemd}
 BuildRequires: systemd-units
 Requires:  systemd-units
@@ -54,15 +52,7 @@ install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
 install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
 install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %post
-# Enable proxy and fix if the config file is missing
-if ! [ -f /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg ]; then
-   cp /etc/stickshift/stickshift-proxy.cfg /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
-   restorecon /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg || :
-fi
 /sbin/restorecon /var/lib/stickshift/.stickshift-proxy.d/ || :
 
 %if %{with_systemd}
@@ -83,14 +73,14 @@ fi
 %files
 %defattr(-,root,root,-)
 %if %{with_systemd}
-%attr(0644,-,-) %{_unitdir}/stickshift-proxy.service
-%attr(0644,-,-) %{_sysconfdir}/sysconfig/stickshift-proxy
+%{_unitdir}/stickshift-proxy.service
+%{_sysconfdir}/sysconfig/stickshift-proxy
 %else
-%attr(0750,-,-) %{_initddir}/stickshift-proxy
+%{_initddir}/stickshift-proxy
 %endif
-%attr(0755,-,-) %{_bindir}/stickshift-proxy-cfg
-%dir %attr(0750,root,root) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
-%attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
+%{_bindir}/stickshift-proxy-cfg
+%dir %attr(0750,-,-) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
+%config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
