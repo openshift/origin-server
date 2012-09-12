@@ -32,6 +32,7 @@ Requires:       libcgroup-tools
 %endif
 Requires:       pam-openshift
 Requires:       quota
+Requires:       pam-openshift
 Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby

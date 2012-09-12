@@ -224,6 +224,9 @@ end
 system("setsebool httpd_run_stickshift 1 &>/dev/null || :")
 system("setsebool httpd_run_openshift 1 &>/dev/null || :")
 
+system("setsebool httpd_run_stickshift 1 &>/dev/null || :")
+system("setsebool httpd_run_openshift 1 &>/dev/null || :")
+
 print "Opening required ports\n"
 system "lokkit --service=ssh"
 system "lokkit --service=http"
