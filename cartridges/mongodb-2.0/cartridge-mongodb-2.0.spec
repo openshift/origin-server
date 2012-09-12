@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.25.3
+Version: 0.25.4
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.25.4-1
+- Fix for bugz 856487 - Can't add mongodb-2.0 for ruby1.9 app successfully.
+  (ramr@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.25.3-1
 - Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
   (openshift+bot@redhat.com)
