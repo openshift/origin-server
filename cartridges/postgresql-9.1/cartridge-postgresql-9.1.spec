@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-9.1
-Version: 0.0.1
+Version: 0.0.2
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -101,3 +101,6 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Sep 12 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
+- new package built with tito
+
