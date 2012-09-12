@@ -1,9 +1,5 @@
 module Console
   module VERSION #:nocov:
-    MAJOR = 0
-    MINOR = 0
-    MICRO = 1
-    PRE  = nil
-    STRING = [MAJOR,MINOR,MICRO,PRE].compact.join('.')
+    STRING = Gem.loaded_specs['openshift-origin-console'].version.to_s rescue '0.0.0'
   end
 end

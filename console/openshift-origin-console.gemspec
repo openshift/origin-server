@@ -1,10 +1,10 @@
 $:.push File.expand_path("../lib", __FILE__)
 
-require "console/version"
-
 Gem::Specification.new do |s|
+  spec_file = IO.read(File.expand_path("../#{File.basename(__FILE__, '.gemspec')}.spec", __FILE__))
+
   s.name = 'openshift-origin-console'
-  s.version = Console::VERSION::STRING
+  s.version = spec_file.match(/^Version:\s*(.*?)$/mi)[1].chomp 
 
   s.summary = %q{OpenShift Origin Management Console}
   s.description = %q{The OpenShift Origin console is a Rails engine that provides an easy-to-use interface for managing OpenShift Origin applications.}
