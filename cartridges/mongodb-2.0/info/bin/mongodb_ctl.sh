@@ -14,6 +14,11 @@ do
     . $f
 done
 
+#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.0 to a ruby1.9 app
+#         This needs to be removed once we change how we hande sclized versions
+#         of packages.
+unset LD_LIBRARY_PATH
+
 export STOPTIMEOUT=10
 
 if whoami | grep -q root
