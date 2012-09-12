@@ -17,8 +17,9 @@ Requires:       rubygems
 Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(rcov)
-Requires:       selinux-policy-targeted
-Requires:       policycoreutils-python
+
+# Supplied either by the OS or by openshift-origin-selinux
+Requires:       %{_datadir}/selinux/packages/openshift.pp.bz2
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -46,12 +47,6 @@ This contains the Cloud Development Common packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
-mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
-
-#selinux policy
-cp doc/selinux/openshift-origin.te %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/openshift-origin.fc %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/openshift-origin.if %{buildroot}/usr/share/selinux/packages/%{name}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -72,17 +67,10 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/usr/share/selinux/packages/%{name}/
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
 %{ruby_sitelib}/%{gemname}.rb
-
-%post
-pushd /usr/share/selinux/packages/%{name}
-rm -f openshift.pp
-make -f /usr/share/selinux/devel/Makefile
-popd
 
 %changelog
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.16.4-1
