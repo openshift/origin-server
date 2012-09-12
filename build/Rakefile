@@ -106,9 +106,9 @@ task :build_setup do
   sh "echo 'default_rhlogin=admin' >> ~/.openshift/express.conf"
 
   print "Setting up express.conf for root user\n"
-  sh "mkdir -p /root/.openshift/"
-  sh "echo 'libra_server=localhost' >> /root/.openshift/express.conf"
-  sh "echo 'default_rhlogin=admin' >> /root/.openshift/express.conf"
+  sudo "mkdir -p /root/.openshift/"
+  sudo "echo 'libra_server=localhost' >> /root/.openshift/express.conf"
+  sudo "echo 'default_rhlogin=admin' >> /root/.openshift/express.conf"
 
   sudo "/usr/sbin/usermod -a -G mock #{Etc.getlogin}"
 
