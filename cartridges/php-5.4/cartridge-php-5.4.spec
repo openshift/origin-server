@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.4 support
 Name:      cartridge-php-5.4
-Version:   0.0.1
+Version:   0.0.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,3 +112,6 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 12 2012 Krishna Raman <kraman@gmail.com> 0.0.2-1
+- new package built with tito
+
