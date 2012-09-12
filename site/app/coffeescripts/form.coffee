@@ -61,6 +61,23 @@ $ ->
       "cvv":
         required: true
 
+  $('form#edit_aria_billing_info').validate
+    rules:
+      "aria_billing_info[first_name]":
+        required: true
+      "aria_billing_info[last_name]":
+        required: true
+      "aria_billing_info[address1]":
+        required: true
+      "aria_billing_info[city]":
+        required: true
+      "aria_billing_info[state]":
+        required: true
+      "aria_billing_info[country]":
+        required: true
+      "aria_billing_info[zip]":
+        required: true
+
   # /app/account/plans/<plan>/upgrade/edit
   $('form#new_streamline_full_user').validate
     rules:
