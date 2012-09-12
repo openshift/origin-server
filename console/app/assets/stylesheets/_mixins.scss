@@ -21,14 +21,14 @@
   @include gradientBar($startColor, $endColor);
   @include reset-filter();
 
-  &:hover {
+  &:hover, &:focus {
     background-color: $endColor;
   }
   
    &:active, &.active, &.disabled, &[disabled] {
     background-color: $startColor;
   }
-
+ 
 }
 
 @mixin buttonBackgroundConsole($startColor, $endColor) {
@@ -47,29 +47,4 @@
     border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
   }
 
-}
-
-
-// Input grid system
-// -------------------------
-@mixin inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, $columns) {
-  width: (($gridColumnWidth) * $columns) + ($gridGutterWidth * ($columns - 1)) - 42;
-}
-@mixin inputGridSystem-generate($gridColumns, $gridColumnWidth, $gridGutterWidth) {
-  input,
-  textarea,
-  .uneditable-input {
-    &.span1     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 1); }
-    &.span2     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 2); }
-    &.span3     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 3); }
-    &.span4     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 4); }
-    &.span5     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 5); }
-    &.span6     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 6); }
-    &.span7     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 7); }
-    &.span8     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 8); }
-    &.span9     { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 9); }
-    &.span10    { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 10); }
-    &.span11    { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 11); }
-    &.span12    { @include inputGridSystem-inputColumns($gridGutterWidth, $gridColumnWidth, $gridRowWidth, 12); }
-  }
 }

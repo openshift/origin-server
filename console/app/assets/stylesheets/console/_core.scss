@@ -6,20 +6,10 @@ html {
   word-wrap: break-word;
   text-shadow: none;
 }
-#console-mast {
-  background: #f0f0f0;
-  }
-  #console-mast h1 {
-    margin: 15px 0 10px 20px;
-    }
-  #console-mast ul li {
-    padding: 10px 0;
-    }
 .account-total {
-  font-size: 250%;
-  margin-top: 20px;
-  }
-
+	font-size: 250%;
+	margin-top: 20px;
+	}
 
 /* changes to bootstrap */
 @media (max-width: 480px) {
@@ -49,12 +39,13 @@ html {
 
 // Forms
 // ----------------------------------------
-input, textarea {
+input, select, textarea {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
   background: $consoleFormFieldBackground;
   border: 1px solid #222;
-  }
-  input:focus, textarea:focus {
+  color: #222222;
+	}
+  input:focus, select:focus, textarea:focus {
     background: #eee; color: #000;
     box-shadow: none;
     }
@@ -72,12 +63,12 @@ input, textarea {
       .input-prepend-append input:focus {background: #eee;}
 
 
-input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
- color: #777;
-  }
-input:-moz-placeholder, textarea:-moz-placeholder {
- color: #777;
-  }
+input::-webkit-input-placeholder, select::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+ color: #444;
+	}
+input:-moz-placeholder, select:-moz-placeholder, textarea:-moz-placeholder {
+ color: #444;
+	}
 
 #new_application .controls input { width: 210px; }
 
@@ -261,14 +252,19 @@ figure {
    color: #dadada;
    min-height: 400px;
 
-  h1, h2, h3, h4, h5, h6 {
-     color: #dadada;
-  }
+	h1, h2, h3, h4, h5, h6, legend {
+   	color: #dadada;
+	}
 
-  h3.divide {
-    border-bottom: 2px solid #555;
-    margin-bottom: 13px;
-  }
+	.divide, legend {
+		border-bottom: 2px solid #555;
+		margin-bottom: 0;
+		font-family: $headerFontFamily;
+	}
+	
+	.divide {
+  	margin-bottom: $baseLineHeight;
+	}
 }
 
 .row > .column-content {
@@ -604,26 +600,26 @@ $cartridgeBorderWidth: 10px;
 }
 
 #secondary {
-  font-size: 90%;
+  a {
+  color: inherit;
   }
-  #secondary a {
-    color: inherit;
-    }
-  #secondary a:hover {
+  &:hover {
     color: #fff;
     text-decoration: none;
-    }
-  #secondary h5 {
+  }
+  h5 {
     margin: 0 0 3px 0;
-    text-transform: uppercase;
-    }
-  #secondary #assistance ul,
-  #secondary #app-unique-info ul {
-    margin-bottom: 25px;
-    }
-  #app-unique-info h5 {
-    border-bottom: 1px solid #222222;
-    }
+  }
+}
+
+#assistance ul,
+#app-unique-info ul {
+  margin-bottom: 25px;
+  }
+#app-unique-info h5 {
+  border-bottom: 1px solid #222222;
+  }
+
 .section-console h6 {
   color: #9a9b9c;
    font-weight: normal;
@@ -808,8 +804,8 @@ $cartridgeBorderWidth: 10px;
 .form-search {
   position: relative;
   > .search-query {
-    padding-left:10px;
-    padding-right:30px;
+  	padding-left:8px;
+  	padding-right:0;
     border-radius: 3px;
     // width:83%;
     // width: -moz-available;
@@ -819,7 +815,7 @@ $cartridgeBorderWidth: 10px;
     top: 1px;
     right: 3px;
     height: 25px;
-    width: 20px;
+    width: 23px;
     background: transparent image-url("sprite-vert.png") 2px -293px no-repeat;
     border: 0;
   }
@@ -873,6 +869,8 @@ $cartridgeBorderWidth: 10px;
   }
 }
 
+.ie9 .table-fixed, .ie8 .table-fixed { table-layout: fixed } // allow td text-overflow
+
 .sshkey-name {
   max-width: 80px;
   overflow: hidden;
@@ -885,5 +883,73 @@ $cartridgeBorderWidth: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+
+
+
+
+/* client side validation */
+.form-validation fieldset input,
+.form-validation fieldset textarea,
+.form-validation fieldset select {
+		display: inline-block;
+		$transition: background-color .2s ease;
+		@include transition($transition);
+}
+.form-validation input:focus:required:invalid { 
+	background-position: 379px 3px;
+	outline: none; 
+}
+.form-validation input[type=text]:focus:not([pattern]):required:invalid {
+	background-color: #fff; 
+}
+
+.form-validation .validation01 { 
+	background: $infoBackground; 
+	display: none;
+	color: $infoText;
+	@include border-radius(5px);
+	font-size: 12px;
+	padding: 3px 7px;
+	position: absolute;
+	left: 0;
+	text-align: center;
+	top: 60px;
+	max-width: 300px;
+	min-width: 85px;
+	z-index: 9999;
+}
+.form-validation .validation01:before {
+  border-color: transparent transparent $infoBackground;
+  border-style: solid;
+  border-width: 10px;
+  content: "";
+  height: 0;
+  left: 5px;
+  position: absolute;
+  top: -15px;
+  width: 0;
+}
+.form-validation input:focus + .validation01, 
+.form-validation select:focus + .validation01,
+.form-validation textarea:focus + .validation01 { display: block; }
+.form-validation input:focus:required:valid + .validation01  { background: $successBackground; }
+.form-validation input:focus:required:valid + .validation01:before { border-color: transparent transparent $successBackground; }
+.form-validation input:focus:required:valid + .validation01 .invalid { display: none; }
+.form-validation input:focus:required:invalid + .validation01 .valid { display: none; }
+
+
+/* Enhanced error styling */
+.form-validation input.error,
+.form-validation select.error,
+.form-validation textarea.error {
+	outline: none; 
+	border: 1px solid $errorBorder; 
+}
+.form-validation input.required,
+.form-validation select.required,
+.form-validation textarea.required {
+	border: 1px solid $errorBorder;
 }
 

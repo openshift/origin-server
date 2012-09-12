@@ -39,41 +39,41 @@ h1, h2, h3, h4, h5, h6 {
 h1 + h2 {
 	margin-bottom: 0;
 }
-h2 + h3, h2 + h4, h3 + h4, h3 + h5 {
+h2 + h3, h2 + h4, h3 + h4, h3 + h5, h4 + h5 {
+  padding-top: $baseLineHeight / 3;
+}
+p + h2, p + h3, p + h4, p + h5 {
   padding-top: $baseLineHeight / 2;
 }
-p + h2, p + h3, p + h4 {
-	padding-top: $baseLineHeight;
-}
 h1 {
-  font-size: 30px;
+  font-size: $baseFontSize * 2.25;
   line-height: $baseLineHeight * 2;
 }
 h2 {
-  font-size: 22px;
+  font-size: $baseFontSize * 1.62;
   line-height: $baseLineHeight * 2;
 }
 h3 {
-  line-height: 27px;
-  font-size: 18px;
+  font-size: $baseFontSize * 1.38;
   line-height: $baseLineHeight * 1.5;
   small {
-    font-size: 14px;
+    font-size: $baseFontSize;
   }
 }
 h4 {
-  font-size: 16px;
+  font-size: $baseFontSize * 1.25;
   line-height: $baseLineHeight;
   small {
-    font-size: 12px;
+    font-size: $baseFontSize * .88;
   }
 }
 h5 {
-  font-size: 14px;
+  font-size: $baseFontSize;
   line-height: $baseLineHeight;
+  text-transform: uppercase;
 }
 h6 {
-  font-size: 11px;
+  font-size: $baseFontSize * .82;
   line-height: $baseLineHeight;
   text-transform: uppercase;
 }
@@ -93,6 +93,13 @@ footer h3 {
 .align-right {
   text-align: right;
 }
+
+// ASIDE
+// -----
+aside, aside p {
+    font-size: $baseFontSize - 1.5;
+}
+
 
 // LISTS
 // -----
