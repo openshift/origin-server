@@ -264,6 +264,7 @@ module OpenShift
 
       keys[ssh_comment] = cmd_entry
       write_ssh_keys authorized_keys_file, keys
+
       self.class.notify_observers(:after_add_ssh_key, self, key)
     end
 
@@ -292,6 +293,7 @@ module OpenShift
       end
 
       write_ssh_keys authorized_keys_file, keys
+
       self.class.notify_observers(:after_remove_ssh_key, self, key)
     end
 
@@ -532,6 +534,9 @@ module OpenShift
       FileUtils.rm_rf(path) if File.exist?(path)
       FileUtils.mkdir_p(path)
 
+      # Fix SELinux context
+      set_selinux_context(homedir)
+
       notify_observers(:after_initialize_homedir)
     end
 
@@ -686,6 +691,8 @@ module OpenShift
         file.write("\n")
       end
       FileUtils.chown_R('root', @uuid, authorized_keys_file)
+      set_selinux_context(authorized_keys_file)
+
       keys
     end
 
@@ -703,6 +710,31 @@ module OpenShift
         FileUtils.chown_R('root', @uuid, authorized_keys_file)
       end
       keys
+    end
+
+    # private: Determine the MCS label for a given uid
+    #
+    # @param [Integer] The user ID
+    # @return [String] The SELinux MCS label
+    def get_mcs_label(uid)
+      setsize=1023
+      tier=setsize
+      ord=uid
+      while ord > tier
+        ord -= tier
+        tier -= 1
+      end
+      tier = setsize - tier
+      "s0:c#{tier},c#{ord + tier}"
+    end
+
+    # private: Set the SELinux context on a file or directory
+    #
+    # @param [Integer] The user ID
+    def set_selinux_context(path)
+      mcs_label=get_mcs_label(@uid)
+      shellCmd("restorecon -R #{path}")
+      shellCmd("chcon -R -l #{@mcs_label} #{path}")
     end
   end
 end
