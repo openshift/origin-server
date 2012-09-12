@@ -5,7 +5,7 @@
 
 Summary:        GearChanger plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.3.1
+Version: 0.3.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
+- optimize nolinks (dmcphers@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

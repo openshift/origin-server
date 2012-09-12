@@ -106,7 +106,9 @@ for arg in $kvargs; do
     zarr2=(${zinfo//@/ })
     gname=${zarr2[0]}
     curr_endpoints[$gname]="$zinfo"
-    register_gear_endpoint "$gname" "$ep" "$zinfo"  ||  :
+    if [ "$gname" != "$OPENSHIFT_GEAR_UUID" ]; then
+        register_gear_endpoint "$gname" "$ep" "$zinfo"  ||  :
+    fi
 done
 
 # Get a list of all the registered endpoints and remove the endpoints which

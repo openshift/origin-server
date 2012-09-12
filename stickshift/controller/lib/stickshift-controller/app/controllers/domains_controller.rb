@@ -46,7 +46,7 @@ class DomainsController < BaseController
 
     return render_error(:unprocessable_entity, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "ADD_DOMAIN", "id") if !dom_available 
 
-    return render_error(:conflict, "User already has a domain associated. Update the domain to modify.", 102, "ADD_DOMAIN") if !@cloud_user.domains.empty?
+    return render_error(:conflict, "Domain already exists for user. Update the domain to modify.", 158, "ADD_DOMAIN") if !@cloud_user.domains.empty?
 
     begin
       domain.save

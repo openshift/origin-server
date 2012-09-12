@@ -1,8 +1,8 @@
 Name: mysql-5.1
 Version: 5.1
 Architecture: noarch
-Display-Name: mysql v5.1 (x86-64)
-Description: MySQL DB Server
+Display-Name: MySQL Database 5.1
+Description: "MySQL is a multi-user, multi-threaded SQL database server."
 Vendor: Oracle
 License: ASL 2.0
 Categories:

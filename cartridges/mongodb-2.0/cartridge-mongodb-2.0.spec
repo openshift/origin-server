@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
 
 Name: cartridge-mongodb-2.0
-Version: 0.25.1
+Version: 0.25.3
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -83,6 +83,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.25.3-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.25.2-1
+- Add support to move postgres cart from/to gears. (mpatel@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.25.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.5.1
+Version: 0.5.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -204,6 +204,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.5.2-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

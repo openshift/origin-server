@@ -178,7 +178,7 @@ class Domain < StickShift::UserModel
       rescue Exception => e
         Rails.logger.debug e
         begin
-          Rails.logger.debug "Attempting to remove namespace '#{@namespace}' after failure to add user '#{@login}'"
+          Rails.logger.debug "Attempting to remove namespace '#{@namespace}' after failure to add user '#{self.user.login}'"
           dns_service.deregister_namespace(@namespace)
           dns_service.publish
         ensure

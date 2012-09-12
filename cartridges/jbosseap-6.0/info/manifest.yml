@@ -1,6 +1,6 @@
 Name: jbosseap-6.0
-Display-Name: JBoss Enterprise Application Platform 6.0.0 (noarch)
-Description: JBoss Application Server - Java EE Application Server
+Display-Name: JBoss Enterprise Application Platform 6.0
+Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
 Version: 6.0.0
 License: ASL 2.0
 Vendor:  jboss.com

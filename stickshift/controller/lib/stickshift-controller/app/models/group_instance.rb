@@ -160,20 +160,12 @@ class GroupInstance < StickShift::Model
   end
 
   def get_cached_min_storage_in_gb
-    if @gears.nil? or @gears.length == 0
-      return 1
-    else
-      begin
-        quota_blocks_str = get_cached(@node_profile + "quota_blocks", :expires_in => 1.day) {@gears[0].get_proxy.get_quota_blocks}
-        quota_blocks = Integer(quota_blocks_str)
-        # calculate the minimum storage in GB - blocks are 1KB each
-        min_storage = quota_blocks / 1024 / 1024
-      rescue
-        # default to 1GB
-        min_storage = 1
-      end
-    end
+    return 1 if @gears.nil? or @gears.length == 0
 
+    quota_blocks_str = get_cached(@node_profile + "quota_blocks", :expires_in => 1.day) {@gears[0].get_proxy.get_quota_blocks}
+    quota_blocks = Integer(quota_blocks_str)
+    # calculate the minimum storage in GB - blocks are 1KB each
+    min_storage = quota_blocks / 1024 / 1024
     return min_storage
   end
 

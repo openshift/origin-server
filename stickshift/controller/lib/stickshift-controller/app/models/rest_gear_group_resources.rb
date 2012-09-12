@@ -1,6 +1,5 @@
 class RestGearGroupResources < StickShift::Model
   attr_accessor :uuid, :storage
-  include LegacyBrokerHelper
   
   def initialize(uuid, storage)
     self.uuid = uuid

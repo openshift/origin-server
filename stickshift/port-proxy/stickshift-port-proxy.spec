@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.2.1
+Version: 0.2.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -13,9 +13,8 @@ Source0:       stickshift-port-proxy-%{version}.tar.gz
 %define with_systemd 0
 %endif
 
-BuildRoot:     %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:      haproxy
-Requires:      procmail
+Requires:      %{_sysconfdir}/stickshift/stickshift-node.conf
 %if %{with_systemd}
 BuildRequires: systemd-units
 Requires:  systemd-units
@@ -37,7 +36,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_sbindir}
 %else
 mkdir -p %{buildroot}%{_initddir}
 %endif
@@ -48,25 +48,20 @@ mkdir -p %{buildroot}%{_bindir}
 %if %{with_systemd}
 install -m 644 systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
 install -m 644 systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+install -m 755 systemd/stickshift-proxy %{buildroot}%{_sbindir}
 %else
 install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
 %endif
 install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
 install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %post
-# Enable proxy and fix if the config file is missing
-if ! [ -f /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg ]; then
-   cp /etc/stickshift/stickshift-proxy.cfg /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg
-   restorecon /var/lib/stickshift/.stickshift-proxy.d/stickshift-proxy.cfg || :
-fi
+# Necessary on RHEL 6
 /sbin/restorecon /var/lib/stickshift/.stickshift-proxy.d/ || :
 
 %if %{with_systemd}
-systemctl --system daemon-reload
+/bin/systemctl --system daemon-reload
+/bin/systemctl try-restart stickshift-proxy.service
 %else
 /sbin/chkconfig --add stickshift-proxy || :
 /sbin/service stickshift-proxy condrestart || :
@@ -74,25 +69,41 @@ systemctl --system daemon-reload
 
 %preun
 if [ "$1" -eq "0" ]; then
+%if %{with_systemd}
+   /bin/systemctl --no-reload disable stickshift-proxy.service
+   /bin/systemctl stop stickshift-proxy.service
+%else
+   /sbin/service stickshift-proxy stop || :
    /sbin/chkconfig --del stickshift-proxy || :
+%endif
 fi
-
-%triggerin -- haproxy
-/sbin/service stickshift-proxy condrestart
 
 %files
 %defattr(-,root,root,-)
 %if %{with_systemd}
-%attr(0644,-,-) %{_unitdir}/stickshift-proxy.service
-%attr(0644,-,-) %{_sysconfdir}/sysconfig/stickshift-proxy
+%{_unitdir}/stickshift-proxy.service
+%{_sysconfdir}/sysconfig/stickshift-proxy
+%{_sbindir}/stickshift-proxy
 %else
-%attr(0750,-,-) %{_initddir}/stickshift-proxy
+%{_initddir}/stickshift-proxy
 %endif
-%attr(0755,-,-) %{_bindir}/stickshift-proxy-cfg
-%dir %attr(0750,root,root) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
-%attr(0640,-,-) %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
+%{_bindir}/stickshift-proxy-cfg
+%dir %attr(0750,-,-) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
+%config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.2.3-1
+- Move configuration file to /etc; leave lock files and reload requests in
+  /var/lib/stickshift. (rmillner@redhat.com)
+
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
+- fixing stickshift port proxy for fedora (abhgupta@redhat.com)
+- fixing stickshift proxy port rpm for fedora (abhgupta@redhat.com)
+- Merge pull request #426 from rmillner/f17proxy (openshift+bot@redhat.com)
+- Add systemd version of stickshift-proxy. (rmillner@redhat.com)
+- Shuffle responsibilities so that the systemd script and init script follow
+  the same flow. (rmillner@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

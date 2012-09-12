@@ -90,9 +90,9 @@ class Application < StickShift::Cartridge
       comp_name = "proxy" if comp_name.nil?
       prof = @profile_name_map[@default_profile]
       cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", "-101", result_io) if cinst.nil?
+      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
       comp,profile,cart = cinst.get_component_definition(self)
-      raise StickShift::UserException.new("#{feature} already embedded in '#{@name}'", 101) if comp.depends.include? feature
+      raise StickShift::UserException.new("#{feature} already embedded in '#{@name}'", 136) if comp.depends.include? feature
       fcart = self.framework
       conn = StickShift::Connection.new("#{feature}-web-#{fcart}")
       conn.components = ["proxy/#{feature}", "web/#{fcart}"]
@@ -155,9 +155,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       comp_name = "proxy" if comp_name.nil?
       prof = @profile_name_map[@default_profile]
       cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", "-101", result_io) if cinst.nil?
+      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
       comp,profile,cart = cinst.get_component_definition(self)
-      raise StickShift::UserException.new("#{feature} not embedded in '#{@name}', try adding it first", 101) if not comp.depends.include? feature
+      raise StickShift::UserException.new("#{feature} not embedded in '#{@name}', try adding it first", 135) if not comp.depends.include? feature
       comp.depends.delete(feature)
     else
       self.requires_feature.delete feature
@@ -1058,7 +1058,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     Rails.logger.debug "DEBUG: Adding embedded app info from persistant storage: #{@name}:#{dep}"
     self.cart_data = {} if @cart_data.nil?
     
-    raise StickShift::UserException.new("#{dep} already embedded in '#{@name}'", 101) if self.embedded.include? dep
+    raise StickShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep
     if self.scalable
       raise StickShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{SCALABLE_EMBEDDED_CARTS.join(',')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
     end
@@ -1082,8 +1082,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_remove_dependency, {:application => self, :dependency => dep, :reply => reply})
     self.embedded = {} unless self.embedded
         
-    raise StickShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 101) unless self.embedded.include? dep
-    raise StickShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 101) if (self.scalable and self.proxy_cartridge==dep)
+    raise StickShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 135) unless self.embedded.include? dep
+    raise StickShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 137) if (self.scalable and self.proxy_cartridge==dep)
     remove_from_requires_feature(dep)
     elaborate_descriptor { |removed_component_instances|
       #remove unused components
@@ -1155,7 +1155,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, dependency, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", "-101", result_io) if cinst.nil?
+    raise StickShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", 135, result_io) if cinst.nil?
 
     ginst = self.group_instance_map[cinst.group_instance_name]
     return ginst.min,ginst.max

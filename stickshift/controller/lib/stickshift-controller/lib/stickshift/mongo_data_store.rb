@@ -175,7 +175,7 @@ module StickShift
 
     def db
       if @replica_set
-        con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary})
+        con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary, :connect_timeout => 60})
       else
         con = Mongo::Connection.new(@host_port[0], @host_port[1])
       end
@@ -605,7 +605,7 @@ module StickShift
                                          {"apps" => {"$exists" => false}}] },
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})
       raise StickShift::UserException.new("Could not delete domain." +
-                                          "Domain has valid applications.", 136) if hash == nil
+                                          "Domain has valid applications.", 128) if hash == nil
     end
 
     #district

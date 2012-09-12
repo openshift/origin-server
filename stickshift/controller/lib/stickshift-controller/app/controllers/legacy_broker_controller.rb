@@ -159,7 +159,7 @@ class LegacyBrokerController < ApplicationController
        return
     else
       raise StickShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if StickShift::ApplicationContainerProxy.blacklisted? @req.namespace
-      raise StickShift::UserException.new("User already has a domain associated. Update the domain to modify.", 102) if !@cloud_user.domains.empty?
+      raise StickShift::UserException.new("Domain already exists for user. Update the domain to modify.", 158) if !@cloud_user.domains.empty?
 
       key = Key.new(CloudUser::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
       if key.invalid?

@@ -2,6 +2,7 @@
 
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -25,6 +26,10 @@ CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${CARTRIDGE_TYPE}/info/configuration/etc/co
 
 cart_instance_dir=${OPENSHIFT_HOMEDIR}/${CARTRIDGE_TYPE}
 
+HTTPD_CFG_FILE=$CART_CONF_DIR/httpd_nolog.conf
+HTTPD_PID_FILE=$cart_instance_dir/run/httpd.pid
+
+
 case "$1" in
     start)
         _state=`get_app_state`
@@ -32,9 +37,10 @@ case "$1" in
             echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
             exit 0
         else
+            ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
             src_user_hook pre_start_${CARTRIDGE_TYPE}
             set_app_state started
-            /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
+            /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
             run_user_hook post_start_${CARTRIDGE_TYPE}
         fi
     ;;
@@ -42,9 +48,10 @@ case "$1" in
         app_ctl_stop.sh $1
     ;;
     restart|graceful)
+        ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
         src_user_hook pre_start_${CARTRIDGE_TYPE}
         set_app_state started
-        /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
+        /usr/sbin/httpd -C "Include $cart_instance_dir/conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
         run_user_hook post_start_${CARTRIDGE_TYPE}
     ;;
 esac

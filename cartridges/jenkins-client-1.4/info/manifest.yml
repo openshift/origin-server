@@ -1,13 +1,13 @@
 Name: jenkins-client-1.4
-Display-Name: jenkins-client v1.4 (noarch)
-Description: Cartridge providing support for creating/managing jenkins jobs
+Display-Name: Jenkins Client 1.4
+Description: "The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be created via the new application page."
 Version: 1.0.0
 License: ASL 2.0
 Vendor: 
 Categories:
   - cartridge
   - web_framework
-  - builds
+  - ci_builder
 Cart-Data:
   - Key: "job_url"
     Type: cart_data

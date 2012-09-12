@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.13.1
+Version: 0.13.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- Merge pull request #455 from sg00dwin/master (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
+- Fix for bugz 852598 - Local gear of nodejs scalable app is down after
+  creating this app. (ramr@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.13.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

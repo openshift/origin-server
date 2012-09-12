@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.16.1
+Version: 0.16.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,18 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.4-1
+- Fix for Bug 852268 (jhonce@redhat.com)
+
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.16.3-1
+- Fix for bugz 853372 - Failed to move primary cartridge app due to httpd.pid
+  file being empty. (ramr@redhat.com)
+- Fix for bugz 852518 - Failed move due to httpd.pid file being empty.
+  (ramr@redhat.com)
+
+* Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
+- Patch for BZ850962 (jhonce@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 
