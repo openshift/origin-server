@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.16.4
+Version: 0.16.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
+- Merge pull request #472 from rajatchopra/bug_fix (openshift+bot@redhat.com)
+- Merge pull request #470 from jwhonce/bz855186 (openshift+bot@redhat.com)
+- ruby 1.8.7 does not have order for a hash, get around it (rchopra@redhat.com)
+- Fix for Bug 855186 (jhonce@redhat.com)
+
 * Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.16.4-1
 - increase mongo connection timeout (rchopra@redhat.com)
 
