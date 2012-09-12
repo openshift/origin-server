@@ -58,7 +58,7 @@ do
   echo "require File.expand_path('../plugin-config/swingshift-mongo-plugin.rb', __FILE__)" >> $env_file
   echo "require File.expand_path('../plugin-config/uplift-bind-plugin.rb', __FILE__)" >> $env_file
   echo "require File.expand_path('../plugin-config/gearchanger-mcollective-plugin.rb', __FILE__)" >> $env_file
-end
+done
 
 if [ "x`fgrep smallfiles=true /etc/mongodb.conf`x" != "xsmallfiles=truex" ] ; then
   echo "smallfiles=true" >> /etc/mongodb.conf
