@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.2.3
+Version: 0.2.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -92,6 +92,11 @@ fi
 %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Merge pull request #474 from rmillner/proxy-fedora (openshift+bot@redhat.com)
+- Fedora 17 systemd support requres a wrapper which is LSB compliant.
+  (rmillner@redhat.com)
+
 * Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.2.3-1
 - Move configuration file to /etc; leave lock files and reload requests in
   /var/lib/stickshift. (rmillner@redhat.com)
