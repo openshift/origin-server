@@ -23,6 +23,7 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
+Requires:       pam-openshift
 Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby

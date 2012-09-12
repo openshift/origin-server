@@ -61,6 +61,12 @@ def read_env_vars():
         fp.close()
         os.putenv(env, env_var)
 
+def get_mcs_level(uid):
+    cmd = "oo-get-mcs-level %s" % uid
+    ret = commands.getstatusoutput(cmd)
+    return ret[1]
+
+
 def read_config():
   config = {}
   f = open('/etc/openshift/node.conf','r')
@@ -173,8 +179,9 @@ if __name__ == '__main__':
         allargs = [thearg]
 
     runcon = '/usr/bin/runcon'
+    mcs_level = get_mcs_level(os.getuid())
 
-    target_context = 'system_u:system_r:openshift_t:s0'
+    target_context = 'system_u:system_r:openshift_t:%s' % mcs_level
     actual_context = selinux.getcon()[1]
     # Confirm nothing fishy is going on
     if target_context != actual_context:

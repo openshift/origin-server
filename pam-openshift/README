@@ -1,0 +1,49 @@
+pam_openshift — PAM module to set the default security context
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DESCRIPTION
+
+In a nutshell, pam_openshift sets up the default security context for the next
+execed shell.
+
+When an application opens a session using pam_openshift, the shell that gets
+executed will be run in the default security context.
+
+Adding pam_openshift into a pam file could cause other pam modules to change
+their behavior if the exec another application. The close and open option help
+mitigate this problem. close option will only cause the close portion of the
+pam_openshift to execute, and open will only cause the open portion to run. You
+can add pam_openshift to the config file twice. Add the pam_openshift close as the
+executes the open pass through the modules, pam_openshift open_session will
+happen last. When PAM executes the close pass through the modules pam_openshift
+close_session will happen first.
+
+OPTIONS
+
+close
+
+    Only execute the close_session portion of the module.
+
+debug
+
+    Turns on debugging via syslog(3).
+
+open
+
+    Only execute the open_session portion of the module.
+
+verbose
+
+    attempt to inform the user when security context is set.
+
+EXAMPLES
+
+auth     required  pam_unix.so
+session  required  pam_permit.so
+session  optional  pam_openshift.so
+
+
+AUTHOR
+
+pam_openshift was written by Dan Walsh <dwalsh@redhat.com>.
