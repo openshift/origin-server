@@ -14,6 +14,7 @@ Source0:       stickshift-port-proxy-%{version}.tar.gz
 %endif
 
 Requires:      haproxy
+Requires:      %{_sysconfdir}/stickshift/stickshift-node.conf
 %if %{with_systemd}
 BuildRequires: systemd-units
 Requires:  systemd-units
@@ -35,7 +36,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_sbindir}
 %else
 mkdir -p %{buildroot}%{_initddir}
 %endif
@@ -46,6 +48,7 @@ mkdir -p %{buildroot}%{_bindir}
 %if %{with_systemd}
 install -m 644 systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
 install -m 644 systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
+install -m 755 systemd/stickshift-proxy %{buildroot}%{_sbindir}
 %else
 install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
 %endif
@@ -53,10 +56,12 @@ install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift
 install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
 %post
+# Necessary on RHEL 6
 /sbin/restorecon /var/lib/stickshift/.stickshift-proxy.d/ || :
 
 %if %{with_systemd}
-systemctl --system daemon-reload
+/bin/systemctl --system daemon-reload
+/bin/systemctl try-restart stickshift-proxy.service
 %else
 /sbin/chkconfig --add stickshift-proxy || :
 /sbin/service stickshift-proxy condrestart || :
@@ -64,17 +69,21 @@ systemctl --system daemon-reload
 
 %preun
 if [ "$1" -eq "0" ]; then
+%if %{with_systemd}
+   /bin/systemctl --no-reload disable stickshift-proxy.service
+   /bin/systemctl stop stickshift-proxy.service
+%else
+   /sbin/service stickshift-proxy stop || :
    /sbin/chkconfig --del stickshift-proxy || :
+%endif
 fi
-
-%triggerin -- haproxy
-/sbin/service stickshift-proxy condrestart
 
 %files
 %defattr(-,root,root,-)
 %if %{with_systemd}
 %{_unitdir}/stickshift-proxy.service
 %{_sysconfdir}/sysconfig/stickshift-proxy
+%{_sbindir}/stickshift-proxy
 %else
 %{_initddir}/stickshift-proxy
 %endif
