@@ -104,6 +104,12 @@ task :build_setup do
   sh "mkdir -p ~/.openshift/"
   sh "echo 'libra_server=localhost' >> ~/.openshift/express.conf"
   sh "echo 'default_rhlogin=admin' >> ~/.openshift/express.conf"
+
+  print "Setting up express.conf for root user\n"
+  sh "mkdir -p /root/.openshift/"
+  sh "echo 'libra_server=localhost' >> /root/.openshift/express.conf"
+  sh "echo 'default_rhlogin=admin' >> /root/.openshift/express.conf"
+
   sudo "/usr/sbin/usermod -a -G mock #{Etc.getlogin}"
 
   print "Going through each spec file and pre-installing required packages"
