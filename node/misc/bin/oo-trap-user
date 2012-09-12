@@ -229,9 +229,8 @@ if __name__ == '__main__':
     runcon = '/usr/bin/runcon'
     mcs_level = get_mcs_level(os.getuid())
 
-    target_context = 'unconfined_u:system_r:openshift_t:%s' % mcs_level
+    target_context = 'system_u:system_r:openshift_t:%s' % mcs_level
     actual_context = selinux.getcon()[1]
-    # Confirm nothing fishy is going on
     if target_context != actual_context:
         os.execv(runcon, [runcon, target_context, cmd] + allargs)
         sys.exit(1)
