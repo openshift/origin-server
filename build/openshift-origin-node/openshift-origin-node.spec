@@ -25,6 +25,7 @@ Requires:       mcollective-qpid-plugin
 Requires:       stickshift-mcollective-agent
 Requires:       rubygem-stickshift-node
 Requires:       stickshift-port-proxy
+Requires:       pam-openshift
 
 BuildArch:      noarch
 
@@ -59,8 +60,10 @@ boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
 boolean -m --on httpd_read_user_content
 boolean -m --on httpd_enable_homedirs
+boolean -m --on httpd_run_stickshift
+
 _EOF
-semodule -i /usr/share/selinux/packages/rubygem-stickshift-common/stickshift.pp -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
+
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
@@ -86,12 +89,24 @@ perl -p -i -e "s/^#MaxStartups .*$/MaxStartups 40/" /etc/ssh/sshd_config
 perl -p -i -e "s/^#auth = .*$/auth = true/" /etc/mongodb.conf
 
 echo 'AcceptEnv GIT_SSH' >> /etc/ssh/sshd_config
-ln -s /usr/bin/sssh /usr/bin/rhcsh
+ln -sf /usr/bin/sssh /usr/bin/rhcsh
 
 lokkit --service=ssh
 lokkit --service=https
 lokkit --service=http
 lokkit --port=35531-65535:tcp
+
+# Add pam_namespace and use pam_openshift instead of pam_selinux
+for pamconf in runuser runuser-l sshd su system-auth-ac
+do
+    pamfile="/etc/pam.d/$pamconf"
+    if [ -e "$pamfile" ] && ! grep -q 'pam_namespace.so' "$pamfile"
+    then
+        echo 'session     required      pam_namespace.so no_unmount_on_close' >> "$pamfile"
+    fi
+done
+sed -i -e 's|pam_selinux|pam_openshift|g' /etc/pam.d/sshd
+
 
 cat <<EOF > /etc/mcollective/client.cfg
 topicprefix = /topic/
@@ -154,14 +169,19 @@ chkconfig mcollective on
 chkconfig network on
 
 %postun
+if [ "$1" = 0 ]
+then
+    semanage -i - <<_EOF
+    boolean -m --off httpd_can_network_connect
+    boolean -m --off httpd_can_network_relay
+    boolean -m --off httpd_read_user_content
+    boolean -m --off httpd_enable_homedirs
+    boolean -m --off httpd_run_stickshift
 
-semanage -i - <<_EOF
-boolean -m --off httpd_can_network_connect
-boolean -m --off httpd_can_network_relay
-boolean -m --off httpd_read_user_content
-boolean -m --off httpd_enable_homedirs
 _EOF
-semodule -r stickshift
+
+    sed -i -e 's|pam_openshift|pam_selinux|g' /etc/pam.d/sshd
+fi
 
 %clean
 rm -rf %{buildroot}                                

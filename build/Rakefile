@@ -24,6 +24,13 @@ gpgcheck= 0
 enabled = 1
 retries = 0
 
+[local_build_$basearch]
+name    = local_build
+baseurl = file://#{rpmdir}/$basearch
+gpgcheck= 0
+enabled = 1
+retries = 0
+
 [openshift_origin]
 name    = openshift_origin
 baseurl = http://mirror.openshift.com/pub/origin-server/fedora-$releasever/$basearch
@@ -54,6 +61,13 @@ retries = 0
 [local_build]
 name    = local_build
 baseurl = file://#{rpmdir}/noarch
+gpgcheck= 0
+enabled = 1
+retries = 0
+
+[local_build_$basearch]
+name    = local_build
+baseurl = file://#{rpmdir}/$basearch
 gpgcheck= 0
 enabled = 1
 retries = 0
@@ -120,7 +134,7 @@ task :build_setup do
   end
 
   packages = specs.map do |spec|
-     lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
+     lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^(Build|)Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
   end
   packages.flatten!
   packages.delete_if { |req| req.match(/stickshift|openshift|cartridge|swingshift|gearchanger|uplift/) }
@@ -226,8 +240,12 @@ task :livecd do
 end
 
 task :createrepo do
+  basearch = `uname -i`
+
   sh "mkdir -p #{rpmdir}/noarch"
   sh "createrepo #{rpmdir}/noarch"
+  sh "mkdir -p #{rpmdir}/#{basearch}"
+  sh "createrepo #{rpmdir}/#{basearch}"
   File.open("#{rpmdir}/ss.repo", 'w') do |out|
     out << repo_string(rpmdir)
   end
