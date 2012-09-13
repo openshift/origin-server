@@ -39,7 +39,7 @@ class Domain < RestApi::Base
   # FIXME: Temporary until multiple domains are supported
   def self.find_one(options)
     domain = first(options)
-    raise ActiveResource::ResourceNotFound, :domain if domain.nil?
+    raise RestApi::ResourceNotFound.new(Domain.name, nil) if domain.nil?
     domain
   end
 end

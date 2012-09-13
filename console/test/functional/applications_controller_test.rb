@@ -171,7 +171,15 @@ class ApplicationsControllerTest < ActionController::TestCase
   test "should result in a not found when retrieving a domain that does not exist" do
     with_unique_user
     get :show, :id => 'idontexist'
-    assert_response 404
+    assert_response :success
+    assert_select 'h1', /Domain does not exist/
+  end
+
+  test "should result in a not found when retrieving an application that does not exist" do
+    with_domain
+    get :show, :id => 'idontexist'
+    assert_response :success
+    assert_select 'h1', /Application 'idontexist' does not exist/
   end
 
 #  test "should check for empty name" do

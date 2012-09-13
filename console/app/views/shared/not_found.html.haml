@@ -1,0 +1,69 @@
+:css
+  #not_found {
+    min-height: 450px;
+    background-image: 
+      url('/app/images/panda404_400.png');
+    background-position: 
+      center top;
+    background-repeat: 
+      no-repeat;
+  }
+  @media  (max-width: 479px) {
+    #not_found {
+      background-image: 
+        url('/app/images/panda404_250.png');
+      background-position: 
+        center top;
+      min-height: 335px;
+    }
+  }
+  @media (min-width: 480px) and (max-width: 767px) {
+    #not_found {
+      background-image: 
+        url('/app/images/panda404_300.png');
+      background-position: 
+        center top;
+      min-height: 400px;
+    }
+  }
+  @media (min-width: 768px) and (max-width: 979px) {
+    #not_found {
+      background-image: 
+        url('/app/images/panda404_350.png');
+    }
+  }
+   
+  h1 span {
+    font-size: 16px;
+    color: #888;
+    color: rgb(136, 136, 136);
+    text-shadow: none;
+  }
+
+- content_for :page_title, @message || 'Page not found'
+
+%h1= @message || 'Page not found <small>404</small>'.html_safe
+
+%section.row
+  .span7
+    - unless @message
+      %h2 The page you requested was not found or may no longer exist
+
+    - if @alternatives.present?
+      %p Were you looking for any of the following?
+      %ul
+        - @alternatives.each do |alt|
+          %li= link_to alt[0], alt[1], alt[2] || {}
+
+    %ul
+      %li= link_to "Management console", console_path
+      %li= link_to "View your account", account_path
+      %li= link_to "Get help", console_help_path
+
+    %p #{link_to "Contact us", mailto_openshift_url} if you feel you have reached this page in error.
+
+    - if @reference_id
+      %p.error-reference Reference ##{@reference_id}
+
+  .span7
+    #not-found

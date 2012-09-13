@@ -9,7 +9,7 @@ require "rails/test_unit/railtie"
 # support for that here to prevent Node (which supplies V8) from conflicting.
 ENV['EXECJS_RUNTIME'] = 'SpiderMonkey'
 
-Bundler.require *Rails.groups(:default, :assets => %w(development test)) if defined?(Bundler)
+Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler)
 require "console/engine"
 
 module RailsApp

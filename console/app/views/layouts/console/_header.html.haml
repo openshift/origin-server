@@ -7,6 +7,8 @@
         %li.hidden-phone= link_to "Developer Center", developers_url, :class => 'developer'
         - if Console.config.disable_account
           %li.hidden-phone= link_to "Sign Out", logout_path, :class => "sign_out"
+        - elsif logout_path.nil?
+          = link_to current_user_id, account_path
         - else
           %li.dropdown.username.hidden-phone
             = link_to current_user_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
@@ -37,5 +39,6 @@
         %ul.nav.visible-phone
           %li= link_to "Community", community_url, :class => 'community'
           %li= link_to "Developer Center", developers_url, :class => 'developer'
-        %ul.nav.visible-phone
-          %li= link_to "Sign Out", logout_path, :class => "sign_out"
+        - unless logout_path.nil?
+          %ul.nav.visible-phone
+            %li= link_to "Sign Out", logout_path, :class => "sign_out"

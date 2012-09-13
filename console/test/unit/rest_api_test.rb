@@ -396,6 +396,34 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal key, key.load({})
   end
 
+  def test_find_one_raises_resource_not_found
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/user.json', json_header, nil, 404
+    end
+    begin
+      User.find :one, :as => @user 
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal User, e.model
+      assert_equal nil, e.id
+      assert e.to_s =~ /User does not exist/
+    end
+  end
+
+  def test_find_single_raises_resource_not_found
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/foo.json', json_header, nil, 404
+    end
+    begin
+      Domain.find 'foo', :as => @user 
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal Domain, e.model
+      assert_equal 'foo', e.id
+      assert e.to_s =~ /Domain 'foo' does not exist/
+    end
+  end
+
   def test_user_get
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/user.json', json_header, { :login => 'test1' }.to_json()
@@ -695,9 +723,7 @@ class RestApiTest < ActiveSupport::TestCase
     domain = Domain.find :one, :as => @user
     assert_attr_equal app1, domain.find_application('app1')
     assert_attr_equal app2, domain.find_application('app2')
-    assert_raise ActiveResource::ResourceNotFound do
-      domain.find_application 'app3'
-    end
+    assert_raise(RestApi::ResourceNotFound) { domain.find_application 'app3' }
   end
 
   def test_cartridges

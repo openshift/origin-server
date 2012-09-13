@@ -30,6 +30,20 @@ module RestApi
   # Raised when a newly created resource exists with the same unique primary key
   class ResourceExistsError < StandardError ; end
 
+  class ResourceNotFound < ActiveResource::ResourceNotFound
+    attr_reader :id
+    def initialize(model, id, response=nil)
+      @id, @model = id, model
+      super(response)
+    end
+    def model
+      @model.constantize rescue RestApi::Base
+    end
+    def to_s
+      id.nil? ? "#{model} does not exist" : "#{model} '#{id}' does not exist"
+    end
+  end
+
   # The server did not return the response we were expecting, possibly a server bug
   class BadServerResponseError < StandardError ; end
 
