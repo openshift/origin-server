@@ -14,7 +14,7 @@ HAPROXY_PID=""
 
 function reload {
     if [ "$HAPROXY_PID" ]; then
-        /sbin/haproxy -f "$STICKSHIFT_PROXY_CONFIG" $OPTIONS -sf $HAPROXY_PID &
+        /usr/sbin/haproxy -f "$STICKSHIFT_PROXY_CONFIG" $OPTIONS -sf $HAPROXY_PID &
         HAPROXY_PID=$!
         echo "$HAPROXY_PID" > /run/stickshift-proxy.pid
     else
@@ -42,7 +42,7 @@ function cleaner {
 # Start haproxy
 /usr/bin/stickshift-proxy-cfg fixaddr
 
-/sbin/haproxy -f "$STICKSHIFT_PROXY_CONFIG" $OPTIONS &
+/usr/sbin/haproxy -f "$STICKSHIFT_PROXY_CONFIG" $OPTIONS &
 HAPROXY_PID=$!
 echo "$HAPROXY_PID" > /run/stickshift-proxy.pid
 
