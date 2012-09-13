@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.29.0
+Version: 0.29.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.28.2-1
 - Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
   (openshift+bot@redhat.com)
