@@ -558,13 +558,9 @@ module StickShift
 
       proxy_port_range = (proxy_port_begin ... (proxy_port_begin + ports_per_user))
 
-      cmd = %{/sbin/chkconfig --list stickshift-proxy}
-      out,err,rc = shellCmd(cmd)
-      if rc == 0
-        cmd = %{stickshift-proxy-cfg setproxy}
-        proxy_port_range.each { |i| cmd << " #{i} delete" }
-        out, err, rc = shellCmd(cmd)
-      end
+      cmd = %{stickshift-proxy-cfg setproxy}
+      proxy_port_range.each { |i| cmd << " #{i} delete" }
+      out, err, rc = shellCmd(cmd)
 
       notify_observers(:after_initialize_stickshift_proxy)
       return rc == 0
