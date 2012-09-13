@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.14.0
+Version: 0.14.1
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.13.4-1
 - BZ 852395: Exit from deconfigure when db type doesn't match.
   (mpatel@redhat.com)
