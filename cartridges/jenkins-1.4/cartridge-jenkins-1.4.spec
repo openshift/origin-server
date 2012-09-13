@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.98.0
+Version: 0.98.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.3-1
 - Merge pull request #450 from smarterclayton/switch_to_newer_broker_tags
   (openshift+bot@redhat.com)
