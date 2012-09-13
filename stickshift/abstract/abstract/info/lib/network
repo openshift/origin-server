@@ -116,12 +116,8 @@ function uuid_to_portrange {
 
 function proxy_cmd {
   # Run proxy commands if one exists; otherwise, this is a stub.
-  if chkconfig --list stickshift-proxy >/dev/null 2>&1 
-  then
-    stickshift-proxy-cfg "${@}"
-    return $?
-  fi
-  return 0
+  stickshift-proxy-cfg "${@}"
+  return $?
 }
 
 function find_next_proxy_port {
