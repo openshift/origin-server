@@ -74,9 +74,9 @@ class RestApiTest < ActiveSupport::TestCase
     RestApi::Base.translate_api_error(errors, nil, :test, 'test')
     (errors = mock).expects(:add).once.with(:test, 'test')
     RestApi::Base.translate_api_error(errors, nil, 'test', 'test')
-    (errors = mock).expects(:add).once.with(:test, 'Type is required and cannot be blank.')
+    (errors = mock).expects(:add).once.with(:test, I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', 'test', 'test')
-    (errors = mock).expects(:add).once.with(:base, 'Type is required and cannot be blank.')
+    (errors = mock).expects(:add).once.with(:base, I18n.t('116', :scope => [:rest_api, :errors]))
     RestApi::Base.translate_api_error(errors, '116', nil, nil)
   end
 
@@ -577,7 +577,7 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     assert_nil Domain.first :as => @user
-    assert_raise ActiveResource::ResourceNotFound do
+    assert_raise RestApi::ResourceNotFound do
       Domain.find :one, :as => @user
     end
   end

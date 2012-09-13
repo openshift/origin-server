@@ -40,7 +40,7 @@ module RestApi
       @model.constantize rescue RestApi::Base
     end
     def to_s
-      id.nil? ? "#{model} does not exist" : "#{model} '#{id}' does not exist"
+      "#{model.to_s.titleize}#{ " '#{id}'" unless id.nil?} does not exist"
     end
   end
 

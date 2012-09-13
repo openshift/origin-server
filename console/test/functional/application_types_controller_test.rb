@@ -48,9 +48,9 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   end
 
   test "should raise on missing type" do
-    assert_raise(ApplicationType::NotFound) do
-      get :show, :id => 'missing_application_type'
-    end
+    get :show, :id => 'missing_application_type'
+    assert_response :success
+    assert_select 'h1', /Application Type 'missing_application_type' does not exist/
   end
 
   test "should fill domain info" do

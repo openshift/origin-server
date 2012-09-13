@@ -2,7 +2,10 @@ class ApplicationType
   include ActiveModel::Conversion
   extend ActiveModel::Naming
 
-  class NotFound < StandardError
+  class NotFound < RestApi::ResourceNotFound
+    def initialize(id, response=nil)
+      super(ApplicationType.model_name, id, response)
+    end
   end
 
   attr_accessor :id, :name, :version, :description

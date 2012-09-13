@@ -16,12 +16,14 @@ class ConsoleController < Console.config.parent_controller.constantize
 
   protected
     def resource_not_found(e)
-      alternatives = if Application == e.model 
+      alternatives = if Application == e.model
                        @domain.applications.map do |app|
                          ["Application #{app.name}", application_path(app)]
                        end.tap do |links|
                          links << ['Create a new application', new_application_path] if links.empty?
                        end if @domain rescue nil
+                     elsif ApplicationType == e.model
+                        [['See other application types', application_types_path]]
                      end
       page_not_found(e, e.message, alternatives)
     end
