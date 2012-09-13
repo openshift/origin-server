@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.98.0
+Version: 0.98.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
 - Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
   (openshift+bot@redhat.com)
