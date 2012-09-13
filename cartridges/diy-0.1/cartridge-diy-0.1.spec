@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.33.0
+Version: 0.33.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.33.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.32.3-1
 - Merge pull request #466 from smarterclayton/bug849950_diy_missing_proper_tag
   (openshift+bot@redhat.com)
