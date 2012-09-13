@@ -3,7 +3,7 @@
 
 Summary:   StickShift broker components
 Name:      stickshift-broker
-Version:   0.6.9
+Version:   0.6.10
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -171,6 +171,23 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Thu Sep 13 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.10-1
+- Updating gem versions (admiller@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Merge branch 'master' into tdawson/fixes (tdawson@redhat.com)
+- remove rubygem(multimap) requirement (tdawson@redhat.com)
+- Updating gem versions (tdawson@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- broker and node Gemfile.lock update (admiller@redhat.com)
+- update gem version (dmcphers@redhat.com)
+- Updating gem versions (admiller@redhat.com)
+- Gemfile.lock updates (admiller@redhat.com)
+- Add <broker>/rest/environment REST call to expose env variables like
+  domain_suffix, etc. (rpenta@redhat.com)
+- Expose capabilities in the Rest user model (rpenta@redhat.com)
+- Merge pull request #433 from danmcp/master (openshift+bot@redhat.com)
+- optimize nolinks (dmcphers@redhat.com)
+
 * Thu Aug 23 2012 Adam Miller <admiller@redhat.com> 0.6.9-1
 - Updating gem versions (admiller@redhat.com)
 - Updating gem versions (admiller@redhat.com)
