@@ -8,3 +8,4 @@ public/stylesheets/
 app/subsites/status/db/status.sqlite3
 test/reports/
 public/assets
+public/404.html

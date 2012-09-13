@@ -50,7 +50,7 @@ mkdir -p %{buildroot}%{ruby_sitelib}
 bundle install
 # Temporary END
 pushd test/rails_app/
-RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile
+RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
 rm -rf tmp/cache/*
 echo > log/production.log
 popd

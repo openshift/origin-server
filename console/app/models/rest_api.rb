@@ -86,6 +86,7 @@ The REST API could not be reached at #{RestApi::Base.site}
   Current configuration: #{config.inspect} #{config[:symbol] ? "(via :#{config[:symbol]})" : ''}
 
   #{e.message}
+  #{e.backtrace.join("\n  ")}
       EXCEPTION
     end
 
