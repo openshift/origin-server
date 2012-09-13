@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.98.0
+Version: 0.98.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
 * Mon Sep 10 2012 Troy Dawson <tdawson@redhat.com> 0.97.3-1
 - Merge pull request #463 from ramr/master (openshift+bot@redhat.com)
 - Fix for bugz 855262 - local gear of scalable pythong app is down after git
