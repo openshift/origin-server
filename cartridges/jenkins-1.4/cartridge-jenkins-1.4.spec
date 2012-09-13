@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.97.3
+Version: 0.98.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
