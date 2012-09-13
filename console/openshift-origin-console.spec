@@ -38,8 +38,6 @@ This contains the OpenShift Origin Management Console packaged as a ruby site li
 
 %prep
 %setup -q
-pwd
-rake --trace version["%{version}"]
 
 %build
 
@@ -52,7 +50,7 @@ mkdir -p %{buildroot}%{ruby_sitelib}
 bundle install
 # Temporary END
 pushd test/rails_app/
-bundle exec rake assets:precompile
+RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile
 rm -rf tmp/cache/*
 echo > log/production.log
 popd
