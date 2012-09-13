@@ -9,7 +9,7 @@ class AppEventsController < BaseController
     id = params[:application_id]
     event = params[:event]
     server_alias = params[:alias]
-    
+
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "APPLICATION_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
@@ -59,7 +59,17 @@ class AppEventsController < BaseController
         when "scale-down"
           application.scaledown
           msg = "Application #{id} has scaled down"
-        else
+        when "thread-dump"
+          r = application.threaddump
+          msg = "#{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          #TODO: We need to reconsider how we are reporting messages to the client
+          message = Message.new(:result, msg, 0)
+	  application = Application.find(@cloud_user, id)
+	  app = RestApplication.new(application, get_url, nolinks)
+	  render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION",
+			   "Application event '#{event}' successful", true, nil, [message])
+	  return
+       else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "APPLICATION_EVENT", "event")
         end
