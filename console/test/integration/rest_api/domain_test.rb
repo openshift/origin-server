@@ -84,7 +84,7 @@ class RestApiDomainTest < ActiveSupport::TestCase
   end
 
   def test_domain_find_throws
-    assert_raise ActiveResource::ResourceNotFound do
+    assert_raise RestApi::ResourceNotFound do
       Domain.find 'invalid_name', :as => @user
     end
   end

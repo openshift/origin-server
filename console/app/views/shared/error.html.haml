@@ -40,27 +40,19 @@
     text-shadow: none;
   }
 
-- content_for :page_title, @message || 'Page not found'
+- content_for :page_title, @message || "An error occurred"
 
-%h1= @message || 'Page not found <small>404</small>'.html_safe
+%h1= @message || "We're having technical difficulties"
 
 %section.row
   .span7
-    - unless @message
-      %h2 The page you requested was not found or may no longer exist
 
-    - if @alternatives.present?
-      %p Were you looking for any of the following?
-      %ul
-        - @alternatives.each do |alt|
-          %li= link_to alt[0], alt[1], alt[2] || {}
+    %p You can try the following:
 
-    %ul
-      %li= link_to "Management console", console_path
-      %li= link_to "View your account", account_path
-      %li= link_to "Get help", console_help_path
-
-    %p #{link_to "Contact us", mailto_openshift_url} if you feel you have reached this page in error.
+    %ul.spaced-items
+      %li Seek assistance in the #{link_to "support forum", forums_url}.
+      %li Join us in IRC #{link_to "on Freenode in #openshift", irc_web_url }.
+      %li If you area experiencing a repeatable error not related to a service outage, #{link_to "report it as a bug", open_bug_url }.
 
     - if @reference_id
       %p.error-reference Reference ##{@reference_id}

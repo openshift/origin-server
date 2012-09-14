@@ -46,7 +46,7 @@ class RestApiKeyTest < ActiveSupport::TestCase
     assert !key.errors.empty?
     assert_equal ['Key name is required and cannot be blank.'], key.errors[:name]
     assert_equal ['Key content is required and cannot be blank.'], key.errors[:content]
-    assert_equal ['Type is required and cannot be blank.'], key.errors[:type]
+    assert key.errors[:type].first =~ /Your SSH public key appears to be invalid/
   end
 
   def test_key_delete
