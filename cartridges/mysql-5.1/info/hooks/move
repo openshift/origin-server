@@ -53,6 +53,7 @@ else
     if [ ! -d "$GEAR_BASE_DIR/$uuid/$OPENSHIFT_APP_NAME" ]; then
         #  This gear is dedicated to running mysql - configure it as such.
         export CART_INFO_DIR
+        observe_setup_app_home
         import_env_vars
         $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
         restart_httpd_graceful
