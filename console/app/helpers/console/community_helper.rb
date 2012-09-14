@@ -20,6 +20,10 @@ module Console::CommunityHelper
     'http://www.twitter.com/#!/openshift'
   end
 
+  def openshift_ops_twitter_url
+    'http://www.twitter.com/#!/openshift_ops'
+  end
+
   def open_bug_url
     'https://bugzilla.redhat.com/enter_bug.cgi?product=OpenShift'
   end

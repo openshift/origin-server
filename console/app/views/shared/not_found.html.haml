@@ -55,7 +55,7 @@
         - @alternatives.each do |alt|
           %li= link_to alt[0], alt[1], alt[2] || {}
 
-    %ul
+    %ul.spaced-items
       %li= link_to "Management console", console_path
       %li= link_to "View your account", account_path
       %li= link_to "Get help", console_help_path

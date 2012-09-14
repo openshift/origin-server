@@ -110,4 +110,3 @@ The REST API could not be reached at #{RestApi::Base.site}
       end
   end
 end
-

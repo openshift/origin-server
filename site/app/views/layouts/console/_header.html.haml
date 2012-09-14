@@ -1,0 +1,39 @@
+.navbar
+  .navbar-inner
+    .container
+
+      %ul.navbar-text.pull-right#utility-nav
+        %li.hidden-phone= link_to "Community", community_url, :class => 'community'
+        %li.hidden-phone= link_to "Developer Center", developers_url, :class => 'developer'
+        %li.dropdown.username.hidden-phone
+          = link_to current_user_id, account_path, :class => 'dropdown-toggle', 'data-toggle' => 'dropdown', 'data-target' => '#'
+          %ul.dropdown-menu.hidden-phone
+            %li= link_to "My Account", account_path
+            %li= link_to "Sign Out", logout_path, :class => "sign_out"
+
+        %li= link_to "Status", status_url, :title => 'Track open issues on the OpenShift status page', :id => 'outage', :class => 'alert', :style => 'display:none;'
+
+      %a.btn.btn-navbar{'data-target' => '.nav-collapse', 'data-toggle' => 'collapse'}
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+
+      .brand
+        = link_to root_path do
+          = product_branding
+
+        %span.navbar-text.headline 
+          Management Console
+
+      .nav-collapse.collapse
+        = navigation_tabs do
+          = navigation_tab :applications, :action => :index, :name => "My Applications"
+          = navigation_tab :application_types, :name => "Create Application"
+          = navigation_tab :console, :action => :help, :name => "Help"
+          - unless Console.config.disable_account
+            = navigation_tab :account, :action => :show, :name => "My Account"
+        %ul.nav.visible-phone
+          %li= link_to "Community", community_url, :class => 'community'
+          %li= link_to "Developer Center", developers_url, :class => 'developer'
+        %ul.nav.visible-phone
+          %li= link_to "Sign Out", logout_path, :class => "sign_out"

@@ -42,20 +42,17 @@
 
 - content_for :page_title, @message || "An error occurred"
 
-%h1= @message || "We're having technical difficulties"
+%h1= @message || "An error has occurred"
 
-%section.row
-  .span7
+%p You can try <a href="javascript:window.location.reload();">refreshing the page</a>, if the problem is temporary.
 
-    %p You can try the following:
+%p You can also try the following:
 
-    %ul.spaced-items
-      %li Seek assistance in the #{link_to "support forum", forums_url}.
-      %li Join us in IRC #{link_to "on Freenode in #openshift", irc_web_url }.
-      %li If you area experiencing a repeatable error not related to a service outage, #{link_to "report it as a bug", open_bug_url }.
+%ul.spaced-items
+  %li Seek assistance in the #{link_to "support forum", forums_url}.
+  %li Join #{link_to "IRC channel #openshift", irc_web_url } on Freenode.
+  %li If you area experiencing a repeatable error not related to a service outage, #{link_to "report it as a bug", open_bug_url }.
 
-    - if @reference_id
-      %p.error-reference Reference ##{@reference_id}
+- if @reference_id
+  %p.error-reference Reference ##{@reference_id}
 
-  .span5
-    #not-found

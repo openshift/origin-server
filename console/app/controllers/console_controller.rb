@@ -7,6 +7,7 @@ class ConsoleController < Console.config.parent_controller.constantize
 
   before_filter :authenticate_user!
 
+  rescue_from ActiveResource::ConnectionError, :with => :generic_error
   rescue_from ActiveResource::ResourceNotFound, :with => :page_not_found
   rescue_from RestApi::ResourceNotFound, :with => :resource_not_found
 
@@ -29,10 +30,17 @@ class ConsoleController < Console.config.parent_controller.constantize
     end
 
     def page_not_found(e=nil, message=nil, alternatives=nil)
-      @reference_id = SecureRandom.hex(10)
+      @reference_id = request.uuid
       logger.warn "Page not found - Reference ##{@reference_id}"
       @message, @alternatives = message, alternatives
       render 'shared/not_found'
+    end
+
+    def generic_error(e=nil, message=nil, alternatives=nil)
+      @reference_id = request.uuid
+      logger.error "Unhandled exception reference ##{@reference_id}: #{e.message}\n#{e.backtrace.join("\n  ")}"
+      @message, @alternatives = message, alternatives
+      render 'shared/error'
     end
 
   private

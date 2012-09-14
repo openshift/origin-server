@@ -689,6 +689,8 @@ module RestApi
     # setting static variables directly.
     #
     def self.configuration=(config)
+      return if @last_config == config
+
       url = URI.parse(config[:url])
       path = url.path
       if path[-1..1] == '/'
@@ -719,3 +721,4 @@ module RestApi
   end
 end
 
+RestApi::Base.configuration = Console.config.api
