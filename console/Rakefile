@@ -23,9 +23,13 @@ end
 APP_RAKEFILE = File.expand_path("../test/rails_app/Rakefile", __FILE__)
 load 'rails/tasks/engine.rake'
 
-
-
 Bundler::GemHelper.install_tasks
+#
+# Bundler has an older vendored version of net/http/persistent in /vendor. 
+# If this remains on the path, then calling require 'net/http/persistent'
+# will load the vendored version rather than the one on our path.
+#
+$LOAD_PATH.delete_if{ |p| p =~ %r(/lib/bundler/vendor) }
 
 require 'rake/testtask'
 

@@ -116,6 +116,9 @@ module RestApi
     #
     # Connection properties
     #
+    # Note: Only subclasses that share this format will reuse
+    #   connections (allowing HTTP 1.1 persistent connections)
+    #
     self.format = OpenshiftJsonFormat.new
 
     #
@@ -128,6 +131,8 @@ module RestApi
         end
       end
     end
+
+    class_attribute :idle_timeout, :read_timeout, :open_timeout
 
     #
     # ActiveResource doesn't fully support alias_attribute
@@ -156,18 +161,6 @@ module RestApi
       end
       def calculated_attributes
         @calculated_attributes ||= {}
-      end
-
-      [:idle_timeout, :read_timeout, :open_timeout].each do |sym|
-        define_method "#{sym}=" do |timeout|
-          @connection = nil
-          instance_variable_set(:"@#{sym}", timeout)
-        end
-        define_method "#{sym}" do
-          instance_variable_get(:"@#{sym}") || begin
-            superclass.idle_timeout if superclass != ActiveResource::Base
-          end
-        end
       end
     end
 
@@ -533,7 +526,7 @@ module RestApi
       end
 
       def shared_connection(options = {}, refresh = false)
-        if defined?(@connection) || superclass == Object || superclass == ActiveResource::Base
+        if defined?(@connection) || _format != superclass._format || superclass == Object || superclass == ActiveResource::Base
           @connection = update_connection(ActiveResource::PersistentConnection.new(site, format)) if refresh || @connection.nil?
           @connection
         else
@@ -723,7 +716,6 @@ module RestApi
       @last_config = config
       @info = false
     end
-    self.configuration = Console.config.api
   end
 end
 
