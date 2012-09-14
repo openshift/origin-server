@@ -1,7 +1,7 @@
-@runtime_extended
-@runtime_extended3
+@runtime
+@runtime1
 @not-origin
-Feature: Cartridge Lifecycle Jenkins Verification Tests
+Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
     And an accepted node
@@ -10,7 +10,17 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
 
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
-    |     1     |  jenkins-1.4 |
+    |     1     |  ruby-1.9    |
+
+  Scenario Outline: Application Modification
+    Given an existing <type> application
+    When the application is changed
+    Then it should be updated successfully
+    And the application should be accessible
+
+  Scenarios: Application Modification Scenarios
+    |      type     |
+    |   ruby-1.9    |
     
   Scenario Outline: Application Restarting
     Given an existing <type> application
@@ -19,17 +29,8 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
 
   Scenarios: Application Restart Scenarios
     |      type     |
-    |   jenkins-1.4 |
+    |   ruby-1.9    |
     
-  Scenario Outline: Application Change Namespace
-    Given an existing <type> application
-    When the application namespace is updated
-    Then the application should be accessible
-
-  Scenarios: Application Change Namespace Scenarios
-    |      type     |
-    |   jenkins-1.4 |
-
   Scenario Outline: Application Destroying
     Given an existing <type> application
     When the application is destroyed
@@ -37,4 +38,4 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
 
   Scenarios: Application Destroying Scenarios
     |      type     |
-    |   jenkins-1.4 |
+    |   ruby-1.9    |
