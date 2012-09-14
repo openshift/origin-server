@@ -1,4 +1,5 @@
 @runtime
+@not-origin
 Feature: Cartridge Runtime Standard Checks (JBoss AS)
 
   @runtime2

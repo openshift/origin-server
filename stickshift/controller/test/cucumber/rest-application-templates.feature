@@ -1,5 +1,6 @@
 @broker_api
 @broker_api1
+@not-origin
 Feature: application templates
 	As an API client
 	In order to do things with application templates
