@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.0
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.2
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.2
 
-Name: cartridge-mongodb-2.0
+Name: cartridge-mongodb-2.2
 Version: 0.26.1
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
@@ -15,6 +15,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
+
+Obsoletes: cartridge-mongodb-2.0
 
 Requires: stickshift-abstract
 Requires: mongodb-server
@@ -87,7 +89,7 @@ rm -rf %{buildroot}
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.25.4-1
-- Fix for bugz 856487 - Can't add mongodb-2.0 for ruby1.9 app successfully.
+- Fix for bugz 856487 - Can't add mongodb-2.2 for ruby1.9 app successfully.
   (ramr@redhat.com)
 
 * Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.25.3-1

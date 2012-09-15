@@ -332,7 +332,7 @@ module StickShift
 
     class DatabaseCartListener
       def supports?(cart_name) 
-        ['mysql-5.1', 'mongodb-2.0', 'postgresql-8.4'].include?(cart_name)
+        ['mysql-5.1', 'mongodb-2.2', 'postgresql-8.4'].include?(cart_name)
       end
 
       class DbConnection

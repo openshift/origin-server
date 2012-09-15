@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 Requires: stickshift-abstract
-Requires: cartridge-mongodb-2.0
+Requires: cartridge-mongodb-2.2
 Requires: pymongo
 Requires: mms-agent
 

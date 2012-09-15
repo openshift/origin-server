@@ -2,7 +2,7 @@ Name: 10gen-mms-agent-0.1
 Version: 1.0.x
 Architecture: noarch
 Provides: 10gen-mms-agent
-Depends: rhc-cartridge-mongodb-2.0
+Depends: rhc-cartridge-mongodb-2.2
 Conflicts:
 Type: Cartridge
 Role: misc

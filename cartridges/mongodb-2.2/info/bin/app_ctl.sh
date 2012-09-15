@@ -2,7 +2,7 @@
 
 source /etc/stickshift/stickshift-node.conf
 CART_NAME="mongodb"
-CART_VERSION="2.0"
+CART_VERSION="2.2"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables

@@ -4,7 +4,7 @@ require 'mongo'
 require 'fileutils'
 
 Then /^the mongodb configuration file will( not)? exist$/ do |negate|
-  cart = @gear.carts['mongodb-2.0']
+  cart = @gear.carts['mongodb-2.2']
   user_root = "#{$home_root}/#{@gear.uuid}/#{cart.name}"
   config_file = "#{user_root}/etc/mongodb.conf"
 
@@ -23,7 +23,7 @@ end
 
 
 Then /^the mongodb database will( not)? +exist$/ do |negate|
-  cart = @gear.carts['mongodb-2.0']
+  cart = @gear.carts['mongodb-2.2']
   user_root = "#{$home_root}/#{@gear.uuid}/#{cart.name}"
   config_file = "#{user_root}/etc/mongodb.conf"
   data_dir = "#{user_root}/data/"
@@ -46,7 +46,7 @@ Then /^the mongodb database will( not)? +exist$/ do |negate|
 end
 
 Then /^the mongodb admin user will have access$/ do
-  mongo_cart = @gear.carts['mongodb-2.0']
+  mongo_cart = @gear.carts['mongodb-2.2']
 
   begin
     dbh = Mongo::Connection.new(mongo_cart.db.ip.to_s).db(@app.name)
