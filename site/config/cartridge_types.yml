@@ -10,7 +10,7 @@
 
   :version: MongoDB 2.0
   :website: http://www.mongodb.org/
-  :name: mongodb-2.0
+  :name: mongodb-2.2
   :license_url: http://www.mongodb.org/display/DOCS/Licensing
 - :description: MySQL is a multi-user, multi-threaded SQL database server.
   :type: embedded
@@ -100,7 +100,7 @@
   - :administration
   :display_name: phpMoAdmin 1.0
   :requires: 
-  - mongodb-2.0
+  - mongodb-2.2
   :license: GPL v3
   :help_topics: {}
 
@@ -115,7 +115,7 @@
   - :administration
   :display_name: RockMongo 1.1
   :requires: 
-  - mongodb-2.0
+  - mongodb-2.2
   :license: BSD
   :help_topics: {}
 
