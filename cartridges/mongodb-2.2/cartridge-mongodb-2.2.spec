@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.2
 
 Name: cartridge-mongodb-2.2
-Version: 0.26.1
+Version: 0.26.2
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -85,6 +85,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Sep 17 2012 Adam Miller <admiller@redhat.com> 0.26.2-1
+- US2755: Move from mongodb-2.0 to mongodb-2.2 (rmillner@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.26.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
