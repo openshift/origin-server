@@ -10,7 +10,7 @@ module LayoutHelper
     content = capture &block
     content_tag(:ul, content, :class => 'nav')
   end
-  
+
   def navigation_tab(name, options={})
     action = options[:action]
     active = (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
@@ -74,12 +74,12 @@ module LayoutHelper
     unless collection.empty?
       content_tag(
         :ul,
-        collection.collect { |o| 
+        collection.collect { |o|
           content_tag(
             :li,
             render(options.merge(:object => o)).html_safe,
             :class => options[:grid] || 'span3'
-          ) 
+          )
         }.join.html_safe,
         :class => 'thumbnails'
       )
@@ -178,9 +178,66 @@ module LayoutHelper
   def take_action(link, text, *args)
     options = args.extract_options!
     link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do
-      ([content_tag(:div, text.html_safe)] << 
-        args.collect { |text| content_tag(:div, text, :class => 'highlight') } << 
+      ([content_tag(:div, text.html_safe)] <<
+        args.collect { |text| content_tag(:div, text, :class => 'highlight') } <<
         content_tag(:div, '>', :class => 'highlight-arrow')).join.html_safe
     end
+  end
+
+  def us_states_for_select
+    [
+      ['Alabama', 'AL'],
+      ['Alaska', 'AK'],
+      ['Arizona', 'AZ'],
+      ['Arkansas', 'AR'],
+      ['California', 'CA'],
+      ['Colorado', 'CO'],
+      ['Connecticut', 'CT'],
+      ['Delaware', 'DE'],
+      ['District of Columbia', 'DC'],
+      ['Florida', 'FL'],
+      ['Georgia', 'GA'],
+      ['Hawaii', 'HI'],
+      ['Idaho', 'ID'],
+      ['Illinois', 'IL'],
+      ['Indiana', 'IN'],
+      ['Iowa', 'IA'],
+      ['Kansas', 'KS'],
+      ['Kentucky', 'KY'],
+      ['Louisiana', 'LA'],
+      ['Maine', 'ME'],
+      ['Maryland', 'MD'],
+      ['Massachusetts', 'MA'],
+      ['Michigan', 'MI'],
+      ['Minnesota', 'MN'],
+      ['Mississippi', 'MS'],
+      ['Missouri', 'MO'],
+      ['Montana', 'MT'],
+      ['Nebraska', 'NE'],
+      ['Nevada', 'NV'],
+      ['New Hampshire', 'NH'],
+      ['New Jersey', 'NJ'],
+      ['New Mexico', 'NM'],
+      ['New York', 'NY'],
+      ['North Carolina', 'NC'],
+      ['North Dakota', 'ND'],
+      ['Ohio', 'OH'],
+      ['Oklahoma', 'OK'],
+      ['Oregon', 'OR'],
+      ['Pennsylvania', 'PA'],
+      ['Puerto Rico', 'PR'],
+      ['Rhode Island', 'RI'],
+      ['South Carolina', 'SC'],
+      ['South Dakota', 'SD'],
+      ['Tennessee', 'TN'],
+      ['Texas', 'TX'],
+      ['Utah', 'UT'],
+      ['Vermont', 'VT'],
+      ['Virginia', 'VA'],
+      ['Washington', 'WA'],
+      ['West Virginia', 'WV'],
+      ['Wisconsin', 'WI'],
+      ['Wyoming', 'WY']
+    ]
   end
 end
