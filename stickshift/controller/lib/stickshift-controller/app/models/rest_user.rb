@@ -1,5 +1,5 @@
 class RestUser < StickShift::Model
-  attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links
+  attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links, :consumed_gear_sizes
   
   def initialize(cloud_user, url, nolinks=false)
     self.login = cloud_user.login
@@ -16,6 +16,17 @@ class RestUser < StickShift::Model
         Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
       ])
     } unless nolinks
+    consumed_map = {}
+    if cloud_user.applications
+      cloud_user.applications.each { |a|
+        a.gears.each { |g|
+          size = g.node_profile || Application.DEFAULT_NODE_PROFILE
+          consumed_map[size] = 0 if not consumed_map.has_key? size
+          consumed_map[size] = consumed_map[size] +1
+        }
+      }
+    end
+    self.consumed_gear_sizes = consumed_map
   end
   
   def to_xml(options={})
