@@ -6,13 +6,13 @@ do
     . $f
 done
 
-#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.0 to a ruby1.9 app
+#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.2 to a ruby1.9 app
 #         This needs to be removed once we change how we hande sclized versions
 #         of packages.
 unset LD_LIBRARY_PATH
 
 source /etc/stickshift/stickshift-node.conf
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.0/info
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.2/info
 source ${CART_INFO_DIR}/lib/util
 
 

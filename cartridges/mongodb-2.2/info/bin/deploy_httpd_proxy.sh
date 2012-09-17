@@ -31,7 +31,7 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00
   DefaultType None
 EOF
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/mongodb-2.0.conf"
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/mongodb-2.2.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html
   Alias / $CART_INFO_DIR/configuration/index.html
 EOF

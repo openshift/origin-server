@@ -19,10 +19,10 @@ Feature: Embedded Cartridge Verification Tests
     And the embedded mysql-5.1 cartridge is removed
     Then the application should be accessible
 
-    When the embedded mongodb-2.0 cartridge is added
+    When the embedded mongodb-2.2 cartridge is added
     And the embedded cron-1.4 cartridge is added
     Then the application should be accessible
-    And the embedded mongodb-2.0 cartridge is removed
+    And the embedded mongodb-2.2 cartridge is removed
     And the embedded cron-1.4 cartridge is removed
     Then the application should be accessible
 

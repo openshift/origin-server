@@ -23,4 +23,4 @@ Feature: Cartridge Runtime Extended Checks (Database)
     | app_type  | db_cart_type    | db_proc   | db_name     |
     | php-5.3   | mysql-5.1       | mysqld    | mysql       |
     | php-5.3   | postgresql-8.4  | postgres  | postgresql  |
-    | php-5.3   | mongodb-2.0     | mongod    | mongodb     |
+    | php-5.3   | mongodb-2.2     | mongod    | mongodb     |
