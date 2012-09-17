@@ -1,6 +1,6 @@
 @import "compass";
 
-.ribbon {
+.banner-ribbon {
   position: relative;
   background-color: #333b3f;
   @include background-image(linear-gradient(color-stops(#333b3f, #1a2124)));
@@ -60,14 +60,14 @@
 }
 
 @media (max-width: 767px) {
-  .row > .ribbon {
+  .row > .banner-ribbon {
     @include expand_for_phone();
     min-height: 26px;
   }
 }
 /* The ribbon should tuck in on very narrow windows */
 @media (max-width: 810px) {
-  .ribbon {
+  .banner-ribbon {
     margin-left: 0;
     > div {
       border: 0;

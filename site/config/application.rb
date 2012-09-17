@@ -9,7 +9,7 @@ require "rails/test_unit/railtie"
 # support for that here to prevent Node (which supplies V8) from conflicting.
 ENV['EXECJS_RUNTIME'] = 'SpiderMonkey'
 
-Bundler.require *Rails.groups(:default, :assets => %w(development test)) if defined?(Bundler)
+Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler)
 
 module RedHatCloud
   class Application < Rails::Application
@@ -49,7 +49,10 @@ module RedHatCloud
 
     config.user_agent = Console.config.api[:user_agent]#"openshift_console/0.0.0 (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
 
-    Console.config.include_helpers = false
+    Console.configure do |c|
+      c.include_helpers = false
+      c.disable_passthrough = true
+    end
 
     # Enable the asset pipeline
     config.assets.enabled = true

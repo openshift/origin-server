@@ -33,14 +33,14 @@ class ConsoleController < Console.config.parent_controller.constantize
       @reference_id = request.uuid
       logger.warn "Page not found - Reference ##{@reference_id}"
       @message, @alternatives = message, alternatives
-      render 'shared/not_found'
+      render 'console/not_found'
     end
 
     def generic_error(e=nil, message=nil, alternatives=nil)
       @reference_id = request.uuid
       logger.error "Unhandled exception reference ##{@reference_id}: #{e.message}\n#{e.backtrace.join("\n  ")}"
       @message, @alternatives = message, alternatives
-      render 'shared/error'
+      render 'console/error'
     end
 
   private

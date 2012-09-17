@@ -164,13 +164,15 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test "should result in a not found error when retrieving an application that does not exist" do
     with_app
-    get :show, :id => 'idontexist'
-    assert_response 404
+    with_rescue_from{ get :show, :id => 'idontexist' }
+    assert_response :success
+    assert_select 'h1', /Application 'idontexist' does not exist/
+    assert_select 'a', "Application #{with_app.name}"
   end
 
   test "should result in a not found when retrieving a domain that does not exist" do
     with_unique_user
-    get :show, :id => 'idontexist'
+    with_rescue_from{ get :show, :id => 'idontexist' }
     assert_response :success
     assert_select 'h1', /Domain does not exist/
   end

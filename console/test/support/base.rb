@@ -86,6 +86,15 @@ class ActiveSupport::TestCase
     Rails.configuration.send(:"#{name}=", old)
   end
 
+  def with_rescue_from(&block)
+    old = Rails.configuration.action_dispatch.show_exceptions
+    Rails.configuration.action_dispatch.show_exceptions = true
+    #@request.env['action_dispatch.show_exceptions'] = true
+    yield
+  ensure
+    Rails.configuration.action_dispatch.show_exceptions = old
+  end
+
   def expects_integrated
     flunk 'Test requires integrated Streamline authentication' unless Rails.configuration.integrated
   end

@@ -2,6 +2,11 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class RescueFromTest < ActionDispatch::IntegrationTest
   setup { open_session }
+  setup do 
+    @prev = Rails.application.config.action_dispatch.show_exceptions
+    Rails.application.config.action_dispatch.show_exceptions = true
+  end
+  teardown { Rails.application.config.action_dispatch.show_exceptions = @prev }
 
   def with_user
   end
@@ -9,9 +14,7 @@ class RescueFromTest < ActionDispatch::IntegrationTest
   def controller_raises(exception)
     with_configured_user
     ConsoleIndexController.any_instance.expects(:index).raises(exception)
-    with_rescue_from do
-      get '/', nil, {'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password)}
-    end
+    get '/', nil, {'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password)}
   end
 
   test 'render not found if domain missing' do
