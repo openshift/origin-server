@@ -21,14 +21,14 @@ Provides:
   - "10gen-mms"
 Requires:
 Conflicts:
-Service-Dependencies: mongodb-2.0
+Service-Dependencies: mongodb-2.2
 Native-Requires:
 Architecture: noarch
 Reservations:
   - MEM >= 100MB
 Components:
   default:
-    Service-Dependencies: ["mongodb-2.0"]
+    Service-Dependencies: ["mongodb-2.2"]
     Subscribes:
       set-mongo-connection-info:
         Type: "NET_TCP:db:mongodb"

@@ -14,7 +14,7 @@ do
     . $f
 done
 
-#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.0 to a ruby1.9 app
+#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.2 to a ruby1.9 app
 #         This needs to be removed once we change how we hande sclized versions
 #         of packages.
 unset LD_LIBRARY_PATH
@@ -30,7 +30,7 @@ then
     exit 15
 fi
 
-MONGODB_DIR="$OPENSHIFT_HOMEDIR/mongodb-2.0/"
+MONGODB_DIR="$OPENSHIFT_HOMEDIR/mongodb-2.2/"
 
 function isrunning() {
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
@@ -79,27 +79,27 @@ function _start_mongod() {
 }
 
 function start() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.0" ] && set_app_state started
+    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.2" ] && set_app_state started
 
     if ! isrunning
     then
-        src_user_hook pre_start_mongodb-2.0
+        src_user_hook pre_start_mongodb-2.2
         _start_mongod
-        run_user_hook post_start_mongodb-2.0
+        run_user_hook post_start_mongodb-2.2
     else
         echo "MongoDB already running" 1>&2
     fi
 }
 
 function stop() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.0" ] && set_app_state stopped
+    [ "$OPENSHIFT_GEAR_TYPE" == "mongodb-2.2" ] && set_app_state stopped
 
     if [ -f $MONGODB_DIR/pid/mongodb.pid ]; then
     	pid=$( /bin/cat $MONGODB_DIR/pid/mongodb.pid )
     fi
 
     if [ -n "$pid" ]; then
-        src_user_hook pre_stop_mongodb-2.0
+        src_user_hook pre_stop_mongodb-2.2
         /bin/kill $pid
         ret=$?
         if [ $ret -eq 0 ]; then
@@ -110,7 +110,7 @@ function stop() {
                 let TIMEOUT=${TIMEOUT}-1
             done
         fi
-        run_user_hook post_stop_mongodb-2.0
+        run_user_hook post_stop_mongodb-2.2
     else
         if `pgrep -x mongod > /dev/null 2>&1`
         then

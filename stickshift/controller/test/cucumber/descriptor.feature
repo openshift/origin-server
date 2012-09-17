@@ -31,10 +31,10 @@ Feature: Descriptor parsing and elaboration tests
     #When a new application object with php-5.3 framework is created
     #And the application is elaborated
     #Then the application does contain php-5.3 components
-    #When the cartridge mongodb-2.0 is added
+    #When the cartridge mongodb-2.2 is added
     #And the application is elaborated
-    #Then the application does contain mongodb-2.0 components
-    #When the cartridge mongodb-2.0 is removed
+    #Then the application does contain mongodb-2.2 components
+    #When the cartridge mongodb-2.2 is removed
     #And the application is elaborated
-    #Then the application does not contain mongodb-2.0 components
+    #Then the application does not contain mongodb-2.2 components
 #

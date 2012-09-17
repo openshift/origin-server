@@ -26,7 +26,7 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-cartridge_type="mongodb-2.0"
+cartridge_type="mongodb-2.2"
 setup_basic_vars
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -107,7 +107,7 @@ echo "export OPENSHIFT_NOSQL_DB_CTL_SCRIPT='$MONGODB_DIR/${application}_mongodb_
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP='$CART_INFO_DIR/bin/mongodb_dump.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP='$CART_INFO_DIR/bin/mongodb_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE='$CART_INFO_DIR/bin/mongodb_restore.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.0'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
+echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.2'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
 
 #
 # Fix config file

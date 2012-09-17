@@ -4,7 +4,7 @@ Feature: 10gen-mms-agent Embedded Cartridge
 
   Scenario: Add Remove 10gen-mms-agent to one application
     Given a new perl-5.10 type application
-    And I embed a mongodb-2.0 cartridge into the application
+    And I embed a mongodb-2.2 cartridge into the application
     And an agent settings.py file is created
     And I embed a 10gen-mms-agent-0.1 cartridge into the application
 

@@ -1,5 +1,5 @@
-Name: mongodb-2.0
-Version: 2.0
+Name: mongodb-2.2
+Version: 2.2
 Architecture: i686/x86_64
 Provides: mongodb-server
 Depends:
@@ -7,7 +7,7 @@ Conflicts:
 Type: Cartridge
 Role: misc
 Vendor: http://www.mongodb.com
-DisplayName: mongodb-2.0
+DisplayName: mongodb-2.2
 Description: 
 This package provides the mongo server software, mongo sharding server
 software, default configuration files, and init scripts.
