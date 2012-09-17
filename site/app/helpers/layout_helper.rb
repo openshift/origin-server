@@ -10,7 +10,7 @@ module LayoutHelper
     content = capture &block
     content_tag(:ul, content, :class => 'nav')
   end
-  
+
   def navigation_tab(name, options={})
     action = options[:action]
     active = (name.to_s == controller_name) && (action.nil? || action.to_s == controller.action_name)
@@ -74,12 +74,12 @@ module LayoutHelper
     unless collection.empty?
       content_tag(
         :ul,
-        collection.collect { |o| 
+        collection.collect { |o|
           content_tag(
             :li,
             render(options.merge(:object => o)).html_safe,
             :class => options[:grid] || 'span3'
-          ) 
+          )
         }.join.html_safe,
         :class => 'thumbnails'
       )
@@ -178,31 +178,10 @@ module LayoutHelper
   def take_action(link, text, *args)
     options = args.extract_options!
     link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do
-      ([content_tag(:div, text.html_safe)] << 
-        args.collect { |text| content_tag(:div, text, :class => 'highlight') } << 
+      ([content_tag(:div, text.html_safe)] <<
+        args.collect { |text| content_tag(:div, text, :class => 'highlight') } <<
         content_tag(:div, '>', :class => 'highlight-arrow')).join.html_safe
     end
-  end
-
-  def months_for_select
-    [
-      ['January','01'],
-      ['Feburary','02'],
-      ['March','03'],
-      ['April','04'],
-      ['May','05'],
-      ['June','06'],
-      ['July','07'],
-      ['August','08'],
-      ['September','09'],
-      ['October','10'],
-      ['November','11'],
-      ['December','12']
-    ]
-  end
-
-  def years_for_select(year_start=Date.today.year, year_range=10)
-    (year_start..(year_start + year_range)).to_a
   end
 
   def us_states_for_select
