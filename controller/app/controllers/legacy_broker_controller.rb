@@ -384,7 +384,7 @@ class LegacyBrokerController < ApplicationController
   def validate_request
     @reply = ResultIO.new
     begin
-      @req = LegacyRequest.new.from_json(params['json_data'])
+      @req = LegacyRequest.new.from_json(params['json_data'] || '{}')
       if @req.invalid?
         log_action('nil','nil', 'nil', "LEGACY_BROKER", false, "Validation error: #{@req.errors.first[1][:message]}")
         @reply.resultIO << @req.errors.first[1][:message]
