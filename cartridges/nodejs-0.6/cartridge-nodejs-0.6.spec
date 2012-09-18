@@ -112,7 +112,7 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Aug 31 2012 William DeCoste <wdecoste@redhat.com> 0.14.2-1
+* Tue Sep 18 2012 William DeCoste <wdecoste@redhat.com> 0.14.2-1
 - add nodejs-supervisor
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)

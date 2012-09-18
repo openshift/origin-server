@@ -116,7 +116,7 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
-* Fri Aug 31 2012 William DeCoste <wdecoste@redhat.com> 0.98.2-1
+* Tue Sep 18 2012 William DeCoste <wdecoste@redhat.com> 0.98.2-1
 - daemon mode
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
