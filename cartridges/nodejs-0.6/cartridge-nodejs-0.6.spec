@@ -2,12 +2,12 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version: 0.14.1
+Version:   0.14.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -23,6 +23,7 @@ Requires: nodejs-mongodb
 Requires: nodejs-mysql
 Requires: nodejs-node-static
 Requires: nodejs-pg
+Requires: nodejs-supervisor
 
 
 %description
@@ -111,6 +112,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Sep 18 2012 William DeCoste <wdecoste@redhat.com> 0.14.2-1
+- add nodejs-supervisor
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
