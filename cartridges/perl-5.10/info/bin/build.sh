@@ -31,8 +31,18 @@ fi
 
 if [ -f ${OPENSHIFT_REPO_DIR}deplist.txt ]
 then
-    for f in $( (find ${OPENSHIFT_REPO_DIR} -type f | grep -e "\.pm$\|.pl$" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${OPENSHIFT_REPO_DIR}deplist.txt ) | sort | uniq)
+    pmplfiles=$(find ${OPENSHIFT_REPO_DIR} -type f | grep -e "\.pm$\|.pl$")
+    for f in $( ( echo "$pmplfiles" | xargs /usr/lib/rpm/perl.req | awk '{ print $1 }' | sed 's/^perl(\(.*\))$/\1/'; cat ${OPENSHIFT_REPO_DIR}deplist.txt ) | sort | uniq)
     do
+        # Check if local and not overriden in deplist.txt
+        if egrep -re "^\s*package\s*$f" $pmplfiles > /dev/null 2>&1  &&  \
+           ! grep "$f" ${OPENSHIFT_REPO_DIR}deplist.txt > /dev/null 2>&1;
+        then
+           echo "***  Skipping module $f install from CPAN (found locally)."
+           echo "***  Please add $f to deplist.txt to install it from CPAN."
+           continue;
+        fi
+
         if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_cpan_tests" ]
         then
             echo ".openshift/markers/enable_cpan_tests!  enabling default cpan tests" 1>&2
