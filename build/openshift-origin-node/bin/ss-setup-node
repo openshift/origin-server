@@ -31,13 +31,13 @@ ss-setup-node: Configure node hostname and broker IP
   -h  |--with-node-hostname	        Hostname for this node (required)
   -d  |--domain <domain>                Domain name for this node (optional, default: example.com)
 
- --eip|--external-ip <IP/PREFIX>	Setus up the VM to use a static IP on the external ethernet device. (Defaults to DHCP)
+ --eip|--external-ip <IP/PREFIX>	Sets up the VM to use a static IP on the external ethernet device. (Defaults to DHCP)
  --egw|--external-gw <IP>		Gateway for external IP (only for non-dhcp address)
- --ed |--external-device		Setus up the VM to use specified ethernet device. Default: eth0
+ --ed |--external-device		Sets up the VM to use specified ethernet device. Default: eth0
 
 
- --iip|--internal-ip <IP/PREFIX>	Setus up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
- --id |--internal-device		Setus up the VM to use specified ethernet device. (Defaults to same as external)
+ --iip|--internal-ip <IP/PREFIX>	Sets up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
+ --id |--internal-device		Sets up the VM to use specified ethernet device. (Defaults to same as external)
 
   -n  |--static-dns <IP>[,<IP>]		Comma seperated list of IP addresses to use for DNS forwarding
   -?  |--help                           Print this message
