@@ -128,7 +128,7 @@ if is_a_scalable_app; then
 fi
 
 client_result ""
-client_result "MongoDB 2.0 database added.  Please make note of these credentials:"
+client_result "MongoDB 2.2 database added.  Please make note of these credentials:"
 client_result ""
 client_result "       Root User: admin"
 client_result "   Root Password: $password"
