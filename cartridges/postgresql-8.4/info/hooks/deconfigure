@@ -38,6 +38,11 @@ CART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 source_if_exists "$APP_HOME/.env/OPENSHIFT_GEAR_TYPE"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_DB_TYPE"
 
+# Just exit if the db type is not postgresql
+if [ "$OPENSHIFT_DB_TYPE" != "postgresql" ]; then
+    exit 0
+fi
+
 #
 # Teardown port proxy (ignore failures or missing hook)
 #

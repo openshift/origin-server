@@ -2,12 +2,12 @@
 
 # Restarts application's embedded MongoDB instance
 CART_NAME=mongodb
-CART_VERSION=2.0
+CART_VERSION=2.2
 
 # Exit on any errors
 set -e
 
-MONGODB_DIR="$APP_HOME/mongodb-2.0/"
+MONGODB_DIR="$APP_HOME/mongodb-2.2/"
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"

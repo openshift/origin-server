@@ -15,6 +15,7 @@ $domain = "example.com"
 
 # Set the dns helper module
 $dns_helper_module = File.dirname(__FILE__) + "/dns_helper.rb"
+$bind_keyvalue=""
 
 # oddjob service name and selinux context (specify nil if no alternate context is being used)
 $gear_update_plugin_service = "oddjobd"
@@ -86,6 +87,11 @@ module SetupHelper
         `git add index`
         `git commit -m 'test'`
       end
+    end
+    
+    # set the bind keyvalue from the installed plugin config
+    if File.exists?("/var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb")
+      $bind_keyvalue = `cat /var/named/example.com.key | grep -i secret | gawk -F ' ' '{ print $2 }'`
     end
 
   end

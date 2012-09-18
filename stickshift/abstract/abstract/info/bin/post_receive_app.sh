@@ -11,3 +11,4 @@ do
 done
 
 post_start_app $1
+

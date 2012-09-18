@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.97.1
+Version: 0.98.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -15,6 +15,8 @@ BuildArch: noarch
 BuildRequires: git
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
+#https://issues.jenkins-ci.org/browse/JENKINS-15047
+Requires: java >= 1.6
 Requires: jenkins
 Requires: jenkins-plugin-openshift
 
@@ -89,6 +91,25 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.97.3-1
+- Merge pull request #450 from smarterclayton/switch_to_newer_broker_tags
+  (openshift+bot@redhat.com)
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+- Use the agreed on newer broker tags for jenkins and jenkins-client
+  (ccoleman@redhat.com)
+
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.97.2-1
+- Adding >= 1.6 to the java require to avoid pulling in gcj
+  (bleanhar@redhat.com)
+- Adding a link to the Jira issue for the Jenkins spec (bleanhar@redhat.com)
+- Adding a java require to the jenkins cartridge spec (bleanhar@redhat.com)
+
 * Thu Aug 02 2012 Adam Miller <admiller@redhat.com> 0.97.1-1
 - bump_minor_versions for sprint 16 (admiller@redhat.com)
 

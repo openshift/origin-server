@@ -92,6 +92,7 @@ print <<EOF
   }
   .brand .brand-image {
     float: left;
+    border:none;
   }
   .brand .brand-text {
     float: left;

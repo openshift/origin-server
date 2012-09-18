@@ -1,12 +1,14 @@
 class RestCartridge11 < StickShift::Model
-  attr_accessor :type, :name, :version, :license, :license_url, :tags, :website,
-  :help_topics, :links, :properties
+  attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
+                :tags, :website, :help_topics, :links, :properties, :scaling_info
   
   def initialize(type, name, app, url, nolinks=false)
     self.name = name
     self.type = type
   
     prop_values = nil
+    self.scaling_info = nil
+    cart = CartridgeCache.find_cartridge(name)
     if app
       if CartridgeCache.cartridge_names('standalone').include? name
         app.comp_instance_map.each { |cname, cinst|
@@ -17,9 +19,22 @@ class RestCartridge11 < StickShift::Model
       else
         prop_values = app.embedded[name] 
       end
+      app.group_instance_map.each { |gi_name,gi|
+        ci = gi.component_instances.find { |ci_name| 
+          cinst = app.comp_instance_map[ci_name]
+          cinst.parent_cart_name==name 
+        }
+        if ci
+          self.scaling_info = RestScalingInfo.new(gi, cart)
+          break
+        end
+      }
+    else
+      self.scaling_info = RestScalingInfo.new(nil, cart)
     end
-    cart = CartridgeCache.find_cartridge(name)
     self.version = cart.version
+    self.display_name = cart.display_name
+    self.description = cart.description
     self.license = cart.license
     self.license_url = cart.license_url
     self.tags = cart.categories

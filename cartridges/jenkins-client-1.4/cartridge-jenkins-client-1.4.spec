@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.32.1
+Version: 0.33.1
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -61,6 +61,20 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.33.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.32.3-1
+- Delete associated job upon jenkins-client removal. (pmorie@gmail.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.32.2-1
+- Merge pull request #450 from smarterclayton/switch_to_newer_broker_tags
+  (openshift+bot@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+- Use the agreed on newer broker tags for jenkins and jenkins-client
+  (ccoleman@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.32.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

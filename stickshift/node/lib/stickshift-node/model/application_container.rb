@@ -59,7 +59,7 @@ module StickShift
 
       hooks={}
       ["pre", "post"].each do |hooktype|
-        if @user.homedir.nil?
+        if @user.homedir.nil? || ! File.exists?(@user.homedir)
           hooks[hooktype]=[]
         else
           hooks[hooktype] = Dir.entries(@user.homedir).map { |cart|

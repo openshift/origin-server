@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.8
-Version: 0.98.1
+Version: 0.99.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,16 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.99.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.98.2-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

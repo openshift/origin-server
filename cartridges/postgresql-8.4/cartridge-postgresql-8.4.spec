@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.13.2
+Version: 0.14.1
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,20 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.13.4-1
+- BZ 852395: Exit from deconfigure when db type doesn't match.
+  (mpatel@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - Add support to move postgres cart from/to gears. (mpatel@redhat.com)
 

@@ -1,13 +1,14 @@
 Name: diy-0.1
-Display-Name: diy v1.0.0 (noarch)
-Description: "Experimental cartridge providing a way to try unsupported languages, frameworks, and middleware on OpenShift"
+Display-Name: Do-It-Yourself
+Description: "The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift."
 Version: 1.0.0
 License: "ASL 2.0"
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Vendor:
 Categories:
   - cartridge
-  - web-framework
+  - web_framework
+  - experimental
 Website:
 Help-Topics:
   "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift

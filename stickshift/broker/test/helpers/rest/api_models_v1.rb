@@ -154,7 +154,7 @@ class BaseApi_V1 < BaseObj_V1
 end
 
 class RestUser_V1 < BaseObj_V1
-  attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links 
+  attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links, :consumed_gear_sizes
                                                                                                        
   def initialize
     self.login = nil
@@ -282,7 +282,7 @@ class RestKey_V1 < BaseObj_V1
 end
 
 class RestApplication_V1 < BaseObj_V1
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :build_info
 
   def initialize(name=nil, framework=nil, domain_id=nil, scalable=nil)
     self.name = name

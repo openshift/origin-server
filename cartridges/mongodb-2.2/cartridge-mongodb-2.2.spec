@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.0
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.0
+%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.2
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.2
 
-Name: cartridge-mongodb-2.0
-Version: 0.25.2
+Name: cartridge-mongodb-2.2
+Version: 0.26.2
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -15,6 +15,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
+
+Obsoletes: cartridge-mongodb-2.0
 
 Requires: stickshift-abstract
 Requires: mongodb-server
@@ -83,6 +85,23 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Sep 17 2012 Adam Miller <admiller@redhat.com> 0.26.2-1
+- US2755: Move from mongodb-2.0 to mongodb-2.2 (rmillner@redhat.com)
+
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.26.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.25.4-1
+- Fix for bugz 856487 - Can't add mongodb-2.2 for ruby1.9 app successfully.
+  (ramr@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.25.3-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.25.2-1
 - Add support to move postgres cart from/to gears. (mpatel@redhat.com)
 

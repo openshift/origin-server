@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.16.4
+Version: 0.17.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -100,7 +100,6 @@ rm -rf %{buildroot}
 
 %post
 echo "/usr/bin/ss-trap-user" >> /etc/shells
-restorecon -r %{_var}/lib/stickshift
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
@@ -109,6 +108,35 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
+- Updating gem versions (admiller@redhat.com)
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.16.9-1
+- Updating gem versions (admiller@redhat.com)
+- Merge pull request #470 from jwhonce/bz855186 (openshift+bot@redhat.com)
+- Fix for Bug 855186 (jhonce@redhat.com)
+
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.16.8-1
+- Updating gem versions (tdawson@redhat.com)
+- Fix for Bug 853559 (jhonce@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.7-1
+- Updating gem versions (admiller@redhat.com)
+- broker and node Gemfile.lock update (admiller@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
+- Merge pull request #461 from jwhonce/bz853582 (openshift+bot@redhat.com)
+- Merge pull request #460 from ramr/master (openshift+bot@redhat.com)
+- Update gem version (dmcphers@redhat.com)
+- BZ853852 Adding logging to help determine issue (jhonce@redhat.com)
+- One more fix for bugz  852486 - rubygem-stickshift-node is running restorecon
+  against /var/lib/stickshift (ramr@redhat.com)
+
+* Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
+- Fix for bugz 852216 - zend /sandbox should be root owned if possible.
+  (ramr@redhat.com)
+
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.16.4-1
 - Updating gem versions (admiller@redhat.com)
 - Gemfile.lock updates (admiller@redhat.com)

@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.32.1
+Version: 0.33.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,22 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.33.1-1
+- bump_minor_versions for sprint 18 (admiller@redhat.com)
+
+* Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.32.3-1
+- Merge pull request #466 from smarterclayton/bug849950_diy_missing_proper_tag
+  (openshift+bot@redhat.com)
+- Bug 849950 - DIY cart does not have the web_framework tag
+  (ccoleman@redhat.com)
+
+* Fri Sep 07 2012 Adam Miller <admiller@redhat.com> 0.32.2-1
+- Merge pull request #451 from pravisankar/dev/ravi/zend-fix-description
+  (openshift+bot@redhat.com)
+- fix for 839242. css changes only (sgoodwin@redhat.com)
+- Return display_name, description fields in RestCartridge model
+  (rpenta@redhat.com)
+
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.32.1-1
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 

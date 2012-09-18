@@ -46,9 +46,10 @@ class ComponentInstance < StickShift::Model
     self.dependencies = []
     
     # cart map has all the sub-cartridges that will get instantiated through this component instance
-    cart_map = get_cartridges_for_dependencies(comp, cart)
+    cart_map, cart_map_keys = get_cartridges_for_dependencies(comp, cart)
 
-    group_list = cart_map.map { |name, cartprofile| 
+    group_list = cart_map_keys.map { |key| 
+      cartprofile = cart_map[key]
       elaborate_cartridge(cartprofile[0], cartprofile[1], app) 
     }.flatten
 
@@ -200,6 +201,7 @@ class ComponentInstance < StickShift::Model
     # into one cartridge only, e.g. depends = [db,db-failover] 
     # will resolve into one mysql cartridge being instantiated with (master/slave) profile
     cart_map = {}
+    cart_map_keys = []
     depends = comp.depends + cart.requires_feature
     
     depends.each do |feature| 
@@ -208,9 +210,11 @@ class ComponentInstance < StickShift::Model
       capability = feature
       capability = nil if feature==cart.name
       profile = cart.find_profile(capability)
-      cart_map[cart.name+profile.name] = [cart, profile]
+      key = cart.name + profile.name
+      cart_map_keys << key if not cart_map_keys.include? key
+      cart_map[key] = [cart, profile]
     end
-    return cart_map
+    return cart_map, cart_map_keys
   end
 
 end

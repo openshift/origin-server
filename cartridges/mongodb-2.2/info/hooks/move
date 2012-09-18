@@ -26,7 +26,7 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-cartridge_type="mongodb-2.0"
+cartridge_type="mongodb-2.2"
 setup_basic_vars
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
@@ -45,11 +45,16 @@ if [ -z "$IP" ]; then
     prepare_gear_for_standalone_mongodb
 else
     . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-    IP=$OPENSHIFT_INTERNAL_IP
+    IP=`find_open_ip $uid $uuid`
+    if [ "$IP" != "$OPENSHIFT_INTERNAL_IP" ]; then 
+       echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
+    fi
+
     . $APP_HOME/.env/OPENSHIFT_APP_NAME
     if [ ! -d "$GEAR_BASE_DIR/$uuid/$OPENSHIFT_APP_NAME" ]; then
         #  This gear is dedicated to running mongo - configure it as such.
         export CART_INFO_DIR
+        observe_setup_app_home
         import_env_vars
         $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
         restart_httpd_graceful
@@ -102,7 +107,7 @@ echo "export OPENSHIFT_NOSQL_DB_CTL_SCRIPT='$MONGODB_DIR/${application}_mongodb_
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP='$CART_INFO_DIR/bin/mongodb_dump.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP='$CART_INFO_DIR/bin/mongodb_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_DUMP_CLEANUP
 echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE='$CART_INFO_DIR/bin/mongodb_restore.sh'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_RESTORE
-echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.0'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
+echo "export OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE='mongodb-2.2'" > $APP_HOME/.env/OPENSHIFT_NOSQL_DB_MONGODB_20_EMBEDDED_TYPE
 
 #
 # Fix config file
