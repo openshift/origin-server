@@ -142,6 +142,10 @@ GroupOverrides:
 Connections:
   auto-scale:
     Components: [\"proxy/haproxy-1.4\", \"web/#{framework}\"]
+  local-proxy:
+     Components: [\"proxy/haproxy-1.4\", \"proxy/#{framework}\"]
+  proxy-web:
+     Components: [\"proxy/#{framework}\", \"web/#{framework}\"]
 Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 "
   end
