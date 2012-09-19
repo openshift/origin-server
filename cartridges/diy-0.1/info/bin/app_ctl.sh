@@ -35,6 +35,20 @@ stop() {
          $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
 }
 
+reload() {
+    # Ensure app's not stopped/idle.
+    _state=`get_app_state`
+    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
+        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+        return 0
+    fi
+
+    #  Okay to restart (stop + start).
+    stop
+    start
+}
+
+
 validate_run_as_user
 
 . app_ctl_pre.sh
@@ -46,7 +60,11 @@ case "$1" in
     graceful-stop|stop)
         stop
     ;;
-    restart|graceful|reload)
+    reload)
+        reload
+    ;;
+
+    restart|graceful)
         stop
         start
     ;;
