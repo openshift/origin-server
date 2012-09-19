@@ -20,8 +20,8 @@ rm -f /var/named/K$node_domain*
 sed "s/example.com/$node_domain/g" < $base_path/doc/examples/example.com.db > /var/named/dynamic/$node_domain.db
 
 
-mkdir -p /tmp/named
-pushd /tmp/named
+NAMED_TMP=$(mktemp -d /tmp/namedXXXXXXX)
+pushd $NAMED_TMP
 
 if ! [ $dont_force_entropy ] ; then
   rngd -r /dev/urandom
@@ -33,10 +33,10 @@ if ! [ $dont_force_entropy ] ; then
   killall rngd
 fi
 
-KEY=$( grep Key: /tmp/named/*.private | cut -d' ' -f 2 )
-mv /tmp/named/K$node_domain.* /var/named
+KEY=$( grep Key: $NAMED_TMP/*.private | cut -d' ' -f 2 )
+mv $NAMED_TMP/K$node_domain.* /var/named
 popd
-rm -rf /tmp/named
+rm -rf $NAMED_TMP
 
 cat <<EOF > /var/named/$node_domain.key
   key $node_domain {
