@@ -1,9 +1,3 @@
-%global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
-%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname openshift-origin-console
-%global gemversion %(echo %{version} | cut -d'.' -f1-3)
-%global geminstdir %{gemdir}/gems/%{gemname}-%{gemversion}
-
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
@@ -14,7 +8,7 @@
 %global rubyabi 1.9.1
 
 Summary:        OpenShift Origin Management Console
-Name:           rubygem-%{gemname}
+Name:           rubygem-%{gem_name}
 Version:        0.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
@@ -42,7 +36,13 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(bundler)
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
 %description
-This contains the OpenShift Origin Management Console packaged as a rubygem.
+This contains the OpenShift Origin Management Console.
+
+%package doc
+Summary: OpenShift Origin Management Console docs.
+
+%description doc
+OpenShift Origin Management Console ri documentation 
 
 %prep
 %setup -q
@@ -68,7 +68,6 @@ gem install -V \
         --install-dir ./%{gem_dir} \
         --bindir ./%{_bindir} \
         --force \
-        --rdoc \
         %{gem_name}-%{version}.gem
 %{?scl:EOF}
 
@@ -80,6 +79,14 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 rm -rf %{buildroot}
 
 %files
+%doc %{gem_instdir}/Gemfile
+%doc %{gem_instdir}/LICENSE 
+%doc %{gem_instdir}/README.md
+%doc %{gem_instdir}/COPYRIGHT
 %{gem_instdir}
 %{gem_cache}
 %{gem_spec}
+
+%files doc
+%{gem_dir}/doc/%{gem_name}-%{version}
+
