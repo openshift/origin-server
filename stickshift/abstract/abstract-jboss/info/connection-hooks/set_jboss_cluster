@@ -15,17 +15,13 @@ for arg in $kvargs; do
     fi
 done
 
-source /var/lib/stickshift/$3/.env/OPENSHIFT_GEAR_DNS
-source /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER_PROXY_PORT
-source /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER
-
-if [ -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY ]
+if [ -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_CLUSTER ]
 then
-  source /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY
-  echo "export OPENSHIFT_JBOSS_CLUSTER=$list,$OPENSHIFT_JBOSS_HAPROXY" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER
-  rm -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY
+  source /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_CLUSTER
+  echo "export OPENSHIFT_JBOSS_CLUSTER=$list,$OPENSHIFT_JBOSS_HAPROXY_CLUSTER" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER
+  rm -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_CLUSTER
 else
-  echo "export OPENSHIFT_JBOSS_HAPROXY=$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY
+  echo "export OPENSHIFT_JBOSS_HAPROXY_CLUSTER=$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_CLUSTER
 fi
 
 
