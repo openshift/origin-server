@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.14.2
+Version:   0.14.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
+- BZ858605 (bdecoste@gmail.com)
+- US2747 (bdecoste@gmail.com)
+- US2747 (bdecoste@gmail.com)
+- US2747 (bdecoste@gmail.com)
+
 * Tue Sep 18 2012 William DeCoste <wdecoste@redhat.com> 0.14.2-1
 - add nodejs-supervisor
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
