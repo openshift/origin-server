@@ -57,5 +57,7 @@ $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
   Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
   
   Alias /health ${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/configuration/health
+
+  Header edit Location ^http:// https://
 </VirtualHost>
 EOF
