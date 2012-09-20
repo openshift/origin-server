@@ -121,42 +121,45 @@ function _start_node_service() {
 
 
 function _stop_node_service() {
-    if [ -f $OPENSHIFT_GEAR_DIR/run/node.pid ]; then
-        node_pid=$( cat $OPENSHIFT_GEAR_DIR/run/node.pid 2> /dev/null )
-    fi
-
-    if [ -n "$node_pid" ]; then
-        set_app_state stopped
-
-        src_user_hook pre_stop_${CARTRIDGE_TYPE}
-
-        logf="$OPENSHIFT_LOG_DIR/node.log"
-        echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
-        /bin/kill $node_pid
-        ret=$?
-        if [ $ret -eq 0 ]; then
-            TIMEOUT="$STOPTIMEOUT"
-            while [ $TIMEOUT -gt 0 ]  &&  _is_node_service_running ; do
-                /bin/kill -0 "$node_pid" >/dev/null 2>&1 || break
-                sleep 1
-                let TIMEOUT=${TIMEOUT}-1
-            done
-        fi
-
-        # Make Node go down forcefully if it is still running.
-        if _is_node_service_running ; then
-           killall -9 node > /dev/null 2>&1  ||  :
-        fi
-
-        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_GEAR_NAME'" >> $logf
-        rm -f $OPENSHIFT_GEAR_DIR/run/node.pid
-
-        run_user_hook post_stop_${CARTRIDGE_TYPE}
-    else
-        if `pgrep -x node -u $(id -u)  > /dev/null 2>&1`; then
-            echo "Warning: Application '$OPENSHIFT_GEAR_NAME' Node server exists without a pid file.  Use force-stop to kill." 1>&2
-        fi
-    fi
+    if is_stop_required true 
+    then
+	    if [ -f $OPENSHIFT_GEAR_DIR/run/node.pid ]; then
+	        node_pid=$( cat $OPENSHIFT_GEAR_DIR/run/node.pid 2> /dev/null )
+	    fi
+	
+	    if [ -n "$node_pid" ]; then
+	        set_app_state stopped
+	
+	        src_user_hook pre_stop_${CARTRIDGE_TYPE}
+	
+	        logf="$OPENSHIFT_LOG_DIR/node.log"
+	        echo "`date +"$FMT"`: Stopping application '$OPENSHIFT_GEAR_NAME' ..." >> $logf
+	        /bin/kill $node_pid
+	        ret=$?
+	        if [ $ret -eq 0 ]; then
+	            TIMEOUT="$STOPTIMEOUT"
+	            while [ $TIMEOUT -gt 0 ]  &&  _is_node_service_running ; do
+	                /bin/kill -0 "$node_pid" >/dev/null 2>&1 || break
+	                sleep 1
+	                let TIMEOUT=${TIMEOUT}-1
+	            done
+	        fi
+	
+	        # Make Node go down forcefully if it is still running.
+	        if _is_node_service_running ; then
+	           killall -9 node > /dev/null 2>&1  ||  :
+	        fi
+	
+	        echo "`date +"$FMT"`: Stopped Node application '$OPENSHIFT_GEAR_NAME'" >> $logf
+	        rm -f $OPENSHIFT_GEAR_DIR/run/node.pid
+	
+	        run_user_hook post_stop_${CARTRIDGE_TYPE}
+	    else
+	        if `pgrep -x node -u $(id -u)  > /dev/null 2>&1`; then
+	            echo "Warning: Application '$OPENSHIFT_GEAR_NAME' Node server exists without a pid file.  Use force-stop to kill." 1>&2
+	        fi
+	    fi
+	fi
 
 }  #  End of function  _stop_node_service.
 
