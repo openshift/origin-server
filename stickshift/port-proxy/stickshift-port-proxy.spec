@@ -40,7 +40,6 @@ mkdir -p %{buildroot}%{_sbindir}
 %else
 mkdir -p %{buildroot}%{_initddir}
 %endif
-mkdir -p %{buildroot}%{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 mkdir -p %{buildroot}%{_sysconfdir}/stickshift
 mkdir -p %{buildroot}%{_bindir}
 
@@ -55,9 +54,6 @@ install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift
 install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
 
 %post
-# Necessary on RHEL 6
-/sbin/restorecon %{_localstatedir}/lib/stickshift/.stickshift-proxy.d || :
-
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
 /bin/systemctl try-restart stickshift-proxy.service
@@ -87,7 +83,6 @@ fi
 %{_initddir}/stickshift-proxy
 %endif
 %{_bindir}/stickshift-proxy-cfg
-%dir %attr(0750,-,-) %{_localstatedir}/lib/stickshift/.stickshift-proxy.d
 %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
