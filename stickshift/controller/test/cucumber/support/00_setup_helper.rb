@@ -94,6 +94,11 @@ module SetupHelper
       $bind_keyvalue = `cat /var/named/example.com.key | grep -i secret | gawk -F ' ' '{ print $2 }'`
     end
 
+    # Create the ~/.ssh directory and ~/.ssh/config file and set the correct permissions
+    `mkdir -m 700 -p ~/.ssh`
+    `touch ~/.ssh/config`
+    `chmod 600 ~/.ssh/config`
+    
   end
 end
 World(SetupHelper)
