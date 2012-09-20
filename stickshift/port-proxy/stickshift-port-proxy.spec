@@ -6,21 +6,20 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       stickshift-port-proxy-%{version}.tar.gz
+BuildArch:     noarch
+
+# The haproxy daemon is used as the functioning tcp proxy
+Requires:      haproxy
+
+# Stickshift node configuration and /etc/stickshift
+Requires:      rubygem-stickshift-node
+
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
 %else
 %define with_systemd 0
 %endif
-
-Requires:      haproxy
-Requires:      %{_sysconfdir}/stickshift/stickshift-node.conf
-%if %{with_systemd}
-BuildRequires: systemd-units
-Requires:  systemd-units
-%endif
-BuildArch:     noarch
-
 
 
 %description
@@ -57,7 +56,7 @@ install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-
 
 %post
 # Necessary on RHEL 6
-/sbin/restorecon /var/lib/stickshift/.stickshift-proxy.d/ || :
+/sbin/restorecon %{_localstatedir}/lib/stickshift/.stickshift-proxy.d || :
 
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
