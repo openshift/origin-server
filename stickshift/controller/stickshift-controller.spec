@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.1
+Version: 0.17.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,16 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
+- fixing runtime extended cucumber tests under Origin (abhgupta@redhat.com)
+- BZ857205 (bdecoste@gmail.com)
+- fixing origin tests (abhgupta@redhat.com)
+- Merge pull request #493 from rmillner/US2755 (admiller@redhat.com)
+- US2538: Exposing scaling info in REST APIs (rchopra@redhat.com)
+- New mongodb-2.2 cartridge (rmillner@redhat.com)
+- adding not-origin tags to cucumber feature files (abhgupta@redhat.com)
+- US2861 No threaddump API present (calfonso@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
