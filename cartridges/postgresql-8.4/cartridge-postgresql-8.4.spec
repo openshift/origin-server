@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/postgresql-8.4
 
 Name: cartridge-postgresql-8.4
-Version: 0.14.1
+Version: 0.14.2
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.14.2-1
+- fix for bug#857345 (rchopra@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.14.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
