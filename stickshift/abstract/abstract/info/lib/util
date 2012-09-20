@@ -73,12 +73,10 @@ function post_start_app () {
 	fi
 }
 
-# Stops the app (or not), taking into account the hot_deploy marker.
-function pre_stop_app () {
-
-  restart_on_add=${1-false}                   
-  echo "restart_on_add=$restart_on_add"
-   
+# determines if stop is required
+function is_stop_required () {
+  restart_on_add=$1
+  
   # We ONLY want to disable this if the hot deploy marker will be present
   # following the commit application.
   stop_required=true
@@ -134,10 +132,23 @@ function pre_stop_app () {
     echo "Existing hot deploy marker will remain unchanged"
     stop_required=false
   fi
+  
+  if $stop_required
+  then
+    return 0
+  else
+    return 1
+  fi
+}
 
+# Stops the app (or not), taking into account the hot_deploy marker.
+function pre_stop_app () {
+
+  restart_on_add=${1-false}                   
+  echo "restart_on_add=$restart_on_add"
 
   # And finally...
-  if $stop_required; then
+  if is_stop_required $restart_on_add; then
     stop_app.sh
   else
     echo "App will not be stopped due to presence of hot_deploy marker"
