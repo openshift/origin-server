@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.3.1
+Version: 0.3.2
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -86,6 +86,11 @@ fi
 %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Fedora review feedback: Get rid of .stickshift-proxy.d (rmillner@redhat.com)
+- Fedora review feedback: Fix requires and use of "/var". (rmillner@redhat.com)
+- BZ 856910: haproxy is found in /usr/sbin. (rmillner@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
