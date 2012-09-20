@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.1
+Version: 0.17.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,13 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
+- Updating gem versions (admiller@redhat.com)
+- New mongodb-2.2 cartridge (rmillner@redhat.com)
+- Merge pull request #479 from rmillner/f17proxy (openshift+bot@redhat.com)
+- The chkconfig test no longer works on F17 and was no longer needed once port-
+  proxy moved to Crankcase (rmillner@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
 - Updating gem versions (admiller@redhat.com)
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
