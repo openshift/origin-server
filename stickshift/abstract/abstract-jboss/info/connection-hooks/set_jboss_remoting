@@ -9,13 +9,21 @@ list=
 kvargs=$(echo "${@:4}" | tr -d "\n" )
 for arg in $kvargs; do
     ip=$(echo "$arg" | cut -f 2 -d '=' | tr -d "'")
+    ip=`echo "$ip" | sed "s/:/[/g"`
     if [ -z "$list" ]; then
-        list="export OPENSHIFT_JBOSS_CLUSTER_REMOTING=$ip"
+        list="$ip]"
     else
-        list="$list,$ip"
+        list="$list,$ip]"
     fi
 done
 
-echo "$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER_REMOTING
+if [ -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_REMOTING ]
+then
+  source /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_REMOTING
+  echo "export OPENSHIFT_JBOSS_CLUSTER_REMOTING=$list,$OPENSHIFT_JBOSS_HAPROXY_REMOTING" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_CLUSTER_REMOTING
+  rm -f /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_REMOTING
+else
+  echo "export OPENSHIFT_JBOSS_HAPROXY_REMOTING=$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_JBOSS_HAPROXY_REMOTING
+fi
 
 
