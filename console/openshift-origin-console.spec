@@ -4,6 +4,15 @@
 %global gemversion %(echo %{version} | cut -d'.' -f1-3)
 %global geminstdir %{gemdir}/gems/%{gemname}-%{gemversion}
 
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+%{!?scl:%global pkg_name %{name}}
+%{?scl:%scl_package rubygem-%{gem_name}}
+%global gem_name openshift-origin-console
+%global rubyabi 1.9.1
+
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gemname}
 Version:        0.0.1
@@ -11,40 +20,36 @@ Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
-Source0:        rubygem-%{gemname}-%{version}.tar.gz
+Source0:        rubygem-%{gem_name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:       ruby(abi) = 1.8
-Requires:       rubygems
-Requires:       rubygem(rails)
-Requires:       rubygem(mocha)
+Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:       %{?scl:%scl_prefix}ruby
+Requires:       %{?scl:%scl_prefix}rubygems
+Requires:       %{?scl:%scl_prefix}rubygem(bundler)
 
-BuildRequires:  ruby
-BuildRequires:  rubygems
-BuildRequires:  rubygem(rake)
-BuildRequires:  rubygem(bundler)
+%if 0%{?fedora}%{?rhel} <= 6
+BuildRequires:  ruby193-build
+BuildRequires:  scl-utils-build
+%endif
+
+BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires:  %{?scl:%scl_prefix}ruby 
+BuildRequires:  %{?scl:%scl_prefix}rubygems
+BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
+BuildRequires:  %{?scl:%scl_prefix}rubygem(rake)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(bundler)
+
 BuildArch:      noarch
-Provides:       rubygem(%{gemname}) = %version
-
-%package -n ruby-%{gemname}
-Summary:        OpenShift Origin Management Console
-Requires:       rubygem(%{gemname}) = %version
-Provides:       ruby(%{gemname}) = %version
-
+Provides:       rubygem(%{gem_name}) = %version
 %description
 This contains the OpenShift Origin Management Console packaged as a rubygem.
-
-%description -n ruby-%{gemname}
-This contains the OpenShift Origin Management Console packaged as a ruby site library.
 
 %prep
 %setup -q
 
 %build
-
-%install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}%{gemdir}
-mkdir -p %{buildroot}%{ruby_sitelib}
+%{?scl:scl enable %scl - << \EOF}
+mkdir -p .%{gem_dir}
 
 # Temporary BEGIN
 bundle install
@@ -55,27 +60,26 @@ rm -rf tmp/cache/*
 echo > log/production.log
 popd
 
-# Build and install into the rubygem structure
-gem build %{gemname}.gemspec
-gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{gemversion}.gem
+# Create the gem as gem install only works on a gem file
+gem build %{gem_name}.gemspec
 
-# Symlink into the ruby site library directories
-ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
-ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+gem install -V \
+        --local \
+        --install-dir ./%{gem_dir} \
+        --bindir ./%{_bindir} \
+        --force \
+        --rdoc \
+        %{gem_name}-%{version}.gem
+%{?scl:EOF}
+
+%install
+mkdir -p %{buildroot}%{gem_dir}
+cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 %clean
 rm -rf %{buildroot}
 
 %files
-%defattr(-,root,root,-)
-%dir %{geminstdir}
-%doc %{geminstdir}/Gemfile
-%{gemdir}/doc/%{gemname}-%{gemversion}
-%{gemdir}/gems/%{gemname}-%{gemversion}
-%{gemdir}/cache/%{gemname}-%{gemversion}.gem
-%{gemdir}/specifications/%{gemname}-%{gemversion}.gemspec
-
-%files -n ruby-%{gemname}
-%{ruby_sitelib}/%{gemname}
-%{ruby_sitelib}/%{gemname}.rb
-
+%{gem_instdir}
+%{gem_cache}
+%{gem_spec}
