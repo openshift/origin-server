@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.17.1
+Version: 0.17.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,18 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
+- BZ858605 (bdecoste@gmail.com)
+- BZ857205 (bdecoste@gmail.com)
+- Merge pull request #502 from rajatchopra/master (openshift+bot@redhat.com)
+- fixed started state for extended tests for hot_deploy (bdecoste@gmail.com)
+- fix for bug#858092 (rchopra@redhat.com)
+- US2747 (bdecoste@gmail.com)
+- Merge pull request #479 from rmillner/f17proxy (openshift+bot@redhat.com)
+- The chkconfig test no longer works on F17 and was no longer needed once port-
+  proxy moved to Crankcase (rmillner@redhat.com)
+- US2747 (bdecoste@gmail.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
