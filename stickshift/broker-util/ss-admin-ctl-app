@@ -7,11 +7,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-rhc-admin-ctl-app: Control user applications
+ss-admin-ctl-app: Control user applications
 
 == Usage
 
-rhc-admin-ctl-app OPTIONS
+ss-admin-ctl-app OPTIONS
 
 Options:
 -l|--rhlogin <rhlogin>

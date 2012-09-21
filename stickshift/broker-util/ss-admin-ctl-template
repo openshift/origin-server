@@ -9,11 +9,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-rhc-admin-ctl-template: Add or remove an application template
+ss-admin-ctl-template: Add or remove an application template
 
 == Usage
 
-rhc-admin-ctl-template OPTIONS
+ss-admin-ctl-template OPTIONS
 
 Options:
 -u|--uuid UUID

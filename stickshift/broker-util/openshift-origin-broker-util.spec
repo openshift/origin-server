@@ -35,7 +35,8 @@ cp ss-* %{buildroot}%{_bindir}/
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0700,-,-) %{_bindir}/ss-*
+%attr(0755,-,-) %{_bindir}/ss-*
+%doc LICENSE
 
 %changelog
 * Thu Sep 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.2-1

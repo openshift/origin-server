@@ -7,11 +7,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-rhc-admin-ctl-domain: Manage user domains
+ss-admin-ctl-domain: Manage user domains
 
 == Usage
 
-rhc-admin-ctl-domain OPTIONS
+ss-admin-ctl-domain OPTIONS
 
 Options:
 -l|--rhlogin <rhlogin>
