@@ -65,6 +65,7 @@ mkdir -p %{buildroot}%{brokerdir}/httpd/root
 mkdir -p %{buildroot}%{brokerdir}/httpd/run
 mkdir -p %{buildroot}%{brokerdir}/httpd/logs
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf
+mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 mkdir -p %{buildroot}%{brokerdir}/log
 mkdir -p %{buildroot}%{brokerdir}/run
 mkdir -p %{buildroot}%{brokerdir}/tmp/cache
@@ -106,6 +107,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{brokerdir}/tmp/pids
 %attr(0750,-,-) %{brokerdir}/tmp/sessions
 %attr(0750,-,-) %{brokerdir}/tmp/sockets
+%dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
 %{brokerdir}
 %{htmldir}/broker
 %config(noreplace) %{brokerdir}/config/environments/production.rb
