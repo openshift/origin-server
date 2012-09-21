@@ -356,6 +356,9 @@ class RestGearGroup_V1 < BaseObj_V1
     self.gear_profile = nil
     self.gears = nil
     self.cartridges = nil
+    self.storage = nil
+    self.max_scale = nil
+    self.min_scale = nil
     self.links = nil
   end
 end
