@@ -318,19 +318,11 @@ unless account_to_remove.nil?
 end
 
 unless gear_size_to_add.nil?
-    if !(gear_size_to_add =~ /\A(jumbo|exlarge|large|medium|micro|small|c9)\z/)
-        puts "Gear size must be one of: (small|jumbo|exlarge|medium|large|micro|c9)"
-        exit 1
-    end
     add_gear_size(user, gear_size_to_add)
     changed_user = true
 end
 
 unless gear_size_to_remove.nil?
-    if !(gear_size_to_remove =~ /\A(jumbo|exlarge|large|medium|micro|small|c9)\z/)
-        puts "Gear size must be one of: (small|jumbo|exlarge|medium|large|micro|c9)"
-        exit 1
-    end
     remove_gear_size(user, gear_size_to_remove)
     changed_user = true
 end
