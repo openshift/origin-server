@@ -183,7 +183,7 @@ WARNING
           append_district(district, reply.resultIO)
         end
       else
-        puts "No districts created yet.  Use 'rhc-admin-ctl-district -c create' to create one."
+        puts "No districts created yet.  Use 'ss-admin-ctl-district -c create' to create one."
       end
     end
   end
