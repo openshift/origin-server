@@ -272,6 +272,13 @@ module StickShift
 
       output = Array.new
       exitcode = runcon cmd, $selinux_user, $selinux_role, $selinux_type, output, TIMEOUT
+
+      # Sanitize the command output. For now, the only major problem we're aware
+      # of is colorized output containing escape characters. The sanitization should
+      # really be taken care of in downstream formatters, but we have no control over
+      # those at present.
+      output = output.collect {|s| s.gsub(/\e\[(\d+)m/, '')}
+
       raise %Q{Error (#{exitcode}) running #{cmd}: #{output.join("\n")}} unless exitcode == expected_exitcode
 
       notify_listeners "#{hook}_hook_completed", { :cart => self, :exitcode => exitcode, :output => output}
