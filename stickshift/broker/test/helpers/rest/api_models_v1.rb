@@ -180,12 +180,13 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links, :properties                                                                                                                                                                                                                                 
+  attr_accessor :type, :name, :links, :properties, :status_message                                                                                                                                                                                                                                
   
   def initialize(type=nil, name=nil)
     self.name = name
     self.type = type
     self.properties = {}
+    self.status_message = nil
     if type == "embedded"
       self.links = {
         "GET" => Link_V1.new("GET", "/cartridges/#{name}"),

@@ -1,10 +1,11 @@
 class RestCartridge10 < StickShift::Model
-  attr_accessor :type, :name, :links, :properties
+  attr_accessor :type, :name, :links, :properties, :status_message
   
-  def initialize(type, name, app, url, nolinks=false)
+  def initialize(type, name, app, url, status_message, nolinks=false)
     self.name = name
     self.type = type
     self.properties = {}
+    self.status_message = status_message
     if app
       self.properties = app.embedded[name]
       domain_id = app.domain.namespace
