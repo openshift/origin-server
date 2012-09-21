@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.98.2
+Version: 0.98.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.98.3-1
+- US2747 (bdecoste@gmail.com)
+- US2747 (bdecoste@gmail.com)
+- US2747 (bdecoste@gmail.com)
+
 * Tue Sep 18 2012 William DeCoste <wdecoste@redhat.com> 0.98.2-1
 - daemon mode
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1

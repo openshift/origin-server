@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.29.1
+Version: 0.29.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
+- Fix bugz 851427 - quickstart : missing openshift module when deploying dancer
+  example (ramr@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.29.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
