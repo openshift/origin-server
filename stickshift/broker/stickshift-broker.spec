@@ -39,6 +39,7 @@ Requires:  rubygem-passenger-native-libs
 BuildRequires: systemd-units
 Requires:  systemd-units
 %endif
+Provides:  openshift-broker
 BuildArch: noarch
 
 %description
@@ -91,8 +92,6 @@ mv %{buildroot}%{brokerdir}/httpd/000000_stickshift_proxy.conf %{buildroot}%{_sy
 mkdir -p %{buildroot}%{_localstatedir}/log/stickshift
 touch %{buildroot}%{_localstatedir}/log/stickshift/user_action.log
 
-cp script/ss-* %{buildroot}%{_bindir}/
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -123,7 +122,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_initddir}/stickshift-broker
 %attr(0750,-,-) %{_initddir}/stickshift-broker
 %endif
-%attr(0700,-,-) %{_bindir}/ss-*
 
 
 %doc %{brokerdir}/COPYRIGHT
