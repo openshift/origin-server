@@ -1,0 +1,57 @@
+                    Remote User Auth Plugin for OpenShift
+                   ----------------------------------
+The Remote User Auth plugin is an optional plugin for OpenShift and it provides
+authentication.  Authentication is delegated to a web server.  The Ruby code
+trusts the REMOTE_USER environment variable.  This plugin also handles
+node->broker authentication through the use of an encrypted key.
+
+This document describes how to register and authenticate an OpenShift user
+using the Remote User Auth plugin.  This example will use Basic Authentication.
+
+* Create the htpassd file:
+
+    # Substitute the username as needed
+    htpasswd -c /etc/stickshift/htpasswd user1
+
+* Create an Apache configuration.  A sample is provided:
+    mv /var/www/stickshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
+
+* Create the broker key
+    /usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
+    /usr/bin/openssl rsa -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
+
+* Edit the configuration in /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+
+  Set the salt to something only you know.
+
+* Edit /var/www/stickshift/broker/Gemfile to add the plugin
+
+* From /var/www/stickshift/broker/ run 'bundle install --local'
+
+* Restart the stickshift-broker service
+    service stickshift-broker restart
+
+* Authenticate StickShift user
+  Any REST api calls or CLI tools to StickShift will be processed only for the registered user-name/password
+  Example:
+    The below query fails with 'Access Denied' error.
+    curl -k https://localhost/broker/rest/domains
+
+    The below query succeeds for valid username/password.
+    curl -k --user "<registered-user-name>:<password>" https://localhost/broker/rest/domains
+
+=== KNOWN ISSUES ===
+* Currently the logic to generate the broker key is the same as the mongo auth
+  plugin.  If that were not the care switching between the two plugins would
+  cause node->broker authentication to fail.
+
+* There are technically some API calls that don't require authentication (eg,
+  broker/rest/api).  By delegating the auth to the webserver we either have to
+  maintain a whitelist of these API calls or force clients to always
+  authenticate.  Right now rhc always authenticates.
+
+* I need to port the conf stub to actually use
+  /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+
+* We need the /etc/stickshift/plugins.d commit to correctly have the gem
+  picked up in the Gemfile without manual intervention.
