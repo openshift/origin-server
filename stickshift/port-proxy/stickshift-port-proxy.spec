@@ -75,6 +75,7 @@ fi
 
 %files
 %defattr(-,root,root,-)
+%doc LICENSE
 %if %{with_systemd}
 %{_unitdir}/stickshift-proxy.service
 %{_sysconfdir}/sysconfig/stickshift-proxy
