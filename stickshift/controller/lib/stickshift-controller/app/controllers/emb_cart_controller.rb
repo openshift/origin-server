@@ -18,13 +18,13 @@ class EmbCartController < BaseController
                         101, "LIST_APP_CARTRIDGES") unless application
 
     cartridges = Array.new
-    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nolinks)) if $requested_api_version >= 1.1
+    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nil, nolinks)) if $requested_api_version >= 1.1
 
     application.embedded.each_key do |key|
       if $requested_api_version >= 1.1
-        cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+        cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
       else
-        cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
+        cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
       end
       cartridges.push(cartridge)
     end if application.embedded
@@ -37,7 +37,9 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     application_id = params[:application_id]
     id = params[:id]
-
+    #include=status_messages
+    status_message = params[:include] == "status_message"
+    
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
@@ -49,10 +51,11 @@ class EmbCartController < BaseController
     
     application.embedded.each do |key, value|
       if key == id
+        message = application.status(key).to_s unless not status_message
         if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, message, nolinks)
         else
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, message, nolinks)
         end
         return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE",
                "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
@@ -121,9 +124,9 @@ class EmbCartController < BaseController
     application.embedded.each do |key, value|
       if key == name
         if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, nolinks)
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
         else
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, nolinks)
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
         end
         messages = []
         messages.push(Message.new(:info, "Added #{name} to application #{id}"))
