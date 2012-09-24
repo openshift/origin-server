@@ -1011,7 +1011,7 @@ class RestApiTest < ActiveSupport::TestCase
     ruby18 = CartridgeType.new :name => 'ruby-1.8'
     ruby = CartridgeType.new :name => 'ruby-1.9'
     php = CartridgeType.new :name => 'php-5.3'
-    mongo = CartridgeType.new :name => 'mongodb-2.0'
+    mongo = CartridgeType.new :name => 'mongodb-2.2'
     cron = CartridgeType.new :name => 'cron-1.4'
     jenkins = CartridgeType.new :name => 'jenkins-client-1.4'
 
@@ -1524,7 +1524,7 @@ class RestApiTest < ActiveSupport::TestCase
     gear1 = Gear.new :id => 1, :state => 'started'
     gear2 = Gear.new :id => 2, :state => 'started'
     gear3 = Gear.new :id => 3, :state => 'started'
-    cart_db1 = Cartridge.new :name => 'mongodb-2.0'
+    cart_db1 = Cartridge.new :name => 'mongodb-2.2'
     cart_db2 = Cartridge.new :name => 'mysql-5.1'
     cart_web = Cartridge.new :name => 'php-5.3'
     groups = [
