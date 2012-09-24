@@ -19,7 +19,8 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(bundler)
+Requires:       %{?scl:%scl_prefix}rubygem(rails)
+Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
@@ -30,8 +31,12 @@ BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 BuildRequires:  %{?scl:%scl_prefix}ruby 
 BuildRequires:  %{?scl:%scl_prefix}rubygems
 BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildRequires:  %{?scl:%scl_prefix}rubygem(rake)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(bundler)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(compass-rails)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(mocha)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(simplecov)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(test-unit)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(ci_reporter)
 
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
@@ -52,7 +57,7 @@ OpenShift Origin Management Console ri documentation
 mkdir -p .%{gem_dir}
 
 # Temporary BEGIN
-bundle install
+bundle install --local
 # Temporary END
 pushd test/rails_app/
 RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
