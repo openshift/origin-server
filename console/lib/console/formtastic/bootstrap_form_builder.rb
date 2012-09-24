@@ -121,6 +121,66 @@ module Console
         template.content_tag(:p, errors.join(' ').untaint, :class => error_class)
       end
 
+      def inputs(*args, &block)
+        title = field_set_title_from_args(*args)
+        html_options = args.extract_options!
+        html_options[:class] ||= "inputs"
+        html_options[:name] = title
+
+        if html_options[:for] # Nested form
+          inputs_for_nested_attributes(*(args << html_options), &block)
+        elsif html_options[:inline]
+          @input_inline = true
+          fieldset = inline_fields_and_wrapping(*(args << html_options), &block)
+          @input_inline = false
+          @label = nil
+          fieldset
+        elsif block_given?
+          field_set_and_list_wrapping(*(args << html_options), &block)
+        else
+          if @object && args.empty?
+            args  = association_columns(:belongs_to)
+            args += content_columns
+            args -= RESERVED_COLUMNS
+            args.compact!
+          end
+          legend = args.shift if args.first.is_a?(::String)
+          contents = args.collect { |method| input(method.to_sym) }
+          args.unshift(legend) if legend.present?
+
+          field_set_and_list_wrapping(*((args << html_options) << contents))
+        end
+      end
+
+      def inline_fields_and_wrapping(*args, &block)
+        return super unless new_forms_enabled?
+
+        contents = args.last.is_a?(::Hash) ? '' : args.pop.flatten
+        html_options = args.extract_options!
+
+        html_options.delete(:inline)
+
+        label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:name).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' })
+
+        if block_given?
+          contents = if template.respond_to?(:is_haml?) && template.is_haml?
+            template.capture_haml(&block)
+          else
+            template.capture(&block)
+          end
+        end
+
+        # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
+        contents = contents.join if contents.respond_to?(:join)
+        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label) << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => 'control-group' })
+        template.concat(control_grp) if block_given? && !::Formtastic::Util.rails3?
+        control_grp
+      end
+
+      def input_inline?
+        @input_inline
+      end
+
       # change from li to div.control-group, move hints/errors into the input block
       def input(method, options = {})
         return super unless new_forms_enabled?
@@ -147,8 +207,9 @@ module Console
         end
 
         # moved hint/error output inside basic_input_helper
-
-        template.content_tag(:div, ::Formtastic::Util.html_safe(inline_input_for(method, options)), wrapper_html) #changed to move to basic_input_helper
+        safe_html_output = ::Formtastic::Util.html_safe(inline_input_for(method, options))
+        return safe_html_output if input_inline?
+        template.content_tag(:div, safe_html_output, wrapper_html) #changed to move to basic_input_helper
       end
 
       def parts(method, options, &block)
@@ -175,8 +236,8 @@ module Console
           send(respond_to?(form_helper_method) ? form_helper_method : :text_field, method, html_options)
         end
 
-        label(method, label_options) <<
-          template.content_tag(:div, ::Formtastic::Util.html_safe(control_content), {:class => 'controls'}) #added class
+        safe_control_content = ::Formtastic::Util.html_safe(control_content)
+        input_inline? ? safe_control_content : label(method, label_options) << template.content_tag(:div, safe_control_content, {:class => 'controls'}) #added class
         # end changes
       end
 
@@ -221,8 +282,10 @@ module Console
 
         label_options = options_for_label(options).merge(:input_name => input_name)
         label_options[:for] ||= html_options[:id]
-        label(method, label_options) <<
-          template.content_tag(:div, ::Formtastic::Util.html_safe(select_html), {:class => 'controls'})
+
+        safe_select_html = ::Formtastic::Util.html_safe(select_html)
+        return safe_select_html if input_inline?
+        label(method, label_options) << template.content_tag(:div, safe_select_html, {:class => 'controls'})
       end
 
       def boolean_input(method, options)

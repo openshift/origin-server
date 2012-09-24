@@ -82,7 +82,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   end
 
   test 'sort cartridges' do
-    array = ['diy-0.1','mongodb-2.0'].map{ |s| Cartridge.new(:name => s) }
+    array = ['diy-0.1','mongodb-2.2'].map{ |s| Cartridge.new(:name => s) }
     assert_equal array.map(&:name), array.sort.map(&:name)
   end
 end
