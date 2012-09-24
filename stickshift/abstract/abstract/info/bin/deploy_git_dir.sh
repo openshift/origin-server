@@ -30,11 +30,10 @@ function extract_submodules {
     cd ${submodule_tmp_dir}
 
     # initialize submodules and pull down source
-    git submodule init
-    git submodule update
+    git submodule update --init --recursive
 
     # archive and copy the submodules
-    git submodule foreach "git archive --format=tar HEAD | (cd ${dest_dir}/\${path} && tar --warning=no-timestamp -xf -)"
+    git submodule foreach --recursive "git archive --format=tar HEAD | (cd ${dest_dir}/\${path} && tar --warning=no-timestamp -xf -)"
     popd
     rm -rf ${submodule_tmp_dir}
 }
