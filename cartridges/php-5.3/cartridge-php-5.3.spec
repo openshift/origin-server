@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.98.1
+Version: 0.98.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.98.2-1
+- Merge pull request #458 from VojtechVitek/php-cartridge-php.ini-reduce-
+  serialize_precision (dmcphers@redhat.com)
+- Reduce php.ini serialize_precision value (vvitek@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
