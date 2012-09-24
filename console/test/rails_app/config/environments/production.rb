@@ -1,6 +1,8 @@
 RailsApp::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
   config.threadsafe!
+  # Workaround for Rails 3.2.x and threadsafe!
+  config.dependency_loading = true if $rails_rake_task
 
   # Code is not reloaded between requests
   config.cache_classes = true
