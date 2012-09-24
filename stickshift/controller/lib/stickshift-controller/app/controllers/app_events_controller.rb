@@ -61,7 +61,7 @@ class AppEventsController < BaseController
           msg = "Application #{id} has scaled down"
         when "thread-dump"
           r = application.threaddump
-          msg = "#{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
           #TODO: We need to reconsider how we are reporting messages to the client
           message = Message.new(:result, msg, 0)
           application = Application.find(@cloud_user, id)
