@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          stickshift-port-proxy
-Version: 0.3.2
+Version: 0.3.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -75,6 +75,7 @@ fi
 
 %files
 %defattr(-,root,root,-)
+%doc LICENSE
 %if %{with_systemd}
 %{_unitdir}/stickshift-proxy.service
 %{_sysconfdir}/sysconfig/stickshift-proxy
@@ -86,6 +87,10 @@ fi
 %config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
+- add license information, as requested by Fedora packages guidelines
+  (mscherer@redhat.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Fedora review feedback: Get rid of .stickshift-proxy.d (rmillner@redhat.com)
 - Fedora review feedback: Fix requires and use of "/var". (rmillner@redhat.com)

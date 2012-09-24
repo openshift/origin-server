@@ -81,11 +81,6 @@ bypass   = args['--bypass']
 name     = args['--name']
 node_profile = args['--node_profile']
   
-if node_profile && !(node_profile =~ /\A(jumbo|exlarge|large|medium|micro|small)\z/)
-  puts "Node profile must be one of: (small(default)|jumbo|exlarge|medium|large|micro)"
-  exit 1
-end
-
 if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)\z/)
   puts "Command must be one of: (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)"
   exit 1
@@ -183,7 +178,7 @@ WARNING
           append_district(district, reply.resultIO)
         end
       else
-        puts "No districts created yet.  Use 'rhc-admin-ctl-district -c create' to create one."
+        puts "No districts created yet.  Use 'ss-admin-ctl-district -c create' to create one."
       end
     end
   end

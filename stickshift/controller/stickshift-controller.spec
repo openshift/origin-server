@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.2
+Version: 0.17.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
+- Strip colorization control characters from test output
+  (ironcladlou@gmail.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
 - fixing runtime extended cucumber tests under Origin (abhgupta@redhat.com)
 - BZ857205 (bdecoste@gmail.com)
