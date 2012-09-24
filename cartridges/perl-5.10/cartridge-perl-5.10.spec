@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.29.2
+Version: 0.29.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.29.3-1
+- Fix for bugz 838783 - "rhc app status" returns incorrect application status
+  for perl dancer. Issue is lib paths are not setup correctly on haproxy gear.
+  (ramr@redhat.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.29.2-1
 - Fix bugz 851427 - quickstart : missing openshift module when deploying dancer
   example (ramr@redhat.com)
