@@ -172,10 +172,21 @@ module RestApi
         resource.as = @as
       end
     end
+   
+    #
+    # Ensure Fixnums and booleans can be cloned
+    #
     def clone
-      super.tap do |resource|
-        resource.as = @as
-      end
+      # Clone all attributes except the pk and any nested ARes
+      cloned = Hash[attributes.reject {|k,v| k == self.class.primary_key || v.is_a?(ActiveResource::Base)}.map { |k, v| [k, v.duplicable? ? v.clone : v] }]
+      # Form the new resource - bypass initialize of resource with 'new' as that will call 'load' which
+      # attempts to convert hashes into member objects and arrays into collections of objects.  We want
+      # the raw objects to be cloned so we bypass load by directly setting the attributes hash.
+      resource = self.class.new({})
+      resource.prefix_options = self.prefix_options
+      resource.send :instance_variable_set, '@attributes', cloned
+      resource.as = @as # not an attribute
+      resource
     end
 
     def initialize(attributes = {}, persisted=false)

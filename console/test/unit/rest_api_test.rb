@@ -984,6 +984,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert_same d.send(:as), d2.send(:as)
   end
 
+  def test_clone_fixnum
+    d = Domain.new :id => '1', :value => 1
+    d2 = d.clone
+    assert_equal d.value, d2.value
+  end
+
   def test_custom_id_must_be_valid
     assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id "string" } }
     assert_raise(RuntimeError) { Class.new(RestApi::Base) { custom_id Class } }
