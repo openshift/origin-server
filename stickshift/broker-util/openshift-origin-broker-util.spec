@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -39,6 +39,12 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
+- Removing the node profile enforcement from the ss-admin-ctl scripts
+  (bleanhar@redhat.com)
+- Adding LICENSE file to new packages and other misc cleanup
+  (bleanhar@redhat.com)
+
 * Thu Sep 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.2-1
 - new package built with tito
 
