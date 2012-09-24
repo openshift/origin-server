@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.33.2
+Version: 0.33.3
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -61,6 +61,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.33.3-1
+- Merge pull request #514 from pmorie/bz846971 (dmcphers@redhat.com)
+- Downcase url of jenkins for curl POSTs (pmorie@gmail.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.33.2-1
 - Bug 849950 - web_framework does not belong on jenkins client
   (ccoleman@redhat.com)
