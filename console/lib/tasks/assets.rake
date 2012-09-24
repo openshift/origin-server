@@ -1,14 +1,23 @@
-class GenerateConsoleViewTask < Rake::Task
-  def initialize(task_name, app, &block)
-    super
-    prerequisites << :environment
-    instance_eval &block
-  end
-  protected
-    attr_accessor :template, :layout
+class GenerateConsoleViewTask < Rake::TaskLib
+  attr_accessor :layout, :views
 
-    def render
-      view.render :template => template, :layout => layout
+  def initialize(name)
+    yield self if block_given?
+    define(name)
+  end
+  def define(name)
+    task name => [:environment] do
+      views.each_pair do |view_path, file|
+        File.open(File.join(Rails.root, 'public', file), 'w') do |f|
+          f.write(render(view_path))
+        end
+      end
+    end
+  end
+  
+  protected
+    def render(template)
+      view.render :template => template.dup, :layout => layout
     end
     def controller_class
       ConsoleController
@@ -16,6 +25,7 @@ class GenerateConsoleViewTask < Rake::Task
     def controller
       controller = controller_class.new
       controller.request = ActionDispatch::TestRequest.new
+      controller
     end
     def view
       view = ActionView::Base.new(ActionController::Base.view_paths, {}, controller)
@@ -31,7 +41,7 @@ class GenerateConsoleViewTask < Rake::Task
         end
 
         def default_url_options
-           {host: 'localhost'}
+           {:host => 'localhost'}
         end
       end
       view.class_eval do
@@ -48,17 +58,11 @@ class GenerateConsoleViewTask < Rake::Task
 end
 
 namespace :assets do
-  GenerateConsoleViewTask.new(:404) do
-    
-  end
-  task :public_pages => [] do
-    {
-      '404.html' => 'console/not_found',
-      '500.html' => 'console/error',
-    }.each_pair do |file, view|
-      File.open(File.join(Rails.root, 'public', file), 'w') do |f|
-        f.write(action_view.render :template => view, :layout => 'layouts/console')
-      end
-    end
+  GenerateConsoleViewTask.new(:public_pages) do |t|
+    t.layout = 'layouts/console'
+    t.views = {
+      'console/not_found' => '404.html',
+      'console/error'     => '500.html',
+    }
   end
 end
