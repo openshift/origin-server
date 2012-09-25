@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.3
+Version: 0.17.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
+- BZ857824 The response message of do threadump to unsupported app by REST API
+  need update (calfonso@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
 - Strip colorization control characters from test output
   (ironcladlou@gmail.com)
