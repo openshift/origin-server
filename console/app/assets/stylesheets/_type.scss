@@ -39,7 +39,7 @@ h1, h2, h3, h4, h5, h6 {
 h1 + h2 {
 	margin-bottom: 0;
 }
-h2 + h3, h2 + h4, h3 + h4, h3 + h5, h4 + h5 {
+h3 + h4, h3 + h5, h4 + h5 {
   padding-top: $baseLineHeight / 3;
 }
 p + h2, p + h3, p + h4, p + h5 {
@@ -48,10 +48,12 @@ p + h2, p + h3, p + h4, p + h5 {
 h1 {
   font-size: $baseFontSize * 2.25;
   line-height: $baseLineHeight * 2;
+  margin-bottom: $baseLineHeight / 2;
 }
 h2 {
   font-size: $baseFontSize * 1.62;
   line-height: $baseLineHeight * 1.75;
+  margin-bottom: $baseLineHeight / 3;
 }
 h3 {
   font-size: $baseFontSize * 1.38;
@@ -88,6 +90,7 @@ h6 {
 
 footer h3 {
   text-transform:uppercase;
+  margin-bottom: 0;
 }
 
 .align-right {
@@ -234,6 +237,7 @@ cite {
   font-style: normal;
 }
 
+.smaller {font-size: $baseFontSize - 1.5 ;}
 
 a.external:after { 
   content: "\279A";
@@ -246,7 +250,7 @@ a.external img[alt="external"] {
 
 
 p.larger { 
-  font-size: 14px; 
+  font-size: $baseFontSize + 1;
   line-height: 21px;
 }
 dl.larger {
