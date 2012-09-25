@@ -184,6 +184,17 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_select 'h1', /Application 'idontexist' does not exist/
   end
 
+  test 'should combine messages correctly for template creation' do
+    with_unique_domain
+    template = ApplicationTemplate.first :from => :wordpress
+    Application.any_instance.expects(:save).returns(true)
+    Application.any_instance.expects(:persisted?).at_least_once.returns(true)
+    Application.any_instance.expects(:remote_results).at_least_once.returns(['message'])
+    post(:create, {:application => get_post_form(template.name)})
+
+    assert_equal ['message', template.credentials_message], flash[:info_pre]
+  end
+
 #  test "should check for empty name" do
 #    form = get_post_form
 #    form[:name]=''

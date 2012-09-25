@@ -85,4 +85,14 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     array = ['diy-0.1','mongodb-2.2'].map{ |s| Cartridge.new(:name => s) }
     assert_equal array.map(&:name), array.sort.map(&:name)
   end
+
+  # Currently /application_templates/<string>.json can return an array
+  # if the value is not a properly formatted ID.  This is questionable,
+  # and this test is only to protect us in the case that we have code
+  # depending on that behavior.  If this behavior is moved to a new
+  # route then we can remove this.
+  test 'application template names returned by server' do
+    assert template = ApplicationTemplate.first(:from => :wordpress)
+    assert_equal 'WordPress', template.display_name
+  end
 end
