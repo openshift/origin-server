@@ -12,8 +12,6 @@ module Account
       user_default_domain rescue nil
 
       @keys = Key.find :all, :as => @user
-
-      render :layout => 'console'
     end
   end
 end
