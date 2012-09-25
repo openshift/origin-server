@@ -1,7 +1,7 @@
 module CommunityHelper
 
   def newsletter_signup_url
-    'http://makara.nurturehq.com/makara/newsletter_signup.html'
+    community_base_url 'newsletter/signup'
   end
 
   def irc_web_url
