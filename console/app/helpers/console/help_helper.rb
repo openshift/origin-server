@@ -6,6 +6,10 @@ module Console::HelpHelper
     "http://access.redhat.com/knowledge/docs/#{locale}/OpenShift/2.0/html/User_Guide/#{topic}"
   end
 
+  def user_guide_url
+    user_guide_topic_url 'index.html'
+  end
+
   def ssh_keys_help_path
     community_base_url 'developers/remote-access#keys'
   end
@@ -22,16 +26,8 @@ module Console::HelpHelper
     user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html#sect-User_Guide-Working_With_Domains'
   end
   
-  def manage_cartridges_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Adding_and_Managing_Database_Instances.html#form-User_Guide-Adding_Database_Back_Ends_to_Your_Applications-Command_Options_for_Controlling_Cartridges'
-  end
-
   def cartridge_list_url
     community_base_url 'developers/technologies'
-  end
-
-  def git_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-OpenShift_Web_Interface-Editing_and_Deploying_Applications.html'
   end
 
   def get_involved_url
@@ -68,6 +64,10 @@ module Console::HelpHelper
 
   def ssh_help_url
     community_base_url 'developers/remote-access'
+  end
+
+  def client_tools_install_help_url
+    community_base_url 'developers/install-the-client-tools'
   end
 
   def client_tools_help_url

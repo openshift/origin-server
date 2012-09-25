@@ -56,7 +56,7 @@
         to manage the code of your application. Each cartridge has a single Git <strong>repository</strong>
         that you'll use to check in changes to your application. When you <strong>push</strong>
         a change to your Git repository we'll automatically deploy your code and restart your 
-        application if necessary. #{link_to "Learn more about uploading code", git_user_guide_topic_url}
+        application if necessary.
 
       - if @has_keys
         - if true #FIXME has a single cartridge with source code
@@ -128,11 +128,11 @@
       %strong rhc.
       Whether it's adding cartridges, checking uptime, or pulling log files from
       the server, you can quickly put a finger on the pulse of your application.
-      #{link_to "Follow these steps to install the client", getting_started_path(:anchor => 'install_client_tools')}
+      #{link_to "Follow these steps to install the client", client_tools_install_help_url}
       on Linux, Mac OS X, or Windows.
     %p
-      After installing the command line tool follow our User Guide 
-      #{link_to "on how to manage your application from the command line", manage_app_cli_user_guide_topic_url }.
+      After installing the command line tool read more 
+      #{link_to "on how to manage your application from the command line in our User Guide", user_guide_url }.
 
     %h3 JBoss Developer Studio
 
