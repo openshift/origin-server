@@ -1,4 +1,4 @@
-= semantic_form_for domain, :url => domain_path, :simple => true, :html => {:class => 'form-inline'} do |f|
+= semantic_form_for domain, :url => domain_path, :simple => true do |f|
   = f.semantic_errors :name
   .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
     .controls
