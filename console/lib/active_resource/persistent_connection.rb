@@ -194,12 +194,9 @@ module ActiveResource
       end
 
       def new_http
-        if @proxy
-          # FIXME
-          Net::HTTP::Persistent.new( connection_name, @proxy.host, @proxy.port, @proxy.user, @proxy.password)
-        else
-          Net::HTTP::Persistent.new connection_name
-        end
+        http = Net::HTTP::Persistent.new connection_name
+        http.proxy = @proxy if @proxy
+        http
       end
 
       def configure_http(http)

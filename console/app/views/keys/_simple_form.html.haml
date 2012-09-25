@@ -1,6 +1,6 @@
 - input_html = { :class => input_class } if defined? input_class
 
-= semantic_form_for key, :simple => true, :html => {:class => 'form-inline'} do |f|
+= semantic_form_for key, :simple => true do |f|
   = f.semantic_errors
   = f.inputs do
     = f.hidden_field :name, :value => 'default'

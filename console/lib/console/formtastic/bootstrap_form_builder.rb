@@ -4,36 +4,18 @@ module Console
   module Formtastic
     class BootstrapFormBuilder < ::Formtastic::SemanticFormBuilder
 
-      # In Rails 3.2, the builder is initialized before the form_tag is generated so
-      # we can add helper logic
-      #def initialize(object_name, object, template, options, proc)
-      #  options[:html] ||= {}
-      #  class_names = options[:html][:class] ? options[:html][:class].split(" ") : []
+      def initialize(object_name, object, template, options, proc)
+        options[:html] ||= {}
+        class_names = options[:html][:class] ? options[:html][:class].split(" ") : []
 
-      #  class_names << 'form-inline' if options[:simple]
-      #  options[:html][:class] = class_names.join(" ")
+        class_names << 'form-inline' if options[:simple]
+        options[:html][:class] = class_names.join(" ")
 
-      #  super
-      #end
-
-      # remove once all forms converted
-      def new_forms_enabled?
-        true
-      end
-
-      def current_layout
-        layout = template.controller.send(:_layout)
-        if layout.instance_of? String
-          layout
-        else
-          File.basename(layout.identifier).split('.').first
-        end
+        super
       end
 
       # set the default css class
       def buttons(*args)
-        return super unless new_forms_enabled?
-
         options = args.extract_options!
         options[:class] ||= @options[:simple] ? 'btn-toolbar' : 'form-actions'
         super *(args << options)
@@ -46,8 +28,6 @@ module Console
 
       # override tag creation
       def field_set_and_list_wrapping(*args, &block) #:nodoc:
-        return super unless new_forms_enabled?
-
         contents = args.last.is_a?(::Hash) ? '' : args.pop.flatten
         html_options = args.extract_options!
 
@@ -74,7 +54,6 @@ module Console
       end
 
       def semantic_errors(*args)
-        return super unless new_forms_enabled?
         html_options = args.extract_options!
         html_options[:class] ||= 'alert alert-error unstyled errors'
 
@@ -101,7 +80,6 @@ module Console
       end
 
       def inline_errors_for(method, options = {}) #:nodoc:
-        return super unless new_forms_enabled?
         if render_inline_errors?
           errors = error_keys(method, options).map do |x|
             attribute = localized_string(x, x.to_sym, :label) || humanized_attribute_name(x)
@@ -116,7 +94,6 @@ module Console
       end
 
       def error_list(errors, options = {}) #:nodoc:
-        return super unless new_forms_enabled?
         error_class = options[:error_class] || default_inline_error_class
         template.content_tag(:p, errors.join(' ').untaint, :class => error_class)
       end
@@ -153,8 +130,6 @@ module Console
       end
 
       def inline_fields_and_wrapping(*args, &block)
-        return super unless new_forms_enabled?
-
         contents = args.last.is_a?(::Hash) ? '' : args.pop.flatten
         html_options = args.extract_options!
 
@@ -183,8 +158,6 @@ module Console
 
       # change from li to div.control-group, move hints/errors into the input block
       def input(method, options = {})
-        return super unless new_forms_enabled?
-
         options = options.dup # Allow options to be shared without being tainted by Formtastic
 
         options[:required] = method_required?(method) unless options.key?(:required)
@@ -222,8 +195,6 @@ module Console
 
       # wrap contents in div.controls
       def basic_input_helper(form_helper_method, type, method, options) #:nodoc:
-        return super unless new_forms_enabled?
-
         html_options = options.delete(:input_html) || {}
         html_options = default_string_options(method, type).merge(html_options) if [:numeric, :string, :password, :text, :phone, :search, :url, :email].include?(type)
         field_id = generate_html_id(method, "")
@@ -243,8 +214,6 @@ module Console
 
       # wrap select in a control
       def select_input(method, options)
-        return super unless new_forms_enabled?
-
         html_options = options.delete(:input_html) || {}
         html_options[:multiple] = html_options[:multiple] || options.delete(:multiple)
         html_options.delete(:multiple) if html_options[:multiple].nil?
@@ -294,8 +263,6 @@ module Console
 
       # remove the button wrapper
       def commit_button(*args)
-        return super unless new_forms_enabled?
-
         options = args.extract_options!
         text = options.delete(:label) || args.shift
 

@@ -1,4 +1,4 @@
-= semantic_form_for applications_filter, { :url => applications_path, :html => { :method => 'get', :class => 'form-inline' } } do |f|
+= semantic_form_for applications_filter, :url => applications_path, :simple => true, :method => :get do |f|
   = f.inputs do
     = f.input :name
     = f.input :type, :collection => applications_filter.type_options, :include_blank => false
