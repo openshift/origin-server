@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.17.3
+Version: 0.17.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
+- Merge pull request #498 from mscherer/add_recursive_submodule
+  (dmcphers@redhat.com)
+- add recursive submodule handling and simply initialization
+  (mscherer@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
 - BZ857205 part2 (bdecoste@gmail.com)
 
