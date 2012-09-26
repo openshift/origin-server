@@ -74,7 +74,49 @@ def read_config():
       config[split_line[0]] = value
   return config
 
+#
+# Join the user's cgroup if available
+#
+def join_cgroup():
+    """
+    Determine a user's cgroup and join it if possible
+    """
+
+    username = pwd.getpwuid(os.getuid())[0]
+    pid = os.getpid()
+
+    # this should come from /etc/stickshift/stickshift-node.conf:OPENSHIFT_CGROUP_ROOT
+    cgroup_root = "/cgroup/all/openshift"
+    cgroup_user = os.path.join(cgroup_root, username)
+    cgroup_tasks = os.path.join(cgroup_user, "tasks")
+
+    syslog.syslog("user %s: putting process %d in cgroup %s" % (username, pid, c
+group_root))
+
+    if not os.path.isdir(cgroup_root):
+        # raise an exception
+        return
+
+    if not os.path.isdir(cgroup_user):
+        # raise an exception
+        return
+
+    if not os.path.isfile(cgroup_tasks):
+        # raise an exception
+        return 
+
+    # try:
+    taskfile = open(cgroup_tasks, 'w')
+    taskfile.write(str(pid) + "\n")
+    taskfile.flush()
+    taskfile.close()
+    # except IOError, e:
+    #    write "can't join cgroup" message
+
+
+
 if __name__ == '__main__':
+    join_cgroup()
     read_env_vars()
     config = read_config()
 
