@@ -17,15 +17,17 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     mv /var/www/stickshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
 
 * Create the broker key
-    /usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
-    /usr/bin/openssl rsa -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
+    /usr/bin/openssl genrsa -out /etc/stickshift/server_priv.pem 2048
+    /usr/bin/openssl rsa -in /etc/stickshift/server_priv.pem -pubout > /etc/stickshift/server_pub.pem
 
 * Edit the configuration in /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
   NOTE: See current issues.  This step can be skipped for now.
 
   Set the salt to something only you know.
 
-* Edit /var/www/stickshift/broker/Gemfile to add the plugin
+* Edit /var/www/stickshift/broker/Gemfile to add the plugin.  Be sure to remote
+  any other authentication plugins.  You may need to remote plugin references
+  from /var/www/stickshift/broker/config/environments/development.rb as well.
 
 * From /var/www/stickshift/broker/ run 'bundle install --local'
 
@@ -41,16 +43,12 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     The below query succeeds for valid username/password.
     curl -k --user "<registered-user-name>:<password>" https://localhost/broker/rest/domains
 
+    No auth is required for the following APIs:
+    curl -k https://localhost/broker/rest/application_templates
+    curl -k https://localhost/broker/rest/cartridges
+    curl -k https://localhost/broker/rest/api
+
 === KNOWN ISSUES ===
-* Currently the logic to generate the broker key is the same as the mongo auth
-  plugin.  If that were not the care switching between the two plugins would
-  cause node->broker authentication to fail.
-
-* There are technically some API calls that don't require authentication (eg,
-  broker/rest/api).  By delegating the auth to the webserver we either have to
-  maintain a whitelist of these API calls or force clients to always
-  authenticate.  Right now rhc always authenticates.
-
 * I need to port the conf stub to actually use
   /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
 
