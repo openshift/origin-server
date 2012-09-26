@@ -39,13 +39,8 @@ Dummy::Application.configure do
   }
   
   config.auth = {
+    :trusted_header => "REMOTE_USER",
     :salt => "salt_salt_salt",
-    :mongo_replica_sets => false,
-    :mongo_host_port => ["localhost", 27017],
-    :mongo_user => "stickshift",
-    :mongo_password => "mooo",
-    :mongo_db => "stickshift_broker_test",
-    :mongo_collection => "auth_user",
     :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
     :privkeypass => "foo",
     :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem"
