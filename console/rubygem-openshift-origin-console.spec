@@ -106,3 +106,7 @@ rm -rf %{buildroot}
 %files doc
 %{gem_dir}/doc/%{gem_name}-%{version}
 
+%changelog
+* Wed Sep 26 2012 Clayton Coleman <ccoleman@redhat.com> 0.0.1-1
+- Initial commit of OpenShift Origin console
+
