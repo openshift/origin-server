@@ -3,6 +3,7 @@
 %global gemname stickshift-node
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 %define appdir %{_localstatedir}/lib/stickshift
+%define apprundir %{_localstatedir}/run/stickshift
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
@@ -55,7 +56,9 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
+mkdir -p %{buildroot}%{_sysconfdir}/init.d
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
+mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -74,8 +77,23 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
-rm -rf %{buildroot}%{geminstdir}/misc
+
+mv %{buildroot}%{geminstdir}/misc/init/os-cgroups %{buildroot}%{_sysconfdir}/init.d/os-cgroups
+
+# Create run dir for stickshift "services"
+%if 0%{?fedora} >= 15
+mv %{buildroot}%{geminstdir}/misc/etc/tmpfiles.d/stickshift-run.conf
+%else
+mkdir -p %{buildroot}%{apprundir}
+%endif
+
+# place an example file
+mv %{buildroot}%{geminstdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
+
 mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+
+# Don't install or package what's left in the misc directory
+rm -rf %{buildroot}%{geminstdir}/misc
 
 %clean
 rm -rf %{buildroot}                                
@@ -94,6 +112,18 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
 %attr(0755,-,-) %{_var}/lib/stickshift
+
+%attr(0755,-,0)	%{_sysconfdir}/init.d/os-cgroups
+
+%if 0%{?fedora} >= 15
+%{_sysconfdir}/tmpfiles.d/stickshift-run.conf
+%else
+# upstart files
+%attr(0755,-,-) %{_var}/run/stickshift
+%endif
+
+# save the example cgconfig.conf
+%doc %{_docdir}/%{name}-%{version}
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
