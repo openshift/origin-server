@@ -1,0 +1,50 @@
+// If an element has a background and should stretch across the 
+// width of the page on a phone, include this mixin.
+@mixin expand_for_phone($padding:true) {
+  margin-left: -$gridGutterWidthPhone;
+  margin-right: -$gridGutterWidthPhone;
+  @if $padding {
+    padding-left: $gridGutterWidthPhone;
+    padding-right: $gridGutterWidthPhone;
+  }
+}
+
+@mixin font-family-monospace() {
+  font-family: Menlo, Monaco, "Liberation Mono", Consolas, monospace;
+}
+
+
+// Override Mixin for generating button backgrounds
+// ---------------------------------------
+@mixin buttonBackground($startColor, $endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include gradientBar($startColor, $endColor);
+  @include reset-filter();
+
+  &:hover, &:focus {
+    background-color: $endColor;
+  }
+  
+   &:active, &.active, &.disabled, &[disabled] {
+    background-color: $startColor;
+  }
+ 
+}
+
+@mixin buttonBackgroundConsole($startColor, $endColor) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  @include gradientBar($startColor, $endColor);
+  @include reset-filter();
+
+  &:hover {
+    background-color: $startColor;
+    color: #fff;
+  }
+  
+   &:active, &.active, &.disabled, &[disabled] {
+    background-color: $startColor;
+    color: #ccc;
+    border-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1) rgba(255, 255, 255, 0.1);
+  }
+
+}

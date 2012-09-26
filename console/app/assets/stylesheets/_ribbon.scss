@@ -1,0 +1,57 @@
+// Create a ribbon style for an element. Will 
+// -------------------------
+// Requires that the child .ribbon-content be styled
+@mixin ribbon($color, $foldHeight: 10px, $negativeMargin: 10px, $shadowX: 1px, $shadowY: 2px, $shadowBlur: 2px, $shadowColor: rgba(0, 0, 0, 0.5), $leftStrut: true, $rightStrut: false) {
+  position: relative;
+  box-shadow: $shadowX $shadowY $shadowBlur $shadowColor;
+  @include ribbon_gutters($gridGutterWidth, $negativeMargin);
+
+  @if $leftStrut {
+    &::before {
+      content: '';
+      position: absolute;
+      width: 0; height: 0;
+      left: 0;
+      border-top: $foldHeight solid $color;
+      bottom: -$foldHeight;
+      border-left: $negativeMargin solid transparent;
+    }
+  } @else {
+    &::before {
+      content: ' ';
+      position: absolute;
+      width: $negativeMargin;
+      height: 1px;
+      left: 0;
+      bottom: 0;
+      box-shadow: $shadowX $shadowY $shadowBlur $shadowColor;
+    }
+  }
+
+  @if $rightStrut {
+    &::after {
+      content: '';
+      position: absolute;
+      width: 0; height: 0;
+      right: 0px;
+      border-top: $foldHeight solid $color;
+      bottom: -$foldHeight;
+      border-right: $negativeMargin solid transparent;
+    }
+  } else {
+    &::after {
+      content: ' ';
+      position: absolute;
+      width: $negativeMargin;
+      height: 1px;
+      left: 0;
+      bottom: 0;
+      box-shadow: $shadowX $shadowY $shadowBlur $shadowColor;
+    }
+  }
+}
+
+@mixin ribbon_gutters($marginWidth, $ribbonOffset: 10px) {
+  margin-left: -($ribbonOffset + $marginWidth);
+  padding-left: $ribbonOffset + $marginWidth;
+}

@@ -1,0 +1,55 @@
+- lots_of_applications = @applications.length > 10
+
+- content_for :full_layout, true
+- content_for :dark_layout, true
+- content_for :footer do
+  = render :partial => 'applications/footer'
+
+- content_for :top do
+  .grid-wrapper.section-header
+    %nav.span12.span-flush-right
+      %h1 All Applications
+
+
+%section#app-list.span7
+  %header
+    %h3.invisible Application list
+  .row.tile-dark
+    - @applications.each do |application|
+      .grid-wrapper.tile-click
+        .span7.application-info
+          %h2.name= link_to application.name, application_path(application), :class => 'tile-target'
+          .url
+            %strong @
+            = link_to application.web_url, application.web_url
+          %i.sprite.tile-arrow
+
+  .btn-toolbar.base.right
+    = link_to application_types_path, :class => 'btn btn-primary btn-large' do
+      Add
+      %strong Application
+      %i.icon-add
+
+%section#account-digest.span5
+  .digest-bg
+    %aside#secondary
+      #assistance
+        %h5 OpenShift Help
+        %ul.unstyled
+          - console_help_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More help »', console_help_path
+
+        %h5 Popular FAQs
+        %ul.unstyled
+          - console_faq_links.each do |l|
+            %li= link_to l[:name], l[:href]
+          %li= link_to 'More FAQs »', faq_url
+
+-# FIXME: Refactor me into an unobtrusive javascript function
+- content_for :javascripts do
+  :javascript
+    jQuery('.tile-click').click(function() {
+      a = $('h2 > a', this)[0];
+      window.location = a.href
+    });
