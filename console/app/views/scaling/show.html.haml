@@ -1,0 +1,38 @@
+- breadcrumb_for_application @application, 'Scale your Application'
+- content_for :page_title, 'Scale your Application'
+
+%h1 Scale your Application
+
+%section
+  %p
+    OpenShift is configured to scale this application with 
+    #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
+    monitors the incoming web traffic to your application and 
+    automatically adds or removes instances of your web cartridge 
+    (running on their own gears) to serve requests.
+
+  %p
+    Each new instance of your web cartridge is created fresh - the normal 
+    post, pre, and deploy hooks are executed.  Each cartridge will have its
+    own copy of runtime data, so be sure to use a database if you need to share
+    data across your web cartridges.
+
+  %p
+    If you'd like to try out scaling in the absence of heavy traffic to 
+    your application, you can execute a command from an application
+    SSH session to force your web cartridge to scale up:
+
+  %pre.cli
+    :preserve
+      ssh #{@application.ssh_string}
+      haproxy_ctld -u
+
+%section
+  %p
+    For more information about scaling your application see
+    #{link_to 'our scaling guide in the Developer Center', scaling_help_url}. For
+    status information about traffic to your application, see the HAProxy status page:
+  %p.well.application-url.larger
+    = link_to @application.scale_status_url, @application.scale_status_url, :target => '_blank'
+
+  %p If you no longer wish to scale your application you must remove and recreate it. #{link_to "More information about removing scaling", delete_application_scaling_path(@application) }.

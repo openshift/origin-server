@@ -1,0 +1,28 @@
+// Allow a span to be implicitly wrapped to set grid backgrounds, while allowing 
+// a responsive stylesheet to know about the wrapper.
+.grid-wrapper {
+  margin-left: 0; // overrides the corresponding style from 'span'
+  float: left;
+}
+
+// Allow a row to have an right gutter equal to a left gutter 
+.row-flush-right { 
+  margin-right: -$gridGutterWidth;
+
+  .span-flush-right { 
+    padding-right: $gridGutterWidth;
+  }
+}
+
+// For use in inlined elements in combination with existing padding
+.gutter { 
+  margin-left: $gridGutterWidth;
+}
+.gutter-right {
+  margin-right: $gridGutterWidth/2;
+}
+
+// Put content into a box with gutters compatible with the grid
+.box-content {
+  padding: 20px $gridGutterWidth;
+}
