@@ -25,9 +25,13 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 
   Set the salt to something only you know.
 
-* Edit /var/www/stickshift/broker/Gemfile to add the plugin.  Be sure to remote
-  any other authentication plugins.  You may need to remote plugin references
-  from /var/www/stickshift/broker/config/environments/development.rb as well.
+* Edit /var/www/stickshift/broker/Gemfile to add the plugin:
+
+  gem 'openshift-origin-auth-remote-user'
+
+  NOTE: Be sure to remote any other authentication plugins.  You may need to
+  remote plugin references from
+  /var/www/stickshift/broker/config/environments/development.rb as well.
 
 * From /var/www/stickshift/broker/ run 'bundle install --local'
 
