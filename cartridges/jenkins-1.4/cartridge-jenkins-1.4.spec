@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      cartridge-jenkins-1.4
-Version: 0.98.2
+Version: 0.98.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Sep 26 2012 Adam Miller <admiller@redhat.com> 0.98.3-1
+- Disable Jenkins built-in SSH server by default (ironcladlou@gmail.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.98.2-1
 - Rewrite outgoing http URLs as HTTPS for jenkins httpd (pmorie@gmail.com)
 
