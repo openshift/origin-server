@@ -1,7 +1,7 @@
 # Use a simpler time format for values
 export TIMEFORMAT=$'  Completed in %Rs\n'
 export DIR=foo
-export REPO=test_git2
+export REPO=small
 export REPO_WORKING=${REPO}_working
 export REPO_CLEAN=${REPO}_clean
 
