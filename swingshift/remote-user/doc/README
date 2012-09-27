@@ -16,6 +16,10 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 * Create an Apache configuration.  A sample is provided:
     mv /var/www/stickshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
 
+    NOTE: This file should be loaded by
+    /var/www/stickshift/broker/httpd/conf/httpd.conf.  This is done
+    automatically as part of the stickshift-broker package.
+
 * Create the broker key
     /usr/bin/openssl genrsa -out /etc/stickshift/server_priv.pem 2048
     /usr/bin/openssl rsa -in /etc/stickshift/server_priv.pem -pubout > /etc/stickshift/server_pub.pem
