@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.17.5
+Version: 0.17.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Sep 27 2012 Adam Miller <admiller@redhat.com> 0.17.6-1
+- Detect threaddump on a scalable application and print error.
+  (rmillner@redhat.com)
+
 * Wed Sep 26 2012 Adam Miller <admiller@redhat.com> 0.17.5-1
 - Merge pull request #528 from bdecoste/master (openshift+bot@redhat.com)
 - BZ857143 (bdecoste@gmail.com)
