@@ -180,12 +180,13 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links, :properties                                                                                                                                                                                                                                 
+  attr_accessor :type, :name, :links, :properties, :status_messages                                                                                                                                                                                                                       
   
   def initialize(type=nil, name=nil)
     self.name = name
     self.type = type
     self.properties = {}
+    self.status_messages = nil
     if type == "embedded"
       self.links = {
         "GET" => Link_V1.new("GET", "/cartridges/#{name}"),
@@ -348,7 +349,7 @@ class RestGear_V1 < BaseObj_V1
 end
 
 class RestGearGroup_V1 < BaseObj_V1
-  attr_accessor :uuid, :name, :gear_profile, :gears, :cartridges, :links
+  attr_accessor :uuid, :name, :gear_profile, :gears, :cartridges, :links, :storage, :max_scale, :min_scale
 
   def initialize(name=nil)
     self.uuid = uuid
@@ -357,5 +358,8 @@ class RestGearGroup_V1 < BaseObj_V1
     self.gears = nil
     self.cartridges = nil
     self.links = nil
+    self.storage = nil
+    self.min_scale = nil
+    self.max_scale = nil
   end
 end
