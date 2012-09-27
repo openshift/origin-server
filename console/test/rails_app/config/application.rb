@@ -5,10 +5,6 @@ require "action_mailer/railtie"
 require "active_resource/railtie"
 require "rails/test_unit/railtie"
 
-# We prereq the yum package 'js' which contains SpiderMonkey.  Explicitly force
-# support for that here to prevent Node (which supplies V8) from conflicting.
-ENV['EXECJS_RUNTIME'] = 'SpiderMonkey'
-
 Bundler.require(*Rails.groups(:default, :assets => %w(development test))) if defined?(Bundler)
 require "console/engine"
 
