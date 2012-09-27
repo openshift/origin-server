@@ -33,6 +33,13 @@ class RestApiKeyTest < ActiveSupport::TestCase
     end
   end
 
+  def test_key_create_custom_type
+    assert_difference('Key.find(:all, :as => @user).length', 0, "Bug 821107 is fixed, change me") do
+      key = Key.new :type => 'ecdsa-sha2-nistp52', :name => unique_name, :content => unique_name, :as => @user
+      assert !key.save, "Bug 821107 is fixed, change me"
+    end
+  end
+
   def test_invalid_key_create
     assert_difference('Key.find(:all, :as => @user).length', 0) do
       key = Key.new :type => 'ssh-rsa', :name => "invalid_name#{uuid}", :content => uuid, :as => @user

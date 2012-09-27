@@ -35,13 +35,6 @@ class Key < RestApi::Base
       when 1
         self.type = nil
         self.content = parts[0]
-      when 2
-        if /^ssh-(rsa|dss)$/.match(parts[0])
-          self.type, self.content = parts
-        else
-          self.type = nil
-          self.content = parts[0]
-        end
       else
         self.type, self.content = parts
       end

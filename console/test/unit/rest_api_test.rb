@@ -553,13 +553,17 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 'ssh-rsa', key.type
     assert_equal 'key', key.content
 
+    key = Key.new :raw_content => 'ecdsa-sha2-nistp52 key test'
+    assert_equal 'ecdsa-sha2-nistp52', key.type
+    assert_equal 'key', key.content
+
     key = Key.new :raw_content => 'ssh-dss key test'
     assert_equal 'ssh-dss', key.type
     assert_equal 'key', key.content
 
-    key = Key.new :raw_content => 'ssh-rs key'
+    key = Key.new :raw_content => 'key'
     assert_nil key.type
-    assert_equal 'ssh-rs', key.content
+    assert_equal 'key', key.content
 
     contents = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDBJHobjmzxy8cv9A1xw9X5TlnQd0bW/19FwOC0c6jPNu9ZbtWQcAE0xfODl7ZqVPPU2qAFOh4rbL3gL2UzTyA+NwERyDrH7tMXAoXPT2L6sqExl0xxuEvb/lXUfLquMq+BMOFxxqCEg8X7GavHN72FMUHwweNybE7C82So+OFSWqFoctiWMNdNsKW4lvBd/jkIudGdRdK+/PzV75TW1LcpfsBrFOJZbd5WzDJEPNdMqOH68YDExD82VtzeJm0HEavhMY9HtxIDEmjIhtfedzCGZLe+6OxReuatw6M+n1sFxT9liprZ6NIANvbnYZKGT50hYfnIi/hZOTCvqYNS97O3 openshift Aug 2012'
     key = Key.new :raw_content => contents
