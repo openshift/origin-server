@@ -720,11 +720,11 @@ module RestApi
       self.headers.delete 'User-Agent'
       self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
 
-      if config[:http_proxy]
-        self.proxy = config[:http_proxy]
-      elsif not Rails.env.production?
-        self.proxy = ('http://' + ENV['http_proxy']) if ENV.has_key?('http_proxy')
-      end
+      self.proxy = if config[:proxy] == :ENV
+          :ENV
+        elsif config[:proxy]
+          URI config[:proxy]
+        end
 
       @last_config = config
       @info = false
