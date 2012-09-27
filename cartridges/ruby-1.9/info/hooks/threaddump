@@ -30,6 +30,14 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
 
+source_if_exists $APP_HOME/.env/OPENSHIFT_GEAR_UUID
+source_if_exists $APP_HOME/.env/OPENSHIFT_APP_UUID
+if [ "$OPENSHIFT_GEAR_UUID" != "$OPENSHIFT_APP_UUID" ]
+then
+    client_error "The threaddump command is not supported on scalable applications."
+    exit
+fi
+
 #
 # Get the thread dump
 #
