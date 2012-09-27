@@ -28,13 +28,13 @@ CustomLog "|/usr/sbin/rotatelogs $PYCART_INSTANCE_DIR/logs/access_log$rotatelogs
   Options -MultiViews
 </Directory>
 
-WSGIScriptAlias / "$OPENSHIFT_REPO_DIR/wsgi/application"
-Alias /static "$OPENSHIFT_REPO_DIR/wsgi/static/"
-WSGIPythonPath "$OPENSHIFT_REPO_DIR/libs:$OPENSHIFT_REPO_DIR/wsgi:$PYCART_INSTANCE_DIR/virtenv/lib/python2.6/"
+WSGIScriptAlias / "${OPENSHIFT_REPO_DIR}wsgi/application"
+Alias /static "${OPENSHIFT_REPO_DIR}wsgi/static/"
+#WSGIPythonPath "${OPENSHIFT_REPO_DIR}libs:${OPENSHIFT_REPO_DIR}wsgi:$PYCART_INSTANCE_DIR/virtenv/lib/python2.6/"
 WSGIPassAuthorization On
 
 WSGIProcessGroup $uuid
-WSGIDaemonProcess $uuid user=$uuid group=$uuid processes=2 threads=25
+WSGIDaemonProcess $uuid user=$uuid group=$uuid processes=2 threads=25 python-path="${OPENSHIFT_REPO_DIR}libs:${OPENSHIFT_REPO_DIR}wsgi:$PYCART_INSTANCE_DIR/virtenv/lib/python2.6/"
 
 # TODO: Adjust from ALL to more conservative values
 <IfModule !mod_bw.c>
