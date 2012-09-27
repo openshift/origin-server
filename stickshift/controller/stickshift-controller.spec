@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.4
+Version: 0.17.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Sep 27 2012 Adam Miller <admiller@redhat.com> 0.17.5-1
+- changes status_message to status_messages (lnader@redhat.com)
+- US2754 and  US2862 part 1 (lnader@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
 - BZ857824 The response message of do threadump to unsupported app by REST API
   need update (calfonso@redhat.com)
