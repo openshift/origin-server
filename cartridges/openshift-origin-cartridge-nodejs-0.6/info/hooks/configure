@@ -35,7 +35,7 @@ check_cartridge_dir_doesnt_exist
 if [ ! -d $git_url ]; then
 	clone_external_git_repo $application $user_id $group_id $uuid $git_url
 else
-	clone_git_repo $application $user_id $group_id $uuid "Node.js 0.4"
+	clone_git_repo $application $user_id $group_id $uuid "Node.js 0.6"
 fi
 
 #
