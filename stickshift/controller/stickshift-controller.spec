@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.5
+Version: 0.17.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,11 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.17.6-1
+- Fix bugz 860536 - gears info will not record into gear-registry.db and failed
+  to redirect connection to gears when access the scalable app dns
+  (ramr@redhat.com)
+
 * Thu Sep 27 2012 Adam Miller <admiller@redhat.com> 0.17.5-1
 - changes status_message to status_messages (lnader@redhat.com)
 - US2754 and  US2862 part 1 (lnader@redhat.com)
