@@ -15,6 +15,7 @@ BuildArch: noarch
 Requires: git
 Requires: mod_ssl
 Obsoletes: stickshift-abstract
+Requires: stickshift-selinux
 
 %description
 This contains the common function used while building cartridges.
