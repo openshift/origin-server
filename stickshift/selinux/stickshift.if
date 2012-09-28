@@ -9,7 +9,7 @@
 ## </summary>
 ## </param>
 #
-interface(`openshift_domtrans_mcollectived',`
+interface(`stickshift_domtrans_mcollectived',`
 	gen_require(`
 		type mcollectived_t, mcollectived_exec_t;
 	')

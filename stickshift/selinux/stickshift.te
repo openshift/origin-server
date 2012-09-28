@@ -1,4 +1,4 @@
-policy_module(openshift, 1.0)
+policy_module(stickshift, 1.0)
 
 ########################################
 #
@@ -22,138 +22,138 @@ files_pid_file(mcollectived_var_run_t)
 type mcollectived_lock_t;
 files_lock_file(mcollectived_lock_t)
 
-type openshift_t;
-type openshift_exec_t;
-application_domain(openshift_t, openshift_exec_t)
-role system_r types openshift_t;
+type stickshift_t;
+type stickshift_exec_t;
+application_domain(stickshift_t, stickshift_exec_t)
+role system_r types stickshift_t;
 
-type openshift_tmp_t;
-files_tmp_file(openshift_tmp_t)
+type stickshift_tmp_t;
+files_tmp_file(stickshift_tmp_t)
 
-mcs_process_set_categories(openshift_t)
+mcs_process_set_categories(stickshift_t)
 
-type openshift_file_t;
-files_type(openshift_file_t)
+type stickshift_file_t;
+files_type(stickshift_file_t)
 
 ########################################
 #
 # mcollectived local policy
 #
-#permissive openshift_t;
-unconfined_domain(openshift_t)
+#permissive stickshift_t;
+unconfined_domain(stickshift_t)
 
-allow openshift_t self:capability { setuid audit_write dac_override sys_nice chown fsetid setgid fowner sys_ptrace };
-allow openshift_t self:process { execmem getcap setpgid setsched signal_perms setexec setfscreate };
-allow openshift_t self:fifo_file rw_fifo_file_perms;
-allow openshift_t self:key write;
-allow openshift_t self:netlink_audit_socket { nlmsg_relay create };
-allow openshift_t self:sem create_sem_perms;
-allow openshift_t self:shm create_shm_perms;
-allow openshift_t self:tcp_socket create_stream_socket_perms;
-allow openshift_t self:udp_socket create_socket_perms;
-allow openshift_t self:unix_dgram_socket create_socket_perms;
-allow openshift_t self:unix_stream_socket { connectto create_stream_socket_perms};
+allow stickshift_t self:capability { setuid audit_write dac_override sys_nice chown fsetid setgid fowner sys_ptrace };
+allow stickshift_t self:process { execmem getcap setpgid setsched signal_perms setexec setfscreate };
+allow stickshift_t self:fifo_file rw_fifo_file_perms;
+allow stickshift_t self:key write;
+allow stickshift_t self:netlink_audit_socket { nlmsg_relay create };
+allow stickshift_t self:sem create_sem_perms;
+allow stickshift_t self:shm create_shm_perms;
+allow stickshift_t self:tcp_socket create_stream_socket_perms;
+allow stickshift_t self:udp_socket create_socket_perms;
+allow stickshift_t self:unix_dgram_socket create_socket_perms;
+allow stickshift_t self:unix_stream_socket { connectto create_stream_socket_perms};
 
-kernel_read_kernel_sysctls(openshift_t)
-kernel_read_system_state(openshift_t)
+kernel_read_kernel_sysctls(stickshift_t)
+kernel_read_system_state(stickshift_t)
 
-manage_dirs_pattern(openshift_t, openshift_tmp_t, openshift_tmp_t)
-manage_files_pattern(openshift_t, openshift_tmp_t, openshift_tmp_t)
-manage_sock_files_pattern(openshift_t, openshift_tmp_t, openshift_tmp_t)
-manage_lnk_files_pattern(openshift_t, openshift_tmp_t, openshift_tmp_t)
-files_tmp_filetrans(openshift_t, openshift_tmp_t, { file dir sock_file })
-can_exec(openshift_t, openshift_tmp_t)
+manage_dirs_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_sock_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+manage_lnk_files_pattern(stickshift_t, stickshift_tmp_t, stickshift_tmp_t)
+files_tmp_filetrans(stickshift_t, stickshift_tmp_t, { file dir sock_file })
+can_exec(stickshift_t, stickshift_tmp_t)
 
-manage_files_pattern(openshift_t, openshift_file_t, openshift_file_t)
-manage_sock_files_pattern(openshift_t, openshift_file_t, openshift_file_t)
-manage_dirs_pattern(openshift_t, openshift_file_t, openshift_file_t)
-manage_lnk_files_pattern(openshift_t, openshift_file_t, openshift_file_t)
-can_exec(openshift_t, openshift_file_t)
+manage_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_sock_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_dirs_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(stickshift_t, stickshift_file_t, stickshift_file_t)
+can_exec(stickshift_t, stickshift_file_t)
 
-corecmd_exec_bin(openshift_t)
-corecmd_exec_shell(openshift_t)
-corecmd_exec_all_executables(openshift_t)
+corecmd_exec_bin(stickshift_t)
+corecmd_exec_shell(stickshift_t)
+corecmd_exec_all_executables(stickshift_t)
 
-corenet_tcp_bind_all_ports(openshift_t)
-corenet_tcp_connect_all_ports(openshift_t)
+corenet_tcp_bind_all_ports(stickshift_t)
+corenet_tcp_connect_all_ports(stickshift_t)
 
-dev_read_kmsg(openshift_t)
-dev_read_rand(openshift_t)
-dev_read_raw_memory(openshift_t)
-dev_read_urand(openshift_t)
-dev_getattr_all_blk_files(openshift_t)
-dev_getattr_all_chr_files(openshift_t)
+dev_read_kmsg(stickshift_t)
+dev_read_rand(stickshift_t)
+dev_read_raw_memory(stickshift_t)
+dev_read_urand(stickshift_t)
+dev_getattr_all_blk_files(stickshift_t)
+dev_getattr_all_chr_files(stickshift_t)
 
-term_getattr_all_ptys(openshift_t)
-term_getattr_all_ttys(openshift_t)
+term_getattr_all_ptys(stickshift_t)
+term_getattr_all_ttys(stickshift_t)
 
-domain_read_all_domains_state(openshift_t)
-domain_getattr_all_sockets(openshift_t)
-domain_getattr_all_pipes(openshift_t)
+domain_read_all_domains_state(stickshift_t)
+domain_getattr_all_sockets(stickshift_t)
+domain_getattr_all_pipes(stickshift_t)
 
-files_getattr_all_sockets(openshift_t)
-files_getattr_all_files(openshift_t)
-files_getattr_all_pipes(openshift_t)
-files_read_etc_files(openshift_t)
-files_read_etc_runtime_files(openshift_t)
-files_read_usr_files(openshift_t)
-files_read_var_lib_files(openshift_t)
+files_getattr_all_sockets(stickshift_t)
+files_getattr_all_files(stickshift_t)
+files_getattr_all_pipes(stickshift_t)
+files_read_etc_files(stickshift_t)
+files_read_etc_runtime_files(stickshift_t)
+files_read_usr_files(stickshift_t)
+files_read_var_lib_files(stickshift_t)
 
-application_exec_all(openshift_t)
+application_exec_all(stickshift_t)
 
-auth_use_nsswitch(openshift_t)
+auth_use_nsswitch(stickshift_t)
 
-logging_send_syslog_msg(openshift_t)
+logging_send_syslog_msg(stickshift_t)
 
-init_stream_connect(openshift_t)
+init_stream_connect(stickshift_t)
 
-miscfiles_read_localization(openshift_t)
-miscfiles_read_fonts(openshift_t)
+miscfiles_read_localization(stickshift_t)
+miscfiles_read_fonts(stickshift_t)
 
-selinux_compute_access_vector(openshift_t)
+selinux_compute_access_vector(stickshift_t)
 
 optional_policy(`
-    abrt_stream_connect(openshift_t)
+    abrt_stream_connect(stickshift_t)
 ')
 
 ifdef(`colord_read_lib_files',`
     optional_policy(`
-      colord_read_lib_files(openshift_t)
+      colord_read_lib_files(stickshift_t)
     ')
 ')
 
 optional_policy(`
-    apache_exec_modules(openshift_t)
-    apache_list_modules(openshift_t)
-    apache_read_config(openshift_t)
+    apache_exec_modules(stickshift_t)
+    apache_list_modules(stickshift_t)
+    apache_read_config(stickshift_t)
 ')
 
 optional_policy(`
-    cups_stream_connect(openshift_t)
+    cups_stream_connect(stickshift_t)
 ')
 
 optional_policy(`
-    dbus_system_bus_client(openshift_t)
+    dbus_system_bus_client(stickshift_t)
 ')
 
 optional_policy(`
-    mysql_read_config(openshift_t)
+    mysql_read_config(stickshift_t)
 ')
 
 optional_policy(`
-    setroubleshoot_stream_connect(openshift_t)
+    setroubleshoot_stream_connect(stickshift_t)
 ')
 
 ifdef(`systemd_dbus_chat_logind',`
   optional_policy(`
-    systemd_dbus_chat_logind(openshift_t)
-    systemd_write_inherited_logind_sessions_pipes(openshift_t)
+    systemd_dbus_chat_logind(stickshift_t)
+    systemd_write_inherited_logind_sessions_pipes(stickshift_t)
   ')
 ')
 
 ########################################
 #
-# OpenShift Origin local policy
+# stickshift local policy
 #
 permissive mcollectived_t;
 allow mcollectived_t self:capability { chown dac_override fsetid kill };
@@ -164,16 +164,16 @@ allow mcollectived_t self:tcp_socket create_stream_socket_perms;
 allow mcollectived_t self:udp_socket create_socket_perms;
 
 #for testing
-domtrans_pattern(unconfined_t, openshift_exec_t, openshift_t) 
-allow unconfined_t openshift_t:process { signull signal sigkill };
+domtrans_pattern(unconfined_t, stickshift_exec_t, stickshift_t) 
+allow unconfined_t stickshift_t:process { signull signal sigkill };
 
-domtrans_pattern(mcollectived_t, openshift_exec_t, openshift_t) 
-allow mcollectived_t openshift_t:process { signull signal sigkill };
+domtrans_pattern(mcollectived_t, stickshift_exec_t, stickshift_t) 
+allow mcollectived_t stickshift_t:process { signull signal sigkill };
 
-manage_dirs_pattern(mcollectived_t, openshift_file_t, openshift_file_t)
-manage_files_pattern(mcollectived_t, openshift_file_t, openshift_file_t)
-manage_lnk_files_pattern(mcollectived_t, openshift_file_t, openshift_file_t)
-manage_sock_files_pattern(mcollectived_t, openshift_file_t, openshift_file_t)
+manage_dirs_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
+manage_sock_files_pattern(mcollectived_t, stickshift_file_t, stickshift_file_t)
 
 manage_files_pattern(mcollectived_t, mcollectived_log_t, mcollectived_log_t)
 manage_dirs_pattern(mcollectived_t, mcollectived_log_t, mcollectived_log_t)
@@ -195,16 +195,16 @@ manage_dirs_pattern(mcollectived_t, mcollectived_var_run_t, mcollectived_var_run
 manage_lnk_files_pattern(mcollectived_t, mcollectived_var_run_t, mcollectived_var_run_t)
 files_pid_filetrans(mcollectived_t, mcollectived_var_run_t, { file dir })
 
-kernel_getattr_message_if(openshift_t)
-kernel_read_network_state(openshift_t)
-kernel_read_software_raid_state(openshift_t)
+kernel_getattr_message_if(stickshift_t)
+kernel_read_network_state(stickshift_t)
+kernel_read_software_raid_state(stickshift_t)
 kernel_read_kernel_sysctls(mcollectived_t)
 kernel_read_system_state(mcollectived_t)
 
 corecmd_exec_bin(mcollectived_t)
 corecmd_exec_shell(mcollectived_t)
 
-corecmd_bin_entry_type(openshift_t)
+corecmd_bin_entry_type(stickshift_t)
 
 corenet_tcp_connect_amqp_port(mcollectived_t)
 
@@ -232,9 +232,9 @@ require {
     type useradd_t;
 }
 
-manage_dirs_pattern(useradd_t, openshift_file_t, openshift_file_t)
-manage_files_pattern(useradd_t, openshift_file_t, openshift_file_t)
-manage_lnk_files_pattern(useradd_t, openshift_file_t, openshift_file_t)
+manage_dirs_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
+manage_files_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
+manage_lnk_files_pattern(useradd_t, stickshift_file_t, stickshift_file_t)
 
 optional_policy(`
     gen_require(`
@@ -246,15 +246,15 @@ optional_policy(`
 
     allow httpd_passenger_helper_t self:capability dac_override;
     allow httpd_passenger_helper_t http_cache_port_t:tcp_socket name_connect;
-    manage_dirs_pattern(httpd_t, openshift_file_t, openshift_file_t)
-    manage_files_pattern(httpd_t, openshift_file_t, openshift_file_t)
-    manage_lnk_files_pattern(httpd_t, openshift_file_t, openshift_file_t)
+    manage_dirs_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
+    manage_files_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
+    manage_lnk_files_pattern(httpd_t, stickshift_file_t, stickshift_file_t)
 ')
 
 gen_require(`
     type sshd_t;
 ')
-read_files_pattern(sshd_t, openshift_file_t, openshift_file_t)
+read_files_pattern(sshd_t, stickshift_file_t, stickshift_file_t)
 
 #for proxy server to find applications to serve
 gen_require(`
@@ -262,17 +262,17 @@ gen_require(`
     class dir search;
 ')
 
-allow httpd_t openshift_file_t:dir search;
+allow httpd_t stickshift_file_t:dir search;
 
 #for ssh login
 require {
     type unconfined_t;
-    type openshift_t;
+    type stickshift_t;
     class process transition;
 }
 
 #============= unconfined_t ==============
-allow unconfined_t openshift_t:process transition;
+allow unconfined_t stickshift_t:process transition;
 
 #DHCP networking==========================
 optional{
@@ -293,7 +293,7 @@ require {
 	type usr_t;
 	type httpd_config_t;
 	type mcollectived_t;
-	type openshift_file_t;
+	type stickshift_file_t;
 	type httpd_suexec_exec_t;
 	type httpd_modules_t;
 	type httpd_initrc_exec_t;
@@ -322,7 +322,7 @@ require {
 	type bin_t;
 	type mysqld_etc_t;
 	type mcollectived_t;
-	type openshift_t;
+	type stickshift_t;
 	type mysqld_exec_t;
 	type hostname_exec_t;
 	class unix_stream_socket connectto;
@@ -400,9 +400,9 @@ optional {
 }
 
 #============= mcollectived_t ==============
-allow mcollectived_t openshift_t:process transition;
+allow mcollectived_t stickshift_t:process transition;
 allow mcollectived_t var_lock_t:file { read write open lock };
-allow mcollectived_t openshift_file_t:file { relabelfrom relabelto };
+allow mcollectived_t stickshift_file_t:file { relabelfrom relabelto };
 
 optional{
   require {
@@ -414,7 +414,7 @@ optional{
 #qpid
 allow qpidd_t proc_net_t:file read;
 
-#openshift-origin-port-proxy
+#stickshift-proxy
 allow mcollectived_t ifconfig_exec_t:file { read execute open execute_no_trans };
 allow mcollectived_t proc_net_t:file { read getattr open };
 allow mcollectived_t http_port_t:tcp_socket name_connect;
@@ -425,7 +425,7 @@ allow mcollectived_t random_device_t:chr_file { read open };
 allow mcollectived_t ssh_keygen_exec_t:file { read execute open execute_no_trans };
 
 #runcon
-allow initrc_t openshift_t:process transition;
+allow initrc_t stickshift_t:process transition;
 
 #Allow cartridges to write http proxy configs and restart http as mcollecitve
 allow mcollectived_t cert_t:file getattr;
@@ -446,7 +446,7 @@ allow mcollectived_t httpd_var_run_t:file { read open };
 allow mcollectived_t initrc_exec_t:file { ioctl execute read open getattr execute_no_trans };
 allow mcollectived_t self:capability fowner;
 allow mcollectived_t self:netlink_route_socket { bind create getattr nlmsg_read setopt };
-allow mcollectived_t openshift_file_t:file execute;
+allow mcollectived_t stickshift_file_t:file execute;
 allow mcollectived_t httpd_config_t:dir { remove_name rmdir };
 allow mcollectived_t httpd_config_t:file unlink;
 
@@ -467,7 +467,7 @@ allow mcollectived_t self:process { setsched setfscreate };
 require {
 	type mysqld_t;
 	type anon_inodefs_t;
-	type openshift_file_t;
+	type stickshift_file_t;
 	class dir { write search read remove_name open getattr add_name };
 	class file { read create write getattr unlink open };
 }
@@ -475,10 +475,10 @@ allow mcollectived_t bin_t:file setattr;
 allow mcollectived_t hostname_exec_t:file { read getattr open execute execute_no_trans };
 allow mcollectived_t mysqld_etc_t:file { read getattr open };
 allow mcollectived_t mysqld_exec_t:file { read execute open execute_no_trans };
-allow mcollectived_t openshift_t:unix_stream_socket connectto;
+allow mcollectived_t stickshift_t:unix_stream_socket connectto;
 allow mysqld_t anon_inodefs_t:file { read write };
-allow mysqld_t openshift_file_t:dir { write search read remove_name open getattr add_name };
-allow mysqld_t openshift_file_t:file { write getattr read create unlink open };
+allow mysqld_t stickshift_file_t:dir { write search read remove_name open getattr add_name };
+allow mysqld_t stickshift_file_t:file { write getattr read create unlink open };
 
 #mongo
 optional{
@@ -549,7 +549,7 @@ require {
 	type configfs_t;
 	type mtrr_device_t;
 	type krb5_conf_t;
-	type openshift_file_t;
+	type stickshift_file_t;
 	type pulseaudio_home_t;
 	type mcollectived_t;
 	type root_t;
@@ -573,7 +573,7 @@ dontaudit mcollectived_t proc_mdstat_t:file getattr;
 dontaudit mcollectived_t pulseaudio_home_t:lnk_file read;
 dontaudit mcollectived_t root_t:dir setattr;
 dontaudit mcollectived_t self:capability sys_ptrace;
-dontaudit mcollectived_t openshift_file_t:file create;
+dontaudit mcollectived_t stickshift_file_t:file create;
 dontaudit mcollectived_t sysctl_net_t:dir search;
 
 domain_dontaudit_getattr_all_sockets(mcollectived_t)
