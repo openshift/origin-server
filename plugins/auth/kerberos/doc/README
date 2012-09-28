@@ -17,11 +17,12 @@ This document describes how to register and authenticate OpenShift Origin user u
     systemctl stop openshift-origin-broker.service
 
     SS_BROKER_ENVDIR=/var/www/openshift/broker/config/environments
+    SALT=$(head /dev/urandom| md5sum | base64)
     echo "require File.expand_path('../plugin-config/openshift-origin-auth-kerberos.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
 cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-kerberos.rb
     Broker::Application.configure do
       config.auth = {
-        :salt => "ClWqe5zKtEW4CJEMyjzQ",
+        :salt => "${SALT}",
 
       }
     end
