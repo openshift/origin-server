@@ -5,9 +5,6 @@ class AccountController < BaseController
   def create
     username = params[:username]
 
-    auth_config = Rails.application.config.auth
-    auth_service = OpenShift::KerberosAuthService.new(auth_config)
-
     Rails.logger.debug "username = #{username}"
 
     log_action('nil', 'nil', username, "ADD_USER", false, "Cannot create account, managed by kerberos")
