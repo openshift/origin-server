@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,11 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
+- Merge pull request #547 from smarterclayton/add_rubyracer_for_assets
+  (openshift+bot@redhat.com)
+- Add therubyracer for RPM builds (ccoleman@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
 - Merge pull request #546 from smarterclayton/bug861317_typo_in_error
   (openshift+bot@redhat.com)
