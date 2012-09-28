@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.33.2
+Version: 0.33.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.33.3-1
+- Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
+  (ramr@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.33.2-1
 - Fix for bugz 844209 - stopped diy application becomes to start status after
   "rhc app reload (ramr@redhat.com)
