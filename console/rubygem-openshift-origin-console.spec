@@ -47,6 +47,7 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(rdiscount)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
 
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
