@@ -6,10 +6,10 @@ do
     . $f
 done
 
-if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
 then 
 	OPENSHIFT_PYTHON_MIRROR="http://mirror1.stg.rhcloud.com/mirror/python/web/simple"
-elif `echo $openshift_gear_dns | grep -q .rhcloud.com`
+elif `echo $openshift_gear_dns | grep -qe "\.rhcloud\.com"`
 then
 	OPENSHIFT_PYTHON_MIRROR="http://mirror1.prod.rhcloud.com/mirror/python/web/simple"
 fi
