@@ -23,10 +23,14 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-kerberos.rb
     Broker::Application.configure do
       config.auth = {
         :salt => "${SALT}",
-
+        :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",
+        :privkeypass => "",
+        :pubkeyfile  => "/var/www/openshift/broker/config/server_pub.pem",
       }
     end
     EOF
+    /usr/bin/openssl genrsa -out /var/www/openshift/broker/config/server_priv.pem 2048
+    /usr/bin/openssl rsa    -in /var/www/openshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
 
     systemctl start openshift-origin-broker.service
 
