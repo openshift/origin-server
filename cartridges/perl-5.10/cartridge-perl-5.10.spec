@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.29.3
+Version: 0.29.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.29.4-1
+- Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
+  (ramr@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.29.3-1
 - Fix for bugz 838783 - "rhc app status" returns incorrect application status
   for perl dancer. Issue is lib paths are not setup correctly on haproxy gear.
