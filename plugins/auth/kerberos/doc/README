@@ -1,15 +1,18 @@
                     Kerberos Auth Plugin for OpenShift Origin
                    ----------------------------------
-OpenShift Origin is an optional plugin for OpenShift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
-This document describes how to register and authenticate OpenShift Origin user using SWingShift.
+This software is an optional plugin for OpenShift and it provides authentication. 
+It permit to reuse a existing kerberos infrastructure as a authentication database.
+However, the current version doesn't permit single sign-on.
+This document describes how to register and authenticate OpenShift Origin user using 
+the kerberos auth plugin.
 
-* Install OpenShift Origin
-* Configure OpenShift Origin
+* Install Kerberos Auth Plugin
+* Configure Kerberos Auth Plugin
 * Authenticate OpenShift Origin user
 
-* Install OpenShift Origin
+* Install Kerberos Auth Plugin
 
-* Configure OpenShift Origin
+* Configure Kerberos Auth Plugin
   TODO include something about configuring kerberos on the host
 
   Enable kerberos auth in OpenShift Origin configuration
