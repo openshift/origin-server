@@ -14,6 +14,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 Requires: git
 Requires: mod_ssl
+Requires: stickshift-selinux
 
 %description
 This contains the common function used while building cartridges.
