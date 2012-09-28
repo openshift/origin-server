@@ -21,7 +21,7 @@ OPENSHIFT_CPAN_MIRROR=""
 
 if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* ]]
 then
-  if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
+  if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
   then 
       OPENSHIFT_CPAN_MIRROR="http://mirror1.stg.rhcloud.com/mirror/perl/CPAN/"
   else 
