@@ -55,7 +55,6 @@ sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'gearchanger-mc
 
 for env_file in /var/www/stickshift/broker/config/environments/*.rb
 do
-  echo "require File.expand_path('../plugin-config/swingshift-mongo-plugin.rb', __FILE__)" >> $env_file
   echo "require File.expand_path('../plugin-config/uplift-bind-plugin.rb', __FILE__)" >> $env_file
   echo "require File.expand_path('../plugin-config/gearchanger-mcollective-plugin.rb', __FILE__)" >> $env_file
 done
