@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.98.3
+Version: 0.98.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.98.4-1
+- Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
+  (ramr@redhat.com)
+- BZ861078 (bdecoste@gmail.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.98.3-1
 - US2747 (bdecoste@gmail.com)
 - US2747 (bdecoste@gmail.com)
