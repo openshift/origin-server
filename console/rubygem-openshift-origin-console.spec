@@ -120,6 +120,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-3
+- fix typo in Requires ... its late (admiller@redhat.com)
+
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-2
 - added missing Requires: from Gemfile to spec (admiller@redhat.com)
 
