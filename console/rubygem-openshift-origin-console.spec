@@ -122,6 +122,9 @@ rm -rf %{buildroot}
 
 %changelog
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-2
+- added missing Requires: from Gemfile to spec (admiller@redhat.com)
+
+* Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-2
 - Add missing requires from Gemfile into spec
 
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
