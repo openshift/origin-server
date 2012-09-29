@@ -10,7 +10,7 @@
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
 Version:        0.0.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -31,7 +31,6 @@ Requires:       %{?scl:%scl_prefix}rubygem(coffee-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(jquery-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(mocha)
-Requires:       %{?scl:%scl_prefix}rubygem(openshift-origin-console!)
 Requires:       %{?scl:%scl_prefix}rubygem(sass-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(simplecov)
 Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
