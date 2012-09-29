@@ -10,7 +10,7 @@
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
 Version:        0.0.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -26,6 +26,17 @@ Requires:       %{?scl:%scl_prefix}rubygem(formtastic)
 Requires:       %{?scl:%scl_prefix}rubygem(net-http-persistent)
 Requires:       %{?scl:%scl_prefix}rubygem(haml)
 Requires:       %{?scl:%scl_prefix}rubygem(addressable)
+Requires:       %{?scl:%scl_prefix}rubygem(ci_reporter)
+Requires:       %{?scl:%scl_prefix}rubygem(coffee-rails)
+Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:       %{?scl:%scl_prefix}rubygem(jquery-rails)
+Requires:       %{?scl:%scl_prefix}rubygem(mocha)
+Requires:       %{?scl:%scl_prefix}rubygem(openshift-origin-console!)
+Requires:       %{?scl:%scl_prefix}rubygem(sass-rails)
+Requires:       %{?scl:%scl_prefix}rubygem(simplecov)
+Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
+Requires:       %{?scl:%scl_prefix}rubygem(uglifier)
+Requires:       %{?scl:%scl_prefix}rubygem(webmock)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
@@ -110,6 +121,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-2
+- Add missing requires from Gemfile into spec
+
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
 - add addressable gem dep to console (admiller@redhat.com)
 
