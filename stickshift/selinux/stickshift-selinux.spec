@@ -20,18 +20,15 @@ Stickshfit SELinux policies
 
 
 %build
+make -f /usr/share/selinux/devel/Makefile
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p %{buildroot}%{_datadir}/selinux/packages/%{name}
-install -m 644 stickshift.te stickshift.fc stickshift.if %{buildroot}%{_datadir}/selinux/packages/%{name}/
-
+mkdir -p %{buildroot}%{_datadir}/selinux/packages/stickshift.pp
+install -m 644 stickshift.pp %{buildroot}%{_datadir}/selinux/packages/
 
 %post
-pushd /usr/share/selinux/packages/%{name}
-rm -f stickshift.pp
-make -f /usr/share/selinux/devel/Makefile
-popd
+semodule -i /usr/share/selinux/packages/stickshift.pp
 
 %files
 %defattr(-,root,root,-)
