@@ -1,6 +1,8 @@
 class GearGroup < RestApi::Base
   schema do
     string :name, :gear_profile
+    integer :scales_from, :scales_to
+    integer :scale_max, :scale_min
   end
   custom_id :name
 
@@ -44,6 +46,14 @@ class GearGroup < RestApi::Base
   end
   def builds?
     @builds
+  end
+
+  def scale_min
+    super || 1
+  end
+
+  def scale_max
+    super || -1
   end
 
   def ==(other)

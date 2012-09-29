@@ -3,6 +3,7 @@ class ScalingController < ConsoleController
   def show
     user_default_domain
     @application = @domain.find_application params[:application_id]
+    @gear_groups = @application.gear_groups
     redirect_to new_application_scaling_path(@application) unless @application.scales?
   end
 

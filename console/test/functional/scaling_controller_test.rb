@@ -28,7 +28,10 @@ class ScalingControllerTest < ActionController::TestCase
     [
       {:name => '@@app/comp-web/php-5.3', 
          :gears => multiplier.times.map{ |i| {:id => i, :state => 'started'} }, 
-         :cartridges => [{:name => 'php-5.3'},]},
+         :cartridges => [
+           {:name => 'php-5.3'},
+           {:name => 'extra-1.0'},
+         ]},
       {:name => '@@app/comp-proxy/php-5.3', :gears => [
         {:id => 2, :state => 'started'},
       ], :cartridges => [
@@ -64,6 +67,11 @@ class ScalingControllerTest < ActionController::TestCase
   def with_scaling(multiplier=1)
     with_unique_user
     with_mock_app(app_with_scaling, groups_with_scaling(multiplier))
+  end
+
+  test 'displays form and title for scaling' do
+    get :show, with_scaling(2)
+    assert_select 'h2', "PHP 5.3\n(includes extra-1.0)"
   end
 
   [true, false].each do |mock|
