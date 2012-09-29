@@ -25,6 +25,7 @@ Requires:       %{?scl:%scl_prefix}rubygem(rdiscount)
 Requires:       %{?scl:%scl_prefix}rubygem(formtastic)
 Requires:       %{?scl:%scl_prefix}rubygem(net-http-persistent)
 Requires:       %{?scl:%scl_prefix}rubygem(haml)
+Requires:       %{?scl:%scl_prefix}rubygem(addressable)
 
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
@@ -48,6 +49,7 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
+BuildRequires:  %{?scl:%scl_prefix}rubygem(addressable)
 
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
