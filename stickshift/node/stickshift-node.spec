@@ -23,6 +23,7 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
+Requires:       libcgroup
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -55,6 +56,7 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
+mkdir -p %{buildroot}%{_sysconfdir}/init.d
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
 
 # Build and install into the rubygem structure
@@ -74,6 +76,8 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
+# Place the cgroup pseudo-service controller script
+mv %{buildroot}%{geminstdir}/misc/init/os-cgroups %{buildroot}%{_sysconfdir}/init.d/os-cgroups
 rm -rf %{buildroot}%{geminstdir}/misc
 mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
@@ -89,6 +93,7 @@ rm -rf %{buildroot}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/stickshift
+%attr(0755,-,-) %{_sysconfdir}/init.d/os-cgroups
 %{_bindir}/*
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
@@ -106,6 +111,48 @@ echo "/usr/bin/ss-trap-user" >> /etc/shells
 if ! [ -f /etc/stickshift/resource_limits.conf ]; then
   cp -f /etc/stickshift/resource_limits.template /etc/stickshift/resource_limits.conf
 fi
+
+# overwrite the default /etc/cgconfig.conf file
+cat <<CGCONFIG_CONF > /etc/cgconfig.conf
+#
+#  Copyright IBM Corporation. 2007
+#
+#  Authors:	Balbir Singh <balbir@linux.vnet.ibm.com>
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of version 2.1 of the GNU Lesser General Public License
+#  as published by the Free Software Foundation.
+#
+#  This program is distributed in the hope that it would be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See man cgconfig.conf for further details.
+#
+# By default, mount all controllers to /cgroup/<controller>
+
+mount {
+#	cpuset	= /cgroup/all;
+	cpu	= /cgroup/all;
+	cpuacct	= /cgroup/all;
+	memory	= /cgroup/all;
+#	devices	= /cgroup/all;
+	freezer	= /cgroup/all;
+	net_cls	= /cgroup/all;
+#	blkio	= /cgroup/all;
+}
+CGCONFIG_CONF
+
+chown root:root /etc/cgconfig.conf
+chmod 644 /etc/cgconfig.conf
+restorecon /etc/cgconfig.conf
+
+# Enable the os-cgroup service
+chkconfig cgconfig on
+chkconfig cgred on
+chkconfig os-cgroups on
+service cgconfig restart
+service cgred restart
+service os-cgroups start
 
 %changelog
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
