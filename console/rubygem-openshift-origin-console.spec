@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -110,6 +110,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- add addressable gem dep to console (admiller@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Merge pull request #547 from smarterclayton/add_rubyracer_for_assets
   (openshift+bot@redhat.com)
