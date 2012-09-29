@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.6
+Version: 0.17.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.17.7-1
+- Keeping the controller engine from overwriting the auth config if it's
+  already set (bleanhar@redhat.com)
+- Moving the broker auth test to the controller (bleanhar@redhat.com)
+- Moving the openssl based generate_broker_key logic into the base AuthService
+  class (bleanhar@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.17.6-1
 - Fix bugz 860536 - gears info will not record into gear-registry.db and failed
   to redirect connection to gears when access the scalable app dns
