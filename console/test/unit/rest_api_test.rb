@@ -391,6 +391,21 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal auth2.password, connection2.password
   end
 
+  def test_update_method_patch
+    resource = Class.new(RestApi::Base) do
+      schema{ string :id }
+      self.element_name = 'test'
+      use_patch_on_update
+    end.new({:id => 'test', :as => @user}, true)
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.patch '/broker/rest/tests/test.json', json_header(true), {:id => 'test', :loaded => true}.to_json
+    end
+
+    assert resource.save
+    assert resource.loaded
+  end
+
   def test_load_returns_self
     key = Key.new
     assert_equal key, key.load({})

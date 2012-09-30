@@ -316,15 +316,6 @@ module RestApi
       end
     end
 
-    class << self
-      def allow_anonymous
-        @allow_anonymous = true
-      end
-      def allow_anonymous?
-        @allow_anonymous
-      end
-    end
-
     #
     # singleton support as https://rails.lighthouseapp.com/projects/8994/tickets/4348-supporting-singleton-resources-in-activeresource
     #
@@ -392,6 +383,9 @@ module RestApi
       def singleton?
         self.singleton_api?
       end
+      def use_patch_on_update?
+        self.use_patch_api?
+      end
 
       protected
         def allow_anonymous
@@ -399,6 +393,9 @@ module RestApi
         end
         def singleton
           self.singleton_api = true
+        end
+        def use_patch_on_update
+          self.use_patch_api = true
         end
     end
 
@@ -619,6 +616,14 @@ module RestApi
     end
 
     protected
+      
+      # Support patch
+      def update
+        connection.send(self.class.use_patch_on_update? ? :patch : :put, element_path(prefix_options), encode, self.class.headers).tap do |response|
+          load_attributes_from_response(response)
+        end
+      end
+
       def connection(refresh = false)
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
@@ -632,6 +637,7 @@ module RestApi
 
       class_attribute :anonymous_api, :instance_writer => false
       class_attribute :singleton_api, :instance_writer => false
+      class_attribute :use_patch_api, :instance_writer => false
 
       # supports presence of AttributeMethods and Dirty
       def attribute(s)
