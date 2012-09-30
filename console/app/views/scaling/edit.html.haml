@@ -1,0 +1,23 @@
+- breadcrumb_for_application @application, link_to('Scale your application', application_scaling_path), 'Confirm change'
+- content_for :page_title, 'Change scaling'
+
+%h1 Change #{@cartridge.display_name} Scaling
+
+%section
+  = semantic_form_for @cartridge, :url => application_scaling_cartridge_path do |f|
+    %p
+      Are you sure you want to make the following changes to scaling?
+
+    %ul
+      - if @cartridge.scales_from != @gear_group.scales_from
+        %li Always have at least #{@cartridge.scales_from} gears serving requests instead of #{@gear_group.scales_from}
+
+      - if @cartridge.scales_to != @gear_group.scales_to
+        %li Scale up to #{@cartridge.scales_to} gears instead of #{@gear_group.scales_to}
+
+    = f.buttons do
+      = link_to "Cancel", application_scaling_path, :class => 'btn'
+      = f.commit_button :label => 'Change'
+      = f.loading
+
+

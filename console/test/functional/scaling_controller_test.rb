@@ -74,6 +74,15 @@ class ScalingControllerTest < ActionController::TestCase
     assert_select 'h2', "PHP 5.3\n(includes extra-1.0)"
   end
 
+  test 'handles PUT on edit' do
+    with_scaling
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.patch '/broker/rest/domains/test/applications/test/cartridges/php-5.3.json', json_header(true), {:scales_from => 1, :scales_to => 2}.to_json
+    end
+    put :update, with_scaling.merge(:id => 'php-5.3', :cartridge => {:scales_from => 2, :scales_to => 1})
+    assert_redirected_to application_scaling_path
+  end
+
   [true, false].each do |mock|
     test "should get redirected from show without scaling #{'(mock)' if mock}" do
       get :show, mock ? without_scaling : {:application_id => with_app.to_param}

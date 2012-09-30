@@ -24,8 +24,9 @@ module ActionDispatch::Routing
             get :delete
           end
 
-          resource :scaling, :controller => :scaling, :id => /[^\/]+/, :only => [:show, :new] do
+          resource :scaling, :controller => :scaling, :only => [:show, :new] do
             get :delete
+            resources :cartridges, :controller => :scaling, :only => [:update], :id => /[^\/]+/, :format => false #, :format => /json|csv|xml|yaml/
           end
 
           member do

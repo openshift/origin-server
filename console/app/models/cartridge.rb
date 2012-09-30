@@ -4,8 +4,13 @@
 class Cartridge < RestApi::Base
   include Comparable
 
+  use_patch_on_update
+
   schema do
     string :name, 'type'
+    integer :supported_scales_from, :supported_scales_to
+    integer :scales_from, :scales_to, :current_scale
+    string :scales_with
   end
   custom_id :name
 
