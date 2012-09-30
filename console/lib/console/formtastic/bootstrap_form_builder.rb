@@ -138,7 +138,7 @@ module Console
 
         html_options.delete(:inline)
 
-        label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:label).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' })
+        label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:name).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' }) if html_options[:name]
 
         # Generate form elements
         if block_given?
@@ -151,9 +151,7 @@ module Console
 
         # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
         contents = contents.join if contents.respond_to?(:join)
-        contents << template.content_tag(:span, ::Formtastic::Util.html_safe(@input_inline_errors.flatten.join("<br />")), {:class => 'help-block'}) if @input_inline_errors.any?
-        group_class = 'control-group' + (@input_inline_errors.any? ? ' error' : '')
-        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label) << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => group_class })
+        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => 'control-group' })
         template.concat(control_grp) if block_given? && !::Formtastic::Util.rails3?
         control_grp
       end
