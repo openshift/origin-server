@@ -13,9 +13,7 @@ class ApplicationTypesController < ConsoleController
     @application_type = ApplicationType.find params[:id]
     user_default_domain rescue nil
     @application = Application.new :as => current_user
-
-    # hard code for now but we want to get this from the server eventually
-    @gear_sizes = ["small"] # gear size choice only shows if there is more than
-                            # one option
+    @gear_sizes = user_capabilities_gear_sizes
+    @advanced = params[:advanced] == 'true'
   end
 end

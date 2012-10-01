@@ -41,6 +41,14 @@ class ApplicationType
     @priority || 0
   end
 
+  def provided_cartridges
+    @provided_cartridges ||= expand_provided_cartridges
+  end
+
+  def scalable?
+    @scalable ||= CartridgeType.cached.find(self.id).attributes.has_key?('scaling_info')
+  end
+
   class << self
     def all(*arguments)
       find(:all, *arguments)
@@ -72,4 +80,16 @@ class ApplicationType
         end
       end
   end
+
+  protected
+    def expand_provided_cartridges
+      cartridge_list = []
+      if self.provides
+        self.provides.each do |item_id|
+          next unless cartridge_type = CartridgeType.cached.find(item_id)
+          cartridge_list << cartridge_type
+        end
+      end
+      cartridge_list
+    end
 end
