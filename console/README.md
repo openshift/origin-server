@@ -61,17 +61,7 @@ Step 4: Run the tests
 
 will execute our entire console test suite against your OpenShift Origin server.
 
-Step 5: The console uses the Rails Asset Pipeline to compile JS and CSS.  In order
-to do that compilation Rails needs to know about a JS runtime.  The [ExecJS gem](https://github.com/sstephenson/execjs)
-will attempt to locate a suitable candidate at startup.  If you have Node.js installed it should
-detect that automatically.  If you have Firefox installed, you should be able to
-use SpiderMonkey (the Firefox JS engine) by setting the environment variable:
-
-    $ export EXECJS_RUNTIME=SpiderMonkey
-
-Otherwise you may need to add 'therubyracer' in your Gemfile and re-run 'bundle install'.
-
-Step 6: To actually launch the console, we'll run the included Rails application
+Step 5: To actually launch the console, we'll run the included Rails application
 for OpenShift Origin.
 
     $ cd test/rails_app
