@@ -137,6 +137,8 @@ module Console
         html_options = args.extract_options!
 
         html_options.delete(:inline)
+        html_class = ['control-group']
+        html_class << 'control-group-important' if html_options.delete(:important)
 
         label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:name).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' }) if html_options[:name]
 
@@ -151,7 +153,7 @@ module Console
 
         # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
         contents = contents.join if contents.respond_to?(:join)
-        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => 'control-group' })
+        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => html_class.join(' ') })
         template.concat(control_grp) if block_given? && !::Formtastic::Util.rails3?
         control_grp
       end
@@ -167,7 +169,12 @@ module Console
         options[:required] = method_required?(method) unless options.key?(:required)
         options[:as]     ||= default_input_type(method, options)
 
-        html_class = [ options[:as], (options[:required] ? :required : :optional), 'control-group' ] #changed
+        html_class = [ 
+          options[:as], 
+          options[:required] ? :required : :optional, 
+          'control-group',
+        ] #changed
+        html_class << 'control-group-important' if options[:important]
 
         wrapper_html = options.delete(:wrapper_html) || {}
         if has_errors?(method, options)

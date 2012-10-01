@@ -3,7 +3,7 @@
 
 %h1 Scale your Application
 
-%section
+%section#scaling-gear-groups
   - @gear_groups.each do |gear_group|
     - cartridge = gear_group.cartridges.first
     .gear-group.tile
@@ -19,16 +19,19 @@
                             :simple => true, 
                             :method => :put,
                             :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
-          = f.inputs :inline => true do
+          = f.inputs :inline => true, :important => true do
             Scale this cartridge from
             = f.input :scales_from, :as => :select, :collection => 1..16, :input_html => {:style => 'width: auto'}
             to
             = f.input :scales_to, :as => :select, :collection => 1..16, :input_html => {:style => 'width: auto'}
             #{gear_group.gear_profile} gears
-            = f.commit_button :label => 'Change', :button_html => {:class => 'btn btn-primary btn-small'}
+            = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading
             
         - if gear_group.cartridges.any?{ |c| c.tags.include?(:web_framework) }
+
+          %hr
+
           %p
             OpenShift is configured to scale this cartridge with 
             #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
@@ -43,9 +46,7 @@
             data across your web cartridges.
             
           %p
-            For more information about scaling your application see
-            #{link_to 'our scaling guide in the Developer Center', scaling_help_url}. For
-            status information about traffic to your application, see the HAProxy status page:
+            For status information about traffic to your application, see the HAProxy status page:
 
           %p.application-url.larger
             = link_to @application.scale_status_url, @application.scale_status_url, :target => '_blank'
@@ -55,3 +56,15 @@
 
       - else
         %p This cartridge does not scale.
+  %p
+    For more information about scaling your application see
+    #{link_to 'our scaling guide in the Developer Center', scaling_help_url}.
+
+- content_for :javascripts do
+  :javascript
+    jQuery('#scaling-gear-groups FORM').each(function() {
+      btn = $('INPUT.btn', this)[0];
+      $('SELECT', this).change(function() {
+        $(btn).addClass('btn-primary');
+      });
+    });
