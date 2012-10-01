@@ -9,7 +9,7 @@ done
 if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
 then 
 	OPENSHIFT_PYTHON_MIRROR="http://mirror1.stg.rhcloud.com/mirror/python/web/simple"
-elif `echo $openshift_gear_dns | grep -qe "\.rhcloud\.com"`
+elif `echo $OPENSHIFT_GEAR_DNS | grep -qe "\.rhcloud\.com"`
 then
 	OPENSHIFT_PYTHON_MIRROR="http://mirror1.prod.rhcloud.com/mirror/python/web/simple"
 fi
