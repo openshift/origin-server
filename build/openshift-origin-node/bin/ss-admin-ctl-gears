@@ -140,7 +140,7 @@ startcart() {
         echo "$1 is locked"
     else
         print_column -n 59 "    $(basename $2)"
-        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $2 start)
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t openshift_t $2 start)
         RETVAL=$?
         if [ $RETVAL -eq 0 ]
         then
@@ -162,7 +162,7 @@ stopcart() {
     # CARTSCRIPT=$2
     uid=$(id -u "$1")
     print_column -n 59 "    $(basename $2)"
-    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $2 stop)
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t openshift_t $2 stop)
     RETVAL=$?
     if [ $RETVAL -eq 0 ]
     then
@@ -241,7 +241,7 @@ case "$1" in
         run_as=$( echo $ctl_script | awk -F/ '{print $5}')
         echo -n "    Checking http for ${script_name%_ctl.sh}"
         uid=$(id -u "$run_as")
-        daemon --user=$run_as --pidfile=httpd_${script_name} runcon -t stickshift_t $ctl_script status
+        daemon --user=$run_as --pidfile=httpd_${script_name} runcon -t openshift_t $ctl_script status
         RETVAL=$?
         echo
         if [ $RETVAL -eq 0 ]
