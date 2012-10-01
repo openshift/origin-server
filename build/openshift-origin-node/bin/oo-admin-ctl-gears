@@ -120,7 +120,7 @@ startcart() {
     else
         print_column -n 59 "    $2"
         script_name=/usr/libexec/stickshift/cartridges/$2/info/bin/app_ctl.sh
-        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t stickshift_t $script_name start)
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_t $script_name start)
         RETVAL=$?
         if [ $RETVAL -eq 0 ]
         then
@@ -142,7 +142,7 @@ stopcart() {
     uid=$(id -u "$1")
     print_column -n 59 "    $2"
     script_name=/usr/libexec/stickshift/cartridges/$2/info/bin/app_ctl.sh
-    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t stickshift_t $script_name stop)
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t openshift_t $script_name stop)
     RETVAL=$?
     if [ $RETVAL -eq 0 ]
     then
@@ -225,7 +225,7 @@ case "$1" in
             uid=$(id -u "$run_as")
             source_if_exists $gear/.env/SS_APP_NAME
             echo -n "    Checking http for ${SS_APP_NAME:-${runas}}"
-            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t stickshift_t $script_name status
+            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t openshift_t $script_name status
             RETVAL=$?
             echo
             if [ $RETVAL -eq 0 ]
