@@ -9,10 +9,10 @@ Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-
 
 Requires:       openshift-broker
 Requires:       ruby(abi) >= 1.8
-%if 0%{?rhel} == 6
-BuildRequires:  rubygems
-%else
+%if 0%{?fedora} >= 17
 BuildRequires:  rubygems-devel
+%else
+BuildRequires:  rubygems
 %endif
 BuildArch:      noarch
 
