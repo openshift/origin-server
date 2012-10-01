@@ -174,7 +174,7 @@ if __name__ == '__main__':
 
     runcon = '/usr/bin/runcon'
 
-    target_context = 'system_u:system_r:stickshift_t:s0'
+    target_context = 'system_u:system_r:openshift_t:s0'
     actual_context = selinux.getcon()[1]
     # Confirm nothing fishy is going on
     if target_context != actual_context:
