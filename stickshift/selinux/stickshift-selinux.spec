@@ -1,5 +1,5 @@
 Name:           stickshift-selinux
-Version:        0.1.1
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Stickshift SELinux policies
 
@@ -24,15 +24,15 @@ make -f /usr/share/selinux/devel/Makefile
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p %{buildroot}%{_datadir}/selinux/packages/stickshift.pp
-install -m 644 stickshift.pp %{buildroot}%{_datadir}/selinux/packages/
+mkdir -p %{buildroot}%{_datadir}/selinux/packages/%{name}
+install -m 644 *.pp %{buildroot}%{_datadir}/selinux/packages/%{name}
 
 %post
-semodule -i /usr/share/selinux/packages/stickshift.pp
+semodule -i /usr/share/selinux/packages/%{name}/*.pp
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE
+%doc LICENSE README
 /usr/share/selinux/packages/%{name}/
 
 
