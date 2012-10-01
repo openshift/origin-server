@@ -2,8 +2,9 @@
                    ----------------------------------
 The Remote User Auth plugin is an optional plugin for OpenShift and it provides
 authentication.  Authentication is delegated to a web server.  The Ruby code
-trusts the REMOTE_USER environment variable.  This plugin also handles
-node->broker authentication through the use of an encrypted key.
+trusts the REMOTE_USER environment variable.  This plugin defers the
+node->broker authentication to the base AuthService class in
+stickshift-controller.
 
 This document describes how to register and authenticate an OpenShift user
 using the Remote User Auth plugin.  This example will use Basic Authentication.
@@ -34,7 +35,7 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
   gem 'openshift-origin-auth-remote-user'
 
   NOTE: Be sure to remote any other authentication plugins.  You may need to
-  remote plugin references from
+  remove plugin references from
   /var/www/stickshift/broker/config/environments/development.rb as well.
 
 * From /var/www/stickshift/broker/ run 'bundle install --local'
