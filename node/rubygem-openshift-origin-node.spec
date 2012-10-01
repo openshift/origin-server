@@ -25,8 +25,6 @@ Requires:       python
 Requires:       mercurial
 Obsoletes: 	rubygem-stickshift-node
 
-Requires:       stickshift-selinux
-
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
