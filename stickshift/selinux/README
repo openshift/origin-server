@@ -1,0 +1,6 @@
+The selinux package provides OpenShift selinux policies and
+configuration for releases which do not already have them shipped by
+default.
+
+Releases which ship the OpenShift SELinux policies by default:
+  - Fedora 18 or later
