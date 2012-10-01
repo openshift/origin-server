@@ -8,14 +8,21 @@ class RestUser < StickShift::Model
     self.capabilities = cloud_user.capabilities
     self.plan_id = cloud_user.plan_id
     self.usage_account_id = cloud_user.usage_account_id
-    @links = {
-      "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
-      "ADD_KEY" => Link.new("Add new SSH key", "POST", URI::join(url, "user/keys"), [
-        Param.new("name", "string", "Name of the key"),
-        Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
-        Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
-      ])
-    } unless nolinks
+
+    unless nolinks
+      @links = {
+        "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
+        "ADD_KEY" => Link.new("Add new SSH key", "POST", URI::join(url, "user/keys"), [
+          Param.new("name", "string", "Name of the key"),
+          Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
+          Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
+        ])
+      }
+      @links["DELETE_USER"] = Link.new("Delete user. Only applicable for subaccount users.", "DELETE", URI::join(url, "user"), nil, [
+        OptionalParam.new("force", "boolean", "Force delete user. i.e. delete any domains and applications under this user", [true, false], false)
+      ]) if cloud_user.parent_user_login
+    end
+
     consumed_map = {}
     if cloud_user.applications
       cloud_user.applications.each { |a|

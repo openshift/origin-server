@@ -164,7 +164,7 @@ def remove_sub_account(user, subaccount_login)
     end
     
     print "Removing subaccount for #{child_user.login} under #{user.login}... "
-    result = child_user.delete
+    result = child_user.force_delete
     puts "Done."
 
     if result.exitcode != 0
