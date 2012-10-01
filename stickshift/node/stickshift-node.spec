@@ -24,8 +24,6 @@ Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
 
-Requires:       stickshift-selinux
-
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
