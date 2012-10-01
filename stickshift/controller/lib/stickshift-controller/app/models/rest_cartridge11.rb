@@ -1,13 +1,13 @@
 class RestCartridge11 < StickShift::Model
   attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
-                :tags, :website, :help_topics, :links, :properties, :scaling_info, :status_messages
+                :tags, :website, :help_topics, :links, :properties, :status_messages,
+                :current_scale, :scales_with, :scales_from, :scales_to
   
   def initialize(type, name, app, url, status_messages, nolinks=false)
     self.name = name
     self.type = type
     self.status_messages = status_messages
     prop_values = nil
-    self.scaling_info = nil
     cart = CartridgeCache.find_cartridge(name)
     if app
       if CartridgeCache.cartridge_names('standalone').include? name
@@ -25,12 +25,12 @@ class RestCartridge11 < StickShift::Model
           cinst.parent_cart_name==name 
         }
         if ci
-          self.scaling_info = RestScalingInfo.new(gi, cart)
+          set_scaling_info(gi, cart)
           break
         end
       }
     else
-      self.scaling_info = RestScalingInfo.new(nil, cart)
+      set_scaling_info(nil, cart)
     end
     self.version = cart.version
     self.display_name = cart.display_name
@@ -76,6 +76,31 @@ class RestCartridge11 < StickShift::Model
             "DELETE" => Link.new("Delete embedded cartridge", "DELETE", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}"))
           }
       end
+    end
+  end
+
+
+  def set_scaling_info(group_instance, cartridge)
+    if group_instance
+      app = group_instance.app
+      self.current_scale = group_instance.gears.length
+      self.scales_with = nil
+      app.embedded.each { |cart_name, cart_info|
+        cart = CartridgeCache::find_cartridge(cart_name)
+        if cart.categories.include? "scales"
+          self.scales_with = cart.name
+          break
+        end
+      }
+      self.scales_from = group_instance.min
+      self.scales_to = group_instance.max
+    else
+      prof = cartridge.profiles(cartridge.default_profile)
+      group = prof.groups()[0]
+      self.current_scale = 0
+      self.scales_with = "haproxy_1.4"
+      self.scales_from = group.scaling.min
+      self.scales_to = group.scaling.max
     end
   end
 

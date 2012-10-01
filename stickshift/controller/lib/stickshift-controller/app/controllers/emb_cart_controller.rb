@@ -164,7 +164,11 @@ class EmbCartController < BaseController
     end
       
     application = Application.find(@cloud_user, id)
-    app = RestApplication.new(application, get_url, nolinks)
+    if $requested_api_version >= 1.2
+      app = RestApplication12.new(application, get_url, nolinks)
+    else
+      app = RestApplication10.new(application, get_url, nolinks)
+    end
     render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
 end
