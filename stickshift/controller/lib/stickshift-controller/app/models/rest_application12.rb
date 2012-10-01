@@ -1,5 +1,5 @@
-class RestApplication < StickShift::Model
-  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :build_info
+class RestApplication12 < StickShift::Model
+  attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url
   include LegacyBrokerHelper
 
   def initialize(app, url, nolinks=false)
@@ -13,15 +13,32 @@ class RestApplication < StickShift::Model
     self.domain_id = app.domain.namespace
     self.gear_profile = app.node_profile
     self.scalable = app.scalable
-    self.scale_min,self.scale_max = app.scaling_limits
     self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/~/git/#{@name}.git/"
     self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
     self.ssh_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}"
     self.health_check_path = app.health_check_path
-    self.build_info = RestBuildInfo.new(app)
+    self.building_with = nil
+    self.building_app = nil
+    self.build_job_url = nil
+
+    app.embedded.each { |cname, cinfo|
+      cart = CartridgeCache::find_cartridge(cname)
+      if cart.categories.include? "ci_builder"
+        self.building_with = cart.name
+        self.build_job_url = cinfo["job_url"]
+        break
+      end
+    }
+    app.user.applications.each { |user_app|
+      cart = CartridgeCache::find_cartridge(user_app.framework)
+      if cart.categories.include? "ci"
+        self.building_app = user_app.name
+        break
+      end
+    }
+
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"
-
     unless nolinks
       carts = nil
       if app.scalable
