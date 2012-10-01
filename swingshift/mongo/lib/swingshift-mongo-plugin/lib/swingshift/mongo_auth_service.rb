@@ -5,7 +5,7 @@ require 'date'
 module Swingshift
   class MongoAuthService < StickShift::AuthService
   
-    def initialize
+    def initialize(auth_info = nil)
       super
 
       if @auth_info != nil
