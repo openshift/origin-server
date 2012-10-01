@@ -15,7 +15,11 @@ class ApplicationsController < BaseController
     apps = Array.new
     applications.each do |application|
       if application.domain.uuid = domain.uuid
-        app = RestApplication.new(application, get_url, nolinks)
+        if $requested_api_version >= 1.2
+          app = RestApplication12.new(application, get_url, nolinks)
+        else
+          app = RestApplication10.new(application, get_url, nolinks)
+        end
         apps.push(app)
       end
     end if applications
@@ -34,7 +38,11 @@ class ApplicationsController < BaseController
     application = Application.find(@cloud_user,id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "SHOW_APPLICATION") if !application or application.domain.uuid != domain.uuid
-    app = RestApplication.new(application, get_url, nolinks)
+    if $requested_api_version >= 1.2
+      app = RestApplication12.new(application, get_url, nolinks)
+    else
+      app = RestApplication10.new(application, get_url, nolinks)
+    end
     render_success(:ok, "application", app, "SHOW_APPLICATION", "Application '#{id}' found")
   end
   
@@ -110,7 +118,11 @@ class ApplicationsController < BaseController
       return render_exception(e, "ADD_APPLICATION") 
     end
 
-    app = RestApplication.new(application, get_url, nolinks)
+    if $requested_api_version >= 1.2
+      app = RestApplication12.new(application, get_url, nolinks)
+    else
+      app = RestApplication10.new(application, get_url, nolinks)
+    end
     messages = []
     messages.push(Message.new(:info, "Application #{application.name} was created."))
 
