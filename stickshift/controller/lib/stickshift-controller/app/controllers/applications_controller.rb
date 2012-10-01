@@ -8,7 +8,7 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
 
     domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
+    return render_error(:not_found, "Domain '#{domain_id}' could not be found", 127,
                         "LIST_APPLICATIONS") if !domain || !domain.hasAccess?(@cloud_user)
     
     applications = Application.find_all(@cloud_user)
@@ -19,7 +19,7 @@ class ApplicationsController < BaseController
         apps.push(app)
       end
     end if applications
-    render_success(:ok, "applications", apps, "LIST_APPLICATIONS", "Found #{apps.length} applications for domain '#{domain_id}'")
+    render_success(:ok, "applications", apps, "LIST_APPLICATIONS", "Found #{apps.length} applications for the domain '#{domain_id}'")
   end
   
   # GET /domains/[domain_id]/applications/<id>
