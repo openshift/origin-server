@@ -1,6 +1,6 @@
 class ComponentInstance < StickShift::Model
   attr_accessor :state, :parent_cart_name, :parent_cart_profile, :parent_component_name, :parent_cart_group,
-                :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties
+                :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties, :addtl_fs_gb
 
   def initialize (cartname=nil, profname=nil, groupname=nil, compname=nil, pathname=nil, gi=nil)
     self.name = pathname
@@ -13,6 +13,7 @@ class ComponentInstance < StickShift::Model
     self.exec_order = []
     self.cart_data = []
     self.cart_properties = {}
+    self.addtl_fs_gb = 0
   end
   
   def process_cart_data(data)
@@ -186,6 +187,13 @@ class ComponentInstance < StickShift::Model
     }
 
     return comp_inst
+  end
+
+  def set_additional_quota(app, fs_gb, inodes=nil)
+    changed_gbs = fs_gb - @addtl_fs_gb
+    gi = app.group_instance_map[self.group_instance_name]
+    gi.update_quota(changed_gbs, inodes)
+    @addtl_fs_gb = fs_gb
   end
 
   def self.collect_exec_order(app, cinst, return_list)

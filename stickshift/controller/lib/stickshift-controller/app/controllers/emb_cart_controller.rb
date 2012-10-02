@@ -171,4 +171,54 @@ class EmbCartController < BaseController
     end
     render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
+
+  def update
+    domain_id = params[:domain_id]
+    app_id = params[:application_id]
+    cartridge_name = params[:id]
+    additional_storage = params[:additional_storage]
+    
+    domain = Domain.get(@cloud_user, domain_id)
+    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+                        "UPDATE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
+
+    app = Application.find(@cloud_user,app_id)
+    return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
+                        101, "UPDATE_CARTRIDGE") unless app
+                        
+    storage_map = {}
+    app.comp_instance_map.values.each do |cinst|
+      if cinst.parent_cart_name==cartridge_name
+        group_name = cinst.group_instance_name
+        storage_map[group_name] = [] unless storage_map.has_key?(group_name)
+        storage_map[group_name] << cinst
+      end
+    end
+    return render_error(:not_found, "Cartridge '#{cartridge_name}' for application '#{app_id}' not found",
+                        163, "UPDATE_CARTRIDGE") unless storage_map.keys.length>0
+                
+    #only update attributes that are specified                  
+    if additional_storage
+      max_storage = @cloud_user.capabilities['max_storage_per_gear']
+      return render_format_error(:forbidden, "User is not allowed to change storage quota", 164,
+                                 "UPDATE_CARTRIDGE") unless max_storage
+      num_storage = nil
+      begin 
+        num_storage = Integer(additional_storage)
+      rescue => e
+        return render_format_error(:unprocessable_entity, "Invalid storage value provided.", 165, "UPDATE_CARTRIDGE", "additional_storage")
+      end
+      begin
+        storage_map.each do |group_name, component_instance_list|
+          each_component_share = (Float(num_storage))/component_instance_list.length
+          ginst = app.group_instance_map[group_name]
+          component_instance_list.each { |cinst| cinst.set_additional_quota(app, each_component_share) }
+        end
+        app.save
+      rescue Exception => e
+        return render_format_exception(e, "UPDATE_CARTRIDGE")
+      end             
+    end
+    render_format_success(:ok, "application", app, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
+  end
 end

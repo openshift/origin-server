@@ -351,7 +351,7 @@ class RestGear_V1 < BaseObj_V1
 end
 
 class RestGearGroup_V1 < BaseObj_V1
-  attr_accessor :uuid, :name, :gear_profile, :gears, :cartridges, :links, :storage, :max_scale, :min_scale
+  attr_accessor :uuid, :name, :gear_profile, :gears, :cartridges, :links, :scales_to, :scales_from, :base_gear_storage, :additional_gear_storage
 
   def initialize(name=nil)
     self.uuid = uuid
@@ -360,8 +360,9 @@ class RestGearGroup_V1 < BaseObj_V1
     self.gears = nil
     self.cartridges = nil
     self.links = nil
-    self.storage = nil
-    self.min_scale = nil
-    self.max_scale = nil
+    self.base_gear_storage = nil
+    self.additional_gear_storage = nil
+    self.scales_from = nil
+    self.scales_to = nil
   end
 end
