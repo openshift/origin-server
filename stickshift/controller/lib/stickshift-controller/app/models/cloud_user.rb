@@ -206,30 +206,21 @@
 
     user
   end
-  
+ 
+  def force_delete
+    self.applications.each do |app|
+      app.cleanup_and_delete()
+    end unless self.applications.empty?
+    self.domains.each do |domain|
+      domain.delete
+    end unless self.domains.empty?
+    self.delete
+  end
+ 
   def delete
-    Rails.logger.debug "deleting user #{@login}"
-    reply = ResultIO.new
-    begin
-      if self.applications
-        self.applications.each do |app|
-          reply.append(app.cleanup_and_delete())
-        end
-      end
-      if self.domains
-        self.domains.each do |domain|
-          reply.append(domain.delete)
-        end
-      end
-    rescue Exception => e
-      Rails.logger.error "Failed to delete user #{self.login} #{e.message}"
-      Rails.logger.debug e.backtrace
-      raise StickShift::UserException.new("User deletion failed due to #{e.message}", 132, reply)
-    end
-    reply.resultIO << "User #{@login} deleted successfully.\n"
+    raise StickShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139) if !self.domains.empty? or !self.applications.empty?
     super(@login)
-    reply
-    end
+  end
 
   def self.find(login)
     super(login,login)

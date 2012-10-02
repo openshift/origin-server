@@ -108,6 +108,10 @@ when "delete"
     print "User with login: #{login} not found\n"
     exit 1
   end
+  unless user.domains.empty?
+    print "User still has domains. Delete them first\n"
+    exit 1
+  end
   unless user.applications.empty?
     print "User still has applications. Delete them first\n"
     exit 1
