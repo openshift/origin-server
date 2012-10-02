@@ -640,6 +640,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # Reload a particular dependency on all gears that host it.
   # @param [String] dependency Name of a cartridge to reload. Set to nil for all dependencies.
   def reload(dependency=nil)
+    dependency = self.framework if dependency.nil?
     reply = ResultIO.new
     self.class.notify_observers(:before_reload, {:application => self, :reply => reply, :dependency => dependency})
     self.start_order.each do |comp_inst_name|
@@ -677,6 +678,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # Invokes tidy for a particular dependency on all gears that host it.
   # @param [String] dependency Name of a cartridge
   def tidy(dependency=nil)
+    dependency = self.framework if dependency.nil?
     reply = ResultIO.new
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)

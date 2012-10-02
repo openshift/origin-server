@@ -59,6 +59,14 @@ class AppEventsController < BaseController
         when "scale-down"
           application.scaledown
           msg = "Application #{id} has scaled down"
+        when 'tidy'
+          r = application.tidy
+          msg = "Application #{id} called tidy"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+        when 'reload'
+          r = application.reload
+          msg = "Application #{id} called reload"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "thread-dump"
           r = application.threaddump
           msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
