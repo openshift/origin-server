@@ -1,6 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 
-class RescueFromTest < ActionDispatch::IntegrationTest
+class StaticPagesTest < ActionDispatch::IntegrationTest
   setup { open_session }
   setup do 
     @prev = Rails.application.config.action_dispatch.show_exceptions
