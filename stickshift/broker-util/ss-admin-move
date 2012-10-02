@@ -91,6 +91,11 @@ if gear.nil? or app.nil?
   exit 1
 end
 
+if app.scalable and node_profile
+  puts "Cannot specify 'node_profile' for a gear belonging to a scalable application."
+  exit 1
+end
+
 url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.ss[:domain_suffix]}"
 
 puts "URL: #{url}"
