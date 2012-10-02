@@ -23,4 +23,5 @@ single_instance do
   end
 
   FileUtils.mv(tmp_file.path, out_file, :force => true)
+  %x[ restorecon #{out_file} ]
 end
