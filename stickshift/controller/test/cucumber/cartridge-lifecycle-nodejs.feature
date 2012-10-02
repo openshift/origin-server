@@ -1,5 +1,6 @@
 @runtime_extended
 @runtime_extended3
+@not-origin
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
