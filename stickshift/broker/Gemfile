@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 gem 'rails', '~> 3.0.13'
 gem 'json'
-gem 'parseconfig'
+gem 'parseconfig', '0.5.2'
 gem 'mongo'
 gem 'xml-simple'
 gem 'rack'
@@ -43,4 +43,3 @@ group :development, :test do
   gem 'cucumber'
   gem 'rcov'
 end
-
