@@ -299,8 +299,6 @@ class RestApplication_V1 < BaseObj_V1
     self.app_url = nil
     self.ssh_url = nil
     self.scalable = scalable
-    self.scale_min = 1
-    self.scale_max = -1
     self.health_check_path = nil
     self.links = {
       "GET" => Link_V1.new("GET", "domains/#{domain_id}/applications/#{name}"),
