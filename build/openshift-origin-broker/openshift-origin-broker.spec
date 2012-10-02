@@ -53,12 +53,6 @@ sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'swingshift-mon
 sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'uplift-bind-plugin'\n/" /var/www/stickshift/broker/Gemfile
 sed -i -e "s/^# Add plugin gems here/# Add plugin gems here\ngem 'gearchanger-mcollective-plugin'\n/" /var/www/stickshift/broker/Gemfile
 
-for env_file in /var/www/stickshift/broker/config/environments/*.rb
-do
-  echo "require File.expand_path('../plugin-config/uplift-bind-plugin.rb', __FILE__)" >> $env_file
-  echo "require File.expand_path('../plugin-config/gearchanger-mcollective-plugin.rb', __FILE__)" >> $env_file
-done
-
 if [ "x`fgrep smallfiles=true /etc/mongodb.conf`x" != "xsmallfiles=truex" ] ; then
   echo "smallfiles=true" >> /etc/mongodb.conf
 fi

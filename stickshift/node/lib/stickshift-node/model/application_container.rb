@@ -15,10 +15,10 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node/config'
 require 'stickshift-node/model/unix_user'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
+require 'stickshift-common/config'
 
 module StickShift
   # == Application Container
@@ -28,7 +28,7 @@ module StickShift
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
-      @config = StickShift::Config.instance
+      @config = StickShift::Config.new
 
       @uuid = container_uuid
       @application_uuid = application_uuid
