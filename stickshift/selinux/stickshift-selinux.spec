@@ -1,5 +1,5 @@
 Name:           stickshift-selinux
-Version:        1.0.0
+Version:        1.0.1
 Release:        1%{?dist}
 Summary:        Stickshift SELinux policies
 
@@ -37,6 +37,10 @@ semodule -i /usr/share/selinux/packages/%{name}/*.pp
 
 
 %changelog
+* Mon Oct 01 2012 Rob Millner <rmillner@redhat.com> 1.0.1-1
+- Updated to openshift 1.0 policies
+
+
 * Fri Sep 28 2012 Rob Millner <rmillner@redhat.com> 0.1.1-1
 - Move stickshift selinux policies into their own RPM.
 
