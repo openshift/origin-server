@@ -29,6 +29,12 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/zz
   ProxyPassReverse / http://$IP:8080/
 EOF
 
+cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/301_redirect.conf"
+RewriteEngine on
+RewriteCond %{SERVER_PORT} !^443$
+RewriteRule ^/(.*) https://%{HTTP_HOST}/\$1 [R=301,L]
+EOF
+
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
   ServerAdmin openshift-bofh@redhat.com 
