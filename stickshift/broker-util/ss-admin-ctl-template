@@ -78,6 +78,8 @@ if args["--help"]
 end
 
 require "/var/www/stickshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 case command
 when "add"

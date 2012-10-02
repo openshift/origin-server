@@ -54,6 +54,8 @@ if login.nil? or app_name.nil? or command.nil? or args["--help"]
 end
 
 require "/var/www/stickshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 user = CloudUser.find(login)
 unless user

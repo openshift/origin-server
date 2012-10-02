@@ -72,6 +72,8 @@ if args["--help"]
 end
 
 require "/var/www/stickshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 uuid     = args["--uuid"]
 command  = args['--command']
