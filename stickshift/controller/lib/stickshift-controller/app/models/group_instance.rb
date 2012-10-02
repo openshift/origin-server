@@ -16,6 +16,7 @@ class GroupInstance < StickShift::Model
     self.group_name = groupname
     self.reused_by = []
     self.gears = []
+    self.addtl_fs_gb = 0
     self.node_profile = app.node_profile
     self.min = 1
     self.max = -1
@@ -117,6 +118,10 @@ class GroupInstance < StickShift::Model
     gear.destroy
   end
 
+  def update_quota(additional_storage, inodes=nil, gear_list=nil)
+    set_quota(@addtl_fs_gb+additional_storage, inodes, gear_list)
+  end
+
   def set_quota(storage_in_gb, inodes=nil, gear_list=nil)
     reply = ResultIO.new
     tag = ""
@@ -156,7 +161,7 @@ class GroupInstance < StickShift::Model
   
   def get_quota
     additional_storage = @addtl_fs_gb.nil? ? 0 : Integer(@addtl_fs_gb)
-    return { :storage => additional_storage + get_cached_min_storage_in_gb }
+    return { "additional_gear_storage" => additional_storage, "base_gear_storage" => get_cached_min_storage_in_gb }
   end
 
   def get_cached_min_storage_in_gb
