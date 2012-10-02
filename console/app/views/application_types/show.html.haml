@@ -7,7 +7,7 @@
 = app_wizard_steps_create 1
 = flashes
 
-= semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|
+= semantic_form_for @application do |f|
   = f.hidden_field :application_type, :value => @application_type.id
 
   - errors = @application.errors.full_messages.present?
