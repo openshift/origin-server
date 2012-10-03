@@ -26,11 +26,12 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+CART_NS=$(get_cartridge_namespace_from_path)
 setup_configure "$1" $2 $3
 
 import_env_vars
 
-rm -f $APP_HOME/.env/OPENSHIFT_PROXY_PORT
+rm -f $APP_HOME/.env/OPENSHIFT_${CART_NS}_PROXY_PORT
 proxy_port=$(remove_proxy_port $uuid "$OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT")
 ret=$?
 if [ $ret -ne 0 ]; then

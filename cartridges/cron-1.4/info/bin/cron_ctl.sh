@@ -1,15 +1,11 @@
-#!/bin/bash
+#!/bin/bash -e
 
+cartridge_type='cron-1.4'
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Control application's embedded job scheduling service (cron)
-SERVICE_NAME=cron
-CART_NAME=cron
-CART_VERSION=1.4
-CART_DIRNAME=${CART_NAME}-$CART_VERSION
-CART_INSTALL_DIR=${CARTRIDGE_BASE_PATH}
-CART_INFO_DIR=$CART_INSTALL_DIR/embedded/$CART_DIRNAME/info
+CART_INFO_DIR=$CARTRIDGE_BASE_PATH/embedded/$cartridge_type/info
 
 function _are_cronjobs_enabled() {
    [ -f $CART_INSTANCE_DIR/run/jobs.enabled ]  &&  return 0
@@ -36,9 +32,9 @@ function _cronjobs_status() {
    fi
 
    if _are_cronjobs_enabled; then
-      echo "$SERVICE_NAME scheduling service is enabled" 1>&2
+      echo "cron scheduling service is enabled" 1>&2
    else
-      echo "$SERVICE_NAME scheduling service is disabled" 1>&2
+      echo "cron scheduling service is disabled" 1>&2
    fi
 
 }  #  End of function  _cronjobs_status.
@@ -47,7 +43,7 @@ function _cronjobs_status() {
 function _cronjobs_enable() {
     if _are_cronjobs_enabled; then
         src_user_hook pre_start_cron-1.4
-        echo "$SERVICE_NAME scheduling service is already enabled" 1>&2
+        echo "cron scheduling service is already enabled" 1>&2
         run_user_hook post_start_cron-1.4
     else
         touch "$CART_INSTANCE_DIR/run/jobs.enabled"
@@ -62,7 +58,7 @@ function _cronjobs_disable() {
         rm -f $CART_INSTANCE_DIR/run/jobs.enabled
         run_user_hook post_stop_cron-1.4
     else
-        echo "$SERVICE_NAME scheduling service is already disabled" 1>&2
+        echo "cron scheduling service is already disabled" 1>&2
     fi
 
 }  #  End of function  _cronjobs_disable.
@@ -86,23 +82,14 @@ fi
 
 # Import Environment Variables
 for f in ~/.env/*; do
-    . $f
+  . $f
 done
+translate_env_vars
+validate_run_as_user
 
 # Cartridge instance dir and control script name.
-CART_INSTANCE_DIR="$OPENSHIFT_HOMEDIR/$CART_DIRNAME"
-CTL_SCRIPT="$CART_INSTANCE_DIR/${OPENSHIFT_GEAR_NAME}_${CART_NAME}_ctl.sh"
-source ${CART_INFO_DIR}/lib/util
-
-#  Ensure logged in as user.
-if whoami | grep -q root
-then
-    echo 1>&2
-    echo "Please don't run script as root, try:" 1>&2
-    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID $CTL_SCRIPT" 1>&2
-    echo 2>&1
-    exit 15
-fi
+CART_INSTANCE_DIR="$OPENSHIFT_HOMEDIR/$cartridge_type"
+CTL_SCRIPT="$CARTRIDGE_BASE_PATH/$cartridge_type/info/bin/app_ctl.sh"
 
 case "$1" in
    enable|start)      _cronjobs_enable   ;;

@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
 Version: 0.33.3
@@ -40,6 +41,7 @@ cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %clean
@@ -52,6 +54,7 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
+%attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/stickshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control

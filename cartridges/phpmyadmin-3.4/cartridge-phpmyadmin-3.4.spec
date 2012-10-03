@@ -1,4 +1,5 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/phpmyadmin-3.4
 
 Name: cartridge-phpmyadmin-3.4
 Version: 0.20.1
@@ -35,6 +36,7 @@ ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 %post
 cp %{cartridgedir}/info/configuration/etc/phpMyAdmin/config.inc.php %{_sysconfdir}/phpMyAdmin/config.inc.php
@@ -51,6 +53,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/html/
 %attr(0644,-,-) %{cartridgedir}/info/html/*
+%attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/stickshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control

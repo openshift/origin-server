@@ -9,13 +9,16 @@ do
     . $f
 done
 
-CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/configuration/etc/conf
+cartridge_type="ruby-1.9"
+cart_instance_dir=$OPENSHIFT_HOMEDIR/${cartridge_type}
+
+CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/etc/conf
 
 # Stop the app
 src_user_hook pre_stop_${CARTRIDGE_TYPE}
 app_userid=`id -u`
-httpd_pid=`cat ${OPENSHIFT_RUN_DIR}httpd.pid 2> /dev/null`
-/usr/sbin/httpd -C "Include ${OPENSHIFT_GEAR_DIR}conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
+httpd_pid=`cat ${cart_instance_dir}/run/httpd.pid 2> /dev/null`
+/usr/sbin/httpd -C "Include ${cart_instance_dir}/conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
 for i in {1..20}
 do
     if `ps --pid $httpd_pid > /dev/null 2>&1`  ||  \

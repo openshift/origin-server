@@ -102,6 +102,7 @@ Requires:  ruby193-rubygem-passenger-native-libs
 Requires:  ruby193-mod_passenger
 Requires:  ruby193-ruby-mysql
 Requires:  ruby193-rubygem-pg
+Requires:  ruby193-rubygem-open4
 
 Requires:  mysql-devel
 Requires:  ruby-devel

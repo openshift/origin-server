@@ -12,11 +12,12 @@ then
 fi
 
 source /etc/stickshift/stickshift-node.conf
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-if [ "${OPENSHIFT_GEAR_TYPE}" != "haproxy-1.4" ]
-then
-    ${CARTRIDGE_BASE_PATH}/${OPENSHIFT_GEAR_TYPE}/info/bin/build.sh
-fi
+framework_carts=($(get_installed_framework_carts))
+primary_framework_cart=${framework_carts[0]}
+
+${CARTRIDGE_BASE_PATH}/${primary_framework_cart}/info/bin/build.sh
 
 # Run user build
 user_build.sh

@@ -3,6 +3,7 @@
 # Restarts application's embedded MongoDB instance
 CART_NAME=mongodb
 CART_VERSION=2.2
+cartridge_type="mongodb-2.2"
 
 # Exit on any errors
 set -e
@@ -35,17 +36,18 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
 
-MONGODB_DIR="$APP_HOME/$CART_NAME-$CART_VERSION/"
-OPENSHIFT_NOSQL_DB_CTL_SCRIPT="$MONGODB_DIR/${application}_mongodb_ctl.sh"
+MONGODB_DIR="$APP_HOME/$cartridge_type/"
 
-CART_INFO_DIR="${CARTRIDGE_BASE_PATH}/embedded/$CART_NAME-$CART_VERSION/info"
+CART_INFO_DIR="${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info"
 source ${CART_INFO_DIR}/lib/util
+
+mongodb_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh"
 
 #
 # Restart application
 #
 rm -f "$MONGODB_DIR/run/stop_lock"
-restart_db
-zstatus=$(runuser --shell /bin/sh "$uuid" "$OPENSHIFT_NOSQL_DB_CTL_SCRIPT" status 2>&1)
+restart_database
+zstatus=$(runuser --shell /bin/sh "$uuid" "$mongodb_ctl" status 2>&1)
 [[ "$zstatus" == *running ]]  &&  exit 0
 repair_mongodb

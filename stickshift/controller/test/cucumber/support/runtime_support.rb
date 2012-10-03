@@ -23,7 +23,7 @@ $embedded_cartridge_root ||= "/usr/libexec/stickshift/cartridges/embedded"
 $app_registry = {}
 
 module StickShift
-  TIMEOUT = 60
+  TIMEOUT = 90
 
 
   # Represents a user account. A name and domain will be automatically

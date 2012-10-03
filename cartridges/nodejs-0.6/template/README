@@ -34,8 +34,6 @@ Environment Variables
 =====================
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
-    process.env.OPENSHIFT_GEAR_NAME  - Application name
-    process.env.OPENSHIFT_GEAR_DIR   - Application dir
     process.env.OPENSHIFT_DATA_DIR  - For persistent storage (between pushes)
     process.env.OPENSHIFT_TMP_DIR   - Temp storage (unmodified files deleted after 10 days)
 
@@ -48,10 +46,10 @@ variables for username, host and password:
 
 When embedding a NoSQL database using 'rhc app cartridge add', you can reference environment
 variables for username, host and password:
-    process.env.OPENSHIFT_NOSQL_DB_HOST      - NoSQL DB Host
-    process.env.OPENSHIFT_NOSQL_DB_PORT      - NoSQL DB Port
-    process.env.OPENSHIFT_NOSQL_DB_USERNAME  - NoSQL DB Username
-    process.env.OPENSHIFT_NOSQL_DB_PASSWORD  - NoSQL DB Password
+    process.env.OPENSHIFT_MONGODB_DB_HOST      - NoSQL DB Host
+    process.env.OPENSHIFT_MONGODB_DB_PORT      - NoSQL DB Port
+    process.env.OPENSHIFT_MONGODB_DB_USERNAME  - NoSQL DB Username
+    process.env.OPENSHIFT_MONGODB_DB_PASSWORD  - NoSQL DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

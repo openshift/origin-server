@@ -26,13 +26,13 @@ done
 
 [ $# -eq 3 ] || print_help
 
+cartridge_type="10gen-mms-agent-0.1"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
 
 MMS_DIR=`echo $APP_HOME/10gen-mms-agent-0.1 | tr -s /` # ensure that there aren't double /'s
-MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
 #
 # Remove the compiled versions of the settings.py file.
@@ -44,5 +44,5 @@ rm -f $MMS_DIR/mms-agent/settings.pyc $MMS_DIR/mms-agent/settings.pyo
 # Start application
 #
 rm -f "$MMS_DIR/run/stop_lock"
-run_as_user "$MMS_CTL_SCRIPT stop"
-run_as_user "$MMS_CTL_SCRIPT start"
+run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh stop"
+run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh start"

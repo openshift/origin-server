@@ -20,9 +20,12 @@ application="$1"
 namespace=`basename $2`
 uuid=$3
 IP=$4
+cartridge_type="postgresql-8.4"
 
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 
 cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/postgresql-8.4.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html

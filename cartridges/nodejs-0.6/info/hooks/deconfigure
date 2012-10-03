@@ -53,7 +53,6 @@ else
     confirm_log_files_inactive "$NODEJS_INSTANCE_DIR/logs"
 
     # Blow away the directories.
-    rm_app_dir
     rm_cartridge_instance_dir "$cartridge_type"
     
     enable_cgroups

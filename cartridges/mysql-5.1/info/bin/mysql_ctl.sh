@@ -13,14 +13,7 @@ done
 
 export STOPTIMEOUT=10
 
-if whoami | grep -q root
-then
-    echo 1>&2
-    echo "Please don't run script as root, try:" 1>&2
-    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID $MYSQL_DIR/${OPENSHIFT_GEAR_NAME}_mysql_ctl.sh" 1>&2
-    echo 2>&1
-    exit 15
-fi
+cartridge_type="mysql-5.1"
 
 MYSQL_DIR="$OPENSHIFT_HOMEDIR/mysql-5.1/"
 
@@ -28,6 +21,15 @@ source /etc/stickshift/stickshift-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mysql-5.1/info
 source ${CART_INFO_DIR}/lib/util
+
+if whoami | grep -q root
+then
+    echo 1>&2
+    echo "Please don't run script as root, try:" 1>&2
+    echo "runuser --shell /bin/sh $OPENSHIFT_GEAR_UUID ${CART_INFO_DIR}/info/bin/mysql_ctl.sh" 1>&2
+    echo 2>&1
+    exit 15
+fi
 
 isrunning() {
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
@@ -42,7 +44,9 @@ isrunning() {
 }
 
 start() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state started
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state started
+    fi
 
     if ! isrunning
     then
@@ -56,7 +60,10 @@ start() {
 }
 
 stop() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "mysql-5.1" ] && set_app_state stopped
+
+    if only_cart_on_gear $cartridge_type; then
+        set_app_state stopped
+    fi
 
     if [ -f $MYSQL_DIR/pid/mysql.pid ]; then
         src_user_hook pre_stop_mysql-5.1

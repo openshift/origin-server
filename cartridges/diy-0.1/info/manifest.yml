@@ -12,8 +12,8 @@ Categories:
 Website:
 Help-Topics:
   "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift
-Ca-Data:
-  - Key: OPENSHIFT_LOG_DIR
+Cart-Data:
+  - Key: OPENSHIFT_DIY_LOG_DIR
     Type: environemnt
     Description: "Directory to store application log files."
   - Key: OPENSHIFT_TMP_DIR
@@ -28,9 +28,6 @@ Ca-Data:
   - Key: OPENSHIFT_INTERNAL_IP
     Type: environemnt
     Description: "Internal IP to which the web-framework binds to."
-  - Key: OPENSHIFT_RUN_DIR
-    Type: environemnt
-    Description: "Directory to store PID files and other runtime state."
   - Key: OPENSHIFT_APP_DNS
     Type: environemnt
     Description: "Fully qualified domain name for the application."

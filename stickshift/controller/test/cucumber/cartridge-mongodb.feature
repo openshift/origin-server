@@ -10,7 +10,7 @@ Feature: MongoDB Application Sub-Cartridge
     And the embedded mongodb-2.2 cartridge directory will exist
     And the mongodb configuration file will exist
     And the mongodb database will exist
-    And the embedded mongodb-2.2 cartridge control script will exist
+    And the embedded mongodb-2.2 cartridge control script will not exist
     And the mongodb admin user will have access
 
     When I stop the mongodb-2.2 cartridge
@@ -27,6 +27,5 @@ Feature: MongoDB Application Sub-Cartridge
     When I destroy the application
     Then 0 processes named mongod will be running
     And the mongodb database will not exist
-    And the embedded mongodb-2.2 cartridge control script will not exist
     And the mongodb configuration file will not exist
     And the embedded mongodb-2.2 cartridge directory will not exist

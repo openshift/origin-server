@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Set cart name and version + source node config.
 CART_NAME="perl"
 CART_VERSION="5.10"
+export cartridge_type="perl-5.10"
 source /etc/stickshift/stickshift-node.conf
 
 # Import Environment Variables
@@ -16,5 +17,4 @@ export LOCALSITELIB="${OPENSHIFT_GEAR_DIR}perl5lib/lib/perl5/"
 export PERL5LIB="$REPOLIB:$LOCALSITELIB"
 
 # Federate to the abstract httpd app_ctl.sh
-exec ${CARTRIDGE_BASE_PATH}/abstract-httpd/info/bin/app_ctl.sh "$@"
-
+${CARTRIDGE_BASE_PATH}/abstract-httpd/info/bin/app_ctl.sh "$@"

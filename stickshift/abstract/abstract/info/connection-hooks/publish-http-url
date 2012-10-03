@@ -29,6 +29,7 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+CART_NS=$(get_cartridge_namespace_from_path)
 setup_basic_hook "$@"
 
 import_env_vars
@@ -41,4 +42,4 @@ fi
 #
 # Publish this gear's HTTP URL/endpoint.
 #
-echo "${OPENSHIFT_GEAR_DNS}|${gip}:${OPENSHIFT_PROXY_PORT}"
+echo "${OPENSHIFT_GEAR_DNS}|${gip}:$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_PROXY_PORT")"

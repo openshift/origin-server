@@ -5,6 +5,7 @@
 # Exit on any errors
 set -e
 
+
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
@@ -28,6 +29,8 @@ done
 
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+cartridge_type=$(get_cartridge_name_from_path)
 
 setup_basic_hook "$1" $2 $3
 

@@ -30,8 +30,6 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
-    $_ENV['OPENSHIFT_GEAR_NAME']  - Application name
-    $_ENV['OPENSHIFT_GEAR_DIR']   - Application dir
     $_ENV['OPENSHIFT_DATA_DIR']  - For persistent storage (between pushes)
     $_ENV['OPENSHIFT_TMP_DIR']   - Temp storage (unmodified files deleted after 10 days)
 

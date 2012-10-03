@@ -51,21 +51,3 @@ while [ $# -gt 0 ]; do
         [ -n "$name" ]  &&  echo "$value" > $APP_HOME/.env/.uservars/$name
     done
 done
-
-if [ ! -f "$OPENSHIFT_DB_CTL_SCRIPT" ]; then
-   cat <<CTLEOF > "$HAPROXY_DIR/${application}_remote_db_ctl.sh"
-#!/bin/bash -e
-
-# Import Environment Variables
-for f in ~/.env/*
-do
-    . \$f
-done
-
-gear_user_and_host="\$OPENSHIFT_DB_GEAR_UUID@\$OPENSHIFT_DB_GEAR_DNS"
-ssh \$gear_user_and_host rhcsh \$OPENSHIFT_DB_CTL_ONGEAR_SCRIPT \$1
-CTLEOF
-
-   chmod 755 "$HAPROXY_DIR/${application}_remote_db_ctl.sh"
-   echo "$HAPROXY_DIR/${application}_remote_db_ctl.sh" > "$APP_HOME/.env/.uservars/OPENSHIFT_DB_CTL_SCRIPT"
-fi

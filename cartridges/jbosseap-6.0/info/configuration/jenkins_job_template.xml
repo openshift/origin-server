@@ -14,7 +14,7 @@
       <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
-      <builderType>UPSTREAM_APP_TYPE</builderType>
+      <builderType>jbosseap-6.0</builderType>
     </hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTimeoutJobProperty>
       <builderTimeout>300000</builderTimeout>
@@ -71,7 +71,7 @@ jenkins_rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
 
 if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
 then
-	export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+  export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
 else
     export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
 fi

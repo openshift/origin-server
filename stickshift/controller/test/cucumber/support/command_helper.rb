@@ -347,28 +347,45 @@ module CommandHelper
   #
   # Count the number of processes owned by account with cmd_name
   #
-  def num_procs acct_name, cmd_name
-
-    ps_pattern = /^\s*(\d+)\s+(\S+)$/
-    command = "ps --no-headers -o pid,comm -u #{acct_name}"
+  def num_procs acct_name, cmd_name, label=nil
+    ps_pattern = /^\s*(\d+)\s+(\S+)\s+(.*)/
+    command = "ps --no-headers -o pid,comm,args -u #{acct_name}"
     $logger.debug("num_procs: executing #{command}")
 
     stdin, stdout, stderr = Open3.popen3(command)
 
     stdin.close
-
     outstrings = stdout.readlines
     errstrings = stderr.readlines
+
     $logger.debug("looking for #{cmd_name}")
     $logger.debug("ps output:\n" + outstrings.join(""))
 
     proclist = outstrings.collect { |line|
       match = line.match(ps_pattern)
-      match and (match[1] if (match[2] == cmd_name || match[2].end_with?("/#{cmd_name}")))
+
+      next if match.nil?
+
+      pid = match[1]
+      command = match[2]
+      args = match[3]
+
+      command_matches = (command == cmd_name || command.end_with?("/#{cmd_name}"))
+      label_matches = (label.nil? || args.match(label))
+
+      if command_matches and label_matches
+        pid
+      end
     }.compact
 
     found = proclist ? proclist.size : 0
-    $logger.debug("Found = #{found} instances of #{cmd_name}")
+
+    if (label)
+      $logger.debug("Found = #{found} instances of #{cmd_name} with args matching #{label}")
+    else 
+      $logger.debug("Found = #{found} instances of #{cmd_name}")
+    end
+
     found
   end
 
