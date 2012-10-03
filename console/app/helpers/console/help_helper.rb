@@ -106,6 +106,10 @@ module Console::HelpHelper
    community_base_url 'faq'
   end
 
+  def signup_faq_url
+    community_base_url 'faq/i-just-signed-up-why-didnt-i-receive-an-email-confirmation'
+  end
+
   def developers_get_started_fast_url
     community_base_url 'developers/get-started'
   end
