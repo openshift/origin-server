@@ -1,7 +1,7 @@
 class RestCartridge11 < StickShift::Model
   attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
                 :tags, :website, :help_topics, :links, :properties, :status_messages,
-                :current_scale, :scales_with, :scales_from, :scales_to
+                :current_scale, :scales_with, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
   
   def initialize(type, name, app, url, status_messages, nolinks=false)
     self.name = name
@@ -25,12 +25,12 @@ class RestCartridge11 < StickShift::Model
           cinst.parent_cart_name==name 
         }
         if ci
-          set_scaling_info(gi, cart)
+          set_scaling_info(app.comp_instance_map[ci], gi, cart)
           break
         end
       }
     else
-      set_scaling_info(nil, cart)
+      set_scaling_info(nil, nil, cart)
     end
     self.version = cart.version
     self.display_name = cart.display_name
@@ -80,8 +80,8 @@ class RestCartridge11 < StickShift::Model
   end
 
 
-  def set_scaling_info(group_instance, cartridge)
-    if group_instance
+  def set_scaling_info(comp_instance, group_instance, cartridge)
+    if group_instance and comp_instance
       app = group_instance.app
       self.current_scale = group_instance.gears.length
       self.scales_with = nil
@@ -94,6 +94,8 @@ class RestCartridge11 < StickShift::Model
       }
       self.scales_from = group_instance.min
       self.scales_to = group_instance.max
+      self.base_gear_storage = group_instance.get_cached_min_storage_in_gb
+      self.additional_gear_storage = comp_instance.addtl_fs_gb
     else
       prof = cartridge.profiles(cartridge.default_profile)
       group = prof.groups()[0]
