@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.98.4
+Version: 0.98.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,12 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.98.5-1
+- Fix for bugz 862078 - Getting "ImportError: No module named
+  django.core.management" error on slave gears (ramr@redhat.com)
+- Fix variable name case for bugz 859565 - .dev.rhcloud.com matches
+  (ramr@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.98.4-1
 - Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
   (ramr@redhat.com)
