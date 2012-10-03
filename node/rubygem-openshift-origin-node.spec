@@ -109,10 +109,6 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
-/usr/sbin/setsebool -P httpd_run_stickshift 1 2>/dev/null || :
-/usr/sbin/setsebool -P httpd_run_openshift  1 2>/dev/null || :
-
-
 %changelog
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.17.5-1
 - new package built with tito
