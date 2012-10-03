@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.2
+Version: 0.17.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,11 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
+- fixing test typo and specifying parseconfig gem version to get rid of
+  warnings (abhgupta@redhat.com)
+- removing Gemfile.locks (dmcphers@redhat.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.17.2-1
 - Updating gem versions (admiller@redhat.com)
 - New mongodb-2.2 cartridge (rmillner@redhat.com)
