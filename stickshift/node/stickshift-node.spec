@@ -90,6 +90,7 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/stickshift
 %{_bindir}/*
+%config(noreplace) %{_sysconfdir}/stickshift/stickshift-node.conf
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
 %attr(0755,-,-) %{_var}/lib/stickshift
