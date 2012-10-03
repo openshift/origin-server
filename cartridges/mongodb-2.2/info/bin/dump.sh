@@ -1,4 +1,5 @@
 #!/bin/bash
+cartridge_type="mongodb-2.2"
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -6,13 +7,14 @@ do
     . $f
 done
 
-#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.2 to a ruby1.9 app
+#  FIXME: Temporary fix for bugz 856487 - Can't add mongodb-2.0 to a ruby1.9 app
 #         This needs to be removed once we change how we hande sclized versions
 #         of packages.
 unset LD_LIBRARY_PATH
 
 source /etc/stickshift/stickshift-node.conf
-CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.2/info
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 source ${CART_INFO_DIR}/lib/util
 
 function die() {
@@ -35,8 +37,8 @@ function create_mongodb_snapshot() {
    pushd /tmp/mongodump.$$ > /dev/null
 
    #  Take a "dump".
-   creds="-u $OPENSHIFT_NOSQL_DB_USERNAME -p \"$OPENSHIFT_NOSQL_DB_PASSWORD\" --port $OPENSHIFT_NOSQL_DB_PORT"
-   if mongodump -h $OPENSHIFT_NOSQL_DB_HOST $creds --directoryperdb > /dev/null 2>&1; then
+   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
+   if mongodump -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb > /dev/null 2>&1; then
       #  Dump ok - now create a gzipped tarball.
       if tar -zcf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz . ; then
          #  Created dump snapshot - restore previous dir and remove temp dir.
@@ -59,6 +61,6 @@ function create_mongodb_snapshot() {
 }  #  End of function  create_mongodb_snapshot.
 
 
-start_db_as_user &> $OPENSHIFT_LOG_DIR/mongo_start.log
+start_database_as_user 1>&2
 create_mongodb_snapshot
 exit 0

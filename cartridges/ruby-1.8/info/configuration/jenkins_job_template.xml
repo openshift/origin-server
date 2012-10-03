@@ -74,7 +74,7 @@ then
   # Note: Adding .openshift/markers/force_clean_build at the root of the repo will trigger a clean rebundle
   if [ -f .openshift/markers/force_clean_build ] &amp;&amp; ! [ -d .bundle ] &amp;&amp; ! git show master~1:.bundle > /dev/null 2>&amp;1
   then
-    jenkins_rsync --include '.bundle/***' --include 'vendor/***' --exclude '*' UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/ .
+    jenkins_rsync --include '.bundle/***' --include 'vendor/***' --exclude '*' UPSTREAM_SSH:~/ruby-1.8/repo/ .
   fi
 
   echo 'Bundling RubyGems based on Gemfile/Gemfile.lock to vendor/bundle'
@@ -88,7 +88,7 @@ fi
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-jenkins_rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/
+jenkins_rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/runtime/repo/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh

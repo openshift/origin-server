@@ -1,4 +1,6 @@
 %global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
+%global frameworkdir %{_libexecdir}/stickshift/cartridges/cron-1.4
+
 
 Name: cartridge-cron-1.4
 Version: 0.10.1
@@ -45,6 +47,7 @@ cp -r info %{buildroot}%{cartridgedir}/
 cp -r jobs %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
+ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
 ln -s %{cartridgedir}/jobs/stickshift-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
 ln -s %{cartridgedir}/jobs/stickshift-cron-hourly %{buildroot}/%{_sysconfdir}/cron.hourly/
@@ -67,8 +70,8 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
-%attr(0755,-,-) %{cartridgedir}/info/lib/
 %attr(0755,-,-) %{cartridgedir}/jobs/
+%attr(0755,-,-) %{frameworkdir}
 %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
 %attr(0755,-,-) %{_sysconfdir}/cron.minutely/stickshift-cron-minutely
 %attr(0755,-,-) %{_sysconfdir}/cron.hourly/stickshift-cron-hourly

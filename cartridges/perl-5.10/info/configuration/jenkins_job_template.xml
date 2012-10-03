@@ -67,7 +67,7 @@ source /usr/libexec/stickshift/cartridges/abstract/info/lib/jenkins_util
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 # Sync libs - Faster builds
-rsync UPSTREAM_SSH:~/UPSTREAM_APP_NAME/perl5lib/ ~/${OPENSHIFT_GEAR_NAME}/perl5lib/
+rsync UPSTREAM_SSH:~/perl-5.10/perl5lib/ ~/perl-5.10/perl5lib/
 
 # Build/update libs and run user pre_build and build
 . ci_build.sh
@@ -78,8 +78,8 @@ rsync UPSTREAM_SSH:~/UPSTREAM_APP_NAME/perl5lib/ ~/${OPENSHIFT_GEAR_NAME}/perl5l
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/${OPENSHIFT_GEAR_NAME}/perl5lib/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/perl5lib/
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/UPSTREAM_APP_NAME/repo/
+rsync ~/perl-5.10/perl5lib/ UPSTREAM_SSH:~/perl-5.10/perl5lib/
+rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/perl-5.10/repo/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh

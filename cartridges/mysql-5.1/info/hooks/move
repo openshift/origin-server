@@ -36,37 +36,18 @@ MYSQL_DIR="$APP_HOME/$cartridge_type"
 
 observe_setup_var_lib_dir "$MYSQL_DIR"
 
-source_if_exists "$APP_HOME/.env/OPENSHIFT_INTERNAL_IP"
-IP=$OPENSHIFT_INTERNAL_IP
-
 # This gear is dedicated to running mysql - configure it as such.
-if [ -z "$IP" ]; then
+if only_cart_on_gear $cartridge_type; then
     prepare_gear_for_standalone_mysql
-else
-    . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-    IP=`find_open_ip $uid $uuid`
-    if [ "$IP" != "$OPENSHIFT_INTERNAL_IP" ]; then 
-       echo "export OPENSHIFT_INTERNAL_IP='$IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-    fi
-    
-    . $APP_HOME/.env/OPENSHIFT_APP_NAME
-    if [ ! -d "$GEAR_BASE_DIR/$uuid/$OPENSHIFT_APP_NAME" ]; then
-        #  This gear is dedicated to running mysql - configure it as such.
-        export CART_INFO_DIR
-        observe_setup_app_home
-        import_env_vars
-        $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
-        restart_httpd_graceful
-    fi
 fi
 
-# Create simple mysql start / stop script
-ln -sf $CART_INFO_DIR/bin/mysql_ctl.sh $MYSQL_DIR/${application}_mysql_ctl.sh
-OPENSHIFT_DB_CTL_SCRIPT="$MYSQL_DIR/${application}_mysql_ctl.sh"
+MYSQL_PORT=3306
+MYSQL_IP=`find_open_ip $uid $uuid $MYSQL_PORT`
 
 #
 # Fix permissions
 #
+observe_setup_app_home
 old_uuid=$(stat -c %U $MYSQL_DIR/etc)
 if [ ! "$old_uuid" == "$uuid" ]; then
     pushd "$MYSQL_DIR" > /dev/null
@@ -79,48 +60,42 @@ fi
 # Source database connection variables
 #
 if [ -d $MYSQL_DIR/.env ]; then
-    . $MYSQL_DIR/.env/OPENSHIFT_DB_PORT
-    . $MYSQL_DIR/.env/OPENSHIFT_DB_HOST
-    . $MYSQL_DIR/.env/OPENSHIFT_DB_PASSWORD
-    . $MYSQL_DIR/.env/OPENSHIFT_DB_USERNAME
+    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_PORT
+    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_HOST
+    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_PASSWORD
+    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_USERNAME
     rm -rf $MYSQL_DIR/.env
 else
-    . $APP_HOME/.env/OPENSHIFT_DB_PORT
-    . $APP_HOME/.env/OPENSHIFT_DB_HOST
-    . $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
-    . $APP_HOME/.env/OPENSHIFT_DB_USERNAME
+    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
+    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
+    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
+    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
 fi
 
 #
 # Setup Environment Variables
 #
-echo "export OPENSHIFT_DB_USERNAME='$OPENSHIFT_DB_USERNAME'" > $APP_HOME/.env/OPENSHIFT_DB_USERNAME
-echo "export OPENSHIFT_DB_PASSWORD='$OPENSHIFT_DB_PASSWORD'" > $APP_HOME/.env/OPENSHIFT_DB_PASSWORD
-echo "export OPENSHIFT_DB_TYPE='mysql'" > $APP_HOME/.env/OPENSHIFT_DB_TYPE
-echo "export OPENSHIFT_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_DB_HOST
-echo "export OPENSHIFT_DB_PORT='3306'" > $APP_HOME/.env/OPENSHIFT_DB_PORT
-echo "export OPENSHIFT_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_HOME/.env/OPENSHIFT_DB_SOCKET
-echo "export OPENSHIFT_DB_URL='mysql://$OPENSHIFT_DB_USERNAME:$OPENSHIFT_DB_PASSWORD@$IP:3306/'" > $APP_HOME/.env/OPENSHIFT_DB_URL
-echo "export OPENSHIFT_DB_CTL_SCRIPT='$MYSQL_DIR/${application}_mysql_ctl.sh'" > $APP_HOME/.env/OPENSHIFT_DB_CTL_SCRIPT
-echo "export OPENSHIFT_DB_MYSQL_51_DUMP='$CART_INFO_DIR/bin/mysql_dump.sh'" > $APP_HOME/.env/OPENSHIFT_DB_MYSQL_51_DUMP
-echo "export OPENSHIFT_DB_MYSQL_51_DUMP_CLEANUP='$CART_INFO_DIR/bin/mysql_cleanup.sh'" > $APP_HOME/.env/OPENSHIFT_DB_MYSQL_51_DUMP_CLEANUP
-echo "export OPENSHIFT_DB_MYSQL_51_RESTORE='$CART_INFO_DIR/bin/mysql_restore.sh'" > $APP_HOME/.env/OPENSHIFT_DB_MYSQL_51_RESTORE
-echo "export OPENSHIFT_DB_MYSQL_51_EMBEDDED_TYPE='mysql-5.1'" > $APP_HOME/.env/OPENSHIFT_DB_MYSQL_51_EMBEDDED_TYPE
+echo "export OPENSHIFT_MYSQL_DB_USERNAME='$OPENSHIFT_MYSQL_DB_USERNAME'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "export OPENSHIFT_MYSQL_DB_PASSWORD='$OPENSHIFT_MYSQL_DB_PASSWORD'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
+echo "export OPENSHIFT_MYSQL_DB_HOST='$MYSQL_IP'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
+echo "export OPENSHIFT_MYSQL_DB_PORT='$MYSQL_PORT'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
+echo "export OPENSHIFT_MYSQL_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_SOCKET
+echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$OPENSHIFT_MYSQL_DB_USERNAME:$OPENSHIFT_MYSQL_DB_PASSWORD@$MYSQL_IP:$MYSQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
 
-ORIG_DB_HOST=$OPENSHIFT_DB_HOST
+ORIG_DB_HOST=$OPENSHIFT_MYSQL_DB_HOST
 
-if [ "$ORIG_DB_HOST" != "$IP" ]
+if [ "$ORIG_DB_HOST" != "$MYSQL_IP" ]
 then
-    sed -i "s,$ORIG_DB_HOST,$IP," $MYSQL_DIR/etc/my.cnf
+    sed -i "s,$ORIG_DB_HOST,$MYSQL_IP," $MYSQL_DIR/etc/my.cnf
     sed -i "s,$old_uuid,$uuid," $MYSQL_DIR/etc/my.cnf
 
-    start_db
+    start_database
 
     echo "
-UPDATE user SET Host='$IP' WHERE Host='$ORIG_DB_HOST';
-flush privileges;" | mysql -u $OPENSHIFT_DB_USERNAME -P $OPENSHIFT_DB_PORT -h $IP --password="$OPENSHIFT_DB_PASSWORD" -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to setup root user with new ip" 187
+UPDATE user SET Host='$MYSQL_IP' WHERE Host='$ORIG_DB_HOST';
+flush privileges;" | mysql -u $OPENSHIFT_MYSQL_DB_USERNAME -P $OPENSHIFT_MYSQL_DB_PORT -h $MYSQL_IP --password="$OPENSHIFT_MYSQL_DB_PASSWORD" -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to setup root user with new ip" 187
 
-    stop_db
+    stop_database
 
-    set_app_info "Connection URL: mysql://$IP:$OPENSHIFT_DB_PORT/"
+    set_app_info "Connection URL: mysql://$MYSQL_IP:$OPENSHIFT_MYSQL_DB_PORT/"
 fi

@@ -3,6 +3,7 @@
 source /etc/stickshift/stickshift-node.conf
 CART_NAME="mongodb"
 CART_VERSION="2.2"
+cartridge_type="mongodb-2.2"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -19,13 +20,23 @@ fi
 
 validate_run_as_user
 
-. app_ctl_pre.sh
-
-mongodb_ctl="$OPENSHIFT_HOMEDIR/$CART_NAME-$CART_VERSION/${OPENSHIFT_GEAR_NAME}_mongodb_ctl.sh"
+cmd=""
 
 case "$1" in
-    start)                    "$mongodb_ctl" start    ;;
-    restart|reload|graceful)  "$mongodb_ctl" restart  ;;
-    stop|graceful-stop)       "$mongodb_ctl" stop     ;;
-    status)                   "$mongodb_ctl" status   ;;
+    start)                    cmd="start"    ;;
+    restart|reload|graceful)  cmd="restart"  ;;
+    stop|graceful-stop)       cmd="stop"     ;;
+    status)                   cmd="status"   ;;
 esac
+
+if [ "${cmd}" == "" ]; then
+    exit 0
+fi
+
+if [ -f $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_MONGODB_DB_GEAR_UUID ]; then
+    mongodb_ctl="ssh $OPENSHIFT_MONGODB_DB_GEAR_UUID@$OPENSHIFT_MONGODB_DB_GEAR_DNS rhcsh ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh $cmd"
+else
+    mongodb_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh $cmd"
+fi
+
+$mongodb_ctl

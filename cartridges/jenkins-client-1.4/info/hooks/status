@@ -33,7 +33,7 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/jenkins-client-1.4/info
 setup_basic_hook "$1" $2 $3
 
 . $APP_HOME/.env/OPENSHIFT_HOMEDIR
-. $APP_HOME/.env/OPENSHIFT_GEAR_NAME
+. $APP_HOME/.env/OPENSHIFT_APP_NAME
 . $APP_HOME/.env/JENKINS_URL
 . $APP_HOME/.env/JENKINS_USERNAME
 
@@ -42,5 +42,5 @@ setup_basic_hook "$1" $2 $3
 #
 
 client_result "You can see the job status here:"
-client_result "${JENKINS_URL}job/${OPENSHIFT_GEAR_NAME}-build/"
+client_result "${JENKINS_URL}job/${OPENSHIFT_APP_NAME}-build/"
   

@@ -23,11 +23,12 @@ function dotted_quad() {
 function find_open_ip {
     uid=$1
     uuid=$2
+    port=${3:-8080}
     for host_ip in `seq 1 127`
     do
         a=`address $uid $host_ip`
         new_ip=`dotted_quad $a`
-        if ! /usr/sbin/lsof -i @${new_ip}:8080 > /dev/null 2>&1
+        if ! /usr/sbin/lsof -i @${new_ip}:${port} > /dev/null 2>&1
         then
             echo $new_ip
             exit
@@ -41,12 +42,13 @@ function find_open_ip {
 function embedded_find_open_ip {
     uid=$1
     app_home=$2
+    port=${3:-8080}
     for host_ip in `seq 1 127`
     do
         a=`address $uid $host_ip`
         new_ip=`dotted_quad $a`
         # Ensure nothing is listening on new IP
-        if ! /usr/sbin/lsof -i @${new_ip}:8080 > /dev/null 2>&1
+        if ! /usr/sbin/lsof -i @${new_ip}:${port} > /dev/null 2>&1
         then
             # Ensure new IP is available
             if ! grep -q $new_ip $app_home/.env/*_IP

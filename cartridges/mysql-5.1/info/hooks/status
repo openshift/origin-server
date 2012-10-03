@@ -31,13 +31,11 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
 
-MYSQL_DIR="$APP_HOME/mysql-5.1/"
-
 #
 # Get the status of the application
 #
 
-if output=$(runuser --shell /bin/sh "$uuid" "$MYSQL_DIR/${application}_mysql_ctl.sh" status 2>&1)
+if output=$(run_as_user "${CARTRIDGE_BASE_PATH}/mysql-5.1/info/bin/app_ctl.sh status" 2>&1)
 then
     status_client_result "$output"
 else

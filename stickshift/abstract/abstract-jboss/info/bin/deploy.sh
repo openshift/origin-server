@@ -14,7 +14,12 @@ if hot_deploy_marker_is_present; then
 else
   start_dbs
 
-  standalone_tmp=${OPENSHIFT_GEAR_DIR}${OPENSHIFT_GEAR_TYPE}/standalone/tmp
+  CART_NAME=$(get_cartridge_name_from_path)
+  CART_NS=$(get_cartridge_namespace_from_path)
+  CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
+  JBOSS_DIR=${CART_DIR}/${CART_NAME}
+
+  standalone_tmp=${JBOSS_DIR}/standalone/tmp
   if [ -d $standalone_tmp ]
   then
       for d in $standalone_tmp/*

@@ -10,12 +10,11 @@ Feature: Cartridge Runtime Extended Checks (Database)
     And the embedded <db_cart_type> cartridge directory will exist
     And the <db_name> configuration file will exist
     And the <db_name> database will exist
-    And the embedded <db_cart_type> cartridge control script will exist
+    And the embedded <db_cart_type> cartridge control script will not exist
     
     When I remove the <db_cart_type> cartridge from the application
     Then a <db_proc> process will not be running
     And the <db_name> database will not exist
-    And the embedded <db_cart_type> cartridge control script will not exist
     And the <db_name> configuration file will not exist
     And the embedded <db_cart_type> cartridge directory will not exist
 
@@ -35,7 +34,7 @@ Feature: Cartridge Runtime Extended Checks (Database)
     And the embedded <db_cart_type> cartridge directory will exist
     And the <db_name> configuration file will exist
     And the <db_name> database will exist
-    And the embedded <db_cart_type> cartridge control script will exist
+    And the embedded <db_cart_type> cartridge control script will not exist
     
     When I remove the <db_cart_type> cartridge from the application
     Then a <db_proc> process will not be running

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export cartridge_type="python-2.6"
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -9,7 +10,9 @@ do
     . $f
 done
 
-export APPDIR="${OPENSHIFT_GEAR_DIR}"
+cart_instance_dir=$OPENSHIFT_HOMEDIR/${cartridge_type}
+
+export APPDIR="${cart_instance_dir}"
 
 # Federate call to abstract httpd.
 ${CARTRIDGE_BASE_PATH}/abstract-httpd/info/bin/app_ctl.sh "$@"

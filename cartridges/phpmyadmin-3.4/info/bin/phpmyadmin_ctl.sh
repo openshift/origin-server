@@ -1,8 +1,11 @@
 #!/bin/bash -e
 
+cartridge_type="phpmyadmin-3.4"
+
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
+
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -18,41 +21,43 @@ fi
 
 validate_run_as_user
 
-export PHPRC="${OPENSHIFT_PHPMYADMIN_GEAR_DIR}conf/php.ini"
+PHPMYADMIN_DIR="$OPENSHIFT_HOMEDIR/$cartridge_type/"
 
-CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/embedded/phpmyadmin-3.4/info/configuration/etc/conf
+export PHPRC="${PHPMYADMIN_DIR}conf/php.ini"
+
+CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/embedded/${cartridge_type}/info/configuration/etc/conf
 HTTPD_CFG_FILE=$CART_CONF_DIR/httpd_nolog.conf
-HTTPD_PID_FILE=${OPENSHIFT_PHPMYADMIN_GEAR_DIR}run/httpd.pid
+HTTPD_PID_FILE=${PHPMYADMIN_DIR}run/httpd.pid
 
 case "$1" in
     start)
-        if [ -f ${OPENSHIFT_PHPMYADMIN_GEAR_DIR}run/stop_lock ]
+        if [ -f ${PHPMYADMIN_DIR}run/stop_lock ]
         then
-            echo "Application is explicitly stopped!  Use 'rhc app cartridge start -a ${OPENSHIFT_GEAR_NAME} -c phpmyadmin-3.4' to start back up." 1>&2
+            echo "Application is explicitly stopped!  Use 'rhc app cartridge start -a ${OPENSHIFT_CART_NAME} -c ${cartridge_type}' to start back up." 1>&2
             exit 0
         else
             ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-            src_user_hook pre_start_phpmyadmin-3.4
-            /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_GEAR_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
-            run_user_hook post_start_phpmyadmin-3.4
+            src_user_hook pre_start_${cartridge_type}
+            /usr/sbin/httpd -C "Include ${PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
+            run_user_hook post_start_${cartridge_type}
         fi
     ;;
 
     graceful-stop|stop)
         # Don't exit on errors on stop.
         set +e
-        src_user_hook pre_stop_phpmyadmin-3.4
+        src_user_hook pre_stop_${cartridge_type}
         httpd_pid=`cat "$HTTPD_PID_FILE" 2> /dev/null`
         ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_GEAR_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
+        /usr/sbin/httpd -C "Include ${PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
         wait_for_stop $httpd_pid
-        run_user_hook post_stop_phpmyadmin-3.4
+        run_user_hook post_stop_${cartridge_type}
     ;;
 
     restart|graceful)
         ensure_valid_httpd_process "$HTTPD_PID_FILE" "$HTTPD_CFG_FILE"
-        src_user_hook pre_start_phpmyadmin-3.4
-        /usr/sbin/httpd -C "Include ${OPENSHIFT_PHPMYADMIN_GEAR_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
-        run_user_hook post_start_phpmyadmin-3.4
+        src_user_hook pre_start_${cartridge_type}
+        /usr/sbin/httpd -C "Include ${PHPMYADMIN_DIR}conf.d/*.conf" -f $HTTPD_CFG_FILE -k $1
+        run_user_hook post_start_${cartridge_type}
     ;;
 esac

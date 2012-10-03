@@ -21,9 +21,10 @@ validate_run_as_user
 
 case "$1" in
     start)
-        exec 1>&- # close stdout
-        app_ctl_impl.sh start >/dev/null 2>&1
-        exec 1>&2 # redirect stdout to stderr
+        #exec 1>&- # close stdout
+        #app_ctl_impl.sh start >/dev/null 2>&1
+        #exec 1>&2 # redirect stdout to stderr
+        app_ctl_impl.sh start
     ;;
     *)
         app_ctl_impl.sh $1

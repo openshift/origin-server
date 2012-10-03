@@ -343,10 +343,14 @@ module MCollective
         else
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
-          if File.exists? "/usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-          elsif File.exists? "/usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+          if File.exists? "/usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+            Log.instance.info("cartridge_do_action executing #{cart_cmd}")
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
+          elsif File.exists? "/usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+            Log.instance.info("cartridge_do_action executing #{cart_cmd}")
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
           else
             reply[:exitcode] = 127
             reply.fail! "cartridge_do_action ERROR action '#{action}' not found."

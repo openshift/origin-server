@@ -38,7 +38,9 @@ function _service_status() {
 
 
 function _service_start() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "$CART_DIRNAME" ] && set_app_state started
+    if only_cart_on_gear $cartridge_type; then
+      set_app_state started
+    fi
 
     if _is_service_running; then
         echo "$SERVICE_NAME server instance already running" 1>&2
@@ -54,7 +56,9 @@ function _service_start() {
 
 
 function _service_stop() {
-    [ "$OPENSHIFT_GEAR_TYPE" == "$CART_DIRNAME" ] && set_app_state stopped
+    if only_cart_on_gear $cartridge_type; then
+      set_app_state stopped
+    fi
 
     if [ -f $CART_INSTANCE_DIR/pid/postgres.pid ]; then
         pid=$( /bin/cat $CART_INSTANCE_DIR/pid/postgres.pid )
@@ -116,7 +120,7 @@ done
 
 # Cartridge instance dir and control script name.
 CART_INSTANCE_DIR="$OPENSHIFT_HOMEDIR/$CART_DIRNAME"
-CTL_SCRIPT="$CART_INSTANCE_DIR/${OPENSHIFT_GEAR_NAME}_${CART_NAME}_ctl.sh"
+CTL_SCRIPT="$CART_INSTANCE_DIR/app_ctl.sh"
 source ${CART_INFO_DIR}/lib/util
 
 #  Ensure logged in as user.

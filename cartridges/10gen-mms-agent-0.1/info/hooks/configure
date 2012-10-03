@@ -29,29 +29,19 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3
+import_env_vars
+
 disable_cgroups
 
 MMS_DIR=`get_cartridge_instance_dir "$cartridge_type" | tr -s /` # ensure that there aren't double /'s
-MMS_CTL_SCRIPT="$MMS_DIR/${application}_10gen_mms_agent_ctl.sh"
 
-if [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_USERNAME" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PASSWORD" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_HOST" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE" ] ||
-   [ ! -f "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_PORT" ] 
+databases=$(get_attached_databases)
+if ! echo "$databases" |grep -q 'mongodb'
 then
    client_error ""
    client_error "MongoDB must be embedded before the 10gen MMS Agent"
    client_error ""
    exit 137
-else
-   source "$APP_HOME/.env/OPENSHIFT_NOSQL_DB_TYPE"
-   if [ $OPENSHIFT_NOSQL_DB_TYPE != "mongodb" ]; then
-      client_error ""
-      client_error "MongoDB must be embedded before the 10gen MMS Agent"
-      client_error ""
-      exit 137
-   fi
 fi
 
 #
@@ -87,11 +77,6 @@ popd > /dev/null
 
 
 #
-# Create simple 10gen-mms-agent start / stop script
-#
-ln -s $CART_INFO_DIR/bin/10gen_mms_agent_ctl.sh $MMS_CTL_SCRIPT
-
-#
 # Setup Permissions
 #
 chown $user_id.$group_id -R $MMS_DIR || error "Failed to chown new 10gen-mms-agent space.  Please contact support" 123
@@ -101,13 +86,12 @@ observe_setup_var_lib_dir "$MMS_DIR"
 #
 # Create environment variables. This MUST be before starting 10gen-mms-agent as the CTL script relies on these.
 #
-echo "export OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR='$MMS_DIR/'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_GEAR_DIR
-echo "export OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT='$MMS_CTL_SCRIPT'" > $APP_HOME/.env/OPENSHIFT_10GEN_MMS_AGENT_CTL_SCRIPT
+create_standard_cart_env_vars
 
 #
 # Start the server
 #
-run_as_user "$MMS_CTL_SCRIPT start" || error "Failed to start ${application}" 121
+run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh start" || error "Failed to start ${application}" 121
 
 client_result ""
 client_result "10gen-mms-agent-0.1 added. " 

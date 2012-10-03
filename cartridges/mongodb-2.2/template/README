@@ -13,24 +13,15 @@ Environment Variables
 =====================
 
 OpenShift provides several environment variables to reference for ease
-of use.  The following list are some common variables but far from exhaustive:
-
-    os.environ['OPENSHIFT_GEAR_NAME']  - Application name
-    os.environ['OPENSHIFT_GEAR_DIR']   - Application dir
-    os.environ['OPENSHIFT_DATA_DIR']  - For persistent storage (between pushes)
-    os.environ['OPENSHIFT_TMP_DIR']   - Temp storage (unmodified files deleted after 10 days)
+of use. 
 
 When embedding a database using 'rhc app cartridge add', you can reference environment
 variables for username, host and password:
 
-    os.environ['OPENSHIFT_DB_HOST']            - DB host
-    os.environ['OPENSHIFT_DB_PORT']            - DB Port
-    os.environ['OPENSHIFT_DB_USERNAME']        - DB Username
-    os.environ['OPENSHIFT_DB_PASSWORD']        - DB Password
-    os.environ['OPENSHIFT_NOSQL_DB_HOST']      - NoSQL DB host
-    os.environ['OPENSHIFT_NOSQL_DB_PORT']      - NoSQL DB Port
-    os.environ['OPENSHIFT_NOSQL_DB_USERNAME']  - NoSQL DB Username
-    os.environ['OPENSHIFT_NOSQL_DB_PASSWORD']  - NoSQL DB Password
+    os.environ['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB host
+    os.environ['OPENSHIFT_MONGODB_DB_PORT']      - NoSQL DB Port
+    os.environ['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
+    os.environ['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

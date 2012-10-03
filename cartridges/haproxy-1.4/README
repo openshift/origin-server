@@ -60,17 +60,18 @@ To run them first ssh to your haproxy gear:
     ssh $UUID@$MYAPP-$MYDOM.rhcloud.com
 
 There are also logs kept in the gear in the following locations:
+    HAPROXY_DIR = $OPENSHIFT_HOMEDIR/haproxy-1.4
 
-    $OPENSHIFT_LOG_DIR/scale_events.log - contains scale up / down events
-    $OPENSHIFT_RUN_DIR/haproxy_ctld.pid - pid file for haproxy_ctld
-    $OPENSHIFT_RUN_DIR/haproxy_ctld.output - tracebacks and errors
+    $OPENSHIFT_HAPROXY_LOG_DIR/scale_events.log - contains scale up / down events
+    $HAPROXY_DIR/run/haproxy_ctld.pid - pid file for haproxy_ctld
+    $HAPROXY_DIR/run/haproxy_ctld.output - tracebacks and errors
 
 In order to start haproxy_ctld in debug mode (which produces more useful logs):
 
     $ haproxy_ctld_daemon stop
     $ haproxy_ctld --debug &
 
-Then take a look at $OPENSHIFT_LOG_DIR/scale_events.log.  You'll see lots of
+Then take a look at $OPENSHIFT_HAPROXY_LOG_DIR/scale_events.log.  You'll see lots of
 the following lines:
 
 GEAR_INFO - capacity: 0.0% gear_count: 1 sessions: 0 up/remove_thresh: 90.0%/49.9% sec_left_til_remove: 120 gear_remove_thresh: 0/3

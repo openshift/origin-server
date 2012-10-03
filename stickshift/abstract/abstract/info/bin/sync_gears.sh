@@ -9,6 +9,10 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+# Set the sync source base dir
+CART_PATH=$(cd -P $(dirname "$0")/../.. && pwd)
+SYNC_BASE_DIR="$OPENSHIFT_HOMEDIR/$(basename "$CART_PATH")"
+
 # Defines the default pre sync actions, taking into account
 # the hot_deploy marker.
 function set_default_pre_actions {
@@ -60,9 +64,9 @@ do
   arr=(${gear//:/ })
   sshcmd="ssh ${arr[0]}"
   echo "SSH_CMD: ${sshcmd}"
-  output=$(mktemp "${OPENSHIFT_GEAR_DIR}/tmp/sync_gears.output.XXXXXXXXXXXXXXXX")
+  output=$(mktemp "${SYNC_BASE_DIR}/tmp/sync_gears.output.XXXXXXXXXXXXXXXX")
   STDOUTS+=("$output")
-  exitcode=$(mktemp "${OPENSHIFT_GEAR_DIR}/tmp/sync_gears.exit.XXXXXXXXXXXXXXXX")
+  exitcode=$(mktemp "${SYNC_BASE_DIR}/tmp/sync_gears.exit.XXXXXXXXXXXXXXXX")
   EXITCODES+=("$exitcode")
   (
     (
@@ -78,9 +82,9 @@ do
       # Push content to remote gear
       for subd in "${OPENSHIFT_SYNC_GEARS_DIRS[@]}"
       do
-        if [ -d "${OPENSHIFT_GEAR_DIR}/${subd}" ]
+        if [ -d "${SYNC_BASE_DIR}/${subd}" ]
         then
-          $rsynccmd "${OPENSHIFT_GEAR_DIR}/${subd}/" "${gear}/${subd}/"
+          $rsynccmd "${SYNC_BASE_DIR}/${subd}/" "${gear}/${subd}/"
         fi
       done
 

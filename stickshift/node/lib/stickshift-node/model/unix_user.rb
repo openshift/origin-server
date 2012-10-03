@@ -91,47 +91,65 @@ module StickShift
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
 
-      File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do | lock |
-        lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-        lock.flock(File::LOCK_EX)
+      # lock to prevent race condition between create and delete of gear
+      uuid_lock_file = "/var/lock/ss-create.#{@uuid}"
+      File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | uuid_lock |
+        uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+        uuid_lock.flock(File::LOCK_EX)
 
-        unless @uid
-          @uid = @gid = next_uid
-        end
+        # Lock to prevent race condition on obtaining a UNIX user uid.
+        # When running without districts, there is a simple search on the
+        #   passwd file for the next available uid.
+        File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do | uid_lock |
+          uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+          uid_lock.flock(File::LOCK_EX)
 
-        unless @homedir
-          @homedir = File.join(basedir,@uuid)
-        end
+          unless @uid
+            @uid = @gid = next_uid
+          end
 
-        cmd = %{useradd -u #{@uid} \
-                -d #{@homedir} \
-                -s #{shell} \
-                -c '#{gecos}' \
-                -m \
-                -k #{skel_dir} \
-                #{@uuid}}
-        out,err,rc = shellCmd(cmd)
-        raise UserCreationException.new(
-                "ERROR: unable to create user account #{@uuid}, #{cmd}"
-                ) unless rc == 0
+          unless @homedir
+            @homedir = File.join(basedir,@uuid)
+          end
 
-        FileUtils.chown("root", @uuid, @homedir)
-        FileUtils.chmod 0o0750, @homedir
+          cmd = %{useradd -u #{@uid} \
+                  -d #{@homedir} \
+                  -s #{shell} \
+                  -c '#{gecos}' \
+                  -m \
+                  -k #{skel_dir} \
+                  #{@uuid}}
+          out,err,rc = shellCmd(cmd)
+          raise UserCreationException.new(
+                  "ERROR: unable to create user account #{@uuid}, #{cmd}"
+                  ) unless rc == 0
 
-        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-          unobfuscated = File.join(File.dirname(@homedir),"#{@container_name}-#{namespace}")
-          if not File.exists? unobfuscated
-            FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
+          FileUtils.chown("root", @uuid, @homedir)
+          FileUtils.chmod 0o0750, @homedir
+
+          if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+            unobfuscated = File.join(File.dirname(@homedir),"#{@container_name}-#{namespace}")
+            if not File.exists? unobfuscated
+              FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
+            end
           end
         end
+        notify_observers(:after_unix_user_create)
+        initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
+        initialize_stickshift_proxy
 
+        uuid_lock.flock(File::LOCK_UN)
+        File.unlink(uuid_lock_file)
       end
-      notify_observers(:after_unix_user_create)
-      initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
-      initialize_stickshift_proxy
     end
 
     # Public: Destroys a gear stopping all processes and removing all files
+    #
+    # The order of the calls and gyrations done in this code is to prevent
+    #   pam_namespace from locking polyinstantiated directories during
+    #   their deletion. If you see "broken" gears, i.e. ~uuid/.tmp and
+    #    ~/uuid/.sandbox after #destroy has been called, this method is broken.
+    # See Bug 853582 for history.
     #
     # Examples
     #
@@ -148,53 +166,73 @@ module StickShift
       raise UserDeletionException.new(
             "ERROR: unable to destroy user account #{@uuid}"
             ) if @uid.nil? || @homedir.nil? || @uuid.nil?
-      notify_observers(:before_unix_user_destroy)
 
-      initialize_stickshift_proxy
+      # Don't try to delete a gear that is being scaled-up|created|deleted
+      uuid_lock_file = "/var/lock/ss-create.#{@uuid}"
+      File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | lock |
+        lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+        lock.flock(File::LOCK_EX)
 
-      kill_procs(uuid)
-      purge_sysvipc(uuid)
+        # These calls and their order is designed to release pam_namespace's
+        #   locks on .tmp and .sandbox. Change then at your peril. 
+        #
+        # 1. Kill off the easy processes
+        # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
+        # 3. Attempt to move any processes that didn't die into state 'D' (re: cgroups freeze)
+        kill_procs(@uid)
+        notify_observers(:before_unix_user_destroy)
+        kill_procs(@uid)
 
-      if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-        Dir.foreach(File.dirname(@homedir)) do |dent|
-          unobfuscate = File.join(File.dirname(@homedir), dent)
-          if (File.symlink?(unobfuscate)) &&
-              (File.readlink(unobfuscate) == File.basename(@homedir))
-            File.unlink(unobfuscate)
+        purge_sysvipc(uuid)
+        initialize_stickshift_proxy
+
+        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+          Dir.foreach(File.dirname(@homedir)) do |dent|
+            unobfuscate = File.join(File.dirname(@homedir), dent)
+            if (File.symlink?(unobfuscate)) &&
+                (File.readlink(unobfuscate) == File.basename(@homedir))
+              File.unlink(unobfuscate)
+            end
           end
         end
-      end
 
-      if File.exists?(@homedir)
-        # FIXME: logging and repeated deletes added for debugging. Once root issue
-        #        has been determined this can be cleaned up.
+        basedir = @config.get("GEAR_BASE_DIR")
+        path = File.join(basedir, ".httpd.d", "#{uuid}_*")
+        FileUtils.rm_rf(Dir.glob(path))
+
+        cartdir = @config.get("CARTRIDGE_BASE_PATH")
+        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
+        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+
         dirs = list_home_dir(@homedir)
+        out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
+        raise UserDeletionException.new(
+              "ERROR: unable to destroy user account(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+
+        # 1. Don't believe everything you read on the userdel man page...
+        # 2. If there are any active processes left pam_namespace is not going
+        #      to let polyinstantiated directories be deleted.
         FileUtils.rm_rf(@homedir)
         if File.exists?(@homedir)
+          # Ops likes the verbose verbage
           Syslog.alert "1st attempt to remove \'#{@homedir}\' from filesystem failed."
-          Syslog.alert "Dirs  #{@uuid} => #{dirs}"
-          Syslog.alert "Procs #{@uuid} => #{`ps -u #{@uuid}`}"
-
-          FileUtils.rm_rf(@homedir)
-          if File.exists?(@homedir)
-            Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed."
-          end
+          Syslog.alert "Dir(before)   #{@uuid}/#{@uid} => #{dirs}"
+          Syslog.alert "Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}"
         end
+
+        # release resources (cgroups thaw), this causes Zombies to get killed
+        notify_observers(:after_unix_user_destroy)
+
+        # try one last time...
+        if File.exists?(@homedir)
+          sleep(5)                    # don't fear the reaper
+          FileUtils.rm_rf(@homedir)   # This is our last chance to nuke the polyinstantiated directories
+          Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed." if File.exists?(@homedir)
+        end
+
+        lock.flock(File::LOCK_UN)
+        File.unlink(uuid_lock_file)
       end
-
-      basedir = @config.get("GEAR_BASE_DIR")
-      path = File.join(basedir, ".httpd.d", "#{uuid}_*")
-      FileUtils.rm_rf(Dir.glob(path))
-
-      # There's a small race condition where tasks get restarted during teardown.
-      # Kill again after the home directory is gone.
-      kill_procs(uuid)
-      purge_sysvipc(uuid)
-
-      out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
-      raise UserDeletionException.new(
-            "ERROR: unable to destroy user account: #{@uuid}   stdout: #{out}   stderr:#{err}") unless rc == 0
-      notify_observers(:after_unix_user_destroy)
     end
 
     # Public: Append an SSH key to a users authorized_keys file
@@ -265,8 +303,7 @@ module StickShift
     #
     # Examples
     #
-    #  add_env_var('OPENSHIFT_DB_TYPE',
-    #               'mysql-5.3')
+    #  add_env_var('mysql-5.3')
     #  # => 36
     #
     # Returns the Integer value for how many bytes got written or raises on
@@ -293,7 +330,7 @@ module StickShift
     def list_home_dir(home_dir)
       results = []
       Dir.foreach(home_dir) do |entry|
-        next if entry =~ /^\.{1,2}/   # Ignore ".", "..", or hidden files
+        #next if entry =~ /^\.{1,2}/   # Ignore ".", "..", or hidden files
         results << entry
       end
       results.join(', ')
@@ -306,7 +343,7 @@ module StickShift
     #
     # Examples
     #
-    #   remove_env_var('OPENSHIFT_DB_TYPE')
+    #   remove_env_var('OPENSHIFT_MONGODB_DB_URL')
     #   # => nil
     #
     # Returns an nil on success and false on failure.
@@ -389,8 +426,8 @@ module StickShift
     #   # ~/.tmp/
     #   # ~/.sandbox/$uuid
     #   # ~/.env/
-    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, GEAR_DIR, \
-    #   #   GEAR_DNS, GEAR_NAME, GEAR_CTL_SCRIPT, PATH, REPO_DIR, TMP_DIR
+    #   # APP_UUID, GEAR_UUID, APP_NAME, APP_DNS, HOMEDIR, DATA_DIR, \
+    #   #   GEAR_DNS, GEAR_NAME, PATH, REPO_DIR, TMP_DIR, HISTFILE
     #   # ~/app-root
     #   # ~/app-root/data
     #   # ~/app-root/runtime/repo
@@ -450,7 +487,6 @@ module StickShift
       FileUtils.chown(@uuid, @uuid, profile, :verbose => @debug)
 
 
-      add_env_var("GEAR_DIR", geardir, true)
       add_env_var("GEAR_DNS",
                   "#{@container_name}-#{@namespace}.#{@config.get("CLOUD_DOMAIN")}",
                   true)
@@ -576,19 +612,32 @@ module StickShift
     # Examples:
     # kill_gear_procs
     #    => true
-    #    killall -u id
+    #    pkill -u id
     #
     # Raises exception on error.
     #
     def kill_procs(id)
       if id.nil? or id == ""
-        raise ArgumentError, "Supplied ID must be a user name or uid."
+        raise ArgumentError, "Supplied ID must be a uid."
       end
 
+      # Give it a good try to delete all processes.
+      # This abuse is neccessary to release locks on polyinstantiated
+      #    directories by pam_namespace.
+      out = err = rc = nil
       10.times do |i|
-        out,err,rc = shellCmd(%{/usr/bin/killall -s 'KILL' -u '#{id}' 2> /dev/null})
-        break unless rc == 0
+        shellCmd(%{/usr/bin/pkill -9 -u #{id}})
+        out,err,rc = shellCmd(%{/usr/bin/pgrep -u #{id}})
+        break unless 0 == rc
+
+        Syslog.alert "ERROR: attempt #{i}/10 existing killed process pids #{id}: rc: #{rc} out: #{out} err: #{err}"
         sleep 0.5
+      end
+
+      # looks backwards but 0 implies processes still existed
+      if 0 == rc
+        out,err,rc = shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
+        Syslog.alert "ERROR: existing killed processes #{id}: rc: #{rc} out: #{out} err: #{err}"
       end
     end
 

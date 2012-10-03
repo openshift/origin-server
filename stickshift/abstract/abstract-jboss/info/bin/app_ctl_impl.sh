@@ -4,10 +4,9 @@ source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
-for f in ~/.env/*
-do
-    . $f
-done
+for f in ~/.env/*; do . $f; done
+
+cartridge_type=$(get_cartridge_name_from_path)
 
 if ! [ $# -eq 1 ]
 then
@@ -15,13 +14,15 @@ then
     exit 1
 fi
 
-APP_JBOSS="$OPENSHIFT_GEAR_DIR"/${OPENSHIFT_GEAR_TYPE}
+CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
+
+APP_JBOSS=${CART_DIR}/${cartridge_type}
 APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
 APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir
-exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
-exec > "$APP_JBOSS_TMP_DIR/${CARTRIDGE_TYPE}-${OPENSHIFT_GEAR_NAME}_ctl-$1.log" 2>&1
+#exec 4>&1 > /dev/null 2>&1  # Link file descriptor 4 with stdout, saves stdout.
+#exec > "$APP_JBOSS_TMP_DIR/${cartridge_type}-${cartridge_type}_ctl-$1.log" 2>&1
 
 # Kill the process given by $1 and its children
 killtree() {
@@ -66,26 +67,26 @@ function start_app() {
     fi
 
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
-        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+    if [ -f $APP_JBOSS/run/stop_lock -o idle = "$_state" ]; then
+        echo "Application is explicitly stopped!  Use 'rhc app start -a ${cartridge_type}' to start back up." 1>&2
     else
         # Check for running app
         if isrunning; then
             echo "Application is already running" 1>&2
         else
-            src_user_hook pre_start_${CARTRIDGE_TYPE}
+            src_user_hook pre_start_${cartridge_type}
             set_app_state started
             # Start
             jopts="${JAVA_OPTS}"
             [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n ${JAVA_OPTS}"
-            JAVA_OPTS="${jopts}" $APP_JBOSS_BIN_DIR/standalone.sh > ${APP_JBOSS_TMP_DIR}/${OPENSHIFT_GEAR_NAME}.log 2>&1 &
+            JAVA_OPTS="${jopts}" $APP_JBOSS_BIN_DIR/standalone.sh > ${APP_JBOSS_TMP_DIR}/${cartridge_type}.log 2>&1 &
             PROCESS_ID=$!
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
                 exit 1
             fi
-            run_user_hook post_start_${CARTRIDGE_TYPE}
+            run_user_hook post_start_${cartridge_type}
         fi
     fi
 }
@@ -96,11 +97,11 @@ function stop_app() {
         jbpid=$(cat $JBOSS_PID_FILE);
         echo "Application($jbpid) is already stopped" 1>&2
     elif [ -f "$JBOSS_PID_FILE" ]; then
-        src_user_hook pre_stop_${CARTRIDGE_TYPE}
+        src_user_hook pre_stop_${cartridge_type}
         pid=$(cat $JBOSS_PID_FILE);
         echo "Sending SIGTERM to jboss:$pid ..." 1>&2
         killtree $pid
-        run_user_hook post_stop_${CARTRIDGE_TYPE}
+        run_user_hook post_stop_${cartridge_type}
     else 
         echo "Failed to locate JBOSS PID File" 1>&2
     fi
@@ -120,7 +121,7 @@ function threaddump() {
 }
 
 
-JBOSS_PID_FILE="$OPENSHIFT_GEAR_DIR/run/jboss.pid"
+JBOSS_PID_FILE="$CART_DIR/run/jboss.pid"
 
 case "$1" in
     start)
@@ -143,15 +144,15 @@ case "$1" in
     ;;
     status)
         # Restore stdout and close file descriptor #4
-        exec 1>&4 4>&-
+        #exec 1>&4 4>&-
         
         if ! isrunning; then
-            echo "Application '${OPENSHIFT_GEAR_NAME}' is either stopped or inaccessible"
+            echo "Application '${cartridge_type}' is either stopped or inaccessible"
             exit 0
         fi
 
         echo tailing "$APP_JBOSS/standalone/log/server.log"
-        echo "------ Tail of ${OPENSHIFT_GEAR_NAME} application server.log ------"
+        echo "------ Tail of ${cartridge_type} application server.log ------"
         tail "$APP_JBOSS/standalone/log/server.log"
         exit 0
     ;;

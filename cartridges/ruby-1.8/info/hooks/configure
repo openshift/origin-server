@@ -45,14 +45,13 @@ fi
 #
 
 create_cartridge_instance_dir "$cartridge_type"
-create_app_dir_symlink "$cartridge_type"
-RUBYCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+cartridge_instance_dir=$(get_cartridge_instance_dir "$cartridge_type")
 
 # FIXME Old directory should no longer be required
 mkdir -p /s
 chmod 751 /s
 #"/s/$(echo \"${uuid}_${application}\" | md5sum | cut -d ' ' -f1)"
-pushd "$RUBYCART_INSTANCE_DIR" > /dev/null
+pushd "$cartridge_instance_dir" > /dev/null
 create_standard_app_dirs
 mkdir conf conf.d logs $APP_REPO_DIR/public $APP_REPO_DIR/tmp
 ln -s /usr/lib64/httpd/modules modules
@@ -68,26 +67,23 @@ IP=`find_open_ip $uid $uuid`
 
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
 
-create_app_ctl_script "$cartridge_type"
-
 populate_repo_dir
 
 secure_app_dir
-
 secure_cart_instance_dir
-
 secure_conf_dirs
 
 observe_setup_app_and_git_dirs
-
 observe_setup_cart_instance_dir
 
 #
 # Create environment variables
 #
-create_standard_env_vars
+
+create_standard_cart_env_vars
 create_standard_env_uservars
-create_standard_network_env_vars
+create_standard_network_env_vars $IP
+create_cart_network_env_vars $IP
 create_standard_path_env_var
 create_standard_repo_dir_env_var
 

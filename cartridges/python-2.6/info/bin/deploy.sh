@@ -12,16 +12,16 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 start_dbs
 
 # Run build
-#virtualenv --relocatable ${OPENSHIFT_GEAR_DIR}virtenv
-#. ./bin/activate
 
-if [ -d ${OPENSHIFT_GEAR_DIR}virtenv ]
+cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+
+virtenv_dir=$cart_instance_dir/virtenv
+
+if [ -f $virtenv_dir/bin/activate ]
 then 
-    pushd ${OPENSHIFT_GEAR_DIR}virtenv > /dev/null
-    # FIXME: Fix next line to use $virtenv when typeless gears merge is done.
-    z_virtenv_dir=~/python-2.6/virtenv
+    pushd $virtenv_dir > /dev/null
     /bin/rm -f lib64
-    virtualenv --system-site-packages "$z_virtenv_dir"
+    virtualenv --system-site-packages $virtenv_dir
     . ./bin/activate
     popd > /dev/null
 fi

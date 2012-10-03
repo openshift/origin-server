@@ -4,7 +4,7 @@ Feature: Cartridge Runtime Extended Checks (Python)
   @runtime_extended2
   Scenario Outline: Hot deployment tests
     Given a new <type> type application
-    And the application is prepared for git pushes
+    And the application is made publicly accessible
     And hot deployment <hot_deploy_status> for the application
     And the application cartridge PIDs are tracked
     When an update is pushed to the application repo
@@ -15,4 +15,4 @@ Feature: Cartridge Runtime Extended Checks (Python)
 
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
-    | python-2.6   | httpd      | is not enabled    | should be     |
+    | python-2.6   | httpd     | is not enabled    | should be     |

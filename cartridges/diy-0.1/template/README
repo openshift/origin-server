@@ -27,7 +27,8 @@ Note: Every time you push, everything in your remote repo dir gets recreated
       please store long term items (like an sqlite database) in the OpenShift
       data directory, which will persist between pushes of your repo.
       The OpenShift data directory is accessible relative to the remote repo
-      directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
+      directory (../data) or using a path constructed as
+      $OPENSHIFT_HOMEDIR/app-root/data.
 
 
 Environment Variables
@@ -36,11 +37,11 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
-    $_ENV['OPENSHIFT_INTERNAL_IP']  - IP Address assigned to the application
-    $_ENV['OPENSHIFT_GEAR_NAME']  - Application name
-    $_ENV['OPENSHIFT_GEAR_DIR']   - Application dir
-    $_ENV['OPENSHIFT_DATA_DIR']  - For persistent storage (between pushes)
-    $_ENV['OPENSHIFT_TMP_DIR']   - Temp storage (unmodified files deleted after 10 days)
+    $OPENSHIFT_INTERNAL_IP            - IP Address assigned to the application
+    $OPENSHIFT_APP_NAME               - Application name
+    $OPENSHIFT_HOMEDIR/diy-0.1        - Application dir
+    $OPENSHIFT_HOMEDIR/app-root/data  - For persistent storage (between pushes)
+    $OPENSHIFT_TMP_DIR                - Temp storage (unmodified files deleted after 10 days)
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

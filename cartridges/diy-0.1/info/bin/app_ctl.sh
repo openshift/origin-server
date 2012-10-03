@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+cartridge_type='diy-0.1'
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
@@ -19,8 +20,8 @@ fi
 
 start() {
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
-        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
+    if [ -f $OPENSHIFT_HOMEDIR/diy-0.1/run/stop_lock -o idle = "$_state" ]; then
+        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
         return 0
     fi
     set_app_state started
