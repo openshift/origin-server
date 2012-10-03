@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.16.1
+Version: 0.16.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -84,6 +84,9 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
+- removing Gemfile.locks (dmcphers@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.16.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
