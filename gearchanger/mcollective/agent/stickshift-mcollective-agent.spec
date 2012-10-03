@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.4.1
+Version: 0.4.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,10 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.4.2-1
+- BZ 862350: set proper file context when the yaml file is moved from /tmp to
+  /etc (rmillner@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
