@@ -107,6 +107,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
   cp -f /etc/stickshift/resource_limits.template /etc/stickshift/resource_limits.conf
 fi
 
+/usr/sbin/setsebool -P httpd_run_stickshift 1 2>/dev/null || :
+/usr/sbin/setsebool -P httpd_run_openshift  1 2>/dev/null || :
+
+
 %changelog
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
 - fixing test typo and specifying parseconfig gem version to get rid of
