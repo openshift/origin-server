@@ -60,8 +60,8 @@ rm -rf %{buildroot}%{gemdir}/bin
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/etc/stickshift/plugins.d
-cp conf/swingshift-mongo-plugin.conf %{buildroot}/etc/stickshift/plugins.d/swingshift-mongo-plugin.conf
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp conf/swingshift-mongo-plugin.conf %{buildroot}/etc/openshift/plugins.d/swingshift-mongo-plugin.conf
 
 mkdir -p %{buildroot}/var/www/stickshift/broker/config/initializers/
 cp conf/swingshift-mongo-plugin.rb %{buildroot}/var/www/stickshift/broker/config/initializers/swingshift-mongo-plugin.rb

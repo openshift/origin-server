@@ -2,7 +2,7 @@ To enable a plug-in, merely create a file in this directory named as the
 name of the plug-in with ".conf" appended.  For example, to enable the
 Uplift BIND plug-in, create the following file:
 
-   /etc/stickshift-node/plugins.d/uplift-bind-plugin.conf
+   /etc/openshift/plugins.d/uplift-bind-plugin.conf
 
 The broker will then load the plug-in and read in the settings for the
 plug-in from uplift-bind-plugin.conf.

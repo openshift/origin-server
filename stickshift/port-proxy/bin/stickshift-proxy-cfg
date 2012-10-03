@@ -5,9 +5,9 @@
 #
 
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 
-cfgfile=/etc/stickshift/stickshift-proxy.cfg
+cfgfile=/etc/openshift/proxy.cfg
 lockfile="/var/run/stickshift-proxy.lock"
 reloadlock="/var/run/stickshift-proxy-reload.lock"
 reqprefix="/tmp/stickshift-proxy-reload.req"

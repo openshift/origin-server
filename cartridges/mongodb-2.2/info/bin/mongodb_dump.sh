@@ -11,7 +11,7 @@ done
 #         of packages.
 unset LD_LIBRARY_PATH
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/mongodb-2.2/info
 source ${CART_INFO_DIR}/lib/util
 

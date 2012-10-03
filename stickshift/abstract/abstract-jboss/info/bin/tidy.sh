@@ -6,7 +6,7 @@ do
     . $f
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 standalone_tmp=${OPENSHIFT_GEAR_DIR}${OPENSHIFT_GEAR_TYPE}/standalone/tmp/

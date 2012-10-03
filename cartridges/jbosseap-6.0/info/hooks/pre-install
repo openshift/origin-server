@@ -8,7 +8,7 @@ set -e
 # The name of the jbosseap cartridge dir under /usr/libexec/stickshift/cartridges
 jboss_version=jbosseap-6.0
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 

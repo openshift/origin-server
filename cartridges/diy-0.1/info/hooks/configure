@@ -26,7 +26,7 @@ done
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
 cartridge_type="diy-0.1"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3 $4

@@ -5,7 +5,7 @@
 # chkconfig:   345 85 15
 # description: Stickshift proxy
 # processname: haproxy
-# config:      /etc/stickshift/stickshift-proxy.cfg
+# config:      /etc/openshift/proxy.cfg
 # pidfile:     /var/run/stickshift-proxy.pid
 
 # Source function library.
@@ -23,7 +23,7 @@ exec=/usr/sbin/haproxy
 prog=haproxy
 lockfile=/var/lock/subsys/stickshift-proxy
 pidfile=/var/run/stickshift-proxy.pid
-cfgfile=/etc/stickshift/stickshift-proxy.cfg
+cfgfile=/etc/openshift/proxy.cfg
 
 pre_start() {
     # Fix internal ip address in case it was changed by the cloud provider

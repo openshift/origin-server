@@ -11,7 +11,7 @@ then
     echo ".openshift/markers/force_clean_build found but disabled for haproxy" 1>&2
 fi
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 
 if [ "${OPENSHIFT_GEAR_TYPE}" != "haproxy-1.4" ]
 then

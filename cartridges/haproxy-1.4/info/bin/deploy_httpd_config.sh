@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 load_resource_limits_conf

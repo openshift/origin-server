@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 CART_NAME="mysql"
 CART_VERSION="5.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
