@@ -156,15 +156,17 @@ chkconfig mcollective on
 chkconfig network on
 
 %postun
-
-semanage -i - <<_EOF
-boolean -m --off httpd_can_network_connect
-boolean -m --off httpd_can_network_relay
-boolean -m --off httpd_read_user_content
-boolean -m --off httpd_enable_homedirs
-boolean -m --off httpd_run_stickshift
+if [ "$1" = 0 ]
+then
+    semanage -i - <<_EOF
+    boolean -m --off httpd_can_network_connect
+    boolean -m --off httpd_can_network_relay
+    boolean -m --off httpd_read_user_content
+    boolean -m --off httpd_enable_homedirs
+    boolean -m --off httpd_run_stickshift
 
 _EOF
+fi
 
 %clean
 rm -rf %{buildroot}                                
