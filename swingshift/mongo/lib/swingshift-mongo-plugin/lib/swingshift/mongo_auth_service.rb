@@ -13,7 +13,7 @@ module Swingshift
       elsif defined? Rails
         @auth_info = Rails.application.config.auth
       else
-        raise Exception.new("Mongo DataStore service is not inilialized")
+        raise Exception.new("Mongo DataStore service is not initialized")
       end
     
       @replica_set  = @auth_info[:mongo_replica_sets]

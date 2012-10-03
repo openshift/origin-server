@@ -22,7 +22,7 @@ module Uplift
         access_info = Rails.application.config.dns
         @domain_suffix = Rails.application.config.ss[:domain_suffix]
       else
-        raise Exception.new("BIND DNS service is not inilialized")
+        raise Exception.new("BIND DNS service is not initialized")
       end
       @server = access_info[:server]
       @port = access_info[:port].to_i
