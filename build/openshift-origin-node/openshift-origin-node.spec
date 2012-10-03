@@ -65,7 +65,7 @@ semodule -i /usr/share/selinux/packages/rubygem-stickshift-common/stickshift.pp 
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
 /sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
-/sbin/restorecon -r /var/lib/stickshift /etc/stickshift/stickshift-node.conf /etc/httpd/conf.d/stickshift
+/sbin/restorecon -r /var/lib/stickshift /etc/openshift/node.conf /etc/httpd/conf.d/stickshift
 /sbin/restorecon -r /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid
 
 # Increase kernel semaphores to accomodate many httpds

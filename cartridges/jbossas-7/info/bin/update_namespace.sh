@@ -3,7 +3,7 @@
 # Exit on any errors
 set -e
  
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/jbossas-7/info

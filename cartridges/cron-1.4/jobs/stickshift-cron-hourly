@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 
 # Constants.
 SERVICE_NAME=cron

@@ -20,7 +20,7 @@
 #
 # Check that the broker components are installed and communicating properly
 #
-OSO_CONF_DIR=${OSO_CONF_DIR:=/etc/stickshift}
+OSO_CONF_DIR=${OSO_CONF_DIR:=/etc/openshift}
 
 OSO_BROKER_ROOT=${OSO_BROKER_ROOT:=/var/www/stickshift/broker}
 

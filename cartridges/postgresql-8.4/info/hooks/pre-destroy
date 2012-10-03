@@ -26,7 +26,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 app_remove_env_var OPENSHIFT_DB_GEAR_UUID

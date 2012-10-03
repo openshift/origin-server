@@ -6,7 +6,7 @@ do
     . $f
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 CART_DIR=${CARTRIDGE_BASE_PATH}
 CART_INFO_DIR=$CART_DIR/jenkins/info
 CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf

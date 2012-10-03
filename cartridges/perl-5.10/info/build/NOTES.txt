@@ -7,7 +7,7 @@ DEPENDENCIES:
 All are pulled in automatically via yum
 
 BUNDLE:
-/etc/stickshift/perl.conf
+/etc/openshift/perl.conf
 
 TODO:
 Create stickshift specific perl.conf file

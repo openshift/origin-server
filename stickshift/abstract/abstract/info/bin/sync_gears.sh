@@ -6,7 +6,7 @@ do
     [ -f "$f" ] && source "$f"
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Defines the default pre sync actions, taking into account

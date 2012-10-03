@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 CART_NAME="postgresql"
 CART_VERSION="8.4"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util

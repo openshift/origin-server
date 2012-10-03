@@ -6,7 +6,7 @@
 set -e
 #set -x
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -18,7 +18,7 @@ function print_help {
 }
 
 function mv_symlink {
-    # Check if CREATE_APP_SYMLINKS is set in /etc/stickshift/stickshift-node.conf
+    # Check if CREATE_APP_SYMLINKS is set in /etc/openshift/node.conf
     # If it is set, move symlink
 
     old_namespace=$1
