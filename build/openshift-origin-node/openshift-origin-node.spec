@@ -165,7 +165,6 @@ boolean -m --off httpd_enable_homedirs
 boolean -m --off httpd_run_stickshift
 
 _EOF
-semodule -r stickshift
 
 %clean
 rm -rf %{buildroot}                                
