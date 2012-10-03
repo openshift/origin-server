@@ -33,6 +33,7 @@ install -m 644 *.if            %{buildroot}%{_datadir}/selinux/devel/include/ser
 
 %post
 semodule -i %{_datadir}/selinux/packages/%{name}/*.pp.bz2
+touch /.autorelabel
 
 %files
 %defattr(-,root,root,-)
