@@ -108,6 +108,10 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
   cp -f /etc/stickshift/resource_limits.template /etc/stickshift/resource_limits.conf
 fi
 
+/usr/sbin/setsebool -P httpd_run_stickshift 1 2>/dev/null || :
+/usr/sbin/setsebool -P httpd_run_openshift  1 2>/dev/null || :
+
+
 %changelog
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
 - Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
