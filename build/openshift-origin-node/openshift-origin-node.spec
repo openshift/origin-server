@@ -88,7 +88,7 @@ perl -p -i -e "s/^#MaxStartups .*$/MaxStartups 40/" /etc/ssh/sshd_config
 perl -p -i -e "s/^#auth = .*$/auth = true/" /etc/mongodb.conf
 
 echo 'AcceptEnv GIT_SSH' >> /etc/ssh/sshd_config
-ln -s /usr/bin/sssh /usr/bin/rhcsh
+ln -sf /usr/bin/sssh /usr/bin/rhcsh
 
 lokkit --service=ssh
 lokkit --service=https
