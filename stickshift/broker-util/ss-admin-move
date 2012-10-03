@@ -74,6 +74,8 @@ unless gear_uuid
 end
 
 require "/var/www/stickshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 # Set the MCollective options
 if timeout
@@ -84,7 +86,7 @@ app = nil
 user = nil
 gear = nil
 
-app,gear = Application.find_by_gear_uuid(gear_uuid)
+app, gear = Application.find_by_gear_uuid(gear_uuid)
 
 if gear.nil? or app.nil?
   puts "ERROR: Gear not found: #{gear_uuid}"

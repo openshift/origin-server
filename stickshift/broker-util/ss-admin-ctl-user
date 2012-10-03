@@ -281,6 +281,8 @@ gear_size_to_remove = args["--removegearsize"]
 
 # this require is here to not load the environment simply to display help
 require '/var/www/stickshift/broker/config/environment'
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 puts
 puts
 
