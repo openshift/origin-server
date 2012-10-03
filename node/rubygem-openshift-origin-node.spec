@@ -109,10 +109,6 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
-/usr/sbin/setsebool -P httpd_run_stickshift 1 2>/dev/null || :
-/usr/sbin/setsebool -P httpd_run_openshift  1 2>/dev/null || :
-
-
 %changelog
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.7-1
 - fix obsoletes (dmcphers@redhat.com)
