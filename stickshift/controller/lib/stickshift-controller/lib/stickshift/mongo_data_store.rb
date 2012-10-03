@@ -15,7 +15,7 @@ module StickShift
       elsif defined? Rails
         access_info = Rails.application.config.datastore
       else
-        raise Exception.new("Mongo DataStore service is not inilialized")
+        raise Exception.new("Mongo DataStore service is not initialized")
       end
       @replica_set = access_info[:replica_set]
       @host_port = access_info[:host_port]

@@ -60,6 +60,8 @@ if login.nil? or args["--help"]
 end
 
 require "/var/www/stickshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
 
 reply = ResultIO.new
 case args["--command"]
