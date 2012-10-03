@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -39,6 +39,12 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- Disable analytics for admin scripts (dmcphers@redhat.com)
+- Commiting Rajat's fix for bug#827635 (bleanhar@redhat.com)
+- Subaccount user deletion changes (rpenta@redhat.com)
+- fixing build requires (abhgupta@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Removing the node profile enforcement from the ss-admin-ctl scripts
   (bleanhar@redhat.com)
