@@ -15,4 +15,4 @@ Feature: Cartridge Runtime Extended Checks (Python)
 
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
-    | nodejs-0.6   | node      | is not enabled    | should be     |
+    | python-2.6   | httpd      | is not enabled    | should be     |
