@@ -119,9 +119,7 @@ module CommandHelper
       app.repo = "#{$temp}/#{new_namespace}_#{app.name}_repo"
       FileUtils.mv old_repo, app.repo
       `sed -i "s,#{old_hostname},#{new_namespace},g" #{app.repo}/.git/config`
-      if run("grep '#{app.name}-#{old_namespace}.#{$domain}' /etc/hosts") == 0
-        run("sed -i 's,#{app.name}-#{old_namespace}.#{$domain},#{app.name}-#{new_namespace}.#{$domain},g' /etc/hosts")
-      end
+      StickShift::update_host_entry "#{app.name}-#{old_namespace}.#{$domain}" "#{app.name}-#{new_namespace}.#{$domain}"
       old_file = app.file
       app.file = "#{$temp}/#{new_namespace}.json"
       FileUtils.mv old_file, app.file
@@ -171,7 +169,7 @@ module CommandHelper
 
       # Short circuit DNS to speed up the tests by adding a host entry and skipping the DNS validation
       if use_hosts
-        run("echo '127.0.0.1 #{app.name}-#{app.namespace}.#{$domain}  # Added by cucumber' >> /etc/hosts")
+        StickShift::add_host_entry "#{app.name}-#{app.namespace}.#{$domain}"
         run("mkdir -m 700 -p ~/.ssh")
         run("test -f ~/.ssh/known_hosts && awk 1 ~/.ssh/known_hosts > ~/.ssh/known_hosts- && mv -f ~/.ssh/known_hosts- ~/.ssh/known_hosts")
         run("ssh-keyscan '#{app.name}-#{app.namespace}.#{$domain}' >> ~/.ssh/known_hosts")
@@ -314,7 +312,7 @@ module CommandHelper
         run("#{$rhc_app_script} status -l #{app.login} -a #{app.name} -p #{app.password} | grep 'does not exist'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
-      run("sed -i '/#{app.name}-#{app.namespace}.#{$domain}/d' /etc/hosts") if use_hosts
+      StickShift::remove_host_entry "#{app.name}-#{app.namespace}.#{$domain}" if use_hosts
       FileUtils.rm_rf app.repo
       FileUtils.rm_rf app.file
     end
