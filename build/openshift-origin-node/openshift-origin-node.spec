@@ -59,8 +59,10 @@ boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
 boolean -m --on httpd_read_user_content
 boolean -m --on httpd_enable_homedirs
+boolean -m --on httpd_run_stickshift
+
 _EOF
-semodule -i /usr/share/selinux/packages/rubygem-stickshift-common/stickshift.pp -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
+semodule -d passenger -i /usr/share/selinux/packages/rubygem-passenger/rubygem-passenger.pp
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
@@ -160,6 +162,8 @@ boolean -m --off httpd_can_network_connect
 boolean -m --off httpd_can_network_relay
 boolean -m --off httpd_read_user_content
 boolean -m --off httpd_enable_homedirs
+boolean -m --off httpd_run_stickshift
+
 _EOF
 semodule -r stickshift
 
