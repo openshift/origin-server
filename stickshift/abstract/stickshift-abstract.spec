@@ -2,7 +2,7 @@
 
 Summary:   StickShift common cartridge components
 Name:      stickshift-abstract
-Version: 0.17.7
+Version: 0.17.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.8-1
+- Fix for bugz 859990 - Unidling on ssh. (ramr@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.17.7-1
 - Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
   (ramr@redhat.com)
