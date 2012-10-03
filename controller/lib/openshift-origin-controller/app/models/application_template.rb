@@ -1,11 +1,11 @@
-class ApplicationTemplate < StickShift::UserModel
+class ApplicationTemplate < OpenShift::UserModel
   attr_accessor :uuid, :display_name, :descriptor_yaml, :git_url, :tags, :gear_cost, :metadata
   primary_key :uuid
   
   def initialize(display_name=nil,descriptor_yaml=nil,git_url=nil,tags=[], gear_cost=0, metadata = {})
     self.display_name, self.descriptor_yaml, self.git_url, self.tags, self.gear_cost, self.metadata =
       display_name, descriptor_yaml, git_url, tags, gear_cost, metadata
-      self.uuid = StickShift::Model.gen_uuid
+      self.uuid = OpenShift::Model.gen_uuid
   end
   
   def self.find(id)

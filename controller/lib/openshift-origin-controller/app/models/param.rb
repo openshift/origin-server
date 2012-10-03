@@ -1,4 +1,4 @@
-class Param < StickShift::Model
+class Param < OpenShift::Model
   attr_accessor :name, :type, :description, :valid_options, :invalid_options
   
   def initialize(name=nil, type=nil, description=nil, valid_options=nil, invalid_options=nil)

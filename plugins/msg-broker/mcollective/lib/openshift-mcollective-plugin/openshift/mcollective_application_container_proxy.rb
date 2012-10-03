@@ -2,9 +2,9 @@ require 'mcollective'
 require 'open-uri'
 
 include MCollective::RPC
-module GearChanger
-    class MCollectiveApplicationContainerProxy < StickShift::ApplicationContainerProxy
-      @@C_CONTROLLER = 'stickshift-node'
+module OpenShift
+    class MCollectiveApplicationContainerProxy < OpenShift::::ApplicationContainerProxy
+      @@C_CONTROLLER = 'openshift-origin-node'
       attr_accessor :id, :district
       
       def initialize(id, district=nil)
@@ -28,13 +28,13 @@ module GearChanger
       def self.find_available_impl(node_profile=nil, district_uuid=nil)
         district = nil
         require_specific_district = !district_uuid.nil?
-        if Rails.configuration.gearchanger[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
+        if Rails.configuration.msg-broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
             district_uuid = district.uuid
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
-          elsif Rails.configuration.gearchanger[:districts][:require_for_app_create]
-            raise StickShift::NodeException.new("No district nodes available.", 140)
+          elsif Rails.configuration.msg-broker[:districts][:require_for_app_create]
+            raise OpenShift::::NodeException.new("No district nodes available.", 140)
           end
         end
         current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district)
@@ -43,7 +43,7 @@ module GearChanger
         end
         district = preferred_district if preferred_district
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
-        raise StickShift::NodeException.new("No nodes available.", 140) unless current_server
+        raise OpenShift::::NodeException.new("No nodes available.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
         MCollectiveApplicationContainerProxy.new(current_server, district)
@@ -52,7 +52,7 @@ module GearChanger
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
-        raise StickShift::NodeException.new("No nodes found.", 140) unless current_server
+        raise OpenShift::::NodeException.new("No nodes found.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
 
         MCollectiveApplicationContainerProxy.new(current_server)
@@ -73,7 +73,7 @@ module GearChanger
         result = execute_direct(@@C_CONTROLLER, 'cartridge-list', args, false)
         result = parse_result(result)
         cart_data = JSON.parse(result.resultIO.string)
-        cart_data.map! {|c| StickShift::Cartridge.new.from_descriptor(YAML.load(c))}
+        cart_data.map! {|c| OpenShift::::Cartridge.new.from_descriptor(YAML.load(c))}
       end
 
       # Returns an array with following information
@@ -91,12 +91,12 @@ module GearChanger
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
             exitcode = mcoll_result.results[:data][:exitcode]
-            raise StickShift::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
+            raise OpenShift::::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         else
-          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
         end
         output
       end
@@ -117,53 +117,53 @@ module GearChanger
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
             exitcode = mcoll_result.results[:data][:exitcode]
-            raise StickShift::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
+            raise OpenShift::::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         else
-          raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
         end
       end
 
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
-        if Rails.configuration.gearchanger[:districts][:enabled]
+        if Rails.configuration.msg-broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            reserved_uid = StickShift::DataStore.instance.reserve_district_uid(district_uuid)
-            raise StickShift::SSException.new("uid could not be reserved") unless reserved_uid
+            reserved_uid = OpenShift::::DataStore.instance.reserve_district_uid(district_uuid)
+            raise OpenShift::::SSException.new("uid could not be reserved") unless reserved_uid
           end
         end
         reserved_uid
       end
       
       def unreserve_uid(uid, district_uuid=nil)
-        if Rails.configuration.gearchanger[:districts][:enabled]
+        if Rails.configuration.msg-broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            StickShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            OpenShift::::DataStore.instance.unreserve_district_uid(district_uuid, uid)
           end
         end
       end
       
       def inc_externally_reserved_uids_size(district_uuid=nil)
-        if Rails.configuration.gearchanger[:districts][:enabled]
+        if Rails.configuration.msg-broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            StickShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            OpenShift::::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
           end
         end
       end
@@ -477,7 +477,7 @@ module GearChanger
         args['--with-container-uuid'] = gear.uuid
         args['--with-key'] = key
         args['--with-value'] = value
-        job = RemoteJob.new('stickshift-node', 'env-var-add', args)
+        job = RemoteJob.new('openshift-origin-node', 'env-var-add', args)
         job
       end
       
@@ -486,7 +486,7 @@ module GearChanger
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
         args['--with-key'] = key
-        job = RemoteJob.new('stickshift-node', 'env-var-remove', args)
+        job = RemoteJob.new('openshift-origin-node', 'env-var-remove', args)
         job
       end
   
@@ -497,7 +497,7 @@ module GearChanger
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
-        job = RemoteJob.new('stickshift-node', 'authorized-ssh-key-add', args)
+        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-add', args)
         job
       end
       
@@ -507,7 +507,7 @@ module GearChanger
         args['--with-container-uuid'] = gear.uuid
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
-        job = RemoteJob.new('stickshift-node', 'authorized-ssh-key-remove', args)
+        job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-remove', args)
         job
       end
 
@@ -517,7 +517,7 @@ module GearChanger
         args['--with-container-uuid'] = gear.uuid
         args['--with-iv'] = iv
         args['--with-token'] = token
-        job = RemoteJob.new('stickshift-node', 'broker-auth-key-add', args)
+        job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
         job
       end
   
@@ -525,7 +525,7 @@ module GearChanger
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
-        job = RemoteJob.new('stickshift-node', 'broker-auth-key-remove', args)
+        job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-remove', args)
         job
       end
 
@@ -535,7 +535,7 @@ module GearChanger
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
-        job = RemoteJob.new('stickshift-node', 'connector-execute', args)
+        job = RemoteJob.new('openshift-origin-node', 'connector-execute', args)
         job
       end
 
@@ -543,14 +543,14 @@ module GearChanger
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
-        job = RemoteJob.new('stickshift-node', 'app-state-show', args)
+        job = RemoteJob.new('openshift-origin-node', 'app-state-show', args)
         job
       end
 
       def get_show_gear_quota_job(gear)
         args = Hash.new
         args['--uuid'] = gear.uuid
-        job = RemoteJob.new('stickshift-node', 'get-quota', args)
+        job = RemoteJob.new('openshift-origin-node', 'get-quota', args)
         job
       end
       
@@ -560,7 +560,7 @@ module GearChanger
         # quota command acts on 1K blocks
         args['--blocks'] = Integer(storage_in_gb * 1024 * 1024)
         args['--inodes'] = inodes unless inodes.to_s.empty?
-        job = RemoteJob.new('stickshift-node', 'set-quota', args)
+        job = RemoteJob.new('openshift-origin-node', 'set-quota', args)
         job
       end
 
@@ -584,7 +584,7 @@ module GearChanger
         pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
 
         # rsync
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add /var/www/openshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
 
         # move and post-move
         post_move_cart(cart, destination_gear, keep_uid, idle)
@@ -672,7 +672,7 @@ module GearChanger
         gear.server_identity = destination_container.id
         gear.container = destination_container
         if app.scalable and not gi.component_instances.include? app.proxy_cartridge
-          dns = StickShift::DnsService.instance
+          dns = OpenShift::::DnsService.instance
           begin
             public_hostname = destination_container.get_public_hostname
             dns.modify_application(gear.name, app.domain.namespace, public_hostname)
@@ -741,7 +741,7 @@ module GearChanger
         destination_node_profile = destination_container.get_node_profile
         if app.scalable and source_container.get_node_profile != destination_node_profile
           log_debug "Cannot change node_profile for a gear belonging to a scalable application. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.node_profile}"
-          raise StickShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
+          raise OpenShift::::UserException.new("Error moving app.  Cannot change node profile.", 1)
         end
 
         # get the state of all cartridges
@@ -911,7 +911,7 @@ module GearChanger
         if destination_container.nil?
           unless allow_change_district
             if destination_district_uuid && destination_district_uuid != source_district_uuid
-              raise StickShift::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
+              raise OpenShift::::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
             else
               destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
             end
@@ -925,7 +925,7 @@ module GearChanger
           end
           destination_district_uuid = destination_container.get_district_uuid
           unless allow_change_district || (source_district_uuid == destination_district_uuid)
-            raise StickShift::UserException.new("Resulting move would change districts from '#{source_district_uuid}' to '#{destination_district_uuid}'.  You can use the 'allow_change_district' option if you really want this to happen.", 1)
+            raise OpenShift::::UserException.new("Resulting move would change districts from '#{source_district_uuid}' to '#{destination_district_uuid}'.  You can use the 'allow_change_district' option if you really want this to happen.", 1)
           end
         end
         
@@ -935,7 +935,7 @@ module GearChanger
         log_debug "DEBUG: District unchanged keeping uid" if keep_uid
 
         if source_container.id == destination_container.id
-          raise StickShift::UserException.new("Error moving app.  Old and new servers are the same: #{source_container.id}", 1)
+          raise OpenShift::::UserException.new("Error moving app.  Old and new servers are the same: #{source_container.id}", 1)
         end
         return [destination_container, destination_district_uuid, keep_uid]
       end
@@ -952,9 +952,9 @@ module GearChanger
         reply.append destination_container.create(app, gear, quota_blocks, quota_files)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/stickshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/stickshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/stickshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add /var/www/openshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
-          raise StickShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+          raise OpenShift::::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
         reply
       end
@@ -1034,7 +1034,7 @@ module GearChanger
           rpc_client.disconnect
         end
 
-        raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143) unless result
+        raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143) unless result
 
         result
       end
@@ -1042,7 +1042,7 @@ module GearChanger
       def set_district(uuid, active)
         mc_args = { :uuid => uuid,
                     :active => active}
-        rpc_client = rpc_exec_direct('stickshift')
+        rpc_client = rpc_exec_direct('openshift')
         result = nil
         begin
           Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district', #{mc_args.inspect}, @id, {'identity' => #{@id}})"
@@ -1139,7 +1139,7 @@ module GearChanger
                       :action => action,
                       :args => args }
                       
-          rpc_client = rpc_exec_direct('stickshift')
+          rpc_client = rpc_exec_direct('openshift')
           result = nil
           begin
             Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, @id, {'identity' => @id})"
@@ -1162,9 +1162,9 @@ module GearChanger
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
           if server_identity && @id != server_identity
-            raise StickShift::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
+            raise OpenShift::::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
           else
-            raise StickShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         end
         
@@ -1243,7 +1243,7 @@ module GearChanger
       #
       def self.find_app(app_uuid, app_name)
         server_identity = nil
-        rpc_exec('stickshift') do |client|
+        rpc_exec('openshift') do |client|
           client.has_app(:uuid => app_uuid,
                          :application => app_name) do |response|
             output = response[:body][:data][:output]
@@ -1259,7 +1259,7 @@ module GearChanger
       # Returns whether this server has the specified app
       #
       def has_app?(app_uuid, app_name)
-        MCollectiveApplicationContainerProxy.rpc_exec('stickshift', @id) do |client|
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_app(:uuid => app_uuid,
                          :application => app_name) do |response|
             output = response[:body][:data][:output]
@@ -1272,7 +1272,7 @@ module GearChanger
       # Returns whether this server has the specified embedded app
       #
       def has_embedded_app?(app_uuid, embedded_type)
-        MCollectiveApplicationContainerProxy.rpc_exec('stickshift', @id) do |client|
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_embedded_app(:uuid => app_uuid,
                                   :embedded_type => embedded_type) do |response|
             output = response[:body][:data][:output]
@@ -1285,7 +1285,7 @@ module GearChanger
       # Returns whether this server has already reserved the specified uid as a uid or gid
       #
       def has_uid_or_gid?(uid)
-        MCollectiveApplicationContainerProxy.rpc_exec('stickshift', @id) do |client|
+        MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_s) do |response|
             output = response[:body][:data][:output]
             return output == true
@@ -1301,11 +1301,11 @@ module GearChanger
         result = execute_direct(framework, command, arguments)
         begin
           resultIO = parse_result(result, app, command)
-        rescue StickShift::InvalidNodeException => e
+        rescue OpenShift::::InvalidNodeException => e
           if command != 'configure' && allow_move
             @id = e.server_identity
             Rails.logger.debug "DEBUG: Changing server identity of '#{gear.name}' from '#{gear.server_identity}' to '#{@id}'"
-            dns_service = StickShift::DnsService.instance
+            dns_service = OpenShift::::DnsService.instance
             dns_service.modify_application(gear.name, app.domain.namespace, get_public_hostname)
             dns_service.publish
             gear.server_identity = @id
@@ -1321,8 +1321,8 @@ module GearChanger
         if resultIO.exitcode != 0
           resultIO.debugIO << "Cartridge return code: " + resultIO.exitcode.to_s
           begin
-            raise StickShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
-          rescue StickShift::NodeException => e
+            raise OpenShift::::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
+          rescue OpenShift::::NodeException => e
             if command == 'deconfigure'
               if framework.start_with?('embedded/')
                 if has_embedded_app?(app.uuid, framework[9..-1])
@@ -1353,7 +1353,7 @@ module GearChanger
 
         district_uuid = nil if district_uuid == 'NONE'
 
-        if Rails.configuration.gearchanger[:node_profile_enabled]
+        if Rails.configuration.msg-broker[:node_profile_enabled]
           if node_profile
             additional_filters.push({:fact => "node_profile",
                                      :value => node_profile,
@@ -1418,7 +1418,7 @@ module GearChanger
                                  :value => "NONE",
                                  :operator => "!="}]
 
-          if Rails.configuration.gearchanger[:node_profile_enabled]
+          if Rails.configuration.msg-broker[:node_profile_enabled]
             if node_profile
               additional_filters.push({:fact => "node_profile",
                                        :value => node_profile,
@@ -1465,7 +1465,7 @@ module GearChanger
         current_server = nil
         additional_filters = []
 
-        if Rails.configuration.gearchanger[:node_profile_enabled]
+        if Rails.configuration.msg-broker[:node_profile_enabled]
           if node_profile
             additional_filters.push({:fact => "node_profile",
                                      :value => node_profile,
@@ -1480,7 +1480,7 @@ module GearChanger
         rpc_client = rpcclient('rpcutil', :options => options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
-            raise StickShift::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
+            raise OpenShift::::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
         ensure
@@ -1491,7 +1491,7 @@ module GearChanger
       
       def self.rpc_options
         # Make a deep copy of the default options
-        Marshal::load(Marshal::dump(Rails.configuration.gearchanger[:rpc_options]))
+        Marshal::load(Marshal::dump(Rails.configuration.msg-broker[:rpc_options]))
       end
     
       #
@@ -1553,7 +1553,7 @@ module GearChanger
             if (result && defined? result.results && result.results.has_key?(:data))
               value = result.results[:data][:value]
             else
-              raise StickShift::NodeException.new("Node execution failure (error getting fact).  If the problem persists please contact Red Hat support.", 143)
+              raise OpenShift::::NodeException.new("Node execution failure (error getting fact).  If the problem persists please contact Red Hat support.", 143)
             end
           ensure
             rpc_client.disconnect
@@ -1574,7 +1574,7 @@ module GearChanger
 
       def self.get_all_gears_impl
         gear_map = {}
-        rpc_exec('stickshift') do |client|
+        rpc_exec('openshift') do |client|
           client.get_all_gears(:gear_map => {}) do |response|
             if response[:body][:statuscode] == 0
               sub_gear_map = response[:body][:data][:output]
@@ -1592,7 +1592,7 @@ module GearChanger
 =begin
         handle.each { |id, job_list|
           options = MCollectiveApplicationContainerProxy.rpc_options
-          rpc_client = rpcclient('stickshift', :options => options)
+          rpc_client = rpcclient('openshift', :options => options)
           begin
             mc_args = { id => job_list }
             mcoll_reply = rpc_client.custom_request('execute_parallel', mc_args, id, {'identity' => id})
@@ -1612,7 +1612,7 @@ module GearChanger
         if handle && !handle.empty?
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options
-            rpc_client = rpcclient('stickshift', :options => options)
+            rpc_client = rpcclient('openshift', :options => options)
             mc_args = handle.clone
             identities = handle.keys
             rpc_client.custom_request('execute_parallel', mc_args, identities, {'identity' => identities}).each { |mcoll_reply|

@@ -40,7 +40,7 @@ When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
   output = run_stdout command
   output.chomp!
 
-  StickShift::timeout(60) do
+  OpenShift::timeout(60) do
     while output != '1'
       output = run_stdout command
       output.chomp!

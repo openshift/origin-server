@@ -1,14 +1,14 @@
-require "stickshift-common"
+require "openshift-origin-common"
 
-module StickShift
+module OpenShift
   module Controller
-    require 'stickshift-controller/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'openshift-origin-controller/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 
-require "stickshift-controller/app/models/cloud_user"
-require "stickshift-controller/lib/stickshift/application_container_proxy"
-require "stickshift-controller/lib/stickshift/auth_service"
-require "stickshift-controller/lib/stickshift/dns_service"
-require "stickshift-controller/lib/stickshift/data_store"
-require "stickshift-controller/lib/stickshift/mongo_data_store"
+require "openshift-origin-controller/app/models/cloud_user"
+require "openshift-origin-controller/lib/openshift/application_container_proxy"
+require "openshift-origin-controller/lib/openshift/auth_service"
+require "openshift-origin-controller/lib/openshift/dns_service"
+require "openshift-origin-controller/lib/openshift/data_store"
+require "openshift-origin-controller/lib/openshift/mongo_data_store"

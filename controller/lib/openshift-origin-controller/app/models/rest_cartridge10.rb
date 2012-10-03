@@ -1,4 +1,4 @@
-class RestCartridge10 < StickShift::Model
+class RestCartridge10 < OpenShift::Model
   attr_accessor :type, :name, :links, :properties, :status_messages
   
   def initialize(type, name, app, url, status_messages, nolinks=false)

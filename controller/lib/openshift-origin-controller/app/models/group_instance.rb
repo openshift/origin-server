@@ -1,4 +1,4 @@
-class GroupInstance < StickShift::Model
+class GroupInstance < OpenShift::Model
   attr_accessor :uuid, :app, :gears, :node_profile, :component_instances, 
     :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb
   primary_key :uuid
@@ -7,7 +7,7 @@ class GroupInstance < StickShift::Model
   include LegacyBrokerHelper
   
   def initialize(app, cartname=nil, profname=nil, groupname=nil, path=nil)
-    self.uuid = StickShift::Model.gen_uuid
+    self.uuid = OpenShift::Model.gen_uuid
     self.app = app
     self.name = path
     self.cart_name = cartname
@@ -146,7 +146,7 @@ class GroupInstance < StickShift::Model
 
     RemoteJob.get_parallel_run_results(handle) { |tag, gear_uuid, output, status|
       if status != 0
-        raise StickShift::NodeException.new("Error setting quota on gear: #{gear_uuid} with status: #{status} and output: #{output}", 143)
+        raise OpenShift::NodeException.new("Error setting quota on gear: #{gear_uuid} with status: #{status} and output: #{output}", 143)
       else
         @gears.each { |gi_gear|
           if gi_gear.uuid == gear_uuid

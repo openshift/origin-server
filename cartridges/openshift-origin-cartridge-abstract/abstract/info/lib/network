@@ -118,7 +118,7 @@ function uuid_to_portrange {
 
 function proxy_cmd {
   # Run proxy commands if one exists; otherwise, this is a stub.
-  stickshift-proxy-cfg "${@}"
+  openshift-origin-port-proxy-cfg "${@}"
   return $?
 }
 

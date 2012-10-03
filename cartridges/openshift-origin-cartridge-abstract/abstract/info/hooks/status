@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Get application status"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jenkins_status
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jenkins_status
     exit 1
 }
 
@@ -26,7 +26,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type=$(get_cartridge_name_from_path)

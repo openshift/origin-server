@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'optparse'
 
 def usage
@@ -52,7 +52,7 @@ if !uuid or (!blocks and !inodes)
 end
 
 begin
-  StickShift::Node.set_quota(uuid, blocks, inodes)
+  OpenShift::Node.set_quota(uuid, blocks, inodes)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

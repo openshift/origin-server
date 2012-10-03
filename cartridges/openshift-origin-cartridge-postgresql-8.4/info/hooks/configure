@@ -8,7 +8,7 @@ set -e
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgresql_configure
     exit 1
 }
 
@@ -28,7 +28,7 @@ done
 CART_NAME="postgresql"
 CART_VERSION="8.4"
 cartridge_type="$CART_NAME-$CART_VERSION"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3

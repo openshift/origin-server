@@ -1,4 +1,4 @@
-class RestDomain < StickShift::Model
+class RestDomain < OpenShift::Model
   attr_accessor :id, :suffix, :links
   include LegacyBrokerHelper
   
@@ -7,8 +7,8 @@ class RestDomain < StickShift::Model
     self.suffix = Rails.application.config.ss[:domain_suffix] 
     
     unless nolinks      
-      valid_sizes = StickShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
-      blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
+      valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
+      blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
 
       carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) do
         Application.get_available_cartridges("standalone")

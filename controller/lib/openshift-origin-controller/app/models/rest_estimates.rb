@@ -1,4 +1,4 @@
-class RestEstimates < StickShift::Model
+class RestEstimates < OpenShift::Model
   attr_accessor :links 
  
   def initialize(url, nolinks=false)

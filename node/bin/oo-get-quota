@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'optparse'
 
 def usage
@@ -48,7 +48,7 @@ end
 
 
 begin
-  quota_info = StickShift::Node.get_quota(uuid)
+  quota_info = OpenShift::Node.get_quota(uuid)
   filesystem, quota, quota_soft, quota_hard, inodes, inodes_soft, inodes_hard = quota_info
   puts "Quota information for uuid: #{uuid}"
   puts "Filesystem: #{filesystem}"

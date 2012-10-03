@@ -1,4 +1,4 @@
-class Message < StickShift::Model
+class Message < OpenShift::Model
   attr_accessor :severity, :text, :exit_code, :field
   
   def initialize(severity=:info, text=nil, exit_code=nil, field=nil)

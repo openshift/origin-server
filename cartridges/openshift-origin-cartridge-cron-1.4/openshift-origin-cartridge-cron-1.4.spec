@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/cron-1.4
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/cron-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/cron-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/cron-1.4
 
 
-Name: cartridge-cron-1.4
+Name: openshift-origin-cartridge-cron-1.4
 Version: 0.10.2
 Release: 1%{?dist}
 Summary: Embedded cron support for express
@@ -15,8 +15,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: cronie
 Requires: crontabs
 
@@ -35,7 +35,7 @@ Provides rhc cron cartridge support
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.d
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.minutely
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.hourly
@@ -48,12 +48,12 @@ cp -r jobs %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
-ln -s %{cartridgedir}/jobs/stickshift-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
-ln -s %{cartridgedir}/jobs/stickshift-cron-hourly %{buildroot}/%{_sysconfdir}/cron.hourly/
-ln -s %{cartridgedir}/jobs/stickshift-cron-daily %{buildroot}/%{_sysconfdir}/cron.daily/
-ln -s %{cartridgedir}/jobs/stickshift-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
-ln -s %{cartridgedir}/jobs/stickshift-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
+ln -s %{cartridgedir}/jobs/openshift-origin-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
+ln -s %{cartridgedir}/jobs/openshift-origin-cron-hourly %{buildroot}/%{_sysconfdir}/cron.hourly/
+ln -s %{cartridgedir}/jobs/openshift-origin-cron-daily %{buildroot}/%{_sysconfdir}/cron.daily/
+ln -s %{cartridgedir}/jobs/openshift-origin-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
+ln -s %{cartridgedir}/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
 
 
 %post
@@ -73,12 +73,12 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/jobs/
 %attr(0755,-,-) %{frameworkdir}
 %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
-%attr(0755,-,-) %{_sysconfdir}/cron.minutely/stickshift-cron-minutely
-%attr(0755,-,-) %{_sysconfdir}/cron.hourly/stickshift-cron-hourly
-%attr(0755,-,-) %{_sysconfdir}/cron.daily/stickshift-cron-daily
-%attr(0755,-,-) %{_sysconfdir}/cron.weekly/stickshift-cron-weekly
-%attr(0755,-,-) %{_sysconfdir}/cron.monthly/stickshift-cron-monthly
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%attr(0755,-,-) %{_sysconfdir}/cron.minutely/openshift-origin-cron-minutely
+%attr(0755,-,-) %{_sysconfdir}/cron.hourly/openshift-origin-cron-hourly
+%attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-cron-daily
+%attr(0755,-,-) %{_sysconfdir}/cron.weekly/openshift-origin-cron-weekly
+%attr(0755,-,-) %{_sysconfdir}/cron.monthly/openshift-origin-cron-monthly
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml

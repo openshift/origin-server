@@ -6,13 +6,13 @@
 set -e
 
 cartridge_type="jenkins-1.4"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid git-url"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jenkins_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jenkins_configure
     exit 1
 }
 

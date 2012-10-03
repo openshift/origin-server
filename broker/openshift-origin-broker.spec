@@ -1,14 +1,14 @@
 %define htmldir %{_localstatedir}/www/html
-%define brokerdir %{_localstatedir}/www/stickshift/broker
+%define brokerdir %{_localstatedir}/www/openshift/broker
 
-Summary:   StickShift broker components
-Name:      stickshift-broker
+Summary:   OpenShift Origin broker components
+Name:      openshift-origin-broker
 Version:   0.6.10
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   stickshift-broker-%{version}.tar.gz
+Source0:   openshift-origin-broker-%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
@@ -29,10 +29,10 @@ Requires:  rubygem(rest-client)
 Requires:  rubygem(thread-dump)
 Requires:  rubygem(parseconfig)
 Requires:  rubygem(json)
-Requires:  rubygem(stickshift-controller)
+Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
 Requires:  rubygem(rcov)
-Requires:  stickshift-abstract
+Requires:  openshift-origin-cartridge-abstract
 Requires:  rubygem-passenger-native
 Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}
@@ -43,7 +43,7 @@ Provides:  openshift-broker
 BuildArch: noarch
 
 %description
-This contains the broker 'controlling' components of StickShift.
+This contains the broker 'controlling' components of OpenShift Origin.
 This includes the public APIs for the client tools.
 
 %prep
@@ -77,8 +77,8 @@ mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 
 cp -r . %{buildroot}%{brokerdir}
 %if %{with_systemd}
-mv %{buildroot}%{brokerdir}/systemd/stickshift-broker.service %{buildroot}%{_unitdir}
-mv %{buildroot}%{brokerdir}/systemd/stickshift-broker.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-broker
+mv %{buildroot}%{brokerdir}/systemd/openshift-origin-broker.service %{buildroot}%{_unitdir}
+mv %{buildroot}%{brokerdir}/systemd/openshift-origin-broker.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-origin-broker
 %else
 mv %{buildroot}%{brokerdir}/init.d/* %{buildroot}%{_initddir}
 %endif
@@ -88,10 +88,10 @@ touch %{buildroot}%{brokerdir}/log/production.log
 touch %{buildroot}%{brokerdir}/log/development.log
 ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
-mv %{buildroot}%{brokerdir}/httpd/000000_stickshift_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
-mkdir -p %{buildroot}%{_localstatedir}/log/stickshift
-touch %{buildroot}%{_localstatedir}/log/stickshift/user_action.log
+mkdir -p %{buildroot}%{_localstatedir}/log/openshift
+touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -100,7 +100,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0640,apache,apache,0750)
 %attr(0666,-,-) %{brokerdir}/log/production.log
 %attr(0666,-,-) %{brokerdir}/log/development.log
-%attr(0666,-,-) %{_localstatedir}/log/stickshift/user_action.log
+%attr(0666,-,-) %{_localstatedir}/log/openshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -112,17 +112,17 @@ rm -rf $RPM_BUILD_ROOT
 %{htmldir}/broker
 %config(noreplace) %{brokerdir}/config/environments/production.rb
 %config(noreplace) %{brokerdir}/config/environments/development.rb
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_stickshift_proxy.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
-%{_unitdir}/stickshift-broker.service
-%attr(0644,-,-) %{_unitdir}/stickshift-broker.service
-%{_sysconfdir}/sysconfig/stickshift-broker
-%attr(0644,-,-) %{_sysconfdir}/sysconfig/stickshift-broker
+%{_unitdir}/openshift-origin-broker.service
+%attr(0644,-,-) %{_unitdir}/openshift-origin-broker.service
+%{_sysconfdir}/sysconfig/openshift-origin-broker
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-origin-broker
 %else
-%{_initddir}/stickshift-broker
-%attr(0750,-,-) %{_initddir}/stickshift-broker
+%{_initddir}/openshift-origin-broker
+%attr(0750,-,-) %{_initddir}/openshift-origin-broker
 %endif
 
 
@@ -134,7 +134,7 @@ rm -rf $RPM_BUILD_ROOT
 /bin/touch %{brokerdir}/log/development.log
 /bin/touch %{brokerdir}/httpd/logs/error_log
 /bin/touch %{brokerdir}/httpd/logs/access_log
-/bin/touch %{_localstatedir}/log/stickshift/user_action.log
+/bin/touch %{_localstatedir}/log/openshift/user_action.log
 
 %if %{with_systemd}
 systemctl --system daemon-reload
@@ -151,7 +151,7 @@ fcontext -a -t httpd_var_run_t '%{brokerdir}/httpd/run(/.*)?'
 fcontext -a -t httpd_tmp_t '%{brokerdir}/tmp(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/httpd/logs(/.*)?'
 fcontext -a -t httpd_log_t '%{brokerdir}/log(/.*)?'
-fcontext -a -t httpd_log_t '%{_localstatedir}/log/stickshift/user_action.log'
+fcontext -a -t httpd_log_t '%{_localstatedir}/log/openshift/user_action.log'
 _EOF
 
 chcon -R -t httpd_log_t %{brokerdir}/httpd/logs %{brokerdir}/log
@@ -162,10 +162,10 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 /sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
-/sbin/restorecon -v '%{_localstatedir}/log/stickshift/user_action.log'
+/sbin/restorecon -v '%{_localstatedir}/log/openshift/user_action.log'
 
 %postun
-/usr/sbin/semodule -e passenger -r stickshift-common
+/usr/sbin/semodule -e passenger -r openshift-origin-common
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
@@ -334,7 +334,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
   user object via rest calls (abhgupta@redhat.com)
 
 * Wed May 30 2012 Krishna Raman <kraman@gmail.com> 0.6.7-1
-- Fixing /etc/httpd/conf.d/stickshift link to be conpatible with typeless gears
+- Fixing /etc/httpd/conf.d/openshift link to be conpatible with typeless gears
   change Fixing context of action log file (kraman@gmail.com)
 - Merge pull request #75 from abhgupta/bz817172 (mmcgrath+openshift@redhat.com)
 - Fix for bug 817172 - adding gear profile on gear_groups rest call
@@ -379,7 +379,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 - Adding livecd build scripts Adding a text only minimal version of livecd
   Added ability to access livecd dns from outside VM (kraman@gmail.com)
 - allow syslog output for gear usage (dmcphers@redhat.com)
-- proper usage of StickShift::Model and beginnings of usage tracking
+- proper usage of OpenShift::Model and beginnings of usage tracking
   (dmcphers@redhat.com)
 - Add rcov testing to the Stickshift broker, common and controller.
   (rmillner@redhat.com)
@@ -411,7 +411,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 - Stickshift broker Unit tests to verify REST api version compatibility
   (rpenta@redhat.com)
 - Updating gem versions (admiller@redhat.com)
-- Fixing stickshift-broker.spec to load rubygem-passenger.pp SELinux policy
+- Fixing openshift-origin-broker.spec to load rubygem-passenger.pp SELinux policy
   (kraman@gmail.com)
 - Adding missing initializer to load Mongo datastore (kraman@gmail.com)
 - Updating gem versions (admiller@redhat.com)

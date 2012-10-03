@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'rest_client'
 require 'nokogiri'
-#require '/var/www/stickshift/broker/config/environment'
+#require '/var/www/openshift/broker/config/environment'
 require 'logger'
 
 @random = nil

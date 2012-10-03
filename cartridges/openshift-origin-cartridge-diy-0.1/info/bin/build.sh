@@ -2,7 +2,7 @@
 
 CART_NAME="diy"
 CART_VERSION="0.1"
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 
 # Import Environment Variables
 for f in ~/.env/*; do

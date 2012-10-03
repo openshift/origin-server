@@ -3,8 +3,8 @@ Broker::Application.configure do
     config.auth[:mongo_replica_sets] = false
     config.auth[:mongo_host_port] = ["localhost", 27017]
 
-    config.auth[:mongo_user] = "stickshift"
+    config.auth[:mongo_user] = "openshift"
     config.auth[:mongo_password] = "mooo"
-    config.auth[:mongo_db] = "stickshift_broker_dev"
+    config.auth[:mongo_db] = "openshift_origin_broker_dev"
     config.auth[:mongo_collection] = "auth_user"
 end

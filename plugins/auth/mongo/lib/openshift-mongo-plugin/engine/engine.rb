@@ -1,12 +1,12 @@
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'rails'
 
-module SwingShift
+module OpenShift Origin
   class MongoAuthServiceEngine < Rails::Engine
-    paths.app.controllers      << "lib/swingshift-mongo-plugin/app/controllers"
-    paths.lib                  << "lib/swingshift-mongo-plugin/lib"
-    paths.config               << "lib/swingshift-mongo-plugin/config"
-    paths.app.models           << "lib/swingshift-mongo-plugin/app/models"    
+    paths.app.controllers      << "lib/openshift-origin-auth-mongo/app/controllers"
+    paths.lib                  << "lib/openshift-origin-auth-mongo/lib"
+    paths.config               << "lib/openshift-origin-auth-mongo/config"
+    paths.app.models           << "lib/openshift-origin-auth-mongo/app/models"    
     config.autoload_paths      += %W(#{config.root}/lib)
   end
 end

@@ -1,12 +1,12 @@
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'rails'
 
-module SwingShift
+module OpenShift Origin
   class KerberosAuthServiceEngine < Rails::Engine
-    paths.app.controllers      << "lib/swingshift-kerberos-plugin/app/controllers"
-    paths.lib                  << "lib/swingshift-kerberos-plugin/lib"
-    paths.config               << "lib/swingshift-kerberos-plugin/config"
-    paths.app.models           << "lib/swingshift-kerberos-plugin/app/models"
+    paths.app.controllers      << "lib/openshift-kerberos-plugin/app/controllers"
+    paths.lib                  << "lib/openshift-kerberos-plugin/lib"
+    paths.config               << "lib/openshift-kerberos-plugin/config"
+    paths.app.models           << "lib/openshift-kerberos-plugin/app/models"
     config.autoload_paths      += %W(#{config.root}/lib)
   end
 end

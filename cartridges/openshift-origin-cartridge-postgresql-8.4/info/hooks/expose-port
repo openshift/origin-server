@@ -6,7 +6,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_postgres_expose_port
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgres_expose_port
     exit 1
 }
 
@@ -23,7 +23,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3

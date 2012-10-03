@@ -83,7 +83,7 @@ end
 Then /^the application will be updated$/ do
     # wait for ball to change blue...
     job = {'color' => 'purple'}
-    StickShift::timeout(300) do
+    OpenShift::timeout(300) do
       begin
         sleep 1
         response = `#{@jenkins_build}`
@@ -95,7 +95,7 @@ Then /^the application will be updated$/ do
     job['color'].should be == 'blue' 
     
     app_uuid = @diy_git_url.match(TestApp::SSH_OUTPUT_PATTERN)[1]
-    path = "/var/lib/stickshift/#{app_uuid}/app-root/repo/#{@app.name}/index.html"
+    path = "/var/lib/openshift/#{app_uuid}/app-root/repo/#{@app.name}/index.html"
     $logger.debug "jenkins built application path = #{path}"
     `grep 'Jenkins Builder Testing' "#{path}"`
     $?.to_s.should be == "0"

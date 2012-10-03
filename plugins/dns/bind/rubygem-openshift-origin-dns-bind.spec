@@ -3,7 +3,7 @@
 %global gemname uplift-bind-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
-Summary:        Uplift plugin for BIND service
+Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gemname}
 Version:        0.8.7
 Release:        1%{?dist}
@@ -14,12 +14,12 @@ Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) >= 1.8
 Requires:       rubygems
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(json)
 Requires:       bind
 Requires:       bind-utils
 Requires:       rubygem(dnsruby)
-Requires:       stickshift-broker
+Requires:       openshift-origin-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
 
@@ -29,7 +29,7 @@ BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
 
 %package -n ruby-%{gemname}
-Summary:        Uplift plugin for Bind service
+Summary:        OpenShift plugin for Bind service
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
 

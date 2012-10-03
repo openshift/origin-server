@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 
 # Control application's embedded PostgreSQL server instance
 CART_NAME=postgresql
@@ -19,7 +19,7 @@ function print_help() {
     echo "Usage: $0 app-name namespace uuid"
     echo "$cmd embedded PostgreSQL service"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_$cmd
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgresql_$cmd
     exit 1
 
 }  #  End of function  print_help.

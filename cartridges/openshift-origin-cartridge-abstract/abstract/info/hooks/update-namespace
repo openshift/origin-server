@@ -5,19 +5,19 @@
 # Exit on any errors
 set -e
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
 function print_help {
     echo "Usage: $0 app-name new_namespace old_namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_httpd_update_namespace
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_httpd_update_namespace
     exit 1
 }
 
 function mv_symlink {
-    # Check if CREATE_APP_SYMLINKS is set in /etc/stickshift/stickshift-node.conf
+    # Check if CREATE_APP_SYMLINKS is set in /etc/openshift/openshift-origin-node.conf
     # If it is set, move symlink
 
     old_namespace=$1
@@ -66,12 +66,12 @@ then
     sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/.env/OPENSHIFT_APP_DNS
 fi
 
-if [ -f "/etc/httpd/conf.d/stickshift/${uuid}_${old_namespace}_${application}.conf" ]
+if [ -f "/etc/httpd/conf.d/openshift origin/${uuid}_${old_namespace}_${application}.conf" ]
 then
-  sed -i "s/ServerName ${application}-${old_namespace}./ServerName ${application}-${new_namespace}./" /etc/httpd/conf.d/stickshift/${uuid}_${old_namespace}_${application}/00000_default.conf
-  sed -i "s/_${old_namespace}_${application}/_${new_namespace}_${application}/g" /etc/httpd/conf.d/stickshift/${uuid}_${old_namespace}_${application}.conf
-  mv /etc/httpd/conf.d/stickshift/${uuid}_${old_namespace}_${application}.conf /etc/httpd/conf.d/stickshift/${uuid}_${new_namespace}_${application}.conf
-  mv /etc/httpd/conf.d/stickshift/${uuid}_${old_namespace}_${application} /etc/httpd/conf.d/stickshift/${uuid}_${new_namespace}_${application}
+  sed -i "s/ServerName ${application}-${old_namespace}./ServerName ${application}-${new_namespace}./" /etc/httpd/conf.d/openshift origin/${uuid}_${old_namespace}_${application}/00000_default.conf
+  sed -i "s/_${old_namespace}_${application}/_${new_namespace}_${application}/g" /etc/httpd/conf.d/openshift origin/${uuid}_${old_namespace}_${application}.conf
+  mv /etc/httpd/conf.d/openshift origin/${uuid}_${old_namespace}_${application}.conf /etc/httpd/conf.d/openshift origin/${uuid}_${new_namespace}_${application}.conf
+  mv /etc/httpd/conf.d/openshift origin/${uuid}_${old_namespace}_${application} /etc/httpd/conf.d/openshift origin/${uuid}_${new_namespace}_${application}
   restart_httpd_graceful
 fi
 

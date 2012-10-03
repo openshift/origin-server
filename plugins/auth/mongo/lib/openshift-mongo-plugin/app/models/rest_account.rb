@@ -1,4 +1,4 @@
-class RestAccount < StickShift::Model
+class RestAccount < OpenShift Origin::Model
   attr_accessor :username, :created_on
   
   def initialize(username, created_on)

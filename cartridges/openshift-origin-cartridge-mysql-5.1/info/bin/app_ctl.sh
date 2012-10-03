@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 cartridge_type="mysql-5.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 

@@ -4,7 +4,7 @@
 set -e
 
 cartridge_type="haproxy-1.4"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
@@ -12,7 +12,7 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 function print_help {
     echo "Usage: $0 app-name new_namespace old_namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_haproxy_update_namespace
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_haproxy_update_namespace
     exit 1
 }
 

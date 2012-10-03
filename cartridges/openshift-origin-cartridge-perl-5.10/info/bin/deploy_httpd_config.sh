@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cartridge_type="perl-5.10"
-source "/etc/stickshift/stickshift-node.conf"
-source "/etc/stickshift/resource_limits.conf"
+source "/etc/openshift/openshift-origin-node.conf"
+source "/etc/openshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 load_resource_limits_conf
@@ -15,7 +15,7 @@ APP_HOME="$GEAR_BASE_DIR/$uuid"
 PERL_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
-cat <<EOF > "$PERL_INSTANCE_DIR/conf.d/stickshift.conf"
+cat <<EOF > "$PERL_INSTANCE_DIR/conf.d/openshift origin.conf"
 ServerRoot "$PERL_INSTANCE_DIR"
 DocumentRoot "$OPENSHIFT_REPO_DIR/perl"
 Listen $IP:8080

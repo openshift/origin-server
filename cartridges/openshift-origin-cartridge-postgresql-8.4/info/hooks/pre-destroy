@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Publish postgresql database connection information"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_publish_conn_info
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgresql_publish_conn_info
     exit 1
 }
 
@@ -26,7 +26,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 for v in "OPENSHIFT_POSTGRESQL_DB_GEAR_UUID" "OPENSHIFT_POSTGRESQL_DB_GEAR_DNS" "OPENSHIFT_POSTGRESQL_DB_USERNAME" \

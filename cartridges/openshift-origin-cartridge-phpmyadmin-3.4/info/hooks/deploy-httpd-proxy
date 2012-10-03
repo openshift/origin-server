@@ -5,7 +5,7 @@
 # Exit on any errors
 set -e
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
@@ -14,7 +14,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Deploy httpd proxy for an application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_deploy_httpd_proxy
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_deploy_httpd_proxy
     exit 1
 }
 

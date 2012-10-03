@@ -1,11 +1,11 @@
-%define brokerdir %{_localstatedir}/www/stickshift/broker
+%define brokerdir %{_localstatedir}/www/openshift/broker
 
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %global gemname openshift-origin-auth-remote-user
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
-Summary:        SwingShift plugin for remote-user authentication
+Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
 Version:        0.0.4
 Release:        1%{?dist}
@@ -15,7 +15,7 @@ URL:            http://openshift.redhat.com
 Source0:        rubygem-%{gemname}-%{version}.tar.gz
 Requires:       ruby(abi) = 1.8
 Requires:       rubygems
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(json)
 Requires:       openshift-broker
 
@@ -44,16 +44,16 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
+mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
 # TODO: This needs to use configuration under /etc and not be hardcoded here.
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
+cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
 Broker::Application.configure do
   config.auth = {
     :trusted_header => "REMOTE_USER",
     :salt           => "ClWqe5zKtEW4CJEMyjzQ",
-    :privkeyfile    => "/var/www/stickshift/broker/config/server_priv.pem",
+    :privkeyfile    => "/var/www/openshift/broker/config/server_priv.pem",
     :privkeypass    => "",
-    :pubkeyfile     => "/var/www/stickshift/broker/config/server_pub.pem",
+    :pubkeyfile     => "/var/www/openshift/broker/config/server_pub.pem",
   }
 end
 EOF
@@ -74,7 +74,7 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
 
-%attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
+%attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
 
 %changelog
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.0.4-1

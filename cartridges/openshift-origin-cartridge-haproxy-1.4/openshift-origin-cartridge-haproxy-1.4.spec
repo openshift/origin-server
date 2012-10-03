@@ -1,8 +1,8 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/haproxy-1.4
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/haproxy-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/haproxy-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/haproxy-1.4
 
 Summary:   Provides embedded haproxy-1.4 support
-Name:      cartridge-haproxy-1.4
+Name:      openshift-origin-cartridge-haproxy-1.4
 Version: 0.16.3
 Release:   1%{?dist}
 Group:     Network/Daemons
@@ -16,7 +16,7 @@ BuildArch: noarch
 
 BuildRequires: git
 
-Requires:  stickshift-abstract
+Requires:  openshift-origin-abstract
 Requires:  haproxy
 Requires:  rubygem-daemons
 Requires:  rubygem-rest-client
@@ -49,12 +49,12 @@ touch git_template.git/refs/heads/.gitignore
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
@@ -84,7 +84,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0755,-,-) %{frameworkdir}
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -154,7 +154,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.13.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - Fix for bugz 839140 - The haproxy-1.4 cartridge's status is always "SUCESS".
@@ -266,7 +266,7 @@ rm -rf %{buildroot}
   status. (ramr@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.10.3-1
-- Automatic commit of package [cartridge-haproxy-1.4] release [0.10.2-1].
+- Automatic commit of package [openshift-origin-cartridge-haproxy-1.4] release [0.10.2-1].
   (admiller@redhat.com)
 - Fix for bugz 822476. Make the isrunning check more resilient.
   (ramr@redhat.com)

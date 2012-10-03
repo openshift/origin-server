@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'rest-client'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'pp'
 require 'json'
 
@@ -31,15 +31,15 @@ class Gear_scale_ctl
 
     base_url = "#{$base_url % opts["server"]}#{$scale_url % [opts['namespace'], opts['app']]}"
     params = {
-        'broker_auth_key' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/token"),
-        'broker_auth_iv' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/iv")
+        'broker_auth_key' => File.read("/var/lib/openshift origin/#{opts['uuid']}/.auth/token"),
+        'broker_auth_iv' => File.read("/var/lib/openshift origin/#{opts['uuid']}/.auth/iv")
     }
     return if not check_scalability(params, action, opts)
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
     request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 600,
-        :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
+        :headers => {:accept => 'application/json', :user_agent => 'OpenShift'},
         :payload => params
         )
 
@@ -75,7 +75,7 @@ class Gear_scale_ctl
     if not File.exists? scale_file
       gear_info_url = "#{$base_url % opts["server"]}#{$create_url % opts['namespace']}/#{opts['app']}"
       request = RestClient::Request.new(:method => :get, :url => gear_info_url, :timeout => 120,
-          :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
+          :headers => {:accept => 'application/json', :user_agent => 'OpenShift'},
           :payload => params
           )
 
@@ -124,90 +124,4 @@ class Gear_scale_ctl
     end
 
     haproxy_conf_dir=File.join(env['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "conf")
-    gear_registry_db=File.join(haproxy_conf_dir, "gear-registry.db")
-    current_gear_count = `wc -l #{gear_registry_db}`
-    current_gear_count = current_gear_count.split(' ')[0].to_i
-    if action=='add-gear' and current_gear_count == max
-      $stderr.puts "Cannot add gear because max limit '#{max}' reached."
-      return false
-    elsif action=='remove-gear' and current_gear_count == min
-      $stderr.puts "Cannot remove gear because min limit '#{min}' reached."
-      return false
-    end
-    return true
-  end
-
-  def load_env(opts)
-    env = {}
-    # Load environment variables into a hash
-    
-    Dir["/var/lib/stickshift/#{opts['uuid']}/.env/*"].each { | f |
-      next if File.directory?(f)
-      contents = nil
-      File.open(f) {|input|
-        contents = input.read.chomp
-        index = contents.index('=')
-        contents = contents[(index + 1)..-1]
-        contents = contents[/'(.*)'/, 1] if contents.start_with?("'")
-        contents = contents[/"(.*)"/, 1] if contents.start_with?('"')
-      }
-      env[File.basename(f)] =  contents
-    }
-    env
-  end
-
-end
-
-def usage
-  $stderr.puts <<USAGE
-
-Usage:
-
-Add gear to application:
-  Usage: add-gear -a|--app <application name> -u|--uuid <user> -n|--namespace <namespace uuid> [-h|--host <hostname>]
-
-Remove gear from application:
-  Usage: remove-gear -a|--app <application name> -u|--uuid <user> -n|--namespace <namespace uuid> [-h|--host <hostname>]
-
-  -a|--app         application name  Name for your application (alphanumeric - max <rest call?> chars) (required)
-  -u|--uuid        application uuid  UUID for your application (required)
-  -n|--namespace   namespace    Namespace for your application(s) (alphanumeric - max <rest call?> chars) (required)
-  -h|--host        libra server host running broker
-
-USAGE
-  exit! 255
-end
-
-config = StickShift::Config.instance
-
-opts = {
-    'server' => config.get('BROKER_HOST')
-}
-
-begin
-  args = GetoptLong.new(
-    ['--app',       '-a', GetoptLong::REQUIRED_ARGUMENT],
-    ['--uuid',      '-u', GetoptLong::REQUIRED_ARGUMENT],
-    ['--namespace', '-n', GetoptLong::REQUIRED_ARGUMENT],
-    ['--server',    '-s', GetoptLong::REQUIRED_ARGUMENT]
-  )
-
-  args.each {|opt, arg| opts[opt[2..-1]] = arg.to_s}
-
-  if 0 != ARGV.length
-    usage
-  end
-
-  if opts['server'].nil? || opts['server'].empty? \
-        || opts['app'].nil? || opts['app'].empty? \
-        || opts['uuid'].nil? || opts['uuid'].empty? \
-        || opts['namespace'].nil? || opts['namespace'].empty?
-    usage
-  end
-rescue Exception => e
-  usage
-end
-
-o = Gear_scale_ctl.new(File.basename($0), opts)
-
-exit 0
+    gear_registry_db=File.join(haproxy_conf_dir, "gear-r

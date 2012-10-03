@@ -33,8 +33,8 @@ USAGE
 end
 
 require 'rubygems'
-require 'stickshift-node'
-require 'stickshift-common'
+require 'openshift-origin-node'
+require 'openshift-origin-common'
 opts = GetoptLong.new(
     ["--porcelain",         "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",             "-d", GetoptLong::NO_ARGUMENT],
@@ -61,7 +61,7 @@ cart_name = ARGV.shift
 cart_found = false
 
 begin
-  cart_info = StickShift::Node.get_cartridge_info(cart_name, $porcelain, $ss_debug)
+  cart_info = OpenShift::Node.get_cartridge_info(cart_name, $porcelain, $ss_debug)
   puts cart_info
 rescue Exception => e
   $stderr.puts(e.message)

@@ -2,7 +2,7 @@
 
 MAILTO=""
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 
 # Constants.
 SERVICE_NAME=cron

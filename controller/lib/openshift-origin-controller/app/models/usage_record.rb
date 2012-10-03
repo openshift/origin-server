@@ -1,4 +1,4 @@
-class UsageRecord < StickShift::UserModel
+class UsageRecord < OpenShift::UserModel
   
   EVENTS = { :begin => "begin",
              :end => "end",
@@ -12,7 +12,7 @@ class UsageRecord < StickShift::UserModel
   exclude_attributes :user
 
   def initialize(event=nil, user=nil, time=nil, uuid=nil, usage_type=nil)
-    self.uuid = uuid ? uuid : StickShift::Model.gen_uuid
+    self.uuid = uuid ? uuid : OpenShift::Model.gen_uuid
     self.event = event
     self.time = time ? time : Time.now.utc
     self.user = user
@@ -31,7 +31,7 @@ class UsageRecord < StickShift::UserModel
   end
   
   def delete_by_gear_uuid
-    StickShift::DataStore.instance.delete_usage_record_by_gear_uuid(user.login, gear_uuid, usage_type)
+    OpenShift::DataStore.instance.delete_usage_record_by_gear_uuid(user.login, gear_uuid, usage_type)
   end
 
 end

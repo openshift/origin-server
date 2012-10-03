@@ -56,18 +56,18 @@ class LegacyBrokerController < ApplicationController
     if @cloud_user    
       case @req.action
       when "add-key"
-        raise StickShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
+        raise OpenShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
         if @cloud_user.ssh_keys
-          raise StickShift::UserKeyException.new("Key with name #{@req.key_name} already exists.  Please choose a different name", 120) if @cloud_user.ssh_keys.has_key?(@req.key_name)
+          raise OpenShift::UserKeyException.new("Key with name #{@req.key_name} already exists.  Please choose a different name", 120) if @cloud_user.ssh_keys.has_key?(@req.key_name)
         end
         @cloud_user.add_ssh_key(@req.key_name, @req.ssh, @req.key_type)
         @cloud_user.save
       when "remove-key"
-        raise StickShift::UserKeyException.new("Missing key name", 119) if @req.key_name.nil?
+        raise OpenShift::UserKeyException.new("Missing key name", 119) if @req.key_name.nil?
         @cloud_user.remove_ssh_key(@req.key_name)
         @cloud_user.save
       when "update-key"
-        raise StickShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
+        raise OpenShift::UserKeyException.new("Missing SSH key or key name", 119) if @req.ssh.nil? or @req.key_name.nil?
         @cloud_user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
         @cloud_user.save
       when "list-keys"
@@ -89,12 +89,12 @@ class LegacyBrokerController < ApplicationController
                       }.to_json
         end
       else
-        raise StickShift::UserKeyException.new("Invalid action #{@req.action}", 111)
+        raise OpenShift::UserKeyException.new("Invalid action #{@req.action}", 111)
       end
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_SSH_KEY", true, "Successfully completed action: #{@req.action}")
       render :json => @reply
     else
-      raise StickShift::UserException.new("Invalid user", 99)
+      raise OpenShift::UserException.new("Invalid user", 99)
     end
   end
   
@@ -114,7 +114,7 @@ class LegacyBrokerController < ApplicationController
       
       Rails.logger.debug "Updating namespace for domain #{domain.uuid} from #{domain.namespace} to #{@req.namespace}"
 
-      raise StickShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if StickShift::ApplicationContainerProxy.blacklisted? @req.namespace   
+      raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if OpenShift::ApplicationContainerProxy.blacklisted? @req.namespace   
       begin
         if domain.namespace != @req.namespace
           domain.namespace = @req.namespace     
@@ -158,8 +158,8 @@ class LegacyBrokerController < ApplicationController
        render :json => @reply
        return
     else
-      raise StickShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if StickShift::ApplicationContainerProxy.blacklisted? @req.namespace
-      raise StickShift::UserException.new("Domain already exists for user. Update the domain to modify.", 158) if !@cloud_user.domains.empty?
+      raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if OpenShift::ApplicationContainerProxy.blacklisted? @req.namespace
+      raise OpenShift::UserException.new("Domain already exists for user. Update the domain to modify.", 158) if !@cloud_user.domains.empty?
 
       key = Key.new(CloudUser::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
       if key.invalid?
@@ -205,7 +205,7 @@ class LegacyBrokerController < ApplicationController
   end
   
   def cartridge_post
-    raise StickShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
+    raise OpenShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
     
     case @req.action
     when 'configure'    #create app and configure framework
@@ -214,9 +214,9 @@ class LegacyBrokerController < ApplicationController
       app = Application.new(@cloud_user, @req.app_name, nil, @req.node_profile, @req.cartridge, nil, false, domain)
       check_cartridge_type(@req.cartridge, "standalone")
       if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+        raise OpenShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
-      raise StickShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if StickShift::ApplicationContainerProxy.blacklisted? app.name
+      raise OpenShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if OpenShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
         begin
           Rails.logger.debug "Creating application #{app.name}"
@@ -307,7 +307,7 @@ class LegacyBrokerController < ApplicationController
       app = get_app_from_request(@cloud_user)
       @reply.append app.system_messages
     else
-      raise StickShift::UserException.new("Invalid action #{@req.action}", 111)
+      raise OpenShift::UserException.new("Invalid action #{@req.action}", 111)
     end
     @reply.resultIO << 'Success' if @reply.resultIO.length == 0
     log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CARTRIDGE_POST", true, "Processed event #{@req.action} for application #{app.name}")
@@ -316,21 +316,21 @@ class LegacyBrokerController < ApplicationController
   end
   
   def embed_cartridge_post
-    raise StickShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
+    raise OpenShift::UserException.new("Invalid user", 99) if @cloud_user.nil?
     
     app = get_app_from_request(@cloud_user)    
     check_cartridge_type(@req.cartridge, "embedded")
     
     # making this check here for the specific actions, so that the error codes for other conditions are not affected
     if ['deconfigure', 'start', 'stop', 'restart', 'status', 'reload'].include?(@req.action) and ( app.embedded.nil? or not app.embedded.has_key?(@req.cartridge) )
-      raise StickShift::UserException.new("The application #{app.name} is not configured with the embedded cartridge #{@req.cartridge}.", 129) 
+      raise OpenShift::UserException.new("The application #{app.name} is not configured with the embedded cartridge #{@req.cartridge}.", 129) 
     end
 
     Rails.logger.debug "DEBUG: Performing action '#{@req.action}'"    
     case @req.action
     when 'configure'
       if app.scalable && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && @req.cartridge != 'jenkins-client-1.4'  #TODO Need a proper method to let us know if cart will get its own gear
-        raise StickShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
+        raise OpenShift::UserException.new("#{@login} has already reached the gear limit of #{@cloud_user.max_gears}", 104)
       end
       @reply.append app.add_dependency(@req.cartridge)
     when 'deconfigure'
@@ -346,7 +346,7 @@ class LegacyBrokerController < ApplicationController
     when 'reload'
       @reply.append app.reload(@req.cartridge)
     else
-      raise StickShift::UserException.new("Invalid action #{@req.action}", 111)           
+      raise OpenShift::UserException.new("Invalid action #{@req.action}", 111)           
     end
     
     log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_EMBED_CARTRIDGE_POST", true, "Processed event #{@req.action} for cartridge #{@req.cartridge} of application #{app.name}")
@@ -366,16 +366,16 @@ class LegacyBrokerController < ApplicationController
     carts = Application.get_available_cartridges(cart_type)
     unless carts.include? framework
       if cart_type == 'standalone'
-        raise StickShift::UserException.new(110), "Invalid application type (-t|--type) specified: '#{framework}'.  Valid application types are (#{carts.join(', ')})."
+        raise OpenShift::UserException.new(110), "Invalid application type (-t|--type) specified: '#{framework}'.  Valid application types are (#{carts.join(', ')})."
       else
-        raise StickShift::UserException.new(110), "Invalid type (-c|--cartridge) specified: '#{framework}'.  Valid cartridge types are (#{carts.join(', ')})."
+        raise OpenShift::UserException.new(110), "Invalid type (-c|--cartridge) specified: '#{framework}'.  Valid cartridge types are (#{carts.join(', ')})."
       end
     end
   end
   
   def get_app_from_request(user)
     app = Application.find(user, @req.app_name)
-    raise StickShift::UserException.new("An application named '#{@req.app_name}' does not exist", 101) if app.nil?
+    raise OpenShift::UserException.new("An application named '#{@req.app_name}' does not exist", 101) if app.nil?
     return app
   end
   
@@ -395,7 +395,7 @@ class LegacyBrokerController < ApplicationController
   def authenticate
     @request_id = gen_req_uuid
     begin
-      auth = StickShift::AuthService.instance.login(request, params, cookies)
+      auth = OpenShift::AuthService.instance.login(request, params, cookies)
 
       if auth  
         @login = auth[:username]
@@ -421,7 +421,7 @@ class LegacyBrokerController < ApplicationController
         @reply.exitcode = 97
         render :json => @reply, :status => :unauthorized
       end
-    rescue StickShift::AccessDeniedException
+    rescue OpenShift::AccessDeniedException
       log_action('nil','nil', 'nil', "LEGACY_BROKER", false, "Authentication failed: Invalid user credentials")
       @reply.resultIO << "Invalid user credentials"
       @reply.exitcode = 97
@@ -433,20 +433,20 @@ class LegacyBrokerController < ApplicationController
     status = :internal_server_error
     
     case e
-    when StickShift::AuthServiceException
+    when OpenShift::AuthServiceException
       log_action(@request_id, 'nil', 'nil', "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       Rails.logger.error e.backtrace[0..5].join("\n")
       @reply.append e.resultIO if e.resultIO
       @reply.resultIO << "An error occurred while contacting the authentication service. If the problem persists please contact Red Hat support." if @reply.resultIO.length == 0
-    when StickShift::UserException
+    when OpenShift::UserException
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       @reply.resultIO << e.message
       status = :bad_request
-    when StickShift::DNSException
+    when OpenShift::DNSException
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       @reply.resultIO << e.message
       status = :service_unavailable
-    when StickShift::SSException
+    when OpenShift::OOException
       log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
       Rails.logger.error e.backtrace[0..5].join("\n")
       Rails.logger.error e.resultIO

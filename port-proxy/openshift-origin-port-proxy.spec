@@ -1,18 +1,18 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
-Name:          stickshift-port-proxy
+Name:          openshift-origin-port-proxy
 Version: 0.3.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
-Source0:       stickshift-port-proxy-%{version}.tar.gz
+Source0:       openshift-origin-port-proxy-%{version}.tar.gz
 BuildArch:     noarch
 
 # The haproxy daemon is used as the functioning tcp proxy
 Requires:      haproxy
 
-# Stickshift node configuration and /etc/stickshift
-Requires:      rubygem-stickshift-node
+# Stickshift node configuration and /etc/openshift
+Requires:      rubygem(openshift-origin-node)
 
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -40,36 +40,36 @@ mkdir -p %{buildroot}%{_sbindir}
 %else
 mkdir -p %{buildroot}%{_initddir}
 %endif
-mkdir -p %{buildroot}%{_sysconfdir}/stickshift
+mkdir -p %{buildroot}%{_sysconfdir}/openshift
 mkdir -p %{buildroot}%{_bindir}
 
 %if %{with_systemd}
-install -m 644 systemd/stickshift-proxy.service %{buildroot}%{_unitdir}
-install -m 644 systemd/stickshift-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/stickshift-proxy
-install -m 755 systemd/stickshift-proxy %{buildroot}%{_sbindir}
+install -m 644 systemd/openshift-origin-port-proxy.service %{buildroot}%{_unitdir}
+install -m 644 systemd/openshift-origin-port-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-origin-port-proxy
+install -m 755 systemd/openshift-origin-port-proxy %{buildroot}%{_sbindir}
 %else
-install -m 755 init-scripts/stickshift-proxy %{buildroot}%{_initddir}
+install -m 755 init-scripts/openshift-origin-port-proxy %{buildroot}%{_initddir}
 %endif
-install -m 644 config/stickshift-proxy.cfg %{buildroot}%{_sysconfdir}/stickshift/
-install -m 755 bin/stickshift-proxy-cfg %{buildroot}%{_bindir}/stickshift-proxy-cfg
+install -m 644 config/openshift-origin-port-proxy.cfg %{buildroot}%{_sysconfdir}/openshift/
+install -m 755 bin/openshift-origin-port-proxy-cfg %{buildroot}%{_bindir}/openshift-origin-port-proxy-cfg
 
 %post
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
-/bin/systemctl try-restart stickshift-proxy.service
+/bin/systemctl try-restart openshift-origin-port-proxy.service
 %else
-/sbin/chkconfig --add stickshift-proxy || :
-/sbin/service stickshift-proxy condrestart || :
+/sbin/chkconfig --add openshift-origin-port-proxy || :
+/sbin/service openshift-origin-port-proxy condrestart || :
 %endif
 
 %preun
 if [ "$1" -eq "0" ]; then
 %if %{with_systemd}
-   /bin/systemctl --no-reload disable stickshift-proxy.service
-   /bin/systemctl stop stickshift-proxy.service
+   /bin/systemctl --no-reload disable openshift-origin-port-proxy.service
+   /bin/systemctl stop openshift-origin-port-proxy.service
 %else
-   /sbin/service stickshift-proxy stop || :
-   /sbin/chkconfig --del stickshift-proxy || :
+   /sbin/service openshift-origin-port-proxy stop || :
+   /sbin/chkconfig --del openshift-origin-port-proxy || :
 %endif
 fi
 
@@ -77,14 +77,14 @@ fi
 %defattr(-,root,root,-)
 %doc LICENSE
 %if %{with_systemd}
-%{_unitdir}/stickshift-proxy.service
-%{_sysconfdir}/sysconfig/stickshift-proxy
-%{_sbindir}/stickshift-proxy
+%{_unitdir}/openshift-origin-port-proxy.service
+%{_sysconfdir}/sysconfig/openshift-origin-port-proxy
+%{_sbindir}/openshift-origin-port-proxy
 %else
-%{_initddir}/stickshift-proxy
+%{_initddir}/openshift-origin-port-proxy
 %endif
-%{_bindir}/stickshift-proxy-cfg
-%config(noreplace) %{_sysconfdir}/stickshift/stickshift-proxy.cfg
+%{_bindir}/openshift-origin-port-proxy-cfg
+%config(noreplace) %{_sysconfdir}/openshift/openshift-origin-port-proxy.cfg
 
 %changelog
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
@@ -92,7 +92,7 @@ fi
   (mscherer@redhat.com)
 
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
-- Fedora review feedback: Get rid of .stickshift-proxy.d (rmillner@redhat.com)
+- Fedora review feedback: Get rid of .openshift-origin-port-proxy.d (rmillner@redhat.com)
 - Fedora review feedback: Fix requires and use of "/var". (rmillner@redhat.com)
 - BZ 856910: haproxy is found in /usr/sbin. (rmillner@redhat.com)
 
@@ -106,13 +106,13 @@ fi
 
 * Tue Sep 11 2012 Troy Dawson <tdawson@redhat.com> 0.2.3-1
 - Move configuration file to /etc; leave lock files and reload requests in
-  /var/lib/stickshift. (rmillner@redhat.com)
+  /var/lib/openshift. (rmillner@redhat.com)
 
 * Thu Aug 30 2012 Adam Miller <admiller@redhat.com> 0.2.2-1
-- fixing stickshift port proxy for fedora (abhgupta@redhat.com)
-- fixing stickshift proxy port rpm for fedora (abhgupta@redhat.com)
+- fixing OpenShift Origin port proxy for fedora (abhgupta@redhat.com)
+- fixing OpenShift Origin port proxy rpm for fedora (abhgupta@redhat.com)
 - Merge pull request #426 from rmillner/f17proxy (openshift+bot@redhat.com)
-- Add systemd version of stickshift-proxy. (rmillner@redhat.com)
+- Add systemd version of openshift-origin-port-proxy. (rmillner@redhat.com)
 - Shuffle responsibilities so that the systemd script and init script follow
   the same flow. (rmillner@redhat.com)
 
@@ -142,7 +142,7 @@ fi
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
-- Automatic commit of package [stickshift-port-proxy] release [0.0.1-1].
+- Automatic commit of package [openshift-origin-port-proxy] release [0.0.1-1].
   (kraman@gmail.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
   gearchanger plugin - Added mcollective agent and facter plugins - Added

@@ -1,4 +1,4 @@
-class ComponentInstance < StickShift::Model
+class ComponentInstance < OpenShift::Model
   attr_accessor :state, :parent_cart_name, :parent_cart_profile, :parent_component_name, :parent_cart_group,
                 :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties, :addtl_fs_gb
 
@@ -214,7 +214,7 @@ class ComponentInstance < StickShift::Model
     
     depends.each do |feature| 
       cart = CartridgeCache::find_cartridge(feature)
-      raise StickShift::UserException.new("Invalid cartridge specified: #{feature}",1) if cart.nil?
+      raise OpenShift::UserException.new("Invalid cartridge specified: #{feature}",1) if cart.nil?
       capability = feature
       capability = nil if feature==cart.name
       profile = cart.find_profile(capability)

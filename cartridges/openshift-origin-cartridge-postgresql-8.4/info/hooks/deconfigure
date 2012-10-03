@@ -5,7 +5,7 @@
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_postgresql_deconfigure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgresql_deconfigure
     exit 1
 }
 
@@ -24,7 +24,7 @@ done
 
 cartridge_type="postgresql-8.4"
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# stickshift-proxy
+# openshift-origin-port-proxy
 #
 # chkconfig:   345 85 15
 # description: Stickshift proxy
 # processname: haproxy
-# config:      /etc/stickshift/stickshift-proxy.cfg
-# pidfile:     /var/run/stickshift-proxy.pid
+# config:      /etc/openshift/openshift-origin-port-proxy.cfg
+# pidfile:     /var/run/openshift-origin-port-proxy.pid
 
 # Source function library.
 . /etc/rc.d/init.d/functions
@@ -17,21 +17,21 @@
 # Check that networking is up.
 [ "$NETWORKING" = "no" ] && exit 0
 
-[ -e /etc/sysconfig/stickshift-proxy ] && source /etc/sysconfig/stickshift-proxy
+[ -e /etc/sysconfig/openshift-origin-port-proxy ] && source /etc/sysconfig/openshift-origin-port-proxy
 
 exec=/usr/sbin/haproxy
 prog=haproxy
-lockfile=/var/lock/subsys/stickshift-proxy
-pidfile=/var/run/stickshift-proxy.pid
-cfgfile=/etc/stickshift/stickshift-proxy.cfg
+lockfile=/var/lock/subsys/openshift-origin-port-proxy
+pidfile=/var/run/openshift-origin-port-proxy.pid
+cfgfile=/etc/openshift/openshift-origin-port-proxy.cfg
 
 pre_start() {
     # Fix internal ip address in case it was changed by the cloud provider
-    stickshift-proxy-cfg fixaddr
+    openshift-origin-port-proxy-cfg fixaddr
 }
 
 start() {
-    echo -n $"Starting stickshift-proxy: "
+    echo -n $"Starting openshift-origin-port-proxy: "
     daemon --pidfile $pidfile $exec -D -f $cfgfile -p $pidfile
     retval=$?
     echo
@@ -40,7 +40,7 @@ start() {
 }
 
 stop() {
-    echo -n $"Stopping stickshift-proxy: "
+    echo -n $"Stopping openshift-origin-port-proxy: "
     killproc -p $pidfile $prog 
     retval=$?
     echo
@@ -54,7 +54,7 @@ restart() {
 }
 
 reload() {
-    echo -n $"Reloading stickshift-proxy: "
+    echo -n $"Reloading openshift-origin-port-proxy: "
     $exec -D -f $cfgfile -p $pidfile -sf $(cat $pidfile)
     retval=$?
     echo

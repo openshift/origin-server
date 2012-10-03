@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/php-5.3
+%global cartridgedir %{_libexecdir}/openshift/cartridges/php-5.3
 
 Summary:   Provides php-5.3 support
-Name:      cartridge-php-5.3
+Name:      openshift-origin-cartridge-php-5.3
 Version: 0.98.4
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -14,8 +14,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: php >= 5.3.2
 Requires: php < 5.4.0
 Requires: mod_bw
@@ -59,8 +59,8 @@ touch git_template.git/refs/heads/.gitignore
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -107,7 +107,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -123,7 +123,7 @@ rm -rf %{buildroot}
 - Don't write to pearrc during build (ironcladlou@gmail.com)
 
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.98.2-1
-- Merge pull request #458 from VojtechVitek/php-cartridge-php.ini-reduce-
+- Merge pull request #458 from VojtechVitek/php-openshift-origin-cartridge-php.ini-reduce-
   serialize_precision (dmcphers@redhat.com)
 - Reduce php.ini serialize_precision value (vvitek@redhat.com)
 
@@ -149,7 +149,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.96.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.96.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
@@ -224,7 +224,7 @@ rm -rf %{buildroot}
   (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [cartridge-php-5.3] release [0.92.5-1].
+- Automatic commit of package [openshift-origin-cartridge-php-5.3] release [0.92.5-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Add and use cartridge instance specific functions. (ramr@redhat.com)

@@ -11,7 +11,7 @@ class NamespaceValidator < ActiveModel::EachValidator
       record.errors.add(attribute, {:message => "Namespace is too long.  Maximum length is #{NAMESPACE_MAX_LENGTH} characters.", :exit_code => 106})
     elsif val and !(val =~ /\A[A-Za-z0-9]+\z/)
       record.errors.add(attribute, {:message => "Invalid namespace. Namespace must only contain alphanumeric characters.", :exit_code => 106})
-    elsif val and StickShift::ApplicationContainerProxy.blacklisted? val
+    elsif val and OpenShift::ApplicationContainerProxy.blacklisted? val
       record.errors.add(attribute, {:message => "Namespace is not allowed.  Please choose another.", :exit_code => 106})
     end
   end

@@ -15,13 +15,13 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node/config'
-require 'stickshift-node/utils/shell_exec'
-require 'stickshift-common'
+require 'openshift-origin-node/config'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-common'
 require 'syslog'
 require 'fcntl'
 
-module StickShift
+module OpenShift
   class UserCreationException < Exception
   end
 
@@ -32,19 +32,19 @@ module StickShift
   #
   # Represents a user account on the system.
   class UnixUser < Model
-    include StickShift::Utils::ShellExec
+    include OpenShift::Utils::ShellExec
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files,
         :container_name
     attr_accessor :debug
 
-    DEFAULT_SKEL_DIR = File.join(StickShift::Config::CONF_DIR,"skel")
+    DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
 
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
-      Syslog.open('stickshift-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
+      Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
 
-      @config = StickShift::Config.instance
+      @config = OpenShift::Config.instance
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid
@@ -136,7 +136,7 @@ module StickShift
         end
         notify_observers(:after_unix_user_create)
         initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
-        initialize_stickshift_proxy
+        initialize_openshift_origin_port_proxy
 
         uuid_lock.flock(File::LOCK_UN)
         File.unlink(uuid_lock_file)
@@ -184,7 +184,7 @@ module StickShift
         kill_procs(@uid)
 
         purge_sysvipc(uuid)
-        initialize_stickshift_proxy
+        initialize_openshift_origin_port_proxy
 
         if @config.get("CREATE_APP_SYMLINKS").to_i == 1
           Dir.foreach(File.dirname(@homedir)) do |dent|
@@ -369,8 +369,8 @@ module StickShift
     #
     # Examples
     #   add_broker_auth('ivvalue', 'tokenvalue')
-    #   # => ["/var/lib/stickshift/UUID/.auth/iv",
-    #         "/var/lib/stickshift/UUID/.auth/token"]
+    #   # => ["/var/lib/openshift/UUID/.auth/iv",
+    #         "/var/lib/openshift/UUID/.auth/token"]
     #
     # Returns An Array of Strings for the newly created auth files
     def add_broker_auth(iv,token)
@@ -564,15 +564,15 @@ module StickShift
     # range.
     #
     # Examples:
-    # initialize_stickshift_proxy
+    # initialize_openshift_origin_port_proxy
     #    => true
-    #    service stickshift_proxy setproxy 35000 delete 35001 delete etc...
+    #    service openshift_origin_port_proxy setproxy 35000 delete 35001 delete etc...
     #
     # Returns:
     #    true   - port proxy could be initialized properly
     #    false  - port proxy could not be initialized properly
-    def initialize_stickshift_proxy
-      notify_observers(:before_initialize_stickshift_proxy)
+    def initialize_openshift_origin_port_proxy
+      notify_observers(:before_initialize_openshift_origin_port_proxy)
 
       port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
       ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
@@ -594,11 +594,11 @@ module StickShift
 
       proxy_port_range = (proxy_port_begin ... (proxy_port_begin + ports_per_user))
 
-      cmd = %{stickshift-proxy-cfg setproxy}
+      cmd = %{openshift-origin-port-proxy-cfg setproxy}
       proxy_port_range.each { |i| cmd << " #{i} delete" }
       out, err, rc = shellCmd(cmd)
 
-      notify_observers(:after_initialize_stickshift_proxy)
+      notify_observers(:after_initialize_openshift_origin_port_proxy)
       return rc == 0
     end
 

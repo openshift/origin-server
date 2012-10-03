@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-common
+%global gemname openshift-origin-common
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
 Summary:        Cloud Development Common
@@ -48,9 +48,9 @@ mkdir -p %{buildroot}%{ruby_sitelib}
 mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
 
 #selinux policy
-cp doc/selinux/stickshift.te %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/stickshift.fc %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/stickshift.if %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/openshift-origin.te %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/openshift-origin.fc %{buildroot}/usr/share/selinux/packages/%{name}/
+cp doc/selinux/openshift-origin.if %{buildroot}/usr/share/selinux/packages/%{name}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -79,7 +79,7 @@ rm -rf %{buildroot}
 
 %post
 pushd /usr/share/selinux/packages/%{name}
-rm -f stickshift.pp
+rm -f openshift.pp
 make -f /usr/share/selinux/devel/Makefile
 popd
 
@@ -155,7 +155,7 @@ popd
 
 * Thu May 17 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
 - nit (dmcphers@redhat.com)
-- proper usage of StickShift::Model and beginnings of usage tracking
+- proper usage of OpenShift::Model and beginnings of usage tracking
   (dmcphers@redhat.com)
 - Add rcov testing to the Stickshift broker, common and controller.
   (rmillner@redhat.com)

@@ -1,11 +1,11 @@
-class Gear < StickShift::Model
+class Gear < OpenShift::Model
   attr_accessor :uuid, :uid, :server_identity, :group_instance_name, :node_profile, :container, :app, :configured_components, :name
   primary_key :uuid
   exclude_attributes :container, :app
   
   def initialize(app, group_instance, uuid=nil, uid=nil)
     self.app = app
-    @uuid = uuid || StickShift::Model.gen_uuid
+    @uuid = uuid || OpenShift::Model.gen_uuid
     self.name = @uuid[0..9]
     self.group_instance_name = group_instance.name
     self.node_profile = group_instance.node_profile
@@ -26,7 +26,7 @@ class Gear < StickShift::Model
   
   def get_proxy
     if self.container.nil? and !@server_identity.nil?
-      self.container = StickShift::ApplicationContainerProxy.instance(@server_identity)
+      self.container = OpenShift::ApplicationContainerProxy.instance(@server_identity)
     end    
     return self.container
   end
@@ -36,7 +36,7 @@ class Gear < StickShift::Model
       ret = nil
       begin
         self.app.ngears += 1
-        self.container = StickShift::ApplicationContainerProxy.find_available(self.node_profile)
+        self.container = OpenShift::ApplicationContainerProxy.find_available(self.node_profile)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
         self.group_instance.gears << self
@@ -60,7 +60,7 @@ class Gear < StickShift::Model
         self.app.ngears -= 1
         self.group_instance.gears.delete(self)
         self.app.save
-        raise StickShift::NodeException.new("Unable to create gear on node", 1, ret)
+        raise OpenShift::NodeException.new("Unable to create gear on node", 1, ret)
       end
       return ret
     end
@@ -77,7 +77,7 @@ class Gear < StickShift::Model
       app.process_cartridge_commands(ret)
       self.app.save
     else
-      raise StickShift::NodeException.new("Unable to destroy gear on node", 1, ret)
+      raise OpenShift::NodeException.new("Unable to destroy gear on node", 1, ret)
     end
     return ret
   end

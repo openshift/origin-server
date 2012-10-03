@@ -1,4 +1,4 @@
-class RestCartridge11 < StickShift::Model
+class RestCartridge11 < OpenShift::Model
   attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
                 :tags, :website, :help_topics, :links, :properties, :status_messages,
                 :current_scale, :scales_with, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage

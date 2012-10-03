@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/10gen-mms-agent-0.1
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/10gen-mms-agent-0.1
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/10gen-mms-agent-0.1
+%global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
-Name: cartridge-10gen-mms-agent-0.1
+Name: openshift-origin-cartridge-10gen-mms-agent-0.1
 Version: 1.15.3
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
@@ -14,8 +14,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: stickshift-abstract
-Requires: cartridge-mongodb-2.2
+Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-mongodb-2.2
 Requires: pymongo
 Requires: mms-agent
 
@@ -34,7 +34,7 @@ Provides 10gen MMS agent cartridge support
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/

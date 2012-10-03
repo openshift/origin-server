@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 
   
 When /^a descriptor file is provided$/ do
@@ -8,7 +8,7 @@ end
     
 When /^the descriptor file is parsed as a cartridge$/ do
   f = File.open(@descriptor_file)
-  @app = StickShift::Cartridge.new.from_descriptor(YAML.load(f))
+  @app = OpenShift::Cartridge.new.from_descriptor(YAML.load(f))
   f.close
 end
 

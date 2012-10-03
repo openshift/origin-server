@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/ruby-1.8
+%global cartridgedir %{_libexecdir}/openshift/cartridges/ruby-1.8
 
 Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      cartridge-ruby-1.8
+Name:      openshift-origin-cartridge-ruby-1.8
 Version: 0.99.3
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -11,8 +11,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
+Requires:  openshift-origin-abstract
+Requires:  rubygem(openshift-origin-node)
 Requires:  mod_bw
 Requires:  sqlite-devel
 Requires:  rubygems
@@ -46,7 +46,7 @@ Requires:  ruby-nokogiri
 Requires:  rubygem-nokogiri
 %endif
 
-Obsoletes: cartridge-ruby-1.1
+Obsoletes: openshift-origin-cartridge-ruby-1.1
 
 # Deps for users
 Requires: ruby-RMagick
@@ -76,8 +76,8 @@ touch git_template.git/refs/heads/.gitignore
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -123,7 +123,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -172,7 +172,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.96.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.96.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
@@ -197,7 +197,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.95.3-1
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 
@@ -238,7 +238,7 @@ rm -rf %{buildroot}
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
-- Automatic commit of package [cartridge-ruby-1.8] release [0.93.2-1].
+- Automatic commit of package [openshift-origin-cartridge-ruby-1.8] release [0.93.2-1].
   (admiller@redhat.com)
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Fixing ruby spec for fedora installs. ruby-nokogiri -> rubygem-nokogiri
@@ -251,7 +251,7 @@ rm -rf %{buildroot}
   (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [cartridge-ruby-1.8] release [0.92.6-1].
+- Automatic commit of package [openshift-origin-cartridge-ruby-1.8] release [0.92.6-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Add and use cartridge instance specific functions. (ramr@redhat.com)

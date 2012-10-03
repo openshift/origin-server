@@ -4,9 +4,9 @@
 require 'rubygems'
 require 'dnsruby'
 
-module Uplift
-  class BindPlugin < StickShift::DnsService
-    @ss_dns_provider = Uplift::BindPlugin
+module OpenShift
+  class BindPlugin < OpenShift::DnsService
+    @ss_dns_provider = OpenShift::BindPlugin
 
     # DEPENDENCIES
     # Rails.application.config.ss[:domain_suffix]

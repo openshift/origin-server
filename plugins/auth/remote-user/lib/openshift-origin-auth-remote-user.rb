@@ -4,5 +4,5 @@ module Swingshift
   end
 end
 
-require "openshift-origin-auth-remote-user/lib/swingshift/remote_user_auth_service.rb"
-StickShift::AuthService.provider=Swingshift::RemoteUserAuthService
+require "openshift-origin-auth-remote-user/lib/openshift/remote_user_auth_service.rb"
+OpenShift Origin::AuthService.provider=Swingshift::RemoteUserAuthService

@@ -1,6 +1,6 @@
 require 'validators/key_validator'
 
-class Key < StickShift::Model
+class Key < OpenShift::Model
   attr_accessor :name, :type, :content
   include ActiveModel::Validations
   validates_with KeyValidator

@@ -5,14 +5,14 @@
 # Exit on any errors
 set -e
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_haproxy_set_proxy
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_haproxy_set_proxy
     exit 1
 }
 

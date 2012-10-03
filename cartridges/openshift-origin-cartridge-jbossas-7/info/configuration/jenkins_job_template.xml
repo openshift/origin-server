@@ -62,7 +62,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
-source /usr/libexec/stickshift/cartridges/abstract/info/lib/jenkins_util
+source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
 jenkins_rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
 

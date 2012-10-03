@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
-source "/etc/stickshift/resource_limits.conf"
+source "/etc/openshift/openshift-origin-node.conf"
+source "/etc/openshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 application="$1"
@@ -11,7 +11,7 @@ IP="$3"
 APP_HOME="${GEAR_BASE_DIR}/$uuid"
 PHPMYADMIN_DIR=`echo $APP_HOME/phpmyadmin-3.4 | tr -s /`
 
-cat <<EOF > "$PHPMYADMIN_DIR/conf.d/stickshift.conf"
+cat <<EOF > "$PHPMYADMIN_DIR/conf.d/openshift origin.conf"
 ServerRoot "$PHPMYADMIN_DIR"
 Listen $IP:8080
 User $uuid

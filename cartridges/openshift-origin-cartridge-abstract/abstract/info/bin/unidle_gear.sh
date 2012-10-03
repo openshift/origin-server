@@ -6,7 +6,7 @@ for f in ~/.env/*; do
 done
 
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 source $CARTRIDGE_BASE_PATH/abstract/info/lib/util
 
 

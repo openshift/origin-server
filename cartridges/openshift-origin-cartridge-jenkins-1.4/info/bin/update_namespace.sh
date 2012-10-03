@@ -4,14 +4,14 @@
 set -e
 #set -x
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/jenkins-1.4/info
 
 function print_help {
     echo "Usage: $0 app-name new_namespace old_namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jenkins_update_namespace
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jenkins_update_namespace
     exit 1
 }
 

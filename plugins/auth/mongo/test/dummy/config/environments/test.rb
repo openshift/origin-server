@@ -42,9 +42,9 @@ Dummy::Application.configure do
     :salt => "salt_salt_salt",
     :mongo_replica_sets => false,
     :mongo_host_port => ["localhost", 27017],
-    :mongo_user => "stickshift",
+    :mongo_user => "openshift",
     :mongo_password => "mooo",
-    :mongo_db => "stickshift_broker_test",
+    :mongo_db => "openshift_origin_broker_test",
     :mongo_collection => "auth_user",
     :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
     :privkeypass => "foo",
@@ -53,6 +53,6 @@ Dummy::Application.configure do
 
  config.user_action_logging = {
     :logging_enabled => false,
-    :log_filepath => "/var/log/stickshift/user_action.log"
+    :log_filepath => "/var/log/openshift/user_action.log"
   }
 end

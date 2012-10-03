@@ -20,9 +20,9 @@
 #
 # Check that the broker components are installed and communicating properly
 #
-OSO_CONF_DIR=${OSO_CONF_DIR:=/etc/stickshift}
+OSO_CONF_DIR=${OSO_CONF_DIR:=/etc/openshift}
 
-OSO_BROKER_ROOT=${OSO_BROKER_ROOT:=/var/www/stickshift/broker}
+OSO_BROKER_ROOT=${OSO_BROKER_ROOT:=/var/www/openshift/broker}
 
 OSO_CFG_DIR=${OSO_BROKER_ROOT}/config
 OSO_ENV_DIR=${OSO_CFG_DIR}/environments
@@ -50,15 +50,15 @@ DEFAULT_PACKAGES="
   rubygems
   rubygem-rails
   rubygem-passenger
-  rubygem-stickshift-common
-  rubygem-stickshift-controller
-  stickshift-broker 
+  rubygem-openshift-origin-common
+  rubygem-openshift-origin-controller
+  openshift-origin-broker 
 "
 
-DEFAULT_SERVICES="stickshift-broker"
+DEFAULT_SERVICES="openshift-origin-broker"
 
 # Depends on OSO_BROKER_ROOT in ruby lib search list
-OSO_RUBY_LIBS="stickshift-controller config/application"
+OSO_RUBY_LIBS="openshift-origin-controller config/application"
 
 if [ -z "$PACKAGES" ]
 then
@@ -105,7 +105,7 @@ function fail() {
 #
 # ==========================================================================
 function probe_version() {
-    # Find out who owns /var/www/stickshift/broker
+    # Find out who owns /var/www/openshift/broker
 
     BROKER_RPM=$(rpm -qf $OSO_BROKER_ROOT --qf '%{NAME}\n' 2>/dev/null)
     if [ -z "$BROKER_RPM" ]
@@ -165,7 +165,7 @@ function get_application_value() {
         require 'bundler'
         require 'rails'
         begin
-          require 'stickshift-controller'
+          require 'openshift-origin-controller'
           require 'config/application'
           require 'config/initializers/broker'
           require 'config/environments/$OSO_ENVIRONMENT'
@@ -288,7 +288,7 @@ function check_selinux_modules() {
     return
   fi
 
-  SELINUX_MODULES='rubygem_passenger stickshift-broker'
+  SELINUX_MODULES='rubygem_passenger openshift-origin-broker'
   for MODNAME in $SELINUX_MODULES
   do
     MODSPEC=$($SEMODULE -l | grep $MODNAME)
@@ -364,19 +364,19 @@ function check_selinux_booleans() {
 # ============================================================================
 
 function find_datastore_plugin() {
-    # StickShift::DataStore.instance_variable_get('@ss_ds_provider')
-    get_application_value "StickShift::DataStore.instance_variable_get('@ss_ds_provider')"
+    # OpenShift::DataStore.instance_variable_get('@ss_ds_provider')
+    get_application_value "OpenShift::DataStore.instance_variable_get('@ss_ds_provider')"
 }
 
 function check_datastore() {
     verbose checking datastore
     DATA_PLUGIN=`find_datastore_plugin`
     case $DATA_PLUGIN in
-        'StickShift::DataStore')
+        'OpenShift::DataStore')
 
 	    fail abstract datastore class: $DATA_PLUGIN
 	    ;;
-	'StickShift::MongoDataStore')
+	'OpenShift::MongoDataStore')
 	    verbose "datastore plugin: $DATA_PLUGIN"
 	    check_datastore_mongo
             ;;
@@ -463,7 +463,7 @@ function check_datastore_mongo() {
         verbose "Datastore: mongo db service is remote"
     fi
 
-    # check stickshift user (username/password)
+    # check OpenShift Origin user (username/password)
     check_mongo_login $DS_HOST:$DS_PORT $DS_NAME $DS_USER $DS_PASS
 }
 
@@ -523,7 +523,7 @@ function check_auth_mongo() {
         verbose "Auth: mongo db service is remote"
     fi
 
-    # check stickshift user (username/password)
+    # check OpenShift Origin user (username/password)
     check_mongo_login $DS_HOST:$DS_PORT $DS_NAME $DS_USER $DS_PASS
 }
 # ============================================================================
@@ -533,8 +533,8 @@ function check_auth_mongo() {
 # ============================================================================
 
 function find_authentication_plugin() {
-    # StickShift::AuthService.instance_variable_get('@ss_auth_provider')
-    get_application_value "StickShift::AuthService.instance_variable_get('@ss_auth_provider')"
+    # OpenShift::AuthService.instance_variable_get('@ss_auth_provider')
+    get_application_value "OpenShift::AuthService.instance_variable_get('@ss_auth_provider')"
 
 }
 
@@ -543,7 +543,7 @@ function check_authentication() {
     AUTH_PLUGIN=`find_authentication_plugin`
     verbose auth plugin = $AUTH_PLUGIN
     case $AUTH_PLUGIN in
-        'StickShift::AuthService')
+        'OpenShift::AuthService')
 
 	    fail abstract auth class: $AUTH_PLUGIN
 	    ;;
@@ -566,8 +566,8 @@ function check_authentication() {
 # ============================================================================
 
 function find_dynamic_dns_plugin() {
-    # StickShift::DnsService.instance_variable_get('@ss_dns_provider')
-    get_application_value "StickShift::DnsService.instance_variable_get('@ss_dns_provider')"
+    # OpenShift::DnsService.instance_variable_get('@ss_dns_provider')
+    get_application_value "OpenShift::DnsService.instance_variable_get('@ss_dns_provider')"
 }
 
 function dns_bind_update_record() {
@@ -652,12 +652,12 @@ function check_dynamic_dns() {
     verbose checking dynamic dns plugin
     NAME_PLUGIN=`find_dynamic_dns_plugin`
     case $NAME_PLUGIN in
-        'StickShift::DnsService')
+        'OpenShift::DnsService')
 	    fail abstract dns class: $NAME_PLUGIN
 	    ;;
 
 	    
-	'Uplift::BindPlugin')
+	'OpenShift::BindPlugin')
 	    verbose dynamic dns plugin = $NAME_PLUGIN
 	    check_dns_bind
 	    ;;
@@ -675,8 +675,8 @@ function check_dynamic_dns() {
 #
 # ============================================================================
 function find_messaging_plugin() {
-    # StickShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')
-    get_application_value "StickShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
+    # OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')
+    get_application_value "OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
 }
 
 function check_messaging_oddjob() {
@@ -691,7 +691,7 @@ function check_messaging_oddjob() {
 #function send_oddjob_message() {
  
     #ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF 2>&1
-    #    require 'stickshift-controller'
+    #    require 'openshift-origin-controller'
     #    require 'gearchanger-oddjob-plugin'
 #EOF
 
@@ -702,12 +702,12 @@ function check_messaging() {
 
     MSG_PLUGIN=`find_messaging_plugin`
     case $MSG_PLUGIN in
-        'StickShift::ApplicationContainerProxy')
+        'OpenShift::ApplicationContainerProxy')
 	    fail abstract messaging class: $MSG_PLUGIN
 	    ;;
 
 	    
-	'GearChanger::OddJobApplicationContainerProxy')
+	'OpenShift::OddJobApplicationContainerProxy')
 	    verbose messaging plugin = $MSG_PLUGIN
 	    check_messaging_oddjob
 	    ;;
@@ -724,10 +724,10 @@ function check_node_communications() {
 require 'rubygems'
 require 'rails'
 require 'bundler'
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'gearchanger-oddjob-plugin'
 
-app_proxy = StickShift::ApplicationContainerProxy.find_one
+app_proxy = OpenShift::ApplicationContainerProxy.find_one
 EOF
 }
 

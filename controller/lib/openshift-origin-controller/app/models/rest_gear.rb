@@ -1,4 +1,4 @@
-class RestGear < StickShift::Model
+class RestGear < OpenShift::Model
   attr_accessor :uuid, :components
   include LegacyBrokerHelper
   

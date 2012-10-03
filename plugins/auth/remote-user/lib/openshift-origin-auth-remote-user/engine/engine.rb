@@ -1,7 +1,7 @@
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'rails'
 
-module SwingShift
+module OpenShift Origin
   class RemoteUserAuthServiceEngine < Rails::Engine
     paths.app.controllers      << "lib/openshift-origin-auth-remote-user/app/controllers"
     paths.lib                  << "lib/openshift-origin-auth-remote-user/lib"

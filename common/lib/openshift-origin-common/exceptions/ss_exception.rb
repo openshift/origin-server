@@ -1,5 +1,5 @@
-module StickShift
-  class SSException < StandardError
+module OpenShift
+  class OOException < StandardError
     attr_accessor :code, :resultIO
 
     def initialize(msg=nil, code=nil, resultIO=nil)
@@ -9,7 +9,7 @@ module StickShift
     end
   end
 
-  class NodeException < StickShift::SSException; end
+  class NodeException < OpenShift::OOException; end
   class InvalidNodeException < NodeException
     attr_accessor :server_identity
 
@@ -18,12 +18,12 @@ module StickShift
       @server_identity = server_identity
     end
   end
-  class UserException < StickShift::SSException; end
-  class UserKeyException < StickShift::SSException; end
-  class AuthServiceException < StickShift::SSException; end
-  class UserValidationException < StickShift::SSException; end
+  class UserException < OpenShift::OOException; end
+  class UserKeyException < OpenShift::OOException; end
+  class AuthServiceException < OpenShift::OOException; end
+  class UserValidationException < OpenShift::OOException; end
   class AccessDeniedException < UserValidationException; end
-  class DNSException < StickShift::SSException; end
+  class DNSException < OpenShift::OOException; end
   class DNSNotFoundException < DNSException; end
-  class EstimatesException < StickShift::SSException; end
+  class EstimatesException < OpenShift::OOException; end
 end

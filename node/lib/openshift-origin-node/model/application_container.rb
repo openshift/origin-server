@@ -15,20 +15,20 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node/config'
-require 'stickshift-node/model/unix_user'
-require 'stickshift-node/utils/shell_exec'
-require 'stickshift-common'
+require 'openshift-origin-node/config'
+require 'openshift-origin-node/model/unix_user'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-common'
 
-module StickShift
+module OpenShift
   # == Application Container
   class ApplicationContainer < Model
-    include StickShift::Utils::ShellExec
+    include OpenShift::Utils::ShellExec
     attr_reader :uuid, :application_uuid, :user
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
-      @config = StickShift::Config.instance
+      @config = OpenShift::Config.instance
 
       @uuid = container_uuid
       @application_uuid = application_uuid

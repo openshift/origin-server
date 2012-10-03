@@ -1,21 +1,21 @@
 #!/bin/bash
 #
-# stickshift-broker        Startup script for the StickShift broker
+# openshift-origin-broker        Startup script for the OpenShift Origin broker
 #
 # chkconfig: - 85 15
-# description: The StickShift broker
+# description: The OpenShift Origin broker
 # processname: httpd
-# config: /var/www/stickshift/broker/httpd/broker.conf
-# config: /var/www/stickshift/broker/httpd
-# pidfile: /var/www/stickshift/broker/httpd/run/httpd.pid
+# config: /var/www/openshift/broker/httpd/broker.conf
+# config: /var/www/openshift/broker/httpd
+# pidfile: /var/www/openshift/broker/httpd/run/httpd.pid
 #
 ### BEGIN INIT INFO
 # Provides: httpd
 # Required-Start: $local_fs $remote_fs $network $named
 # Required-Stop: $local_fs $remote_fs $network
 # Should-Start: distcache
-# Short-Description: start and stop StickShift broker
-# Description: The StickShift broker
+# Short-Description: start and stop OpenShift Origin broker
+# Description: The OpenShift Origin broker
 ### END INIT INFO
 
 # Source function stickshiftry.
@@ -27,19 +27,19 @@ HTTPD_LANG=${HTTPD_LANG-"C"}
 # Path to the apachectl script, server binary, and short-form for messages.
 apachectl=/usr/sbin/apachectl
 httpd=${HTTPD-/usr/sbin/httpd}
-prog=stickshift-broker
-pidfile=${PIDFILE-/var/www/stickshift/broker/httpd/run/httpd.pid}
-lockfile=${LOCKFILE-/var/lock/subsys/stickshift-broker}
+prog=openshift-origin-broker
+pidfile=${PIDFILE-/var/www/openshift/broker/httpd/run/httpd.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/openshift-origin-broker}
 RETVAL=0
 
-OPTIONS="-C 'Include /var/www/stickshift/broker/httpd/broker.conf' -f /var/www/stickshift/broker/httpd/httpd.conf"
+OPTIONS="-C 'Include /var/www/openshift/broker/httpd/broker.conf' -f /var/www/openshift/broker/httpd/httpd.conf"
 
 # The semantics of these two functions differ from the way apachectl does
 # things -- attempting to start while running is a failure, and shutdown
 # when not running is also a failure.  So we just do it the way init scripts
 # are expected to behave here.
 start() {
-        pushd /var/www/stickshift/broker > /dev/null
+        pushd /var/www/openshift/broker > /dev/null
           rm -rf Gemfile.lock
           bundle install --local > /dev/null
         popd > /dev/null

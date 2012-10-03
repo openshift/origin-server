@@ -41,8 +41,8 @@ USAGE
 end
 
 require 'rubygems'
-require 'stickshift-node'
-require 'stickshift-node/utils/shell_exec'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
@@ -74,7 +74,7 @@ unless container_uuid and app_uuid and key and value
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(app_uuid, container_uuid)
+  container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
   container.user.add_env_var(key, value)
 rescue Exception => e
   $stderr.puts(e.message)

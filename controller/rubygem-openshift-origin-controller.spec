@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-controller
+%global gemname openshift-origin-controller
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
 Summary:        Cloud Development Controller
@@ -23,7 +23,7 @@ Requires:       rubygem(mongo)
 Requires:       rubygem(parseconfig)
 Requires:       rubygem(state_machine)
 Requires:       rubygem(dnsruby)
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
 Requires:       rubygem(dnsruby)
@@ -178,8 +178,8 @@ rm -rf %{buildroot}
 - bump_minor_versions for sprint 17 (admiller@redhat.com)
 - Merge pull request #422 from brenton/gemspec_fixes3
   (openshift+bot@redhat.com)
-- minor stickshift-controller specfix (bleanhar@redhat.com)
-- lib/stickshift/mongo_data_store.rb requires rubygem-mongo
+- minor openshift-origin-controller specfix (bleanhar@redhat.com)
+- lib/openshift/mongo_data_store.rb requires rubygem-mongo
   (bleanhar@redhat.com)
 
 * Wed Aug 22 2012 Adam Miller <admiller@redhat.com> 0.15.11-1
@@ -333,7 +333,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.6-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 - Generate fields in the descriptor only if they are not empty or default value
   (kraman@gmail.com)
 - Bug 842267 (dmcphers@redhat.com)
@@ -452,7 +452,7 @@ rm -rf %{buildroot}
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - More fixes to bug# 808425 (rpenta@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 - Fix for Bug# 808425 (rpenta@redhat.com)
@@ -709,7 +709,7 @@ rm -rf %{buildroot}
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
-- Automatic commit of package [rubygem-stickshift-controller] release
+- Automatic commit of package [rubygem-openshift-origin-controller] release
   [0.11.2-1]. (admiller@redhat.com)
 - Add update namespace support for scalable apps. (ramr@redhat.com)
 - more shuffling of tests (dmcphers@redhat.com)
@@ -737,7 +737,7 @@ rm -rf %{buildroot}
   (ramr@redhat.com)
 - Report back the allowed sizes for the specific user and mention contacting
   support for access to additional sizes. (rmillner@redhat.com)
-- Automatic commit of package [rubygem-stickshift-controller] release
+- Automatic commit of package [rubygem-openshift-origin-controller] release
   [0.10.5-1]. (admiller@redhat.com)
 - Bugz806935. Print application deletion message even if cartridges return
   information. (kraman@gmail.com)
@@ -770,11 +770,11 @@ rm -rf %{buildroot}
 - App creation: set default node profile to 'small' if not specified
   (rpenta@redhat.com)
 - allow syslog output for gear usage (dmcphers@redhat.com)
-- proper usage of StickShift::Model and beginnings of usage tracking
+- proper usage of OpenShift::Model and beginnings of usage tracking
   (dmcphers@redhat.com)
 - The rhc tools still require ~/.openshift/express.conf.  Create the file as a
   precursor to using them. (rmillner@redhat.com)
-- made dns_service @ss_dns_provider consistent with uplift-bind-plugin
+- made dns_service @ss_dns_provider consistent with openshift-origin-dns-bind
   (mlamouri@redhat.com)
 - Merge pull request #36 from rmillner/master (kraman@gmail.com)
 - Bugz# 804937. REST api was returning exitcode 143 instead of the cartridge

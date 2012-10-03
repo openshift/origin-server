@@ -8,7 +8,7 @@ CART_VERSION="1.4"
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_haproxy_deconfigure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_haproxy_deconfigure
     exit 1
 }
 
@@ -25,7 +25,7 @@ done
 [ $# -eq 3 ] || print_help
 
 cartridge_type="$CART_NAME-$CART_VERSION"
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/openshift-origin-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
 
@@ -65,10 +65,10 @@ rm -rf $HAPROXY_DIR/.ssh
 rm_cartridge_instance_dir "$cartridge_type"
 
 rm -rf ${APP_HOME}/.openshift
-rm -f /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/000000_haproxy.conf
+rm -f /etc/httpd/conf.d/openshift origin/${uuid}_${namespace}_${application}/000000_haproxy.conf
 
 if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
-   rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
+   rm -rf "/etc/httpd/conf.d/openshift origin/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/openshift origin/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
 fi
 
 $CART_INFO_DIR/hooks/pre-destroy "$@"

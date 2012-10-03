@@ -1,4 +1,4 @@
-class RestKey < StickShift::Model
+class RestKey < OpenShift::Model
   attr_accessor :name, :content, :type, :links
   
   def initialize(name, content, type, url, nolinks=false)

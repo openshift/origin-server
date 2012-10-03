@@ -1,4 +1,4 @@
-class OptionalParam < StickShift::Model
+class OptionalParam < OpenShift::Model
   attr_accessor :name, :type, :description, :valid_options, :default_value
   
   def initialize(name=nil, type=nil, description=nil, valid_options=nil, default_value=nil)

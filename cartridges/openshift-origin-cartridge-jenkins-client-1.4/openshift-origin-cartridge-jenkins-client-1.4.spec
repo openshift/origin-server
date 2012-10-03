@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/jenkins-client-1.4
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/jenkins-client-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/jenkins-client-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
-Name: cartridge-jenkins-client-1.4
+Name: openshift-origin-cartridge-jenkins-client-1.4
 Version: 0.33.4
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
@@ -13,8 +13,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: mysql-devel
 Requires: wget
 Requires: java-1.6.0-openjdk
@@ -36,11 +36,11 @@ Provides embedded jenkins client support
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
@@ -55,7 +55,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{frameworkdir}
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -110,7 +110,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.30.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.30.2-1
 - Refactor JBoss hot deployment support (ironcladlou@gmail.com)

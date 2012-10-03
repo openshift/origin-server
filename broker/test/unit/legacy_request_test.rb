@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 
 class LegacyRequestTest < ActiveSupport::TestCase
   test "Request validation for unknown request keys" do

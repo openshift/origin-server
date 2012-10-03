@@ -1,4 +1,4 @@
-class LegacyReply < StickShift::Model
+class LegacyReply < OpenShift::Model
   attr_accessor :api, :api_c, :broker_c, :debug, :messages, :result, :data, :exit_code  
   
   API_VERSION    = "1.1.3"

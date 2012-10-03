@@ -1,5 +1,5 @@
 require 'validators/namespace_validator'
-class Domain < StickShift::UserModel
+class Domain < OpenShift::UserModel
   include ActiveModel::Validations
   attr_accessor :uuid, :namespace, :user
   primary_key :uuid
@@ -8,7 +8,7 @@ class Domain < StickShift::UserModel
   def initialize(namespace=nil, user=nil)
     self.user = user
     self.namespace = namespace
-    self.uuid = StickShift::Model.gen_uuid
+    self.uuid = OpenShift::Model.gen_uuid
   end
   def save
     resultIO = ResultIO.new
@@ -76,7 +76,7 @@ class Domain < StickShift::UserModel
   end
 
   def delete_dns
-    dns_service = StickShift::DnsService.instance
+    dns_service = OpenShift::DnsService.instance
     begin
       dns_service.deregister_namespace(self.namespace)
       dns_service.publish
@@ -98,7 +98,7 @@ class Domain < StickShift::UserModel
    
   def self.namespace_available?(namespace)
     Rails.logger.debug "Checking to see if namesspace #{namespace} is available"
-    dns_service = StickShift::DnsService.instance
+    dns_service = OpenShift::DnsService.instance
     return dns_service.namespace_available?(namespace)
   end
 
@@ -114,10 +114,10 @@ class Domain < StickShift::UserModel
     old_domain = Domain.find(self.user, self.uuid)
     old_namespace = old_domain.namespace
     Rails.logger.debug "Updating namespace for domain #{self.uuid} from #{old_namespace} to #{self.namespace}"
-    dns_service = StickShift::DnsService.instance
+    dns_service = OpenShift::DnsService.instance
     
     begin
-      raise StickShift::UserException.new("A namespace with name '#{self.namespace}' already exists", 103) unless dns_service.namespace_available?(self.namespace)
+      raise OpenShift::UserException.new("A namespace with name '#{self.namespace}' already exists", 103) unless dns_service.namespace_available?(self.namespace)
       dns_service.register_namespace(self.namespace)
       dns_service.deregister_namespace(old_namespace)
       cloud_user = self.user
@@ -142,20 +142,20 @@ class Domain < StickShift::UserModel
       if update_namespace_failures.empty?
         dns_service.publish
       else
-        raise StickShift::NodeException.new("Error updating apps: #{update_namespace_failures.pretty_inspect.chomp}.  Updates will not be completed until all apps can be updated successfully.  If the problem persists please contact support.",143)
+        raise OpenShift::NodeException.new("Error updating apps: #{update_namespace_failures.pretty_inspect.chomp}.  Updates will not be completed until all apps can be updated successfully.  If the problem persists please contact support.",143)
       end
 
       Rails.logger.debug "notifying domain observer of domain update"
       notify_observers(:after_domain_update) 
       #Rails.logger.debug "done notifying the domain observers"
-    rescue StickShift::SSException => e
+    rescue OpenShift::OOException => e
       Rails.logger.error "Exception caught updating namespace: #{e.message}"
       Rails.logger.debug e.backtrace
       raise
     rescue Exception => e
       Rails.logger.error "Exception caught updating namespace: #{e.message}"
       Rails.logger.debug e.backtrace
-      raise StickShift::SSException.new("An error occurred updating the namespace.  If the problem persists please contact support.",1)
+      raise OpenShift::OOException.new("An error occurred updating the namespace.  If the problem persists please contact support.",1)
     ensure
       dns_service.close
     end
@@ -165,9 +165,9 @@ class Domain < StickShift::UserModel
   def create
     Rails.logger.debug "Creating domain #{self.uuid} with namespace #{self.namespace} for user #{self.user.login}"
     resultIO = ResultIO.new
-    dns_service = StickShift::DnsService.instance
+    dns_service = OpenShift::DnsService.instance
     begin
-      raise StickShift::UserException.new("A namespace with name '#{self.namespace}' already exists", 103) unless dns_service.namespace_available?(self.namespace)
+      raise OpenShift::UserException.new("A namespace with name '#{self.namespace}' already exists", 103) unless dns_service.namespace_available?(self.namespace)
       begin
         Rails.logger.debug "Attempting to add namespace '#{@namespace}'"
         dns_service.register_namespace(@namespace)

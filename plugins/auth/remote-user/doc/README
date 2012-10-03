@@ -4,7 +4,7 @@ The Remote User Auth plugin is an optional plugin for OpenShift and it provides
 authentication.  Authentication is delegated to a web server.  The Ruby code
 trusts the REMOTE_USER environment variable.  This plugin defers the
 node->broker authentication to the base AuthService class in
-stickshift-controller.
+openshift-origin-controller.
 
 This document describes how to register and authenticate an OpenShift user
 using the Remote User Auth plugin.  This example will use Basic Authentication.
@@ -12,39 +12,39 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 * Create the htpassd file:
 
     # Substitute the username as needed
-    htpasswd -c /etc/stickshift/htpasswd user1
+    htpasswd -c /etc/openshift/htpasswd user1
 
 * Create an Apache configuration.  A sample is provided:
-    mv /var/www/stickshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
+    mv /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
 
     NOTE: This file should be loaded by
-    /var/www/stickshift/broker/httpd/conf/httpd.conf.  This is done
-    automatically as part of the stickshift-broker package.
+    /var/www/openshift/broker/httpd/conf/httpd.conf.  This is done
+    automatically as part of the openshift-origin-broker package.
 
 * Create the broker key
-    /usr/bin/openssl genrsa -out /etc/stickshift/server_priv.pem 2048
-    /usr/bin/openssl rsa -in /etc/stickshift/server_priv.pem -pubout > /etc/stickshift/server_pub.pem
+    /usr/bin/openssl genrsa -out /etc/openshift/server_priv.pem 2048
+    /usr/bin/openssl rsa -in /etc/openshift/server_priv.pem -pubout > /etc/openshift/server_pub.pem
 
-* Edit the configuration in /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+* Edit the configuration in /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
   NOTE: See current issues.  This step can be skipped for now.
 
   Set the salt to something only you know.
 
-* Edit /var/www/stickshift/broker/Gemfile to add the plugin:
+* Edit /var/www/openshift/broker/Gemfile to add the plugin:
 
   gem 'openshift-origin-auth-remote-user'
 
   NOTE: Be sure to remote any other authentication plugins.  You may need to
   remove plugin references from
-  /var/www/stickshift/broker/config/environments/development.rb as well.
+  /var/www/openshift/broker/config/environments/development.rb as well.
 
-* From /var/www/stickshift/broker/ run 'bundle install --local'
+* From /var/www/openshift/broker/ run 'bundle install --local'
 
-* Restart the stickshift-broker service
-    service stickshift-broker restart
+* Restart the openshift-origin-broker service
+    service openshift-origin-broker restart
 
-* Authenticate StickShift user
-  Any REST api calls or CLI tools to StickShift will be processed only for the registered user-name/password
+* Authenticate OpenShift Origin user
+  Any REST api calls or CLI tools to OpenShift Origin will be processed only for the registered user-name/password
   Example:
     The below query fails with 'Access Denied' error.
     curl -k https://localhost/broker/rest/domains
@@ -59,7 +59,7 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 
 === KNOWN ISSUES ===
 * I need to port the conf stub to actually use
-  /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+  /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
 
-* We need the /etc/stickshift/plugins.d commit to correctly have the gem
+* We need the /etc/openshift/plugins.d commit to correctly have the gem
   picked up in the Gemfile without manual intervention.

@@ -17,7 +17,7 @@ When /^I add dependencies to (deplist.txt|package.json) on node modules(.*)$/ do
 end
 
 Then /^the application will have the (.*) node modules installed$/ do |modules| 
-  app_dir = File.join("/var/lib/stickshift", @app.uid, @app.type)
+  app_dir = File.join("/var/lib/openshift", @app.uid, @app.type)
   node_mods_dir = File.join(app_dir, "node_modules")
   repo_mods_dir = File.join(app_dir, "repo", "node_modules")
   modules.split.each do |m|

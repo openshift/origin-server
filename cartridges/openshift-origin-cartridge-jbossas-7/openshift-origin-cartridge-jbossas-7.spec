@@ -1,9 +1,9 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/jbossas-7
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossas-7
 %global jbossver 7.1.0.Final
 %global oldjbossver 7.0.2.Final
 
 Summary:   Provides JBossAS7 support
-Name:      cartridge-jbossas-7
+Name:      openshift-origin-cartridge-jbossas-7
 Version: 0.98.2
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -17,8 +17,8 @@ BuildArch: noarch
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: jboss-as7 >= %{jbossver}
 Requires: jboss-as7-modules >= %{jbossver}
 Requires: lsof
@@ -53,13 +53,13 @@ popd
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../abstract/info/hooks/post-install %{buildroot}%{cartridgedir}/info/hooks/post-install
@@ -146,7 +146,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %{cartridgedir}/README
@@ -285,7 +285,7 @@ rm -rf %{buildroot}
   spitting out an error from providing non-existent path on the command line.
   (rmillner@redhat.com)
 - Data directory moved to ~/app (rmillner@redhat.com)
-- Automatic commit of package [cartridge-jbossas-7] release [0.93.2-1].
+- Automatic commit of package [openshift-origin-cartridge-jbossas-7] release [0.93.2-1].
   (admiller@redhat.com)
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
@@ -298,7 +298,7 @@ rm -rf %{buildroot}
   (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [cartridge-jbossas-7] release [0.92.4-1].
+- Automatic commit of package [openshift-origin-cartridge-jbossas-7] release [0.92.4-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Add and use cartridge instance specific functions. (ramr@redhat.com)

@@ -35,8 +35,8 @@ USAGE
 end
 
 require 'rubygems'
-require 'stickshift-node'
-require 'stickshift-node/utils/shell_exec'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/shell_exec'
 opts = GetoptLong.new(
     ["--with-app-uuid",       "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT]
@@ -64,7 +64,7 @@ unless uuid
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid, uuid)
+  container = OpenShift::ApplicationContainer.new(uuid, uuid)
   container.user.remove_broker_auth
 rescue Exception => e
   $stderr.puts(e.message)

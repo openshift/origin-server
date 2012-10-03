@@ -15,8 +15,8 @@
 #++
 
 
-module StickShift
-  VERSION = File.open("#{File.dirname(__FILE__)}/../../stickshift-node.spec"
+module OpenShift
+  VERSION = File.open("#{File.dirname(__FILE__)}/../../openshift-origin-node.spec"
                         ).readlines.delete_if{ |x| !x.match(/Version:/)
                         }.first.split(':')[1].strip
   SDK_PATH = File.dirname(__FILE__)

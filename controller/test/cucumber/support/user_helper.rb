@@ -1,4 +1,4 @@
-#require '/var/www/stickshift/broker/config/environment'
+#require '/var/www/openshift/broker/config/environment'
 
 module UserHelper
   #
@@ -15,7 +15,7 @@ module UserHelper
       chars = ("1".."9").to_a
       namespace = "unit" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
       login = "cucumber-test+#{namespace}@example.com"
-      #has_txt = !StickShift::DnsService.instance.namespace_available?(namespace)
+      #has_txt = !OpenShift::DnsService.instance.namespace_available?(namespace)
       has_txt = namespace_available?(namespace)
 
       unless has_txt or reserved_usernames.index(login)

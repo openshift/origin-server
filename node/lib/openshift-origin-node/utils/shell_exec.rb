@@ -17,7 +17,7 @@
 require 'rubygems'
 require 'open4'
 
-module StickShift::Utils
+module OpenShift::Utils
   class ShellExecutionException < Exception
     attr_accessor :rc
     def initialize(msg, rc=-1)
@@ -27,10 +27,10 @@ module StickShift::Utils
   end
 end
 
-module StickShift::Utils::ShellExec
+module OpenShift::Utils::ShellExec
 
   def shellCmd(cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)
-    StickShift::Utils::ShellExec.shellCmd(cmd, pwd, ignore_err, expected_rc, timeout)
+    OpenShift::Utils::ShellExec.shellCmd(cmd, pwd, ignore_err, expected_rc, timeout)
   end
 
   # Public: Execute shell command.
@@ -42,7 +42,7 @@ module StickShift::Utils::ShellExec
   # expected_rc - A Integer value for the expected return code of cmd.
   #
   # Examples
-  #   StickShift::Utils::ShellExec.shellCmd('ls /etc/passwd')
+  #   OpenShift::Utils::ShellExec.shellCmd('ls /etc/passwd')
   #   # => ["/etc/passwd\n","", 0]
   #
   # Returns An Array with [stdout, stderr, return_code]
@@ -65,19 +65,19 @@ module StickShift::Utils::ShellExec
           pstree[l_ppid] << pstree[l_pid]
         end
         Process.kill("KILL", *(pstree[pid].flatten))
-        raise StickShift::Utils::ShellExecutionException.new("command timed out")
+        raise OpenShift::Utils::ShellExecutionException.new("command timed out")
       ensure
         stdout.close
         stderr.close  
         rc = Process::waitpid2(pid)[1].exitstatus
       end
     rescue Exception => e
-      raise StickShift::Utils::ShellExecutionException.new(e.message
+      raise OpenShift::Utils::ShellExecutionException.new(e.message
                                                     ) unless ignore_err
     end
 
     if !ignore_err and rc != expected_rc 
-      raise StickShift::Utils::ShellExecutionException.new(
+      raise OpenShift::Utils::ShellExecutionException.new(
         "Shell command '#{cmd}' returned an error. rc=#{rc}", rc)
     end
     return [out, err, rc]

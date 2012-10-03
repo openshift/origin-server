@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/nodejs-0.6
+%global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs-0.6
 
 Summary:   Provides Node-0.6 support
-Name:      cartridge-nodejs-0.6
+Name:      openshift-origin-cartridge-nodejs-0.6
 Version:   0.14.5
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -13,8 +13,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: nodejs >= 0.6
 Requires: nodejs-async
 Requires: nodejs-connect
@@ -55,12 +55,12 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../abstract/info/hooks/post-install %{buildroot}%{cartridgedir}/info/hooks/post-install
@@ -103,7 +103,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -156,7 +156,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.11.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.11.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
@@ -204,7 +204,7 @@ rm -rf %{buildroot}
 - Fixup from merge (jhonce@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
-- Automatic commit of package [cartridge-nodejs-0.6] release [0.8.2-1].
+- Automatic commit of package [openshift-origin-cartridge-nodejs-0.6] release [0.8.2-1].
   (admiller@redhat.com)
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
@@ -217,7 +217,7 @@ rm -rf %{buildroot}
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [cartridge-nodejs-0.6] release [0.7.4-1].
+- Automatic commit of package [openshift-origin-cartridge-nodejs-0.6] release [0.7.4-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Add and use cartridge instance specific functions. (ramr@redhat.com)

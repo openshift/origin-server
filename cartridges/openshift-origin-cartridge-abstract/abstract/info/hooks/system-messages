@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "View system messages for a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_system-messages
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_system-messages
     exit 1
 }
 
@@ -25,7 +25,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3

@@ -1,4 +1,4 @@
-class Link < StickShift::Model
+class Link < OpenShift::Model
   attr_accessor :rel, :method, :href, :required_params, :optional_params
   
   def initialize(rel, method, href, required_params=nil, optional_params=nil)

@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/perl-5.10
+%global cartridgedir %{_libexecdir}/openshift/cartridges/perl-5.10
 
 Summary:   Provides mod_perl support
-Name:      cartridge-perl-5.10
+Name:      openshift-origin-cartridge-perl-5.10
 Version: 0.29.5
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -13,8 +13,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: mod_perl
 Requires: perl-DBD-SQLite
 Requires: perl-DBD-MySQL
@@ -53,8 +53,8 @@ touch git_template.git/refs/heads/.gitignore
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift origin/cartridges
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift origin/cartridges/%{name}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -103,7 +103,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift origin/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -147,7 +147,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.27.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.27.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
@@ -199,7 +199,7 @@ rm -rf %{buildroot}
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.24.4-1
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
-- Automatic commit of package [cartridge-perl-5.10] release [0.24.2-1].
+- Automatic commit of package [openshift-origin-cartridge-perl-5.10] release [0.24.2-1].
   (admiller@redhat.com)
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
@@ -210,7 +210,7 @@ rm -rf %{buildroot}
   (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [cartridge-perl-5.10] release [0.23.4-1].
+- Automatic commit of package [openshift-origin-cartridge-perl-5.10] release [0.23.4-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Add and use cartridge instance specific functions. (ramr@redhat.com)

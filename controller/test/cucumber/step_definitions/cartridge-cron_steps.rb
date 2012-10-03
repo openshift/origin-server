@@ -22,7 +22,7 @@ Given /^cron is (running|stopped)$/ do | status |
   end
 
   $logger.info("Checking for cron jobs marker file at #{jobs_enabled_file}")
-  StickShift::timeout(30) do
+  OpenShift::timeout(30) do
     while exit_test.call(jobs_enabled_file)
       sleep 1
       $logger.info("Waiting for marker file to exist at #{marker_file}")

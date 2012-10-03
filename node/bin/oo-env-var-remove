@@ -16,8 +16,8 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node'
-require 'stickshift-node/utils/shell_exec'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/shell_exec'
 
 def usage
     puts <<USAGE
@@ -70,7 +70,7 @@ unless uuid and key
 end
 
 begin
-  container = StickShift::ApplicationContainer.new(uuid, uuid)
+  container = OpenShift::ApplicationContainer.new(uuid, uuid)
   container.user.remove_env_var(key)
 rescue Exception => e
   $stderr.puts(e.message)

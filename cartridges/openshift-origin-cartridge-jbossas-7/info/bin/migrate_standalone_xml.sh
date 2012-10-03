@@ -6,7 +6,7 @@ set -e
 function print_help {
     echo "Usage: $0 app-name uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jboss_migrate_standalone_xml
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jboss_migrate_standalone_xml
     exit 1
 }
 
@@ -22,7 +22,7 @@ done
 
 [ $# -eq 2 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 application="$1"
