@@ -9,8 +9,8 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.4
-Release:        3%{?dist}
+Version:        0.0.5
+Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -120,6 +120,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.0.5-1
+- Bug 862065 - Add some additional info to signup complete page.
+  (ccoleman@redhat.com)
+- Merge pull request #567 from danmcp/master (openshift+bot@redhat.com)
+- removing Gemfile.locks (dmcphers@redhat.com)
+- Update console/README.md (ccoleman@redhat.com)
+
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.0.4-3
 - fix typo in Requires ... its late (admiller@redhat.com)
 
