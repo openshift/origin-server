@@ -7,7 +7,7 @@
 
 Summary:        SwingShift plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,9 @@ rm -rf %{buildroot}
 %attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- Minor doc update for the remote-user auth plugin (bleanhar@redhat.com)
+
 * Fri Sep 28 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.3-1
 - new package built with tito
 
