@@ -1,4 +1,5 @@
 @runtime
+@not-origin
 Feature: Cartridge Runtime Extended Checks (Node)
 
   @runtime_extended2
