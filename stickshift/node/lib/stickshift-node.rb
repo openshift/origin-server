@@ -21,8 +21,8 @@ require 'fileutils'
 require 'getoptlong'
 require 'json'
 require 'parseconfig'
+require "stickshift-common/config"
 require "stickshift-node/version"
-require "stickshift-node/config"
 require "stickshift-node/environment"
 require "stickshift-node/model/application_container"
 require "stickshift-node/model/node"
