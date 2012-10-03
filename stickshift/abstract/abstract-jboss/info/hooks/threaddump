@@ -29,7 +29,7 @@ done
 . `dirname $0`/jboss.version
 cartridge_type="${jboss_version}"
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 CART_NAME="mongodb"
 CART_VERSION="2.2"
 cartridge_type="mongodb-2.2"

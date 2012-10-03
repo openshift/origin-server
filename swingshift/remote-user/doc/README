@@ -12,7 +12,7 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 * Create the htpassd file:
 
     # Substitute the username as needed
-    htpasswd -c /etc/stickshift/htpasswd user1
+    htpasswd -c /etc/openshift/htpasswd user1
 
 * Create an Apache configuration.  A sample is provided:
     mv /var/www/stickshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf{.sample,}
@@ -22,10 +22,10 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     automatically as part of the stickshift-broker package.
 
 * Create the broker key
-    /usr/bin/openssl genrsa -out /etc/stickshift/server_priv.pem 2048
-    /usr/bin/openssl rsa -in /etc/stickshift/server_priv.pem -pubout > /etc/stickshift/server_pub.pem
+    /usr/bin/openssl genrsa -out /etc/openshift/server_priv.pem 2048
+    /usr/bin/openssl rsa -in /etc/openshift/server_priv.pem -pubout > /etc/openshift/server_pub.pem
 
-* Edit the configuration in /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+* Edit the configuration in /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
   NOTE: See current issues.  This step can be skipped for now.
 
   Set the salt to something only you know.
@@ -59,7 +59,7 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
 
 === KNOWN ISSUES ===
 * I need to port the conf stub to actually use
-  /etc/stickshift/plugins.d/openshift-origin-auth-remote-user.conf.
+  /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
 
-* We need the /etc/stickshift/plugins.d commit to correctly have the gem
+* We need the /etc/openshift/plugins.d commit to correctly have the gem
   picked up in the Gemfile without manual intervention.

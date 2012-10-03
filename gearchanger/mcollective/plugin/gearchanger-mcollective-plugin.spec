@@ -61,8 +61,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/etc/stickshift/plugins.d
-cp conf/gearchanger-mcollective-plugin.conf %{buildroot}/etc/stickshift/plugins.d/gearchanger-mcollective-plugin.conf
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp conf/gearchanger-mcollective-plugin.conf %{buildroot}/etc/openshift/plugins.d/gearchanger-mcollective-plugin.conf
 
 mkdir -p %{buildroot}/var/www/stickshift/broker/config/initializers/
 cp conf/gearchanger-mcollective-plugin.rb %{buildroot}/var/www/stickshift/broker/config/initializers/gearchanger-mcollective-plugin.rb

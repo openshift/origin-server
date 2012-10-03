@@ -2,7 +2,7 @@ require 'rubygems'
 require 'parseconfig'
 
 def get_node_config_value(key, default)
-  config_file = ParseConfig.new('/etc/stickshift/stickshift-node.conf')
+  config_file = ParseConfig.new('/etc/openshift/node.conf')
   val = config_file.get_value(key)
   return default if val.nil?
   val.gsub!(/\\:/,":") if not val.nil?
@@ -47,8 +47,8 @@ end
 node_profile = 'small'
 max_apps = '0'
 max_active_apps = '0'
-if File.exists?('/etc/stickshift/resource_limits.conf')
-  config_file = ParseConfig.new('/etc/stickshift/resource_limits.conf')
+if File.exists?('/etc/openshift/resource_limits.conf')
+  config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
   node_profile = config_file.get_value('node_profile') ? config_file.get_value('node_profile') : 'small'
   max_apps = config_file.get_value('max_apps') ? config_file.get_value('max_apps') : '0'
   max_active_apps = config_file.get_value('max_active_apps') ? config_file.get_value('max_active_apps') : '0'

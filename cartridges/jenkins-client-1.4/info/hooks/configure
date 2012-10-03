@@ -26,7 +26,7 @@ done
 [ $# -eq 3 ] || print_help
 
 cartridge_type="jenkins-client-1.4"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3

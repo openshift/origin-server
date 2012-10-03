@@ -19,9 +19,9 @@ require 'parseconfig'
 
 module StickShift
   class Config
-    CONF_DIR = '/etc/stickshift/'
+    CONF_DIR = '/etc/openshift/'
     PLUGINS_DIR = File.join(CONF_DIR, 'plugins.d/')
-    NODE_CONF_FILE = File.join(CONF_DIR, 'stickshift-node.conf')
+    NODE_CONF_FILE = File.join(CONF_DIR, 'node.conf')
 
     def initialize(conf_path=NODE_CONF_FILE)
       begin

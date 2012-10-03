@@ -65,8 +65,8 @@ chmod 755 /var/named/forwarders.conf
 chown named:named -R /var/named
 restorecon -R /var/named
 
-mkdir -p /etc/stickshift/plugins.d
-cat <<EOF > /etc/stickshift/plugins.d/uplift-bind-plugin.conf
+mkdir -p /etc/openshift/plugins.d
+cat <<EOF > /etc/openshift/plugins.d/uplift-bind-plugin.conf
 BIND_SERVER="127.0.0.1"
 BIND_PORT=53
 BIND_KEYNAME="${node_domain}"

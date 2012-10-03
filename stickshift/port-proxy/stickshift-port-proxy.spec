@@ -11,7 +11,7 @@ BuildArch:     noarch
 # The haproxy daemon is used as the functioning tcp proxy
 Requires:      haproxy
 
-# Stickshift node configuration and /etc/stickshift
+# Stickshift node configuration and /etc/openshift
 Requires:      rubygem-stickshift-node
 
 

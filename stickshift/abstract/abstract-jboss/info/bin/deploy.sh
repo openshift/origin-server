@@ -6,7 +6,7 @@ do
     . $f
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 if hot_deploy_marker_is_present; then
