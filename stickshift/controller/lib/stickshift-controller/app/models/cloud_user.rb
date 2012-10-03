@@ -210,15 +210,18 @@
   def force_delete
     self.applications.each do |app|
       app.cleanup_and_delete()
-    end unless self.applications.empty?
+    end if self.applications && !self.applications.empty?
     self.domains.each do |domain|
       domain.delete
-    end unless self.domains.empty?
-    self.delete
+    end if self.domains && !self.domains.empty?
+    user = CloudUser.find(self.login)
+    user.delete if user
   end
  
   def delete
-    raise StickShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139) if !self.domains.empty? or !self.applications.empty?
+    if (self.domains && !self.domains.empty?) or (self.applications && !self.applications.empty?)
+      raise StickShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139)
+    end
     super(@login)
   end
 
