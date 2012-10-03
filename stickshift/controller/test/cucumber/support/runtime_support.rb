@@ -398,5 +398,32 @@ module StickShift
       dflt 
     end
   end
+
+  def add_host_entry(fqdn)
+    rc = run("grep -q #{fqdn} /etc/hosts")
+    return if 0 == rc
+    modify_hosts "echo '127.0.0.1 #{fqdn}  # Added by cucumber' >> /etc/hosts"
+  end
+
+  def remove_host_entry(fqdn)
+    rc = run("grep -q #{fqdn} /etc/hosts")
+    return unless 0 == rc
+    modify_hosts "sed -i '/#{fqdn}/d' /etc/hosts"
+  end
+
+  def update_host_entry(old, new)
+    rc = run("grep -q #{old} /etc/hosts")
+    return unless 0 == rc
+    modify_hosts "sed -i 's,#{old},#{new},g' /etc/hosts"
+  end
+
+  def modify_hosts(cmd)
+    File.open("/var/lock/hosts", File::RDWR|File::CREAT, 0o0600) do | lock |
+      lock.fnctl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
+      lock.flock(File::LOCK_EX)
+      run(cmd)
+      lock.flock(File::LOCK_UN)
+    end
+  end
 end
 
