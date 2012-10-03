@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.7
+Version: 0.17.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,25 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.8-1
+- provide global flag for whether analytics is enabled (dmcphers@redhat.com)
+- Merge pull request #587 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
+- Merge pull request #584 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #581 from pravisankar/dev/ravi/bug861967
+  (openshift+bot@redhat.com)
+- fixing test typo and specifying parseconfig gem version to get rid of
+  warnings (abhgupta@redhat.com)
+- default api version is 1.2 (rchopra@redhat.com)
+- Fix for bug# 861967 (rpenta@redhat.com)
+- excluding nodejs tests from origin (abhgupta@redhat.com)
+- Merge pull request #569 from rajatchopra/bug_fixes (openshift+bot@redhat.com)
+- rest api applications controller changes - pull in from refactor for on-prem
+  (rchopra@redhat.com)
+- Merge pull request #562 from pravisankar/dev/ravi/subaccount-deletion
+  (openshift+bot@redhat.com)
+- Subaccount user deletion changes (rpenta@redhat.com)
+- fixes for bugs 860993 and 861005 (rchopra@redhat.com)
+
 * Sat Sep 29 2012 Adam Miller <admiller@redhat.com> 0.17.7-1
 - Keeping the controller engine from overwriting the auth config if it's
   already set (bleanhar@redhat.com)
