@@ -30,8 +30,8 @@ install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 %files
 %doc AUTHORS ChangeLog COPYING README README.xml
-%attr(0755,root,root) %{buildroot}/%{_lib}/security/pam_openshift.so
-%attr(0644,root,root) %{buildroot}/%{_mandir}/man8/pam_openshift.8
+%attr(0755,root,root) %{_lib}/security/pam_openshift.so
+%attr(0644,root,root) %{_mandir}/man8/pam_openshift.8
 
 
 %changelog
