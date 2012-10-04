@@ -82,6 +82,16 @@ class Application < StickShift::Cartridge
     end
     self.categories -= ["cartridge"]
   end
+  
+  def node_profile
+    # node_profile can be nil for older data.  Should migrate everything to have a node_profile 
+    # with the next major migration.  Although technically node_profile shouldn't even be on application.
+    if @node_profile.nil?
+      return DEFAULT_NODE_PROFILE
+    else
+      return @node_profile
+    end
+  end
 
   def add_to_requires_feature(feature)
     prof = @profile_name_map[@default_profile]
