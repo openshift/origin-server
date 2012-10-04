@@ -49,6 +49,23 @@ RailsApp::Application.configure do
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
 
+  # Disable Rails's static asset server
+  # In production, Apache or nginx will already do this
+  config.serve_static_assets = false
+
+  config.assets.digest = true
+  config.assets.compile = false
+  config.assets.initialize_on_precompile = false
+  config.assets.compress = true
+  config.assets.js_compressor = :uglifier
+  config.assets.precompile += %w(common.css origin.css console.js modernizr.min.js)
+
+  if config.respond_to? :sass
+    config.sass.style = :compressed
+    config.sass.line_comments = false
+    config.sass.relative_assets = true
+  end
+
   Console.configure do |c|
     c.api = (ENV['CONSOLE_API_MODE'] || 'openshift').to_sym
   end
