@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+"http://www.docbook.org/xml/4.3/docbookx.dtd"
+[
+<!--
+<!ENTITY pamaccess SYSTEM "pam_openshift.8.xml">
+-->
+]>
+
+<article>
+
+  <articleinfo>
+
+    <title>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="pam_openshift.8.xml" xpointer='xpointer(//refnamediv[@id = "pam_openshift-name"]/*)'/>
+    </title>
+
+  </articleinfo>
+
+  <section>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="pam_openshift.8.xml" xpointer='xpointer(//refsect1[@id = "pam_openshift-description"]/*)'/>
+  </section>
+
+  <section>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="pam_openshift.8.xml" xpointer='xpointer(//refsect1[@id = "pam_openshift-options"]/*)'/>
+  </section>
+
+  <section>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="pam_openshift.8.xml" xpointer='xpointer(//refsect1[@id = "pam_openshift-examples"]/*)'/>
+  </section>
+
+  <section>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"
+      href="pam_openshift.8.xml" xpointer='xpointer(//refsect1[@id = "pam_openshift-author"]/*)'/>
+  </section>
+
+</article>
