@@ -38,9 +38,9 @@ Broker::Application.configure do
     # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     :host_port => ["localhost", 27017],
 
-    :user => "stickshift",
+    :user => "openshift",
     :password => "mooo",
-    :db => "stickshift_broker_dev",
+    :db => "openshift_origin_broker_dev",
     :collections => {:user => "user_test", :district => "district_test"}
   }
   
@@ -55,7 +55,7 @@ Broker::Application.configure do
 
   config.user_action_logging = {
     :logging_enabled => true,
-    :log_filepath => "/var/log/stickshift/user_action.log"
+    :log_filepath => "/var/log/openshift/user_action.log"
   }
 
   ############################################

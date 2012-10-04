@@ -27,7 +27,7 @@ Rcov::RcovTask.new  do  |t|
   t.libs << File.expand_path('../test/unit', __FILE__)
   t.pattern = 'test/unit/**/*_test.rb'
   t.rcov_opts << "-x '/usr/lib/ruby'"
-  t.rcov_opts << "-i 'openshift,stickshift,gearchanger,swingshift,uplift,rhc'"
+  t.rcov_opts << "-i 'openshift,rhc'"
 end
 
 task :test => [:unit_test] do

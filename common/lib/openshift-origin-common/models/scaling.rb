@@ -1,5 +1,5 @@
-module StickShift
-  class Scaling < StickShift::Model
+module OpenShift
+  class Scaling < OpenShift::Model
     attr_accessor :min, :max, :generated
     
     def initialize

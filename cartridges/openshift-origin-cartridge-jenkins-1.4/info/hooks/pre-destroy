@@ -3,7 +3,7 @@
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jenkins_deconfigure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jenkins_deconfigure
     exit 1
 }
 
@@ -20,7 +20,7 @@ done
 [ $# -eq 3 ] || print_help
 
 cartridge_type="jenkins-1.4"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_deconfigure "$1" $2 $3

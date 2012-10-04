@@ -55,7 +55,7 @@ Native-Requires:
 Architecture: noarch
 Reservations:
   - MEM >= 100MB
-Start-Order: rhc-cartridge-perl
+Start-Order: rhc-openshift-origin-cartridge-perl
 Publishes:
   get-doc-root:
     Type: "FILESYSTEM:doc-root"

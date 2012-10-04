@@ -1,4 +1,4 @@
- class CloudUser < StickShift::UserModel
+ class CloudUser < OpenShift::UserModel
   attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications, 
                 :auth_method, :save_jobs, :usage_records, :gear_usage_records, :capabilities, :parent_user_login, 
                 :plan_id, :usage_account_id, :pending_plan_id, :pending_plan_uptime
@@ -130,7 +130,7 @@
       }
       RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
         if status != 0
-          raise StickShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
+          raise OpenShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
         end
       }
       save_jobs['removes'].clear if save_jobs['removes']
@@ -151,13 +151,13 @@
   end
   
   def self.find_by_uuid(obj_type_of_uuid, uuid)
-    hash = StickShift::DataStore.instance.find_by_uuid(obj_type_of_uuid, uuid)
+    hash = OpenShift::DataStore.instance.find_by_uuid(obj_type_of_uuid, uuid)
     return nil unless hash
     hash_to_obj(hash)
   end
   
   def self.find_subaccounts_by_parent_login(parent_login)
-    hash_list = StickShift::DataStore.instance.find_subaccounts_by_parent_login(parent_login)
+    hash_list = OpenShift::DataStore.instance.find_subaccounts_by_parent_login(parent_login)
     return nil if hash_list.nil? or hash_list.empty?
     hash_list.map {|hash| hash_to_obj(hash) }
   end
@@ -220,7 +220,7 @@
  
   def delete
     if (self.domains && !self.domains.empty?) or (self.applications && !self.applications.empty?)
-      raise StickShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139)
+      raise OpenShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139)
     end
     super(@login)
   end
@@ -230,7 +230,7 @@
   end
   
   def self.find_all_logins(opts=nil)
-    StickShift::DataStore.instance.find_all_logins(opts)
+    OpenShift::DataStore.instance.find_all_logins(opts)
   end
   
   def add_system_ssh_key(app_name, key)
@@ -258,7 +258,7 @@
     self.ssh_keys = {} unless self.ssh_keys
 
     # validations
-    raise StickShift::UserKeyException.new("ERROR: Key name '#{key_name}' doesn't exist for user #{self.login}", 118) if not self.ssh_keys.has_key?(key_name)
+    raise OpenShift::UserKeyException.new("ERROR: Key name '#{key_name}' doesn't exist for user #{self.login}", 118) if not self.ssh_keys.has_key?(key_name)
     
     add_save_job('removes', 'ssh_keys', [self.ssh_keys[key_name]["key"], key_name])
     self.ssh_keys.delete key_name
@@ -271,7 +271,7 @@
   end
 
   def get_ssh_key
-    raise StickShift::UserKeyException.new("ERROR: No ssh keys found for user #{self.login}", 
+    raise OpenShift::UserKeyException.new("ERROR: No ssh keys found for user #{self.login}", 
                                            123) if self.ssh_keys.nil? or not self.ssh_keys.kind_of?(Hash)
     key_name = (self.ssh_keys.key?(CloudUser::DEFAULT_SSH_KEY_NAME)) ? CloudUser::DEFAULT_SSH_KEY_NAME : self.ssh_keys.keys[0]
     self.ssh_keys[key_name]
@@ -305,13 +305,13 @@
       user = CloudUser.find(@login)
       if user
         #TODO Rework when we allow multiple domains per user
-        raise StickShift::UserException.new("User with login '#{@login}' already exists", 102, resultIO)
+        raise OpenShift::UserException.new("User with login '#{@login}' already exists", 102, resultIO)
       end
 
       begin
         Rails.logger.debug "DEBUG: Attempting to add user '#{@login}'"      
         resultIO.debugIO << "Creating user entry login:#{@login}"
-        @uuid = StickShift::Model.gen_uuid
+        @uuid = OpenShift::Model.gen_uuid
         notify_observers(:cloud_user_create_success)   
       rescue Exception => e
         Rails.logger.debug e

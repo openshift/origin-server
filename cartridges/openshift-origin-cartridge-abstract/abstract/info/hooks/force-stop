@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Stop a running application and disable it"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_force_stop
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_force_stop
     exit 1
 }
 
@@ -25,7 +25,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3

@@ -1,4 +1,4 @@
-module StickShift
+module OpenShift
   class UserModel < Model
 
     def initialize()
@@ -70,12 +70,12 @@ module StickShift
     protected
     
     def extract_value(changed_attrs, key, value)
-      if value.is_a?(Array) && value.length > 0 && value.first.kind_of?(StickShift::Model)
+      if value.is_a?(Array) && value.length > 0 && value.first.kind_of?(OpenShift::Model)
         value.map! do |model|
           model.attributes(true)
         end
       end
-      if value.kind_of?(StickShift::Model)
+      if value.kind_of?(OpenShift::Model)
         changed_attrs[key] = value.attributes(true)
       else
         changed_attrs[key] = value

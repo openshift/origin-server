@@ -18,7 +18,7 @@ class BaseController < ActionController::Base
   include UserActionLogger
   
   def show
-    blacklisted_words = StickShift::ApplicationContainerProxy.get_blacklisted
+    blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
     links = {
       "API" => Link.new("API entry point", "GET", URI::join(get_url, "api")),
       "GET_ENVIRONMENT" => Link.new("Get environment information", "GET", URI::join(get_url, "environment")),
@@ -43,7 +43,7 @@ class BaseController < ActionController::Base
     password = nil
     @request_id = gen_req_uuid
 
-    if request.headers['User-Agent'] == "StickShift"
+    if request.headers['User-Agent'] == "OpenShift"
       if params['broker_auth_key'] && params['broker_auth_iv']
         login = params['broker_auth_key']
         password = params['broker_auth_iv']
@@ -61,7 +61,7 @@ class BaseController < ActionController::Base
       }
     end      
     begin
-      auth = StickShift::AuthService.instance.authenticate(request, login, password)
+      auth = OpenShift::AuthService.instance.authenticate(request, login, password)
       @login = auth[:username]
       @auth_method = auth[:auth_method]
 
@@ -71,18 +71,18 @@ class BaseController < ActionController::Base
 
         if @parent_user.nil?
           Rails.logger.debug "#{@login} tried to impersinate user but #{@login} user does not exist"
-          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+          raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
         if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
           Rails.logger.debug "#{@parent_user.login} tried to impersinate user but does not have require capability."
-          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+          raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
         sub_user = CloudUser.find subuser_name
         if sub_user && sub_user.parent_user_login != @parent_user.login
           Rails.logger.debug "#{@parent_user.login} tried to impersinate user #{subuser_name} but does not own the subaccount."
-          raise StickShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+          raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
         if sub_user.nil?
@@ -103,7 +103,7 @@ class BaseController < ActionController::Base
       end
       
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
-    rescue StickShift::AccessDeniedException
+    rescue OpenShift::AccessDeniedException
       log_action(@request_id, 'nil', login, "AUTHENTICATE", false, "Access denied")
       request_http_basic_authentication
     end
@@ -136,7 +136,7 @@ class BaseController < ActionController::Base
       ignore_links.downcase!
       return true if ["true", "1"].include?(ignore_links)
       return false if ["false", "0"].include?(ignore_links)
-      raise StickShift::UserException.new("Invalid value for 'nolinks'. Valid options: [true, false, 1, 0]", 167)
+      raise OpenShift::UserException.new("Invalid value for 'nolinks'. Valid options: [true, false, 1, 0]", 167)
     end
     return false
   end
@@ -250,9 +250,9 @@ class BaseController < ActionController::Base
     Rails.logger.error ex
     Rails.logger.error ex.backtrace
     error_code = ex.respond_to?('code') ? ex.code : 1
-    if ex.kind_of? StickShift::UserException
+    if ex.kind_of? OpenShift::UserException
       status = :unprocessable_entity
-    elsif ex.kind_of? StickShift::DNSException
+    elsif ex.kind_of? OpenShift::DNSException
       status = :service_unavailable
     else
       status = :internal_server_error

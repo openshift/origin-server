@@ -2,8 +2,8 @@ require 'rubygems'
 require 'mongo'
 require 'pp'
 
-module StickShift
-  class MongoDataStore < StickShift::DataStore
+module OpenShift
+  class MongoDataStore < OpenShift::DataStore
     MAX_CON_RETRIES   = 60
     CON_RETRY_WAIT_TM = 0.5 # in secs
 
@@ -26,7 +26,7 @@ module StickShift
     end
      
     def self.instance
-      StickShift::MongoDataStore.new
+      OpenShift::MongoDataStore.new
     end
 
     def find(obj_type, user_id, id)
@@ -530,7 +530,7 @@ module StickShift
 
         hash = find_and_modify( user_collection, { :query => query,
                :update => updates })
-        raise StickShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
+        raise OpenShift::UserException.new("Consistency check failed.  Could not update application '#{id}' for '#{user_id}'", 1) if hash == nil
       else
         update( user_collection, { "_id" => user_id, "apps.name" => id}, updates )
       end
@@ -553,7 +553,7 @@ module StickShift
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "apps.name" => { "$ne" => id }, "domains" => {"$exists" => true}, 
              "$where" => "((this.consumed_gears + #{ngears}) <= this.max_gears) && (this.domains.length > 0)"},
              :update => updates })
-      raise StickShift::UserException.new("Failed: Either application limit has already reached or " +
+      raise OpenShift::UserException.new("Failed: Either application limit has already reached or " +
                                           "domain doesn't exist for '#{user_id}'", 104) if hash == nil
     end
     
@@ -573,7 +573,7 @@ module StickShift
       hash = find_and_modify( user_collection, { :query => { "_id" => user_id, "domains.uuid" => { "$ne" => id },
              "$or" => [{"domains" => {"$exists" => true, "$size" => 0}}, {"domains" => {"$exists" => false}}]},
              :update => { "$push" => { "domains" => domain_attrs } } })
-      raise StickShift::UserException.new("Domain already exists for #{user_id}", 158) if hash == nil
+      raise OpenShift::UserException.new("Domain already exists for #{user_id}", 158) if hash == nil
     end
 
     def delete_user(user_id)
@@ -604,7 +604,7 @@ module StickShift
                                "$or" => [{"apps" => {"$exists" => true, "$size" => 0}}, 
                                          {"apps" => {"$exists" => false}}] },
                                :update => { "$pull" => { "domains" => {"uuid" => id } } }})
-      raise StickShift::UserException.new("Could not delete domain." +
+      raise OpenShift::UserException.new("Could not delete domain." +
                                           "Domain has valid applications.", 128) if hash == nil
     end
 

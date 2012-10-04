@@ -1,13 +1,13 @@
-%define cartdir %{_libexecdir}/stickshift/cartridges
+%define cartdir %{_libexecdir}/openshift origin/cartridges
 
-Summary:   StickShift common cartridge components
-Name:      stickshift-abstract
+Summary:   OpenShift common cartridge components
+Name:      openshift-origin-abstract
 Version: 0.17.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   stickshift-abstract-%{version}.tar.gz
+Source0:   openshift-origin-abstract-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
@@ -41,28 +41,28 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-httpd/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-httpd/info/bin/
-#%{_libexecdir}/stickshift/cartridges/abstract-httpd/info
-%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract-jboss/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/bin/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract-jboss/info/data/
-#%{_libexecdir}/stickshift/cartridges/abstract-jboss/info
-%dir %attr(0755,root,root) %{_libexecdir}/stickshift/cartridges/abstract/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/bin/
-%attr(0755,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/lib/
-%attr(0750,-,-) %{_libexecdir}/stickshift/cartridges/abstract/info/connection-hooks/
-%{_libexecdir}/stickshift/cartridges/abstract/info
-%doc %{_libexecdir}/stickshift/cartridges/abstract/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract/LICENSE
-%doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract-httpd/LICENSE
-%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/COPYRIGHT
-%doc %{_libexecdir}/stickshift/cartridges/abstract-jboss/LICENSE
+%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/info/bin/
+#%{_libexecdir}/openshift origin/cartridges/abstract-httpd/info
+%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/bin/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/data/
+#%{_libexecdir}/openshift origin/cartridges/abstract-jboss/info
+%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/bin/
+%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/lib/
+%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/connection-hooks/
+%{_libexecdir}/openshift origin/cartridges/abstract/info
+%doc %{_libexecdir}/openshift origin/cartridges/abstract/COPYRIGHT
+%doc %{_libexecdir}/openshift origin/cartridges/abstract/LICENSE
+%doc %{_libexecdir}/openshift origin/cartridges/abstract-httpd/COPYRIGHT
+%doc %{_libexecdir}/openshift origin/cartridges/abstract-httpd/LICENSE
+%doc %{_libexecdir}/openshift origin/cartridges/abstract-jboss/COPYRIGHT
+%doc %{_libexecdir}/openshift origin/cartridges/abstract-jboss/LICENSE
 
 
 %post
@@ -188,7 +188,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - Refactor JBoss hot deployment support (ironcladlou@gmail.com)
@@ -228,7 +228,7 @@ rm -rf $RPM_BUILD_ROOT
   
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.2-1
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 
@@ -307,7 +307,7 @@ rm -rf $RPM_BUILD_ROOT
   otherwise rhc-accept-node fails and tests fail. (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [stickshift-abstract] release [0.10.5-1].
+- Automatic commit of package [openshift-origin-abstract] release [0.10.5-1].
   (admiller@redhat.com)
 - Fixing bugs related to user hooks. (rmillner@redhat.com)
 - Bug fix - correct app/ directory permissions. (ramr@redhat.com)

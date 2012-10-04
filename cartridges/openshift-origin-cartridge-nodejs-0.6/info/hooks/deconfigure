@@ -6,7 +6,7 @@
 
 function print_help() {
    echo "Usage: $0 app-name namespace uuid"
-   echo "$0 $@" | logger -p local0.notice -t stickshift_nodejs_deconfigure
+   echo "$0 $@" | logger -p local0.notice -t openshift_origin_nodejs_deconfigure
    exit 1
 }
 
@@ -29,7 +29,7 @@ done
 cartridge_type="nodejs-0.6"
 
 # Source in common utility functions.
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Deconfigure app.

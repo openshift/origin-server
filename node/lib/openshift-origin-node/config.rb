@@ -19,19 +19,19 @@ require 'rubygems'
 require 'singleton'
 require 'parseconfig'
 
-module StickShift
-  # == StickShift Config
+module OpenShift
+  # == OpenShift Config
   #
-  # Allows access to stickshift-node config file.
+  # Allows access to openshift-origin-node config file.
   #
-  # Reads config entried for the sdk from /etc/ss/stickshift-node.conf and if
-  # that is not available then it will read it from conf/stickshift-node.conf 
+  # Reads config entried for the sdk from /etc/ss/openshift-origin-node.conf and if
+  # that is not available then it will read it from conf/openshift-origin-node.conf 
   # within the ruby gem.
   class Config
     include Object::Singleton
 
-    CONF_NAME = 'stickshift-node.conf'
-    CONF_DIR = '/etc/stickshift/'
+    CONF_NAME = 'openshift-origin-node.conf'
+    CONF_DIR = '/etc/openshift/'
     
     def initialize()
       _linux_cfg = File.join(CONF_DIR,CONF_NAME)

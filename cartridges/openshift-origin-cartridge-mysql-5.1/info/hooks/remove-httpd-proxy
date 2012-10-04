@@ -5,14 +5,14 @@
 # Exit on any errors
 set -e
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Remove httpd proxy for an application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_remove_httpd_proxy
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_remove_httpd_proxy
     exit 1
 }
 
@@ -36,5 +36,5 @@ APP_HOME="$GEAR_BASE_DIR/$uuid"
 
 
 if only_cart_on_gear $cartridge_type; then
-    rm -rf "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}"
+    rm -rf "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}"
 fi

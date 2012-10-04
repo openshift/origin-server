@@ -9,7 +9,7 @@
 function print_help {
     echo "Usage: $0 app-name namespace uuid IP"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_phpmyadmin_deploy_httpd_proxy
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_phpmyadmin_deploy_httpd_proxy
     exit 1
 }
 
@@ -21,10 +21,10 @@ namespace=`basename $2`
 uuid=$3
 IP=$4
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "${STICKSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/phpmyadmin-3.4.conf"
+cat <<EOF > "${OPENSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/phpmyadmin-3.4.conf"
 ProxyPass /phpmyadmin http://$IP:8080/phpmyadmin status=I
 ProxyPassReverse /phpmyadmin http://$IP:8080/phpmyadmin
 

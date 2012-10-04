@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 cartridge_type='cron-1.4'
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables

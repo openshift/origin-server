@@ -1,8 +1,8 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname stickshift-node
+%global gemname openshift-origin-node
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%define appdir %{_localstatedir}/lib/stickshift
+%define appdir %{_localstatedir}/lib/openshift
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
@@ -17,7 +17,7 @@ Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       rubygem(json)
 Requires:       rubygem(parseconfig)
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
@@ -48,14 +48,14 @@ This contains the Cloud Development Node packaged as a ruby site library.
 %install
 rm -rf %{buildroot}
 #mkdir -p %{buildroot}%{_bindir}/ss
-mkdir -p %{buildroot}%{_sysconfdir}/stickshift
+mkdir -p %{buildroot}%{_sysconfdir}/openshift
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
-ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/stickshift
+ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/openshift
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -66,7 +66,7 @@ mv %{buildroot}%{gemdir}/bin/* %{buildroot}%{_bindir}
 rm -rf %{buildroot}%{gemdir}/bin
 
 # Move the gem configs to the standard filesystem location
-mv %{buildroot}%{geminstdir}/conf/* %{buildroot}%{_sysconfdir}/stickshift
+mv %{buildroot}%{geminstdir}/conf/* %{buildroot}%{_sysconfdir}/openshift
 
 # Symlink into the ruby site library directories
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
@@ -75,7 +75,7 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
 rm -rf %{buildroot}%{geminstdir}/misc
-mv httpd/000001_stickshift_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 %clean
 rm -rf %{buildroot}                                
@@ -88,12 +88,12 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%{_sysconfdir}/stickshift
+%{_sysconfdir}/openshift
 %{_bindir}/*
-%config(noreplace) %{_sysconfdir}/stickshift/stickshift-node.conf
-%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
-%attr(0755,-,-) %{_var}/lib/stickshift
+%config(noreplace) %{_sysconfdir}/openshift/openshift-origin-node.conf
+%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
+%attr(0755,-,-) %{_var}/lib/openshift
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -104,8 +104,8 @@ echo "/usr/bin/ss-trap-user" >> /etc/shells
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
-if ! [ -f /etc/stickshift/resource_limits.conf ]; then
-  cp -f /etc/stickshift/resource_limits.template /etc/stickshift/resource_limits.conf
+if ! [ -f /etc/openshift/resource_limits.conf ]; then
+  cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
 %changelog
@@ -149,8 +149,8 @@ fi
 - Merge pull request #460 from ramr/master (openshift+bot@redhat.com)
 - Update gem version (dmcphers@redhat.com)
 - BZ853852 Adding logging to help determine issue (jhonce@redhat.com)
-- One more fix for bugz  852486 - rubygem-stickshift-node is running restorecon
-  against /var/lib/stickshift (ramr@redhat.com)
+- One more fix for bugz  852486 - rubygem-openshift-origin-node is running restorecon
+  against /var/lib/openshift (ramr@redhat.com)
 
 * Thu Sep 06 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
 - Fix for bugz 852216 - zend /sandbox should be root owned if possible.
@@ -240,7 +240,7 @@ fi
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - Updating gem versions (admiller@redhat.com)
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Fri Jul 20 2012 Adam Miller <admiller@redhat.com> 0.14.3-1
 - Updating gem versions (admiller@redhat.com)
@@ -263,7 +263,7 @@ fi
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.13.4-1
 - Updating gem versions (admiller@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 
@@ -348,7 +348,7 @@ fi
 - Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - clean up comments etc (jhonce@redhat.com)
-- Automatic commit of package [rubygem-stickshift-node] release [0.11.2-1].
+- Automatic commit of package [rubygem-openshift-origin-node] release [0.11.2-1].
   (admiller@redhat.com)
 - Updating gem versions (admiller@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
@@ -384,7 +384,7 @@ fi
 - Merge pull request #25 from abhgupta/abhgupta-dev (kraman@gmail.com)
 - additional changes for showing gear states in gear_groups rest api
   (abhgupta@redhat.com)
-- Add rcov testing to stickshift-node via "rake rcov". (rmillner@redhat.com)
+- Add rcov testing to openshift-origin-node via "rake rcov". (rmillner@redhat.com)
 - adding gear state to gear_groups rest api (abhgupta@redhat.com)
 - Merge pull request #18 from kraman/dev/kraman/bug/814444
   (dmcphers@redhat.com)
@@ -401,7 +401,7 @@ fi
 - Merge pull request #9 from drnic/add_env_var (dan.mcpherson@gmail.com)
 - exit status of connectors should be passed along properly
   (rchopra@redhat.com)
-- pass the two uuid fields through to StickShift::ApplicationContainer
+- pass the two uuid fields through to OpenShift::ApplicationContainer
   (drnicwilliams@gmail.com)
 - corrected syntax error (mmcgrath@redhat.com)
 - syle changes (mmcgrath@redhat.com)

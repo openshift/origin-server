@@ -4,7 +4,7 @@
 CART_NAME=cron
 CART_VERSION=1.4
 cartridge_type=${CART_NAME}-$CART_VERSION
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 
 # Setup instance directory and control script name.
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -14,7 +14,7 @@ function print_help() {
     echo "Usage: $0 app-name namespace uuid"
     echo "$cmd embedded cron service"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_cron_$cmd
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_cron_$cmd
     exit 1
 
 }  #  End of function  print_help.

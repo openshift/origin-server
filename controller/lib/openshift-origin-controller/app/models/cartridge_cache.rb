@@ -20,7 +20,7 @@ class CartridgeCache
   end
 
   def self.cartridges
-    get_cached("all_cartridges", :expires_in => 1.day) {StickShift::ApplicationContainerProxy.find_one().get_available_cartridges}
+    get_cached("all_cartridges", :expires_in => 1.day) {OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges}
   end
 
   FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",

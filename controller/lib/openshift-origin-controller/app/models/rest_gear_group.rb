@@ -1,4 +1,4 @@
-class RestGearGroup < StickShift::Model
+class RestGearGroup < OpenShift::Model
   attr_accessor :uuid, :name, :gear_profile, :cartridges, :gears, :scales_from, :scales_to, :links, :base_gear_storage, :additional_gear_storage
 
   def initialize(group_instance, gear_states, url, nolinks=false)

@@ -9,7 +9,7 @@
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_deploy_httpd_proxy
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_deploy_httpd_proxy
     exit 1
 }
 
@@ -22,27 +22,27 @@ uuid=$3
 IP=$4
 cartridge_type="mongodb-2.2"
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/00000_default.conf"
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
   ServerAdmin mmcgrath@redhat.com
   DocumentRoot /var/www/html
   DefaultType None
 EOF
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/mongodb-2.2.conf"
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/mongodb-2.2.conf"
   Alias /health $CART_INFO_DIR/configuration/health.html
   Alias / $CART_INFO_DIR/configuration/index.html
 EOF
 
-cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf"
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf"
 <VirtualHost *:80>
   RequestHeader append X-Forwarded-Proto "http"
 
-  Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
+  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -50,6 +50,6 @@ cat <<EOF > "/etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.co
 
 $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
 
-  Include /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}/*.conf
+  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
 </VirtualHost>
 EOF

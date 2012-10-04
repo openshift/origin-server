@@ -183,7 +183,7 @@ module AppHelper
     end
 
     def last_access_file_present?
-      File.exists? "/var/lib/stickshift/.last_access/#{uid}"
+      File.exists? "/var/lib/openshift/.last_access/#{uid}"
     end
 
     def connect(use_https=false, max_retries=30)

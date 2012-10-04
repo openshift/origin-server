@@ -1,5 +1,5 @@
-module StickShift
-  class Cartridge < StickShift::UserModel
+module OpenShift
+  class Cartridge < OpenShift::UserModel
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides_feature, :requires_feature, :conflicts_feature, :requires, :default_profile,
                   :path, :profile_name_map, :license_url, :categories, :website, :suggests_feature,

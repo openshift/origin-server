@@ -83,7 +83,7 @@ Given /^a(n additional)? new ([^ ]+) type application$/ do | additional, cart_na
     if additional 
       assert_not_nil @account, 'You must create a new application before an additional application can be created'
     else
-      @account = StickShift::TestAccount.new
+      @account = OpenShift::TestAccount.new
       @app = @account.create_app
     end
 
@@ -105,7 +105,7 @@ end
 # Calls configure on the embedded cartridge.
 When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate, cart_name |
   record_measure("Runtime Benchmark: Configure #{cart_name} cartridge in cartridge #{@cart.name}") do
-    cart = @gear.add_cartridge(cart_name, StickShift::TestCartridge::Embedded)
+    cart = @gear.add_cartridge(cart_name, OpenShift::TestCartridge::Embedded)
 
     if negate
       assert_raise(RuntimeError) do
@@ -283,7 +283,7 @@ end
 # the single cartridge directly. There will be no recursive actions for
 # multiple carts associated with an app/gear.
 When /^I (start|stop|status|restart) the application$/ do |action|
-  StickShift::timeout(60) do
+  OpenShift::timeout(60) do
     record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
       @cart.run_hook(action)
     end
@@ -310,7 +310,7 @@ Then /^a (.+) process will( not)? be running$/ do | proc_name, negate |
 
   num_node_processes = num_procs @gear.uuid, proc_name
   $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
-  StickShift::timeout(20) do
+  OpenShift::timeout(20) do
     while (not exit_test.call(num_node_processes))
       $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
       sleep 1 
@@ -336,7 +336,7 @@ Then /^a (.+) process for ([^ ]+) will( not)? be running$/ do | proc_name, label
 
   num_node_processes = num_procs @gear.uuid, proc_name, label
   $logger.info("Expecting #{exit_test_desc} pid(s) named #{proc_name}, found #{num_node_processes}")
-  StickShift::timeout(20) do
+  OpenShift::timeout(20) do
     while (not exit_test.call(num_node_processes))
       $logger.info("Waiting for #{proc_name} process count to be #{exit_test_desc}")
       sleep 1 
@@ -361,7 +361,7 @@ Then /^(\d+) process(es)? named ([^ ]+) will be running$/ do | proc_count, junk,
 
   num_node_processes = num_procs @gear.uuid, proc_name
   $logger.info("Expecting #{proc_count} pid(s) named #{proc_name}, found #{num_node_processes}")
-  StickShift::timeout(20) do
+  OpenShift::timeout(20) do
     while (num_node_processes != proc_count)
       $logger.info("Waiting for #{proc_name} process count to equal #{proc_count}")
       sleep 1
@@ -382,7 +382,7 @@ Then /^(\d+) process(es)? named ([^ ]+) for ([^ ]+) will be running$/ do | proc_
 
   num_node_processes = num_procs @gear.uuid, proc_name, label
   $logger.info("Expecting #{proc_count} pid(s) named #{proc_name}, found #{num_node_processes}")
-  StickShift::timeout(20) do
+  OpenShift::timeout(20) do
     while (num_node_processes != proc_count)
       $logger.info("Waiting for #{proc_name} process count to equal #{proc_count}")
       sleep 1
@@ -514,7 +514,7 @@ Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)?
   finished = negate ? lambda { |s| s == "503" } : lambda { |s| s == "200"}
   cmd = "curl -L -k -w %{http_code} -s -o /dev/null -H 'Host: #{@app.name}-#{@account.domain}.#{$domain}' #{url}"
   res = `#{cmd}`
-  StickShift::timeout(300) do
+  OpenShift::timeout(300) do
     while not finished.call res
       res = `#{cmd}`
       $logger.debug { "Waiting on #{cart_type} to#{negate} be accessible: status #{res}" }

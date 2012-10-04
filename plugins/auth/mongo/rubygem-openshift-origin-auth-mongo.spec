@@ -1,9 +1,9 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname swingshift-mongo-plugin
+%global gemname openshift-origin-auth-mongo
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
-Summary:        SwingShift plugin for mongo auth service
+Summary:        OpenShift Origin plugin for mongo auth service
 Name:           rubygem-%{gemname}
 Version:        0.8.6
 Release:        1%{?dist}
@@ -14,10 +14,10 @@ Source0:        rubygem-%{gemname}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) = 1.8
 Requires:       rubygems
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(json)
 Requires:       rubygem(mocha)
-Requires:       stickshift-broker
+Requires:       openshift-origin-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
 
@@ -27,7 +27,7 @@ BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
 
 %package -n ruby-%{gemname}
-Summary:        SwingShift plugin for mongo auth service
+Summary:        OpenShift Origin plugin for mongo auth service
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
 
@@ -60,22 +60,22 @@ rm -rf %{buildroot}%{gemdir}/bin
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
+mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
+cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-mongo.rb
 Broker::Application.configure do
   config.auth = {
     :salt => "ClWqe5zKtEW4CJEMyjzQ",
-    :privkeyfile => "/var/www/stickshift/broker/config/server_priv.pem",
+    :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",
     :privkeypass => "",
-    :pubkeyfile  => "/var/www/stickshift/broker/config/server_pub.pem",
+    :pubkeyfile  => "/var/www/openshift/broker/config/server_pub.pem",
     
     # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     :mongo_replica_sets => false,
     :mongo_host_port => ["localhost", 27017],
   
-    :mongo_user => "stickshift",
+    :mongo_user => "openshift",
     :mongo_password => "mooo",
-    :mongo_db => "stickshift_broker_dev",
+    :mongo_db => "openshift_origin_broker_dev",
     :mongo_collection => "auth_user"
   }
 end
@@ -85,10 +85,10 @@ EOF
 rm -rf %{buildroot}
 
 %post
-/usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
-/usr/bin/openssl rsa    -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
+/usr/bin/openssl genrsa -out /var/www/openshift/broker/config/server_priv.pem 2048
+/usr/bin/openssl rsa    -in /var/www/openshift/broker/config/server_priv.pem -pubout > /var/www/openshift/broker/config/server_pub.pem
 
-echo "The following variables need to be set in your rails config to use swingshift-mongo-plugin:"
+echo "The following variables need to be set in your rails config to use openshift-origin-auth-mongo:"
 echo "auth[:salt]                    - salt for the password hash"
 echo "auth[:privkeyfile]             - RSA private key file for node-broker authentication"
 echo "auth[:privkeypass]             - RSA private key password"
@@ -110,7 +110,7 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_bindir}/*
 
-%attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
+%attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-mongo.rb
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -153,7 +153,7 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
   (abhgupta@redhat.com)
 
 * Thu Apr 26 2012 Krishna Raman <kraman@gmail.com> 0.8.4-1
-- Added README for SwingShift-mongo plugin (rpenta@redhat.com)
+- Added README for OpenShift Origin-mongo plugin (rpenta@redhat.com)
 - cleaning up spec files (dmcphers@redhat.com)
 - decoding the broker auth key before returning from login in the auth plugin
   (abhgupta@redhat.com)

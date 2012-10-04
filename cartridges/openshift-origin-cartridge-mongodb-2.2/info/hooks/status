@@ -11,7 +11,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Get application status"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_mongodb_status
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_mongodb_status
     exit 1
 }
 
@@ -28,7 +28,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3

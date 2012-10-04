@@ -7,9 +7,9 @@ DEPENDENCIES:
 All are pulled in automatically via yum
 
 BUNDLE:
-/etc/stickshift/php.conf
+/etc/openshift origin/php.conf
 
 TODO:
-Create stickshift specific php.ini file
+Create openshift origin specific php.ini file
 Sandbox
 Jim's stack

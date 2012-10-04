@@ -3,10 +3,10 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin","*")
-spec_file = "swingshift-kerberos-plugin.spec"
+spec_file = "openshift-origin-auth-kerberos.spec"
 
 Gem::Specification.new do |s|
-  s.name        = "swingshift-kerberos-plugin"
+  s.name        = "openshift-origin-auth-kerberos"
   s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
   s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Jason DeTiberus"]
@@ -18,10 +18,10 @@ Gem::Specification.new do |s|
   s.files       = Dir[lib_dir] + Dir[bin_dir]
   s.test_files  = Dir[test_dir]
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
-  s.files       += %w(README.md Rakefile Gemfile swingshift-kerberos-plugin.spec swingshift-kerberos-plugin.gemspec LICENSE COPYRIGHT)
+  s.files       += %w(README.md Rakefile Gemfile openshift-origin-auth-kerberos.spec openshift-origin-auth-kerberos.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
-  s.add_dependency('stickshift-controller')
+  s.add_dependency('openshift-origin-controller')
   s.add_dependency('json')
   s.add_dependency('krb5-auth')
   s.add_development_dependency('rake')

@@ -90,7 +90,7 @@ module SetupHelper
     end
     
     # set the bind keyvalue from the installed plugin config
-    if File.exists?("/var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb")
+    if File.exists?("/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-dns-bind.rb")
       $bind_keyvalue = `cat /var/named/example.com.key | grep -i secret | gawk -F ' ' '{ print $2 }'`
     end
 

@@ -1,4 +1,4 @@
-class LegacyRequest < StickShift::Model
+class LegacyRequest < OpenShift::Model
   attr_accessor :namespace, :rhlogin, :ssh, :app_uuid, :app_name, :node_profile, :debug, :alter, :delete, :cartridge, :api, :cart_type, :action, :server_alias, :api, :key_name, :key_type
   attr_reader   :invalid_keys
   

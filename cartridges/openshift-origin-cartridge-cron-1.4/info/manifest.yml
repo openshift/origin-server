@@ -14,7 +14,7 @@ Help-Topics:
 Cart-Data:
 Suggests:
 
-Provides: rhc-cartridge-cron
+Provides: rhc-openshift-origin-cartridge-cron
 Native-Requires:
   - cronie
   - crontabs

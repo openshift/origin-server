@@ -4,9 +4,9 @@ Broker::Application.configure do
   unless config.respond_to? :auth
     config.auth = {
       :salt           => "ClWqe5zKtEW4CJEMyjzQ",
-      :privkeyfile    => "/etc/stickshift/server_priv.pem",
+      :privkeyfile    => "/etc/openshift/server_priv.pem",
       :privkeypass    => "",
-      :pubkeyfile     => "/etc/stickshift/server_pub.pem",
+      :pubkeyfile     => "/etc/openshift/server_pub.pem",
     }
   end
 end

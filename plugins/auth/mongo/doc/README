@@ -1,14 +1,14 @@
-                    Mongo Auth Plugin for StickShift
+                    Mongo Auth Plugin for OpenShift Origin
                    ----------------------------------
-SwingShift is an optional plugin for Stickshift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
-This document describes how to register and authenticate StickShift user using SWingShift.
+OpenShift Origin is an optional plugin for Stickshift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
+This document describes how to register and authenticate OpenShift Origin user using SWingShift.
 
 * Install MongoDB
 * Setup MongoDB
-* Install SwingShift
-* Configure SwingShift
-* Register StickShift user
-* Authenticate StickShift user
+* Install OpenShift Origin
+* Configure OpenShift Origin
+* Register OpenShift Origin user
+* Authenticate OpenShift Origin user
 
 * Install MongoDB
   Download mongodb server.
@@ -25,20 +25,20 @@ This document describes how to register and authenticate StickShift user using S
     systemctl enable mongod.service
     systemctl start mongod.service
 
-* Install SwingShift
+* Install OpenShift Origin
 
-* Configure SwingShift
+* Configure OpenShift Origin
   Restrict privileges to mongo auth database
 
-    /usr/bin/mongo localhost/stickshift_broker_dev --eval "db.addUser(\"stickshift\", \"mooo\")"
+    /usr/bin/mongo localhost/openshift_origin_broker_dev --eval "db.addUser(\"openshift\", \"mooo\")"
 
-  Enable mongo auth in StickShift configuration
+  Enable mongo auth in OpenShift Origin configuration
 
-    systemctl stop stickshift-broker.service
+    systemctl stop openshift-origin-broker.service
 
-    SS_BROKER_ENVDIR=/var/www/stickshift/broker/config/environments
-    echo "require File.expand_path('../plugin-config/swingshift-mongo-plugin.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
-cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/swingshift-mongo-plugin.rb
+    SS_BROKER_ENVDIR=/var/www/openshift/broker/config/environments
+    echo "require File.expand_path('../plugin-config/openshift-origin-auth-mongo.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
+cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-mongo.rb
     Broker::Application.configure do
       config.auth = {
         :salt => "ClWqe5zKtEW4CJEMyjzQ",
@@ -47,22 +47,22 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/swingshift-mongo-plugin.rb
         :mongo_replica_sets => false,
         :mongo_host_port => ["localhost", 27017],
   
-        :mongo_user => "stickshift",
+        :mongo_user => "openshift",
         :mongo_password => "mooo",
-        :mongo_db => "stickshift_broker_dev",
+        :mongo_db => "openshift_origin_broker_dev",
         :mongo_collection => "auth_user"
       }
     end
     EOF
 
-    systemctl start stickshift-broker.service
+    systemctl start openshift-origin-broker.service
 
-* Register StickShift user
+* Register OpenShift Origin user
 
     /usr/bin/ss-register-user --user <user-name> --password <password>
 
-* Authenticate StickShift user
-  Any REST api calls or CLI tools to StickShift will be processed only for the registered user-name/password
+* Authenticate OpenShift Origin user
+  Any REST api calls or CLI tools to OpenShift Origin will be processed only for the registered user-name/password
   Example:
     The below query fails with 'Access Denied' error.
     curl -k https://localhost/broker/rest/domains

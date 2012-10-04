@@ -1,5 +1,5 @@
 require 'test_helper'
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'mocha'
 
 module Rails
@@ -15,7 +15,7 @@ end
 class CloudUserTest < ActiveSupport::TestCase
   def setup
     #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser(\"stickshift\", \"mooo\")' 2>&1 > /dev/null"
+    system "/usr/bin/mongo localhost/openshift_origin_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
   end
 
   test "validation of login" do
@@ -44,7 +44,7 @@ class CloudUserTest < ActiveSupport::TestCase
 
   test "create a new user" do
     ssh = "AAAAB3NzaC1yc2EAAAABIwAAAQEAvzdpZ/3+PUi3SkYQc3j8v5W8+PUNqWe7p3xd9r1y4j60IIuCS4aaVqorVPhwrOCPD5W70aeLM/B3oO3QaBw0FJYfYBWvX3oi+FjccuzSmMoyaYweXCDWxyPi6arBqpsSf3e8YQTEkL7fwOQdaZWtW7QHkiDCfcB/LIUZCiaArm2taIXPvaoz/hhHnqB2s3W/zVP2Jf5OkQHsVOTxYr/Hb+/gV3Zrjy+tE9+z2ivL+2M0iTIoSVsUcz0d4g4XpgM8eG9boq1YGzeEhHe1BeliHmAByD8PwU74tOpdpzDnuKf8E9Gnwhsp2yqwUUkkBUoVcv1LXtimkEyIl0dSeRRcMw=="
-    namespace = "kraman.stickshift.net"
+    namespace = "broker.openshift-origin.com"
     login = "kraman@redhat.com"
     user = CloudUser.new(login, ssh)
      
@@ -57,7 +57,7 @@ class CloudUserTest < ActiveSupport::TestCase
     CloudUser.expects(:notify_observers).with(:after_cloud_user_create, user).in_sequence(observer_seq).at_least_once
 
     ds = mock("DataStore")
-    StickShift::DataStore.expects(:instance).returns(ds)
+    OpenShift::DataStore.expects(:instance).returns(ds)
     ds.expects(:create)
     
     user.save
@@ -65,7 +65,7 @@ class CloudUserTest < ActiveSupport::TestCase
   
   test "create user fails if user already exists" do
     ssh = "AAAAB3NzaC1yc2EAAAABIwAAAQEAvzdpZ/3+PUi3SkYQc3j8v5W8+PUNqWe7p3xd9r1y4j60IIuCS4aaVqorVPhwrOCPD5W70aeLM/B3oO3QaBw0FJYfYBWvX3oi+FjccuzSmMoyaYweXCDWxyPi6arBqpsSf3e8YQTEkL7fwOQdaZWtW7QHkiDCfcB/LIUZCiaArm2taIXPvaoz/hhHnqB2s3W/zVP2Jf5OkQHsVOTxYr/Hb+/gV3Zrjy+tE9+z2ivL+2M0iTIoSVsUcz0d4g4XpgM8eG9boq1YGzeEhHe1BeliHmAByD8PwU74tOpdpzDnuKf8E9Gnwhsp2yqwUUkkBUoVcv1LXtimkEyIl0dSeRRcMw=="
-    namespace = "kraman.stickshift.net"
+    namespace = "broker.openshift-origin.com"
     login = "kraman@redhat.com"
     user = CloudUser.new(login, ssh)
      
@@ -78,7 +78,7 @@ class CloudUserTest < ActiveSupport::TestCase
     
     begin
       user.save
-    rescue StickShift::UserException => e
+    rescue OpenShift::UserException => e
       assert true
     else
       assert false

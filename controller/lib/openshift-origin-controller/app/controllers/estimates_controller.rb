@@ -13,8 +13,8 @@ class EstimatesController < BaseController
     descriptor = params[:descriptor]
 
     begin
-      raise StickShift::EstimatesException.new("Invalid estimate object. Estimats only valid for objects: 'application'") if obj != "application"
-      raise StickShift::EstimatesException.new("Application 'descriptor' NOT specified") if !descriptor
+      raise OpenShift::EstimatesException.new("Invalid estimate object. Estimats only valid for objects: 'application'") if obj != "application"
+      raise OpenShift::EstimatesException.new("Application 'descriptor' NOT specified") if !descriptor
       # Get available framework cartriges
       standalone_carts = Application.get_available_cartridges("standalone")
 
@@ -22,7 +22,7 @@ class EstimatesController < BaseController
       descriptor.gsub!('\n', "\n")
       descriptor_hash = YAML.load(descriptor)
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid application descriptor") unless descriptor_hash
-      raise StickShift::EstimatesException.new("Invalid application descriptor.") unless descriptor_hash
+      raise OpenShift::EstimatesException.new("Invalid application descriptor.") unless descriptor_hash
     
       # Find app framework
       framework = nil
@@ -35,7 +35,7 @@ class EstimatesController < BaseController
       app_name = descriptor_hash['Name'] || nil
 
       log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Application name or framework not found in the descriptor") if !framework or !app_name
-      raise StickShift::EstimatesException.new("Application name or framework not found in the descriptor.") if !framework or !app_name
+      raise OpenShift::EstimatesException.new("Application name or framework not found in the descriptor.") if !framework or !app_name
 
       # Elaborate app descriptor
       template = ApplicationTemplate.new
@@ -62,7 +62,7 @@ class EstimatesController < BaseController
       end if app.group_instance_map
 
       render_success(:ok, "application_estimates", groups, "SHOW_ESTIMATE")
-    rescue StickShift::EstimatesException => e
+    rescue OpenShift::EstimatesException => e
       return render_error(:unprocessable_entity, e.message, 130, "SHOW_ESTIMATE")
     rescue Exception => e
       return render_exception(e, "SHOW_ESTIMATE")

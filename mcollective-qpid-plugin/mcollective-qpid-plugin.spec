@@ -56,7 +56,7 @@ cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugi
 - Automatic commit of package [mcollective-qpid-plugin] release [0.0.1-1].
   (kraman@gmail.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

@@ -2,7 +2,7 @@ require 'state_machine'
 require 'syslog'
 require 'shellwords'
 
-class Application < StickShift::Cartridge
+class Application < OpenShift::Cartridge
   attr_accessor :user, :creation_time, :uuid, :aliases, :cart_data, 
                 :state, :group_instance_map, :comp_instance_map, :conn_endpoints_list,
                 :domain, :group_override_map, :working_comp_inst_hash,
@@ -30,13 +30,13 @@ class Application < StickShift::Cartridge
       record.errors.add attribute, {:message => "The supplied application name is too long. (Max permitted length: #{APP_NAME_MAX_LENGTH} characters)", :exit_code => 105}
     end
     Rails.logger.debug "Checking to see if application name is black listed"    
-    if StickShift::ApplicationContainerProxy.blacklisted?(val)
+    if OpenShift::ApplicationContainerProxy.blacklisted?(val)
       record.errors.add attribute, {:message => "The supplied application name is not allowed", :exit_code => 105}
     end
   end
   
   validates_each :node_profile, :allow_nil =>true do |record, attribute, val|
-    allowed_sizes=StickShift::ApplicationContainerProxy.valid_gear_sizes(record.user)
+    allowed_sizes=OpenShift::ApplicationContainerProxy.valid_gear_sizes(record.user)
     unless allowed_sizes.include? val
       record.errors.add attribute, {:message => "Invalid Size: #{val}.  Must be: #{allowed_sizes.join(', ')}.  Please contact support for access to additional sizes.", :exit_code => 134}
     end
@@ -56,7 +56,7 @@ class Application < StickShift::Cartridge
     self.domain = domain
     self.node_profile = node_profile
     self.creation_time = DateTime::now().strftime
-    self.uuid = uuid || StickShift::Model.gen_uuid
+    self.uuid = uuid || OpenShift::Model.gen_uuid
     self.scalable = will_scale
     self.ngears = 0
     
@@ -100,21 +100,21 @@ class Application < StickShift::Cartridge
       comp_name = "proxy" if comp_name.nil?
       prof = @profile_name_map[@default_profile]
       cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
+      raise OpenShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
       comp,profile,cart = cinst.get_component_definition(self)
-      raise StickShift::UserException.new("#{feature} already embedded in '#{@name}'", 136) if comp.depends.include? feature
+      raise OpenShift::UserException.new("#{feature} already embedded in '#{@name}'", 136) if comp.depends.include? feature
       fcart = self.framework
-      conn = StickShift::Connection.new("#{feature}-web-#{fcart}")
+      conn = OpenShift::Connection.new("#{feature}-web-#{fcart}")
       conn.components = ["proxy/#{feature}", "web/#{fcart}"]
       prof.add_connection(conn)
-      conn = StickShift::Connection.new("#{feature}-proxy-#{fcart}")
+      conn = OpenShift::Connection.new("#{feature}-proxy-#{fcart}")
       conn.components = ["proxy/#{feature}", "proxy/#{fcart}"]
       prof.add_connection(conn)
 
       #  FIXME: Booya - hacks galore -- fix this to be more generic when
       #         scalable apps allow more components in SCALABLE_EMBEDDED_CARTS
       if feature == "jenkins-client-1.4"
-        conn = StickShift::Connection.new("#{feature}-proxy-haproxy-1.4")
+        conn = OpenShift::Connection.new("#{feature}-proxy-haproxy-1.4")
         conn.components = ["proxy/#{feature}", "proxy/haproxy-1.4"]
         prof.add_connection(conn)
       end
@@ -122,7 +122,7 @@ class Application < StickShift::Cartridge
       comp.depends << feature
     else
       self.requires_feature.each { |cart|
-        conn = StickShift::Connection.new("#{feature}-#{cart}")
+        conn = OpenShift::Connection.new("#{feature}-#{cart}")
         conn.components = [cart, feature]
         prof.add_connection(conn)
       }
@@ -167,9 +167,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       comp_name = "proxy" if comp_name.nil?
       prof = @profile_name_map[@default_profile]
       cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-      raise StickShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
+      raise OpenShift::NodeException.new("Cannot find component '#{comp_name}' in app #{self.name}.", 135, result_io) if cinst.nil?
       comp,profile,cart = cinst.get_component_definition(self)
-      raise StickShift::UserException.new("#{feature} not embedded in '#{@name}', try adding it first", 135) if not comp.depends.include? feature
+      raise OpenShift::UserException.new("#{feature} not embedded in '#{@name}', try adding it first", 135) if not comp.depends.include? feature
       comp.depends.delete(feature)
     else
       self.requires_feature.delete feature
@@ -218,7 +218,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def self.find_by_gear_uuid(gear_uuid)
-    hash = StickShift::DataStore.instance.find_by_gear_uuid(gear_uuid)
+    hash = OpenShift::DataStore.instance.find_by_gear_uuid(gear_uuid)
     return nil unless hash
     user = CloudUser.hash_to_obj hash
     user.applications.each do |next_app|
@@ -232,7 +232,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
 
   def self.find_by_uuid(uuid)
-    hash = StickShift::DataStore.instance.find_by_uuid(self.name,uuid)
+    hash = OpenShift::DataStore.instance.find_by_uuid(self.name,uuid)
     return nil unless hash
     user = CloudUser.hash_to_obj hash
     app  = nil
@@ -291,13 +291,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       elaborate_descriptor
       self.class.notify_observers(:before_application_create, {:application => self, :reply => result_io})
       if self.scalable
-        raise StickShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
+        raise OpenShift::UserException.new("Scalable app cannot be of type #{UNSCALABLE_FRAMEWORKS.join(' ')}", "108", result_io) if UNSCALABLE_FRAMEWORKS.include? framework
         min_gear_count = 0
         group_instances.uniq.each { |gi|
           min_gear_count += gi.min
         }
         if ((user.consumed_gears+min_gear_count) > user.max_gears)
-          raise StickShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
+          raise OpenShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
         end
       end
       user.applications = [] unless user.applications
@@ -369,7 +369,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         Rails.logger.debug(data[:exception].backtrace.inspect)
       end
 
-      raise StickShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if failures.length > 0
+      raise OpenShift::NodeException.new("Could not destroy all gears of application.", 1, reply) if failures.length > 0
     end
     self.class.notify_observers(:after_application_destroy, {:application => self, :reply => reply})    
     reply
@@ -387,17 +387,17 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     result_io = ResultIO.new
 
     if not self.scalable
-      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
+      raise OpenShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
 
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
+    raise OpenShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
-    raise StickShift::UserException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
-    raise StickShift::UserException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", 104, result_io) if user.consumed_gears >= user.max_gears
+    raise OpenShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
+    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
+    raise OpenShift::UserException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", 104, result_io) if user.consumed_gears >= user.max_gears
     result, new_gear = ginst.add_gear(self)
     result_io.append result
     result_io.append self.configure_dependencies
@@ -408,20 +408,20 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def scaledown(comp_name=nil)
     result_io = ResultIO.new
     if not self.scalable
-      raise StickShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
+      raise OpenShift::UserException.new("Cannot scale a non-scalable application", 255, result_io)
     end
     comp_name = "web" if comp_name.nil?
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, comp_name, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
+    raise OpenShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
-    raise StickShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
+    raise OpenShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise StickShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
+    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.first
 
-    dns = StickShift::DnsService.instance
+    dns = OpenShift::DnsService.instance
     begin
       dns.deregister_application(gear.name, @domain.namespace)
       dns.publish
@@ -868,7 +868,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def add_broker_key
-    iv, token = StickShift::AuthService.instance.generate_broker_key(self)
+    iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
     
     reply = ResultIO.new
     s,f = run_on_gears(nil,reply,false) do |gear,r|
@@ -916,7 +916,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       }
       RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
         if status != 0
-          raise StickShift::NodeException.new("Error applying settings to gear: #{gear} with status: #{status} and output: #{output}", 143)
+          raise OpenShift::NodeException.new("Error applying settings to gear: #{gear} with status: #{status} and output: #{output}", 143)
         end
       }
     end
@@ -924,7 +924,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
 
   def add_dns(appname, namespace, public_hostname)
-    dns = StickShift::DnsService.instance
+    dns = OpenShift::DnsService.instance
     begin
       dns.register_application(appname, namespace, public_hostname)
       dns.publish
@@ -947,7 +947,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def destroy_dns
     reply = ResultIO.new
     self.class.notify_observers(:before_destroy_dns, {:application => self, :reply => reply})
-    dns = StickShift::DnsService.instance
+    dns = OpenShift::DnsService.instance
     begin
       dns.deregister_application(@name,@domain.namespace)
       if self.scalable
@@ -970,7 +970,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def recreate_dns
     reply = ResultIO.new
     self.class.notify_observers(:before_recreate_dns, {:application => self, :reply => reply})    
-    dns = StickShift::DnsService.instance
+    dns = OpenShift::DnsService.instance
     begin
       public_hostname = self.container.get_public_hostname
       dns.modify_application(@name, @domain.namespace, public_hostname)
@@ -1024,11 +1024,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   
   def add_alias(server_alias)
     if !(server_alias =~ /\A[\w\-\.]+\z/) or (server_alias =~ /#{Rails.configuration.ss[:domain_suffix]}$/)
-      raise StickShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105) 
+      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105) 
     end
     
     self.aliases = [] unless self.aliases
-    raise StickShift::UserException.new("Alias '#{server_alias}' already exists for '#{@name}'", 255) if self.aliases.include? server_alias
+    raise OpenShift::UserException.new("Alias '#{server_alias}' already exists for '#{@name}'", 255) if self.aliases.include? server_alias
     reply = ResultIO.new
     begin
       self.aliases.push(server_alias)
@@ -1059,7 +1059,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         self.aliases.delete(server_alias)
         self.save
       else
-        raise StickShift::UserException.new("Alias '#{server_alias}' does not exist for '#{@name}'", 255, reply)
+        raise OpenShift::UserException.new("Alias '#{server_alias}' does not exist for '#{@name}'", 255, reply)
       end      
     end
     reply
@@ -1072,9 +1072,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     Rails.logger.debug "DEBUG: Adding embedded app info from persistant storage: #{@name}:#{dep}"
     self.cart_data = {} if @cart_data.nil?
     
-    raise StickShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep
+    raise OpenShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep
     if self.scalable
-      raise StickShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{SCALABLE_EMBEDDED_CARTS.join(',')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
+      raise OpenShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{SCALABLE_EMBEDDED_CARTS.join(',')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
     end
     add_to_requires_feature(dep)
     begin
@@ -1096,8 +1096,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.class.notify_observers(:before_remove_dependency, {:application => self, :dependency => dep, :reply => reply})
     self.embedded = {} unless self.embedded
         
-    raise StickShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 135) unless self.embedded.include? dep
-    raise StickShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 137) if (self.scalable and self.proxy_cartridge==dep)
+    raise OpenShift::UserException.new("#{dep} not embedded in '#{@name}', try adding it first", 135) unless self.embedded.include? dep
+    raise OpenShift::UserException.new("#{dep} is not allowed to be removed from '#{@name}'. It is a required dependency for a scalable application.", 137) if (self.scalable and self.proxy_cartridge==dep)
     remove_from_requires_feature(dep)
     elaborate_descriptor { |removed_component_instances|
       #remove unused components
@@ -1169,7 +1169,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, dependency, self.get_name_prefix)
-    raise StickShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", 135, result_io) if cinst.nil?
+    raise OpenShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", 135, result_io) if cinst.nil?
 
     ginst = self.group_instance_map[cinst.group_instance_name]
     return ginst.min,ginst.max
@@ -1402,7 +1402,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         key = command_item[:args][0]
         app_jobs['remove_env_vars'] << key unless key.nil?
       when "BROKER_KEY_ADD"
-        iv, token = StickShift::AuthService.instance.generate_broker_key(self)
+        iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
         self.user.add_save_job('adds', 'broker_auth_keys', [self.uuid, iv, token])
       when "BROKER_KEY_REMOVE"
         self.user.add_save_job('removes', 'broker_auth_keys', [self.uuid])
@@ -1437,7 +1437,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     }
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0
-        raise StickShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
+        raise OpenShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
       end
     }
     commands.clear
@@ -1446,7 +1446,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def track_usage(gear, event, usage_type=UsageRecord::USAGE_TYPES[:gear_usage])
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
-      uuid = StickShift::Model.gen_uuid
+      uuid = OpenShift::Model.gen_uuid
       self.usage_records = [] unless usage_records
       usage_record = UsageRecord.new(event, user, now, uuid, usage_type)
       case usage_type
@@ -1587,7 +1587,7 @@ private
         Rails.logger.error e.inspect
         Rails.logger.error e.backtrace.inspect
         failed_runs.push({:gear => gear, :exception => e})
-        if (!result_io.nil? && e.kind_of?(StickShift::SSException) && !e.resultIO.nil?)
+        if (!result_io.nil? && e.kind_of?(OpenShift::OOException) && !e.resultIO.nil?)
           result_io.append(e.resultIO)
         end
         if fail_fast

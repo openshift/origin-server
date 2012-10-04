@@ -1,4 +1,4 @@
-class RestApplicationTemplate < StickShift::Model
+class RestApplicationTemplate < OpenShift::Model
   attr_accessor :uuid, :display_name, :descriptor_yaml, :git_url, :tags, :gear_cost, :metadata, :links
   
   def initialize(template, url, nolinks=false)

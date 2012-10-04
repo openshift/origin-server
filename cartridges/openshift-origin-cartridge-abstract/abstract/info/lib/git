@@ -1,9 +1,9 @@
 #!/bin/bash
 
-[ ! -z "$STICKSHIFT_CONTROLLER_LIB_GIT" ] && return 0
-STICKSHIFT_CONTROLLER_LIB_GIT=true
+[ ! -z "$OPENSHIFT_CONTROLLER_LIB_GIT" ] && return 0
+OPENSHIFT_CONTROLLER_LIB_GIT=true
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 
 function clone_git_repo {
     application="$1"

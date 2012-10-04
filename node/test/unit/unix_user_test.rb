@@ -15,9 +15,9 @@
 # limitations under the License.
 #++
 #
-# Test the StickShift unix_user model
+# Test the OpenShift unix_user model
 #
-require 'stickshift-node/model/unix_user'
+require 'openshift-origin-node/model/unix_user'
 require 'test/unit'
 
 # Run unit test manually
@@ -43,12 +43,12 @@ class TestUnixUserModel < Test::Unit::TestCase
 
   def test_initialize
     FileUtils.rm_rf("/tmp/homedir", :verbose => @verbose) if File.directory?("/tmp/homedir")
-    o = StickShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
+    o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
                                  @gear_name, @namespace,
                                  nil, nil, @verbose)
     assert_not_nil o
 
-    o.initialize_homedir("/tmp/", "/tmp/homedir/", "stickshift/abstract/")
+    o.initialize_homedir("/tmp/", "/tmp/homedir/", "cartridges/openshift-origin-cartridge-abstract/")
     assert_directory?("/tmp/homedir")
     assert ! File.symlink?("/tmp/homedir/data"), 'found deprecated data symlink'
     assert ! File.directory?("/tmp/homedir/app"), 'found deprecated app directory'
@@ -65,7 +65,7 @@ class TestUnixUserModel < Test::Unit::TestCase
 
 # This tests cannot be run because expected polyinstantiation of /tmp causes system /tmp to be chmod 760.
 #  def test_authorized_keys
-#    o = StickShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
+#    o = OpenShift::UnixUser.new(@gear_uuid, @gear_uuid, @user_uid, @app_name,
 #                                 @gear_name, @namespace,
 #                                 nil, nil, @verbose)
 #    options  = 'command="/usr/bin/trap-user",no-X11-forwarding'

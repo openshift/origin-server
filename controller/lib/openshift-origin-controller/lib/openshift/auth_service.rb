@@ -1,8 +1,8 @@
 require 'digest/md5'
 
-module StickShift
+module OpenShift
   class AuthService
-    @ss_auth_provider = StickShift::AuthService
+    @ss_auth_provider = OpenShift::AuthService
 
     def self.provider=(provider_class)
       @ss_auth_provider = provider_class
@@ -65,7 +65,7 @@ module StickShift
         json_token << cipher.final
       rescue => e
         Rails.logger.debug "Broker key authentication failed. #{e.backtrace.inspect}"
-        raise StickShift::AccessDeniedException.new
+        raise OpenShift::AccessDeniedException.new
       end
 
       token = JSON.parse(json_token)
@@ -74,10 +74,10 @@ module StickShift
       creation_time = token['creation_time']
 
       user = CloudUser.find(username)
-      raise StickShift::AccessDeniedException.new if user.nil?
+      raise OpenShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
 
-      raise StickShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
+      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
       return {:username => username, :auth_method => :broker_auth}
     end
 

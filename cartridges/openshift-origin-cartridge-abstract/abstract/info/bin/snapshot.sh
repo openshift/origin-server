@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift origin/openshift-origin-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables
@@ -29,7 +29,7 @@ echo "Creating and sending tar.gz" 1>&2
         --exclude=./$OPENSHIFT_GEAR_UUID/.tmp \
         --exclude=./$OPENSHIFT_GEAR_UUID/.ssh \
         --exclude=./$OPENSHIFT_GEAR_UUID/.sandbox \
-        --exclude=./$OPENSHIFT_GEAR_UUID/*/conf.d/stickshift.conf \
+        --exclude=./$OPENSHIFT_GEAR_UUID/*/conf.d/openshift.conf \
         --exclude=./$OPENSHIFT_GEAR_UUID/*/run/httpd.pid \
         --exclude=./$OPENSHIFT_GEAR_UUID/haproxy-\*/run/stats \
         --exclude=./$OPENSHIFT_GEAR_UUID/app-root/runtime/.state \

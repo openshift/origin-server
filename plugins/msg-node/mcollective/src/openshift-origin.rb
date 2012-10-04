@@ -2,7 +2,7 @@ require 'rubygems'
 require 'open4'
 require 'pp'
 require 'json'
-require 'stickshift-node'
+require 'openshift origin-node'
 require 'shellwords'
 require 'facter'
 
@@ -36,10 +36,10 @@ module MCollective
         namespace = args['--with-namespace']
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
+          container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
                                                            namespace, quota_blocks, quota_files)
           container.create
-        rescue StickShift::UserCreationException => e
+        rescue OpenShift::UserCreationException => e
           Log.instance.info e.message
           return 129, e.message
         rescue Exception => e
@@ -60,7 +60,7 @@ module MCollective
         skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(app_uuid, gear_uuid, nil, app_name, gear_name, 
+          container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, nil, app_name, gear_name, 
                                                            namespace, nil, nil)
           out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
@@ -84,7 +84,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_ssh_key(ssh_key, key_type, comment)
         rescue Exception => e
           Log.instance.info e.message
@@ -104,7 +104,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_ssh_key(ssh_key, comment)
         rescue Exception => e
           Log.instance.info e.message
@@ -124,7 +124,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_broker_auth(iv, token)
         rescue Exception => e
           Log.instance.info e.message
@@ -142,7 +142,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_broker_auth
         rescue Exception => e
           Log.instance.info e.message
@@ -162,7 +162,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.add_env_var(key, value)
         rescue Exception => e
           Log.instance.info e.message
@@ -180,7 +180,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(uuid, uuid)
+          container = OpenShift::ApplicationContainer.new(uuid, uuid)
           container.user.remove_env_var(key)
         rescue Exception => e
           Log.instance.info e.message
@@ -198,7 +198,7 @@ module MCollective
 
         output = ""
         begin
-          output = StickShift::Node.get_cartridge_list(list_descriptors, porcelain, false)
+          output = OpenShift::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
           Log.instance.info e.message
           return -1, e.message
@@ -215,7 +215,7 @@ module MCollective
         
         output = ""
         begin
-          container = StickShift::ApplicationContainer.new(app_uuid, container_uuid)
+          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
           output = container.get_app_state()
         rescue Exception => e
           Log.instance.info e.message
@@ -232,7 +232,7 @@ module MCollective
 
         output = ""
         begin
-          output = StickShift::Node.get_quota(uuid)
+          output = OpenShift::Node.get_quota(uuid)
         rescue Exception => e
           Log.instance.info e.message
           return -1, e.message
@@ -250,7 +250,7 @@ module MCollective
 
         output = ""
         begin
-          output = StickShift::Node.set_quota(uuid, blocks, inodes)
+          output = OpenShift::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
           Log.instance.info e.message
           return -1, e.message
@@ -266,7 +266,7 @@ module MCollective
         hook_name = args['--hook-name']
         input_args = args['--input-args']
         
-        hook_path = "/usr/libexec/stickshift/cartridges/#{cart_name}/info/connection-hooks/#{hook_name}"
+        hook_path = "/usr/libexec/openshift origin/cartridges/#{cart_name}/info/connection-hooks/#{hook_name}"
         if File.exists? hook_path
            pid, stdin, stdout, stderr = Open4::popen4ext(true, "#{hook_path} #{input_args} 2>&1")
         else
@@ -324,7 +324,7 @@ module MCollective
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc = nil
         output = ""
-        if cartridge == 'stickshift-node'
+        if cartridge == 'openshift origin-node'
           cmd = "ss-#{action}"
           if action == 'connector-execute'
             pid, stdin, stdout, stderr = ss_connector_execute(cmd, args)
@@ -343,12 +343,12 @@ module MCollective
         else
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
-          if File.exists? "/usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          if File.exists? "/usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
             Log.instance.info("cartridge_do_action executing #{cart_cmd}")
             pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
-          elsif File.exists? "/usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          elsif File.exists? "/usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
             Log.instance.info("cartridge_do_action executing #{cart_cmd}")
             pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
           else
@@ -392,7 +392,7 @@ module MCollective
         active = request[:active]
 
         begin
-          district_home = '/var/lib/stickshift/.settings'
+          district_home = '/var/lib/openshift origin/.settings'
           FileUtils.mkdir_p(district_home)
 
           File.open(File.join(district_home, 'district.info'), 'w') { |f|
@@ -425,7 +425,7 @@ module MCollective
         validate :application, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid]
         app_name = request[:application]
-        if File.exist?("/var/lib/stickshift/#{uuid}/#{app_name}")
+        if File.exist?("/var/lib/openshift origin/#{uuid}/#{app_name}")
           reply[:output] = true
         else
           reply[:output] = false
@@ -441,7 +441,7 @@ module MCollective
         validate :embedded_type, /^.+$/
         uuid = request[:uuid]
         embedded_type = request[:embedded_type]
-        if File.exist?("/var/lib/stickshift/#{uuid}/#{embedded_type}")
+        if File.exist?("/var/lib/openshift origin/#{uuid}/#{embedded_type}")
           reply[:output] = true
         else
           reply[:output] = false
@@ -479,7 +479,7 @@ module MCollective
           username = line.split(":")[0]
           uid_map[username] = uid
         }
-        dir = "/var/lib/stickshift/"
+        dir = "/var/lib/openshift origin/"
         filelist = Dir.foreach(dir) { |file| 
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             if uid_map.has_key?(file)
@@ -521,11 +521,11 @@ module MCollective
           cartridge = job[:cartridge]
           action = job[:action]
           args = job[:args]
-          if cartridge == 'stickshift-node' && action != 'connector-execute'
+          if cartridge == 'openshift origin-node' && action != 'connector-execute'
             inline_list << parallel_job
           else
             begin
-              if cartridge == 'stickshift-node' && action == 'connector-execute'
+              if cartridge == 'openshift origin-node' && action == 'connector-execute'
                 pid, stdin, stdout, stderr = ss_connector_execute(action, args)
               else
                 pid, stdout, stderr = execute_parallel_job(cartridge, action, args)
@@ -567,15 +567,15 @@ module MCollective
 
       def execute_parallel_job(cartridge, action, args)
         pid, stdin, stdout, stderr = nil, nil, nil, nil
-        if cartridge == 'stickshift-node' && action == 'connector-execute'
+        if cartridge == 'openshift origin-node' && action == 'connector-execute'
           cmd = "ss-#{action}"
           pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 #{cmd} #{args} 2>&1")
         else
-          if File.exists? "/usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-            #pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-          elsif File.exists? "/usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/stickshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+          if File.exists? "/usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action}"                
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+            #pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+          elsif File.exists? "/usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
           else
             raise Exception.new("cartridge_do_action ERROR action '#{action}' not found.")
           end

@@ -1,11 +1,11 @@
 [Unit]
-Description=The StickShift Broker
+Description=The OpenShift Origin Broker
 After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
 Type=forking
-PIDFile=/var/www/stickshift/broker/httpd/run/httpd.pid
-EnvironmentFile=/etc/sysconfig/stickshift-broker
+PIDFile=/var/www/openshift/broker/httpd/run/httpd.pid
+EnvironmentFile=/etc/sysconfig/openshift-origin-broker
 ExecStart=/usr/sbin/httpd $OPTIONS -k start
 ExecReload=/usr/sbin/httpd $OPTIONS -t
 ExecReload=/bin/kill -HUP $MAINPID

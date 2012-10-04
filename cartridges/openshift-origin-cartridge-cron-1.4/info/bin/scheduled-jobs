@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 
 # Constants.
 SERVICE_NAME=cron
@@ -20,17 +20,17 @@ function usage() {
 function log_message() {
    msg=${1-""}
    [ -z "$msg" ]  &&  return 0
-   logger -i -s "run-scheduled-stickshift-user-jobs" -p user.info "`date`: $msg"
+   logger -i -s "run-scheduled-openshift-origin-user-jobs" -p user.info "`date`: $msg"
 }
 
 
-function stickshift_users() {
+function openshift_origin_users() {
     grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1 | tr '\n' ' '
 }
 
-function stickshift_cron_users() {
+function openshift_origin_cron_users() {
     cron_users=()
-    for u in `stickshift_users`; do
+    for u in `openshift_origin_users`; do
        if [ -z "${cron_users[*]}" ]; then
           cron_users=("$u")
        elif [ -d $GEAR_BASE_DIR/$u/$CART_DIRNAME ]; then
@@ -49,7 +49,7 @@ function run_all_scheduled_jobs() {
 
    {
       log_message ":START: $freq run of all scheduled jobs"
-      stickshift_cron_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
+      openshift_origin_cron_users | xargs -d' ' -I{} -n 1 -P $DOP $0 run-user {} $freq
       log_message ":END: $freq run of all scheduled jobs"
    } &> /dev/null
 }
@@ -58,7 +58,7 @@ function run_all_scheduled_jobs() {
 function setuppam() {
    uuid=$1
    if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]; then
-     /usr/libexec/stickshift/lib/express/setup_pam_fs_limits.sh $uuid
+     /usr/libexec/openshift origin/lib/express/setup_pam_fs_limits.sh $uuid
    fi
 }
 

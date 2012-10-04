@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'rest-client'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'pp'
 require 'json'
 
@@ -31,15 +31,15 @@ class Gear_scale_ctl
 
     base_url = "#{$base_url % opts["server"]}#{$scale_url % [opts['namespace'], opts['app']]}"
     params = {
-        'broker_auth_key' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/token"),
-        'broker_auth_iv' => File.read("/var/lib/stickshift/#{opts['uuid']}/.auth/iv")
+        'broker_auth_key' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/token"),
+        'broker_auth_iv' => File.read("/var/lib/openshift/#{opts['uuid']}/.auth/iv")
     }
     return if not check_scalability(params, action, opts)
 
     params['event'] = 'add-gear' == action ?  'scale-up' : 'scale-down'
 
     request = RestClient::Request.new(:method => :post, :url => base_url, :timeout => 600,
-        :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
+        :headers => {:accept => 'application/json', :user_agent => 'OpenShift'},
         :payload => params
         )
 
@@ -75,7 +75,7 @@ class Gear_scale_ctl
     if not File.exists? scale_file
       gear_info_url = "#{$base_url % opts["server"]}#{$create_url % opts['namespace']}/#{opts['app']}"
       request = RestClient::Request.new(:method => :get, :url => gear_info_url, :timeout => 120,
-          :headers => {:accept => 'application/json', :user_agent => 'StickShift'},
+          :headers => {:accept => 'application/json', :user_agent => 'OpenShift'},
           :payload => params
           )
 
@@ -141,7 +141,7 @@ class Gear_scale_ctl
     env = {}
     # Load environment variables into a hash
     
-    Dir["/var/lib/stickshift/#{opts['uuid']}/.env/*"].each { | f |
+    Dir["/var/lib/openshift/#{opts['uuid']}/.env/*"].each { | f |
       next if File.directory?(f)
       contents = nil
       File.open(f) {|input|
@@ -178,7 +178,7 @@ USAGE
   exit! 255
 end
 
-config = StickShift::Config.instance
+config = OpenShift::Config.instance
 
 opts = {
     'server' => config.get('BROKER_HOST')

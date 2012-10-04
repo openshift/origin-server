@@ -3,7 +3,7 @@
 uuid=$1
 new_port_request=$2 # This is the offset used 1-5
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 NTABLE="rhc-user-table"             # Switchyard for app UID tables

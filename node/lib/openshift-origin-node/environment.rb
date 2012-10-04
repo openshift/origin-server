@@ -15,9 +15,9 @@
 #++
 
 require 'rubygems'
-module StickShift
-  #load STICKSHIFT_NODE_PLUGINS
-  plugin_list = Config.instance.get('STICKSHIFT_NODE_PLUGINS').split(',')
+module OpenShift
+  #load OPENSHIFT_NODE_PLUGINS
+  plugin_list = Config.instance.get('OPENSHIFT_NODE_PLUGINS').split(',')
   plugin_list.each do |plugin|
     require "#{plugin}" unless plugin.start_with?('#')
   end

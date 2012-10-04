@@ -1,5 +1,5 @@
 
-class RemoteJob < StickShift::Model
+class RemoteJob < OpenShift::Model
   attr_accessor :cartridge, :action, :args
   
   def initialize(target, action, args)
@@ -19,7 +19,7 @@ class RemoteJob < StickShift::Model
     }
     # now execute
     begin
-      StickShift::ApplicationContainerProxy.execute_parallel_jobs(handle)
+      OpenShift::ApplicationContainerProxy.execute_parallel_jobs(handle)
     rescue Exception=>e
       Rails.logger.error e.message
       Rails.logger.error e.inspect

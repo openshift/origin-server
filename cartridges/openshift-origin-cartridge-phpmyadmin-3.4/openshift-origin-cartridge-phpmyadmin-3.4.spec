@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/phpmyadmin-3.4
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/phpmyadmin-3.4
+%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/phpmyadmin-3.4
+%global frameworkdir %{_libexecdir}/openshift origin/cartridges/phpmyadmin-3.4
 
-Name: cartridge-phpmyadmin-3.4
+Name: openshift-origin-cartridge-phpmyadmin-3.4
 Version: 0.20.2
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
@@ -13,8 +13,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: phpMyAdmin
 
 %description
@@ -31,8 +31,8 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
 ln -s %{cartridgedir}/../../abstract/info/connection-hooks/set-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-db-connection-info
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -54,7 +54,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{cartridgedir}/info/html/
 %attr(0644,-,-) %{cartridgedir}/info/html/*
 %attr(0755,-,-) %{frameworkdir}
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -140,12 +140,12 @@ rm -rf $RPM_BUILD_ROOT
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.14.3-1
-- Automatic commit of package [cartridge-phpmyadmin-3.4] release [0.14.2-1].
+- Automatic commit of package [openshift-origin-cartridge-phpmyadmin-3.4] release [0.14.2-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
 - Merge branch 'master' into US2109 (jhonce@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
-- Automatic commit of package [cartridge-phpmyadmin-3.4] release [0.13.4-1].
+- Automatic commit of package [openshift-origin-cartridge-phpmyadmin-3.4] release [0.13.4-1].
   (admiller@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)
 - Merge branch 'master' into US2109 (ramr@redhat.com)

@@ -1,13 +1,13 @@
 require 'test_helper'
 
 class MongoDataStoreTest < ActiveSupport::TestCase
-  include StickShift
+  include OpenShift
 
   def setup
     super
 
     #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser(\"stickshift\", \"mooo\")' 2>&1 > /dev/null"
+    system "/usr/bin/mongo localhost/openshift_origin_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
   end
 
   test "create and find cloud user" do

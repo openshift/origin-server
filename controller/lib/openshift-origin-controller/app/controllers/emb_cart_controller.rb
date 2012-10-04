@@ -86,8 +86,8 @@ class EmbCartController < BaseController
                         101, "EMBED_CARTRIDGE") unless application
 
     begin
-      #container = StickShift::ApplicationContainerProxy.find_available(application.server_identity)
-      container = StickShift::ApplicationContainerProxy.find_available(nil)
+      #container = OpenShift::ApplicationContainerProxy.find_available(application.server_identity)
+      container = OpenShift::ApplicationContainerProxy.find_available(nil)
       if not check_cartridge_type(name, container, "embedded")
         carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
                            Application.get_available_cartridges("embedded")}
@@ -108,7 +108,7 @@ class EmbCartController < BaseController
     begin
       application.add_group_override(name, colocate_with) if colocate_with
       cart_create_reply = application.add_dependency(name)
-    rescue StickShift::NodeException => e
+    rescue OpenShift::NodeException => e
       if !e.resultIO.nil? && !e.resultIO.errorIO.nil?
         return render_error(:internal_server_error, e.resultIO.errorIO.string.strip, e.resultIO.exitcode,
                             "EMBED_CARTRIDGE", "cartridge")

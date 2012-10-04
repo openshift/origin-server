@@ -1,1 +1,1 @@
-StickShift::DataStore.provider=StickShift::MongoDataStore
+OpenShift::DataStore.provider=OpenShift::MongoDataStore

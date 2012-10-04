@@ -1,6 +1,6 @@
 require 'rubygems'
-require 'stickshift-controller'
-require 'uplift-bind-plugin'
+require 'openshift-origin-controller'
+require 'openshift-origin-dns-bind'
 
 module DnsHelper
   #

@@ -8,7 +8,7 @@ set -e
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_10gen_mms_agent_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_10gen_mms_agent_configure
     exit 1
 }
 
@@ -25,7 +25,7 @@ done
 [ $# -eq 3 ] || print_help
 
 cartridge_type="10gen-mms-agent-0.1"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3

@@ -1,5 +1,5 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
-Name:           stickshift-mcollective-agent
+Name:           openshift-origin-msg-node-mcollective
 Version: 0.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
@@ -10,7 +10,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       rubygems
 Requires:       rubygem-open4
 Requires:       rubygem-json
-Requires:       rubygem-stickshift-node
+Requires:       rubygem-openshift origin-node
 Requires:       mcollective
 Requires:       facter
 BuildArch:      noarch
@@ -33,20 +33,20 @@ mkdir -p %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
-cp src/stickshift.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp src/stickshift.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp facts/stickshift_facts.rb %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter/
-cp facts/stickshift-facts %{buildroot}/etc/cron.minutely/
+cp src/openshift-origin.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
+cp src/openshift origin.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
+cp facts/openshift_origin_facts.rb %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter/
+cp facts/openshift origin-facts %{buildroot}/etc/cron.minutely/
 cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 %files
 %defattr(-,root,root,-)
-/usr/libexec/mcollective/mcollective/agent/stickshift.rb
-/usr/libexec/mcollective/mcollective/agent/stickshift.ddl
-/usr/lib/ruby/site_ruby/1.8/facter/stickshift_facts.rb
+/usr/libexec/mcollective/mcollective/agent/openshift-origin.rb
+/usr/libexec/mcollective/mcollective/agent/openshift origin.ddl
+/usr/lib/ruby/site_ruby/1.8/facter/openshift_origin_facts.rb
 %attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
-%attr(0700,-,-) /etc/cron.minutely/stickshift-facts
-/etc/cron.minutely/stickshift-facts
+%attr(0700,-,-) /etc/cron.minutely/openshift origin-facts
+/etc/cron.minutely/openshift origin-facts
 
 
 %changelog
@@ -92,7 +92,7 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift origin-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 - BROKE THE BUILD (admiller@redhat.com)
 - BZ 841681: Make update_yaml single instance and use tmp file for
   generating/updating facts. (mpatel@redhat.com)
@@ -109,15 +109,15 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
   (dmcphers@redhat.com)
 - Fix to work around a bug in mcollective that doesn't convert string true into
   a boolean anymore. (mpatel@redhat.com)
-- Fix stickshift DDL. (mpatel@redhat.com)
+- Fix openshift origin DDL. (mpatel@redhat.com)
 - Bugz 835489. Fixing location for district config file and adding in missing
   node_profile_enabled blocks (kraman@gmail.com)
 
 * Mon Jul 09 2012 Dan McPherson <dmcphers@redhat.com> 0.0.3-1
-- don't send stickshift logs to debug, instead use info (mmcgrath@redhat.com)
+- don't send openshift origin logs to debug, instead use info (mmcgrath@redhat.com)
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
-- Automatic commit of package [stickshift-mcollective-agent] release [0.0.1-1].
+- Automatic commit of package [openshift-origin-msg-node-mcollective] release [0.0.1-1].
   (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-

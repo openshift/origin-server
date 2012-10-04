@@ -16,7 +16,7 @@ includes=( "./*/*/data" )
 transforms=( --transform="s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|" )
 
 excludes=()
-carts=( $(source /etc/stickshift/stickshift-node.conf; ls $CARTRIDGE_BASE_PATH ; ls $CARTRIDGE_BASE_PATH/embedded) )
+carts=( $(source /etc/openshift origin/openshift-origin-node.conf; ls $CARTRIDGE_BASE_PATH ; ls $CARTRIDGE_BASE_PATH/embedded) )
 for cdir in ${carts[@]}
 do
     excludes=( "${excludes[@]}" --exclude="./*/$cdir/data" )

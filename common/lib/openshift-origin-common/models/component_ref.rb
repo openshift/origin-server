@@ -1,5 +1,5 @@
-module StickShift
-  class ComponentRef < StickShift::Model
+module OpenShift
+  class ComponentRef < OpenShift::Model
     attr_accessor :name, :component
     
     def initialize(name=nil)

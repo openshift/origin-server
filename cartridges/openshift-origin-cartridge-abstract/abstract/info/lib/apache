@@ -3,15 +3,15 @@
 [ ! -z "$LI_CONTROLLER_LIB_APACHE" ] && return 0
 LI_CONTROLLER_LIB_APACHE=true
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function rm_httpd_proxy {
     uuid="$1"
     namespace="$2"
     application="$3"
-    rm -rf /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application}.conf \
-           /etc/httpd/conf.d/stickshift/${uuid}_${namespace}_${application} || \
+    rm -rf /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf \
+           /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application} || \
            echo "Could not remove apache definition" 1>&2
     ${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || \
     echo "Failed to restart master httpd, please contact support" 1>&2

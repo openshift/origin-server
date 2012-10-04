@@ -1,9 +1,9 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname gearchanger-mcollective-plugin
+%global gemname msg-broker-mcollective-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
-Summary:        GearChanger plugin for mcollective service
+Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
 Version: 0.4.2
 Release:        1%{?dist}
@@ -18,7 +18,7 @@ Requires:       mcollective-client
 Requires:       qpid-cpp-client
 Requires:       ruby-qpid-qmf
 #Requires:       qpid-tools
-Requires:       rubygem(stickshift-common)
+Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(json)
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
@@ -29,15 +29,15 @@ BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
 
 %package -n ruby-%{gemname}
-Summary:        GearChanger plugin for mcollective based node/gear manager
+Summary:        OpenShift plugin for mcollective based node/gear manager
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
 
 %description
-GearChanger plugin for mcollective based node/gear manager
+OpenShift plugin for mcollective based node/gear manager
 
 %description -n ruby-%{gemname}
-GearChanger plugin for mcollective based node/gear manager
+OpenShift plugin for mcollective based node/gear manager
 
 %prep
 %setup -q
@@ -61,10 +61,10 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
+mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
+cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
 Broker::Application.configure do
-  config.gearchanger = {
+  config.msg-broker = {
     :rpc_options => {
     	:disctimeout => 5,
     	:timeout => 60,
@@ -95,7 +95,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/stickshift/broker/config/environments/plugin-config/gearchanger-mcollective-plugin.rb
+/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -173,7 +173,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.1.2-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-port-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Wed Jul 11 2012 Adam Miller <admiller@redhat.com> 0.1.1-1
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
@@ -204,21 +204,21 @@ rm -rf %{buildroot}
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - fixed a couple typos (admiller@redhat.com)
-- Automatic commit of package [rubygem-gearchanger-mcollective-plugin] release
+- Automatic commit of package [rubygem-msg-broker-mcollective-plugin] release
   [0.0.1-1]. (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com>
 - fixed a couple typos (admiller@redhat.com)
-- Automatic commit of package [rubygem-gearchanger-mcollective-plugin] release
+- Automatic commit of package [rubygem-msg-broker-mcollective-plugin] release
   [0.0.1-1]. (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

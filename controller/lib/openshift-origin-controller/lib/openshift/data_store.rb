@@ -1,6 +1,6 @@
-module StickShift
+module OpenShift
   class DataStore
-    @ss_ds_provider = StickShift::DataStore
+    @ss_ds_provider = OpenShift::DataStore
 
     def self.provider=(provider_class)
       @ss_ds_provider = provider_class

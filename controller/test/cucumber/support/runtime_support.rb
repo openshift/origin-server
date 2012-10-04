@@ -1,28 +1,28 @@
 # A small support API for runtime-centric test cases. It provides
 # abstractions for an Account, Application, Gear, and Cartridge.
 # The gear implementation is backed by ApplicationContainer from
-# the stickshift-node package.
+# the openshift-origin-node package.
 #
 # Parts of this might be flimsy and not quite aligned with certain
 # realities (especially with regards to scaling), but it should
 # provide a decent starting point for the runtime tests and give
 # us a single place to refactor.
 
-require 'stickshift-node'
-require 'stickshift-node/utils/shell_exec'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/shell_exec'
 require 'etc'
 require 'timeout'
 
 # Some constants which might be misplaced here. Perhaps they should
 # go in 00_setup_helper.rb?
-$home_root ||= "/var/lib/stickshift"
-$libra_httpd_conf_d ||= "/etc/httpd/conf.d/stickshift"
-$cartridge_root ||= "/usr/libexec/stickshift/cartridges"
-$embedded_cartridge_root ||= "/usr/libexec/stickshift/cartridges/embedded"
+$home_root ||= "/var/lib/openshift"
+$libra_httpd_conf_d ||= "/etc/httpd/conf.d/openshift"
+$cartridge_root ||= "/usr/libexec/openshift/cartridges"
+$embedded_cartridge_root ||= "/usr/libexec/openshift/cartridges/embedded"
 
 $app_registry = {}
 
-module StickShift
+module OpenShift
   TIMEOUT = 90
 
 
@@ -51,7 +51,7 @@ module StickShift
 
     # Creates a new TestApplication instance associated with this account.
     def create_app()
-      app = StickShift::TestApplication.new(self)
+      app = OpenShift::TestApplication.new(self)
 
       $logger.info("Created new application #{app.name} for account #{@name}")
 
@@ -95,7 +95,7 @@ module StickShift
 
     # Creates a new empty gear associated with this application.
     def create_gear
-      gear = StickShift::TestGear.new(self)
+      gear = OpenShift::TestGear.new(self)
       gear.create
       @gears << gear
       gear
@@ -168,7 +168,7 @@ module StickShift
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
 
       begin
-        @container = StickShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
+        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
         @container.create
       rescue => e
         $logger.error(e.message)
@@ -188,7 +188,7 @@ module StickShift
     # NOTE: The cartridge is instantiated, but no hooks (such as 
     # configure) are executed. 
     def add_cartridge(cart_name, type = TestCartridge::Standard)
-      cart = StickShift::TestCartridge.new(cart_name, self, type)
+      cart = OpenShift::TestCartridge.new(cart_name, self, type)
       @carts[cart.name] = cart
       cart
     end
@@ -224,8 +224,8 @@ module StickShift
       @hooks_path = "#{@cart_path}/info/hooks"
 
       # Add new listener classes here for now
-      @listeners = [ StickShift::TestCartridgeListeners::ConfigureCartListener.new,
-                     StickShift::TestCartridgeListeners::DatabaseCartListener.new
+      @listeners = [ OpenShift::TestCartridgeListeners::ConfigureCartListener.new,
+                     OpenShift::TestCartridgeListeners::DatabaseCartListener.new
                    ]
     end
 

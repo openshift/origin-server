@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export cartridge_type="python-2.6"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables

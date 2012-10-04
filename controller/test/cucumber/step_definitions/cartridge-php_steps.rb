@@ -20,7 +20,7 @@ Then /^the php application will( not)? be aliased$/ do | negate |
   good_status = negate ? 1 : 0
 
   exit_status = -1
-  StickShift::timeout(20) do
+  OpenShift::timeout(20) do
     begin
       sleep 1
       command = "/usr/bin/curl -L -H 'Host: #{@app.name}-#{@account.name}.#{$alias_domain}' -s http://localhost/health_check.php | /bin/grep -q -e '^1$'"
@@ -46,7 +46,7 @@ end
 
 Then /^the php file permissions are correct/ do
   gear_uuid = @gear.uuid
-  app_home = "/var/lib/stickshift/#{gear_uuid}"
+  app_home = "/var/lib/openshift/#{gear_uuid}"
   uid = Etc.getpwnam(gear_uuid).uid
   gid = Etc.getpwnam(gear_uuid).gid
   mcs = libra_mcs_level(uid)
@@ -59,7 +59,7 @@ Then /^the php file permissions are correct/ do
                     "php-5.3/conf/php.ini" => ['root', 'root', '100644', se_context],
                     "php-5.3/conf/magic" => ['root', 'root', '100644', se_context],
                     "php-5.3/conf.d/" => ['root', 'root', '40755', se_context],
-                    "php-5.3/conf.d/stickshift.conf" => ['root', 'root', '100644', se_context],
+                    "php-5.3/conf.d/openshift.conf" => ['root', 'root', '100644', se_context],
                     "app-root/data/" => [gear_uuid, gear_uuid, '40755', se_context],
                     "php-5.3/logs/" => [gear_uuid, gear_uuid, '40755', se_context],
                     "php-5.3/phplib/pear/" => [gear_uuid, gear_uuid, '40755', se_context],

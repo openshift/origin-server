@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/embedded/mongodb-2.2
-%global frameworkdir %{_libexecdir}/stickshift/cartridges/mongodb-2.2
+%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/mongodb-2.2
+%global frameworkdir %{_libexecdir}/openshift origin/cartridges/mongodb-2.2
 
-Name: cartridge-mongodb-2.2
+Name: openshift-origin-cartridge-mongodb-2.2
 Version: 0.26.4
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
@@ -16,9 +16,9 @@ BuildArch: noarch
 
 BuildRequires: git
 
-Obsoletes: cartridge-mongodb-2.0
+Obsoletes: openshift-origin-cartridge-mongodb-2.0
 
-Requires: stickshift-abstract
+Requires: openshift-origin-abstract
 Requires: mongodb-server
 Requires: mongodb-devel
 Requires: libmongodb
@@ -52,12 +52,12 @@ touch git_template.git/refs/heads/.gitignore
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{cartridgedir}/info/hooks/update-namespace
 
@@ -76,7 +76,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/lib/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0755,-,-) %{frameworkdir}
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -151,7 +151,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.23.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.23.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)

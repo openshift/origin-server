@@ -16,7 +16,7 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'open4'
 require 'shellwords'
 
@@ -70,7 +70,7 @@ hook_name = args['--hook-name']
 $ss_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
-config = StickShift::Config.instance
+config = OpenShift::Config.instance
 unless gear_uuid
   usage
   exit -100

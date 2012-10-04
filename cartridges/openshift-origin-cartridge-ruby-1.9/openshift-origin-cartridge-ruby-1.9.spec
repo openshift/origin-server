@@ -1,7 +1,7 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/ruby-1.9
+%global cartridgedir %{_libexecdir}/openshift origin/cartridges/ruby-1.9
 
 Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      cartridge-ruby-1.9
+Name:      openshift-origin-cartridge-ruby-1.9
 Version: 0.6.3
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -11,8 +11,8 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
-Requires:  stickshift-abstract
-Requires:  rubygem(stickshift-node)
+Requires:  openshift-origin-abstract
+Requires:  rubygem(openshift-origin-node)
 Requires:  mod_bw
 Requires:  sqlite-devel
 Requires:  libev
@@ -150,8 +150,8 @@ touch git_template.git/refs/heads/.gitignore
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 cp -r info %{buildroot}%{cartridgedir}/
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -197,7 +197,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %config(noreplace) %{cartridgedir}/info/configuration/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
@@ -250,7 +250,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 24 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
 - Add pre and post destroy calls on gear destruction and move unobfuscate and
-  stickshift-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
+  openshift-origin-proxy out of cartridge hooks and into node. (rmillner@redhat.com)
 
 * Thu Jul 19 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Fix for bugz 840165 - update readmes. (ramr@redhat.com)
@@ -300,12 +300,12 @@ rm -rf %{buildroot}
 * Thu Jun 14 2012 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Use the right hook names -- thanks mpatel. (ramr@redhat.com)
 - Checkpoint ruby-1.9 work (ruby-1.9 disabled for now in framework cartridges).
-  Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1]. Match up
+  Automatic commit of package [openshift-origin-cartridge-ruby-1.9] release [0.1.1-1]. Match up
   spec file to first build version in brew and checkpoint with
   working/available ruby193 packages. (ramr@redhat.com)
 
 * Tue Jun 12 2012 Ram Ranganathan <ramr@redhat.com>  0-1.2-1
-- Automatic commit of package [cartridge-ruby-1.9] release [0.1.1-1].
+- Automatic commit of package [openshift-origin-cartridge-ruby-1.9] release [0.1.1-1].
   (ramr@redhat.com)
 - Checkpoint ruby-1.9 work. (ramr@redhat.com)
 

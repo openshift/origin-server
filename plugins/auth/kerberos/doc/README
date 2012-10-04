@@ -1,24 +1,24 @@
-                    Kerberos Auth Plugin for StickShift
+                    Kerberos Auth Plugin for OpenShift Origin
                    ----------------------------------
-SwingShift is an optional plugin for Stickshift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
-This document describes how to register and authenticate StickShift user using SWingShift.
+OpenShift Origin is an optional plugin for Stickshift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
+This document describes how to register and authenticate OpenShift Origin user using SWingShift.
 
-* Install SwingShift
-* Configure SwingShift
-* Authenticate StickShift user
+* Install OpenShift Origin
+* Configure OpenShift Origin
+* Authenticate OpenShift Origin user
 
-* Install SwingShift
+* Install OpenShift Origin
 
-* Configure SwingShift
+* Configure OpenShift Origin
   TODO include something about configuring kerberos on the host
 
-  Enable kerberos auth in StickShift configuration
+  Enable kerberos auth in OpenShift Origin configuration
 
-    systemctl stop stickshift-broker.service
+    systemctl stop openshift-origin-broker.service
 
-    SS_BROKER_ENVDIR=/var/www/stickshift/broker/config/environments
-    echo "require File.expand_path('../plugin-config/swingshift-kerberos-plugin.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
-cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/swingshift-kerberos-plugin.rb
+    SS_BROKER_ENVDIR=/var/www/openshift/broker/config/environments
+    echo "require File.expand_path('../plugin-config/openshift-origin-auth-kerberos.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
+cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-kerberos.rb
     Broker::Application.configure do
       config.auth = {
         :salt => "ClWqe5zKtEW4CJEMyjzQ",
@@ -27,10 +27,10 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/swingshift-kerberos-plugin.rb
     end
     EOF
 
-    systemctl start stickshift-broker.service
+    systemctl start openshift-origin-broker.service
 
-* Authenticate StickShift user
-  Any REST api calls or CLI tools to StickShift will be processed only for the registered user-name/password
+* Authenticate OpenShift Origin user
+  Any REST api calls or CLI tools to OpenShift Origin will be processed only for the registered user-name/password
   Example:
     The below query fails with 'Access Denied' error.
     curl -k https://localhost/broker/rest/domains

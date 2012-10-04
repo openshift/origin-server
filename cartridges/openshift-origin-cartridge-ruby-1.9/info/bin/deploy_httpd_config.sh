@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cartridge_type="ruby-1.9"
-source "/etc/stickshift/stickshift-node.conf"
-source "/etc/stickshift/resource_limits.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift origin/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 application="$1"
@@ -23,7 +23,7 @@ then
     SPAWN_IP="PassengerSpawnIPAddress $IP"
 fi
 
-cat <<EOF > "$RUBY_INSTANCE_DIR/conf.d/stickshift.conf"
+cat <<EOF > "$RUBY_INSTANCE_DIR/conf.d/openshift.conf"
 ServerRoot "$RUBY_INSTANCE_DIR"
 DocumentRoot "$OPENSHIFT_REPO_DIR/public"
 Listen $IP:8080

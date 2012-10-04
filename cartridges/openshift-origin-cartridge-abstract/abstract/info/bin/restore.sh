@@ -1,5 +1,5 @@
 #!/bin/bash
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift origin/openshift-origin-node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 include_git="$1"

@@ -8,12 +8,12 @@ require 'mocha'
 require 'ddns/named_service'
 
 require 'dnsruby'
-require 'lib/stickshift-controller/lib/stickshift/dns_service'
-require 'lib/stickshift-controller/lib/stickshift/bind_dns_service'
+require 'lib/openshift-origin-controller/lib/openshift/dns_service'
+require 'lib/openshift-origin-controller/lib/openshift/bind_dns_service'
 
 
 class BindDnsServiceTest < ActiveSupport::TestCase
-  include StickShift
+  include OpenShift
 
   # this is here so I can comment tests out
   def self.notest(t)

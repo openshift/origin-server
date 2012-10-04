@@ -1,3 +1,3 @@
-require "stickshift-common"
+require "openshift-origin-common"
 require "uplift-bind-plugin/uplift/bind_plugin.rb"
-StickShift::DnsService.provider=Uplift::BindPlugin
+OpenShift::DnsService.provider=OpenShift::BindPlugin

@@ -8,7 +8,7 @@ do
     . $f
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type=$(get_cartridge_name_from_path)
@@ -21,7 +21,7 @@ includes=( "./*/*/data" )
 transforms=( --transform="s|${cartridge_type}/data|app-root/data|" )
 
 excludes=()
-carts=( $(source /etc/stickshift/stickshift-node.conf; ls $CARTRIDGE_BASE_PATH ; ls $CARTRIDGE_BASE_PATH/embedded) )
+carts=( $(source /etc/openshift origin/openshift-origin-node.conf; ls $CARTRIDGE_BASE_PATH ; ls $CARTRIDGE_BASE_PATH/embedded) )
 for cdir in ${carts[@]}
 do
     excludes=( "${excludes[@]}" --exclude="./*/$cdir/data" )

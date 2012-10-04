@@ -2,7 +2,7 @@
 
 require 'rubygems'
 require 'syslog'
-require 'stickshift-node'
+require 'openshift-origin-node'
 require 'base64'
 
 commands_map = {
@@ -50,7 +50,7 @@ end
 env = load_env
 orig_cmd = ENV['SSH_ORIGINAL_COMMAND'] || "sssh"
 syslog(orig_cmd)
-config = StickShift::Config.instance
+config = OpenShift::Config.instance
 
 allargs = orig_cmd.split(' ')
 basecmd = allargs[0]

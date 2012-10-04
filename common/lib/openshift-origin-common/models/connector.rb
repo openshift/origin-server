@@ -1,5 +1,5 @@
-module StickShift
-  class Connector < StickShift::Model
+module OpenShift
+  class Connector < OpenShift::Model
     attr_accessor :name, :type, :required
     
     def initialize(name=nil)

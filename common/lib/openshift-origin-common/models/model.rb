@@ -2,7 +2,7 @@ require 'rubygems'
 require 'json'
 require 'active_model'
 
-module StickShift
+module OpenShift
   class Model
     extend ActiveModel::Naming
     include ActiveModel::Validations
@@ -106,7 +106,7 @@ module StickShift
 
       klass = self.class
       var_names = self.instance_variable_names.map{|n| n[1..-1]}
-      while(klass != StickShift::Model)
+      while(klass != OpenShift::Model)
         var_names += klass.includes_attributes.map{|n| n.to_s}
         var_names -= ['attributes', 'changed_attributes', 'previously_changed', 'persisted', 'new_record', 'deleted', 'errors', 'validation_context']
         var_names -= klass.excludes_attributes.map{|n| n.to_s}
@@ -162,7 +162,7 @@ module StickShift
 
     def convert_nested_models(obj)
       case obj
-      when StickShift::Model
+      when OpenShift::Model
         obj.attributes(true)
       when Hash
         convert_nested_models_in_hash(obj)
@@ -177,7 +177,7 @@ module StickShift
       ret = {}
       hash.each do |k,value|
         case value
-        when StickShift::Model
+        when OpenShift::Model
           ret[k]=convert_nested_models(value)
         when Hash
           ret[k]=convert_nested_models_in_hash(value)
@@ -193,7 +193,7 @@ module StickShift
     def convert_nested_models_in_array(arr)
       arr.map do |value|
         case value
-        when StickShift::Model
+        when OpenShift::Model
           convert_nested_models(value)
         when Hash
           convert_nested_models_in_hash(value)

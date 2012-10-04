@@ -1,9 +1,9 @@
 require 'rubygems'
-require 'stickshift-controller'
+require 'openshift-origin-controller'
 require 'date'
 
 module Swingshift
-  class RemoteUserAuthService < StickShift::AuthService
+  class RemoteUserAuthService < OpenShift Origin::AuthService
 
     def initialize
       super
@@ -20,7 +20,7 @@ module Swingshift
         return validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
       else
         authenticated_user = request.env[@trusted_header]
-        raise StickShift::AccessDeniedException if authenticated_user.nil?
+        raise OpenShift Origin::AccessDeniedException if authenticated_user.nil?
         return {:username => authenticated_user, :auth_method => :login}
       end
     end

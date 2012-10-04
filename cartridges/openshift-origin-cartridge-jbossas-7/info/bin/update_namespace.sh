@@ -3,7 +3,7 @@
 # Exit on any errors
 set -e
  
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/jbossas-7/info
@@ -11,7 +11,7 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/jbossas-7/info
 function print_help {
     echo "Usage: $0 app-name new_namespace old_namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jboss_update_namespace
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jboss_update_namespace
 
     exit 1
 }

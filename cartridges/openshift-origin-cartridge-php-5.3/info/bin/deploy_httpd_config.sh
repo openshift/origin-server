@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cartridge_type="php-5.3"
-source "/etc/stickshift/stickshift-node.conf"
-source "/etc/stickshift/resource_limits.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift origin/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 application="$1"
@@ -13,7 +13,7 @@ APP_HOME="$GEAR_BASE_DIR/$uuid"
 PHP_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 
-cat <<EOF > "$PHP_INSTANCE_DIR/conf.d/stickshift.conf"
+cat <<EOF > "$PHP_INSTANCE_DIR/conf.d/openshift.conf"
 ServerRoot "$PHP_INSTANCE_DIR"
 DocumentRoot "$OPENSHIFT_REPO_DIR/php"
 Listen $IP:8080

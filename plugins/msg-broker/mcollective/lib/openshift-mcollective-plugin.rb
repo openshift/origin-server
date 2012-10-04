@@ -1,3 +1,3 @@
-require "stickshift-common"
-require "gearchanger-mcollective-plugin/gearchanger/mcollective_application_container_proxy.rb"
-StickShift::ApplicationContainerProxy.provider=GearChanger::MCollectiveApplicationContainerProxy
+require "openshift-origin-common"
+require "openshift-origin-msg-broker-mcollective/openshift/mcollective_application_container_proxy.rb"
+OpenShift::::ApplicationContainerProxy.provider=OpenShift::MCollectiveApplicationContainerProxy

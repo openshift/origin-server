@@ -1,4 +1,4 @@
-class RestReply < StickShift::Model
+class RestReply < OpenShift::Model
   attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions
 
   

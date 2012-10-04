@@ -23,7 +23,7 @@ class AppValidator < ActiveModel::Validator
     if val and val.length < APP_NAME_MIN_LENGTH
       record.errors.add(attribute, {:message => "Name is too short.  Minimum length is #{APP_NAME_MIN_LENGTH} characters.", :exit_code => 105})
     end
-    if val and StickShift::ApplicationContainerProxy.blacklisted? val
+    if val and OpenShift::ApplicationContainerProxy.blacklisted? val
       record.errors.add(attribute, {:message => "Name is not allowed.  Please choose another.", :exit_code => 105})
     end
   end

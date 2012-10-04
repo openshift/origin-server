@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Stop a running application and disable it"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_phpmyadmin_status
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_phpmyadmin_status
     exit 1
 }
 
@@ -26,7 +26,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
@@ -36,7 +36,7 @@ PHPMYADMIN_DIR=`echo $APP_HOME/phpmyadmin-3.4 | tr -s /` # ensure that there are
 #
 # Start application
 #
-ADDRESS="$(awk '/Listen/{ print $2 }' $PHPMYADMIN_DIR/conf.d/stickshift.conf)"
+ADDRESS="$(awk '/Listen/{ print $2 }' $PHPMYADMIN_DIR/conf.d/openshift.conf)"
 URL="http://$ADDRESS/server-status?auto"
 
 if output=$(runuser --shell /bin/sh "$uuid" -c "/usr/bin/wget -qO- $URL" 2>&1)

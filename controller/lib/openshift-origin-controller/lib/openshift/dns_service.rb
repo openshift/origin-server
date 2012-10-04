@@ -1,6 +1,6 @@
-module StickShift
+module OpenShift
   class DnsService
-    @ss_dns_provider = StickShift::DnsService
+    @ss_dns_provider = OpenShift::DnsService
 
     def self.provider=(provider_class)
       @ss_dns_provider = provider_class

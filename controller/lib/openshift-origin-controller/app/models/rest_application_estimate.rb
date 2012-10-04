@@ -1,4 +1,4 @@
-class RestApplicationEstimate < StickShift::Model
+class RestApplicationEstimate < OpenShift::Model
   attr_accessor :components
   
   def initialize(components)

@@ -16,7 +16,7 @@ class RemoteUserAuthServiceTest < ActionController::TestCase
   end
 
   def test_authenticate_failure
-    assert_raise StickShift::AccessDeniedException do
+    assert_raise OpenShift Origin::AccessDeniedException do
       data = @auth_service.authenticate(@request, "foo", "bar")
     end
   end

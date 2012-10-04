@@ -1,6 +1,6 @@
-module StickShift
+module OpenShift
   class ApplicationContainerProxy
-    @proxy_provider = StickShift::ApplicationContainerProxy
+    @proxy_provider = OpenShift::ApplicationContainerProxy
     
     def self.valid_gear_sizes(user)
       @proxy_provider.valid_gear_sizes_impl(user)

@@ -1,5 +1,5 @@
-module StickShift
-  class Connection < StickShift::Model
+module OpenShift
+  class Connection < OpenShift::Model
     attr_accessor :name, :components
     
     def initialize(name)

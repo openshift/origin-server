@@ -5,7 +5,7 @@
 # Exit on any errors
 set -e
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift origin/openshift-origin-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_NS=$(get_cartridge_namespace_from_path)
@@ -22,11 +22,11 @@ for arg in $kvargs; do
     fi
 done
 
-if [ -f /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING ]
+if [ -f /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING ]
 then
-  source /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
-  echo "export OPENSHIFT_${CART_NS}_CLUSTER_REMOTING=$list,$OPENSHIFT_${CART_NS}_HAPROXY_REMOTING" > /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_CLUSTER_REMOTING
-  rm -f /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
+  source /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
+  echo "export OPENSHIFT_${CART_NS}_CLUSTER_REMOTING=$list,$OPENSHIFT_${CART_NS}_HAPROXY_REMOTING" > /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_CLUSTER_REMOTING
+  rm -f /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
 else
-  echo "export OPENSHIFT_${CART_NS}_HAPROXY_REMOTING=$list" > /var/lib/stickshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
+  echo "export OPENSHIFT_${CART_NS}_HAPROXY_REMOTING=$list" > /var/lib/openshift/$3/.env/OPENSHIFT_${CART_NS}_HAPROXY_REMOTING
 fi

@@ -3,10 +3,10 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin", "*")
-spec_file = "stickshift-controller.spec"
+spec_file = "openshift-origin-controller.spec"
 
 Gem::Specification.new do |s|
-  s.name        = "stickshift-controller"
+  s.name        = "openshift-origin-controller"
   s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
   s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
@@ -15,17 +15,17 @@ Gem::Specification.new do |s|
   s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
   s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
-  s.rubyforge_project = "stickshift-controller"
+  s.rubyforge_project = "openshift-origin-controller"
 
   s.files       = Dir[lib_dir]
   s.test_files  = Dir[test_dir]
   s.executables   = Dir[bin_dir]
-  s.files       += %w(README.md Rakefile Gemfile stickshift-controller.spec stickshift-controller.gemspec LICENSE COPYRIGHT)
+  s.files       += %w(README.md Rakefile Gemfile openshift-origin-controller.spec openshift-origin-controller.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
   s.add_dependency "activesupport", "~> 3.0.13"
   s.add_dependency "mongo"
-  s.add_dependency "stickshift-common"
+  s.add_dependency "openshift-origin-common"
   s.add_dependency('state_machine')  
   s.add_development_dependency('rake')  
   s.add_development_dependency('rspec')

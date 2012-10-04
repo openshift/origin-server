@@ -1,9 +1,9 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/jbosseap-6.0
+%global cartridgedir %{_libexecdir}/openshift origin/cartridges/jbosseap-6.0
 %global jbossver 6.0.0.GA
 %global oldjbossver 6.0.0.Beta2
 
 Summary:   Provides JBossEAP6.0 support
-Name:      cartridge-jbosseap-6.0
+Name:      openshift-origin-cartridge-jbosseap-6.0
 Version: 0.6.2
 Release:   1%{?dist}
 Group:     Development/Languages
@@ -17,8 +17,8 @@ BuildArch: noarch
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: jboss-eap6 >= %{jbossver}
 Requires: jboss-eap6-modules >= %{jbossver}
 Requires: lsof
@@ -53,13 +53,13 @@ popd
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../abstract/info/hooks/post-install %{buildroot}%{cartridgedir}/info/hooks/post-install
@@ -146,7 +146,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %{cartridgedir}/README
