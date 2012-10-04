@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname msg-broker-mcollective-plugin
+%global gemname openshift-origin-msg-broker-mcollective-plugin
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
 Summary:        OpenShift plugin for mcollective service
@@ -62,7 +62,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
+cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective-plugin.rb
 Broker::Application.configure do
   config.msg-broker = {
     :rpc_options => {
@@ -95,7 +95,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
+/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective-plugin.rb
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
