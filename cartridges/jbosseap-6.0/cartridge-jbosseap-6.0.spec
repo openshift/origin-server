@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      cartridge-jbosseap-6.0
-Version: 0.6.2
+Version:   0.7.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -19,8 +19,18 @@ BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 Requires: stickshift-abstract
 Requires: rubygem(stickshift-node)
-Requires: jboss-eap6 >= %{jbossver}
-Requires: jboss-eap6-modules >= %{jbossver}
+Requires: jbossas-appclient
+Requires: jbossas-bundles
+Requires: jbossas-core
+Requires: jbossas-domain
+Requires: jbossas-hornetq-native
+Requires: jbossas-jbossweb-native
+Requires: jbossas-modules-eap
+Requires: jbossas-product-eap
+Requires: jbossas-standalone
+Requires: jbossas-welcome-content-eap
+#Requires: jboss-eap6-modules >= %{jbossver}
+Requires: jboss-eap6-index
 Requires: lsof
 Requires: java-1.7.0-openjdk
 Requires: java-1.7.0-openjdk-devel
@@ -124,9 +134,9 @@ alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 10
 alternatives --set maven-3.0 /usr/share/maven
 %endif
 
-alternatives --remove jbosseap-6.0 /opt/jboss-eap-%{oldjbossver}
-alternatives --install /etc/alternatives/jbosseap-6.0 jbosseap-6.0 /opt/jboss-eap-%{jbossver} 102
-alternatives --set jbosseap-6.0 /opt/jboss-eap-%{jbossver}
+alternatives --remove jbosseap-6.0 /usr/share/jbossas
+alternatives --install /etc/alternatives/jbosseap-6.0 jbosseap-6.0 /usr/share/jbossas 102
+alternatives --set jbosseap-6.0 /usr/share/jbossas
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss eap 6.0.* upstream.
@@ -156,6 +166,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 William DeCoste <wdecoste@redhat.com> 0.7.0-1
+- official eap6 rpms
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Typeless gear changes (mpatel@redhat.com)
 
