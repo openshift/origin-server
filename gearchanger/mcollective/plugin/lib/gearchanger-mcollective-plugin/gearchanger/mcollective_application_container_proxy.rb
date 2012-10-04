@@ -106,7 +106,7 @@ module GearChanger
         args = Hash.new
         args['--uuid']   = gear.uuid
         # quota command acts on 1K blocks
-        args['--blocks'] = storage_in_gb * 1024 * 1024
+        args['--blocks'] = Integer(storage_in_gb * 1024 * 1024)
         args['--inodes'] = inodes unless inodes.nil?
         reply = execute_direct(@@C_CONTROLLER, 'set-quota', args, false)
 
@@ -558,7 +558,7 @@ module GearChanger
         args = Hash.new
         args['--uuid']   = gear.uuid
         # quota command acts on 1K blocks
-        args['--blocks'] = storage_in_gb * 1024 * 1024
+        args['--blocks'] = Integer(storage_in_gb * 1024 * 1024)
         args['--inodes'] = inodes unless inodes.to_s.empty?
         job = RemoteJob.new('stickshift-node', 'set-quota', args)
         job
