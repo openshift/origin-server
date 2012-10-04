@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      cartridge-jbossas-7
-Version: 0.98.1
+Version: 0.98.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -156,6 +156,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.98.2-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.98.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
