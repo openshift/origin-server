@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      cartridge-ruby-1.9
-Version: 0.6.2
+Version: 0.6.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -205,6 +205,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.6.3-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Thu Sep 27 2012 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Detect threaddump on a scalable application and print error.
   (rmillner@redhat.com)
