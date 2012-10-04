@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.5
+Version:        0.0.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -120,6 +120,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.0.6-1
+- add Gemfile.lock to .gitignore (dmcphers@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.0.5-1
 - Bug 862065 - Add some additional info to signup complete page.
   (ccoleman@redhat.com)
