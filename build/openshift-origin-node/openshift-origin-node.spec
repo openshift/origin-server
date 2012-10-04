@@ -96,6 +96,18 @@ lokkit --service=https
 lokkit --service=http
 lokkit --port=35531-65535:tcp
 
+# Add pam_namespace and use pam_openshift instead of pam_selinux
+for pamconf in runuser runuser-l sshd su system-auth-ac
+do
+    pamfile="/etc/pam.d/$pamconf"
+    if [ -e "$pamfile" ] && ! grep -q 'pam_namespace.so' "$pamfile"
+    then
+        echo 'session     required      pam_namespace.so no_unmount_on_close' >> "$pamfile"
+    fi
+done
+sed -i -e 's|pam_selinux|pam_openshift|g' /etc/pam.d/sshd
+
+
 cat <<EOF > /etc/mcollective/client.cfg
 topicprefix = /topic/
 main_collective = mcollective
@@ -167,6 +179,8 @@ then
     boolean -m --off httpd_run_stickshift
 
 _EOF
+
+    sed -i -e 's|pam_openshift|pam_selinux|g' /etc/pam.d/sshd
 fi
 
 %clean
