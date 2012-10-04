@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/stickshift/cartridges/jenkins-client-1.4
 
 Name: cartridge-jenkins-client-1.4
-Version: 0.33.3
+Version: 0.33.4
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -64,6 +64,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.33.4-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.33.3-1
 - Merge pull request #514 from pmorie/bz846971 (dmcphers@redhat.com)
 - Downcase url of jenkins for curl POSTs (pmorie@gmail.com)
