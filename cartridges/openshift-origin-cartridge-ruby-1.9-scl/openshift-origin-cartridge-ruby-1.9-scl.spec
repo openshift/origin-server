@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift origin/cartridges/ruby-1.9
 
 Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      openshift-origin-cartridge-ruby-1.9
+Name:      openshift-origin-cartridge-ruby-1.9-scl
 Version: 0.6.3
 Release:   1%{?dist}
 Group:     Development/Languages
