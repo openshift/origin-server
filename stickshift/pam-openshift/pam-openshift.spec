@@ -6,21 +6,19 @@ Group:          System Environment/Base
 License:        GPLv2
 URL:            http://www.openshift.com/
 Source0:        %{name}-%{version}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  pam-devel libselinux-devel gcc-c++ make
 
 %description
-
 The Openshift PAM module configures proper SELinux context for
 processes in a session.
 
 %prep
 %setup -q
 
-
 %build
 make
-
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -28,7 +26,11 @@ rm -rf $RPM_BUILD_ROOT
 install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_openshift.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
+%clean
+rm -rf $RPM_BUILD_ROOT
+
 %files
+%defattr(0644, root, root)
 %doc AUTHORS ChangeLog COPYING README README.xml
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
