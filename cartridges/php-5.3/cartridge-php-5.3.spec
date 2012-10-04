@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      cartridge-php-5.3
-Version: 0.98.3
+Version: 0.98.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.98.4-1
+- Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.98.3-1
 - Don't write to pearrc during build (ironcladlou@gmail.com)
 
