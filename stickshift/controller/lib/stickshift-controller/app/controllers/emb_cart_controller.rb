@@ -38,7 +38,7 @@ class EmbCartController < BaseController
     application_id = params[:application_id]
     id = params[:id]
     #include=status_messages
-    status_messages = params[:include] == "status_messages"
+    status_messages = (params[:include] == "status_messages")
     
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
@@ -51,7 +51,7 @@ class EmbCartController < BaseController
     
     application.embedded.each do |key, value|
       if key == id
-        message = application.status(key).to_s unless not status_messages
+        message = application.status(key, false) if status_messages
         if $requested_api_version >= 1.1
           cartridge = RestCartridge11.new("embedded", key, application, get_url, message, nolinks)
         else
