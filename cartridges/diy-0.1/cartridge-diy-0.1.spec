@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      cartridge-diy-0.1
-Version: 0.33.3
+Version: 0.33.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.33.4-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.33.3-1
 - Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
   (ramr@redhat.com)
