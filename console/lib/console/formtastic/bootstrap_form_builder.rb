@@ -258,7 +258,12 @@ module Console
         label_options = options_for_label(options).merge(:input_name => input_name)
         label_options[:for] ||= html_options[:id]
 
+        select_html << parts(method, options) do
+          send(respond_to?(form_helper_method) ? form_helper_method : :text_field, method, html_options)
+        end
+
         safe_select_html = ::Formtastic::Util.html_safe(select_html)
+
         return safe_select_html if input_inline?
         label(method, label_options) << template.content_tag(:div, safe_select_html, {:class => 'controls'})
       end
