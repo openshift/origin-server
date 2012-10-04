@@ -14,6 +14,16 @@ class Gear < StickShift::Model
     get_proxy
   end
   
+  def node_profile
+    # node_profile can be nil for older data.  Should migrate everything to have a node_profile 
+    # with the next major migration.  Although technically node_profile shouldn't even be on gear.
+    if @node_profile.nil?
+      return Application::DEFAULT_NODE_PROFILE
+    else
+      return @node_profile
+    end
+  end
+  
   def get_proxy
     if self.container.nil? and !@server_identity.nil?
       self.container = StickShift::ApplicationContainerProxy.instance(@server_identity)

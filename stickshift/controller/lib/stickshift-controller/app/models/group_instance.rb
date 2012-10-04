@@ -21,6 +21,16 @@ class GroupInstance < StickShift::Model
     self.min = 1
     self.max = -1
   end
+  
+  def node_profile
+    # node_profile can be nil for older data.  Should migrate everything to have a node_profile 
+    # with the next major migration.
+    if @node_profile.nil?
+      return Application::DEFAULT_NODE_PROFILE
+    else
+      return @node_profile
+    end
+  end
 
   def self.get(app, id)
     app.group_instances.each do |ginst|
