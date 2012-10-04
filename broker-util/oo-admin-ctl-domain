@@ -76,9 +76,13 @@ when "create"
     exit -1
   end
   
-  user = CloudUser.new(login, ssh_key, namespace)
+  user = CloudUser.new(login, ssh_key, ssh_type, ssh_name)
   reply.append user.save
   reply.resultIO << "Successfully created user.\n"
+
+  domain = Domain.new(namespace, user)
+  domain.save
+  reply.resultIO << "Successfully created domain.\n"  
 when "update"
   user = CloudUser.find(login)
   unless user
