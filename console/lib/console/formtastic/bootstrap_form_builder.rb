@@ -193,7 +193,7 @@ module Console
 
       def parts(method, options, &block)
         input_parts = (custom_inline_order[options[:as]] || inline_order).dup
-        input_parts = input_parts - [:errors, :hints] if options[:as] == :hidden or input_inline?
+        input_parts = input_parts - [:errors, :hints] if options[:as] == :hidden
         input_parts.map do |type|
           (:input == type) ? yield : send(:"inline_#{type}_for", method, options)
         end.compact.join("\n")
