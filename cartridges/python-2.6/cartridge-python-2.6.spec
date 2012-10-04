@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      cartridge-python-2.6
-Version: 0.98.5
+Version: 0.98.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.98.6-1
+- Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.98.5-1
 - Fix for bugz 862078 - Getting "ImportError: No module named
   django.core.management" error on slave gears (ramr@redhat.com)
