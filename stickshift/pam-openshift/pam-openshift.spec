@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.1
+Version:        0.99.2
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -35,3 +35,6 @@ install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 
 %changelog
+* Wed Oct 03 2012 Rob Millner <rmillner@redhat.com> 0.99.2-1
+- Created pam-openshift package
+
