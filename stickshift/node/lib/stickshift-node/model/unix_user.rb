@@ -15,9 +15,9 @@
 #++
 
 require 'rubygems'
-require 'stickshift-node/config'
 require 'stickshift-node/utils/shell_exec'
 require 'stickshift-common'
+require 'stickshift-common/config'
 require 'syslog'
 require 'fcntl'
 
@@ -44,7 +44,7 @@ module StickShift
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       Syslog.open('stickshift-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
 
-      @config = StickShift::Config.instance
+      @config = StickShift::Config.new
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid

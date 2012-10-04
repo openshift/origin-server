@@ -5,7 +5,7 @@ LoadModule authz_user_module modules/mod_authz_user.so
 <Location /broker>
     AuthName "OpenShift"
     AuthType Basic
-    AuthUserFile /etc/stickshift/htpasswd
+    AuthUserFile /etc/openshift/htpasswd
     require valid-user
 
     # The node->broker auth is handled in the Ruby code

@@ -5,7 +5,7 @@
 set -e
 
 cartridge_type='diy-0.1'
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 [ -z "$CARTRIDGE_DIR" ] && CARTRIDGE_DIR="$CARTRIDGE_BASE_PATH/diy-0.1/"

@@ -28,7 +28,7 @@ done
 CART_NAME="postgresql"
 CART_VERSION="8.4"
 cartridge_type="$CART_NAME-$CART_VERSION"
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3

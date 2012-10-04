@@ -60,26 +60,12 @@ rm -rf %{buildroot}%{gemdir}/bin
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
-Broker::Application.configure do
-  config.auth = {
-    :salt => "ClWqe5zKtEW4CJEMyjzQ",
-    :privkeyfile => "/var/www/stickshift/broker/config/server_priv.pem",
-    :privkeypass => "",
-    :pubkeyfile  => "/var/www/stickshift/broker/config/server_pub.pem",
-    
-    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-    :mongo_replica_sets => false,
-    :mongo_host_port => ["localhost", 27017],
-  
-    :mongo_user => "stickshift",
-    :mongo_password => "mooo",
-    :mongo_db => "stickshift_broker_dev",
-    :mongo_collection => "auth_user"
-  }
-end
-EOF
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp conf/swingshift-mongo-plugin.conf %{buildroot}/etc/openshift/plugins.d/swingshift-mongo-plugin.conf
+
+mkdir -p %{buildroot}/var/www/stickshift/broker/config/initializers/
+cp conf/swingshift-mongo-plugin.rb %{buildroot}/var/www/stickshift/broker/config/initializers/swingshift-mongo-plugin.rb
+cp conf/swingshift-mongo-plugin.conf %{buildroot}/var/www/stickshift/broker/config/initializers/swingshift-mongo-plugin-defaults.conf
 
 %clean
 rm -rf %{buildroot}
@@ -87,18 +73,6 @@ rm -rf %{buildroot}
 %post
 /usr/bin/openssl genrsa -out /var/www/stickshift/broker/config/server_priv.pem 2048
 /usr/bin/openssl rsa    -in /var/www/stickshift/broker/config/server_priv.pem -pubout > /var/www/stickshift/broker/config/server_pub.pem
-
-echo "The following variables need to be set in your rails config to use swingshift-mongo-plugin:"
-echo "auth[:salt]                    - salt for the password hash"
-echo "auth[:privkeyfile]             - RSA private key file for node-broker authentication"
-echo "auth[:privkeypass]             - RSA private key password"
-echo "auth[:pubkeyfile]              - RSA public key file for node-broker authentication"
-echo "auth[:mongo_replica_sets]      - List of replica servers or false if replicas is disabled eg: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]"
-echo "auth[:mongo_host_port]         - Address of mongo server if replicas are disabled. eg: [\"localhost\", 27017]"
-echo "auth[:mongo_user]              - Username to log into mongo"
-echo "auth[:mongo_password]          - Password to log into mongo"
-echo "auth[:mongo_db]                - Database name to store user login/password data"
-echo "auth[:mongo_collection]        - Collection name to store user login/password data"
 
 %files
 %defattr(-,root,root,-)
@@ -109,8 +83,9 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_bindir}/*
-
-%attr(0440,apache,apache) /var/www/stickshift/broker/config/environments/plugin-config/swingshift-mongo-plugin.rb
+%config(noreplace) %{_sysconfdir}/stickshift/plugins.d/swingshift-mongo-plugin.conf
+/var/www/stickshift/broker/config/initializers/swingshift-mongo-plugin.rb
+/var/www/stickshift/broker/config/initializers/swingshift-mongo-plugin-defaults.conf
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

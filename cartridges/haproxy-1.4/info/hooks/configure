@@ -54,7 +54,7 @@ done
 [ $# -eq 4 -o $# -eq 3 ] || print_help
 
 cartridge_type="$CART_NAME-$CART_VERSION"
-source /etc/stickshift/stickshift-node.conf
+source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_configure "$1" $2 $3

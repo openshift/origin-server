@@ -90,7 +90,7 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/stickshift
 %{_bindir}/*
-%config(noreplace) %{_sysconfdir}/stickshift/stickshift-node.conf
+%config(noreplace) %{_sysconfdir}/openshift/node.conf
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/stickshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_stickshift_node.conf
 %attr(0755,-,-) %{_var}/lib/stickshift
@@ -104,8 +104,8 @@ echo "/usr/bin/ss-trap-user" >> /etc/shells
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
-if ! [ -f /etc/stickshift/resource_limits.conf ]; then
-  cp -f /etc/stickshift/resource_limits.template /etc/stickshift/resource_limits.conf
+if ! [ -f /etc/openshift/resource_limits.conf ]; then
+  cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
 %changelog

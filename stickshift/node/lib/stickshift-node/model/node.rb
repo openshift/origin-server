@@ -25,7 +25,7 @@ module StickShift
     def self.get_cartridge_list(list_descriptors = false, porcelain = false, ss_debug = false)
       carts = []
 
-      cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
+      cartridge_path = StickShift::Config.new.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
         next if [".", "..", "embedded", "abstract", "abstract-httpd"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
@@ -69,7 +69,7 @@ module StickShift
       output = ""
       cart_found = false
 
-      cartridge_path = StickShift::Config.instance.get("CARTRIDGE_BASE_PATH")
+      cartridge_path = StickShift::Config.new.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
         next if [".", "..", "embedded", "abstract", "abstract-httpd", "haproxy-1.4", "mysql-5.1", "mongodb-2.2", "postgresql-8.4"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
