@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.3
+Version: 0.17.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -108,6 +108,12 @@ if ! [ -f /etc/stickshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
+- Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
+- BZ853582: Prevent user from logging in while deleting gear
+  (jhonce@redhat.com)
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.3-1
 - fixing test typo and specifying parseconfig gem version to get rid of
   warnings (abhgupta@redhat.com)
