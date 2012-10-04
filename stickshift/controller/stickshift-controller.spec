@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.8
+Version: 0.17.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,17 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.9-1
+- Revert "Merge pull request #585 from pravisankar/dev/ravi/bug862086"
+  (dmcphers@redhat.com)
+- Merge pull request #592 from rajatchopra/bug_fixes (dmcphers@redhat.com)
+- Merge pull request #585 from pravisankar/dev/ravi/bug862086
+  (dmcphers@redhat.com)
+- Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
+- on-prem rework of storage REST api (rchopra@redhat.com)
+- Typeless gear changes (mpatel@redhat.com)
+- BugFix# 862086 (rpenta@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.17.8-1
 - provide global flag for whether analytics is enabled (dmcphers@redhat.com)
 - Merge pull request #587 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
