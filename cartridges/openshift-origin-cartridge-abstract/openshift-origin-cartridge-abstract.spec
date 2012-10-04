@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-abstract
-Version: 0.17.9
+Version: 0.17.10
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -68,6 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Oct 04 2012 Krishna Raman <kraman@gmail.com> 0.17.10-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.9-1
 - Bug 860240 (dmcphers@redhat.com)
 - Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
