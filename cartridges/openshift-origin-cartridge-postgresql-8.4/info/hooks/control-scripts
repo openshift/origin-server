@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 
 # Control application's embedded PostgreSQL server instance
 CART_NAME=postgresql

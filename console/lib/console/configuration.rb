@@ -57,9 +57,9 @@ module Console
             Builtin[:openshift].with_indifferent_access.merge(YAML.load(IO.read(path)))
           rescue Exception => e
             raise InvalidConfiguration, <<-EXCEPTION, e.backtrace
-The console is configured to use the external file #{path} (through config.stickshift = :external symbol in your environment file), but the file cannot be loaded.
+The console is configured to use the external file #{path} (through config.openshift = :external symbol in your environment file), but the file cannot be loaded.
 
-By default you must only specify user and password in #{path}, but you can set any other attribute that the .stickshift config option accepts.
+By default you must only specify user and password in #{path}, but you can set any other attribute that the .openshift config option accepts.
 
 E.g. to connect to production OpenShift with a test account, you must only provide:
 
@@ -73,7 +73,7 @@ password: my_password
           symbol = config
           Builtin[config] || config
         else
-          raise "Invalid argument to config.stickshift"
+          raise "Invalid argument to config.openshift"
         end
 
       unless config && defined? config[:url]

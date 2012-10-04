@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/cron-1.4
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/cron-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/cron-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/cron-1.4
 
 
 Name: openshift-origin-cartridge-cron-1.4
@@ -15,11 +15,11 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: cronie
 Requires: crontabs
-
+Obsoletes: cartridge-cron-1.4
 
 %description
 Provides rhc cron cartridge support

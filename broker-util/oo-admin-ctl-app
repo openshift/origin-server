@@ -7,11 +7,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-admin-ctl-app: Control user applications
+oo-admin-ctl-app: Control user applications
 
 == Usage
 
-ss-admin-ctl-app OPTIONS
+oo-admin-ctl-app OPTIONS
 
 Options:
 -l|--rhlogin <rhlogin>
@@ -53,7 +53,7 @@ if login.nil? or app_name.nil? or command.nil? or args["--help"]
   exit 1
 end
 
-require "/var/www/stickshift/broker/config/environment"
+require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 

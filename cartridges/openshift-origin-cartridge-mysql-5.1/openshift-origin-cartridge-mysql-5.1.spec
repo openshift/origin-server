@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/mysql-5.1
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/mysql-5.1
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/mysql-5.1
+%global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
 Name: openshift-origin-cartridge-mysql-5.1
 Version: 0.33.3
@@ -15,10 +15,10 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: mysql-server
 Requires: mysql-devel
-
+Obsoletes: cartridge-mysql-5.1
 
 %description
 Provides mysql cartridge support to OpenShift

@@ -31,6 +31,7 @@ Provides:       rubygem(%{gemname}) = %version
 Summary:        OpenShift Origin plugin for kerberos auth service
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
+Obsoletes:      rubygem-swingshift-kerberos-plugin
 
 %description
 Provides a kerberos auth service based plugin

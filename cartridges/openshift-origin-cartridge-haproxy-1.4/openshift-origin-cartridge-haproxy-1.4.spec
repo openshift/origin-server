@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/haproxy-1.4
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/haproxy-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/haproxy-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/haproxy-1.4
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
@@ -16,11 +16,11 @@ BuildArch: noarch
 
 BuildRequires: git
 
-Requires:  openshift-origin-abstract
+Requires:  openshift-origin-cartridge-abstract
 Requires:  haproxy
 Requires:  rubygem-daemons
 Requires:  rubygem-rest-client
-
+Obsoletes: cartridge-haproxy-1.4
 
 %description
 Provides haproxy balancer support to OpenShift

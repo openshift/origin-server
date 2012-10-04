@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/php-5.3
+%global cartridgedir %{_libexecdir}/openshift/cartridges/php-5.3
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: php >= 5.3.2
 Requires: php < 5.4.0
@@ -35,6 +35,7 @@ Requires: php-mcrypt
 Requires: php-soap
 Requires: php-bcmath
 Requires: php-process
+Obsoletes: cartridge-php-5.3
 
 %description
 Provides php support to OpenShift

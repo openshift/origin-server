@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/jenkins-client-1.4
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/jenkins-client-1.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/jenkins-client-1.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
 Name: openshift-origin-cartridge-jenkins-client-1.4
 Version: 0.33.4
@@ -13,14 +13,14 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: mysql-devel
 Requires: wget
 Requires: java-1.6.0-openjdk
 Requires: rubygems
 Requires: rubygem-json
-
+Obsoletes: cartridge-jenkins-client-1.4
 
 %description
 Provides embedded jenkins client support

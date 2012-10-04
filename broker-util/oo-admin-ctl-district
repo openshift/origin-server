@@ -8,11 +8,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-admin-ctl-district: Control districts
+oo-admin-ctl-district: Control districts
 
 == Usage
 
-ss-admin-ctl-district OPTIONS
+oo-admin-ctl-district OPTIONS
 
 Options:
 -u|--uuid     <district uuid>
@@ -71,7 +71,7 @@ if args["--help"]
   exit 1
 end
 
-require "/var/www/stickshift/broker/config/environment"
+require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
@@ -180,7 +180,7 @@ WARNING
           append_district(district, reply.resultIO)
         end
       else
-        puts "No districts created yet.  Use 'ss-admin-ctl-district -c create' to create one."
+        puts "No districts created yet.  Use 'oo-admin-ctl-district -c create' to create one."
       end
     end
   end
@@ -188,7 +188,7 @@ WARNING
     district = get_district(uuid, name)
     append_district(district, reply.resultIO)
   end
-rescue StickShift::SSException => e
+rescue OpenShift::SSException => e
   reply.errorIO << e.message
 end
 

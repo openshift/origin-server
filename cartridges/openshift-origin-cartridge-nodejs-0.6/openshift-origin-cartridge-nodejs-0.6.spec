@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/nodejs-0.6
+%global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs-0.6
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
@@ -13,7 +13,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: nodejs >= 0.6
 Requires: nodejs-async
@@ -24,7 +24,7 @@ Requires: nodejs-mysql
 Requires: nodejs-node-static
 Requires: nodejs-pg
 Requires: nodejs-supervisor
-
+Obsoletes: cartridge-nodejs-0.6
 
 %description
 Provides Node.js support to OpenShift

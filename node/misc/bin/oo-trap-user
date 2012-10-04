@@ -63,7 +63,7 @@ def read_env_vars():
 
 def read_config():
   config = {}
-  f = open('/etc/openshift/openshift-origin-node.conf','r')
+  f = open('/etc/openshift/node.conf','r')
   data = f.read()
   f.close()
   lines = data.split("\n")

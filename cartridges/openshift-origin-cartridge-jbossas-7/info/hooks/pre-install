@@ -5,10 +5,10 @@
 set -e
 
 
-# The name of the jbossas cartridge dir under /usr/libexec/openshift origin/cartridges
+# The name of the jbossas cartridge dir under /usr/libexec/openshift/cartridges
 jboss_version=jbossas-7
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 

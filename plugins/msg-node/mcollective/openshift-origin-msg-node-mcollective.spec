@@ -1,4 +1,4 @@
-Summary:        M-Collective agent file for gearchanger-m-collective-plugin
+Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
 Version: 0.4.3
 Release:        1%{?dist}
@@ -10,10 +10,11 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       rubygems
 Requires:       rubygem-open4
 Requires:       rubygem-json
-Requires:       rubygem-openshift origin-node
+Requires:       rubygem-openshift-origin-node
 Requires:       mcollective
 Requires:       facter
 BuildArch:      noarch
+Obsoletes:      stickshift-mcollective-agent
 
 %description
 mcollective communication plugin for amqp 1.0 enabled qpid broker
@@ -33,20 +34,20 @@ mkdir -p %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
-cp src/openshift-origin.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp src/openshift origin.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp facts/openshift_origin_facts.rb %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter/
-cp facts/openshift origin-facts %{buildroot}/etc/cron.minutely/
+cp src/openshift.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
+cp src/openshift.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
+cp facts/openshift_facts.rb %{buildroot}/usr/lib/ruby/site_ruby/1.8/facter/
+cp facts/openshift-facts %{buildroot}/etc/cron.minutely/
 cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 %files
 %defattr(-,root,root,-)
-/usr/libexec/mcollective/mcollective/agent/openshift-origin.rb
-/usr/libexec/mcollective/mcollective/agent/openshift origin.ddl
-/usr/lib/ruby/site_ruby/1.8/facter/openshift_origin_facts.rb
+/usr/libexec/mcollective/mcollective/agent/openshift.rb
+/usr/libexec/mcollective/mcollective/agent/openshift.ddl
+/usr/lib/ruby/site_ruby/1.8/facter/openshift_facts.rb
 %attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
-%attr(0700,-,-) /etc/cron.minutely/openshift origin-facts
-/etc/cron.minutely/openshift origin-facts
+%attr(0700,-,-) /etc/cron.minutely/openshift-facts
+/etc/cron.minutely/openshift-facts
 
 
 %changelog
@@ -121,7 +122,7 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
   (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

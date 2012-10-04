@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 
 # Constants.
 SERVICE_NAME=cron
@@ -45,7 +45,7 @@ if [ ! -f $CART_INSTANCE_DIR/run/jobs.enabled ]; then
    exit 0
 fi
 
-log_message ":START: $freq cron run for openshift origin user '$OPENSHIFT_GEAR_UUID'"
+log_message ":START: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
 
 # Run all the scripts in the $freq directory if it exists.
 SCRIPTS_DIR="$OPENSHIFT_REPO_DIR/.openshift/cron/$freq"
@@ -69,7 +69,7 @@ if [ -d "$SCRIPTS_DIR" ]; then
       status=$?
       if [ 124 -eq $status ]; then
          wmsg="Warning: $freq cron run terminated as it exceeded max run time"
-         log_message "$wmsg [$MAX_RUN_TIME] for openshift origin user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
+         log_message "$wmsg [$MAX_RUN_TIME] for openshift user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
          echo "$wmsg"
       fi
 
@@ -80,5 +80,5 @@ if [ -d "$SCRIPTS_DIR" ]; then
 
 fi
 
-log_message ":END: $freq cron run for openshift origin user '$OPENSHIFT_GEAR_UUID'"
+log_message ":END: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
 exit 0

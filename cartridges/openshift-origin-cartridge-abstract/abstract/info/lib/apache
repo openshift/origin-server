@@ -3,7 +3,7 @@
 [ ! -z "$LI_CONTROLLER_LIB_APACHE" ] && return 0
 LI_CONTROLLER_LIB_APACHE=true
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function rm_httpd_proxy {

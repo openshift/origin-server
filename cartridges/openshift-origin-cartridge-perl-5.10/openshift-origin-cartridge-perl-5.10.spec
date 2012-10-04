@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/perl-5.10
+%global cartridgedir %{_libexecdir}/openshift/cartridges/perl-5.10
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
@@ -13,7 +13,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: mod_perl
 Requires: perl-DBD-SQLite
@@ -25,7 +25,7 @@ Requires: perl-CPAN
 Requires: perl-CPANPLUS
 Requires: rpm-build
 Requires: expat-devel
-
+Obsoletes: cartridge-perl-5.10
 
 %description
 Provides rhc perl cartridge support

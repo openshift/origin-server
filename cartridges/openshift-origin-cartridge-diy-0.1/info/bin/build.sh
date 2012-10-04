@@ -2,7 +2,7 @@
 
 CART_NAME="diy"
 CART_VERSION="0.1"
-source /etc/openshift origin/openshift-origin-node.conf
+source /etc/openshift/node.conf
 
 # Import Environment Variables
 for f in ~/.env/*; do

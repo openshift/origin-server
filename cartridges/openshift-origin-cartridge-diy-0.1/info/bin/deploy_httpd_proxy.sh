@@ -22,7 +22,7 @@ uuid=$3
 IP=$4
 
 cartridge_type='diy-0.1'
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/${cartridge_type}.conf"

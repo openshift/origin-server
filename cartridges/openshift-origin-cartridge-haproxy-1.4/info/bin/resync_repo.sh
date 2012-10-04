@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-source /etc/openshift origin/openshift-origin-node.conf
+source /etc/openshift/node.conf
 
 export GIT_SSH=${CARTRIDGE_BASE_PATH}/haproxy-1.4/info/bin/ssh
 export GIT_DIR=~/git/${OPENSHIFT_GEAR_NAME}.git

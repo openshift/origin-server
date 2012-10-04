@@ -15,7 +15,7 @@
 #++
 
 require 'rubygems'
-require 'openshift-origin-node/config'
+require "openshift-origin-node/config"
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
 require 'syslog'
@@ -136,7 +136,7 @@ module OpenShift
         end
         notify_observers(:after_unix_user_create)
         initialize_homedir(basedir, @homedir, @config.get("CARTRIDGE_BASE_PATH"))
-        initialize_openshift_origin_port_proxy
+        initialize_openshift_port_proxy
 
         uuid_lock.flock(File::LOCK_UN)
         File.unlink(uuid_lock_file)
@@ -184,7 +184,7 @@ module OpenShift
         kill_procs(@uid)
 
         purge_sysvipc(uuid)
-        initialize_openshift_origin_port_proxy
+        initialize_openshift_port_proxy
 
         if @config.get("CREATE_APP_SYMLINKS").to_i == 1
           Dir.foreach(File.dirname(@homedir)) do |dent|
@@ -557,22 +557,22 @@ module OpenShift
       end
     end
 
-    # Private: Initialize Stickshift Port Proxy for this gear
+    # Private: Initialize OpenShift Port Proxy for this gear
     #
     # The port proxy range is determined by configuration and must
     # produce identical results to the abstract cartridge provided
     # range.
     #
     # Examples:
-    # initialize_openshift_origin_port_proxy
+    # initialize_openshift_port_proxy
     #    => true
-    #    service openshift_origin_port_proxy setproxy 35000 delete 35001 delete etc...
+    #    service openshift_port_proxy setproxy 35000 delete 35001 delete etc...
     #
     # Returns:
     #    true   - port proxy could be initialized properly
     #    false  - port proxy could not be initialized properly
-    def initialize_openshift_origin_port_proxy
-      notify_observers(:before_initialize_openshift_origin_port_proxy)
+    def initialize_openshift_port_proxy
+      notify_observers(:before_initialize_openshift_port_proxy)
 
       port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
       ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
@@ -594,11 +594,11 @@ module OpenShift
 
       proxy_port_range = (proxy_port_begin ... (proxy_port_begin + ports_per_user))
 
-      cmd = %{openshift-origin-port-proxy-cfg setproxy}
+      cmd = %{openshift-port-proxy-cfg setproxy}
       proxy_port_range.each { |i| cmd << " #{i} delete" }
       out, err, rc = shellCmd(cmd)
 
-      notify_observers(:after_initialize_openshift_origin_port_proxy)
+      notify_observers(:after_initialize_openshift_port_proxy)
       return rc == 0
     end
 

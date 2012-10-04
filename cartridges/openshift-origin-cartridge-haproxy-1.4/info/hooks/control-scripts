@@ -32,7 +32,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 HAPROXY_CTL_SH="${CARTRIDGE_BASE_PATH}/${CARTRIDGE_TYPE}/info/bin/app_ctl.sh"
 

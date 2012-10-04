@@ -27,6 +27,7 @@ Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
 Requires:       rubygem(dnsruby)
+Obsoletes: 	stickshift-controller
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -909,4 +910,3 @@ rm -rf %{buildroot}
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.9.5-1
 - new package built with tito
-

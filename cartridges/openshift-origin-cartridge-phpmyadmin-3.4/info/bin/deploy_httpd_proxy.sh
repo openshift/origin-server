@@ -21,7 +21,7 @@ namespace=`basename $2`
 uuid=$3
 IP=$4
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cat <<EOF > "${OPENSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/phpmyadmin-3.4.conf"

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cartridge_type="ruby-1.9"
-source "/etc/openshift origin/openshift-origin-node.conf"
-source "/etc/openshift origin/resource_limits.conf"
+source "/etc/openshift/node.conf"
+source "/etc/openshift/resource_limits.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 application="$1"

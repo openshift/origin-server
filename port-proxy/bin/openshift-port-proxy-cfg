@@ -1,35 +1,35 @@
 #!/bin/bash
 
 #
-# Modify the openshift-origin-port-proxy configuration.
+# Modify the openshift-port-proxy configuration.
 #
 
 
-source /etc/openshift/stickshift-node.conf
+source /etc/openshift/node.conf
 
-cfgfile=/etc/openshift/openshift-origin-port-proxy.cfg
-lockfile="/var/run/openshift-origin-port-proxy.lock"
-reloadlock="/var/run/openshift-origin-port-proxy-reload.lock"
-reqprefix="/tmp/openshift-origin-port-proxy-reload.req"
+cfgfile=/etc/openshift/port-proxy.cfg
+lockfile="/var/run/openshift-port-proxy.lock"
+reloadlock="/var/run/openshift-port-proxy-reload.lock"
+reqprefix="/tmp/openshift-port-proxy-reload.req"
 
 ### 
 # System service routines; systemctl may require modifications
 # but please retain compatability with RHEL 6 init scripts.
 ###
 is_running() {
-    service openshift-origin-port-proxy status &>/dev/null
+    service openshift-port-proxy status &>/dev/null
 }
 
 restart() {
-    service openshift-origin-port-proxy restart &>/dev/null
+    service openshift-port-proxy restart &>/dev/null
 }
 
 reload() {
-    service openshift-origin-port-proxy reload &>/dev/null
+    service openshift-port-proxy reload &>/dev/null
 }
 
 getpid() {
-    for pidf in /var/run/openshift-origin-port-proxy.pid /run/openshift-origin-port-proxy.pid
+    for pidf in /var/run/openshift-port-proxy.pid /run/openshift-port-proxy.pid
     do
         if [ -e "$pidf" ]
         then
@@ -47,7 +47,7 @@ getaddr() {
 }
 
 fixaddr() {
-    baddr=$(openshift-origin-port-proxy-cfg getaddr)
+    baddr=$(openshift-port-proxy-cfg getaddr)
     sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
 }
 
@@ -102,7 +102,7 @@ rollcfg() {
     
     if ! reload
     then
-        echo "openshift-origin-port-proxy failed to reload"
+        echo "openshift-port-proxy failed to reload"
         return 1
     fi
 

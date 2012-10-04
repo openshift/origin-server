@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/phpmyadmin-3.4
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/phpmyadmin-3.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/phpmyadmin-3.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
 Name: openshift-origin-cartridge-phpmyadmin-3.4
 Version: 0.20.2
@@ -13,9 +13,10 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: phpMyAdmin
+Obsoletes: cartridge-phpmyadmin-3.4
 
 %description
 Provides rhc phpMyAdmin cartridge support

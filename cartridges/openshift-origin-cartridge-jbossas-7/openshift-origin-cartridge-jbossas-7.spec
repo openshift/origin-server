@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/jbossas-7
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossas-7
 %global jbossver 7.1.0.Final
 %global oldjbossver 7.0.2.Final
 
@@ -17,13 +17,14 @@ BuildArch: noarch
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: jboss-as7 >= %{jbossver}
 Requires: jboss-as7-modules >= %{jbossver}
 Requires: lsof
 Requires: java-1.7.0-openjdk
 Requires: java-1.7.0-openjdk-devel
+Obsoletes: cartridge-jbossas-7
 
 %if 0%{?rhel}
 Requires: maven3

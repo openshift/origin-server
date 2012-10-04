@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/diy-0.1
+%global cartridgedir %{_libexecdir}/openshift/cartridges/diy-0.1
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
@@ -14,10 +14,10 @@ BuildArch: noarch
 
 BuildRequires: git
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: httpd
-
+Obsoletes: cartridge-cron-1.4
 
 %description
 Provides diy support to OpenShift

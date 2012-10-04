@@ -10,7 +10,7 @@ done
 WORKING_DIR=$1
 GIT_DIR=$2
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 
 export OPENSHIFT_SKIP_GIT_HOOKS="true"
 rm -rf $WORKING_DIR 

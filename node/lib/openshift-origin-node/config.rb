@@ -22,15 +22,15 @@ require 'parseconfig'
 module OpenShift
   # == OpenShift Config
   #
-  # Allows access to openshift-origin-node config file.
+  # Allows access to node.config file.
   #
-  # Reads config entried for the sdk from /etc/ss/openshift-origin-node.conf and if
-  # that is not available then it will read it from conf/openshift-origin-node.conf 
+  # Reads config entried for the sdk from /etc/openshift/node.conf and if
+  # that is not available then it will read it from conf/node.conf 
   # within the ruby gem.
   class Config
     include Object::Singleton
 
-    CONF_NAME = 'openshift-origin-node.conf'
+    CONF_NAME = 'node.conf'
     CONF_DIR = '/etc/openshift/'
     
     def initialize()

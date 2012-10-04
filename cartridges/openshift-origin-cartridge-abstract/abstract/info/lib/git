@@ -3,7 +3,7 @@
 [ ! -z "$OPENSHIFT_CONTROLLER_LIB_GIT" ] && return 0
 OPENSHIFT_CONTROLLER_LIB_GIT=true
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 
 function clone_git_repo {
     application="$1"

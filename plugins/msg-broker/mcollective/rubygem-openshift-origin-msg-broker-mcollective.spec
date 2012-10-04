@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname msg-broker-mcollective-plugin
+%global gemname openshift-origin-msg-broker-mcollective
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
 Summary:        OpenShift plugin for mcollective service
@@ -27,6 +27,7 @@ BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
 Provides:       rubygem(%{gemname}) = %version
+Obsoletes:      rubygem-gearchanger-mcollective-plugin
 
 %package -n ruby-%{gemname}
 Summary:        OpenShift plugin for mcollective based node/gear manager
@@ -62,9 +63,9 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
+cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective.rb
 Broker::Application.configure do
-  config.msg-broker = {
+  config.msg_broker = {
     :rpc_options => {
     	:disctimeout => 5,
     	:timeout => 60,
@@ -95,7 +96,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/openshift/broker/config/environments/plugin-config/msg-broker-mcollective-plugin.rb
+/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective.rb
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -204,7 +205,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - fixed a couple typos (admiller@redhat.com)
-- Automatic commit of package [rubygem-msg-broker-mcollective-plugin] release
+- Automatic commit of package [rubygem-rubygem-openshift-origin-msg-broker-mcollective] release
   [0.0.1-1]. (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
@@ -214,7 +215,7 @@ rm -rf %{buildroot}
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com>
 - fixed a couple typos (admiller@redhat.com)
-- Automatic commit of package [rubygem-msg-broker-mcollective-plugin] release
+- Automatic commit of package [rubygem-rubygem-openshift-origin-msg-broker-mcollective] release
   [0.0.1-1]. (kraman@gmail.com)
 - Fix typo and remove dependency. (mpatel@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-

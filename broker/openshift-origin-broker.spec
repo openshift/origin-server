@@ -41,6 +41,7 @@ Requires:  systemd-units
 %endif
 Provides:  openshift-broker
 BuildArch: noarch
+Obsoletes: stickshift-broker
 
 %description
 This contains the broker 'controlling' components of OpenShift Origin.
@@ -77,8 +78,8 @@ mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 
 cp -r . %{buildroot}%{brokerdir}
 %if %{with_systemd}
-mv %{buildroot}%{brokerdir}/systemd/openshift-origin-broker.service %{buildroot}%{_unitdir}
-mv %{buildroot}%{brokerdir}/systemd/openshift-origin-broker.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-origin-broker
+mv %{buildroot}%{brokerdir}/systemd/openshift-broker.service %{buildroot}%{_unitdir}
+mv %{buildroot}%{brokerdir}/systemd/openshift-broker.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-broker
 %else
 mv %{buildroot}%{brokerdir}/init.d/* %{buildroot}%{_initddir}
 %endif
@@ -116,13 +117,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
-%{_unitdir}/openshift-origin-broker.service
-%attr(0644,-,-) %{_unitdir}/openshift-origin-broker.service
-%{_sysconfdir}/sysconfig/openshift-origin-broker
-%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-origin-broker
+%{_unitdir}/openshift-broker.service
+%attr(0644,-,-) %{_unitdir}/openshift-broker.service
+%{_sysconfdir}/sysconfig/openshift-broker
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-broker
 %else
-%{_initddir}/openshift-origin-broker
-%attr(0750,-,-) %{_initddir}/openshift-origin-broker
+%{_initddir}/openshift-broker
+%attr(0750,-,-) %{_initddir}/openshift-broker
 %endif
 
 
@@ -289,7 +290,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 - Updating gem versions (admiller@redhat.com)
 - More fixes to bug# 808425 (rpenta@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 - Updating gem versions (admiller@redhat.com)

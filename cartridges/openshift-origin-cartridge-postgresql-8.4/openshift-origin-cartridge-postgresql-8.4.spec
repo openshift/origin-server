@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/postgresql-8.4
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/postgresql-8.4
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/postgresql-8.4
+%global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
 Version: 0.14.3
@@ -15,7 +15,7 @@ BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
 BuildRequires: git
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: postgresql
 Requires: postgresql-server
@@ -37,7 +37,7 @@ Requires: python-psycopg2
 Requires: ruby-postgres
 Requires: rhdb-utils
 Requires: uuid-pgsql
-
+Obsoletes: cartridge-postgresql-8.4
 
 %description
 Provides PostgreSQL cartridge support to OpenShift

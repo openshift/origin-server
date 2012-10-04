@@ -23,7 +23,7 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-setup-broker: Script to setup the broker and required services on this machine.
+oo-setup-broker: Script to setup the broker and required services on this machine.
   This command must be run as root.
 
 == List of arguments
@@ -224,7 +224,7 @@ unless File.exist?('/etc/rndc.key')
   system "chmod 0640 /etc/rndc.key"
 end
 
-system "/usr/libexec/openshift-origin-broker/bin/ss-setup-bind #{node_domain}"
+system "/usr/libexec/openshift-origin-broker/bin/oo-setup-bind #{node_domain}"
 
 print "Configure and start local named\n"
 File.open("/var/named/forwarders.conf", "w") do |f|
@@ -247,7 +247,7 @@ File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","a") do |f|
   end
 end
 
-system "/usr/bin/ss-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless build
+system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless build
 
 ### End BIND DNS setup
 
@@ -272,5 +272,5 @@ unless args["--skip-node"] || build || /not installed/.match(`rpm -q openshift-o
   args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
   args += ["--domain", node_domain.strip] unless node_domain.nil?
 
-  system("/usr/bin/ss-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
+  system("/usr/bin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
 end

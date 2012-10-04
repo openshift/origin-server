@@ -6,7 +6,7 @@ do
     . $f
 done
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbosseap-6.0/info/configuration"
@@ -19,7 +19,7 @@ then
   OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
 fi
 
-resource_limits_file=`readlink -f /etc/openshift origin/resource_limits.conf`
+resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
 resource_limits_file_name=`basename $resource_limits_file`
 node_profile=`echo ${resource_limits_file_name/*./}`
 case "$node_profile" in

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 cartridge_type='cron-1.4'
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Control application's embedded job scheduling service (cron)

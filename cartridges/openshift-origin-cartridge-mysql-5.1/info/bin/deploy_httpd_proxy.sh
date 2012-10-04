@@ -22,7 +22,7 @@ uuid=$3
 IP=$4
 cartridge_type="mysql-5.1"
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info
 

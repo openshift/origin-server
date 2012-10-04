@@ -29,13 +29,13 @@ run on a broker instance.
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{_bindir}
-cp ss-* %{buildroot}%{_bindir}/
+cp oo-* %{buildroot}%{_bindir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0755,-,-) %{_bindir}/ss-*
+%attr(0755,-,-) %{_bindir}/oo-*
 %doc LICENSE
 
 %changelog
@@ -46,7 +46,7 @@ rm -rf $RPM_BUILD_ROOT
 - fixing build requires (abhgupta@redhat.com)
 
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
-- Removing the node profile enforcement from the ss-admin-ctl scripts
+- Removing the node profile enforcement from the oo-admin-ctl scripts
   (bleanhar@redhat.com)
 - Adding LICENSE file to new packages and other misc cleanup
   (bleanhar@redhat.com)

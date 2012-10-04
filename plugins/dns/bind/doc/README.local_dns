@@ -1,5 +1,5 @@
 Running a service which adds new hostnames to the internet requires a
-Dynamic DNS service.  The uplift-bind package provides the client side
+Dynamic DNS service.  The openshift-origin-dns-bind package provides the client side
 of service interface for a Dynamic DNS based on ISC BIND DNS (or any
 other DNS service which honors RFC 2136 and 3007 dynamic update
 queries).  If you're running a self-contained service for development
@@ -44,7 +44,7 @@ DHCP follow.
 
 This procedure will add a local named service which will accept
 updates using RFC compliant queries.  A tool in bind-utils named
-nsupdate can be used to send updates for testing.  The uplift-bind
+nsupdate can be used to send updates for testing.  The openshift-origin-dns-bind
 Ruby module uses rubygem-dnsruby to do the same thing.
 
 For this procedure, we're going to use a target domain of

@@ -3,9 +3,9 @@ Description=StickShift Gears
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/ss-admin-ctl-gears startall
-ExecStop=/usr/bin/ss-admin-ctl-gears stopall
-ExecReload=/usr/bin/ss-admin-ctl-gears restartall
+ExecStart=/usr/bin/oo-admin-ctl-gears startall
+ExecStop=/usr/bin/oo-admin-ctl-gears stopall
+ExecReload=/usr/bin/oo-admin-ctl-gears restartall
 Restart=no
 RemainAfterExit=yes
 

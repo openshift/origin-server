@@ -4,7 +4,7 @@
 CART_NAME="perl"
 CART_VERSION="5.10"
 export cartridge_type="perl-5.10"
-source /etc/openshift origin/openshift-origin-node.conf
+source /etc/openshift/node.conf
 
 # Import Environment Variables
 for f in ~/.env/*; do

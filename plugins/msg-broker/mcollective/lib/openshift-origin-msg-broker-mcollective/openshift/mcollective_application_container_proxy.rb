@@ -3,7 +3,7 @@ require 'open-uri'
 
 include MCollective::RPC
 module OpenShift
-    class MCollectiveApplicationContainerProxy < OpenShift::::ApplicationContainerProxy
+    class MCollectiveApplicationContainerProxy < OpenShift::ApplicationContainerProxy
       @@C_CONTROLLER = 'openshift-origin-node'
       attr_accessor :id, :district
       
@@ -28,13 +28,13 @@ module OpenShift
       def self.find_available_impl(node_profile=nil, district_uuid=nil)
         district = nil
         require_specific_district = !district_uuid.nil?
-        if Rails.configuration.msg-broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
+        if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
             district_uuid = district.uuid
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
-          elsif Rails.configuration.msg-broker[:districts][:require_for_app_create]
-            raise OpenShift::::NodeException.new("No district nodes available.", 140)
+          elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
+            raise OpenShift::NodeException.new("No district nodes available.", 140)
           end
         end
         current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district)
@@ -43,7 +43,7 @@ module OpenShift
         end
         district = preferred_district if preferred_district
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
-        raise OpenShift::::NodeException.new("No nodes available.", 140) unless current_server
+        raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
         MCollectiveApplicationContainerProxy.new(current_server, district)
@@ -52,7 +52,7 @@ module OpenShift
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
-        raise OpenShift::::NodeException.new("No nodes found.", 140) unless current_server
+        raise OpenShift::NodeException.new("No nodes found.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
 
         MCollectiveApplicationContainerProxy.new(current_server)
@@ -73,7 +73,7 @@ module OpenShift
         result = execute_direct(@@C_CONTROLLER, 'cartridge-list', args, false)
         result = parse_result(result)
         cart_data = JSON.parse(result.resultIO.string)
-        cart_data.map! {|c| OpenShift::::Cartridge.new.from_descriptor(YAML.load(c))}
+        cart_data.map! {|c| OpenShift::Cartridge.new.from_descriptor(YAML.load(c))}
       end
 
       # Returns an array with following information
@@ -91,12 +91,12 @@ module OpenShift
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
             exitcode = mcoll_result.results[:data][:exitcode]
-            raise OpenShift::::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
+            raise OpenShift::NodeException.new("Failed to get quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         else
-          raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
         end
         output
       end
@@ -117,53 +117,53 @@ module OpenShift
           if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
             output = mcoll_result.results[:data][:output]
             exitcode = mcoll_result.results[:data][:exitcode]
-            raise OpenShift::::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
+            raise OpenShift::NodeException.new("Failed to set quota for user: #{output}", 143) unless exitcode == 0
           else
-            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         else
-          raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+          raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
         end
       end
 
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
-        if Rails.configuration.msg-broker[:districts][:enabled]
+        if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            reserved_uid = OpenShift::::DataStore.instance.reserve_district_uid(district_uuid)
-            raise OpenShift::::SSException.new("uid could not be reserved") unless reserved_uid
+            reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
+            raise OpenShift::SSException.new("uid could not be reserved") unless reserved_uid
           end
         end
         reserved_uid
       end
       
       def unreserve_uid(uid, district_uuid=nil)
-        if Rails.configuration.msg-broker[:districts][:enabled]
+        if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
           end
         end
       end
       
       def inc_externally_reserved_uids_size(district_uuid=nil)
-        if Rails.configuration.msg-broker[:districts][:enabled]
+        if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
             district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
           end
         end
       end
@@ -672,7 +672,7 @@ module OpenShift
         gear.server_identity = destination_container.id
         gear.container = destination_container
         if app.scalable and not gi.component_instances.include? app.proxy_cartridge
-          dns = OpenShift::::DnsService.instance
+          dns = OpenShift::DnsService.instance
           begin
             public_hostname = destination_container.get_public_hostname
             dns.modify_application(gear.name, app.domain.namespace, public_hostname)
@@ -741,7 +741,7 @@ module OpenShift
         destination_node_profile = destination_container.get_node_profile
         if app.scalable and source_container.get_node_profile != destination_node_profile
           log_debug "Cannot change node_profile for a gear belonging to a scalable application. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.node_profile}"
-          raise OpenShift::::UserException.new("Error moving app.  Cannot change node profile.", 1)
+          raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
         end
 
         # get the state of all cartridges
@@ -911,7 +911,7 @@ module OpenShift
         if destination_container.nil?
           unless allow_change_district
             if destination_district_uuid && destination_district_uuid != source_district_uuid
-              raise OpenShift::::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
+              raise OpenShift::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
             else
               destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
             end
@@ -925,7 +925,7 @@ module OpenShift
           end
           destination_district_uuid = destination_container.get_district_uuid
           unless allow_change_district || (source_district_uuid == destination_district_uuid)
-            raise OpenShift::::UserException.new("Resulting move would change districts from '#{source_district_uuid}' to '#{destination_district_uuid}'.  You can use the 'allow_change_district' option if you really want this to happen.", 1)
+            raise OpenShift::UserException.new("Resulting move would change districts from '#{source_district_uuid}' to '#{destination_district_uuid}'.  You can use the 'allow_change_district' option if you really want this to happen.", 1)
           end
         end
         
@@ -935,7 +935,7 @@ module OpenShift
         log_debug "DEBUG: District unchanged keeping uid" if keep_uid
 
         if source_container.id == destination_container.id
-          raise OpenShift::::UserException.new("Error moving app.  Old and new servers are the same: #{source_container.id}", 1)
+          raise OpenShift::UserException.new("Error moving app.  Old and new servers are the same: #{source_container.id}", 1)
         end
         return [destination_container, destination_district_uuid, keep_uid]
       end
@@ -954,7 +954,7 @@ module OpenShift
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         log_debug `eval \`ssh-agent\`; ssh-add /var/www/openshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
-          raise OpenShift::::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+          raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
         reply
       end
@@ -1034,7 +1034,7 @@ module OpenShift
           rpc_client.disconnect
         end
 
-        raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143) unless result
+        raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143) unless result
 
         result
       end
@@ -1162,9 +1162,9 @@ module OpenShift
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
           if server_identity && @id != server_identity
-            raise OpenShift::::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
+            raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
           else
-            raise OpenShift::::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
+            raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         end
         
@@ -1301,11 +1301,11 @@ module OpenShift
         result = execute_direct(framework, command, arguments)
         begin
           resultIO = parse_result(result, app, command)
-        rescue OpenShift::::InvalidNodeException => e
+        rescue OpenShift::InvalidNodeException => e
           if command != 'configure' && allow_move
             @id = e.server_identity
             Rails.logger.debug "DEBUG: Changing server identity of '#{gear.name}' from '#{gear.server_identity}' to '#{@id}'"
-            dns_service = OpenShift::::DnsService.instance
+            dns_service = OpenShift::DnsService.instance
             dns_service.modify_application(gear.name, app.domain.namespace, get_public_hostname)
             dns_service.publish
             gear.server_identity = @id
@@ -1321,8 +1321,8 @@ module OpenShift
         if resultIO.exitcode != 0
           resultIO.debugIO << "Cartridge return code: " + resultIO.exitcode.to_s
           begin
-            raise OpenShift::::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
-          rescue OpenShift::::NodeException => e
+            raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
+          rescue OpenShift::NodeException => e
             if command == 'deconfigure'
               if framework.start_with?('embedded/')
                 if has_embedded_app?(app.uuid, framework[9..-1])
@@ -1353,7 +1353,7 @@ module OpenShift
 
         district_uuid = nil if district_uuid == 'NONE'
 
-        if Rails.configuration.msg-broker[:node_profile_enabled]
+        if Rails.configuration.msg_broker[:node_profile_enabled]
           if node_profile
             additional_filters.push({:fact => "node_profile",
                                      :value => node_profile,
@@ -1418,7 +1418,7 @@ module OpenShift
                                  :value => "NONE",
                                  :operator => "!="}]
 
-          if Rails.configuration.msg-broker[:node_profile_enabled]
+          if Rails.configuration.msg_broker[:node_profile_enabled]
             if node_profile
               additional_filters.push({:fact => "node_profile",
                                        :value => node_profile,
@@ -1465,7 +1465,7 @@ module OpenShift
         current_server = nil
         additional_filters = []
 
-        if Rails.configuration.msg-broker[:node_profile_enabled]
+        if Rails.configuration.msg_broker[:node_profile_enabled]
           if node_profile
             additional_filters.push({:fact => "node_profile",
                                      :value => node_profile,
@@ -1480,7 +1480,7 @@ module OpenShift
         rpc_client = rpcclient('rpcutil', :options => options)
         begin
           rpc_client.get_fact(:fact => 'public_hostname') do |response|
-            raise OpenShift::::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
+            raise OpenShift::NodeException.new("No nodes found.  If the problem persists please contact Red Hat support.", 140) unless Integer(response[:body][:statuscode]) == 0
             current_server = response[:senderid]
           end
         ensure
@@ -1491,7 +1491,7 @@ module OpenShift
       
       def self.rpc_options
         # Make a deep copy of the default options
-        Marshal::load(Marshal::dump(Rails.configuration.msg-broker[:rpc_options]))
+        Marshal::load(Marshal::dump(Rails.configuration.msg_broker[:rpc_options]))
       end
     
       #
@@ -1553,7 +1553,7 @@ module OpenShift
             if (result && defined? result.results && result.results.has_key?(:data))
               value = result.results[:data][:value]
             else
-              raise OpenShift::::NodeException.new("Node execution failure (error getting fact).  If the problem persists please contact Red Hat support.", 143)
+              raise OpenShift::NodeException.new("Node execution failure (error getting fact).  If the problem persists please contact Red Hat support.", 143)
             end
           ensure
             rpc_client.disconnect

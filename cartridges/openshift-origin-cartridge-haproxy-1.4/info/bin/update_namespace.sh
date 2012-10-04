@@ -4,7 +4,7 @@
 set -e
 
 cartridge_type="haproxy-1.4"
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info

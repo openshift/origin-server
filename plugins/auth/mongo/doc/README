@@ -1,6 +1,6 @@
                     Mongo Auth Plugin for OpenShift Origin
                    ----------------------------------
-OpenShift Origin is an optional plugin for Stickshift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
+OpenShift Origin is an optional plugin for OpenShift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
 This document describes how to register and authenticate OpenShift Origin user using SWingShift.
 
 * Install MongoDB

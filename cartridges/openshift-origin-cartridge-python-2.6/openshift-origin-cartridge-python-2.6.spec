@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/python-2.6
+%global cartridgedir %{_libexecdir}/openshift/cartridges/python-2.6
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
@@ -11,7 +11,7 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
-Requires:  openshift-origin-abstract
+Requires:  openshift-origin-cartridge-abstract
 Requires:  rubygem(openshift-origin-node)
 Requires:  mod_bw
 Requires:  python
@@ -30,8 +30,7 @@ Requires:  numpy
 Requires:  numpy-f2py
 Requires:  gcc-gfortran
 Requires:  freetype-devel
-
-Obsoletes: openshift-origin-cartridge-python-3.2
+Obsoletes: cartridge-python-2.6
 
 BuildArch: noarch
 

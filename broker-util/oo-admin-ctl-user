@@ -88,7 +88,7 @@ def set_consumed_gears(user, consumedgears)
     end
 
     print "Setting consumed_gears to #{consumedgears}... "
-    ds = StickShift::MongoDataStore.instance
+    ds = OpenShift::MongoDataStore.instance
     result = ds.update(ds.user_collection, { "_id" => user.login }, { "$set" => {'consumed_gears' => consumedgears} })
     puts "Done."
 
@@ -280,7 +280,7 @@ gear_size_to_add = args["--addgearsize"]
 gear_size_to_remove = args["--removegearsize"]
 
 # this require is here to not load the environment simply to display help
-require '/var/www/stickshift/broker/config/environment'
+require '/var/www/openshift/broker/config/environment'
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 puts

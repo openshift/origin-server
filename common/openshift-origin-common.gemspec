@@ -1,7 +1,7 @@
 # OS independent path locations
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
-spec_file = "openshift-origin-common.spec"
+spec_file = "rubygem-openshift-origin-common.spec"
 
 Gem::Specification.new do |s|
   s.name        = "openshift-origin-common"
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "openshift-origin-common"
   s.files       = Dir[lib_dir] + Dir[test_dir]
-  s.files       += %w(README.md Rakefile Gemfile openshift-origin-common.spec openshift-origin-common.gemspec LICENSE COPYRIGHT)
+  s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-common.spec openshift-origin-common.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
   s.add_dependency("json")

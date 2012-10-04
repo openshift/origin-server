@@ -7,11 +7,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-admin-ctl-domain: Manage user domains
+oo-admin-ctl-domain: Manage user domains
 
 == Usage
 
-ss-admin-ctl-domain OPTIONS
+oo-admin-ctl-domain OPTIONS
 
 Options:
 -l|--rhlogin <rhlogin>
@@ -59,7 +59,7 @@ if login.nil? or args["--help"]
   exit 1
 end
 
-require "/var/www/stickshift/broker/config/environment"
+require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 

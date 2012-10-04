@@ -2,13 +2,13 @@ require 'rubygems'
 require 'open4'
 require 'pp'
 require 'json'
-require 'openshift origin-node'
+require 'openshift-origin-node'
 require 'shellwords'
 require 'facter'
 
 module MCollective
   module Agent
-    class Stickshift<RPC::Agent
+    class Openshift<RPC::Agent
       metadata    :name        => "Libra Management",
                   :description => "Agent to manage Libra services",
                   :author      => "Mike McGrath",
@@ -266,7 +266,7 @@ module MCollective
         hook_name = args['--hook-name']
         input_args = args['--input-args']
         
-        hook_path = "/usr/libexec/openshift origin/cartridges/#{cart_name}/info/connection-hooks/#{hook_name}"
+        hook_path = "/usr/libexec/openshift/cartridges/#{cart_name}/info/connection-hooks/#{hook_name}"
         if File.exists? hook_path
            pid, stdin, stdout, stderr = Open4::popen4ext(true, "#{hook_path} #{input_args} 2>&1")
         else
@@ -276,7 +276,7 @@ module MCollective
       end
 
       def handle_ss_cmd(action, args)
-        cmd = "ss-#{action}"
+        cmd = "oo-#{action}"
         case action
         when "app-create"
           rc, output = ss_app_create(cmd, args)
@@ -324,8 +324,8 @@ module MCollective
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc = nil
         output = ""
-        if cartridge == 'openshift origin-node'
-          cmd = "ss-#{action}"
+        if cartridge == 'openshift-origin-node'
+          cmd = "oo-#{action}"
           if action == 'connector-execute'
             pid, stdin, stdout, stderr = ss_connector_execute(cmd, args)
           else
@@ -343,12 +343,12 @@ module MCollective
         else
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
-          if File.exists? "/usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
             Log.instance.info("cartridge_do_action executing #{cart_cmd}")
             pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
-          elsif File.exists? "/usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
+            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
             Log.instance.info("cartridge_do_action executing #{cart_cmd}")
             pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
           else
@@ -392,7 +392,7 @@ module MCollective
         active = request[:active]
 
         begin
-          district_home = '/var/lib/openshift origin/.settings'
+          district_home = '/var/lib/openshift/.settings'
           FileUtils.mkdir_p(district_home)
 
           File.open(File.join(district_home, 'district.info'), 'w') { |f|
@@ -425,7 +425,7 @@ module MCollective
         validate :application, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid]
         app_name = request[:application]
-        if File.exist?("/var/lib/openshift origin/#{uuid}/#{app_name}")
+        if File.exist?("/var/lib/openshift/#{uuid}/#{app_name}")
           reply[:output] = true
         else
           reply[:output] = false
@@ -441,7 +441,7 @@ module MCollective
         validate :embedded_type, /^.+$/
         uuid = request[:uuid]
         embedded_type = request[:embedded_type]
-        if File.exist?("/var/lib/openshift origin/#{uuid}/#{embedded_type}")
+        if File.exist?("/var/lib/openshift/#{uuid}/#{embedded_type}")
           reply[:output] = true
         else
           reply[:output] = false
@@ -479,7 +479,7 @@ module MCollective
           username = line.split(":")[0]
           uid_map[username] = uid
         }
-        dir = "/var/lib/openshift origin/"
+        dir = "/var/lib/openshift/"
         filelist = Dir.foreach(dir) { |file| 
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             if uid_map.has_key?(file)
@@ -521,11 +521,11 @@ module MCollective
           cartridge = job[:cartridge]
           action = job[:action]
           args = job[:args]
-          if cartridge == 'openshift origin-node' && action != 'connector-execute'
+          if cartridge == 'openshift-origin-node' && action != 'connector-execute'
             inline_list << parallel_job
           else
             begin
-              if cartridge == 'openshift origin-node' && action == 'connector-execute'
+              if cartridge == 'openshift-origin-node' && action == 'connector-execute'
                 pid, stdin, stdout, stderr = ss_connector_execute(action, args)
               else
                 pid, stdout, stderr = execute_parallel_job(cartridge, action, args)
@@ -567,15 +567,15 @@ module MCollective
 
       def execute_parallel_job(cartridge, action, args)
         pid, stdin, stdout, stderr = nil, nil, nil, nil
-        if cartridge == 'openshift origin-node' && action == 'connector-execute'
-          cmd = "ss-#{action}"
+        if cartridge == 'openshift-origin-node' && action == 'connector-execute'
+          cmd = "oo-#{action}"
           pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 #{cmd} #{args} 2>&1")
         else
-          if File.exists? "/usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-            #pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-          elsif File.exists? "/usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift origin/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+          if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"                
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+            #pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
+          elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
+            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
           else
             raise Exception.new("cartridge_do_action ERROR action '#{action}' not found.")
           end

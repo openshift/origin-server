@@ -2,7 +2,7 @@ require 'rubygems'
 require 'parseconfig'
 
 def get_node_config_value(key, default)
-  config_file = ParseConfig.new('/etc/openshift/openshift origin-node.conf')
+  config_file = ParseConfig.new('/etc/openshift/node.conf')
   val = config_file.get_value(key)
   return default if val.nil?
   val.gsub!(/\\:/,":") if not val.nil?
@@ -16,7 +16,7 @@ end
 #
 district_uuid = 'NONE'
 district_active = false
-district_conf = '/var/lib/openshift origin/.settings/district.info'
+district_conf = '/var/lib/openshift/.settings/district.info'
 if File.exists?(district_conf)
   config_file = ParseConfig.new(district_conf)
   district_uuid = config_file.get_value('uuid') ? config_file.get_value('uuid') : 'NONE'
@@ -81,7 +81,7 @@ end
 #
 git_repos_count = 0
 stopped_app_count = 0
-Dir.glob("/var/lib/openshift origin/*").each { |app_dir|
+Dir.glob("/var/lib/openshift/*").each { |app_dir|
   if File.directory?(app_dir) && !File.symlink?(app_dir)
     git_repos_count += Dir.glob(File.join(app_dir, "git/*.git")).count
 
@@ -137,7 +137,7 @@ end
 #
 Facter.add(:cart_list) do
     carts = []
-    Dir.glob('/usr/libexec/openshift origin/cartridges/*/').each do |cart|
+    Dir.glob('/usr/libexec/openshift/cartridges/*/').each do |cart|
         cart = File.basename(cart).sub(/^(.*)-(\d+)\.(\d+)\.?.*$/, '\1-\2.\3')
         carts << cart unless cart.nil? || cart == "embedded"
     end
@@ -151,7 +151,7 @@ end
 #
 Facter.add(:embed_cart_list) do
     carts = []
-    Dir.glob('/usr/libexec/openshift origin/cartridges/embedded/*/').each do |cart|
+    Dir.glob('/usr/libexec/openshift/cartridges/embedded/*/').each do |cart|
         cart = File.basename(cart).sub(/^(.*)-(\d+)\.(\d+)\.?.*$/, '\1-\2.\3')
         carts << cart unless cart.nil?
     end

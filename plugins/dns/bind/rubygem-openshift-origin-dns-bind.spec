@@ -1,6 +1,6 @@
 %global ruby_sitelib %(ruby -rrbconfig -e "puts Config::CONFIG['sitelibdir']")
 %global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
-%global gemname uplift-bind-plugin
+%global gemname openshift-origin-dns-bind
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 
 Summary:        OpenShift plugin for BIND service
@@ -22,6 +22,7 @@ Requires:       rubygem(dnsruby)
 Requires:       openshift-origin-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
+Obsoletes:      rubygem-uplift-bind-plugin
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -62,12 +63,12 @@ mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
 # Compile SELinux policy
-mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin
-cp %{buildroot}%{gemdir}/gems/uplift-bind-plugin-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-uplift-bind-plugin/
+mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
+cp %{buildroot}%{gemdir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpnamedforward.* %{buildroot}/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
 
 %post
 
-echo " The uplift-bind-plugin requires the following config entries to be present:"
+echo " The openshift-origin-dns-bind requires the following config entries to be present:"
 echo " * dns[:server]              - The Bind server IP"
 echo " * dns[:port]                - The Bind server Port"
 echo " * dns[:keyname]             - The API user"
@@ -87,7 +88,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/usr/share/selinux/packages/rubygem-uplift-bind-plugin
+/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
@@ -114,7 +115,7 @@ rm -rf %{buildroot}
   for Bind Dns plugin instead of hardcoding it (kraman@gmail.com)
 - Add modify application dns and use where applicable (dmcphers@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

@@ -13,7 +13,7 @@ $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
 
 def register_user
-  cmd = "ss-register-user -l admin -p admin --username #{$user} --userpass #{$password}"
+  cmd = "oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}"
   pid, stdin, stdout, stderr = nil, nil, nil, nil
 
   with_clean_env {
@@ -43,7 +43,7 @@ end
 
 # openshift.com or Origin?
 def hosted?
-  cmd = "rpm -q rubygem-swingshift-streamline-plugin"
+  cmd = "rpm -q rubygem-openshift-origin-auth-streamline"
   pid, stdin, stdout, stderr = nil, nil, nil, nil
 
   pid, stdin, stdout, stderr = Open4::popen4(cmd)

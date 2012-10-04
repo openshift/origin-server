@@ -30,20 +30,18 @@ OSO_INI_DIR=${OSO_CFG_DIR}/initializers
 
 OSO_ENVIRONMENT=${OSO_ENVIRONMENT:=development}
 
-DATA_PLUGINS="mongo"
 AUTH_PLUGINS="mongo"
 NAME_PLUGINS="bind"
-MESG_PLUGINS="oddjob"
+MESG_PLUGINS="mcollective"
 
-DATA_MODULE_PATTERN="rubygem-crankcase-%NAME%-plugin"
-AUTH_MODULE_PATTERN="rubygem-swingshift-%NAME%-plugin"
-NAME_MODULE_PATTERN="rubygem-uplift-%NAME%-plugin"
-MESG_MODULE_PATTERN="rubygem-gearchanger-%NAME%-plugin"
+AUTH_MODULE_PATTERN="rubygem-openshift-origin-auth-%NAME%"
+NAME_MODULE_PATTERN="rubygem-openshift-origin-dns-%NAME%"
+MESG_MODULE_PATTERN="rubygem-openshift-origin-msg-broker-%NAME%"
 
 DEFAULT_DATA_SERVICE="mongo"
 DEFAULT_AUTH_SERVICE="mongo"
 DEFAULT_NAME_SERVICE="bind"
-DEFAULT_MESG_SERVICE="oddjob"
+DEFAULT_MESG_SERVICE="mcollective"
 
 DEFAULT_PACKAGES="
   ruby
@@ -55,7 +53,7 @@ DEFAULT_PACKAGES="
   openshift-origin-broker 
 "
 
-DEFAULT_SERVICES="openshift-origin-broker"
+DEFAULT_SERVICES="openshift-broker"
 
 # Depends on OSO_BROKER_ROOT in ruby lib search list
 OSO_RUBY_LIBS="openshift-origin-controller config/application"
@@ -802,11 +800,9 @@ NAME_SERVICE=${NAME_SERVICE:=${DEFAULT_NAME_SERVICE}}
 
 verbose SERVICES: DATA: $DATA_SERVICE, Auth: $AUTH_SERVICE, Name $NAME_SERVICE
 
-DATA_MODULE=`echo $DATA_MODULE_PATTERN | sed -e "s/%NAME%/$DATA_SERVICE/"`
 AUTH_MODULE=`echo $AUTH_MODULE_PATTERN | sed -e "s/%NAME%/$AUTH_SERVICE/"`
 NAME_MODULE=`echo $NAME_MODULE_PATTERN | sed -e "s/%NAME%/$NAME_SERVICE/"`
 
-verbose DATA_MODULE: $DATA_MODULE
 verbose AUTH_MODULE: $AUTH_MODULE
 verbose NAME_MODULE: $NAME_MODULE
 

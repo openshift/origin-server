@@ -23,6 +23,7 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
+Obsoletes: 	stickshift-node
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -90,7 +91,7 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/openshift
 %{_bindir}/*
-%config(noreplace) %{_sysconfdir}/openshift/openshift-origin-node.conf
+%config(noreplace) %{_sysconfdir}/openshift/node.conf
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{_var}/lib/openshift

@@ -7,8 +7,8 @@
 # to behave as though the service has failed.
 #
 
-[ -f /etc/sysconfig/openshift-origin-port-proxy ] && \
-    source /etc/sysconfig/openshift-origin-port-proxy
+[ -f /etc/sysconfig/openshift-port-proxy ] && \
+    source /etc/sysconfig/openshift-port-proxy
 
 HAPROXY_PID=""
 
@@ -16,7 +16,7 @@ function reload {
     if [ "$HAPROXY_PID" ]; then
         /usr/sbin/haproxy -f "$OPENSHIFT_PROXY_CONFIG" $OPTIONS -sf $HAPROXY_PID &
         HAPROXY_PID=$!
-        echo "$HAPROXY_PID" > /run/openshift-origin-port-proxy.pid
+        echo "$HAPROXY_PID" > /run/openshift-port-proxy.pid
     else
         exit 127
     fi
@@ -35,16 +35,16 @@ function redeliver {
 }
 
 function cleaner {
-    rm -f /run/openshift-origin-port-proxy.pid
+    rm -f /run/openshift-port-proxy.pid
 }
 
 
 # Start haproxy
-/usr/bin/openshift-origin-port-proxy-cfg fixaddr
+/usr/bin/openshift-port-proxy-cfg fixaddr
 
 /usr/sbin/haproxy -f "$OPENSHIFT_PROXY_CONFIG" $OPTIONS &
 HAPROXY_PID=$!
-echo "$HAPROXY_PID" > /run/openshift-origin-port-proxy.pid
+echo "$HAPROXY_PID" > /run/openshift-port-proxy.pid
 
 trap "cleaner" EXIT
 

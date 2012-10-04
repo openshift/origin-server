@@ -27,7 +27,7 @@ done
 [ $# -ge 3 ] || print_help
 
 cartridge_type="haproxy-1.4"
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_configure "$1" $2 $3

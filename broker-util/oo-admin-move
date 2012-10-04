@@ -7,11 +7,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-admin-move: Move an app from one node to another
+oo-admin-move: Move an app from one node to another
 
 == Usage
 
-ss-admin-move OPTIONS
+oo-admin-move OPTIONS
 
 Options:
 --gear_uuid <gear_uuid>
@@ -73,13 +73,13 @@ unless gear_uuid
   exit 1
 end
 
-require "/var/www/stickshift/broker/config/environment"
+require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
 # Set the MCollective options
 if timeout
-  Rails.configuration.gearchanger[:rpc_options][:timeout] = timeout.to_i
+  Rails.configuration.msg_broker[:rpc_options][:timeout] = timeout.to_i
 end
 
 app = nil
@@ -106,7 +106,7 @@ puts "App UUID: #{app.uuid}"
 puts "Gear UUID: #{gear.uuid}"
 
 destination_container = nil
-destination_container = StickShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
+destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
 
 reply = app.container.move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
 

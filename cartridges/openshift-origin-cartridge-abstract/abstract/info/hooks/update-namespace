@@ -5,7 +5,7 @@
 # Exit on any errors
 set -e
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
 
@@ -17,7 +17,7 @@ function print_help {
 }
 
 function mv_symlink {
-    # Check if CREATE_APP_SYMLINKS is set in /etc/openshift origin/openshift-origin-node.conf
+    # Check if CREATE_APP_SYMLINKS is set in /etc/openshift/node.conf
     # If it is set, move symlink
 
     old_namespace=$1

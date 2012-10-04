@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/ruby-1.8
+%global cartridgedir %{_libexecdir}/openshift/cartridges/ruby-1.8
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
@@ -11,7 +11,7 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
-Requires:  openshift-origin-abstract
+Requires:  openshift-origin-cartridge-abstract
 Requires:  rubygem(openshift-origin-node)
 Requires:  mod_bw
 Requires:  sqlite-devel
@@ -37,6 +37,7 @@ Requires:  libxslt
 Requires:  libxslt-devel
 Requires:  gcc-c++
 Requires:  js
+Obsoletes: cartridge-ruby-1.8
 
 %if 0%{?rhel}
 Requires:  ruby-nokogiri

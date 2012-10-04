@@ -1,9 +1,9 @@
 [Unit]
-Description=Stickshift Port Proxy
+Description=OpenShift Port Proxy
 After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
-ExecStart=/usr/sbin/openshift-origin-port-proxy
+ExecStart=/usr/sbin/openshift-port-proxy
 ExecReload=/bin/kill -USR2 $MAINPID
 
 [Install]

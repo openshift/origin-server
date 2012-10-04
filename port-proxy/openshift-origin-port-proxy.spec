@@ -11,8 +11,9 @@ BuildArch:     noarch
 # The haproxy daemon is used as the functioning tcp proxy
 Requires:      haproxy
 
-# Stickshift node configuration and /etc/openshift
+# OpenShift Origin node configuration and /etc/openshift
 Requires:      rubygem(openshift-origin-node)
+Obsoletes:     stickshift-port-proxy
 
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
@@ -44,32 +45,32 @@ mkdir -p %{buildroot}%{_sysconfdir}/openshift
 mkdir -p %{buildroot}%{_bindir}
 
 %if %{with_systemd}
-install -m 644 systemd/openshift-origin-port-proxy.service %{buildroot}%{_unitdir}
-install -m 644 systemd/openshift-origin-port-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-origin-port-proxy
-install -m 755 systemd/openshift-origin-port-proxy %{buildroot}%{_sbindir}
+install -m 644 systemd/openshift-port-proxy.service %{buildroot}%{_unitdir}
+install -m 644 systemd/openshift-port-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-port-proxy
+install -m 755 systemd/openshift-port-proxy %{buildroot}%{_sbindir}
 %else
-install -m 755 init-scripts/openshift-origin-port-proxy %{buildroot}%{_initddir}
+install -m 755 init-scripts/openshift-port-proxy %{buildroot}%{_initddir}
 %endif
-install -m 644 config/openshift-origin-port-proxy.cfg %{buildroot}%{_sysconfdir}/openshift/
-install -m 755 bin/openshift-origin-port-proxy-cfg %{buildroot}%{_bindir}/openshift-origin-port-proxy-cfg
+install -m 644 config/port-proxy.cfg %{buildroot}%{_sysconfdir}/openshift/
+install -m 755 bin/openshift-port-proxy-cfg %{buildroot}%{_bindir}/openshift-port-proxy-cfg
 
 %post
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
-/bin/systemctl try-restart openshift-origin-port-proxy.service
+/bin/systemctl try-restart openshift-port-proxy.service
 %else
-/sbin/chkconfig --add openshift-origin-port-proxy || :
-/sbin/service openshift-origin-port-proxy condrestart || :
+/sbin/chkconfig --add openshift-port-proxy || :
+/sbin/service openshift-port-proxy condrestart || :
 %endif
 
 %preun
 if [ "$1" -eq "0" ]; then
 %if %{with_systemd}
-   /bin/systemctl --no-reload disable openshift-origin-port-proxy.service
-   /bin/systemctl stop openshift-origin-port-proxy.service
+   /bin/systemctl --no-reload disable openshift-port-proxy.service
+   /bin/systemctl stop openshift-port-proxy.service
 %else
-   /sbin/service openshift-origin-port-proxy stop || :
-   /sbin/chkconfig --del openshift-origin-port-proxy || :
+   /sbin/service openshift-port-proxy stop || :
+   /sbin/chkconfig --del openshift-port-proxy || :
 %endif
 fi
 
@@ -77,14 +78,14 @@ fi
 %defattr(-,root,root,-)
 %doc LICENSE
 %if %{with_systemd}
-%{_unitdir}/openshift-origin-port-proxy.service
-%{_sysconfdir}/sysconfig/openshift-origin-port-proxy
-%{_sbindir}/openshift-origin-port-proxy
+%{_unitdir}/openshift-port-proxy.service
+%{_sysconfdir}/sysconfig/openshift-port-proxy
+%{_sbindir}/openshift-port-proxy
 %else
-%{_initddir}/openshift-origin-port-proxy
+%{_initddir}/openshift-port-proxy
 %endif
-%{_bindir}/openshift-origin-port-proxy-cfg
-%config(noreplace) %{_sysconfdir}/openshift/openshift-origin-port-proxy.cfg
+%{_bindir}/openshift-port-proxy-cfg
+%config(noreplace) %{_sysconfdir}/openshift/port-proxy.cfg
 
 %changelog
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
@@ -92,7 +93,7 @@ fi
   (mscherer@redhat.com)
 
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
-- Fedora review feedback: Get rid of .openshift-origin-port-proxy.d (rmillner@redhat.com)
+- Fedora review feedback: Get rid of .openshift-port-proxy.d (rmillner@redhat.com)
 - Fedora review feedback: Fix requires and use of "/var". (rmillner@redhat.com)
 - BZ 856910: haproxy is found in /usr/sbin. (rmillner@redhat.com)
 
@@ -112,7 +113,7 @@ fi
 - fixing OpenShift Origin port proxy for fedora (abhgupta@redhat.com)
 - fixing OpenShift Origin port proxy rpm for fedora (abhgupta@redhat.com)
 - Merge pull request #426 from rmillner/f17proxy (openshift+bot@redhat.com)
-- Add systemd version of openshift-origin-port-proxy. (rmillner@redhat.com)
+- Add systemd version of openshift-port-proxy. (rmillner@redhat.com)
 - Shuffle responsibilities so that the systemd script and init script follow
   the same flow. (rmillner@redhat.com)
 
@@ -142,10 +143,10 @@ fi
 - bump_minor_versions for sprint 15 (admiller@redhat.com)
 
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.0.2-1
-- Automatic commit of package [openshift-origin-port-proxy] release [0.0.1-1].
+- Automatic commit of package [openshift-port-proxy] release [0.0.1-1].
   (kraman@gmail.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

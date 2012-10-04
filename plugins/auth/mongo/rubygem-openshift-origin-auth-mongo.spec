@@ -20,6 +20,7 @@ Requires:       rubygem(mocha)
 Requires:       openshift-origin-broker
 Requires:  		selinux-policy-targeted
 Requires:  		policycoreutils-python
+Obsoletes:      rubygem-swingshift-mongo-plugin
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -125,7 +126,7 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 - Bug 836055 - Bypass authentication by making a direct request to broker with
   broker_auth_key (kraman@gmail.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 - Updated gem info for rails 3.0.13 (admiller@redhat.com)

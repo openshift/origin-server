@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# openshift-origin-broker        Startup script for the OpenShift Origin broker
+# openshift-broker        Startup script for the OpenShift Origin broker
 #
 # chkconfig: - 85 15
 # description: The OpenShift Origin broker
@@ -18,7 +18,6 @@
 # Description: The OpenShift Origin broker
 ### END INIT INFO
 
-# Source function stickshiftry.
 . /etc/rc.d/init.d/functions
 
 # Start httpd in the C locale by default.
@@ -27,9 +26,9 @@ HTTPD_LANG=${HTTPD_LANG-"C"}
 # Path to the apachectl script, server binary, and short-form for messages.
 apachectl=/usr/sbin/apachectl
 httpd=${HTTPD-/usr/sbin/httpd}
-prog=openshift-origin-broker
+prog=openshift-broker
 pidfile=${PIDFILE-/var/www/openshift/broker/httpd/run/httpd.pid}
-lockfile=${LOCKFILE-/var/lock/subsys/openshift-origin-broker}
+lockfile=${LOCKFILE-/var/lock/subsys/openshift-broker}
 RETVAL=0
 
 OPTIONS="-C 'Include /var/www/openshift/broker/httpd/broker.conf' -f /var/www/openshift/broker/httpd/httpd.conf"

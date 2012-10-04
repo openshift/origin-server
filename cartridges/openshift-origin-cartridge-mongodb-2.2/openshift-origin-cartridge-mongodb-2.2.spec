@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/mongodb-2.2
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/mongodb-2.2
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/mongodb-2.2
+%global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
 Version: 0.26.4
@@ -18,12 +18,12 @@ BuildRequires: git
 
 Obsoletes: openshift-origin-cartridge-mongodb-2.0
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: mongodb-server
 Requires: mongodb-devel
 Requires: libmongodb
 Requires: mongodb
-
+Obsoletes: cartridge-mongodb-2.2
 
 %description
 Provides rhc mongodb cartridge support

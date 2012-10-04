@@ -2,7 +2,7 @@
 
 
 
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 
 # Creates a jboss instance
 # Variables used in this script:
@@ -10,7 +10,7 @@ source "/etc/openshift origin/openshift-origin-node.conf"
 # jboss.version
 jboss_home = the location where the jboss server is installed
 jboss_version = the name/type of the jboss cartridge, e.g., jbossas-7, jbosseap-6.0
-# /etc/openshift origin/openshift-origin-node.conf
+# /etc/openshift/node.conf
 CREATE_APP_SYMLINK = Enable user-unobfuscate to create ~/appname-namespace in addition to ~/uuid
 GEAR_BASE_DIR=Users home dirs (where customer data ends up)
 # Script arguments

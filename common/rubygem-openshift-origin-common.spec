@@ -29,6 +29,7 @@ Provides:       rubygem(%{gemname}) = %version
 Summary:        Cloud Development Common Library
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
+Obsoletes: 	stickshift-common
 
 %description
 This contains the Cloud Development Common packaged as a rubygem.
@@ -130,7 +131,7 @@ popd
 * Tue Jul 03 2012 Adam Miller <admiller@redhat.com> 0.12.3-1
 - Misc selinux fixes for RHEL6.3 (bleanhar@redhat.com)
 - MCollective updates - Added mcollective-qpid plugin - Added mcollective-
-  gearchanger plugin - Added mcollective agent and facter plugins - Added
+  msg-broker plugin - Added mcollective agent and facter plugins - Added
   option to support ignoring node profile - Added systemu dependency for
   mcollective-client (kraman@gmail.com)
 

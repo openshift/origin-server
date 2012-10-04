@@ -145,9 +145,9 @@ module MCollective
           when :request
             suffix = :command
           when :direct_request
-            raise("Driect request not supported")
+            raise("Direct request not supported")
           when :directed
-            raise("Driected not supported")            
+            raise("Directed not supported")            
         end
 
         ["#{collective}", agent, suffix].compact.join(".")

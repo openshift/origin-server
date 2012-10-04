@@ -21,7 +21,7 @@ require 'getoptlong'
 require 'json'
 require "openshift-origin-common/models/model"
 require "openshift-origin-common/models/user_model"
-require "openshift-origin-common/exceptions/ss_exception"
+require "openshift-origin-common/exceptions/oo_exception"
 require "openshift-origin-common/models/scaling"
 require "openshift-origin-common/models/component_ref"
 require "openshift-origin-common/models/group"

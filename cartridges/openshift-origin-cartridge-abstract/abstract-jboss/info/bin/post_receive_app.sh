@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Add lib/util loading
-source "/etc/openshift origin/openshift-origin-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import Environment Variables

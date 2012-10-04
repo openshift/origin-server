@@ -24,7 +24,7 @@ Cart-Data:
   - Key: connection_url
     Type: cart_data
     Description: "PostgreSQL DB connection URL"
-Provides: rhc-openshift-origin-cartridge-postgresql
+Provides: openshift-origin-cartridge-postgresql
 Conflicts:
   - mysql-5.1
 Suggests:

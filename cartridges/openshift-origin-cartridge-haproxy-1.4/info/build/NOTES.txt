@@ -7,7 +7,7 @@ DEPENDENCIES:
 All are pulled in automatically via yum
 
 BUNDLE:
-/etc/openshift origin/php.conf
+/etc/openshift/php.conf
 
 TODO:
 Create OpenShift specific php.ini file

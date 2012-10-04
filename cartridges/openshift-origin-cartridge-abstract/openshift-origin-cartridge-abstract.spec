@@ -1,19 +1,20 @@
-%define cartdir %{_libexecdir}/openshift origin/cartridges
+%define cartdir %{_libexecdir}/openshift/cartridges
 
 Summary:   OpenShift common cartridge components
-Name:      openshift-origin-abstract
-Version: 0.17.9
+Name:      openshift-origin-cartridge-abstract
+Version:   0.17.11
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-origin-abstract-%{version}.tar.gz
+Source0:   openshift-origin-cartridge-abstract-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildArch: noarch
 Requires: git
 Requires: mod_ssl
+Obsoletes: stickshift-abstract
 
 %description
 This contains the common function used while building cartridges.
@@ -41,28 +42,28 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-httpd/info/bin/
-#%{_libexecdir}/openshift origin/cartridges/abstract-httpd/info
-%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/bin/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract-jboss/info/data/
-#%{_libexecdir}/openshift origin/cartridges/abstract-jboss/info
-%dir %attr(0755,root,root) %{_libexecdir}/openshift origin/cartridges/abstract/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/bin/
-%attr(0755,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/lib/
-%attr(0750,-,-) %{_libexecdir}/openshift origin/cartridges/abstract/info/connection-hooks/
-%{_libexecdir}/openshift origin/cartridges/abstract/info
-%doc %{_libexecdir}/openshift origin/cartridges/abstract/COPYRIGHT
-%doc %{_libexecdir}/openshift origin/cartridges/abstract/LICENSE
-%doc %{_libexecdir}/openshift origin/cartridges/abstract-httpd/COPYRIGHT
-%doc %{_libexecdir}/openshift origin/cartridges/abstract-httpd/LICENSE
-%doc %{_libexecdir}/openshift origin/cartridges/abstract-jboss/COPYRIGHT
-%doc %{_libexecdir}/openshift origin/cartridges/abstract-jboss/LICENSE
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-httpd/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/bin/
+#%{_libexecdir}/openshift/cartridges/abstract-httpd/info
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-jboss/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
+#%{_libexecdir}/openshift/cartridges/abstract-jboss/info
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/bin/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/lib/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/connection-hooks/
+%{_libexecdir}/openshift/cartridges/abstract/info
+%doc %{_libexecdir}/openshift/cartridges/abstract/COPYRIGHT
+%doc %{_libexecdir}/openshift/cartridges/abstract/LICENSE
+%doc %{_libexecdir}/openshift/cartridges/abstract-httpd/COPYRIGHT
+%doc %{_libexecdir}/openshift/cartridges/abstract-httpd/LICENSE
+%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/COPYRIGHT
+%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/LICENSE
 
 
 %post
@@ -307,7 +308,7 @@ rm -rf $RPM_BUILD_ROOT
   otherwise rhc-accept-node fails and tests fail. (ramr@redhat.com)
 - Cleanup and restore custom env vars support and fixup permissions.
   (ramr@redhat.com)
-- Automatic commit of package [openshift-origin-abstract] release [0.10.5-1].
+- Automatic commit of package [openshift-origin-cartridge-abstract] release [0.10.5-1].
   (admiller@redhat.com)
 - Fixing bugs related to user hooks. (rmillner@redhat.com)
 - Bug fix - correct app/ directory permissions. (ramr@redhat.com)

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source /etc/openshift origin/openshift-origin-node.conf
+source /etc/openshift/node.conf
 cartridge_type="mysql-5.1"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 

@@ -21,7 +21,7 @@ require 'openshift-origin-node/model/unix_user'
 require 'test/unit'
 
 # Run unit test manually
-# ruby -Istickshift/node/lib/:stickshift/common/lib/ stickshift/node/test/unit/unix_user_test.rb 
+# ruby -Iopenshift/node/lib/:openshift/common/lib/ openshift/node/test/unit/unix_user_test.rb 
 class TestUnixUserModel < Test::Unit::TestCase
 
   def assert_directory?(file)

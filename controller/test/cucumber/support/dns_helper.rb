@@ -11,7 +11,7 @@ module DnsHelper
 
   def dns_service
     if not $dns_con
-      $dns_con = Uplift::BindPlugin.new({:server => "127.0.0.1", 
+      $dns_con = OpenShift::BindPlugin.new({:server => "127.0.0.1", 
                                          :port => 53,
                                          :keyname => "example.com", 
                                          :keyvalue => $bind_keyvalue,

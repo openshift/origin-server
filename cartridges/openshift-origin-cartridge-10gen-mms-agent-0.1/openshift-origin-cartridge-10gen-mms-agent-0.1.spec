@@ -1,5 +1,5 @@
-%global cartridgedir %{_libexecdir}/openshift origin/cartridges/embedded/10gen-mms-agent-0.1
-%global frameworkdir %{_libexecdir}/openshift origin/cartridges/10gen-mms-agent-0.1
+%global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/10gen-mms-agent-0.1
+%global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
 Version: 1.15.3
@@ -14,10 +14,11 @@ Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{vers
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
-Requires: openshift-origin-abstract
+Requires: openshift-origin-cartridge-abstract
 Requires: openshift-origin-cartridge-mongodb-2.2
 Requires: pymongo
 Requires: mms-agent
+Obsoletes: cartridge-10gen-mms-agent-0.1
 
 
 %description
