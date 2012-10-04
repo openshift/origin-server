@@ -120,7 +120,7 @@ task :build_setup do
   end
 
   packages = specs.map do |spec|
-     lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
+     lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^(Build|)Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
   end
   packages.flatten!
   packages.delete_if { |req| req.match(/stickshift|openshift|cartridge|swingshift|gearchanger|uplift/) }
