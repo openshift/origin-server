@@ -22,19 +22,20 @@ function extract_submodules {
     tmp_dir=${OPENSHIFT_TMP_DIR}
     [ -e ${tmp_dir} ] || mkdir ${tmp_dir}
     submodule_tmp_dir=${tmp_dir}/submodules
-    pushd ${tmp_dir}
+    submodule_tmp_dir_length=`expr length $submodule_tmp_dir`
 
-    [ -e ${submodule_tmp_dir} ] && rm -rf ${submodule_tmp_dir}
-    git clone ${full_src_dir} submodules
+    pushd ${tmp_dir} > /dev/null
+        [ -e ${submodule_tmp_dir} ] && rm -rf ${submodule_tmp_dir}
+        git clone ${full_src_dir} submodules
 
-    cd ${submodule_tmp_dir}
+        pushd ${submodule_tmp_dir} > /dev/null
+            # initialize submodules and pull down source
+            git submodule update --init --recursive
 
-    # initialize submodules and pull down source
-    git submodule update --init --recursive
-
-    # archive and copy the submodules
-    git submodule foreach --recursive "git archive --format=tar HEAD | (cd ${dest_dir}/\${path} && tar --warning=no-timestamp -xf -)"
-    popd
+            # archive and copy the submodules
+            git submodule foreach --recursive "git archive --format=tar HEAD | (cd ${dest_dir}/\${PWD:$submodule_tmp_dir_length} && tar --warning=no-timestamp -xf -)"
+        popd > /dev/null
+    popd > /dev/null
     rm -rf ${submodule_tmp_dir}
 }
 

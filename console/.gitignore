@@ -1,3 +1,4 @@
 test/reports
 pkg
 test/coverage
+Gemfile.lock
