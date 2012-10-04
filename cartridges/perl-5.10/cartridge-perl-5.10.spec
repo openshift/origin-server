@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      cartridge-perl-5.10
-Version: 0.29.4
+Version: 0.29.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.29.5-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Fri Sep 28 2012 Adam Miller <admiller@redhat.com> 0.29.4-1
 - Fix for bugz 859565 - .dev.rhcloud.com matches foo-bardev.rhcloud.com
   (ramr@redhat.com)
