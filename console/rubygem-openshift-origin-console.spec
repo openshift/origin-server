@@ -77,17 +77,21 @@ OpenShift Origin Management Console ri documentation
 
 %build
 %{?scl:scl enable %scl - << \EOF}
+
+set -e
 mkdir -p .%{gem_dir}
 
-# Temporary BEGIN
-rm Gemfile.lock
+rm -f Gemfile.lock
 bundle install --local
-# Temporary END
+
 pushd test/rails_app/
 RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
+
 rm -rf tmp/cache/*
 echo > log/production.log
 popd
+
+rm -f Gemfile.lock
 
 # Create the gem as gem install only works on a gem file
 gem build %{gem_name}.gemspec
