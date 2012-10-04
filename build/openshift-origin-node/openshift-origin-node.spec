@@ -25,6 +25,7 @@ Requires:       mcollective-qpid-plugin
 Requires:       stickshift-mcollective-agent
 Requires:       rubygem-stickshift-node
 Requires:       stickshift-port-proxy
+Requires:       pam-openshift
 
 BuildArch:      noarch
 

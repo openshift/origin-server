@@ -3,7 +3,7 @@ Version:        1.0.1
 Release:        1%{?dist}
 Summary:        Stickshift SELinux policies
 
-License:        ASL 2.0
+License:        GPLv2
 URL:            http://openshift.redhat.com
 Source0:        %{name}-%{version}.tar.gz
 
@@ -37,7 +37,7 @@ touch /.autorelabel
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE README
+%doc COPYING README
 %{_datadir}/selinux/packages/%{name}/
 %{_datadir}/selinux/devel/include/services/*.if
 
