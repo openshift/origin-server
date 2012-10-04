@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      cartridge-haproxy-1.4
-Version: 0.16.2
+Version: 0.16.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.16.3-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Thu Sep 20 2012 Adam Miller <admiller@redhat.com> 0.16.2-1
 - Fix for bugz 851494 - Gears will be down if disable auto scaling and hot
   deploy are both triggered (ramr@redhat.com)
