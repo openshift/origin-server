@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for gearchanger-m-collective-plugin
 Name:           stickshift-mcollective-agent
-Version: 0.4.2
+Version: 0.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -50,6 +50,10 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.4.3-1
+- Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Oct 03 2012 Adam Miller <admiller@redhat.com> 0.4.2-1
 - BZ 862350: set proper file context when the yaml file is moved from /tmp to
   /etc (rmillner@redhat.com)
