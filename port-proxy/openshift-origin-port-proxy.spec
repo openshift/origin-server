@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          openshift-origin-port-proxy
-Version: 0.3.3
+Version: 0.3.4
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -87,6 +87,9 @@ fi
 %config(noreplace) %{_sysconfdir}/openshift/openshift-origin-port-proxy.cfg
 
 %changelog
+* Thu Oct 04 2012 Krishna Raman <kraman@gmail.com> 0.3.4-1
+- new package built with tito
+
 * Mon Sep 24 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
 - add license information, as requested by Fedora packages guidelines
   (mscherer@redhat.com)
