@@ -65,6 +65,8 @@
 #include <selinux/context.h>
 #include <selinux/get_default_type.h>
 
+#include <attr/attributes.h>
+
 #ifdef HAVE_LIBAUDIT
 #include <libaudit.h>
 #include <sys/select.h>
@@ -178,8 +180,25 @@ static int is_on_list(char * const *list, const char *member)
 
 static int openshift_domain(pam_handle_t *pamh, struct passwd *pw) {
 	struct group *grp;
+        char *secontext;
+        int selength;
 
 	if (!pw->pw_uid) return 0;
+
+        if (strlen(pw->pw_dir)!=0) {
+          secontext=(char *)malloc(ATTR_MAX_VALUELEN);
+          selength=ATTR_MAX_VALUELEN;
+          if (attr_get(pw->pw_dir, "selinux",
+                       secontext, &selength,
+                       ATTR_DONTFOLLOW | ATTR_SECURE) == 0) {
+            if(strncmp(secontext, "system_u:object_r:openshift_var_lib_t:s0",
+                       selength)!=0) {
+              free(secontext);
+              return 0;
+            }
+          }
+          free(secontext);
+        }
 
 	if ((grp = pam_modutil_getgrnam (pamh, "wheel")) == NULL) {
 	    grp = pam_modutil_getgrgid (pamh, 0);

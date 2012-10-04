@@ -8,7 +8,7 @@ URL:            http://www.openshift.com/
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  pam-devel libselinux-devel gcc-c++ make
+BuildRequires:  pam-devel libselinux-devel libattr-devel gcc-c++ make
 
 %description
 The Openshift PAM module configures proper SELinux context for

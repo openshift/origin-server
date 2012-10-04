@@ -17,7 +17,7 @@ override CFLAGS += -I. -I../include -D_GNU_SOURCE
 all: $(LIBSO)
 
 $(LIBSO): $(LOBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $^ -Wl,-soname,$(LIBSO),-z,defs -lselinux -lpam
+	$(CC) $(CFLAGS) $(LDFLAGS) -shared -o $@ $^ -Wl,-soname,$(LIBSO),-z,defs -lselinux -lpam -lattr
 	ln -sf $@ $(TARGET)
 
 %.o:  %.c 
