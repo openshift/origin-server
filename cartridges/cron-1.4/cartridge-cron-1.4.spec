@@ -3,7 +3,7 @@
 
 
 Name: cartridge-cron-1.4
-Version: 0.10.1
+Version: 0.10.2
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.10.2-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.10.1-1
 - bump_minor_versions for sprint 18 (admiller@redhat.com)
 
