@@ -661,18 +661,19 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   # Retrieves status for a particular dependency on all gears that host it.
   # @param [String] dependency Name of a cartridge
   def status(dependency=nil)
+    app_status = []
     reply = ResultIO.new
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
       
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
       s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        r.append gear.status(comp_inst)
+        status = gear.status(comp_inst)
+        app_status.push({"gear_id" => gear.uuid, "message" => status.resultIO.string})
       end
-      
       raise f[0][:exception] if(f.length > 0)      
     end
-    reply
+    app_status
   end
   
   # Invokes tidy for a particular dependency on all gears that host it.
