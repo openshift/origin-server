@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      cartridge-nodejs-0.6
-Version:   0.14.4
+Version:   0.14.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.14.5-1
+- Typeless gear changes (mpatel@redhat.com)
+
 * Wed Sep 26 2012 Adam Miller <admiller@redhat.com> 0.14.4-1
 - Fix for bugz 856275 - support for "local" (user workstation) development and
   test. (ramr@redhat.com)
