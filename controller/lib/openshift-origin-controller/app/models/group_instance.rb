@@ -254,6 +254,17 @@ class GroupInstance < OpenShift::Model
     new_components
   end
 
+  def recalculate_min_max
+    self.min = 1
+    self.max = -1
+    self.component_instances.each { |cname|
+      ci = self.app.comp_instance_map[cname]
+      c_comp,c_prof,c_cart = ci.get_component_definition(self.app)
+      c_group = c_prof.groups(ci.parent_cart_group)
+      self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
+    }
+  end
+
   def self.merge_min_max(min1, max1, min2, max2)
     newmin = min1>min2 ? min1 : min2
 
