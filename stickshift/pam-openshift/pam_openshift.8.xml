@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+	"http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<refentry id="pam_openshift">
+
+  <refmeta>
+    <refentrytitle>pam_openshift</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv id="pam_openshift-name">
+    <refname>pam_openshift</refname>
+    <refpurpose>PAM module to set the default security context</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis id="pam_openshift-cmdsynopsis">
+      <command>pam_openshift.so</command>
+      <arg choice="opt">
+	close
+      </arg>
+      <arg choice="opt">
+	debug
+      </arg>
+      <arg choice="opt">
+	open
+      </arg>
+      <arg choice="opt">
+	verbose
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id="pam_openshift-description">
+    <title>DESCRIPTION</title>
+    <para>
+      In a nutshell, pam_openshift sets up the default security context for the
+      next execed shell.
+    </para>
+    <para>
+      When an application opens a session using pam_openshift, the  shell  that
+      gets  executed  will  be run in the default security context.
+    </para>
+    <para>
+      Adding pam_openshift into a pam file could cause  other  pam  modules  to
+      change  their  behavior if the exec another application.  The close and
+      open option help mitigate this problem.  close option will  only  cause
+      the  close  portion  of  the pam_openshift to execute, and open will only
+      cause the open portion to run.  You can add pam_openshift to  the  config
+      file  twice.   Add  the pam_openshift close as the executes the open pass
+      through the modules,  pam_openshift open_session will happen last.
+      When PAM executes the close pass through the modules pam_openshift
+      close_session will happen first.
+    </para>
+  </refsect1>
+
+  <refsect1 id="pam_openshift-options">
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>close</option>
+        </term>
+        <listitem>
+          <para>
+            Only execute the close_session portion of the module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>debug</option>
+        </term>
+        <listitem>
+          <para>
+           Turns on debugging via
+	    <citerefentry>
+              <refentrytitle>syslog</refentrytitle><manvolnum>3</manvolnum>
+            </citerefentry>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>open</option>
+        </term>
+        <listitem>
+          <para>
+            Only execute the open_session portion of the module.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>verbose</option>
+        </term>
+        <listitem>
+          <para>
+            attempt to inform the user when security context is set.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id="pam_openshift-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      Only the <option>session</option> module type is provided.
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_openshift-return_values'>
+    <title>RETURN VALUES</title>
+    <variablelist>
+      <varlistentry>
+        <term>PAM_AUTH_ERR</term>
+        <listitem>
+          <para>
+            Unable to get or set a valid context.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_SUCCESS</term>
+        <listitem>
+          <para>
+            The security context was set successfully.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>PAM_USER_UNKNOWN</term>
+        <listitem>
+          <para>
+            The user is not known to the system.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='pam_openshift-examples'>
+    <title>EXAMPLES</title>
+    <programlisting>
+auth     required  pam_unix.so
+session  required  pam_permit.so
+session  optional  pam_openshift.so
+    </programlisting>
+  </refsect1>
+
+  <refsect1 id='pam_openshift-see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_openshift-author'>
+    <title>AUTHOR</title>
+      <para>
+        pam_openshift was written by Dan Walsh &lt;dwalsh@redhat.com&gt;.
+      </para>
+  </refsect1>
+
+</refentry>
