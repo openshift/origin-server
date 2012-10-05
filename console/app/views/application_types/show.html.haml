@@ -9,14 +9,12 @@
 
 = semantic_form_for @application do |f|
   = f.hidden_field :application_type, :value => @application_type.id
-
   - errors = @application.errors.full_messages.present?
   = f.semantic_errors :name, :domain_name, :node_profile
 
   = f.inputs do
-    = render :partial => 'application_types/application_type_config', :locals => {:form => f, :classes => 'tile', :application_type => @application_type, :advanced => @advanced, :gear_sizes => @gear_sizes}
-    = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @application}
-    
+    = render :partial => 'application_types/application_type_config', :locals => {:form => f, :classes => 'tile', :application => @application, :application_type => @application_type, :advanced => @advanced, :gear_sizes => @gear_sizes, :errors => errors}
+  
   = f.buttons do
     - if @application_type.template
       %p

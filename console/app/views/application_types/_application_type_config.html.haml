@@ -10,25 +10,46 @@
       padding: 25px;
     }
   }
+  #new_application .controls input {
+    width: 175px;
+  }
+  ul.unstyled {
+    margin-bottom: 25px;
+  }
+  @media (min-width:980px) and (max-width:1200px) {
+    #new_application .controls input {
+      width: 145px;
+    }
+  }
+  @media (min-width: 768px) and (max-width:979px) {
+    #new_application .controls input {
+      width: 80px;
+    }
+  }
 
+  
 = div_for application_type, :class => defined?(classes) ? classes : nil do
+  .clearfix
+    %h2= application_type.name
   .row-fluid
-    .span6
-      %h2= application_type.name
+    .span8 
       - if application_type.tags.include? :in_development
         .alert
           This template is development only and not accessible in production
-      - if application_type.website
-        %p= link_to application_type.website, application_type.website
-      - if application_type.description.html_safe?
+      - if application_type.description.html_safe?        
         = application_type.description
+        - if application_type.website
+          %span= link_to application_type.website, application_type.website
       - else
-        %p= application_type.description
+        %p
+          = application_type.description
+          - if application_type.website
+            %span= link_to application_type.website, application_type.website
       - if application_type.template
         = render :partial => application_type.template
       - if application_type.learn_more_url
         = link_to "Learn more", application_type.learn_more_url
-      %h6 What you get:
+      %h5 What you get?
       %ul.unstyled
         %li A public rhcloud.com domain name
         %li Web requests automatically routed to your app
@@ -45,19 +66,18 @@
             = form.hidden_field :gear_profile, :value => gear_sizes.first
             - if gear_sizes.length > 1
               = link_to 'Change', application_type_path(:advanced => true)
-    .span6
-      .row-fluid
-        .span1
-          &nbsp;
-        .span11
-          %p
-            %strong Cartridges
-            are the components of an OpenShift application, and include databases, build systems, and management capabilities. Adding a cartridge to an application provides the desired capability without forcing you to administer or update that feature.
-          %p A <strong>gear</strong> is a resource-constrained container that runs cartridges and your code.
-          -# %p
-            %strong Scaling
-            is when your app automatically uses more gears when it needs it. Turn off scaling to save money by using fewer gears.
-          %p After this step, OpenShift will allocate your gears, set up your environment, install the cartridges and your software and configure them as needed. Then, it will set up DNS so that your application is accessible worldwide. After your app is created, you can add more cartridges, set up continuousintegration, and more.
+      %fieldset.inputs
+        = render :partial => 'applications/name', :locals => {:form => form, :errors => errors, :application => application}
+    %aside.span4
+      %h5 What does it mean?
+      %p
+        %strong Cartridges
+        are the components of an OpenShift application, and include databases, build systems, and management capabilities. Adding a cartridge to an application provides the desired capability without forcing you to administer or update that feature.
+      %p A <strong>gear</strong> is a resource-constrained container that runs cartridges and your code.
+      -# %p
+        %strong Scaling
+        is when your app automatically uses more gears when it needs it. Turn off scaling to save money by using fewer gears.
+      %p After this step, OpenShift will allocate your gears, set up your environment, install the cartridges and your software and configure them as needed. Then, it will set up DNS so that your application is accessible worldwide. After your app is created, you can add more cartridges, set up continuousintegration, and more.
       -# if application_type.license
         %label License:
         - if application_type.respond_to? :license_url
