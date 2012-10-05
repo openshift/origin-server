@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 0.4.3
+Version: 0.4.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -51,6 +51,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.4.4-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.4.3-1
 - Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
 - Typeless gear changes (mpatel@redhat.com)
