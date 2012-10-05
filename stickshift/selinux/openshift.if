@@ -350,6 +350,7 @@ template(`openshift_service_domain_template',`
 	mcs_untrusted_proc($1_t)
 	domain_user_exemption_target($1_t)
 	auth_use_nsswitch($1_t)
+	domain_subj_id_change_exemption($1_t)
 	domain_obj_id_change_exemption($1_t)
 	domain_dyntrans_type($1_t)
 
