@@ -411,7 +411,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 - Updating gem versions (admiller@redhat.com)
 - fix gem version (dmcphers@redhat.com)
 - Modifed SELinux policy to allow connection to DB. (mpatel@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rpenta@redhat.com)
 - Fixes + README file for REST api version unit tests (rpenta@redhat.com)
 - Updating gem versions (admiller@redhat.com)
 - Stickshift broker Unit tests to verify REST api version compatibility
@@ -430,7 +430,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 - cleaning up spec files (dmcphers@redhat.com)
 - Updating gem versions (admiller@redhat.com)
 - fix hanging comma (dmcphers@redhat.com)
-- move crankcase mongo datastore (dmcphers@redhat.com)
+- move origin-server mongo datastore (dmcphers@redhat.com)
 
 * Sat Apr 21 2012 Krishna Raman <kraman@gmail.com> 0.6.3-1
 - new package built with tito

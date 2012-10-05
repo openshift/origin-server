@@ -7,7 +7,7 @@ Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires: git
@@ -239,7 +239,7 @@ rm -rf %{buildroot}
 - .state file in new location (jhonce@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Automatic commit of package [openshift-origin-cartridge-ruby-1.8] release [0.93.2-1].
@@ -282,7 +282,7 @@ rm -rf %{buildroot}
 - Bug 819739 (dmcphers@redhat.com)
 
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.92.5-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Some of the ctl script were not sourcing util from abstract.
   (rmillner@redhat.com)
 

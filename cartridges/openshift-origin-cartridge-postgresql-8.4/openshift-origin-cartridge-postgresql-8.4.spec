@@ -9,7 +9,7 @@ Summary: Provides embedded PostgreSQL support
 Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
@@ -197,7 +197,7 @@ rm -rf $RPM_BUILD_ROOT
 
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.8.2-1
 - Fix typo "immediately". (ramr@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (ramr@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (ramr@redhat.com)
 - Fix for bugz 813934 - immediate shutdown to close all sessions if graceful
   shutdown times out. (ramr@redhat.com)
 - remove old obsoletes (dmcphers@redhat.com)

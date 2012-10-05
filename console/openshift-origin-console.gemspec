@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{The OpenShift Origin console is a Rails engine that provides an easy-to-use interface for managing OpenShift Origin applications.}
   s.authors = ["Clayton Coleman", "Fabiano Franz", "Dan McPherson", "Matt Hicks", "Emily Dirsh", "Fotios Lindakos", 'J5']
   s.email = ['ccoleman@redhat.com', 'ffranz@redhat.com','dmcphers@redhat.com', 'mhicks@redhat.com', 'edirsh@redhat.com', 'fotios@redhat.com', 'johnp@redhat.com']
-  s.homepage = 'https://github.com/openshift/crankcase/tree/master/console'
+  s.homepage = 'https://github.com/openshift/origin-server/tree/master/console'
 
   s.files = Dir['Gemfile', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*', 'vendor/**/*']
   s.test_files = Dir['test/**/*']

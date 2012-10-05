@@ -1,7 +1,7 @@
-Openshift Origin - Crankcase
+Openshift Origin - Server Components (Console/Broker/Node)
 ============================
 
-Crankcase contains the core server components of the OpenShift service
+Origin-server contains the core server components of the OpenShift service
 released under the [OpenShift Origin source
 project](https://openshift.redhat.com/community/open-source).  The
 components in this repository are sufficient to self host an OpenShift

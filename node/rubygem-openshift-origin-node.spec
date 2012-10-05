@@ -129,7 +129,7 @@ fi
 - New mongodb-2.2 cartridge (rmillner@redhat.com)
 - Merge pull request #479 from rmillner/f17proxy (openshift+bot@redhat.com)
 - The chkconfig test no longer works on F17 and was no longer needed once port-
-  proxy moved to Crankcase (rmillner@redhat.com)
+  proxy moved to origin-server (rmillner@redhat.com)
 
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
 - Updating gem versions (admiller@redhat.com)
@@ -289,7 +289,7 @@ fi
 
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.6-1
 - Updating gem versions (admiller@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (mmcgrath@redhat.com)
 - pull in mercurial as a dep (mmcgrath@redhat.com)
 
 * Tue Jun 12 2012 Adam Miller <admiller@redhat.com> 0.12.5-1
@@ -349,7 +349,7 @@ fi
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.4-1
 - Updating gem versions (dmcphers@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - clean up comments etc (jhonce@redhat.com)
 - Automatic commit of package [rubygem-openshift-origin-node] release [0.11.2-1].

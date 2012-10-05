@@ -9,7 +9,7 @@ Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -223,7 +223,7 @@ rm -rf %{buildroot}
 - remove duplicate source (bdecoste@gmail.com)
 
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.8-1
-- Merge branch 'master' of github.com:openshift/crankcase (admiller@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (admiller@redhat.com)
 - Install initial ROOT.war into app-root during configure (dmace@redhat.com)
 
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.94.7-1
@@ -275,14 +275,14 @@ rm -rf %{buildroot}
 - Implement update-namespace hook in jbossas-7 cart (dmace@redhat.com)
 
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.93.6-1
-- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (mmcgrath@redhat.com)
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.93.5-1
 - fix standalone.xml webservices wsdlHost (bdecoste@gmail.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.93.4-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Old backups will have data directory in the wrong place.  Allow either to
   exist in the tar file and transform the location on extraction without tar

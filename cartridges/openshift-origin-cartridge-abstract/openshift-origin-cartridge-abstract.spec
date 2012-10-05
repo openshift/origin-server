@@ -110,7 +110,7 @@ rm -rf $RPM_BUILD_ROOT
 - US2747 (bdecoste@gmail.com)
 - Merge pull request #479 from rmillner/f17proxy (openshift+bot@redhat.com)
 - The chkconfig test no longer works on F17 and was no longer needed once port-
-  proxy moved to Crankcase (rmillner@redhat.com)
+  proxy moved to origin-server (rmillner@redhat.com)
 - US2747 (bdecoste@gmail.com)
 
 * Wed Sep 12 2012 Adam Miller <admiller@redhat.com> 0.17.1-1
@@ -286,8 +286,8 @@ rm -rf $RPM_BUILD_ROOT
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.4-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
-- Merge branch 'US2109' of github.com:openshift/crankcase into US2109
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
+- Merge branch 'US2109' of github.com:openshift/origin-server into US2109
   (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Undo proxy code re-introduced via merge (jhonce@redhat.com)
@@ -297,7 +297,7 @@ rm -rf $RPM_BUILD_ROOT
   spitting out an error from providing non-existent path on the command line.
   (rmillner@redhat.com)
 - Data directory moved to ~/app (rmillner@redhat.com)
-- Merge branch 'US2109' of github.com:openshift/crankcase into US2109
+- Merge branch 'US2109' of github.com:openshift/origin-server into US2109
   (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - clean up comments etc (jhonce@redhat.com)

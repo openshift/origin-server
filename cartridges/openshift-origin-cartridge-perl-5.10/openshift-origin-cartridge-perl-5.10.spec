@@ -7,7 +7,7 @@ Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -200,7 +200,7 @@ rm -rf %{buildroot}
 - disabling cgroups for deconfigure and configure events (mmcgrath@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.24.4-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Automatic commit of package [openshift-origin-cartridge-perl-5.10] release [0.24.2-1].
   (admiller@redhat.com)

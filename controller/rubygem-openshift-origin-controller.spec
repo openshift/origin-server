@@ -657,18 +657,18 @@ rm -rf %{buildroot}
 - US2307 (bdecoste@gmail.com)
 - US2307 (bdecoste@gmail.com)
 - US2307 (bdecoste@gmail.com)
-- Merge branch 'master' of https://github.com/openshift/crankcase
+- Merge branch 'master' of https://github.com/openshift/origin-server
   (bdecoste@gmail.com)
 - US2307 (bdecoste@gmail.com)
 - Merge pull request #47 from abhgupta/agupta-dev (kraman@gmail.com)
-- Merge branch 'master' of https://github.com/openshift/crankcase
+- Merge branch 'master' of https://github.com/openshift/origin-server
   (bdecoste@gmail.com)
 - US2307 (bdecoste@gmail.com)
 - changes for logging user actions to a separate log file (abhgupta@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (mmcgrath@redhat.com)
 - US2307 (bdecoste@gmail.com)
 - US2307 (bdecoste@gmail.com)
-- Merge branch 'master' of github.com:openshift/crankcase (mmcgrath@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (mmcgrath@redhat.com)
 - throw a failure when creation isn't functioning (mmcgrath@redhat.com)
 
 * Thu May 24 2012 Adam Miller <admiller@redhat.com> 0.11.10-1
@@ -684,7 +684,7 @@ rm -rf %{buildroot}
 - 
 
 * Wed May 23 2012 Adam Miller <admiller@redhat.com> 0.11.7-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Waiting on bugzilla ticket 824312 (rmillner@redhat.com)
 - [mpatel+ramr] Fix issues where app_name is not the same as gear_name - fixup
   for typeless gears. (ramr@redhat.com)
@@ -699,7 +699,7 @@ rm -rf %{buildroot}
   hitting the old limit. (rmillner@redhat.com)
 - This test relies on DNS but ignores record TTL causing false failures.
   (rmillner@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Revert "The grep should return not found since the namespace was deleted."
   (rmillner@redhat.com)
 
@@ -708,7 +708,7 @@ rm -rf %{buildroot}
   (rmillner@redhat.com)
 
 * Tue May 22 2012 Dan McPherson <dmcphers@redhat.com> 0.11.5-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
 - Merge branch 'master' into US2109 (rmillner@redhat.com)
@@ -768,7 +768,7 @@ rm -rf %{buildroot}
 - remove preconfigure and more work making tests faster (dmcphers@redhat.com)
 - better test balancing (dmcphers@redhat.com)
 - get tests running faster (dmcphers@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (rpenta@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rpenta@redhat.com)
 - Fix for bug# 812060 (rpenta@redhat.com)
 - Merge pull request #38 from markllama/ss-dns-provider (kraman@gmail.com)
 - App creation: set default node profile to 'small' if not specified
@@ -809,7 +809,7 @@ rm -rf %{buildroot}
   (dmcphers@redhat.com)
 - Adding logic to handle mysql gear. Executing domain-update hook on every
   gear. (kraman@gmail.com)
-- Merge branch 'master' of github.com:openshift/crankcase (rchopra@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rchopra@redhat.com)
 - fix for bug#820024 (rchopra@redhat.com)
 - Simplifying some reduntant code blocks (kraman@gmail.com)
 - Adding back cartridge command processing (kraman@gmail.com)
@@ -830,12 +830,12 @@ rm -rf %{buildroot}
 - adding cucumber tests for gear groups rest api (abhgupta@redhat.com)
 - additional changes for showing gear states in gear_groups rest api
   (abhgupta@redhat.com)
-- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (lnader@redhat.com)
 - minor fix in domain logging (lnader@redhat.com)
 - Merge pull request #23 from kraman/dev/kraman/bug/819443
   (dmcphers@redhat.com)
 - Bugfix 819443 (kraman@gmail.com)
-- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (lnader@redhat.com)
 - adding gear state to gear_groups rest api (abhgupta@redhat.com)
 - Merge pull request #18 from kraman/dev/kraman/bug/814444
   (dmcphers@redhat.com)
@@ -897,7 +897,7 @@ rm -rf %{buildroot}
 - cleaning up spec files (dmcphers@redhat.com)
 
 * Mon Apr 23 2012 Adam Miller <admiller@redhat.com> 0.9.8-1
-- Merge branch 'master' of github.com:openshift/crankcase (lnader@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (lnader@redhat.com)
 - Bug 814379 - invalid input being sent back to the client (lnader@redhat.com)
 - show/conceal/expose port should not act upon app components
   (rchopra@redhat.com)
@@ -906,7 +906,7 @@ rm -rf %{buildroot}
 - Enhanced cucumber jenkins build test  * rewrote tests to fail if git
   push/jenkins cartridge blocks forever  * added tests to broker tags
   (jhonce@redhat.com)
-- move crankcase mongo datastore (dmcphers@redhat.com)
+- move origin-server mongo datastore (dmcphers@redhat.com)
 
 * Sat Apr 21 2012 Dan McPherson <dmcphers@redhat.com> 0.9.7-1
 - forcing builds (dmcphers@redhat.com)

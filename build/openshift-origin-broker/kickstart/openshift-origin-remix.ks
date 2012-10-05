@@ -11,7 +11,7 @@ network --bootproto=dhcp --device=eth0
 repo --name=fedora --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-$releasever&arch=$basearch
 repo --name=updates --mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f$releasever&arch=$basearch --exclude=ruby,ruby-devel,ruby-irb,ruby-libs,ruby-rdoc,ruby-ri,ruby-static,ruby-tcltk
 repo --name=fedora-ruby --baseurl=http://mirror.openshift.com/pub/fedora-ruby/$basearch/
-repo --name=openshift-origin --baseurl=http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
+repo --name=openshift-origin --baseurl=http://mirror.openshift.com/pub/origin-server/fedora-$releasever/$basearch
 repo --name=openshift --baseurl=https://openshift.redhat.com/app/repo/rpms/$releasever/$basearch
 #ADDITIONAL REPOS
 

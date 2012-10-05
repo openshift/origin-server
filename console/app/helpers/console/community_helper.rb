@@ -40,20 +40,20 @@ module Console::CommunityHelper
     openshift_github_project_url 'rhc'
   end
 
-  def crankcase_url
-    openshift_github_project_url 'crankcase'
+  def origin_server_url
+    openshift_github_project_url 'origin-server'
   end
 
-  def crankcase_source_path_url(path)
-    "#{openshift_github_project_url('crankcase')}/tree/master/#{path}"
+  def origin_server_source_path_url(path)
+    "#{openshift_github_project_url('origin-server')}/tree/master/#{path}"
   end
 
   def cartridges_source_url
-    crankcase_source_path_url 'cartridges'
+    origin_server_source_path_url 'cartridges'
   end
 
-  def crankcase_srpm_url
-   "http://mirror.openshift.com/pub/crankcase/fedora-16/SRPMS/"
+  def origin_server_srpm_url
+   "http://mirror.openshift.com/pub/origin-server/fedora-16/SRPMS/"
   end
 
   def openshift_github_project_url(project)

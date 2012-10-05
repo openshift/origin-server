@@ -92,7 +92,7 @@ no responsibility for universe ending catastrophe).
 
 2.  Copy the contents of the OpenShift Origin console/ directory into your new application
 
-        $ cp -R crankcase/console/* console/
+        $ cp -R origin-server/console/* console/
         $ cd console
         $ git add .
         $ git commit -m "Initial source from Origin"

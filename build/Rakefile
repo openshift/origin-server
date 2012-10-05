@@ -26,7 +26,7 @@ retries = 0
 
 [openshift_origin]
 name    = openshift_origin
-baseurl = http://mirror.openshift.com/pub/crankcase/fedora-$releasever/$basearch
+baseurl = http://mirror.openshift.com/pub/origin-server/fedora-$releasever/$basearch
 gpgcheck= 0
 enabled = 1
 retries = 0
@@ -60,7 +60,7 @@ retries = 0
 
 [openshift_origin]
 name    = openshift_origin
-baseurl = http://mirror.openshift.com/pub/crankcase/rhel-6/$basearch
+baseurl = http://mirror.openshift.com/pub/origin-server/rhel-6/$basearch
 gpgcheck= 0
 enabled = 1
 retries = 0

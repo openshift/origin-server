@@ -10,7 +10,7 @@ Summary: Embedded cron support for express
 Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/crankcase/source/%{name}/%{name}-%{version}.tar.gz
+Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
@@ -132,7 +132,7 @@ rm -rf %{buildroot}
 - bumping spec versions (admiller@redhat.com)
 
 * Mon May 07 2012 Adam Miller <admiller@redhat.com> 0.6.4-1
-- Merge branch 'master' of github.com:openshift/crankcase (rmillner@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server (rmillner@redhat.com)
 - Some of the ctl script were not sourcing util from abstract.
   (rmillner@redhat.com)
 

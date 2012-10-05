@@ -16,7 +16,7 @@
   "homepage": "http://openshift.redhat.com/",
   "repository": {
     "type": "git",
-    "url": "https://gitub.com/openshift/crankcase"
+    "url": "https://gitub.com/openshift/origin-server"
   },
 
   "engines": {
