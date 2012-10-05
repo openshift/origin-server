@@ -41,6 +41,7 @@ rm -rf $RPM_BUILD_ROOT
 - Read the SELinux context of the users home directory to determine if the
   policy applies. (rmillner@redhat.com)
 - Rpmlint fixes. (rmillner@redhat.com)
+
 * Wed Oct 03 2012 Rob Millner <rmillner@redhat.com> 0.99.3-1
 - Specfile fixes (rmillner@redhat.com)
 
