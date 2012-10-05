@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.4
+Version: 0.17.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -110,6 +110,9 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.17.5-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.4-1
 - Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
 - BZ853582: Prevent user from logging in while deleting gear
