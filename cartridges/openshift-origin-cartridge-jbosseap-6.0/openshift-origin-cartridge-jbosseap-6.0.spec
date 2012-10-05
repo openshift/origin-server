@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version: 0.6.2
+Version: 0.6.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.6.3-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.6.2-1
 - Typeless gear changes (mpatel@redhat.com)
 
