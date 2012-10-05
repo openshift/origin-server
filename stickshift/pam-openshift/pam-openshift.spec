@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.4
+Version:        0.99.5
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -37,6 +37,12 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.5-1
+- Minor specfile cleanup (rmillner@redhat.com)
+- Needed to quote the optflags. (rmillner@redhat.com)
+- Add optflags from RPM for the build. (rmillner@redhat.com)
+- Obtain correct version of GPLv2 license file. (rmillner@redhat.com)
+
 * Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.4-1
 - Read the SELinux context of the users home directory to determine if the
   policy applies. (rmillner@redhat.com)
