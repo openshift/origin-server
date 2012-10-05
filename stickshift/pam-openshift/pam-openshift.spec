@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.3
+Version:        0.99.4
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -37,6 +37,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.4-1
+- Read the SELinux context of the users home directory to determine if the
+  policy applies. (rmillner@redhat.com)
+- Rpmlint fixes. (rmillner@redhat.com)
 * Wed Oct 03 2012 Rob Millner <rmillner@redhat.com> 0.99.3-1
 - Specfile fixes (rmillner@redhat.com)
 
