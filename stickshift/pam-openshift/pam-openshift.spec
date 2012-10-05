@@ -18,7 +18,7 @@ processes in a session.
 %setup -q
 
 %build
-make
+make CFLAGS=%{optflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
