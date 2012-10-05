@@ -82,7 +82,7 @@ mv %{buildroot}%{geminstdir}/misc/init/os-cgroups %{buildroot}%{_sysconfdir}/ini
 
 # Create run dir for stickshift "services"
 %if 0%{?fedora} >= 15
-mkdir -p %{buildroot}%{geminstdir}/misc/etc/tmpfiles.d
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
 mv %{buildroot}%{geminstdir}/misc/etc/tmpfiles.d/stickshift-run.conf
 %else
 mkdir -p %{buildroot}%{apprundir}
