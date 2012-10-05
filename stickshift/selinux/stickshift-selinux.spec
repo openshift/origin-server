@@ -13,8 +13,8 @@ Requires:       selinux-policy selinux-policy-targeted
 Requires:       policycoreutils-python
 
 %description
-Stickshfit SELinux policies from the master_contrib branch of
-selinux-policy at commit c2f865d.
+Stickshfit SELinux policies from the master_contrib and master
+branches of selinux-policy at commit c2f865d.
 
 git://git.fedorahosted.org/selinux-policy.git
 
