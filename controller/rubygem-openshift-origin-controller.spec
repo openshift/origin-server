@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.9
+Version: 0.17.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.17.10-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.17.9-1
 - Revert "Merge pull request #585 from pravisankar/dev/ravi/bug862086"
   (dmcphers@redhat.com)
