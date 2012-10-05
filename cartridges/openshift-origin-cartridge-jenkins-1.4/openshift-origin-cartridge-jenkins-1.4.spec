@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 0.98.4
+Version: 0.98.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.98.5-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.98.4-1
 - Typeless gear changes (mpatel@redhat.com)
 
