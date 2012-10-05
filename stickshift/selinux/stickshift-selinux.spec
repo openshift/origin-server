@@ -24,7 +24,7 @@ git://git.fedorahosted.org/selinux-policy.git
 
 %build
 make -f /usr/share/selinux/devel/Makefile
-bzip2 openshift.pp openshift-origin.pp openshift-support.pp
+bzip2 *.pp
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -36,7 +36,17 @@ install -m 644 *.if            %{buildroot}%{_datadir}/selinux/devel/include/ser
 
 %post
 semodule -i %{_datadir}/selinux/packages/%{name}/*.pp.bz2
-touch /.autorelabel
+
+%preun
+if [ $1 = 0 ]
+then
+    pkgs=()
+    for pkg in %{_datadir}/selinux/packages/%{name}/*.pp.bz2
+    do
+        pkgs=("${pkgs[@]}" `basename "$pkg" .pp.bz2`)
+    done
+    semodule -r "${pkgs[@]}"
+fi
 
 %files
 %defattr(-,root,root,-)
