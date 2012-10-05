@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 0.26.4
+Version: 0.26.5
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -85,6 +85,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.26.5-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.26.4-1
 - Typeless gear changes (mpatel@redhat.com)
 
