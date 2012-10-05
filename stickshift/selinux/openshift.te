@@ -102,6 +102,7 @@ allow openshift_domain self:msg all_msg_perms;
 allow openshift_domain self:msgq create_msgq_perms;
 allow openshift_domain self:shm create_shm_perms;
 allow openshift_domain self:sem create_sem_perms;
+dontaudit openshift_domain self:dir write;
 
 dontaudit openshift_domain self:netlink_tcpdiag_socket create;
 allow openshift_domain self:tcp_socket  create_stream_socket_perms;
@@ -142,6 +143,9 @@ files_tmp_filetrans(openshift_domain, openshift_tmp_t, { lnk_file file dir sock_
 allow openshift_domain openshift_tmp_t:dir_file_class_set { relabelfrom relabelto };
 
 allow openshift_domain openshift_log_t:file { getattr append lock ioctl };
+
+#lsof
+allow openshift_domain openshift_initrc_t:tcp_socket getattr;
 
 dontaudit openshift_domain openshift_initrc_tmp_t:file append;
 dontaudit openshift_domain openshift_var_run_t:file append;
@@ -304,6 +308,11 @@ netutils_signal_ping(openshift_t)
 
 openshift_net_type(openshift_app_t)
 openshift_net_type(openshift_t)
+
+optional_policy(`
+	postfix_rw_public_pipes(openshift_t)
+	postfix_manage_spool_maildrop_files(openshift_t)
+')
 
 ########################################
 #
