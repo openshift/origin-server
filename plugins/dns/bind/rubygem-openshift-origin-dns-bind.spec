@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.7
+Version:        0.8.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -95,6 +95,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.8.8-1
+- new package built with tito
+
 * Thu Aug 30 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.7-1
 - adding dnsruby dependency in bind plugin gemspec and spec file
   (abhgupta@redhat.com)
