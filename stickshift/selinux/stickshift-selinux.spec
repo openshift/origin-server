@@ -1,5 +1,5 @@
 Name:           stickshift-selinux
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Stickshift SELinux policies
 
@@ -45,6 +45,20 @@ touch /.autorelabel
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
+* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.2-1
+- Create new openshift-support module to carry Openshift related policies from
+  other modules. (rmillner@redhat.com)
+- Update SELinux policies to commit c2f865d (rmillner@redhat.com)
+- Fix license for selinux (rmillner@redhat.com)
+- Force relabel on next reboot after pkg install. (rmillner@redhat.com)
+- Clean up selinux specfile (rmillner@redhat.com)
+- Automatic commit of package [stickshift-selinux] release [1.0.1-1].
+  (rmillner@redhat.com)
+- Switch to openshift policies. (rmillner@redhat.com)
+- Move policy build to the build phase and do installation in %%post
+  (rmillner@redhat.com)
+
+
 * Mon Oct 01 2012 Rob Millner <rmillner@redhat.com> 1.0.1-1
 - Updated to openshift 1.0 policies
 
