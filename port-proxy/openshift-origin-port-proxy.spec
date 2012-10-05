@@ -13,7 +13,7 @@ Requires:      haproxy
 
 # OpenShift Origin node configuration and /etc/openshift
 Requires:      rubygem(openshift-origin-node)
-Obsoletes:     stickshift-port-proxy
+Obsoletes:     stickshift-proxy
 
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7

@@ -67,7 +67,7 @@ end
 gear_uuid = args['--gear-uuid']
 cart_name = args['--cart-name']
 hook_name = args['--hook-name']
-$ss_debug = true if args['--debug']
+$oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
 config = OpenShift::Config.instance

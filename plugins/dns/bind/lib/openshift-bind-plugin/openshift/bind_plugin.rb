@@ -6,7 +6,7 @@ require 'dnsruby'
 
 module OpenShift
   class BindPlugin < OpenShift::DnsService
-    @ss_dns_provider = OpenShift::BindPlugin
+    @oo_dns_provider = OpenShift::BindPlugin
 
     # DEPENDENCIES
     # Rails.application.config.ss[:domain_suffix]

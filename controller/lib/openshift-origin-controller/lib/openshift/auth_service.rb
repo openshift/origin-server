@@ -2,14 +2,14 @@ require 'digest/md5'
 
 module OpenShift
   class AuthService
-    @ss_auth_provider = OpenShift::AuthService
+    @oo_auth_provider = OpenShift::AuthService
 
     def self.provider=(provider_class)
-      @ss_auth_provider = provider_class
+      @oo_auth_provider = provider_class
     end
 
     def self.instance
-      @ss_auth_provider.new
+      @oo_auth_provider.new
     end
 
     def initialize(auth_info = nil)

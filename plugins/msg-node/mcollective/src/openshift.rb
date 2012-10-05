@@ -22,7 +22,7 @@ module MCollective
         reply[:msg] = request[:msg]
       end
 
-      def ss_app_create(cmd, args)
+      def oo_app_create(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         app_uuid = args['--with-app-uuid']
@@ -50,7 +50,7 @@ module MCollective
         end
       end
 
-      def ss_app_destroy(cmd, args)
+      def oo_app_destroy(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         app_uuid = args['--with-app-uuid']
         app_name = args['--with-app-name']
@@ -73,7 +73,7 @@ module MCollective
         end
       end
 
-      def ss_authorized_ssh_key_add(cmd, args)
+      def oo_authorized_ssh_key_add(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -94,7 +94,7 @@ module MCollective
         end
       end
 
-      def ss_authorized_ssh_key_remove(cmd, args)
+      def oo_authorized_ssh_key_remove(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -114,7 +114,7 @@ module MCollective
         end
       end
 
-      def ss_broker_auth_key_add(cmd, args)
+      def oo_broker_auth_key_add(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -134,7 +134,7 @@ module MCollective
         end
       end
 
-      def ss_broker_auth_key_remove(cmd, args)
+      def oo_broker_auth_key_remove(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -152,7 +152,7 @@ module MCollective
         end
       end
 
-      def ss_env_var_add(cmd, args)
+      def oo_env_var_add(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -172,7 +172,7 @@ module MCollective
         end
       end
 
-      def ss_env_var_remove(cmd, args)
+      def oo_env_var_remove(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         uuid = args['--with-container-uuid']
@@ -190,7 +190,7 @@ module MCollective
         end
       end
 
-      def ss_cartridge_list(cmd, args)
+      def oo_cartridge_list(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         list_descriptors = true if args['--with-descriptors']
@@ -207,7 +207,7 @@ module MCollective
         end
       end
 
-      def ss_app_state_show(cmd, args)
+      def oo_app_state_show(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
         container_uuid = args['--with-container-uuid']
@@ -225,7 +225,7 @@ module MCollective
         end
       end
 
-      def ss_get_quota(cmd, args)
+      def oo_get_quota(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         
         uuid = args['--uuid']
@@ -241,7 +241,7 @@ module MCollective
         end
       end
 
-      def ss_set_quota(cmd, args)
+      def oo_set_quota(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         
         uuid   = args['--uuid']
@@ -259,7 +259,7 @@ module MCollective
         end
       end
 
-      def ss_connector_execute(cmd, args)
+      def oo_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
         cart_name = args['--cart-name']
@@ -275,33 +275,33 @@ module MCollective
         return pid, stdin, stdout, stderr
       end
 
-      def handle_ss_cmd(action, args)
+      def handle_oo_cmd(action, args)
         cmd = "oo-#{action}"
         case action
         when "app-create"
-          rc, output = ss_app_create(cmd, args)
+          rc, output = oo_app_create(cmd, args)
         when "app-destroy"
-          rc, output = ss_app_destroy(cmd, args)
+          rc, output = oo_app_destroy(cmd, args)
         when "authorized-ssh-key-add"
-          rc, output = ss_authorized_ssh_key_add(cmd, args)
+          rc, output = oo_authorized_ssh_key_add(cmd, args)
         when "authorized-ssh-key-remove"
-          rc, output = ss_authorized_ssh_key_remove(cmd, args)
+          rc, output = oo_authorized_ssh_key_remove(cmd, args)
         when "broker-auth-key-add"
-          rc, output = ss_broker_auth_key_add(cmd, args)
+          rc, output = oo_broker_auth_key_add(cmd, args)
         when "broker-auth-key-remove"
-          rc, output = ss_broker_auth_key_remove(cmd, args)
+          rc, output = oo_broker_auth_key_remove(cmd, args)
         when "env-var-add" 
-          rc, output = ss_env_var_add(cmd, args)
+          rc, output = oo_env_var_add(cmd, args)
         when "env-var-remove" 
-          rc, output = ss_env_var_remove(cmd, args)
+          rc, output = oo_env_var_remove(cmd, args)
         when "cartridge-list"
-          rc, output = ss_cartridge_list(cmd, args)
+          rc, output = oo_cartridge_list(cmd, args)
         when "app-state-show"
-          rc, output = ss_app_state_show(cmd, args)
+          rc, output = oo_app_state_show(cmd, args)
         when "get-quota"
-          rc, output = ss_get_quota(cmd, args)
+          rc, output = oo_get_quota(cmd, args)
         when "set-quota"
-          rc, output = ss_set_quota(cmd, args)
+          rc, output = oo_set_quota(cmd, args)
         else
           return nil, nil
         end
@@ -327,9 +327,9 @@ module MCollective
         if cartridge == 'openshift-origin-node'
           cmd = "oo-#{action}"
           if action == 'connector-execute'
-            pid, stdin, stdout, stderr = ss_connector_execute(cmd, args)
+            pid, stdin, stdout, stderr = oo_connector_execute(cmd, args)
           else
-            rc, output = handle_ss_cmd(action, args)
+            rc, output = handle_oo_cmd(action, args)
             reply[:output] = output
             reply[:exitcode] = rc
             if rc == 0
@@ -492,9 +492,9 @@ module MCollective
       end
 
 
-      def handle_ss_job(parallel_job)
+      def handle_oo_job(parallel_job)
         job = parallel_job[:job]
-        rc, output = handle_ss_cmd(job[:action], job[:args])
+        rc, output = handle_oo_cmd(job[:action], job[:args])
         parallel_job[:result_exit_code] = rc
         if rc == 0
           parallel_job[:result_stdout] = output
@@ -526,7 +526,7 @@ module MCollective
           else
             begin
               if cartridge == 'openshift-origin-node' && action == 'connector-execute'
-                pid, stdin, stdout, stderr = ss_connector_execute(action, args)
+                pid, stdin, stdout, stderr = oo_connector_execute(action, args)
               else
                 pid, stdout, stderr = execute_parallel_job(cartridge, action, args)
               end
@@ -545,7 +545,7 @@ module MCollective
         inline_list.each do |parallel_job|
           in_threads << Thread.new(parallel_job) do |pj|
             begin
-              handle_ss_job(pj)
+              handle_oo_job(pj)
             rescue Exception => e
               pj[:result_exit_code] = 1
               pj[:result_stdout] = e.message

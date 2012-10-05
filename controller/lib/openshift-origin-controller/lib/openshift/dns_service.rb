@@ -1,13 +1,13 @@
 module OpenShift
   class DnsService
-    @ss_dns_provider = OpenShift::DnsService
+    @oo_dns_provider = OpenShift::DnsService
 
     def self.provider=(provider_class)
-      @ss_dns_provider = provider_class
+      @oo_dns_provider = provider_class
     end
 
     def self.instance
-      @ss_dns_provider.new
+      @oo_dns_provider.new
     end
 
     def initialize

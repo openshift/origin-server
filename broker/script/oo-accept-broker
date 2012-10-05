@@ -362,8 +362,8 @@ function check_selinux_booleans() {
 # ============================================================================
 
 function find_datastore_plugin() {
-    # OpenShift::DataStore.instance_variable_get('@ss_ds_provider')
-    get_application_value "OpenShift::DataStore.instance_variable_get('@ss_ds_provider')"
+    # OpenShift::DataStore.instance_variable_get('@oo_ds_provider')
+    get_application_value "OpenShift::DataStore.instance_variable_get('@oo_ds_provider')"
 }
 
 function check_datastore() {
@@ -531,8 +531,8 @@ function check_auth_mongo() {
 # ============================================================================
 
 function find_authentication_plugin() {
-    # OpenShift::AuthService.instance_variable_get('@ss_auth_provider')
-    get_application_value "OpenShift::AuthService.instance_variable_get('@ss_auth_provider')"
+    # OpenShift::AuthService.instance_variable_get('@oo_auth_provider')
+    get_application_value "OpenShift::AuthService.instance_variable_get('@oo_auth_provider')"
 
 }
 
@@ -564,8 +564,8 @@ function check_authentication() {
 # ============================================================================
 
 function find_dynamic_dns_plugin() {
-    # OpenShift::DnsService.instance_variable_get('@ss_dns_provider')
-    get_application_value "OpenShift::DnsService.instance_variable_get('@ss_dns_provider')"
+    # OpenShift::DnsService.instance_variable_get('@oo_dns_provider')
+    get_application_value "OpenShift::DnsService.instance_variable_get('@oo_dns_provider')"
 }
 
 function dns_bind_update_record() {

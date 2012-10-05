@@ -80,7 +80,7 @@ container_name = args['--with-container-name'] || args['--with-app-name']
 namespace = args['--with-namespace']
 skip_hooks = true if args['--skip-hooks']
 $dry_run = true if args['--dry-run']
-$ss_debug = true if args['--debug']
+$oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
 unless container_uuid

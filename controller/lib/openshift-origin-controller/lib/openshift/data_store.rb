@@ -1,13 +1,13 @@
 module OpenShift
   class DataStore
-    @ss_ds_provider = OpenShift::DataStore
+    @oo_ds_provider = OpenShift::DataStore
 
     def self.provider=(provider_class)
-      @ss_ds_provider = provider_class
+      @oo_ds_provider = provider_class
     end
 
     def self.instance
-      @ss_ds_provider.new
+      @oo_ds_provider.new
     end
 
     def find(obj_type, user_id, id)

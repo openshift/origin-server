@@ -22,7 +22,7 @@ module OpenShift
   class NodeCommandException < StandardError; end
 
   class Node < Model
-    def self.get_cartridge_list(list_descriptors = false, porcelain = false, ss_debug = false)
+    def self.get_cartridge_list(list_descriptors = false, porcelain = false, oo_debug = false)
       carts = []
 
       cartridge_path = OpenShift::Config.instance.get("CARTRIDGE_BASE_PATH")
@@ -30,16 +30,16 @@ module OpenShift
         next if [".", "..", "embedded", "abstract", "abstract-httpd"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
         begin
-          print "Loading #{cart_dir}..." if ss_debug
+          print "Loading #{cart_dir}..." if oo_debug
           carts.push OpenShift::Cartridge.new.from_descriptor(YAML.load(File.open(path)))
-          print "OK\n" if ss_debug
+          print "OK\n" if oo_debug
         rescue Exception => e
-          print "ERROR\n" if ss_debug
+          print "ERROR\n" if oo_debug
           print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
         end
       end
 
-      print "\n\n\n" if ss_debug
+      print "\n\n\n" if oo_debug
 
       output = ""
       if porcelain
@@ -65,7 +65,7 @@ module OpenShift
       output
     end
 
-    def self.get_cartridge_info(cart_name, porcelain = false, ss_debug = false)
+    def self.get_cartridge_info(cart_name, porcelain = false, oo_debug = false)
       output = ""
       cart_found = false
 
@@ -82,7 +82,7 @@ module OpenShift
             break
           end
         rescue Exception => e
-          print "ERROR\n" if ss_debug
+          print "ERROR\n" if oo_debug
           print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
         end
       end
@@ -100,7 +100,7 @@ module OpenShift
               break
             end
           rescue Exception => e
-            print "ERROR\n" if ss_debug
+            print "ERROR\n" if oo_debug
             print "#{e.message}\n#{e.backtrace.inspect}\n" unless porcelain
           end
         end
