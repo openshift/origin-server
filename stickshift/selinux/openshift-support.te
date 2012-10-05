@@ -67,6 +67,7 @@ optional_policy(`
 
 # puppet.te
 gen_require(`
+        type puppet_t;
 ')
 
 optional_policy(`
