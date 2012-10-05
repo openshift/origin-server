@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
-Version: 0.98.6
+Version: 0.98.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.98.7-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.98.6-1
 - Merge pull request #595 from mrunalp/dev/typeless (dmcphers@redhat.com)
 - Typeless gear changes (mpatel@redhat.com)
