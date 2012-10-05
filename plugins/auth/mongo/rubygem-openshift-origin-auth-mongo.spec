@@ -5,7 +5,7 @@
 
 Summary:        OpenShift Origin plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.6
+Version:        0.8.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -118,6 +118,9 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.8.7-1
+- new package built with tito
+
 * Mon Aug 20 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.6-1
 - gemspec refactorings based on Fedora packaging feedback (bleanhar@redhat.com)
 - Providing a better error message for invalid broker iv/token
