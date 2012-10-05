@@ -24,7 +24,7 @@ git://git.fedorahosted.org/selinux-policy.git
 
 %build
 make -f /usr/share/selinux/devel/Makefile
-bzip2 openshift.pp openshift-origin.pp
+bzip2 openshift.pp openshift-origin.pp openshift-support.pp
 
 %install
 rm -rf $RPM_BUILD_ROOT
