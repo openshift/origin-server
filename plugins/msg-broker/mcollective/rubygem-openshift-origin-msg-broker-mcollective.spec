@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.4.2
+Version: 0.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -103,6 +103,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.4.3-1
+- new package built with tito
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.4.2-1
 - on-prem rework of storage REST api (rchopra@redhat.com)
 
