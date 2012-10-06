@@ -177,6 +177,8 @@ class EmbCartController < BaseController
     app_id = params[:application_id]
     cartridge_name = params[:id]
     additional_storage = params[:additional_storage]
+    min_scale = params[:min_scale]
+    max_scale = params[:max_scale]
     
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
@@ -216,6 +218,30 @@ class EmbCartController < BaseController
         end
         app.save
       rescue Exception => e
+        return render_format_exception(e, "UPDATE_CARTRIDGE")
+      end             
+    end
+
+    if min_scale or max_scale
+      begin
+        storage_map.each do |group_name, component_instance_list|
+          component_instance_list.each do |cinst|
+            cinst.user_min = Integer(min_scale)
+            cinst.user_max = Integer(max_scale)
+          end
+          ginst = app.group_instance_map[group_name]
+          ginst.recalculate_min_max
+          ginst.component_instances.each { |cname|
+            g_comp = app.comp_instance_map[cname]
+            g_comp_min = g_comp.user_min.nil? ? ginst.min : g_comp.user_min
+            g_comp_max = g_comp.user_max.nil? ? ginst.max : g_comp.user_max
+            g_min, g_max = GroupInstance.merge_min_max(g_comp_min, g_comp_max, ginst.min, ginst.max)
+            ginst.min = g_min
+            ginst.max = g_max
+          }
+        end
+        app.save
+      rescue Exception=>e
         return render_format_exception(e, "UPDATE_CARTRIDGE")
       end             
     end
