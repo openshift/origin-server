@@ -23,6 +23,15 @@ git://git.fedorahosted.org/selinux-policy.git
 
 
 %build
+for sfx in fc if te
+do
+    policy="openshift-%{dist}.${sfx}"
+    if [ -f "${policy}.disabled" ]
+    then
+        ln -sf "${policy}.disabled" "${policy}"
+    fi
+done
+
 make -f /usr/share/selinux/devel/Makefile
 bzip2 *.pp
 
