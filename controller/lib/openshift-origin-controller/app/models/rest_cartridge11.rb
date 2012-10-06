@@ -6,6 +6,9 @@ class RestCartridge11 < OpenShift::Model
   def initialize(type, name, app, url, status_messages, nolinks=false)
     self.name = name
     self.type = type
+    self.scales_from = nil
+    self.scales_to = nil
+    self.scales_with = nil
     self.status_messages = status_messages
     prop_values = nil
     cart = CartridgeCache.find_cartridge(name)
@@ -84,16 +87,25 @@ class RestCartridge11 < OpenShift::Model
     if group_instance and comp_instance
       app = group_instance.app
       self.current_scale = group_instance.gears.length
-      self.scales_with = nil
-      app.embedded.each { |cart_name, cart_info|
-        cart = CartridgeCache::find_cartridge(cart_name)
-        if cart.categories.include? "scales"
-          self.scales_with = cart.name
-          break
-        end
-      }
-      self.scales_from = group_instance.min
-      self.scales_to = group_instance.max
+      if self.scales_with.nil?
+        app.embedded.each { |cart_name, cart_info|
+          cart = CartridgeCache::find_cartridge(cart_name)
+          if cart.categories.include? "scales"
+            self.scales_with = cart.name
+            break
+          end
+        }
+      end
+      if self.scales_from.nil?
+        self.scales_from = group_instance.min
+      else
+        self.scales_from = (self.scales_from < group_instance.min) ? group_instance.min : self.scales_from
+      end
+      if self.scales_to.nil?
+        self.scales_to = group_instance.max
+      else
+        self.scales_to = (self.scales_to < group_instance.max) ? group_instance.max : self.scales_to
+      end
       self.base_gear_storage = group_instance.get_cached_min_storage_in_gb
       self.additional_gear_storage = comp_instance.addtl_fs_gb
     else
