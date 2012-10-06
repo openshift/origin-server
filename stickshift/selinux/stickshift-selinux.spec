@@ -1,5 +1,5 @@
 Name:           stickshift-selinux
-Version:        1.0.2
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Stickshift SELinux policies
 
@@ -63,6 +63,15 @@ fi
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
+* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.3-1
+- The dist macro uses fc rather than just f. (rmillner@redhat.com)
+- Use openshift-backport policy instead (rmillner@redhat.com)
+- Add Fedora 17 and 16 policy support and mechanism to select them on build.
+  (rmillner@redhat.com)
+- Update description (rmillner@redhat.com)
+- Back-ported build requirements from Fedora 17 (rmillner@redhat.com)
+- Add preun and dont touch autorelabel. (rmillner@redhat.com)
+
 * Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.2-1
 - Create new openshift-support module to carry Openshift related policies from
   other modules. (rmillner@redhat.com)
