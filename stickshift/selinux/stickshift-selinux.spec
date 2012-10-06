@@ -25,10 +25,9 @@ git://git.fedorahosted.org/selinux-policy.git
 %build
 for sfx in fc if te
 do
-    policy="openshift-%{dist}.${sfx}"
-    if [ -f "${policy}.disabled" ]
+    if [ -f "openshift-backport%{dist}.${sfx}.disabled" ]
     then
-        ln -sf "${policy}.disabled" "${policy}"
+        ln -sf "openshift-backport%{dist}.${sfx}.disabled" "openshift-backport.${sfx}"
     fi
 done
 
