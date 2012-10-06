@@ -1,4 +1,4 @@
-Name:           selinux-policy-openshift-origin
+Name:           openshift-origin-selinux
 Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Openshift Origin SELinux policies
