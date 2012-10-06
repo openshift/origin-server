@@ -1,5 +1,5 @@
 Name:           openshift-origin-selinux
-Version:        1.0.3
+Version:        1.0.4
 Release:        1%{?dist}
 Summary:        Openshift Origin SELinux policies
 
@@ -63,6 +63,9 @@ fi
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
+* Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.4-1
+- Rename to origin-server-selinux
+
 * Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.3-1
 - The dist macro uses fc rather than just f. (rmillner@redhat.com)
 - Use openshift-backport policy instead (rmillner@redhat.com)
