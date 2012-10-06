@@ -1,7 +1,7 @@
-Name:           stickshift-selinux
+Name:           selinux-policy-openshift-origin
 Version:        1.0.3
 Release:        1%{?dist}
-Summary:        Stickshift SELinux policies
+Summary:        Openshift Origin SELinux policies
 
 License:        GPLv2
 URL:            http://openshift.redhat.com
@@ -13,7 +13,7 @@ Requires:       selinux-policy selinux-policy-targeted
 Requires:       policycoreutils-python
 
 %description
-Stickshfit SELinux policies from the master_contrib and master
+Openshift Origin SELinux policies from the master_contrib and master
 branches of selinux-policy at commit c2f865d.
 
 git://git.fedorahosted.org/selinux-policy.git
