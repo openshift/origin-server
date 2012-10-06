@@ -837,7 +837,7 @@ function observe_setup_env_uservars_dir {
 
 function setup_user_vars {
     uid=$(id -u "$uuid")
-    mcs_level=`ss-get-mcs-level $uid`
+    mcs_level=`oo-get-mcs-level $uid`
     export mcs_level
 }
 
