@@ -10,7 +10,6 @@ Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-
 
 Requires:       oddjob
 Requires:       rubygem-openshift-origin-node
-BuildRequires:  rubygem-openshift-origin-node
 BuildArch:      noarch
 
 %description
@@ -51,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc
 %attr(0750,-,-) %{_bindir}/oo-idler
 %attr(0750,-,-) %{_bindir}/oo-restorer
+%attr(0750,-,-) %{_bindir}/oo-setup-node
 %attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %doc LICENSE

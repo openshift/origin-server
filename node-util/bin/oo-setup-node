@@ -45,7 +45,7 @@ oo-setup-node: Configure node hostname and broker IP
 USAGE
 end
 
-require 'stickshift-node'
+require 'openshift-origin-node'
 opts = GetoptLong.new(
     ["--external-ip",           "--eip", GetoptLong::OPTIONAL_ARGUMENT],
     ["--external-gw",           "--egw", GetoptLong::OPTIONAL_ARGUMENT],
@@ -203,23 +203,23 @@ system "service NetworkManager restart && sleep 5" if use_nm
 
 ### End network setup
 
-system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^CLOUD_DOMAIN=.*$/CLOUD_DOMAIN=#{node_domain}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^(# )?EXTERNAL_ETH_DEV=.*$/EXTERNAL_ETH_DEV=#{ext_eth_device}/' /etc/stickshift/stickshift-node.conf"
-system "perl -p -i -e 's/^(# )?INTERNAL_ETH_DEV=.*$/INTERNAL_ETH_DEV=#{int_eth_device}/' /etc/stickshift/stickshift-node.conf"
+system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/openshift/node.conf"
+system "perl -p -i -e 's/^CLOUD_DOMAIN=.*$/CLOUD_DOMAIN=#{node_domain}/' /etc/openshift/node.conf"
+system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/openshift/node.conf"
+system "perl -p -i -e 's/^(# )?EXTERNAL_ETH_DEV=.*$/EXTERNAL_ETH_DEV=#{ext_eth_device}/' /etc/openshift/node.conf"
+system "perl -p -i -e 's/^(# )?INTERNAL_ETH_DEV=.*$/INTERNAL_ETH_DEV=#{int_eth_device}/' /etc/openshift/node.conf"
 
 system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
 system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/client.cfg"
 system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/server.cfg"
 
 # Restore SELinux default security contexts.
-system "/sbin/restorecon /var/lib/stickshift || :"
-system "/sbin/restorecon /var/lib/stickshift/.httpd.d/ || :"
+system "/sbin/restorecon /var/lib/openshift || :"
+system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
 
-config_lines = File.open('/etc/stickshift/stickshift-node.conf').readlines
-File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
+config_lines = File.open('/etc/openshift/node.conf').readlines
+File.open('/etc/openshift/node.conf','w') do |f|
   config_lines.each do |line|
     if line.start_with? "BROKER_HOST"
       f.write("BROKER_HOST=\"#{broker_ip}\"\n")
@@ -229,13 +229,15 @@ File.open('/etc/stickshift/stickshift-node.conf','w') do |f|
   end
 end
 
-system "chkconfig stickshift-proxy on"
+system "chkconfig openshift-port-proxy on"
 system "hostname #{node_hostname}.#{node_domain}"
-system "/etc/cron.minutely/stickshift-facts"
+system "/etc/cron.minutely/openshift-facts"
 system "service crond restart"
 system "service mcollective restart"
-system "service stickshift-proxy restart"
-system "systemctl enable stickshift-gears.service"
+system "service openshift-port-proxy restart"
+system "chkconfig openshift-gears on"
+system "systemctl enable openshift-gears.service"
+system "service openshift-gears start"
 system "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
 
 print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"

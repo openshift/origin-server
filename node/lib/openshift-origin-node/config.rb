@@ -14,7 +14,6 @@
 # limitations under the License.
 #++
 
-
 require 'rubygems'
 require 'singleton'
 require 'parseconfig'

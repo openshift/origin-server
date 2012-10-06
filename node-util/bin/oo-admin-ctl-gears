@@ -1,3 +1,4 @@
+#!/bin/bash
 source /etc/rc.d/init.d/functions
 source /usr/libexec/openshift/cartridges/abstract/info/lib/util 
 
@@ -133,7 +134,7 @@ function stopgear() {
     log_info "Stopping $1..."
     echo "Stopping $1..." >> $OUTFILE 2>&1
     (
-      APP_HOME=$(homedir $1)
+      APP_HOME=/var/lib/openshift/$1
       for component in $(get_stop_order)
       do
         stopcart $1 $component >>$OUTFILE 2>&1

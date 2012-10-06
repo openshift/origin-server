@@ -7,7 +7,7 @@ class MongoDataStoreTest < ActiveSupport::TestCase
     super
 
     #setup test user auth on the mongo db
-    system "/usr/bin/mongo localhost/openshift_origin_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
+    system "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")' 2>&1 > /dev/null"
   end
 
   test "create and find cloud user" do
