@@ -123,7 +123,7 @@ task :build_setup do
      lines = File.open(spec, "r").readlines.delete_if{ |line| !line.match(/^Requires: /) }.map!{ |req| req.split(/:/)[-1].gsub(/[=><%{}]*/, '') }
   end
   packages.flatten!
-  packages.delete_if { |req| req.match(/stickshift|cartridge|swingshift|gearchanger|uplift/) }
+  packages.delete_if { |req| req.match(/stickshift|openshift|cartridge|swingshift|gearchanger|uplift/) }
   packages = packages.join(" ").gsub("\n","").gsub("(","-").gsub(")","")
   sudo "yum install -y --skip-broken #{packages}"
 end
