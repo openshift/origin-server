@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# openshift-gears This shell script starts OpenShift services
+#
+# chkconfig:    345 90 01
+#
+# description:  Start local OpenShift services
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+case "$1" in
+  start)
+    /usr/bin/oo-admin-ctl-gears startall
+    ;;
+  stop)
+    /usr/bin/oo-admin-ctl-gears stopall
+    ;;
+  restart|force-reload)
+    /usr/bin/oo-admin-ctl-gears restartall
+    ;;
+  reload)
+    ;;
+  condrestart)
+    /usr/bin/oo-admin-ctl-gears condrestartall
+    ;;
+  waited-start)
+    /usr/bin/oo-admin-ctl-gears waited-startall
+    ;;
+  status)
+    /usr/bin/oo-admin-ctl-gears status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
+    exit 1
+esac
+
+exit $RETVAL
