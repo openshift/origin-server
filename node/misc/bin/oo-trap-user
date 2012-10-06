@@ -62,7 +62,7 @@ def read_env_vars():
         os.putenv(env, env_var)
 
 def get_mcs_level(uid):
-    cmd = "ss-get-mcs-level %s" % uid
+    cmd = "oo-get-mcs-level %s" % uid
     ret = commands.getstatusoutput(cmd)
     return ret[1]
 
