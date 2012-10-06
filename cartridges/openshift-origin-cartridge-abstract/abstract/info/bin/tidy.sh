@@ -31,5 +31,5 @@ for tmpdir in `awk 'BEGIN {
                            print ENVIRON[a] }'`
 do
     client_message "Emptying tmp dir: ${tmpdir}"
-    rm -rf ${tmpdir}* ${tmpdir}.[^.]*
+    rm -rf ${tmpdir}* ${tmpdir}.[^.]* 2>/dev/null || :
 done
