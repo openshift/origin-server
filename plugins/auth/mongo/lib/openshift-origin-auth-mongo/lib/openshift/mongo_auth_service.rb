@@ -2,8 +2,8 @@ require 'rubygems'
 require 'openshift-origin-controller'
 require 'date'
 
-module Swingshift
-  class MongoAuthService < OpenShift Origin::AuthService
+module OpenShift
+  class MongoAuthService < OpenShift::AuthService
   
     def initialize(auth_info = nil)
       super
@@ -50,13 +50,13 @@ module Swingshift
       if params['broker_auth_key'] && params['broker_auth_iv']
         validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
       else
-        raise OpenShift Origin::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
+        raise OpenShift::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
         encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
         hash = db.collection(@collection).find_one({"_id" => login})
         if hash && !hash.empty? && (hash["password"] == encoded_password)
           return {:username => login, :auth_method => :login}
         else
-          raise OpenShift Origin::AccessDeniedException
+          raise OpenShift::AccessDeniedException
         end
       end
     end

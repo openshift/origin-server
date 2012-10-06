@@ -7,7 +7,7 @@ class AccountController < BaseController
     password = params[:password]
     
     auth_config = Rails.application.config.auth
-    auth_service = Swingshift::MongoAuthService.new(auth_config)
+    auth_service = OpenShift::MongoAuthService.new(auth_config)
     
     Rails.logger.debug "username = #{username}, password = #{password}"
     
