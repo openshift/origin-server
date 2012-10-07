@@ -23,7 +23,7 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-setup-node: Configure node hostname and broker IP
+oo-setup-node: Configure node hostname and broker IP
   This command must be run as root.
 
 == List of arguments
