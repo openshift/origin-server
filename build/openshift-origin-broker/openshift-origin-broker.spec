@@ -140,10 +140,10 @@ mkdir -p %{buildroot}/etc/stickshift
 mkdir -p %{buildroot}/var/www/html
 cp doc/getting_started.html %{buildroot}/var/www/html
 
-mv bin/ss-register-dns %{buildroot}%{_bindir}
-mv bin/ss-setup-broker %{buildroot}%{_bindir}
+mv bin/oo-register-dns %{buildroot}%{_bindir}
+mv bin/oo-setup-broker %{buildroot}%{_bindir}
 mv bin/complete-origin-setup %{buildroot}%{_bindir}
-mv bin/ss-setup-bind %{buildroot}/usr/libexec/openshift-origin-broker/bin
+mv bin/oo-setup-bind %{buildroot}/usr/libexec/openshift-origin-broker/bin
 %clean
 rm -rf %{buildroot}                                
 
@@ -151,10 +151,10 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /etc/skel
 %attr(0555,apache,apache) /var/www/html
-%attr(0700,-,-) /usr/bin/ss-register-dns
-%attr(0700,-,-) /usr/bin/ss-setup-broker
+%attr(0700,-,-) /usr/bin/oo-register-dns
+%attr(0700,-,-) /usr/bin/oo-setup-broker
 %attr(0700,-,-) /usr/bin/complete-origin-setup
-%attr(0700,-,-) /usr/libexec/openshift-origin-broker/bin/ss-setup-bind
+%attr(0700,-,-) /usr/libexec/openshift-origin-broker/bin/oo-setup-bind
 
 %changelog
 * Tue Aug 21 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.3-1

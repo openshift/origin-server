@@ -55,7 +55,7 @@ cd /var/www/stickshift/broker
 bundle install
 
 echo "Static broker setup" >> /var/log/openshift-init-setup
-/usr/bin/ss-setup-broker --livecd --static-dns 8.8.8.8,8.8.4.4 | tee -a /var/log/openshift-init-setup
+/usr/bin/oo-setup-broker --livecd --static-dns 8.8.8.8,8.8.4.4 | tee -a /var/log/openshift-init-setup
 echo "Runtime broker setup" >> /var/log/openshift-init-setup
 
 cat <<EOF > /etc/skel/.config/autostart/xhost.desktop
