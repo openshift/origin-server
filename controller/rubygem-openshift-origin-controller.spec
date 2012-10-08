@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.11
+Version: 0.17.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.17.12-1
+- Merge pull request #607 from brenton/streamline_auth_misc1-rebase
+  (openshift+bot@redhat.com)
+- Minor refactoring needed to work with the hosted service
+  (bleanhar@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.11-1
 - fix obsoletes (dmcphers@redhat.com)
 - set scaling info for each cart - on-prem rework (rchopra@redhat.com)
