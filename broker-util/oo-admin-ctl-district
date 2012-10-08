@@ -188,7 +188,7 @@ WARNING
     district = get_district(uuid, name)
     append_district(district, reply.resultIO)
   end
-rescue OpenShift::SSException => e
+rescue OpenShift::OOException => e
   reply.errorIO << e.message
 end
 

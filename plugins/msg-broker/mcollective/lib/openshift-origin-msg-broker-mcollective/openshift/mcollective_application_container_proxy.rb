@@ -136,7 +136,7 @@ module OpenShift
           end
           if district_uuid && district_uuid != 'NONE'
             reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
-            raise OpenShift::SSException.new("uid could not be reserved") unless reserved_uid
+            raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
           end
         end
         reserved_uid
