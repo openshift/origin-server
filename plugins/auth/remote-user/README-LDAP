@@ -1,0 +1,25 @@
+#You can setup an ldap server by doing the following:
+
+#install openldap
+yum install openldap*
+
+#stop the ldap service if it's running
+service slapd stop
+
+#import the user ldiff
+slapadd -l ldap-user-sample.ldiff
+
+#change the ownership of /var/lib/ldap
+chown -R ldap.ldap /var/lib/ldap
+
+#start the ldap service
+service slapd start
+
+
+#Now that the ldap service is running, rename the sample httpd configuration file:
+mv openshift-origin-auth-remote-user-ldap.sample openshift-origin-auth-remote-user-ldap.conf
+
+#Change the AuthLDAPURL hostname to reflect the actual hostname or IP address of your ldap server
+#Restart the OpenShift Broker
+
+service openshift-broker restart

@@ -1,0 +1,35 @@
+dn: dc=my-domain,dc=com
+dc: my-domain
+objectClass: top
+objectClass: domain
+
+dn: ou=People,dc=my-domain,dc=com
+ou: People
+objectClass: organizationalUnit
+structuralObjectClass: organizationalUnit
+entryUUID: df6192a0-68ed-1030-9e52-15d309d53dfb
+creatorsName: cn=Manager,dc=my-domain,dc=com
+createTimestamp: 20110901135602Z
+entryCSN: 20110901135602.136268Z#000000#000#000000
+modifiersName: cn=Manager,dc=my-domain,dc=com
+modifyTimestamp: 20110901135602Z
+
+dn: uid=admin,ou=People,dc=my-domain,dc=com
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Firstname Lastname
+uid: admin
+uidNumber: 3000
+gidNumber: 3000
+homeDirectory: /home/adminhomedir
+loginShell: /bin/bash
+userPassword: password
+structuralObjectClass: account
+entryUUID: c0c1a9ac-6c08-1030-98d4-2d6b3a6d97ae
+creatorsName: cn=Manager,dc=my-domain,dc=com
+createTimestamp: 20110905124600Z
+entryCSN: 20110905124600.656658Z#000000#000#000000
+modifiersName: cn=Manager,dc=my-domain,dc=com
+modifyTimestamp: 20110905124600Z
