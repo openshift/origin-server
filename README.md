@@ -19,6 +19,9 @@ the system can operate many nodes at any one time.
 *   __Broker__
     Central service exposing a REST API for consumers and coordinating
 with each node.
+*   __Console__
+    Web management console using the REST API to allow users to easily 
+create and manage applications.
 *   __Messaging System__
     Communication pipeline between the broker and each node.
 *   __User Authentication__
