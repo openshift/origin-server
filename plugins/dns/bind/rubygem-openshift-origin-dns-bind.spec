@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.8
+Version:        0.8.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -95,6 +95,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.8.9-1
+- Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.8.8-1
 - new package built with tito
 
