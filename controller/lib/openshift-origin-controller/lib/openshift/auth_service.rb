@@ -24,6 +24,8 @@ module OpenShift
       @privkeyfile    = @auth_info[:privkeyfile]
       @privkeypass    = @auth_info[:privkeypass]
       @pubkeyfile     = @auth_info[:pubkeyfile]
+
+      @token_login_key = @auth_info[:token_login_key] || :login
     end
 
     # Be careful overriding this method in a subclass.  Doing so incorrectly
@@ -34,7 +36,7 @@ module OpenShift
       cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
       cipher.iv = iv = cipher.random_iv
       token = {:app_name => app.name,
-               :login => app.user.login,
+               @token_login_key => app.user.login,
                :creation_time => app.creation_time}
       encrypted_token = cipher.update(token.to_json)
       encrypted_token << cipher.final
@@ -69,7 +71,7 @@ module OpenShift
       end
 
       token = JSON.parse(json_token)
-      username = token['login']
+      username = token[@token_login_key.to_s]
       app_name = token['app_name']
       creation_time = token['creation_time']
 
