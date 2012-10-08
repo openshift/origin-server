@@ -49,6 +49,9 @@ Using a text editor create a file ~/.openshift/api.yml and give it the
 following contents:
 
     url: https://<origin_server>/broker/rest
+    suffix: <origin_suffix>
+
+The suffix is the DNS suffix used for applications, and defaults to rhcloud.com. 
 
 Now set the environment variable CONSOLE_API_MODE=external so the
 console knows it should point to that external server.
