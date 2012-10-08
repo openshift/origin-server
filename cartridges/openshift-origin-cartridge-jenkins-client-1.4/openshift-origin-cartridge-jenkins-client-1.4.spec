@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
 Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 0.33.5
+Version: 0.33.6
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -64,6 +64,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.33.6-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.33.5-1
 - new package built with tito
 
