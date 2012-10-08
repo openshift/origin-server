@@ -10,7 +10,7 @@ do
 done
 
 cartridge_type="jenkins-1.4"
-cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_dir
+cartridge_dir=$OPENSHIFT_HOMEDIR/$cartridge_type
 
 translate_env_vars
 
