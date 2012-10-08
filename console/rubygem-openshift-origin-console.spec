@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.6
+Version:        0.0.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,23 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.0.7-1
+- Merge pull request #601 from smarterclayton/production_assets_broken
+  (openshift+bot@redhat.com)
+- Merge pull request #577 from smarterclayton/noise_image_too_large
+  (openshift+bot@redhat.com)
+- Merge pull request #545 from DanAnkers/master (openshift+bot@redhat.com)
+- US2912 - Site should be able to subclass and change view generation to be
+  specific. (ccoleman@redhat.com)
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+- Rename pass 3: Manual fixes (kraman@gmail.com)
+- Ensure static assets are compired and digests are enabled for production mode
+  console. (ccoleman@redhat.com)
+- Ensure Gemfile.lock is removed post install and its absence doesn't delete
+  the file. (ccoleman@redhat.com)
+- Allow downstream consumers to override variables easily (ccoleman@redhat.com)
+- Update console/README.md (md1clv@md1clv.com)
+
 * Thu Oct 04 2012 Adam Miller <admiller@redhat.com> 0.0.6-1
 - add Gemfile.lock to .gitignore (dmcphers@redhat.com)
 
