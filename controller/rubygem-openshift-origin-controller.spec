@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.10
+Version: 0.17.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.11-1
+- fix obsoletes (dmcphers@redhat.com)
+- set scaling info for each cart - on-prem rework (rchopra@redhat.com)
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+- Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.17.10-1
 - new package built with tito
 
