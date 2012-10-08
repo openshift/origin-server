@@ -31,6 +31,9 @@ commands_map = {
     "post_deploy.sh": "/bin/bash"
 }
 
+# used to remove comments from config files
+comment_re = re.compile("#.*$")
+
 #
 # Read in uservars variables.
 #
@@ -68,13 +71,60 @@ def read_config():
   f.close()
   lines = data.split("\n")
   for line in lines:
-    if line != "":
-      split_line = line.split("=")
-      value = re.sub(r"[ \t]*#[^\n]*", "", split_line[1]).strip('\'"')     #bash comments
+    clean_line = comment_re.sub("", line) # remove comments
+    clean_line = clean_line.strip() # remove leading and trailing white space
+    if clean_line != "":
+      split_line = clean_line.split("=")
+      if len(split_line) != 2:
+          syslog.syslog("node config error: %s" % (line))
+          sys.stderr.write("Error in node configuration")
+          sys.exit(2)  # need to set the proper exit code
+      value = split_line[1].strip('\'"') # remove quotes from value strings
       config[split_line[0]] = value
   return config
 
+#
+# Join the user's cgroup if available
+#
+def join_cgroup():
+    """
+    Determine a user's cgroup and join it if possible
+    """
+
+    username = pwd.getpwuid(os.getuid())[0]
+    pid = os.getpid()
+
+    # this should come from /etc/openshift/node.conf:OPENSHIFT_CGROUP_ROOT
+    cgroup_root = "/cgroup/all/openshift"
+    cgroup_user = os.path.join(cgroup_root, username)
+    cgroup_tasks = os.path.join(cgroup_user, "tasks")
+
+    syslog.syslog("user %s: putting process %d in cgroup %s" % (username, pid, cgroup_root))
+
+    if not os.path.isdir(cgroup_root):
+        # raise an exception
+        return
+
+    if not os.path.isdir(cgroup_user):
+        # raise an exception
+        return
+
+    if not os.path.isfile(cgroup_tasks):
+        # raise an exception
+        return 
+
+    # try:
+    taskfile = open(cgroup_tasks, 'w')
+    taskfile.write(str(pid) + "\n")
+    taskfile.flush()
+    taskfile.close()
+    # except IOError, e:
+    #    write "can't join cgroup" message
+
+
+
 if __name__ == '__main__':
+    join_cgroup()
     read_env_vars()
     config = read_config()
 
@@ -158,8 +208,8 @@ if __name__ == '__main__':
         # replace leading tilde (~) with user's home path
         realpath = os.path.expanduser(thearg)
         if not realpath.startswith(config['GEAR_BASE_DIR']):
-            syslog.syslog("Invalid repository: not in openshift_root - %s: (%s)" %
-                          (thearg, realpath))
+            syslog.syslog("Invalid repository: not in openshift_root (%s) - %s: (%s)" %
+                          (config['GEAR_BASE_DIR'], thearg, realpath))
             print "Invalid repository %s: not in application root" % thearg
             sys.exit(3)
 
