@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.5
+Version: 0.17.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -110,6 +110,16 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.7-1
+- fix obsoletes (dmcphers@redhat.com)
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+- Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
+
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com>
+- fix obsoletes (dmcphers@redhat.com)
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+- Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.17.5-1
 - new package built with tito
 
