@@ -5,7 +5,7 @@
 
 Summary:        OpenShift Origin plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.7
+Version:        0.8.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -118,6 +118,9 @@ echo "auth[:mongo_collection]        - Collection name to store user login/passw
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.8.8-1
+- 
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.8.7-1
 - new package built with tito
 
