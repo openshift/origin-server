@@ -40,7 +40,7 @@ source ${CART_INFO_DIR}/lib/util
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_HOMEDIR"
 
-databases=$(get_attached_databases)
+databases=$(get_local_databases)
 if [ -n "$databases" ]; then
     client_error "Only 1 embedded database permitted - application currently has '$databases'"
     exit 133

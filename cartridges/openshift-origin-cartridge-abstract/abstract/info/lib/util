@@ -217,11 +217,23 @@ function get_installed_databases {
     (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.2,mysql-5.1,postgresql-8.4} 2>/dev/null)
 }
 
+function get_local_databases {
+    dbs=$( (
+        cd $CARTRIDGE_BASE_PATH
+        for e in $(ls -1 $OPENSHIFT_HOMEDIR/.env/OPENSHIFT_*_DB_URL 2>/dev/null \
+                   |sed -e 's/.*OPENSHIFT_\(.*\)_DB_URL/\1/' |tr '[A-Z]' '[a-z]' |sort -u)
+        do
+          ls -d $e*
+        done
+    ) )
+    echo "${dbs[@]}"
+}
+
 # Has a database been attached the this gear?
 function get_attached_databases {
     dbs=$( (
         cd $CARTRIDGE_BASE_PATH
-        for e in $(ls -1 $OPENSHIFT_HOMEDIR/.env/OPENSHIFT_*_DB_URL 2>/dev/null \
+        for e in $(ls -1 $OPENSHIFT_HOMEDIR/.env/OPENSHIFT_*_DB_URL $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_*_DB_URL 2>/dev/null \
                    |sed -e 's/.*OPENSHIFT_\(.*\)_DB_URL/\1/' |tr '[A-Z]' '[a-z]' |sort -u)
         do
           ls -d $e*
