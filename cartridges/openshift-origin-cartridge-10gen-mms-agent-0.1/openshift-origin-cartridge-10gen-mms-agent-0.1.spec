@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.15.4
+Version: 1.15.5
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 1.15.5-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 1.15.4-1
 - new package built with tito
 
