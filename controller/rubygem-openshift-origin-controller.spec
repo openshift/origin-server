@@ -27,7 +27,7 @@ Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(open4)
 Requires:       rubygem(rcov)
 Requires:       rubygem(dnsruby)
-Obsoletes: 	stickshift-controller
+Obsoletes: 	rubygem-stickshift-controller
 
 BuildRequires:  ruby
 BuildRequires:  rubygems

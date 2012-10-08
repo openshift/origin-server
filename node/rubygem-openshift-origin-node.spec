@@ -23,7 +23,7 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
-Obsoletes: 	stickshift-node
+Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby
 BuildRequires:  rubygems

@@ -29,7 +29,7 @@ Provides:       rubygem(%{gemname}) = %version
 Summary:        Cloud Development Common Library
 Requires:       rubygem(%{gemname}) = %version
 Provides:       ruby(%{gemname}) = %version
-Obsoletes: 	stickshift-common
+Obsoletes: 	rubygem-stickshift-common
 
 %description
 This contains the Cloud Development Common packaged as a rubygem.
