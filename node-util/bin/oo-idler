@@ -113,7 +113,7 @@ if `is_idled "$uuid"` || `is_stopped "$uuid"` ; then
     exit 0 # app is already idled or stopped, nothing to do
 fi
 
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/$CONF_FILE`
+HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
 sed -i "s/ ProxyPass/ #ProxyPass/g" $HTTP_DIR/*.conf
 
 
