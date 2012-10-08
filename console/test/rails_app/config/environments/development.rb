@@ -32,6 +32,7 @@ RailsApp::Application.configure do
 
   config.sass.style = :nested
   config.sass.line_comments = true
+  config.sass.relative_assets = true
 
   Console.configure do |config|
     config.api = :external
