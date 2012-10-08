@@ -3,6 +3,7 @@
 %global gemname openshift-origin-node
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 %define appdir %{_localstatedir}/lib/openshift
+%define apprundir %{_localstatedir}/run/openshift
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
@@ -56,7 +57,9 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
+mkdir -p %{buildroot}%{_sysconfdir}/init.d
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/openshift
+mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -75,8 +78,24 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
-rm -rf %{buildroot}%{geminstdir}/misc
+
+mv %{buildroot}%{geminstdir}/misc/init/oo-cgroups %{buildroot}%{_sysconfdir}/init.d/oo-cgroups
+
+# Create run dir for openshift "services"
+%if 0%{?fedora} >= 15
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+mv %{buildroot}%{geminstdir}/misc/etc/tmpfiles.d/openshift-run.conf %{buildroot}%{_sysconfdir}/tmpfiles.d
+%else
+mkdir -p %{buildroot}%{apprundir}
+%endif
+
+# place an example file
+mv %{buildroot}%{geminstdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
+
 mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+
+# Don't install or package what's left in the misc directory
+rm -rf %{buildroot}%{geminstdir}/misc
 
 %clean
 rm -rf %{buildroot}                                
@@ -95,6 +114,18 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{_var}/lib/openshift
+
+%attr(0755,-,0)	%{_sysconfdir}/init.d/oo-cgroups
+
+%if 0%{?fedora} >= 15
+%{_sysconfdir}/tmpfiles.d/openshift-run.conf
+%else
+# upstart files
+%attr(0755,-,-) %{_var}/run/openshift
+%endif
+
+# save the example cgconfig.conf
+%doc %{_docdir}/%{name}-%{version}
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
