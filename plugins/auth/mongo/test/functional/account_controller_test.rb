@@ -4,7 +4,7 @@ class AccountControllerTest < ActionController::TestCase
   #tests AccountController
   
   def setup
-    @auth_service = Swingshift::MongoAuthService.new
+    @auth_service = OpenShift::MongoAuthService.new
     collection_name = Rails.application.config.auth[:mongo_collection]
     @collection = @auth_service.db.collection(collection_name)
     @collection.remove

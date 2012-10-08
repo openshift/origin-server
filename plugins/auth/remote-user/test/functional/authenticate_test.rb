@@ -3,7 +3,7 @@ require 'test_helper'
 class RemoteUserAuthServiceTest < ActionController::TestCase
 
   def setup
-    @auth_service = Swingshift::RemoteUserAuthService.new
+    @auth_service = OpenShift::RemoteUserAuthService.new
 
     @request.env["Accept"] = "application/json"
   end
@@ -16,7 +16,7 @@ class RemoteUserAuthServiceTest < ActionController::TestCase
   end
 
   def test_authenticate_failure
-    assert_raise OpenShift Origin::AccessDeniedException do
+    assert_raise OpenShift::AccessDeniedException do
       data = @auth_service.authenticate(@request, "foo", "bar")
     end
   end
