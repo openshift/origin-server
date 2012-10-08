@@ -27,12 +27,15 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 cp bin/oo-* %{buildroot}%{_bindir}/
 
+mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
+mkdir -p %{buildroot}/%{_localstatedir}/www/html/
 
 cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
-cp scripts/restorer.php %{buildroot}/%{_localstatedir}/www/html/
+cp etc/httpd/conf.d/000000_default.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -50,11 +53,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %{_localstatedir}/www/html/restorer.php
 %attr(0750,root,root) %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_default.conf
-
-/sbin/chkconfig oddjobd on
-/sbin/service messagebus restart
-/sbin/service oddjobd restart
-
 
 %post
 /sbin/chkconfig oddjobd on
