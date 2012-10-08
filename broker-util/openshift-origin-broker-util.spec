@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        0.0.5
+Version:        0.0.6
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -39,6 +39,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.6-1
+- Bug 864005 (dmcphers@redhat.com)
+- Bug: 861346 - fixing ss-admin-ctl-domain script (abhgupta@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.0.5-1
 - Rename pass 3: Manual fixes (kraman@gmail.com)
 - Rename pass 1: files, directories (kraman@gmail.com)
