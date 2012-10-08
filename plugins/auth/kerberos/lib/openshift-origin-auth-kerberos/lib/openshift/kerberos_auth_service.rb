@@ -6,8 +6,8 @@ require 'krb5_auth'
 
 include Krb5Auth
 
-module Swingshift
-  class KerberosAuthService < OpenShift Origin::AuthService
+module OpenShift
+  class KerberosAuthService < OpenShift::AuthService
 
     def initialize(auth_info = nil)
       Rails.logger.debug "Initializing KerberosAuthService"
@@ -60,7 +60,7 @@ module Swingshift
         json_token << cipher.final
       rescue => e
         Rails.logger.debug "Broker key authentication failed. #{e.backtrace.inspect}"
-        raise OpenShift Origin::AccessDeniedException.new
+        raise OpenShift::AccessDeniedException.new
       end
 
       token = JSON.parse(json_token)
@@ -69,10 +69,10 @@ module Swingshift
       creation_time = token['creation_time']
 
       user = CloudUser.find(username)
-      raise OpenShift Origin::AccessDeniedException.new if user.nil?
+      raise OpenShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
 
-      raise OpenShift Origin::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
+      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
       return {:username => username, :auth_method => :broker_auth}
     end
 
@@ -81,7 +81,7 @@ module Swingshift
       if params['broker_auth_key'] && params['broker_auth_iv']
         validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
       else
-        raise OpenShift Origin::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
+        raise OpenShift::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
         krb5 = Krb5.new
 
         # get the default realm
@@ -99,7 +99,7 @@ module Swingshift
           return {:username => login, :auth_method => :login}
         else
           krb5.close
-          raise OpenShift Origin::AccessDeniedException
+          raise OpenShift::AccessDeniedException
         end
 
       end

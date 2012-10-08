@@ -6,7 +6,7 @@ class AccountController < BaseController
     username = params[:username]
 
     auth_config = Rails.application.config.auth
-    auth_service = Swingshift::KerberosAuthService.new(auth_config)
+    auth_service = OpenShift::KerberosAuthService.new(auth_config)
 
     Rails.logger.debug "username = #{username}"
 
