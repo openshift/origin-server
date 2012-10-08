@@ -11,9 +11,11 @@ for f in ~/.env/*; do
     . $f
 done
 
+OPENSHIFT_PERL_DIR=${OPENSHIFT_HOMEDIR}/${cartridge_type}
+
 # Set the extra lib paths we need.
 export REPOLIB="${OPENSHIFT_REPO_DIR}libs/"
-export LOCALSITELIB="${OPENSHIFT_GEAR_DIR}perl5lib/lib/perl5/"
+export LOCALSITELIB="${OPENSHIFT_PERL_DIR}/perl5lib/lib/perl5/"
 export PERL5LIB="$REPOLIB:$LOCALSITELIB"
 
 # Federate to the abstract httpd app_ctl.sh
