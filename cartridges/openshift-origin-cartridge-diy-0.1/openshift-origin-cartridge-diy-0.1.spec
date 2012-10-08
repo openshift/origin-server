@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 0.33.5
+Version: 0.33.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.33.6-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.33.5-1
 - new package built with tito
 
