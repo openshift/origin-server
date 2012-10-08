@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.5
+Version:        0.0.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,9 @@ rm -rf %{buildroot}
 %attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.6-1
+- 
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.0.5-1
 - Rename pass 3: Manual fixes (kraman@gmail.com)
 - Rename pass 2: variables, modules, classes (kraman@gmail.com)
