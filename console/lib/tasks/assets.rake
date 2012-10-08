@@ -14,7 +14,7 @@ class GenerateConsoleViewTask < Rake::TaskLib
       end
     end
   end
-  
+
   protected
     def render(template)
       view.render :template => template.dup, :layout => layout
@@ -27,24 +27,11 @@ class GenerateConsoleViewTask < Rake::TaskLib
       controller.request = ActionDispatch::TestRequest.new
       controller
     end
-    def view
-      view = ActionView::Base.new(ActionController::Base.view_paths, {}, controller)
 
-      routes = Rails.application.routes
-      routes.default_url_options = {:host => 'localhost'}
-
+    def add_view_helpers(view, routes)
       view.class_eval do
         include routes.url_helpers
 
-        def protect_against_forgery?
-          false
-        end
-
-        def default_url_options
-           {:host => 'localhost'}
-        end
-      end
-      view.class_eval do
         include Console::LayoutHelper
         include Console::HelpHelper
         include Console::Html5BoilerplateHelper
@@ -53,6 +40,29 @@ class GenerateConsoleViewTask < Rake::TaskLib
         include Console::CommunityHelper
         include Console::ConsoleHelper
       end
+    end
+
+    def subclass_view(view, routes)
+      view.class_eval do
+        def protect_against_forgery?
+          false
+        end
+
+        def default_url_options
+           {:host => 'localhost'}
+        end
+      end
+    end
+
+    def view
+      view = ActionView::Base.new(ActionController::Base.view_paths, {}, controller)
+
+      routes = Rails.application.routes
+      routes.default_url_options = {:host => 'localhost'}
+
+      add_view_helpers(view, routes)
+      subclass_view(view, routes)
+
       view
     end
 end
