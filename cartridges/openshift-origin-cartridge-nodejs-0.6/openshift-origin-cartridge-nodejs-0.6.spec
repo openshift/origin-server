@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version:   0.14.6
+Version:   0.14.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.14.7-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.14.6-1
 - new package built with tito
 
