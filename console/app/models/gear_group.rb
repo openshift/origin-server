@@ -2,7 +2,7 @@ class GearGroup < RestApi::Base
   schema do
     string :name, :gear_profile
     integer :scales_from, :scales_to
-    integer :scale_max, :scale_min
+    integer :supported_scales_from, :supported_scales_to
   end
   custom_id :name
 
@@ -42,17 +42,17 @@ class GearGroup < RestApi::Base
   end
 
   def scales?
-    @scales or exposes? SCALING_CART_NAME
+    supported_scales_to != supported_scales_from
   end
   def builds?
     @builds
   end
 
-  def scale_min
+  def supported_scales_from
     super || 1
   end
 
-  def scale_max
+  def supported_scales_to
     super || -1
   end
 
@@ -65,6 +65,22 @@ class GearGroup < RestApi::Base
     self
   end
 
+  def self.infer(cartridges, application)
+    groups = cartridges.group_by(&:grouping).map do |a|
+      GearGroup.new({:cartridges => a[1].sort!}, true)
+    end
+    groups.delete_if{ |g| g.send(:move_features, groups[0]) }
+    groups.sort!{ |a,b| a.cartridges.first <=> b.cartridges.first }
+
+    if groups.first
+      cart = groups.first.cartridges.first
+      cart.git_url = application.git_url
+      cart.ssh_url = application.ssh_url
+      cart.ssh_string = application.ssh_string
+    end
+    groups
+  end
+
   def self.simplify(groups, application)
     tiers = []
 
@@ -72,7 +88,7 @@ class GearGroup < RestApi::Base
     counts = {}
     groups.each do |g|
       g.cartridges.each do |c|
-        counts[c.name] = (counts[c.name] || 0) + (g.scales? ? 0 : g.gears.length) # the carts on the haproxy gear group do not count
+        counts[c.name] = (counts[c.name] || 0) + g.gears.length
       end
     end
 
@@ -130,6 +146,7 @@ class GearGroup < RestApi::Base
           to.cartridges.select{ |d| d.tags.include?(:web_framework) }.each{ |d| d.builds_with(c, self) }.present?
         end
       end
+      cartridges.delete_if{ |c| cartridges.any?{ |other| other != c && other.scales_with == c.name } }
       if self != to && cartridges.empty?
         to.gears.concat(gears)
         gears.clear

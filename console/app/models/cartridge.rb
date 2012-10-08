@@ -19,8 +19,13 @@ class Cartridge < RestApi::Base
 
   belongs_to :application
   has_one :cartridge_type
+  has_many :collocated_with, :class_name => 'string'
 
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
+
+  def collocated_with
+    super || []
+  end
 
   def type
     @attributes[:type]
@@ -40,15 +45,25 @@ class Cartridge < RestApi::Base
     @gears.length
   end
 
+  # deprecated
   def scales
     @scales || ScaleRelation::Null
   end
+
   def scales?
-    @scales.present?
+    @scales.present? || supported_scales_from != supported_scales_to
   end
-  def scales_with(cart, gear_group, times)
-    @scales = ScaleRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name, times
+
+  # deprecated with args
+  def scales_with(*args)
+    args.length == 0 ? super : begin
+      @scales = ScaleRelation.new args[0], args[1].is_a?(String) ? args[1] : args[1].name, args[2]
+    end
   end
+
+  #
+  # The build attributes are used for view manipulation only
+  #
 
   def buildable?
     git_url.present? and tags.include? :web_framework
@@ -61,6 +76,10 @@ class Cartridge < RestApi::Base
   end
   def builds_with(cart, gear_group)
     @builds = BuildRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  end
+
+  def grouping
+    @grouping ||= [name].concat(collocated_with).uniq.sort
   end
 
   def <=>(other)
@@ -82,6 +101,7 @@ class Cartridge::ScaleRelation
 
   Null = new(nil,nil,1)
 end
+
 class Cartridge::BuildRelation
   attr_accessor :with, :on
 

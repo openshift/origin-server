@@ -1179,17 +1179,13 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_application_job_url
-    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test\n"}}
+    a = Application.new :build_job_url => "https://test/test"
     assert_equal 'https://test/test', a.build_job_url
-    assert a.builds?
-
-    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test"}}
-    assert_equal 'https://test/test', a.build_job_url
-    assert a.builds?
-
-    a = Application.new :embedded => {'jenkins-client-1.4' => {}}
-    assert_nil a.build_job_url
     assert !a.builds?
+
+    a = Application.new :building_with => "jenkins-client-1.4"
+    assert_equal 'jenkins-client-1.4', a.building_with
+    assert a.builds?
 
     a = Application.new :embedded => {}
     assert_nil a.build_job_url
@@ -1200,7 +1196,67 @@ class RestApiTest < ActiveSupport::TestCase
     assert !a.builds?
   end
 
-  def test_get_gear_groups
+  def mock_complex_scaling_cartridges
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [
+        {
+          :name => 'mysql-5.1',
+          :collocated_with => [],
+          :scales_from => 1,
+          :scales_to => 1,
+          :current_scale => 1,
+          :supported_scales_from => 1,
+          :supported_scales_to => 1,
+        },
+        {
+          :name => 'haproxy-1.4',
+          :collocated_with => ['php-5.3'],
+          :scales_from => 1,
+          :scales_to => 1,
+          :current_scale => 1,
+          :supported_scales_from => 1,
+          :supported_scales_to => 1,
+        },
+        {
+          :name => 'php-5.3',
+          :collocated_with => ['haproxy-1.4'],
+          :scales_from => 1,
+          :scales_to => 5,
+          :current_scale => 3,
+          :supported_scales_from => 1,
+          :supported_scales_to => 6,
+          :scales_with => 'haproxy-1.4',
+        },
+      ].to_json
+    end
+  end
+
+  def test_infer_cartridge_groups
+    mock_complex_scaling_cartridges
+    mock_types
+
+    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user
+    assert groups = app.cartridge_gear_groups
+    assert_equal 2, groups.length
+    assert_equal 1, groups.first.cartridges.length
+    assert_equal 1, groups[1].cartridges.length
+
+    assert php = groups.first.cartridges.first
+    assert_equal 'php-5.3', php.name
+    assert_equal [true, 1, 3, 5],
+                 [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| php.send(s) }
+
+    assert_equal app.git_url, php.git_url
+    assert_equal app.ssh_url, php.ssh_url
+    assert_equal app.ssh_string, php.ssh_string
+
+    assert mysql = groups[1].cartridges.first
+    assert_equal 'mysql-5.1', mysql.name
+    assert_equal [false, 1, 1, 1],
+                 [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| mysql.send(s) }
+  end
+
+  def mock_complex_scaling_gear_group
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
         {:name => '@@app/comp-web/php-5.3', :gears => [
@@ -1221,6 +1277,10 @@ class RestApiTest < ActiveSupport::TestCase
         ]},
       ].to_json
     end
+  end
+
+  def test_get_gear_groups
+    mock_complex_scaling_gear_group
     mock_types
 
     app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
@@ -1522,7 +1582,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 3, new_groups.length, new_groups.pretty_inspect
     assert 'group2', new_groups[0].name
     assert new_groups[0].scales?
-    assert_equal 0, new_groups[0].cartridges[0].scales.times
+    assert_equal 1, new_groups[0].cartridges[0].scales.times
     assert_equal groups[0], new_groups[1]
     assert_equal groups[2], new_groups[2]
     assert_equal app.git_url, new_groups[0].cartridges[0].git_url
@@ -1567,13 +1627,18 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_destroy_build_cartridge
-    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me'}, true)
+    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me', :building_with => 'jenkins-client-0.0'}, true)
     Cartridge.any_instance.expects(:destroy).returns(true)
     assert app.destroy_build_cartridge
   end
 
-  def test_destroy_build_cartridge_failures
+  def test_destroy_build_cartridge_not_building
     app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me'}, true)
+    assert app.destroy_build_cartridge
+  end
+
+  def test_destroy_build_cartridge_failures
+    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me', :building_with => 'jenkins-client-0.0'}, true)
     Cartridge.any_instance.expects(:destroy).raises(ActiveResource::ServerError.new(stub))
     assert_raise(ActiveResource::ServerError) { app.destroy_build_cartridge }
   end

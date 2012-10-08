@@ -8,6 +8,7 @@ class Application < RestApi::Base
     string :git_url, :app_url
     string :server_identity
     string :gear_profile, :scale
+    string :building_with, :build_job_url, :building_app
   end
 
   custom_id :name
@@ -36,6 +37,9 @@ class Application < RestApi::Base
   end
   def gear_groups
     @gear_groups ||= GearGroup.simplify(GearGroup.find(:all, child_options), self)
+  end
+  def cartridge_gear_groups
+    @cartridge_groups ||= GearGroup.infer(cartridges, self)
   end
 
   def web_url
@@ -75,19 +79,18 @@ class Application < RestApi::Base
     "#{web_url}haproxy-status/"
   end
 
-  def build_job_url
-    embedded.jenkins_build_url if embedded
-  end
   def builds?
-    build_job_url.present?
+    building_with.present?
   end
+
   def jenkins_server?
     framework == 'jenkins-1.4'
   end
 
   # FIXME it is assumed that eventually this will be server functionality
   def destroy_build_cartridge
-    cart = Cartridge.new({:application => self, :as => as, :name => 'jenkins-client-1.4'}, true)
+    return true if !builds?
+    cart = Cartridge.new({:application => self, :as => as, :name => building_with}, true)
     cart.destroy.tap{ |success| cart.errors.full_messages.each{ |m| errors.add(:base, m) } unless success }
   end
 
@@ -101,5 +104,4 @@ class Application < RestApi::Base
       { :params => { :domain_id => domain_id, :application_name => self.name},
         :as => as }
     end
-
 end
