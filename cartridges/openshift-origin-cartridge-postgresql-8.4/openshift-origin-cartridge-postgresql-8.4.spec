@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 0.14.4
+Version: 0.14.5
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -100,6 +100,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.14.5-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.14.4-1
 - new package built with tito
 
