@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.1
+Version:        0.0.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -58,3 +58,6 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/service oddjobd restart
 
 %changelog
+* Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.2-1
+- new package built with tito
+
