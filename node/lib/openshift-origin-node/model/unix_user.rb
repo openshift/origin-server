@@ -15,9 +15,9 @@
 #++
 
 require 'rubygems'
-require "openshift-origin-node/config"
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
+require "openshift-origin-common/config"
 require 'syslog'
 require 'fcntl'
 
@@ -44,7 +44,7 @@ module OpenShift
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
 
-      @config = OpenShift::Config.instance
+      @config = OpenShift::Config.new
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid

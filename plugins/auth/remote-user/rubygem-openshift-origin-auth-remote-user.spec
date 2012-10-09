@@ -44,19 +44,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
-mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
-# TODO: This needs to use configuration under /etc and not be hardcoded here.
-cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
-Broker::Application.configure do
-  config.auth = {
-    :trusted_header => "REMOTE_USER",
-    :salt           => "ClWqe5zKtEW4CJEMyjzQ",
-    :privkeyfile    => "/var/www/openshift/broker/config/server_priv.pem",
-    :privkeypass    => "",
-    :pubkeyfile     => "/var/www/openshift/broker/config/server_pub.pem",
-  }
-end
-EOF
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp lib/openshift-origin-auth-remote-user/config/initializers/openshift-origin-auth-remote-user-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf
 
 %clean
 rm -rf %{buildroot}
@@ -73,8 +62,7 @@ rm -rf %{buildroot}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
-
-%attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
+%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf
 
 %changelog
 * Tue Oct 09 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.8-1

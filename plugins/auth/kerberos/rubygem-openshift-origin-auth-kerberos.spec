@@ -57,17 +57,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-kerberos.rb
-Broker::Application.configure do
-  config.auth = {
-    :salt => "ClWqe5zKtEW4CJEMyjzQ",
-    :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",
-    :privkeypass => "",
-    :pubkeyfile  => "/var/www/openshift/broker/config/server_pub.pem",
-  }
-end
-EOF
+mkdir -p %{buildroot}/openshift/plugins.d
+cp lib/openshift-origin-auth-kerberos/config/initializers/openshift-origin-auth-kerberos-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-kerberos.conf
 
 %clean
 rm -rf %{buildroot}
@@ -75,12 +66,6 @@ rm -rf %{buildroot}
 %post
 /usr/bin/openssl genrsa -out /var/www/openshift/broker/config/server_priv.pem 2048
 /usr/bin/openssl rsa    -in /var/www/openshift/broker/config/server_priv.pem -pubout > /var/www/openshift/broker/config/server_pub.pem
-
-echo "The following variables need to be set in your rails config to use openshift-origin-auth-kerberos:"
-echo "auth[:salt]                    - salt for the password hash"
-echo "auth[:privkeyfile]             - RSA private key file for node-broker authentication"
-echo "auth[:privkeypass]             - RSA private key password"
-echo "auth[:pubkeyfile]              - RSA public key file for node-broker authentication"
 
 %files
 %defattr(-,root,root,-)
@@ -90,8 +75,7 @@ echo "auth[:pubkeyfile]              - RSA public key file for node-broker authe
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-
-%attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-kerberos.rb
+%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-kerberos.conf
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

@@ -1,0 +1,12 @@
+To enable a plug-in, merely create a file in this directory named as the
+name of the plug-in with ".conf" appended.  For example, to enable the
+DNS BIND plug-in, create the following file:
+
+   /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
+
+The broker will then load the plug-in and read in the settings for the
+plug-in from openshift-origin-dns-bind.conf.
+
+In most cases, the RPM packages for a given plug-in will drop a default
+configuration file into this directory, so the plug-in will be enabled
+automatically when it is installed.
