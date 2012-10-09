@@ -224,26 +224,11 @@ class EmbCartController < BaseController
 
     if min_scale or max_scale
       begin
-        storage_map.each do |group_name, component_instance_list|
-          component_instance_list.each do |cinst|
-            cinst.user_min = Integer(min_scale)
-            cinst.user_max = Integer(max_scale)
-          end
-          ginst = app.group_instance_map[group_name]
-          ginst.recalculate_min_max
-          ginst.component_instances.each { |cname|
-            g_comp = app.comp_instance_map[cname]
-            g_comp_min = g_comp.user_min.nil? ? ginst.min : g_comp.user_min
-            g_comp_max = g_comp.user_max.nil? ? ginst.max : g_comp.user_max
-            g_min, g_max = GroupInstance.merge_min_max(g_comp_min, g_comp_max, ginst.min, ginst.max)
-            ginst.min = g_min
-            ginst.max = g_max
-          }
-        end
-        app.save
+        app.set_user_min_max(storage_map, min_scale, max_scale)
       rescue Exception=>e
-        return render_format_exception(e, "UPDATE_CARTRIDGE")
-      end             
+        return render_format_error(:forbidden, e.message, 164,
+                         "UPDATE_CARTRIDGE") 
+      end
     end
     render_format_success(:ok, "application", app, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
   end

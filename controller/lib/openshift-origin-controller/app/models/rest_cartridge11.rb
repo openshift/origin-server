@@ -1,14 +1,18 @@
 class RestCartridge11 < OpenShift::Model
-  attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url,
-                :tags, :website, :help_topics, :links, :properties, :status_messages,
+  attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url, :supported_scales_from, :supported_scales_to,
+                :tags, :website, :help_topics, :links, :properties, :status_messages, :colocated_with,
                 :current_scale, :scales_with, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
   
   def initialize(type, name, app, url, status_messages, nolinks=false)
     self.name = name
     self.type = type
-    self.scales_from = nil
-    self.scales_to = nil
+    self.scales_from = 0
+    self.scales_to = nil 
+    self.supported_scales_from = 0
+    self.supported_scales_to = nil 
     self.scales_with = nil
+    self.current_scale = 0
+    self.colocated_with = []
     self.status_messages = status_messages
     prop_values = nil
     cart = CartridgeCache.find_cartridge(name)
@@ -22,15 +26,15 @@ class RestCartridge11 < OpenShift::Model
       else
         prop_values = app.embedded[name] 
       end
-      app.group_instance_map.each { |gi_name,gi|
-        ci = gi.component_instances.find { |ci_name| 
-          cinst = app.comp_instance_map[ci_name]
-          cinst.parent_cart_name==name 
-        }
-        if ci
-          set_scaling_info(app.comp_instance_map[ci], gi, cart)
-          break
+      group_component_map = {}
+      app.comp_instance_map.each { |ci_name, ci|
+        if ci.parent_cart_name==name
+          group_component_map[ci.group_instance_name] = ci 
         end
+      }
+      group_component_map.each { |group_name, component|
+        gi = app.group_instance_map[group_name]
+        set_scaling_info(component, gi, cart)
       }
     else
       set_scaling_info(nil, nil, cart)
@@ -86,7 +90,7 @@ class RestCartridge11 < OpenShift::Model
   def set_scaling_info(comp_instance, group_instance, cartridge)
     if group_instance and comp_instance
       app = group_instance.app
-      self.current_scale = group_instance.gears.length
+      self.current_scale += group_instance.gears.length
       if self.scales_with.nil?
         app.embedded.each { |cart_name, cart_info|
           cart = CartridgeCache::find_cartridge(cart_name)
@@ -96,24 +100,37 @@ class RestCartridge11 < OpenShift::Model
           end
         }
       end
-      if self.scales_from.nil?
-        self.scales_from = group_instance.min
+      sup_max = group_instance.supported_max
+      self.supported_scales_from += group_instance.supported_min
+      if self.supported_scales_to.nil? or sup_max==-1
+        self.supported_scales_to = sup_max
       else
-        self.scales_from = (self.scales_from < group_instance.min) ? group_instance.min : self.scales_from
+        self.supported_scales_to += sup_max unless self.supported_scales_to==-1
       end
-      if self.scales_to.nil?
+      self.scales_from += group_instance.min
+      if self.scales_to.nil? or group_instance.max == -1
         self.scales_to = group_instance.max
       else
-        self.scales_to = (self.scales_to < group_instance.max) ? group_instance.max : self.scales_to
+        self.scales_to += group_instance.max unless self.scales_to==-1
       end
       self.base_gear_storage = group_instance.get_cached_min_storage_in_gb
       self.additional_gear_storage = comp_instance.addtl_fs_gb
+
+      group_instance.component_instances.each { |cname|
+        cinst = app.comp_instance_map[cname]
+        if cinst.parent_cart_name!=cartridge.name and cinst.parent_cart_name != app.name
+          colocated_with << cinst.parent_cart_name unless colocated_with.include? cinst.parent_cart_name
+        end
+      }
     else
       prof = cartridge.profiles(cartridge.default_profile)
       group = prof.groups()[0]
       self.current_scale = 0
-      self.scales_with = "haproxy_1.4"
+      scaling_cart = CartridgeCache::cartridges.find { |cart| ( cart.categories.include? "scales" and cart.name!=cartridge.name ) }
+      self.scales_with = scaling_cart.name unless scaling_cart.nil?
+      self.supported_scales_from = group.scaling.min
       self.scales_from = group.scaling.min
+      self.supported_scales_to = group.scaling.max
       self.scales_to = group.scaling.max
     end
   end
