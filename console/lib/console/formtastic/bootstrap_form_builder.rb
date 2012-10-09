@@ -80,17 +80,19 @@ module Console
       end
 
       def inline_errors_for(method, options = {}) #:nodoc:
-        if render_inline_errors?
-          errors = error_keys(method, options).map do |x|
-            attribute = localized_string(x, x.to_sym, :label) || humanized_attribute_name(x)
-            @object.errors[x].map do |error| 
-              (error[0,1] == error[0,1].upcase) ? error : [attribute, error].join(" ")
-            end
-          end.flatten.compact.uniq
-          send(:"error_#{inline_errors}", [*errors], options) if errors.any?
-        else
-          nil
+        return nil unless render_inline_errors?
+        errors = error_keys(method, options).map do |x|
+          attribute = localized_string(x, x.to_sym, :label) || humanized_attribute_name(x)
+          @object.errors[x].map do |error| 
+            (error[0,1] == error[0,1].upcase) ? error : [attribute, error].join(" ")
+          end
+        end.flatten.compact.uniq
+        return nil unless errors.any?
+        if input_inline?
+          @input_inline_errors << errors
+          return nil
         end
+        send(:"error_#{inline_errors}", [*errors], options) 
       end
 
       def error_list(errors, options = {}) #:nodoc:
@@ -108,6 +110,7 @@ module Console
           inputs_for_nested_attributes(*(args << html_options), &block)
         elsif html_options[:inline]
           @input_inline = true
+          @input_inline_errors = []
           fieldset = inline_fields_and_wrapping(*(args << html_options), &block)
           @input_inline = false
           @label = nil
@@ -135,8 +138,9 @@ module Console
 
         html_options.delete(:inline)
 
-        label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:name).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' })
+        label = template.content_tag(:label, ::Formtastic::Util.html_safe(html_options.dup.delete(:label).to_s) << required_or_optional_string(html_options.delete(:required)), { :class => 'control-label' })
 
+        # Generate form elements
         if block_given?
           contents = if template.respond_to?(:is_haml?) && template.is_haml?
             template.capture_haml(&block)
@@ -147,7 +151,9 @@ module Console
 
         # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
         contents = contents.join if contents.respond_to?(:join)
-        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label) << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => 'control-group' })
+        contents << template.content_tag(:span, ::Formtastic::Util.html_safe(@input_inline_errors.flatten.join("<br />")), {:class => 'help-block'}) if @input_inline_errors.any?
+        group_class = 'control-group' + (@input_inline_errors.any? ? ' error' : '')
+        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label) << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => group_class })
         template.concat(control_grp) if block_given? && !::Formtastic::Util.rails3?
         control_grp
       end
@@ -252,7 +258,12 @@ module Console
         label_options = options_for_label(options).merge(:input_name => input_name)
         label_options[:for] ||= html_options[:id]
 
+        select_html = parts(method, options) do
+          select_html
+        end
+
         safe_select_html = ::Formtastic::Util.html_safe(select_html)
+
         return safe_select_html if input_inline?
         label(method, label_options) << template.content_tag(:div, safe_select_html, {:class => 'controls'})
       end
