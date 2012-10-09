@@ -17,8 +17,8 @@ BuildArch: noarch
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: stickshift-abstract
-Requires: rubygem(stickshift-node)
+Requires: openshift-origin-cartridge-abstract
+Requires: rubygem(openshift-origin-node)
 Requires: jbossas-appclient
 Requires: jbossas-bundles
 Requires: jbossas-core
