@@ -1,6 +1,6 @@
 class ComponentInstance < OpenShift::Model
   attr_accessor :state, :parent_cart_name, :parent_cart_profile, :parent_component_name, :parent_cart_group,
-                :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties, :addtl_fs_gb, :user_min, :user_max
+                :name, :dependencies, :group_instance_name, :exec_order, :cart_data, :cart_properties, :addtl_fs_gb
 
   def initialize (cartname=nil, profname=nil, groupname=nil, compname=nil, pathname=nil, gi=nil)
     self.name = pathname
@@ -14,8 +14,6 @@ class ComponentInstance < OpenShift::Model
     self.cart_data = []
     self.cart_properties = {}
     self.addtl_fs_gb = 0
-    self.user_min = nil
-    self.user_max = nil
   end
   
   def process_cart_data(data)
