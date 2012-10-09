@@ -1,0 +1,58 @@
+#Kerberos integration with the OpenShift broker requires that you have a kerberos kdc setup.  The service host needs to have a service principle added for the OpenShift broker proxy (httpd) server.  Once a service principle is created, you'll want to add it to the kdc keytab file.  Once added to the kdc keytab file, you'll want to extract the keytab file to the OpenShift broker proxy and point to this extracted keytab file in the OpenShift broker proxy httpd configuration file.
+
+Steps to perform on the kdc:
+1) #install the krb packages
+yum install krb5-workstation krb5-server krb5-libs
+
+2) #create the principle db
+kdb5_util create -s
+
+3) #add the service principle
+kadmin.local -q "addprinc HTTP/www.example.com"
+
+4) #add a user principle
+kadmin
+kadmin: addprinc user@EXAMPLE.COM
+
+5) #add the service principle to the kdc keytab
+kadmin
+kadmin: ktadd HTTP/www.example.com
+
+6) #configure the OpenShift broker proxy krb5 client, you can use something similar to the following:
+[logging]
+ default = FILE:/var/log/krb5libs.log
+ kdc = FILE:/var/log/krb5kdc.log
+ admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+ default_realm = EXAMPLE.COM
+ dns_lookup_realm = false
+ dns_lookup_kdc = false
+ ticket_lifetime = 24h
+ forwardable = yes
+ allow_weak_crypto = yes
+ default_keytab_name = FILE:/var/www/openshift/broker/http/conf.d/http.keytab
+
+[realms]
+ EXAMPLE.COM = {
+  kdc = kerberos.example.com
+  admin_server = kerberos.example.com
+  default_domain = EXAMPLE.COM
+ }
+
+[domain_realm]
+ example.com = EXAMPLE.COM
+ .example.com = EXAMPLE.COM
+
+7) #make sure you can run kinit HTTP/www.example.com successfully.  If you can, it's time to extract the keytab file for the service principle on the OpenShift broker.
+kadmin
+kadmin: ktadd -k /var/www/openshift/broker/httpd/conf.d/http.keytab HTTP/www.example.com
+
+8) #change the ownership of the keytab so it's readable by the httpd process
+chown apache.apache /var/www/openshift/broker/httpd/conf.d/http.keytab
+
+9) #use the provided openshift-origin-auth-remote-user-kerberos.conf.sample file (change if necessary to reflect your service principle service name), rename the sample file (take off the .sample extension)
+mv openshift-origin-auth-remote-user-kerberos.conf.sample openshift-origin-auth-remote-user-kerberos.conf
+
+10) #restart the OpenShift broker service
+service openshift-broker restart
