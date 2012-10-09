@@ -27,6 +27,12 @@ class Cartridge < RestApi::Base
     super || []
   end
 
+  def supported_scales_from
+    super || 1
+  end
+  def supported_scales_to
+    super || 1
+  end
   def type
     @attributes[:type]
   end
@@ -64,7 +70,7 @@ class Cartridge < RestApi::Base
   #
   # The build attributes are used for view manipulation only
   #
-
+  # deprecated
   def buildable?
     git_url.present? and tags.include? :web_framework
   end

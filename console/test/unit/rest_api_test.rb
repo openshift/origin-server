@@ -151,11 +151,11 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_load_remote_errors
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
     begin
       RestApi::Base.new.load_remote_errors(response(''))
     rescue RestApi::BadServerResponseError => e
@@ -200,6 +200,13 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal obj.errors[:base], ["Something awful"]
     assert (obj = RestApi::Base.new).load_remote_errors(response, true, true)
     assert_equal obj.errors[:test], ["hello"]
+  end
+
+  def test_check_errors
+    response = stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]}))
+    assert errors = RestApi::Base.remote_errors_for(response)
+    assert_equal 1, errors.length
+    assert_equal [125, 'test', 'hello'], errors[0]
   end
 
   def test_serialization
@@ -421,6 +428,7 @@ class RestApiTest < ActiveSupport::TestCase
     rescue RestApi::ResourceNotFound => e
       assert_equal User, e.model
       assert_equal nil, e.id
+      assert !e.domain_missing?
       assert e.to_s =~ /User does not exist/
     end
   end
@@ -435,7 +443,38 @@ class RestApiTest < ActiveSupport::TestCase
     rescue RestApi::ResourceNotFound => e
       assert_equal Domain, e.model
       assert_equal 'foo', e.id
+      assert !e.domain_missing?
       assert e.to_s =~ /Domain 'foo' does not exist/
+    end
+  end
+
+  def test_find_single_raises_resource_not_found
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, nil, 404
+    end
+    begin
+      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal Application, e.model
+      assert_equal 'bar', e.id
+      assert !e.domain_missing?
+      assert e.to_s =~ /Application 'bar' does not exist/
+    end
+  end
+
+  def test_find_application_fetch_detects_domain_missing
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, {:messages => [{:exit_code => 127}]}.to_json, 404
+    end
+    begin
+      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal Application, e.model
+      assert_equal 'bar', e.id
+      assert e.domain_missing?
+      assert e.to_s =~ /Application 'bar' does not exist/
     end
   end
 

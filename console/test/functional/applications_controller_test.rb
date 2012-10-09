@@ -24,6 +24,28 @@ class ApplicationsControllerTest < ActionController::TestCase
     end
   end
 
+  test 'report and clear cached error if domain not found' do
+    with_configured_user
+    session[:domain] = 'does_not_exist'
+    get :index
+    assert_error_page(/Domain 'does_not_exist' does not exist/)
+    assert_nil session[:domain]
+  end
+
+  test 'index will cache domain' do
+    with_unique_domain
+    get :index
+    assert_equal @domain.id, session[:domain]
+  end
+
+  test 'index will use cached domain' do
+    with_unique_domain
+    session[:domain] = @domain.id
+    Domain.expects(:find).never
+    get :index
+    assert_equal @domain.id, session[:domain]
+  end
+
   test "should create JBoss EAP app" do
     create_and_destroy('jbosseap-6.0')
   end

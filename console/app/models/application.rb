@@ -104,4 +104,11 @@ class Application < RestApi::Base
       { :params => { :domain_id => domain_id, :application_name => self.name},
         :as => as }
     end
+
+    class << self
+      def rescue_parent_missing(e, options=nil)
+        parent = RestApi::ResourceNotFound.new(Domain.model_name, (options[:params][:domain_id] rescue nil), e.response)
+        raise parent if parent.domain_missing?
+      end
+    end
 end

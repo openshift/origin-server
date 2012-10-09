@@ -6,5 +6,4 @@ class ConsoleIndexControllerTest < ActionController::TestCase
     get :index
     assert_redirected_to applications_path
   end
-
 end

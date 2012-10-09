@@ -19,15 +19,16 @@
                             :simple => true, 
                             :method => :put,
                             :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
+          - range = cartridge.supported_scales_from..cartridge.supported_scales_to
           = f.inputs :inline => true, :important => true do
             Scale this cartridge from
-            = f.input :scales_from, :as => :select, :collection => 1..16, :input_html => {:style => 'width: auto'}
+            = f.input :scales_from, :as => :select, :collection => range, :input_html => {:style => 'width: auto'}
             to
-            = f.input :scales_to, :as => :select, :collection => 1..16, :input_html => {:style => 'width: auto'}
+            = f.input :scales_to, :as => :select, :collection => range, :input_html => {:style => 'width: auto'}
             #{gear_group.gear_profile} gears
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading
-            
+
         - if gear_group.cartridges.any?{ |c| c.tags.include?(:web_framework) }
 
           %hr

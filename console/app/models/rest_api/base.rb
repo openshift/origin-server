@@ -374,7 +374,7 @@ module RestApi
           instantiate_record(format.decode(connection(options).get(path, headers).body), as) #end add
         end
       rescue ActiveResource::ResourceNotFound => e
-        raise ResourceNotFound.new(self.model_name, nil, e)
+        raise ResourceNotFound.new(self.model_name, nil, e.response)
       end
 
       def allow_anonymous?
@@ -399,49 +399,40 @@ module RestApi
         end
     end
 
-
-    #
-    # has_many / belongs_to placeholders
-    #
-    #class << self
-    #  def has_many(sym)
-    #  end
-    #  def belongs_to(sym)
-    #    prefix = "#{site.path}#{sym.to_s}"
-    #  end
-    #end
-
     #
     # Must provide OpenShift compatible error decoding
     #
+    def self.remote_errors_for(response)
+      format.decode(response.body)['messages'].map do |m| 
+        [(m['exit_code'].to_i rescue m['exit_code']),
+          m['field'],
+          m['text'],
+        ]
+      end rescue []
+    end
+
     def load_remote_errors(remote_errors, save_cache=false, optional=false)
-      case self.class.format
-      when OpenshiftJsonFormat
-        response = remote_errors.response
-        begin
-          ActiveSupport::JSON.decode(response.body)['messages'].each do |m|
-            self.class.translate_api_error(errors, (m['exit_code'].to_i rescue m['exit_code']), m['field'], m['text'])
-          end
-          Rails.logger.debug "Found errors on the response object: #{errors.inspect}"
-          duplicate_errors
-        rescue ActiveResource::ConnectionError
-          raise
-        rescue Exception => e
-          Rails.logger.warn e
-          Rails.logger.warn e.backtrace
-          msg = if defined? response
-            Rails.logger.warn "Unable to read server response, #{response.inspect}"
-            Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
-            defined?(response.body) ? response.body.to_s : 'No response body from server'
-          else
-            'No response object'
-          end
-          raise RestApi::BadServerResponseError, msg, $@ unless optional
+      begin
+        self.class.remote_errors_for(remote_errors.response).each do |m|
+          self.class.translate_api_error(errors, *m)
         end
-        optional ? !errors.empty? : errors
-      else
-        super
+        Rails.logger.debug "  Found errors on the response object: #{errors.inspect}"
+        duplicate_errors
+      rescue ActiveResource::ConnectionError
+        raise
+      rescue Exception => e
+        Rails.logger.warn e
+        Rails.logger.warn e.backtrace
+        msg = if defined? response
+          Rails.logger.warn "Unable to read server response, #{response.inspect}"
+          Rails.logger.warn "  Body: #{response.body.inspect}" if defined? response.body
+          defined?(response.body) ? response.body.to_s : 'No response body from server'
+        else
+          'No response object'
+        end
+        raise RestApi::BadServerResponseError, msg, $@ unless optional
       end
+      optional ? !errors.empty? : errors
     end
 
     class AttributeHash < Hash
@@ -548,7 +539,7 @@ module RestApi
           path = element_path(scope, prefix_options, query_options)
           instantiate_record(format.decode(connection(options).get(path, headers).body), options[:as], prefix_options) #changed
         rescue ActiveResource::ResourceNotFound => e
-          raise ResourceNotFound.new(self.model_name, scope, e)
+          raise ResourceNotFound.new(self.model_name, scope, e.response)
         end
 
         def find_every(options)
@@ -566,11 +557,15 @@ module RestApi
               instantiate_collection(format.decode(connection(options).get(path, headers).body) || [], as, prefix_options ) #changed
             end
           rescue ActiveResource::ResourceNotFound => e
+            rescue_parent_missing(e, options)
             # changed to return empty array on not found
             # Swallowing ResourceNotFound exceptions and return nil - as per
             # ActiveRecord.
             [] #changed
           end
+        end
+
+        def rescue_parent_missing(e)
         end
 
       private
