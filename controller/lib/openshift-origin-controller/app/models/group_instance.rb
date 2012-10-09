@@ -1,5 +1,5 @@
 class GroupInstance < OpenShift::Model
-  attr_accessor :uuid, :app, :gears, :node_profile, :component_instances, 
+  attr_accessor :uuid, :app, :gears, :node_profile, :component_instances, :supported_min, :supported_max,
     :name, :cart_name, :profile_name, :group_name, :reused_by, :min, :max, :addtl_fs_gb
   primary_key :uuid
   exclude_attributes :app
@@ -18,6 +18,8 @@ class GroupInstance < OpenShift::Model
     self.gears = []
     self.addtl_fs_gb = 0
     self.node_profile = app.node_profile
+    self.supported_min = 1
+    self.supported_max = -1
     self.min = 1
     self.max = -1
   end
@@ -65,6 +67,7 @@ class GroupInstance < OpenShift::Model
         # without deleting the gears that exist in them
       end
     end
+    self.supported_min, self.supported_max = GroupInstance::merge_min_max(self.supported_min, self.supported_max, ginst.supported_min, ginst.supported_max)
     self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, ginst.min, ginst.max)
   end
 
@@ -236,6 +239,7 @@ class GroupInstance < OpenShift::Model
       comp_groups = ci.elaborate(app)
       c_comp,c_prof,c_cart = ci.get_component_definition(app)
       c_group = c_prof.groups(ci.parent_cart_group)
+      self.supported_min, self.supported_max = GroupInstance::merge_min_max(self.supported_min, self.supported_max, c_group.scaling.min, c_group.scaling.max)
       self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
       group_inst_hash[comp_ref.name] = comp_groups
     }
@@ -252,17 +256,6 @@ class GroupInstance < OpenShift::Model
     # deleted components
     self.component_instances.delete_if { |cpath| app.working_comp_inst_hash[cpath].nil? }
     new_components
-  end
-
-  def recalculate_min_max
-    self.min = 1
-    self.max = -1
-    self.component_instances.each { |cname|
-      ci = self.app.comp_instance_map[cname]
-      c_comp,c_prof,c_cart = ci.get_component_definition(self.app)
-      c_group = c_prof.groups(ci.parent_cart_group)
-      self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
-    }
   end
 
   def self.merge_min_max(min1, max1, min2, max2)
