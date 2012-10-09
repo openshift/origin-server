@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   0.6.11
+Version:   0.6.12
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -172,6 +172,10 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Oct 09 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.12-1
+- renaming crankcase -> origin-server (dmcphers@redhat.com)
+- Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.6.11-1
 - Rename pass 3: Manual fixes (kraman@gmail.com)
 - Rename pass 2: variables, modules, classes (kraman@gmail.com)
