@@ -16,13 +16,14 @@ BuildArch: noarch
 
 BuildRequires: git
 
-Obsoletes: openshift-origin-cartridge-mongodb-2.0
-
 Requires: openshift-origin-cartridge-abstract
 Requires: mongodb-server
 Requires: mongodb-devel
 Requires: libmongodb
 Requires: mongodb
+
+Obsoletes: openshift-origin-cartridge-mongodb-2.0
+Obsoletes: cartridge-mongodb-2.0
 Obsoletes: cartridge-mongodb-2.2
 
 %description

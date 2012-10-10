@@ -34,6 +34,7 @@ Requires: jboss-eap6-index
 Requires: lsof
 Requires: java-1.7.0-openjdk
 Requires: java-1.7.0-openjdk-devel
+Obsoletes: cartridge-jbosseap-6.0
 
 %if 0%{?rhel}
 Requires: maven3
