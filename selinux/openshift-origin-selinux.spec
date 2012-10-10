@@ -1,5 +1,5 @@
 Name:           openshift-origin-selinux
-Version:        1.0.4
+Version:        1.0.5
 Release:        1%{?dist}
 Summary:        Openshift Origin SELinux policies
 
@@ -73,6 +73,11 @@ fi
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 1.0.5-1
+- Use the same names as the newer selinux-policy package which replaces this.
+- Add a dummy backport policy module so there's always one in the RPM.
+
+
 * Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 1.0.4-1
 - Rename to origin-server-selinux
 
