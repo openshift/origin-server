@@ -27,6 +27,7 @@ for sfx in fc if te
 do
     if [ -f "openshift-backport%{dist}.${sfx}.disabled" ]
     then
+        rm -f "openshift-backport.${sfx}"
         ln -sf "openshift-backport%{dist}.${sfx}.disabled" "openshift-backport.${sfx}"
     fi
 done
@@ -36,10 +37,10 @@ bzip2 *.pp
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p %{buildroot}%{_datadir}/selinux/packages/%{name}
+mkdir -p %{buildroot}%{_datadir}/selinux/packages
 mkdir -p %{buildroot}%{_datadir}/selinux/devel/include/services
 
-install -m 644 *.pp.bz2        %{buildroot}%{_datadir}/selinux/packages/%{name}
+install -m 644 *.pp.bz2        %{buildroot}%{_datadir}/selinux/packages
 install -m 644 *.if            %{buildroot}%{_datadir}/selinux/devel/include/services
 
 %pre
@@ -48,23 +49,27 @@ install -m 644 *.if            %{buildroot}%{_datadir}/selinux/devel/include/ser
 semodule -r libra || :
 
 %post
-semodule -i %{_datadir}/selinux/packages/%{name}/*.pp.bz2
+semodule -i \
+    %{_datadir}/selinux/packages/openshift.pp.bz2 \
+    %{_datadir}/selinux/packages/openshift-origin.pp.bz2 \
+    %{_datadir}/selinux/packages/openshift-support.pp.bz2 \
+    %{_datadir}/selinux/packages/openshift-backport.pp.bz2
+
 
 %preun
 if [ $1 = 0 ]
 then
-    pkgs=()
-    for pkg in %{_datadir}/selinux/packages/%{name}/*.pp.bz2
-    do
-        pkgs=("${pkgs[@]}" `basename "$pkg" .pp.bz2`)
-    done
-    semodule -r "${pkgs[@]}"
+    semodule -r \
+        %{_datadir}/selinux/packages/openshift.pp.bz2 \
+        %{_datadir}/selinux/packages/openshift-origin.pp.bz2 \
+        %{_datadir}/selinux/packages/openshift-support.pp.bz2 \
+        %{_datadir}/selinux/packages/openshift-backport.pp.bz2
 fi
 
 %files
 %defattr(-,root,root,-)
 %doc COPYING README
-%{_datadir}/selinux/packages/%{name}/
+%{_datadir}/selinux/packages/*.pp.bz2
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
