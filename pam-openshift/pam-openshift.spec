@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.7
+Version:        0.99.8
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -37,6 +37,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.8-1
+- Move SELinux to Origin and use new policy definition. Include backport
+  selinux package. (rmillner@redhat.com)
+
 * Tue Oct 09 2012 Rob Millner <rmillner@redhat.com> 0.99.7-1
 - Automatic commit of package [pam-openshift] release [0.99.6-1].
   (rmillner@redhat.com)
