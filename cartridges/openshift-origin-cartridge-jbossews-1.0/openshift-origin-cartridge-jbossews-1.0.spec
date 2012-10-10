@@ -1,4 +1,4 @@
-%global cartridgedir %{_libexecdir}/openshift-origin/cartridges/jbossews-1.0
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossews-1.0
 %global jbossver 1.0.2.GA
 %global oldjbossver 1.0.1.GA
 
