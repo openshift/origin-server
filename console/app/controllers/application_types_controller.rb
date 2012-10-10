@@ -14,6 +14,8 @@ class ApplicationTypesController < ConsoleController
     user_default_domain rescue nil
     @application = Application.new :as => current_user
     @gear_sizes = user_capabilities_gear_sizes
+    @max_gears = user_max_gears
+    @gears_used = user_consumed_gears
     @advanced = params[:advanced] == 'true'
   end
 end
