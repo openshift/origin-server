@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.6
+Version:        0.99.7
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -37,6 +37,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Oct 09 2012 Rob Millner <rmillner@redhat.com> 0.99.7-1
+- Automatic commit of package [pam-openshift] release [0.99.6-1].
+  (rmillner@redhat.com)
+- Move pam-openshift to the top level directory (rmillner@redhat.com)
+
 * Fri Oct 05 2012 Rob Millner <rmillner@redhat.com> 0.99.6-1
 - Move pam-openshift to the top level directory (rmillner@redhat.com)
 
