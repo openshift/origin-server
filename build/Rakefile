@@ -3,7 +3,7 @@ require 'rake'
 basedir = File.dirname(File.dirname(__FILE__))
 rpmdir = "#{File.dirname(__FILE__)}/rpms"
 remix_dir = "#{File.dirname(__FILE__)}/remix"
-skip_specs = [ "jbosseap", "console", "stickshift-selinux" ]
+skip_specs = [ "jbosseap", "console" ]
 
 def sudo(cmd)
   if STDIN.tty?
