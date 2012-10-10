@@ -65,18 +65,12 @@ chmod 755 /var/named/forwarders.conf
 chown named:named -R /var/named
 restorecon -R /var/named
 
-mkdir -p /var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
-Broker::Application.configure do
-  config.dns = {
-    :server => "127.0.0.1",
-    :port => 53,
-    :keyname => "$node_domain",
-    :keyvalue => "${KEY}",
-    :zone => "$node_domain"
-  }
-end
+mkdir -p /etc/openshift/plugins.d
+cat <<EOF > /etc/openshift/plugins.d/openshift-origin-dns-bind.conf
+BIND_SERVER="127.0.0.1"
+BIND_PORT=53
+BIND_KEYNAME="${node_domain}"
+BIND_KEYVALUE="${KEY}"
+BIND_ZONE="${node_domain}"
 EOF
 perl -p -i -e "s/.*:domain_suffix.*/    :domain_suffix => \"$node_domain\",/" /var/www/stickshift/broker/config/environments/*.rb
-chown apache:apache /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
-restorecon /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb

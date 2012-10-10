@@ -62,28 +62,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
-mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
-cat <<EOF > %{buildroot}/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective.rb
-Broker::Application.configure do
-  config.msg_broker = {
-    :rpc_options => {
-    	:disctimeout => 5,
-    	:timeout => 60,
-    	:verbose => false,
-    	:progress_bar => false,
-    	:filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => []},
-    	:config => "/etc/mcollective/client.cfg"
-    },
-    :districts => {
-        :enabled => false,
-        :require_for_app_create => false,
-        :max_capacity => 6000, #Only used by district create
-        :first_uid => 1000
-    },
-    :node_profile_enabled => false
-  }
-end
-EOF
+mkdir -p %{buildroot}/etc/openshift/plugins.d
+cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
 
 %clean
 rm -rf %{buildroot}                                
@@ -96,7 +76,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-msg-broker-mcollective.rb
+%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
