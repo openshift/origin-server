@@ -10,7 +10,6 @@ Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-
 
 Requires:       oddjob
 Requires:       rubygem-openshift-origin-node
-BuildRequires:  rubygem-openshift-origin-node
 BuildArch:      noarch
 
 %description
