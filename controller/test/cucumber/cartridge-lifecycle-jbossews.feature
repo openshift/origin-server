@@ -11,16 +11,6 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenarios: Application Creation Scenarios
     | app_count |     type     |
     |     1     |  jbossews-1.0   |
-
-  Scenario Outline: Application Modification
-    Given an existing <type> application
-    When the application is changed
-    Then it should be updated successfully
-    And the application should be accessible
-
-  Scenarios: Application Modification Scenarios
-    |      type     |
-    |   jbossews-1.0   |
     
   Scenario Outline: Application Restarting
     Given an existing <type> application
@@ -28,15 +18,6 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     Then the application should be accessible
 
   Scenarios: Application Restart Scenarios
-    |      type     |
-    |   jbossews-1.0   |
-    
-  Scenario Outline: Application Tidy
-    Given an existing <type> application
-    When I tidy the application
-    Then the application should be accessible
-
-  Scenarios: Application Tidy Scenarios
     |      type     |
     |   jbossews-1.0   |
     
