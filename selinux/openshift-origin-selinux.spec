@@ -1,5 +1,5 @@
 Name:           openshift-origin-selinux
-Version:        1.0.6
+Version:        1.0.7
 Release:        1%{?dist}
 Summary:        Openshift Origin SELinux policies
 
@@ -73,6 +73,12 @@ fi
 %{_datadir}/selinux/devel/include/services/*.if
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 1.0.7-1
+- Automatic commit of package [openshift-origin-selinux] release [1.0.6-1].
+  (rmillner@redhat.com)
+- Move SELinux to Origin and use new policy definition. Include backport
+  selinux package. (rmillner@redhat.com)
+
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 1.0.6-1
 - Move SELinux to Origin and use new policy definition. Include backport
   selinux package. (rmillner@redhat.com)
