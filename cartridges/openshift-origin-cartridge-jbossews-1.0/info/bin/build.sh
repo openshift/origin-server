@@ -9,7 +9,7 @@ done
 source "/etc/stickshift/stickshift-node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbosseap-6.0/info/configuration"
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbossews-1.0/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 

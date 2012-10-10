@@ -1,4 +1,4 @@
-Configures a standalone jbosseap6.0 instance per application.
+Configures a standalone jbossews-1.0 instance per application.
 
 Package: jboss-eap6.0-6.0.0.Final
 rpms:
@@ -15,7 +15,7 @@ With that, you:
 2. cd jboss-eap6.0/RHEL-6_1-LIBRA
 3. Obtain the jboss-eap6.0 distribution contents to use and place a .tgz archive into the RHEL-6_1-LIBRA directory.
 3a. Make sure the archive includes the mysql jdbc driver module contents from the cartridge info/data/mysql.tar archive:
-(ironmaiden:jbosseap-6.0) > tar -tf info/data/mysql.tar 
+(ironmaiden:jbossews-1.0) > tar -tf info/data/mysql.tar 
 modules/com/mysql/jdbc/main/mysql-connector-java-5.1.16-bin.jar.index
 modules/com/mysql/jdbc/main/module.xml
 modules/com/mysql/jdbc/main/mysql-connector-java-5.1.16-bin.jar
@@ -23,7 +23,7 @@ modules/com/mysql/jdbc/main/mysql-connector-java-5.1.16-bin.jar
 4. Upload the tarball of the jboss-eap version to use by running:
 make new-source FILES=jboss-x.y.z.tgz
 5. Update jboss-eap6.0.spec version info
-6. cvs commit -m 'prepare to use jbosseap-x.y.z release'
+6. cvs commit -m 'prepare to use jbossews-x.y.z release'
 7. make tag
 8. make build
 
