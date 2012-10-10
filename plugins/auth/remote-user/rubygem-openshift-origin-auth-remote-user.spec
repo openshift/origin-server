@@ -43,6 +43,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{ver
 
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 %{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 %{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
 mkdir -p %{buildroot}/var/www/openshift/broker/config/environments/plugin-config
 # TODO: This needs to use configuration under /etc and not be hardcoded here.
@@ -62,17 +64,21 @@ EOF
 rm -rf %{buildroot}
 
 %files
-#%doc LICENSE COPYRIGHT Gemfile
+#%doc LICENSE COPYRIGHT Gemfile README-LDAP README-KERB
 #%exclude %{gem_cache}
 #%{gem_instdir}
 #%{gem_spec}
 %dir %{geminstdir}
 %doc %{geminstdir}/Gemfile
+%doc %{geminstdir}/README-LDAP
+%doc %{geminstdir}/README-KERB
 %{gemdir}/doc/%{gemname}-%{version}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
+%{brokerdir}/httpd/conf.d/%{gemname}-ldap.conf.sample
+%{brokerdir}/httpd/conf.d/%{gemname}-kerberos.conf.sample
 
 %attr(0440,apache,apache) /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-auth-remote-user.rb
 

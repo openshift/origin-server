@@ -989,6 +989,82 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
+  def set_user_min_max(storage_map, min_scale, max_scale)
+    sup_min = 0
+    sup_max = nil 
+    storage_map.each do |group_name, component_instance_list|
+      ginst = self.group_instance_map[group_name]
+      sup_min += ginst.supported_min
+      if sup_max.nil? or ginst.supported_max==-1
+        sup_max = ginst.supported_max
+      else
+        sup_max += ginst.supported_max unless sup_max==-1
+      end
+    end
+    sup_max = 1000000 if sup_max==-1
+    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale and (Integer(max_scale) > sup_max or Integer(max_scale) < sup_min) )
+      Rails.logger.debug("min_scale: #{min_scale}, sup_min: #{sup_min}, sup_max : #{sup_max}")
+      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 164)
+    end
+    cart_current_min = 0
+    storage_map.keys.each { |group_name| 
+      gi = self.group_instance_map[group_name]
+      cart_current_min += gi.min
+    }
+    if min_scale
+      target_min = Integer(min_scale) - cart_current_min
+      iter = storage_map.keys.each
+      while target_min != 0 do
+        group_name = iter.next
+        break if group_name.nil?
+        ginst = self.group_instance_map[group_name]
+        ginst_max = ginst.max
+        ginst_max = 1000000 if ginst.max==-1
+        if target_min > 0
+          if (ginst_max-ginst.min)>target_min
+            ginst.min += target_min
+            target_min = 0
+          else
+            target_min -= (ginst_max-ginst.min)
+            ginst.min = ginst_max
+          end
+        else
+          if (ginst.supported_min-ginst.min) < target_min
+            ginst.min += target_min
+            target_min = 0
+          else
+            target_min += (ginst.min-ginst.supported_min)
+            ginst.min = ginst.supported_min
+          end
+        end
+      end
+      if target_min != 0
+        iter = storage_map.keys.each
+        raise OpenShift::UserException("Internal error while setting cartridge min value.", 153)
+      end
+    end
+    if max_scale
+      target_max = Integer(max_scale)
+      storage_map.keys.each { |group_name, component_instances|
+        gi = self.group_instance_map[group_name]
+        if gi.supported_max==-1 or( (gi.supported_max-gi.min) > target_max )
+          rest_total = 0
+          storage_map.keys.each { |other_group_name|
+            next if other_group_name==group_name
+            other_gi = self.group_instance_map[other_group_name]
+            if other_gi.max == -1
+              other_gi.max==other_gi.min
+            end
+            rest_total += other_gi.max
+          }
+          gi.max = (target_max-rest_total)
+          break
+        end
+      }
+    end
+    self.save
+  end
+
   def prepare_namespace_update(dns_service, new_ns, old_ns)
     updated = true
     result_io = ResultIO.new

@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.files       = Dir[lib_dir] + Dir[bin_dir]
   s.test_files  = Dir[test_dir]
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
-  s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-auth-remote-user.spec openshift-origin-auth-remote-user.gemspec LICENSE COPYRIGHT)
+  s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-auth-remote-user.spec openshift-origin-auth-remote-user.gemspec LICENSE COPYRIGHT README-LDAP README-KERB)
   s.require_paths = ["lib"]
 
   s.add_dependency('openshift-origin-controller')
