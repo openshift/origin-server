@@ -24,6 +24,12 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
+
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:       libcgroup
+%else
+Requires:       libcgroup-tools
+%endif
 Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby
@@ -49,7 +55,7 @@ This contains the Cloud Development Node packaged as a ruby site library.
 
 %install
 rm -rf %{buildroot}
-#mkdir -p %{buildroot}%{_bindir}/ss
+#mkdir -p %{buildroot}%{_bindir}/oo
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
@@ -57,7 +63,7 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
-mkdir -p %{buildroot}%{_sysconfdir}/init.d
+mkdir -p %{buildroot}%{_initddir}
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/openshift
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 
@@ -79,8 +85,6 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
 
-mv %{buildroot}%{geminstdir}/misc/init/oo-cgroups %{buildroot}%{_sysconfdir}/init.d/oo-cgroups
-
 # Create run dir for openshift "services"
 %if 0%{?fedora} >= 15
 mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
@@ -93,6 +97,14 @@ mkdir -p %{buildroot}%{apprundir}
 mv %{buildroot}%{geminstdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
 
 mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+
+%if 0%{?fedora}%{?rhel} <= 6
+mkdir -p %{buildroot}%{_initddir}
+cp %{buildroot}%{geminstdir}/misc/init/openshift-cgroups %{buildroot}%{_initddir}/
+%else
+mkdir -p %{buildroot}/etc/systemd/system
+mv %{buildroot}%{geminstdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
+%endif
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{geminstdir}/misc
@@ -115,7 +127,11 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{_var}/lib/openshift
 
-%attr(0755,-,0)	%{_sysconfdir}/init.d/oo-cgroups
+%if 0%{?fedora}%{?rhel} <= 6
+%attr(0755,-,0)	%{_initddir}/openshift-cgroups
+%else
+%attr(0750,-,-) /etc/systemd/system
+%endif
 
 %if 0%{?fedora} >= 15
 %{_sysconfdir}/tmpfiles.d/openshift-run.conf

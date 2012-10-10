@@ -5,7 +5,7 @@ Broker::Application.configure do
     conf = OpenShift::Config.new(File.join(OpenShift::Config::PLUGINS_DIR, File.basename(__FILE__, '.rb') + '.conf'))
     defaults = OpenShift::Config.new(File.join(File.dirname(__FILE__), File.basename(__FILE__, '.rb') + '-defaults.conf'))
 
-    config.gearchanger = {
+    config.msg_broker = {
       :rpc_options => {
         :disctimeout => (conf.get("MCOLLECTIVE_DISCTIMEOUT") || defaults.get("MCOLLECTIVE_DISCTIMEOUT")).to_i,
         :timeout => (conf.get("MCOLLECTIVE_TIMEOUT") || defaults.get("MCOLLECTIVE_TIMEOUT")).to_i,

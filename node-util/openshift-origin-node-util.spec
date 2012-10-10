@@ -9,6 +9,7 @@ URL:            http://openshift.redhat.com
 Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
 
 Requires:       oddjob
+Requires:       rng-tools
 Requires:       rubygem-openshift-origin-node
 BuildArch:      noarch
 

@@ -63,7 +63,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %clean
 rm -rf %{buildroot}                                
@@ -76,7 +76,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+%{_sysconfdir}/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

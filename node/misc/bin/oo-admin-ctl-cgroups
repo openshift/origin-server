@@ -1,24 +1,4 @@
-#!/bin/sh
-#
-# oo-cgroups This shell script initializes openshift control groups
-#
-# Author:       Seth Vidal <skvidal@phy.duke.edu>
-#               Mike McGrath <mmcgrath@redhat.com>
-#               Mark lamourine <markllama@redhat.com>
-#
-# chkconfig:    345 6 94
-#
-# Required-Start: cgconfig cgred
-#
-# description:  Create Openshift user cgroups
-# processname:  NA
-#
-
-# CAVEAT: if the policy is changed, must run these by hand (release ticket)
-
-# source function library
-. /etc/rc.d/init.d/functions
-
+#!/bin/bash
 lockfile=/var/lock/subsys/os-cgroups
 
 # import openshift node configuration
@@ -53,12 +33,6 @@ MEM_VARS="limit_in_bytes memsw_limit_in_bytes soft_limit_in_bytes swappiness"
 function uid() {
     # USERNAME=$1
     getent passwd | grep -e "^$1:" | cut -d: -f3
-}
-
-# get a user's home directory
-function homedir() {
-    # USERNAME=$1
-    getent passwd | grep -e "^$1:" | cut -d: -f6
 }
 
 # ============================================================================
@@ -256,16 +230,15 @@ startuser() {
 
     if [ $RETVAL -eq 0 ]
     then
-        echo_success
+        echo -n " [OK] "
     else
         GROUP_RETVAL=$(($GROUP_RETVAL+1))
-        echo_failure
+        echo -n " [FAILED] "
     fi
     echo
 }
 
-
-start() {
+startall() {
     echo "Initializing Openshift guest control groups: "
 
     if !(service cgconfig status >/dev/null)
@@ -300,7 +273,7 @@ start() {
     service cgred reload
 
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
-    [ $GROUP_RETVAL -eq 0 ] && success || failure
+    [ $GROUP_RETVAL -eq 0 ] && (echo -n "[ OK ]") || (echo -n "[ FAILED ]")
 
     echo -n $"Openshift cgroups initialized"
     echo
@@ -312,7 +285,6 @@ start() {
     echo "WARNING !!! WARNING !!! WARNING !!!"
     echo
 }
-
 
 stopuser() {
     DELUSER=$1
@@ -337,14 +309,14 @@ stopuser() {
 
     if [ $RETVAL -eq 0 ]
     then
-        echo_success
+        echo -n "[ OK ]"
     else
         GROUP_RETVAL=$(($GROUP_RETVAL+1))
-        echo_failure
+        echo -n "[ FAILED ]"
     fi
 }
 
-stop() {
+stopall() {
     echo "Removing Openshift guest control groups: "
 
     if !(service cgconfig status >/dev/null)
@@ -370,10 +342,10 @@ stop() {
 
     if [ $RETVAL -eq 0 ]
     then
-        echo_success
+        echo -n "[ OK ]"
     else
         GROUP_RETVAL=$(($GROUP_RETVAL+1))
-        echo_failure
+        echo -n "[ FAILED ]"
     fi
 
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
@@ -382,9 +354,9 @@ stop() {
     return $GROUP_RETVAL
 }
 
-restart() {
-    stop
-    start
+restartall() {
+    stopall
+    startall
 }
 
 status() {
@@ -436,32 +408,31 @@ status() {
 
         if [ $RETVAL -eq 0 ]
         then
-            echo_success
+            echo -n "[ OK ]"
         else
             GROUP_RETVAL=$(($GROUP_RETVAL+1))
-            echo_failure
+            echo -n "[ FAILED ]"
         fi
 	echo
     done
     return $GROUP_RETVAL
 }
 
-
 case "$1" in
-  start)
-    start
+  startall)
+    startall
     ;;
 
-  stop) 
-    stop
+  stopall) 
+    stopall
     ;;
 
-  restart|force-reload|reload)
-    restart
+  restartall)
+    restartall
     ;;
 
-  condrestart)
-    [ -f "$lockfile" ] && restart
+  condrestartall)
+    [ -f "$lockfile" ] && restartall
     ;;
 
   status)
@@ -491,7 +462,7 @@ case "$1" in
     ;;
 
   *)
-    echo $"Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart|startuser <username>|stopuser <username>}"
+    echo $"Usage: $0 {start|stop|status|restart|condrestart|startuser <username>|stopuser <username>}"
     exit 1
 esac
 

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+function usage() {
+    echo "Usage: $0 [uid]"  >&2
+    exit 1
+}
+
+function get_mcs_level() {
+    # UID=$1
+
+    SETSIZE=1023
+    TIER=$SETSIZE
+
+    ORD=$1
+    while [ $ORD -gt $(($TIER)) ]
+    do
+        ORD=$(($ORD - $TIER))
+        TIER=$(($TIER - 1))
+    done
+    TIER=$(($SETSIZE - $TIER))
+
+    echo s0:c$TIER,c$(($ORD + $TIER))
+}
+
+
+trap usage ERR
+test "$1" -gt 0 &>/dev/null
+get_mcs_level "$1"
