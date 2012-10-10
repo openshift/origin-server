@@ -10,6 +10,8 @@ import commands
 import re
 import selinux
 
+EXT_LIB = "/usr/libexec/openshift/lib/util"
+
 commands_map = {
     "git-receive-pack": "/usr/bin/git-receive-pack",
     "git-upload-pack": "/usr/bin/git-upload-pack",
@@ -28,10 +30,9 @@ commands_map = {
     "ctl_all": "/bin/bash",
     "deploy.sh": "/bin/bash",
     "rhc-list-ports": "/bin/bash",
-    "post_deploy.sh": "/bin/bash"
+    "post_deploy.sh": "/bin/bash",
 }
 
-# used to remove comments from config files
 comment_re = re.compile("#.*$")
 
 #
@@ -52,7 +53,7 @@ def read_env_vars():
 #    os.putenv
     envdir = os.path.expanduser('~/.env/')
     for env in os.listdir(envdir):
-        if 'USER_VARS' == env:
+        if env in ['USER_VARS', 'TYPELESS_TRANSLATED_VARS']:
            continue
         elif os.path.isdir(envdir + env):
            if '.uservars' == env:
@@ -63,6 +64,11 @@ def read_env_vars():
         env_var = fp.readlines()[0].strip().split('=')[1].strip('\'"')
         fp.close()
         os.putenv(env, env_var)
+
+def get_mcs_level(uid):
+    cmd = "/usr/bin/oo-get-mcs-level %s" % (uid)
+    ret = commands.getstatusoutput(cmd)
+    return ret[1]
 
 def read_config():
   config = {}
@@ -121,9 +127,8 @@ def join_cgroup():
     # except IOError, e:
     #    write "can't join cgroup" message
 
-
-
 if __name__ == '__main__':
+    # first self-apply restrictions
     join_cgroup()
     read_env_vars()
     config = read_config()
@@ -135,9 +140,10 @@ if __name__ == '__main__':
         basecmd = os.path.basename(allargs[0])
         cmd = commands_map[basecmd]
     except:
-        syslog.syslog("Invalid command %s" % orig_cmd)
-        sys.stderr.write("Invalid command %s" % orig_cmd)
-        sys.exit(2)
+        # Catch all, just run the command as is via bash.
+        cmd = "/bin/bash"
+        str = ' '.join(allargs)
+        allargs = ['-c', str]
     if basecmd in ('snapshot',):
         # This gets called with "snapshot"
         allargs = ['snapshot.sh']
@@ -218,13 +224,12 @@ if __name__ == '__main__':
                           (thearg, realpath))
             print "Invalid repository %s: not a directory" % thearg
             sys.exit(3)
-
-
         allargs = [thearg]
 
     runcon = '/usr/bin/runcon'
+    mcs_level = get_mcs_level(os.getuid())
 
-    target_context = 'system_u:system_r:openshift_t:s0'
+    target_context = 'unconfined_u:system_r:openshift_t:%s' % mcs_level
     actual_context = selinux.getcon()[1]
     # Confirm nothing fishy is going on
     if target_context != actual_context:

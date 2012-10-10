@@ -10,7 +10,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       mcollective
 Requires:       ruby-qpid-qmf
 BuildArch:      noarch
-Obsoletes: 	mcollective-qpid-plugin
 
 %description
 m-collective communication plugin for amqp 1.0 enabled qpid broker

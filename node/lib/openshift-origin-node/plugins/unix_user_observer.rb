@@ -37,7 +37,7 @@ module OpenShift
     def after_unix_user_create(user)
       out,err,rc = shellCmd("service cgconfig status > /dev/null 2>&1")
       if rc == 0
-        out,err,rc = shellCmd("service os-cgroups startuser #{user.name} > /dev/null")
+        out,err,rc = shellCmd("/usr/bin/oo-admin-ctl-cgroups startuser #{user.name} > /dev/null")
         raise OpenShift::UserCreationException.new("Unable to setup cgroups for #{user.name}: stdout -- #{out} stderr --#{err}}") unless rc == 0
       end
     end
@@ -52,7 +52,7 @@ module OpenShift
     def before_unix_user_destroy(user)
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
       if rc == 0
-        shellCmd("service os-cgroups stopuser #{user.name} > /dev/null")
+        shellCmd("/usr/bin/oo-admin-ctl-cgroups stopuser #{user.name} > /dev/null")
       end
 
       last_access_dir = OpenShift::Config.instance.get("LAST_ACCESS_DIR")
@@ -60,10 +60,10 @@ module OpenShift
 
     end
 
-    def before_initialize_stickshift_proxy(user)
+    def before_initialize_openshift_port_proxy(user)
     end
 
-    def after_initialize_stickshift_proxy(user)
+    def after_initialize_openshift_port_proxy(user)
     end
 
     def after_unix_user_destroy(user)

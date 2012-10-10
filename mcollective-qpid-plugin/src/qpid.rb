@@ -24,7 +24,7 @@ module MCollective
       attr_reader :connection
 
       def initialize
-        @config = Config.new
+        @config = Config.instance
         @subscriptions = {}
       end
 
