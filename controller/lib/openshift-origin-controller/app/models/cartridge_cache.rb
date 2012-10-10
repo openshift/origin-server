@@ -24,7 +24,7 @@ class CartridgeCache
   end
 
   FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
-                          "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0", "jbossews-1.0"
+                          "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0", "jbossews-1.0",
                           "perl-5.10", "nodejs-0.6", "zend-5.6"
                          ]
   def self.cartridge_names(cart_type=nil)
