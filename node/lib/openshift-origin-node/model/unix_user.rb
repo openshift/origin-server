@@ -44,7 +44,7 @@ module OpenShift
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
       Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
 
-      @config = OpenShift::Config.instance
+      @config = OpenShift::Config.new
 
       @container_uuid = container_uuid
       @application_uuid = application_uuid
@@ -92,7 +92,7 @@ module OpenShift
       basedir = @config.get("GEAR_BASE_DIR")
 
       # lock to prevent race condition between create and delete of gear
-      uuid_lock_file = "/var/lock/ss-create.#{@uuid}"
+      uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
       File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | uuid_lock |
         uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         uuid_lock.flock(File::LOCK_EX)
@@ -100,7 +100,7 @@ module OpenShift
         # Lock to prevent race condition on obtaining a UNIX user uid.
         # When running without districts, there is a simple search on the
         #   passwd file for the next available uid.
-        File.open("/var/lock/ss-create", File::RDWR|File::CREAT, 0o0600) do | uid_lock |
+        File.open("/var/lock/oo-create", File::RDWR|File::CREAT, 0o0600) do | uid_lock |
           uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
           uid_lock.flock(File::LOCK_EX)
 
@@ -168,7 +168,7 @@ module OpenShift
             ) if @uid.nil? || @homedir.nil? || @uuid.nil?
 
       # Don't try to delete a gear that is being scaled-up|created|deleted
-      uuid_lock_file = "/var/lock/ss-create.#{@uuid}"
+      uuid_lock_file = "/var/lock/oo-create.#{@uuid}"
       File.open(uuid_lock_file, File::RDWR|File::CREAT, 0o0600) do | lock |
         lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         lock.flock(File::LOCK_EX)

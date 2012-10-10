@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=/usr/bin/gnome-terminal
-Hidden=false
-X-GNOME-Autostart-enabled=true
-Name[en_US]=Terminal
-Name=Terminal
-Comment[en_US]=Terminal
-Comment=Terminal

@@ -40,7 +40,7 @@ Broker::Application.configure do
 
     :user => "openshift",
     :password => "mooo",
-    :db => "openshift_origin_broker_dev",
+    :db => "openshift_broker_dev",
     :collections => {:user => "user_test", :district => "district_test"}
   }
   

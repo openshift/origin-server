@@ -35,6 +35,14 @@ cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.
 cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 
+%if 0%{?fedora}%{?rhel} <= 6
+mkdir -p %{buildroot}%{_initddir}
+cp init.d/openshift-gears %{buildroot}%{_initddir}/
+%else
+mkdir -p %{buildroot}/etc/systemd/system
+mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
+%endif
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -42,6 +50,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc
 %attr(0750,-,-) %{_bindir}/oo-idler
 %attr(0750,-,-) %{_bindir}/oo-restorer
+%attr(0750,-,-) %{_bindir}/oo-setup-node
 %attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %doc LICENSE
@@ -50,6 +59,12 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
 
 %{_localstatedir}/www/html/restorer.php
+
+%if 0%{?fedora}%{?rhel} <= 6
+%attr(0750,-,-) %{_initddir}/openshift-gears
+%else
+%attr(0750,-,-) /etc/systemd/system
+%endif
 
 %post
 /sbin/chkconfig oddjobd on

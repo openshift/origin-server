@@ -50,7 +50,7 @@ end
 env = load_env
 orig_cmd = ENV['SSH_ORIGINAL_COMMAND'] || "sssh"
 syslog(orig_cmd)
-config = OpenShift::Config.instance
+config = OpenShift::Config.new
 
 allargs = orig_cmd.split(' ')
 basecmd = allargs[0]

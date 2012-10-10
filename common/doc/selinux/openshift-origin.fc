@@ -6,7 +6,7 @@
 
 /usr/sbin/mcollectived		--	gen_context(system_u:object_r:mcollectived_exec_t,s0)
 
-/var/lock/ss-create	--	gen_context(system_u:object_r:mcollectived_lock_t,s0)
+/var/lock/oo-create	--	gen_context(system_u:object_r:mcollectived_lock_t,s0)
 
 /var/log/mcollective\.log	--	gen_context(system_u:object_r:mcollectived_log_t,s0)
 
