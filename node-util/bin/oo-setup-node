@@ -179,6 +179,8 @@ if int_eth_device != ext_eth_device
   end
 end
 
+system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
+
 print "Opening required ports\n"
 system "lokkit --service=ssh"
 system "lokkit --service=http"

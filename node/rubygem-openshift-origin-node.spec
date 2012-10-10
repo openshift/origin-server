@@ -101,7 +101,7 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %post
-echo "/usr/bin/ss-trap-user" >> /etc/shells
+echo "/usr/bin/oo-trap-user" >> /etc/shells
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist

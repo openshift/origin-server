@@ -172,6 +172,8 @@ boolean -m --on named_write_master_zones
 _EOF
 EOOF
 
+system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
+
 insert_if_not_exist("/var/www/openshift/broker/Gemfile", "openshift-origin-auth-mongo", 
   "\ngem 'openshift-origin-auth-mongo'\n" +
   "gem 'openshift-origin-dns-bind'\n" +
