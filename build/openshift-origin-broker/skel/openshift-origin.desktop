@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Exec=/usr/bin/launch_openshift_doc.sh
-Hidden=false
-X-GNOME-Autostart-enabled=true
-Name[en_US]=Openshift-Origin
-Name=Openshift-Origin
-Comment[en_US]=Openshift-Origin
-Comment=Openshift-Origin

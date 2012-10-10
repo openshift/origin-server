@@ -3,14 +3,14 @@
 node_domain=$1
 dont_force_entropy=$2
 
-spec_path=`gem contents uplift-bind-plugin | grep gemspec`
-base_path=${spec_path%uplift-bind-plugin.gemspec}
+spec_path=`gem contents openshift-origin-dns-bind | grep gemspec`
+base_path=${spec_path%openshift-origin-dns-bind.gemspec}
 
 echo "Install selinux module"
 semodule -l | grep dhcpnamedforward
 if (( $? )) ; then
-  pushd /usr/share/selinux/packages/rubygem-uplift-bind-plugin/ && make -f /usr/share/selinux/devel/Makefile ; popd
-  semodule -i /usr/share/selinux/packages/rubygem-uplift-bind-plugin/dhcpnamedforward.pp
+  pushd /usr/share/selinux/packages/rubygem-openshift-origin-dns-bind/ && make -f /usr/share/selinux/devel/Makefile ; popd
+  semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-dns-bind/dhcpnamedforward.pp
 fi
 
 echo "Install bind config"
@@ -65,8 +65,8 @@ chmod 755 /var/named/forwarders.conf
 chown named:named -R /var/named
 restorecon -R /var/named
 
-mkdir -p /var/www/stickshift/broker/config/environments/plugin-config
-cat <<EOF > /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
+mkdir -p /var/www/openshift/broker/config/environments/plugin-config
+cat <<EOF > /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-dns-bind.rb
 Broker::Application.configure do
   config.dns = {
     :server => "127.0.0.1",
@@ -77,6 +77,6 @@ Broker::Application.configure do
   }
 end
 EOF
-perl -p -i -e "s/.*:domain_suffix.*/    :domain_suffix => \"$node_domain\",/" /var/www/stickshift/broker/config/environments/*.rb
-chown apache:apache /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
-restorecon /var/www/stickshift/broker/config/environments/plugin-config/uplift-bind-plugin.rb
+perl -p -i -e "s/.*:domain_suffix.*/    :domain_suffix => \"$node_domain\",/" /var/www/openshift/broker/config/environments/*.rb
+chown apache:apache /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-dns-bind.rb
+restorecon /var/www/openshift/broker/config/environments/plugin-config/openshift-origin-dns-bind.rb

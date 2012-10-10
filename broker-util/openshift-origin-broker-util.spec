@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        0.0.6
+Version:        0.0.6.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -30,15 +30,21 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{_bindir}
 cp oo-* %{buildroot}%{_bindir}/
+cp complete-origin-setup %{buildroot}%{_bindir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0755,-,-) %{_bindir}/oo-*
+%attr(0755,-,-) %{_bindir}/oo-* 
+%attr(0755,-,-) %{_bindir}/complete-origin-setup
 %doc LICENSE
 
 %changelog
+* Tue Oct 09 2012 Krishna Raman <kraman@gmail.com> 0.0.6.1-1
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.6-1
 - Bug 864005 (dmcphers@redhat.com)
 - Bug: 861346 - fixing ss-admin-ctl-domain script (abhgupta@redhat.com)

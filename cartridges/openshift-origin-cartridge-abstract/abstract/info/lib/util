@@ -855,12 +855,12 @@ function run_as_user {
     if [ "`whoami`" = "$_uuid" ]; then
         eval $1
     else
-      runuser --shell /bin/sh "$_uuid" -c "runcon system_u:system_r:openshift_origin_t:s0-s0:c0.c1023 $1"
+      runuser --shell /bin/sh "$_uuid" -c "runcon system_u:system_r:openshift_t:s0-s0:c0.c1023 $1"
     fi
 }
 
 function super_run_as_user {
-    runuser -s /bin/sh "$uuid" -c "runcon system_u:system_r:openshift_origin_t:s0-s0:c0.c1023 $1"
+    runuser -s /bin/sh "$uuid" -c "runcon system_u:system_r:openshift_t:s0-s0:c0.c1023 $1"
 }
 
 function daemon_as_user {

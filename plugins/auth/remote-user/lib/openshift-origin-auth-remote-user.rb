@@ -1,5 +1,5 @@
 module OpenShift
-  module AuthService
+  module RemoteUserAuthServiceModule
     require 'openshift-origin-auth-remote-user/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end

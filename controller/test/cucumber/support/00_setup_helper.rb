@@ -25,7 +25,7 @@ $selinux_type = nil
 
 # User registration flag and script
 $registration_required = true
-$user_register_script_format = "/usr/bin/ss-register-user -l admin -p admin --username %s --userpass %s"
+$user_register_script_format = "/usr/bin/oo-register-user -l admin -p admin --username %s --userpass %s"
 
 # Alternatie domain suffix for use in alias commands
 $alias_domain = "foobar.com"
