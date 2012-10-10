@@ -27,7 +27,7 @@ module OpenShift
 
       cartridge_path = OpenShift::Config.instance.get("CARTRIDGE_BASE_PATH")
       Dir.foreach(cartridge_path) do |cart_dir|
-        next if [".", "..", "embedded", "abstract", "abstract-httpd"].include? cart_dir
+        next if [".", "..", "embedded", "abstract", "abstract-httpd", "abstract-jboss"].include? cart_dir
         path = File.join(cartridge_path, cart_dir, "info", "manifest.yml")
         begin
           print "Loading #{cart_dir}..." if oo_debug
