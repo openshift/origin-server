@@ -15,10 +15,10 @@
 #++
 
 require 'rubygems'
-require "openshift-origin-node/config"
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
+require "openshift-origin-common/config"
 
 module OpenShift
   # == Application Container
@@ -28,7 +28,7 @@ module OpenShift
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
-      @config = OpenShift::Config.instance
+      @config = OpenShift::Config.new
 
       @uuid = container_uuid
       @application_uuid = application_uuid

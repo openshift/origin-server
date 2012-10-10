@@ -1,5 +1,5 @@
 module OpenShift
-  module AuthService
+  class MongoAuthService < OpenShift::AuthService
     require 'openshift-origin-auth-mongo/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
