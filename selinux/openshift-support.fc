@@ -1,7 +1,0 @@
-# from apache.fc
-/var/lib/openshift/.httpd.d(/.*)?         gen_context(system_u:object_r:httpd_config_t,s0)
-/var/lib/stickshift/.httpd.d(/.*)?         gen_context(system_u:object_r:httpd_config_t,s0)
-
-# from quota.fc
-/var/lib/stickshift/a?quota\.(user|group)    --    gen_context(system_u:object_r:quota_db_t,s0)
-/var/lib/openshift/a?quota\.(user|group)    --    gen_context(system_u:object_r:quota_db_t,s0)
