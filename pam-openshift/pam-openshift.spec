@@ -10,6 +10,9 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  pam-devel libselinux-devel libattr-devel gcc-c++ make
 
+Provides:       pam-libra
+Obsoletes:      pam-libra
+
 %description
 The Openshift PAM module configures proper SELinux context for
 processes in a session.
@@ -24,6 +27,7 @@ make CFLAGS="%{optflags}"
 rm -rf $RPM_BUILD_ROOT
 
 install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_openshift.so
+install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 %clean
@@ -33,6 +37,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0644, root, root)
 %doc AUTHORS ChangeLog COPYING README README.xml
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
+%attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
 
 
