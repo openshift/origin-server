@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.10
+Version:        0.99.11
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -42,6 +42,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.11-1
+- Update tags from rebase
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.10-1
 - Provide/obsolete pam-libra for devenv build. (rmillner@redhat.com)
 
