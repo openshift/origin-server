@@ -5,6 +5,6 @@ Broker::Application.configure do
 
     config.auth[:mongo_user] = "openshift"
     config.auth[:mongo_password] = "mooo"
-    config.auth[:mongo_db] = "openshift_origin_broker_dev"
+    config.auth[:mongo_db] = "openshift_broker_dev"
     config.auth[:mongo_collection] = "auth_user"
 end

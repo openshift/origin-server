@@ -8,14 +8,14 @@ while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/
 end
 
 print "Setup mongo db user\n"
-print `/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'`
+print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
 
 print "Register admin user\n"
-print `mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+print `mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
 
 ext_address = `/sbin/ip addr show dev eth0 | awk '/inet / { split(\$2,a, "/") ; print a[1];}'`
 system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip}"
 system "/usr/bin/oo-setup-node --with-node-hostname broker --with-broker-ip #{ext_address}"
 
-system "service stickshift-broker restart"
+system "service openshift-broker restart"
 system "/sbin/chkconfig livesys-late-openshift off"

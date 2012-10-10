@@ -1,16 +1,16 @@
 #!/bin/bash
+source /etc/rc.d/init.d/functions
+source /usr/libexec/openshift/cartridges/abstract/info/lib/util 
+
 lockfile=/var/lock/subsys/openshift-gears
+logfile=/var/log/openshift-gears-async-start.log
 numparallel=5
 timeout=90
-
-source /usr/libexec/openshift/cartridges/abstract/info/lib/util
 
 # colors, use like: echo "${RED}FAILED!!!${NORM}"
 RED=$(echo -e "\033[31m")
 GREEN=$(echo -e "\033[32m")
 NORM=$(echo -e "\033[0m")
-
-. /etc/rc.d/init.d/functions
 
 function print_column() {
     sameline="false"
@@ -40,6 +40,22 @@ function openshift_gears() {
     grep ":OpenShift guest:" /etc/passwd | cut -d: -f1
 }
 
+function get_mcs_level() {
+    # UID=$1
+
+    SETSIZE=1023
+    TIER=$SETSIZE
+
+    ORD=$1
+    while [ $ORD -gt $(($TIER)) ]
+    do
+        ORD=$(($ORD - $TIER))
+        TIER=$(($TIER - 1))
+    done
+    TIER=$(($SETSIZE - $TIER))
+    echo s0:c$TIER,c$(($ORD + $TIER))
+}
+
 #
 # Given a username, get the home directory
 #
@@ -62,65 +78,98 @@ then
     echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
 fi
 
-return_output() {
-    if [ "$1" ]; then
-	echo >> "$1" 2>&1
-	cat "$1" | sed -e "s#\[  OK  \]#\[  ${GREEN}OK${NORM}  \]#" -e "s#\[FAILED\]#\[${RED}FAILED${NORM}\]#"
-	rm -f "$1"
+function _log_message() {
+    faclvl=$1
+    shift
+    [ -z "$@" ]  &&  return 0
+    /usr/bin/logger -i -s -t "openshift-gears-service" -p $faclvl "$@"
+}
+
+function log_info() {
+    _log_message user.info "$@"
+}
+
+function log_error() {
+    _log_message user.err "$@"
+}
+
+function return_output() {
+    if [ "$1" ]; 
+	then
+		echo >> "$1" 2>&1
+		cat "$1" | sed -e "s#\[  OK  \]#\[  ${GREEN}OK${NORM}  \]#" -e "s#\[FAILED\]#\[${RED}FAILED${NORM}\]#"
+		rm -f "$1"
     fi
 }
 
-return_terminate() {
-    print_column -n 59 "Timeout $1..."
+function return_terminate() {
+    log_error "Timeout $1 $2"	
+    print_column -n 59 "Timeout $2..."
     echo "[${RED}FAILED${NORM}]"
     exit 1
 }
 
-startgear() {
+function startgear() {
     # GEARNAME=$1
     local OUTFILE=$(mktemp /var/run/openshift/openshift_init-startgear-$1.XXXXXXXX)
-    trap "return_terminate $1 $OUTFILE" USR1
+    trap "return_terminate startgear $1 $OUTFILE" USR1
+	log_info "Starting $1..."
     echo "Starting $1..." >> $OUTFILE 2>&1
     (
-        APP_HOME=$(homedir $1)
-        for CART in $(get_start_order)
-        do
-          startcart $1 $CART >> $OUTFILE 2>&1
-        done
+      APP_HOME=/var/lib/openshift/$1
+      for component in $(get_start_order)
+      do
+        startcart $1 $component >> $OUTFILE 2>&1
+      done
     ) &
     wait
+	log_info "Started $1"
     return_output $OUTFILE
 }
 
-stopgear() {
+function stopgear() {
     # GEARNAME=$1
     local OUTFILE=$(mktemp /var/run/openshift/openshift_init-stopgear-$1.XXXXXXXX)
-    trap "return_terminate $1 $OUTFILE" USR1
+    trap "return_terminate stopgear $1 $OUTFILE" USR1
+    log_info "Stopping $1..."
     echo "Stopping $1..." >> $OUTFILE 2>&1
     (
-        APP_HOME=$(homedir $1)
-        for CART in $(get_stop_order)
-        do
-          stopcart $1 $CART >>$OUTFILE 2>&1
-        done
+      APP_HOME=/var/lib/openshift/$1
+      for component in $(get_stop_order)
+      do
+        stopcart $1 $component >>$OUTFILE 2>&1
+      done
     ) &
     wait
+    log_info "Stopped $1"
     return_output $OUTFILE
 }
 
-startcart() {
-    # GEARNAME=$1
-    # CART=$2
-    uid=$(id -u "$1")
+function setuppam() {
+    uuid=$1
+    if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]
+    then
+        echo "found"
+        /usr/libexec/openshift/lib/express/setup_pam_fs_limits.sh $uuid
+    fi
+}
 
-    locks=$(ls $(homedir $1)/*/run/stop_lock 2>/dev/null |grep -ve 'app-root|git' |wc -l)
+function startcart() {
+    # GEARNAME=$1
+    # CARTRIDGE=$2
+    uid=$(id -u "$1")
+    setuppam $1
+    mcs_level=$(get_mcs_level $uid)
+
+    locks=$(ls /var/lib/openshift/$1/*/run/stop_lock 2>/dev/null |grep -ve 'app-root|git' |wc -l)
     if [ "$locks" -gt 0 ]
     then
         echo "$1 is locked"
     else
         print_column -n 59 "    $2"
+
         script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
-        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_origin_t $script_name start)
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_t -l $mcs_level $script_name start)
         RETVAL=$?
         if [ $RETVAL -eq 0 ]
         then
@@ -136,13 +185,14 @@ startcart() {
     fi
 }
 
-stopcart() {
+function stopcart() {
     # GEARNAME=$1
-    # CART=$2
+    # CARTRIDGE=$2
     uid=$(id -u "$1")
+	mcs_level=$(get_mcs_level $uid)
     print_column -n 59 "    $2"
     script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
-    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$(basename $2) runcon -t openshift_origin_t $script_name stop)
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_t -l $mcs_level $script_name stop)
     RETVAL=$?
     if [ $RETVAL -eq 0 ]
     then
@@ -157,38 +207,59 @@ stopcart() {
     echo
 }
 
-start() {
-    echo "Starting OpenShift Services: "
+function start_backgrounded() {
+    log_info "Starting OpenShift services in the background ..."
+    nohup /usr/bin/oo-admin-ctl-gears waited-startall > $logfile 2>&1 &
+    bgpid=$!
+    log_info "Background start initiated - process id = $bgpid"
+    log_info "Check $logfile for more details."
+    echo
+    echo "Note: In the future, if you wish to start the OpenShift services in the"
+    echo "      foreground (waited), use:  service openshift-gears waited-start"
+    echo
+}
+
+function waited_start() {
+    log_info "Starting OpenShift Services: "
     echo
 
-    echo `openshift_gears` | xargs -d' ' -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-manage-gears startgear {}
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "idle" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears startgear {}
 
-    echo -n "All OpenShift services started"
+    log_info "All OpenShift services started"
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
     [ $GROUP_RETVAL -eq 0 ] && success || failure
     echo
     return $GROUP_RETVAL
 }
 
-stop() {
-    echo "Stopping OpenShift Services: "
+function stop() {
+    log_info "Stopping OpenShift Services: "
     echo
 
-    echo `openshift_gears` | xargs -d' ' -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-manage-gears stopgear {}
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "stopped|idle" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears stopgear {}
 
-    echo -n "All OpenShift services stopped"
+    log_info "All OpenShift services stopped"
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
     [ $GROUP_RETVAL -eq 0 ] && success || failure
     echo
     return $GROUP_RETVAL
 }
 
-restart() {
+function restart() {
     # This restarts each app individually. DO NOT change it to simply call stop() and start()
-    echo "Restarting OpenShift Services: "
+    log_info "Restarting OpenShift Services: "
     echo
 
-    echo `openshift_gears` | xargs -d' ' -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-manage-gears restartgear {}
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "idle|stopped" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears restartgear {}
 
     echo -n "All OpenShift services restarted"
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
@@ -199,7 +270,7 @@ restart() {
 
 case "$1" in
   startall)
-    start
+    start_backgrounded
     ;;
   stopall)
     stop
@@ -210,22 +281,24 @@ case "$1" in
   condrestartall)
     [ -f "$lockfile" ] && restart
     ;;
+  waited-startall)
+    waited_start
+    ;;
   status)
     echo "Checking OpenShift Services: "
 
-    # check for $1 (user) and $2 (appname)
-    # This won't scale forever, but works fine in the '100 or so' range
     for gear in $(grep ':OpenShift guest:' /etc/passwd | cut -d: -f6)
     do
         for cartridge in $(ls -d $gear/* |grep -v 'app-root|git')
         do
             cartridge=$(basename $cartridge)
             script_name=/usr/libexec/openshift/cartridges/$cartridge/info/bin/app_ctl.sh
+			source $gear/.env/OPENSHIFT_APP_NAME
+			echo -n "    Checking http for $OPENSHIFT_APP_NAME"
             runas=$(basename $gear)
             uid=$(id -u "$run_as")
-            source_if_exists $gear/.env/OPENSHIFT_APP_NAME
-            echo -n "    Checking http for ${OPENSHIFT_APP_NAME:-${runas}}"
-            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t openshift_origin_t $script_name status
+			mcs_level=$(get_mcs_level $uid)
+            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t openshift_t -l $mcs_level $script_name status
             RETVAL=$?
             echo
             if [ $RETVAL -eq 0 ]

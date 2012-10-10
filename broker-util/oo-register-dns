@@ -17,6 +17,7 @@
 
 require 'rubygems'
 require 'parseconfig'
+require 'getoptlong'
 
 def usage
     puts <<USAGE
@@ -41,7 +42,6 @@ oo-register-dns --with-node-hostname node1 \\
 USAGE
 end
 
-require 'stickshift-node'
 opts = GetoptLong.new(
     ["--with-node-hostname",  "-h", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-node-ip",        "-n", GetoptLong::REQUIRED_ARGUMENT],
