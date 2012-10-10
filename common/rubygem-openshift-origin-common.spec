@@ -18,6 +18,9 @@ Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(rcov)
 
+# Supplied either by the OS or by openshift-origin-selinux
+Requires:       %{_datadir}/selinux/packages/openshift.pp.bz2
+
 BuildRequires:  ruby
 BuildRequires:  rubygems
 BuildArch:      noarch
