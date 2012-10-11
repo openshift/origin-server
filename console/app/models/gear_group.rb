@@ -65,6 +65,12 @@ class GearGroup < RestApi::Base
     self
   end
 
+  def merge_gears(others)
+    Array(others).select{ |o| !(cartridges & o.cartridges).empty? }.each{ |o| gears.concat(o.gears) }
+    gears.uniq!
+    self
+  end
+
   def self.infer(cartridges, application)
     groups = cartridges.group_by(&:grouping).map do |a|
       GearGroup.new({:cartridges => a[1].sort!}, true)

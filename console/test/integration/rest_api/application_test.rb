@@ -34,6 +34,10 @@ class RestApiApplicationTest < ActiveSupport::TestCase
       value = app.send(key)
       assert_equal app.send(key), saved_app.send(key) unless value.nil?
     end
+
+    prefix_options = app.prefix_options
+    app.reload
+    assert_equal prefix_options, app.prefix_options
   end
 
   def test_retrieve_gears

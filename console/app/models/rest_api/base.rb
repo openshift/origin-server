@@ -499,7 +499,7 @@ module RestApi
     # aware
     #
     def reload
-      self.load(self.class.find(to_param, :params => @prefix_options, :as => as).attributes)
+      self.load(prefix_options.merge(self.class.find(to_param, :params => @prefix_options, :as => as).attributes))
     end
 
     class << self
@@ -565,7 +565,7 @@ module RestApi
           end
         end
 
-        def rescue_parent_missing(e)
+        def rescue_parent_missing(e, options)
         end
 
       private

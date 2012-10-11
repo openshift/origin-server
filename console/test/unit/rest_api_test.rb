@@ -649,6 +649,18 @@ class RestApiTest < ActiveSupport::TestCase
     assert Domain.find :one, :as => @user
   end
 
+  def test_app_reload
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+      mock.get '/broker/rest/domains/a/applications.json', json_header, [{:name => 'a'}].to_json
+      mock.get '/broker/rest/domains/a/applications/a.json', json_header, {:name => 'a', :git_url => 'test'}.to_json
+    end
+    app = Domain.find(:one, :as => @user).applications.first
+    assert_nil app.git_url
+    app.reload
+    assert_equal 'test', app.git_url
+  end
+
   def test_domain_reload
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
@@ -661,7 +673,6 @@ class RestApiTest < ActiveSupport::TestCase
     domain.reload
     assert_equal oldname, domain.name
   end
-
   def test_domain_names
     domain = Domain.new
     assert_nil domain.name
@@ -872,6 +883,7 @@ class RestApiTest < ActiveSupport::TestCase
       ].to_json
     end
     app = Application.new :name => 'testapp1', :domain => Domain.new(:id => '1', :as => @user)
+    assert_equal({:domain_id => '1'}, app.prefix_options)
     assert_equal 1, (gears = app.gears).length
     assert_equal 'abc', (gear = gears[0]).uuid
     assert_equal 1, gear.components.length

@@ -3,7 +3,8 @@ class ScalingController < ConsoleController
   def show
     user_default_domain
     @application = @domain.find_application params[:application_id]
-    @gear_groups = @application.gear_groups
+    @cartridges = @application.cartridges
+    @user = User.find :one, :as => current_user
     redirect_to new_application_scaling_path(@application) unless @application.scales?
   end
 
@@ -23,15 +24,13 @@ class ScalingController < ConsoleController
   def update
     user_default_domain
     @application = @domain.find_application params[:application_id]
-    @gear_group = @application.gear_groups.find{ |g| g.exposes? params[:id] }
-    @cartridge = Cartridge.new({:name => params[:id], :application => @application}, true)
-    @cartridge.scales_from, @cartridge.scales_to = [
-      params[:cartridge][:scales_from], 
-      params[:cartridge][:scales_to]
-    ].sort
+    @cartridge = Cartridge.new({
+      :name => params[:id], 
+      :application => @application
+    }.merge(params[:cartridge].slice(:scales_from, :scales_to)), true)
 
     if @cartridge.save
-      redirect_to application_scaling_path
+      redirect_to application_scaling_path, :flash => {:success => "Updated scaling on #{@cartridge.display_name}"}
     else
       render :edit
     end

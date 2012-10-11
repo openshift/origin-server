@@ -28,7 +28,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     with_configured_user
     session[:domain] = 'does_not_exist'
     get :index
-    assert_error_page(/Domain 'does_not_exist' does not exist/)
+    assert_not_found_page(/Domain 'does_not_exist' does not exist/)
     assert_nil session[:domain]
   end
 
@@ -165,8 +165,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert_equal with_scalable_app.name, app.name
     assert groups = assigns(:gear_groups)
-    assert_equal 1, groups.length
-    assert groups[0].cartridges.map(&:name).include? with_scalable_app.cartridge
+    assert_equal 1, groups.length, groups.pretty_inspect
+    assert (groups[0].cartridges.map(&:name) - with_scalable_app.cartridges.map(&:name)).empty?
     assert domain = assigns(:domain)
   end
 

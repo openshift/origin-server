@@ -15,47 +15,31 @@ class ScalingControllerTest < ActionController::TestCase
     {:name => 'test', :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git', :scale => true}
   end
 
-  def groups_without_scaling
+  def cartridges_without_scaling
     [
-      {:name => '@@app/comp-web/php-5.3', :gears => [
-        {:id => 1, :state => 'started'}
-      ], :cartridges => [
-        {:name => 'php-5.3'},
-      ]},
+      {:name => 'php-5.3', :current_scale => 1, :scales_from => 1, :scales_to => 1},
     ]
   end
-  def groups_with_scaling(multiplier)
+  def cartridges_with_scaling(multiplier)
     [
-      {:name => '@@app/comp-web/php-5.3', 
-         :gears => multiplier.times.map{ |i| {:id => i, :state => 'started'} }, 
-         :cartridges => [
-           {:name => 'php-5.3'},
-           {:name => 'extra-1.0'},
-         ]},
-      {:name => '@@app/comp-proxy/php-5.3', :gears => [
-        {:id => 2, :state => 'started'},
-      ], :cartridges => [
-        {:name => 'php-5.3'},
-        {:name => 'haproxy-1.4'},
-      ]},
-      {:name => '@@app/comp-mysql/mysql-5.0', :gears => [
-        {:id => 3, :state => 'started'},
-      ], :cartridges => [
-        {:name => 'my-sql-5.0'},
-      ]},
+      {:name => 'php-5.3', :collocated_with => ['extra-1.0', 'haproxy-1.4'], :scales_from => 1, :scales_to => multiplier*2, :current_scale => multiplier},
+      {:name => 'extra-1.0', :collocated_with => ['php-5.3', 'haproxy-1.4'], :scales_from => 1, :scales_to => 1, :current_scale => 1},
+      {:name => 'haproxy-1.4', :collocated_with => ['php-5.3', 'extra-1.0'], :scales_from => 1, :scales_to => 1, :current_scale => 1},
+      {:name => 'mysql-5.0', :scales_from => 1, :scales_to => 1, :current_scale => 1},
     ]
   end
 
-  def with_mock_app(app=app_without_scaling, gear_groups=groups_without_scaling)
+  def with_mock_app(app=app_without_scaling, cartridges=cartridges_without_scaling)
     with_unique_user
 
     allow_http_mock
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
+      mock.get '/broker/rest/user.json', json_header, {:max_gears => 16}.to_json
       mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
       mock.get '/broker/rest/domains/test/applications.json', json_header, [app].compact.to_json
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, gear_groups.to_json
+      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, cartridges.to_json
     end
     {:application_id => 'test'}
   end
@@ -66,18 +50,20 @@ class ScalingControllerTest < ActionController::TestCase
   end
   def with_scaling(multiplier=1)
     with_unique_user
-    with_mock_app(app_with_scaling, groups_with_scaling(multiplier))
+    with_mock_app(app_with_scaling, cartridges_with_scaling(multiplier))
   end
 
   test 'displays form and title for scaling' do
     get :show, with_scaling(2)
-    assert_select 'h2', "PHP 5.3\n(includes extra-1.0)"
+    assert_select 'h2', "PHP 5.3"
+    assert_select 'h2', "extra-1.0"
+    assert_select 'h2', "mysql-5.0"
   end
 
   test 'handles PUT on edit' do
     with_scaling
     ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.patch '/broker/rest/domains/test/applications/test/cartridges/php-5.3.json', json_header(true), {:scales_from => 1, :scales_to => 2}.to_json
+      mock.put '/broker/rest/domains/test/applications/test/cartridges/php-5.3.json', json_header(true), {:scales_from => 1, :scales_to => 2}.to_json
     end
     put :update, with_scaling.merge(:id => 'php-5.3', :cartridge => {:scales_from => 2, :scales_to => 1})
     assert_redirected_to application_scaling_path
@@ -107,7 +93,7 @@ class ScalingControllerTest < ActionController::TestCase
 
     test "should show if all components exist #{'(mock)' if mock}" do
       get :show, mock ? with_scaling : {:application_id => with_scalable_app.to_param}
-      assert app = assigns(:application)
+      assert app = assigns(:application), @response.pretty_inspect
       assert app.ssh_string
       assert assigns(:domain)
       assert_response :success

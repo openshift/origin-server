@@ -26,39 +26,28 @@ class Console::ModelHelperTest < ActionView::TestCase
     assert_equal 'None', gear_group_count([])
   end
 
-  def test_gear_group_count_title
-    cart = stub(:gear_count => 1, :builds? => false, :scales? => false)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 0)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 1)
-    assert /1 gear\s/ =~ gear_group_count_title(cart, 2)
-    assert /expose the other cartridges\./ =~ gear_group_count_title(cart, 2)
-    assert /2 gears\s/ =~ gear_group_count_title(cart, 3)
+  def test_scale_from_options
+    assert_equal({
+        :as => :select, 
+        :collection => [['1',1],['2',2],['3',3]]
+      }, 
+      scale_from_options(stub(:scales_from => 1, :scales_to => -1), 3))
+    assert_equal({
+        :as => :text
+      }, 
+      scale_from_options(stub(:scales_from => 1, :scales_to => -1), 6, 5))
   end
 
-  def test_gear_group_count_title_builds
-    cart = stub(:gear_count => 1, :builds? => true, :scales? => false)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 0)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 1)
-    assert /1 gear\s/ =~ gear_group_count_title(cart, 2)
-    assert /handle builds\./ =~ gear_group_count_title(cart, 2)
-    assert /2 gears\s/ =~ gear_group_count_title(cart, 3)
-  end
-
-  def test_gear_group_count_title_scales
-    cart = stub(:gear_count => 1, :builds? => false, :scales? => true)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 0)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 1)
-    assert /1 gear\s/ =~ gear_group_count_title(cart, 2)
-    assert /\sscale\./ =~ gear_group_count_title(cart, 2)
-    assert /2 gears\s/ =~ gear_group_count_title(cart, 3)
-  end
-
-  def test_gear_group_count_title_scales_and_builds
-    cart = stub(:gear_count => 1, :builds? => true, :scales? => true)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 0)
-    assert /OpenShift runs/ =~ gear_group_count_title(cart, 1)
-    assert /1 gear\s/ =~ gear_group_count_title(cart, 2)
-    assert /handle builds and scaling\./ =~ gear_group_count_title(cart, 2)
-    assert /2 gears\s/ =~ gear_group_count_title(cart, 3)
+  def test_scale_to_options
+    assert_equal({
+        :as => :select, 
+        :collection => [['1',1],['2',2],['3',3],['All available', -1]]
+      },
+      scale_to_options(stub(:scales_from => 1, :scales_to => -1), 3))
+    assert_equal({
+        :as => :text,
+        :hint => 'Use -1 to scale to your current account limits',
+      },
+      scale_to_options(stub(:scales_from => 1, :scales_to => -1), 6, 5))
   end
 end

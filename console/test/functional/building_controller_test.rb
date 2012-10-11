@@ -12,7 +12,7 @@ class BuildingControllerTest < ActionController::TestCase
     {:name => 'test', :framework => 'php-5.3'}
   end
   def app_with_builds
-    {:name => 'test', :framework => 'php-5.3', :embedded => {'jenkins-client-1.4' => {:info => 'Job URL: http://foo/builds'}}}
+    {:name => 'test', :framework => 'php-5.3', :building_with => 'jenkins-client-1.4', :build_job_url => 'Job URL: http://foo/builds'}
   end
   def jenkins_app
     {:name => 'jenkins', :framework => 'jenkins-1.4'}
@@ -127,8 +127,8 @@ class BuildingControllerTest < ActionController::TestCase
   test "should show if all components exist" do
     get :show, with_builds
     assert app = assigns(:application)
-    assert app.builds?, app.embedded.jenkins_build_url
-    assert app.embedded.jenkins_build_url
+    assert app.builds?, app.build_job_url
+    assert app.building_with
     assert assigns(:domain)
     assert_response :success
   end

@@ -4,32 +4,31 @@
 %h1 Scale your Application
 
 %section#scaling-gear-groups
-  - @gear_groups.each do |gear_group|
-    - cartridge = gear_group.cartridges.first
+  - @cartridges.each do |cartridge|
     .gear-group.tile
       %h2
         = cartridge.display_name
-        - if gear_group.cartridges.length > 1
-          (includes #{gear_group.cartridges[1..-1].map(&:display_name).join(', ')})
-        - if gear_group.scales?
-          %span.pull-right Scaled x#{gear_group.gears.length}
+        - if cartridge.scales?
+          %span.pull-right Scaled x#{cartridge.current_scale}
 
-      - if gear_group.scales? 
-        = semantic_form_for cartridge, 
-                            :simple => true, 
+      - if cartridge.scales?
+        = semantic_form_for cartridge,
+                            :simple => true,
                             :method => :put,
                             :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
-          - range = cartridge.supported_scales_from..cartridge.supported_scales_to
+
           = f.inputs :inline => true, :important => true do
+
             Scale this cartridge from
-            = f.input :scales_from, :as => :select, :collection => range, :input_html => {:style => 'width: auto'}
+            = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto'}})
             to
-            = f.input :scales_to, :as => :select, :collection => range, :input_html => {:style => 'width: auto'}
-            #{gear_group.gear_profile} gears
+            = f.input :scales_to, scale_to_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto'}})
+            #{cartridge.gear_profile} gears
+
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading
 
-        - if gear_group.cartridges.any?{ |c| c.tags.include?(:web_framework) }
+        - if cartridge.tags.include?(:web_framework)
 
           %hr
 
@@ -45,16 +44,15 @@
             post, pre, and deploy hooks are executed.  Each cartridge will have its
             own copy of runtime data, so be sure to use a database if you need to share
             data across your web cartridges.
-            
+
           %p
             For status information about traffic to your application, see the HAProxy status page:
 
           %p.application-url.larger
             = link_to @application.scale_status_url, @application.scale_status_url, :target => '_blank'
 
-      - elsif gear_group.cartridges.length > 1
-        %p These cartridges do not scale.
-
+      - elsif cartridge.tags.include? :scales
+        %p This cartridge assists other cartridges in scaling, but does not itself scale.
       - else
         %p This cartridge does not scale.
   %p

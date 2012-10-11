@@ -4,13 +4,14 @@
 class Cartridge < RestApi::Base
   include Comparable
 
-  use_patch_on_update
+  #use_patch_on_update
 
   schema do
     string :name, 'type'
     integer :supported_scales_from, :supported_scales_to
     integer :scales_from, :scales_to, :current_scale
     string :scales_with
+    string :gear_profile
   end
   custom_id :name
 
@@ -24,7 +25,7 @@ class Cartridge < RestApi::Base
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
 
   def collocated_with
-    super || []
+    @attributes[:collocated_with] ||= []
   end
 
   def supported_scales_from
