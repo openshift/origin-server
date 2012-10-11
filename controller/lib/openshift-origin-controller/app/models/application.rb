@@ -471,21 +471,25 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       rescue Exception => e
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.inspect        
-        
-        successful_gears = []
-        successful_gears = e.message[:successful].map{|g| g[:gear]} if e.message[:successful]
-        failed_gears = []
-        failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
-        gear_exception = e.message[:exception]
+ 
+        if e.message.kind_of?(Hash) and e.message[:exception] 
+          successful_gears = []
+          successful_gears = e.message[:successful].map{|g| g[:gear]} if e.message[:successful]
+          failed_gears = []
+          failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
+          gear_exception = e.message[:exception]
 
-        #remove failed component from all gears
-        run_on_gears(successful_gears, reply, false) do |gear, r|
-          r.append gear.deconfigure(comp_inst)
-          process_cartridge_commands(r)
-        end
-        run_on_gears(failed_gears, reply, false) do |gear, r|
-          r.append gear.deconfigure(comp_inst, true)
-          process_cartridge_commands(r)
+          #remove failed component from all gears
+          run_on_gears(successful_gears, reply, false) do |gear, r|
+            r.append gear.deconfigure(comp_inst)
+            process_cartridge_commands(r)
+          end
+          run_on_gears(failed_gears, reply, false) do |gear, r|
+            r.append gear.deconfigure(comp_inst, true)
+            process_cartridge_commands(r)
+          end
+        else
+          gear_exception = e
         end
         
         # destroy any unused gears
