@@ -5,7 +5,7 @@
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jboss_deconfigure
+    echo "$0 $@" | logger -p local0.notice -t openshift_jboss_deconfigure
     exit 1
 }
 
@@ -25,7 +25,7 @@ done
 # Load the jboss_version and jboss_home settings
 . `dirname $0`/jboss.version
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 cartridge_type="${jboss_version}"
