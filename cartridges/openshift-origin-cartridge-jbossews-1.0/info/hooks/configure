@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 
 # Creates a jboss instance
 # Variables used in this script:
@@ -8,7 +8,7 @@ source "/etc/stickshift/stickshift-node.conf"
 # jboss.version
 jboss_home = the location where the jboss server is installed
 jboss_version = the name/type of the jboss cartridge, e.g., jbossews-1.0
-# /etc/stickshift/stickshift-node.conf
+# /etc/openshift/node.conf
 CREATE_APP_SYMLINK = Enable user-unobfuscate to create ~/appname-namespace in addition to ~/uuid
 GEAR_BASE_DIR=Users home dirs (where customer data ends up)
 # Script arguments
@@ -37,7 +37,7 @@ set -e
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_jboss_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_jboss_configure
     exit 1
 }
 
