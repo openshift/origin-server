@@ -10,6 +10,8 @@ import commands
 import re
 import selinux
 
+EXT_LIB = "/usr/libexec/openshift/lib/util"
+
 commands_map = {
     "git-receive-pack": "/usr/bin/git-receive-pack",
     "git-upload-pack": "/usr/bin/git-upload-pack",
@@ -28,8 +30,10 @@ commands_map = {
     "ctl_all": "/bin/bash",
     "deploy.sh": "/bin/bash",
     "rhc-list-ports": "/bin/bash",
-    "post_deploy.sh": "/bin/bash"
+    "post_deploy.sh": "/bin/bash",
 }
+
+comment_re = re.compile("#.*$")
 
 #
 # Read in uservars variables.
@@ -49,7 +53,7 @@ def read_env_vars():
 #    os.putenv
     envdir = os.path.expanduser('~/.env/')
     for env in os.listdir(envdir):
-        if 'USER_VARS' == env:
+        if env in ['USER_VARS', 'TYPELESS_TRANSLATED_VARS']:
            continue
         elif os.path.isdir(envdir + env):
            if '.uservars' == env:
@@ -61,6 +65,11 @@ def read_env_vars():
         fp.close()
         os.putenv(env, env_var)
 
+def get_mcs_level(uid):
+    cmd = "/usr/bin/oo-get-mcs-level %s" % (uid)
+    ret = commands.getstatusoutput(cmd)
+    return ret[1]
+
 def read_config():
   config = {}
   f = open('/etc/openshift/node.conf','r')
@@ -68,13 +77,59 @@ def read_config():
   f.close()
   lines = data.split("\n")
   for line in lines:
-    if line != "":
-      split_line = line.split("=")
-      value = re.sub(r"[ \t]*#[^\n]*", "", split_line[1]).strip('\'"')     #bash comments
+    clean_line = comment_re.sub("", line) # remove comments
+    clean_line = clean_line.strip() # remove leading and trailing white space
+    if clean_line != "":
+      split_line = clean_line.split("=")
+      if len(split_line) != 2:
+          syslog.syslog("node config error: %s" % (line))
+          sys.stderr.write("Error in node configuration")
+          sys.exit(2)  # need to set the proper exit code
+      value = split_line[1].strip('\'"') # remove quotes from value strings
       config[split_line[0]] = value
   return config
 
+#
+# Join the user's cgroup if available
+#
+def join_cgroup():
+    """
+    Determine a user's cgroup and join it if possible
+    """
+
+    username = pwd.getpwuid(os.getuid())[0]
+    pid = os.getpid()
+
+    # this should come from /etc/openshift/node.conf:OPENSHIFT_CGROUP_ROOT
+    cgroup_root = "/cgroup/all/openshift"
+    cgroup_user = os.path.join(cgroup_root, username)
+    cgroup_tasks = os.path.join(cgroup_user, "tasks")
+
+    syslog.syslog("user %s: putting process %d in cgroup %s" % (username, pid, cgroup_root))
+
+    if not os.path.isdir(cgroup_root):
+        # raise an exception
+        return
+
+    if not os.path.isdir(cgroup_user):
+        # raise an exception
+        return
+
+    if not os.path.isfile(cgroup_tasks):
+        # raise an exception
+        return 
+
+    # try:
+    taskfile = open(cgroup_tasks, 'w')
+    taskfile.write(str(pid) + "\n")
+    taskfile.flush()
+    taskfile.close()
+    # except IOError, e:
+    #    write "can't join cgroup" message
+
 if __name__ == '__main__':
+    # first self-apply restrictions
+    join_cgroup()
     read_env_vars()
     config = read_config()
 
@@ -85,9 +140,10 @@ if __name__ == '__main__':
         basecmd = os.path.basename(allargs[0])
         cmd = commands_map[basecmd]
     except:
-        syslog.syslog("Invalid command %s" % orig_cmd)
-        sys.stderr.write("Invalid command %s" % orig_cmd)
-        sys.exit(2)
+        # Catch all, just run the command as is via bash.
+        cmd = "/bin/bash"
+        str = ' '.join(allargs)
+        allargs = ['-c', str]
     if basecmd in ('snapshot',):
         # This gets called with "snapshot"
         allargs = ['snapshot.sh']
@@ -158,8 +214,8 @@ if __name__ == '__main__':
         # replace leading tilde (~) with user's home path
         realpath = os.path.expanduser(thearg)
         if not realpath.startswith(config['GEAR_BASE_DIR']):
-            syslog.syslog("Invalid repository: not in openshift_root - %s: (%s)" %
-                          (thearg, realpath))
+            syslog.syslog("Invalid repository: not in openshift_root (%s) - %s: (%s)" %
+                          (config['GEAR_BASE_DIR'], thearg, realpath))
             print "Invalid repository %s: not in application root" % thearg
             sys.exit(3)
 
@@ -168,13 +224,12 @@ if __name__ == '__main__':
                           (thearg, realpath))
             print "Invalid repository %s: not a directory" % thearg
             sys.exit(3)
-
-
         allargs = [thearg]
 
     runcon = '/usr/bin/runcon'
+    mcs_level = get_mcs_level(os.getuid())
 
-    target_context = 'system_u:system_r:openshift_t:s0'
+    target_context = 'unconfined_u:system_r:openshift_t:%s' % mcs_level
     actual_context = selinux.getcon()[1]
     # Confirm nothing fishy is going on
     if target_context != actual_context:
