@@ -5,7 +5,7 @@
 
 Summary:        OpenShift Origin plugin for mongo auth service
 Name:           rubygem-%{gemname}
-Version:        0.8.8
+Version:        0.8.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -87,6 +87,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Oct 11 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.9-1
+- fix for mongo auth plugin spec file (abhgupta@redhat.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+- Merge pull request #613 from kraman/master (openshift+bot@redhat.com)
+- Module name and gem path fixes for auth plugins (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.8.8-1
 - 
 
