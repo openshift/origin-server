@@ -27,11 +27,17 @@ make CFLAGS="%{optflags}"
 rm -rf $RPM_BUILD_ROOT
 
 install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_openshift.so
-install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_libra.so
+ln -s pam_openshift.so %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+if [ -f %{_sysconfdir}/pam.d/sshd ]
+then
+    sed -i -e 's|pam_selinux|pam_openshift|g' %{_sysconfdir}/pam.d/sshd
+fi
 
 %files
 %defattr(0644, root, root)
