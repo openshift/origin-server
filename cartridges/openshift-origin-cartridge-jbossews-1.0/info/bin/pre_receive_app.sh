@@ -7,7 +7,7 @@
 # commit, possibly for the first time. The stop should only occur if the
 # marker is present and will remain present after the commit is applied.
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 # Import environment variables
