@@ -67,9 +67,6 @@ class RestApi_V1 < RestApi
       when 'cartridge'
         obj = RestCartridge_V1.to_obj(data)
         self.response.compare(obj)
-      when 'cartridges'
-        obj = RestCartridge_V1.to_obj(data[0])
-        self.response.compare(obj)
       when 'gear'
         obj = RestGear_V1.to_obj(data)
         self.response.compare(obj)
@@ -217,7 +214,7 @@ app_scale_down_post_v1.response_type = "application"
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
 embed_cart = 'mysql-5.1'
 app_add_cart_post_v1.request.merge!({ 'name' => embed_cart, 'colocate_with' => nil })
-app_add_cart_post_v1.response = RestCartridge_V1.new('embedded', embed_cart)
+app_add_cart_post_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
 app_add_cart_post_v1.response_type = "cartridge"
 app_add_cart_post_v1.response_status = "created"
 
@@ -243,11 +240,10 @@ app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, d
 app_conceal_port_post_v1.response_type = "application"
 
 app_cart_list_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges")
-app_cart_list_get_v1.response = RestCartridge_V1.new('embedded', embed_cart)
 app_cart_list_get_v1.response_type = "cartridges"
 
 app_cart_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}")
-app_cart_get_v1.response = RestCartridge_V1.new('embedded', embed_cart)
+app_cart_get_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
 app_cart_get_v1.response_type = "cartridge"
 
 app_cart_start_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}/events", "POST")

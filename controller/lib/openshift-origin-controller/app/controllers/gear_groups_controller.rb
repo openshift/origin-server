@@ -2,6 +2,7 @@ class GearGroupsController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
   
+  # GET /domains/[domain_id]/applications/[application_id]/gear_groups
   def index
     domain_id = params[:domain_id]
     app_id = params[:application_id]
@@ -20,6 +21,7 @@ class GearGroupsController < BaseController
                    "Showing gear groups for application '#{app_id}' with domain '#{domain_id}'")
   end
   
+  # GET /domains/[domain_id]/applications/[application_id]/gear_groups/[id]
   def show
     domain_id = params[:domain_id]
     app_id = params[:application_id]
@@ -42,5 +44,4 @@ class GearGroupsController < BaseController
     render_success(:ok, "gear_group", group, "GET_GEAR_GROUP",
                    "Showing gear group '#{app_id}' for application '#{app_id}' with domain '#{domain_id}'")
   end
-  
 end
