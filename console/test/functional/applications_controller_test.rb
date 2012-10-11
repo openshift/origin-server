@@ -145,7 +145,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal with_app.name, app.name
     assert groups = assigns(:gear_groups)
     assert_equal 1, groups.length
-    assert groups[0].cartridges.map(&:name).include? with_app.cartridge
+    assert (groups[0].cartridges.map(&:name) - with_app.cartridges.map(&:name)).empty?
     assert groups[0].cartridges[0].display_name
     assert domain = assigns(:domain)
     assert !assigns(:has_keys)

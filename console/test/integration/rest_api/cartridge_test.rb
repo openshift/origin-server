@@ -24,7 +24,7 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
 
     cart.scales_from = cart.scales_from + 1
     cart.scales_to = cart.scales_from
-    assert cart.save
+    assert cart.save, cart.errors.pretty_inspect
 
     #cart.reload # Bug in REST API
     app.reload
