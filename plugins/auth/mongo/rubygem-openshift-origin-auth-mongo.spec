@@ -76,7 +76,7 @@ Broker::Application.configure do
   
     :mongo_user => "openshift",
     :mongo_password => "mooo",
-    :mongo_db => "openshift_origin_broker_dev",
+    :mongo_db => "openshift_broker_dev",
     :mongo_collection => "auth_user"
   }
 end

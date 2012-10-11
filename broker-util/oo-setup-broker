@@ -43,6 +43,23 @@ oo-setup-broker: Script to setup the broker and required services on this machin
 USAGE
 end
 
+def find_and_replace(file, find, replace)
+  data = File.open(file).read
+  File.open(file, "w") do |f|
+    data = data.gsub(find, replace)
+    f.write(data)
+  end
+end
+
+def insert_if_not_exist(file, find, to_insert)
+  data = File.open(file).read
+  return if data.match(find)
+  File.open(file, "w") do |f|
+    f.write(data)
+    f.write(to_insert)
+  end
+end
+
 opts = GetoptLong.new(
     ["--external-ip",           "--eip", GetoptLong::OPTIONAL_ARGUMENT],
     ["--external-gw",           "--egw", GetoptLong::OPTIONAL_ARGUMENT],
@@ -140,6 +157,105 @@ if args["--help"]
   exit -1
 end
 
+### Begin package setup
+find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
+
+system <<-EOOF
+lokkit --service=ssh
+lokkit --service=https
+lokkit --service=http
+lokkit --service=dns
+
+semanage -i - <<_EOF
+boolean -m --on named_write_master_zones
+_EOF
+EOOF
+
+system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
+
+insert_if_not_exist("/var/www/openshift/broker/Gemfile", "openshift-origin-auth-mongo", 
+  "\ngem 'openshift-origin-auth-mongo'\n" +
+  "gem 'openshift-origin-dns-bind'\n" +
+  "gem 'openshift-origin-msg-broker-mcollective'\n")
+insert_if_not_exist("/var/www/openshift/broker/config/environments/development.rb", "openshift-origin-dns-bind.rb",
+  "\nrequire File.expand_path('../plugin-config/openshift-origin-dns-bind.rb', __FILE__)\n" +
+  "require File.expand_path('../plugin-config/openshift-origin-msg-broker-mcollective.rb', __FILE__)\n")
+
+insert_if_not_exist("/etc/mongodb.conf", "smallfiles=true", "\nsmallfiles=true\n")
+system <<-EOF
+pushd /var/www/openshift/broker/
+rm -f Gemfile.lock
+bundle install
+chown apache:apache Gemfile.lock
+popd
+EOF
+
+File.open("/etc/mcollective/client.cfg","w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+loglevel = debug
+logfile = /var/log/mcollective-client.log
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.example.com
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
+
+File.open("/etc/mcollective/server.cfg", "w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+logfile = /var/log/mcollective.log
+loglevel = debug
+daemonize = 1 
+direct_addressing = n
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.example.com
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
+
+system <<-EOF
+/sbin/restorecon -r /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid
+
+if [ ! -f /etc/qpidd.conf.orig ] ; then
+  mv /etc/qpidd.conf /etc/qpidd.conf.orig
+fi
+cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
+if [[ "x`fgrep auth= /etc/qpidd.conf`" == xauth* ]] ; then
+  sed -i -e 's/auth=yes/auth=no/' /etc/qpidd.conf
+else
+  echo "auth=no" >> /etc/qpidd.conf
+fi
+
+chkconfig sshd on
+chkconfig httpd on
+EOF
+
 ### Begin network setup
 
 File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
@@ -209,7 +325,7 @@ unless build
   end
   
   print "Setup mongo db user\n"
-  print `/usr/bin/mongo localhost/stickshift_broker_dev --eval 'db.addUser("stickshift", "mooo")'`
+  print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
 end
 
 ### End mongo setup
@@ -224,7 +340,7 @@ unless File.exist?('/etc/rndc.key')
   system "chmod 0640 /etc/rndc.key"
 end
 
-system "/usr/libexec/openshift-origin-broker/bin/oo-setup-bind #{node_domain}"
+system "/usr/bin/oo-setup-bind #{node_domain}"
 
 print "Configure and start local named\n"
 File.open("/var/named/forwarders.conf", "w") do |f|
@@ -253,15 +369,15 @@ system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{no
 
 unless build
   print "Register admin user\n"
-  `mongo stickshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+  `mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
 end
  
-["httpd","sshd","qpidd","mcollective","stickshift-broker","stickshift-proxy"].each do |service|
+["httpd","sshd","qpidd","mcollective","openshift-broker","openshift-port-proxy"].each do |service|
   system "chkconfig #{service} on" 
   system "service #{service} restart" unless build
 end
 
-unless args["--skip-node"] || build || /not installed/.match(`rpm -q openshift-origin-node`)
+unless args["--skip-node"] || build || /not installed/.match(`rpm -q openshift-origin-node-util`)
   print "Connect node services to local broker\n"
   args = []
   args += ["--external-ip", "#{ext_address.strip}/#{ext_prefix.strip}"] unless ext_dhcp

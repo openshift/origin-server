@@ -1,5 +1,5 @@
 module OpenShift
-  module AuthService
+  module KerberosAuthServiceModule
     require 'openshift-origin-auth-kerberos/engine/engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end

@@ -30,7 +30,7 @@ This document describes how to register and authenticate OpenShift Origin user u
 * Configure OpenShift Origin
   Restrict privileges to mongo auth database
 
-    /usr/bin/mongo localhost/openshift_origin_broker_dev --eval "db.addUser(\"openshift\", \"mooo\")"
+    /usr/bin/mongo localhost/openshift_broker_dev --eval "db.addUser(\"openshift\", \"mooo\")"
 
   Enable mongo auth in OpenShift Origin configuration
 
@@ -49,7 +49,7 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-mongo.rb
   
         :mongo_user => "openshift",
         :mongo_password => "mooo",
-        :mongo_db => "openshift_origin_broker_dev",
+        :mongo_db => "openshift_broker_dev",
         :mongo_collection => "auth_user"
       }
     end
