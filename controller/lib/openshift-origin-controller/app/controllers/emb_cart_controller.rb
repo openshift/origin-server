@@ -32,7 +32,7 @@ class EmbCartController < BaseController
                    "Listing cartridges for application #{id} under domain #{domain_id}")
   end
   
-  # GET /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
+  # GET /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def show
     domain_id = params[:domain_id]
     application_id = params[:application_id]
@@ -45,22 +45,36 @@ class EmbCartController < BaseController
                         "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
-    application = Application.find(@cloud_user,application_id)
+    application = Application.find(@cloud_user, application_id)
     return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'",
                         101, "SHOW_APP_CARTRIDGE") if !application
-    
+   
+    cartridge = nil 
     application.embedded.each do |key, value|
       if key == id
-        message = application.status(key, false) if status_messages
+        app_status = application.status(key, false) if status_messages
         if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, message, nolinks)
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, app_status, nolinks)
         else
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, message, nolinks)
+          cartridge = RestCartridge10.new("embedded", key, application, get_url, app_status, nolinks)
         end
-        return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE",
-               "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
+        break
       end
     end if application.embedded
+
+    if !cartridge and id == application.framework and $requested_api_version >= 1.1
+      app_status = application.status(application.framework, false) if status_messages
+      app_status.each do |gear_status|
+        #FIXME: work around until cartridge status hook provides better interface
+        message = "#{application.framework} is started."
+        message = "#{application.framework} is stopped or inaccessible." if gear_status['message'].match(/(stopped)|(inaccessible)/)
+        gear_status['message'] = message
+      end if app_status
+      cartridge = RestCartridge11.new("standalone", application.framework, application, get_url, app_status, nolinks)
+    end
+    return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE",
+           "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}") if cartridge
+
     render_error(:not_found, "Cartridge #{id} not found for application #{application_id}",
                  129, "SHOW_APP_CARTRIDGE")
   end
@@ -139,7 +153,7 @@ class EmbCartController < BaseController
     render_error(:internal_server_error, "Cartridge #{name} not embedded within application #{id}", nil, "EMBED_CARTRIDGE")
   end
 
-  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
+  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def destroy
     domain_id = params[:domain_id]
     id = params[:application_id]
@@ -172,13 +186,14 @@ class EmbCartController < BaseController
     render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
 
+  # UPDATE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def update
     domain_id = params[:domain_id]
     app_id = params[:application_id]
     cartridge_name = params[:id]
     additional_storage = params[:additional_storage]
-    min_scale = params[:scales_from]
-    max_scale = params[:scales_to]
+    scales_from = params[:scales_from]
+    scales_to = params[:scales_to]
     
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
@@ -222,9 +237,9 @@ class EmbCartController < BaseController
       end             
     end
 
-    if min_scale or max_scale
+    if scales_from or scales_to
       begin
-        app.set_user_min_max(storage_map, min_scale, max_scale)
+        app.set_user_min_max(storage_map, scales_from, scales_to)
       rescue Exception=>e
         return render_format_error(:forbidden, e.message, 164,
                          "UPDATE_CARTRIDGE") 

@@ -15,10 +15,7 @@ class RestGearGroup < OpenShift::Model
     self.scales_to = group_instance.max
     self.scales_from = group_instance.min
     self.links = {
-      "GET" => Link.new("Get gear group", "GET", URI::join(url, "domains/#{app.domain.namespace}/applications/#{app.name}/gear_groups/#{uuid}")),
-      "UPDATE" => Link.new("Update gear group", "PUT", URI::join(url, "domains/#{app.domain.namespace}/applications/#{app.name}/gear_groups/#{uuid}"),[
-        Param.new("storage", "integer", "The filesystem storage on each gear within the group in gigabytes")
-      ])
+      "GET" => Link.new("Get gear group", "GET", URI::join(url, "domains/#{app.domain.namespace}/applications/#{app.name}/gear_groups/#{uuid}"))
     } unless nolinks
   end
 

@@ -182,14 +182,22 @@ end
 class RestCartridge_V1 < BaseObj_V1
   attr_accessor :type, :name, :links, :properties, :status_messages                                                                                                                                                                                                                       
   
-  def initialize(type=nil, name=nil)
+  def initialize(type=nil, name=nil, app=nil)
     self.name = name
     self.type = type
     self.properties = {}
     self.status_messages = nil
-    if type == "embedded"
+
+    if app and !$nolinks
       self.links = {
-        "GET" => Link_V1.new("GET", "/cartridges/#{name}"),
+          "GET" => Link_V1.new("GET", "/cartridges/#{name}"),
+          "UPDATE" => Link_V1.new("PUT", "/cartridges/#{name}", nil, [
+            OptionalParam_V1.new("additional_storage", "integer"),
+            OptionalParam_V1.new("scales_from", "integer"),
+            OptionalParam_V1.new("scales_to", "integer")
+          ])
+      }
+      self.links.merge!({
         "START" => Link_V1.new("POST", "/cartridges/#{name}/events", [
           Param_V1.new("event", "string", "start")
         ]),
@@ -203,7 +211,7 @@ class RestCartridge_V1 < BaseObj_V1
           Param_V1.new("event", "string", "reload")                                            
         ]),
         "DELETE" => Link_V1.new("DELETE", "/cartridges/#{name}")
-      } unless $nolinks
+      }) if type == "embedded"
     end
   end
 
