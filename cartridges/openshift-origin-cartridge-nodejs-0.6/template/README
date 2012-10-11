@@ -70,17 +70,6 @@ Note: Among other things, this file contains a list of dependencies
       every time you "git push" to your OpenShift application.
 
 
-Development Mode
-================
-
-When you push your code changes to OpenShift, if you want dynamic reloading
-of your javascript files in "development" mode, you can either use the
-hot_deploy marker or add the following to package.json.
-   "scripts": { "start": "supervisor <relative-path-from-repo-to>/server.js" },
-
-This will run Node with Supervisor - https://npmjs.org/package/supervisor
-
-
 Local Development + Testing
 ===========================
 
