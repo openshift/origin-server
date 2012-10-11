@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.12
+Version:        0.99.13
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -42,6 +42,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.13-1
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.12-1
 - Install our changes into pam. (rmillner@redhat.com)
 
