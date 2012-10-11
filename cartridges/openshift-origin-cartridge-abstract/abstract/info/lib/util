@@ -252,7 +252,7 @@ function get_attached_databases {
 function start_app {
     set_app_state started
 
-    for db in $(get_attached_databases)
+    for db in $(get_local_databases)
     do
         run_as_user "${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh start" || error "Failed to start ${db}" 121
     done
@@ -271,13 +271,22 @@ function stop_app {
         run_as_user "${CARTRIDGE_BASE_PATH}/$cart/info/bin/app_ctl.sh stop" || error "Failed to stop ${cart}" 121
     done
 
-    for db in $(get_attached_databases)
+    for db in $(get_local_databases)
     do
         run_as_user "${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh stop" || error "Failed to start ${db}" 121
     done
 }
 
+# Start only gear local dbs
 function start_dbs {
+    for db in $(get_local_databases)
+    do
+        ${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh start || error "Failed to start ${db}" 121
+    done
+}
+
+# Start all dbs that the current gear can connect to
+function start_attached_dbs {
     for db in $(get_attached_databases)
     do
         ${CARTRIDGE_BASE_PATH}/$db/info/bin/app_ctl.sh start || error "Failed to start ${db}" 121
