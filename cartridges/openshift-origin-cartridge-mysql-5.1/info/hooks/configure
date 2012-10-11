@@ -54,6 +54,8 @@ fi
 
 MYSQL_PORT=3306
 MYSQL_IP=`find_open_ip $uid $uuid $MYSQL_PORT`
+HOST_VAR=OPENSHIFT_MYSQL_DB_HOST
+PORT_VAR=OPENSHIFT_MYSQL_DB_PORT
 #
 # Create the core of the application
 #
@@ -107,8 +109,15 @@ if is_a_scalable_app; then
    if $(dirname "$0")/expose-port "$@"; then
        source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
        source $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PROXY_PORT
-       mysql_ip=${OPENSHIFT_GEAR_DNS:-"$MYSQL_IP"}
-       mysql_port=${OPENSHIFT_MYSQL_DB_PROXY_PORT:-$MYSQL_PORT}
+       if [ -n "$OPENSHIFT_GEAR_DNS" ]; then
+         mysql_ip=$OPENSHIFT_GEAR_DNS
+         HOST_VAR=OPENSHIFT_GEAR_DNS
+       fi
+
+       if [ -n "$OPENSHIFT_MYSQL_DB_PROXY_PORT" ]; then
+         mysql_port=$OPENSHIFT_MYSQL_DB_PROXY_PORT
+         PORT_VAR=OPENSHIFT_MYSQL_DB_PROXY_PORT
+       fi
    fi
 fi
 
@@ -121,11 +130,11 @@ client_result "   Database Name: ${dbname}"
 client_result ""
 
 if is_a_scalable_app; then
-    client_result "Connection URL: mysql://$mysql_ip:$mysql_port/"
-    client_result "MySQL gear-local connection URL: mysql://$MYSQL_IP:$MYSQL_PORT/"
+    client_result "Connection URL: mysql://\$$HOST_VAR:\$$PORT_VAR/"
+    client_result 'MySQL gear-local connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
     client_result ""
 else
-    client_result "Connection URL: mysql://$MYSQL_IP:$MYSQL_PORT/"
+    client_result 'Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
     client_result ""
     client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
 fi
