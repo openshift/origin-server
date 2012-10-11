@@ -6,10 +6,10 @@ do
     . $f
 done
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbosseap-6.0/info/configuration"
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbossews-1.0/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | grep -q .stg.rhcloud.com` || `echo $OPENSHIFT_GEAR_DNS | grep -q .dev.rhcloud.com`
 then 
@@ -19,7 +19,7 @@ then
   OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
 fi
 
-resource_limits_file=`readlink -f /etc/stickshift/resource_limits.conf`
+resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
 resource_limits_file_name=`basename $resource_limits_file`
 node_profile=`echo ${resource_limits_file_name/*./}`
 case "$node_profile" in

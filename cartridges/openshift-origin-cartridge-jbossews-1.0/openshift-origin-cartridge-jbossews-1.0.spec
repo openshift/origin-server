@@ -1,10 +1,10 @@
-%global cartridgedir %{_libexecdir}/stickshift/cartridges/jbossews-1.0
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossews-1.0
 %global jbossver 1.0.2.GA
 %global oldjbossver 1.0.1.GA
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.1
+Version:   1.0.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -52,13 +52,13 @@ popd
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
-mkdir -p %{buildroot}/%{_sysconfdir}/stickshift/cartridges
+mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
-ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/stickshift/cartridges/%{name}
+ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
 ln -s %{cartridgedir}/../abstract/info/hooks/post-install %{buildroot}%{cartridgedir}/info/hooks/post-install
@@ -108,8 +108,8 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss ews 1.0.* upstream.
 #mkdir -p /etc/alternatives/jbossews-6.0/modules/org/postgresql/jdbc/main
-#ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main
-#cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbosseap-6.0/modules/org/postgresql/jdbc/main/module.xml
+#ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossews-1.0/modules/org/postgresql/jdbc/main
+#cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbossews-1.0/modules/org/postgresql/jdbc/main/module.xml
 
 
 %clean
@@ -123,7 +123,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/info/connection-hooks/
 %{cartridgedir}/template/
-%{_sysconfdir}/stickshift/cartridges/%{name}
+%{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %{cartridgedir}/README
@@ -133,6 +133,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 10 2012 Unknown name <bdecoste@gmail.com> 1.0.3-1
+- ews cart (bdecoste@gmail.com)
+- ews cart (bdecoste@gmail.com)
+- ews cart (bdecoste@gmail.com)
+- ews cart (bdecoste@gmail.com)
+
+* Wed Oct 10 2012 Unknown name <bdecoste@gmail.com> 1.0.2-1
+- ews cart (bdecoste@gmail.com)
+
 * Tue Oct 09 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
 - new package built with tito
 
