@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.11
+Version:        0.99.12
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -48,6 +48,9 @@ fi
 
 
 %changelog
+* Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.12-1
+- Install our changes into pam. (rmillner@redhat.com)
+
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.11-1
 - Update tags from rebase
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.10-1
