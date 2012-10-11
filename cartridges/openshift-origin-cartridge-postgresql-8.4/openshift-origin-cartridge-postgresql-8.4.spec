@@ -21,6 +21,7 @@ Requires: postgresql
 Requires: postgresql-server
 Requires: postgresql-libs
 Requires: postgresql-devel
+Requires: postgresql-contrib
 Requires: postgresql-ip4r
 Requires: postgresql-jdbc
 Requires: postgresql-plperl
