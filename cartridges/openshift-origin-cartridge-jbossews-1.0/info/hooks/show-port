@@ -6,7 +6,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Start a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_httpd_start
+    echo "$0 $@" | logger -p local0.notice -t openshift_httpd_start
     exit 1
 }
 
@@ -23,7 +23,7 @@ done
 
 [ $# -eq 3 ] || print_help
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_NS=$(get_cartridge_namespace_from_path)

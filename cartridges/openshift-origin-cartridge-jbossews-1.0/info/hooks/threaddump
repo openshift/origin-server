@@ -9,7 +9,7 @@ function print_help {
     echo "Usage: $0 app-name namespace uuid"
     echo "Get a thread dump for a running application"
 
-    echo "$0 $@" | logger -p local0.notice -t stickshift_threaddump
+    echo "$0 $@" | logger -p local0.notice -t openshift_threaddump
     exit 1
 }
 
@@ -29,7 +29,7 @@ done
 . `dirname $0`/jboss.version
 cartridge_type="${jboss_version}"
 
-source "/etc/stickshift/stickshift-node.conf"
+source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_basic_hook "$1" $2 $3
