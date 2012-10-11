@@ -15,9 +15,9 @@
 #++
 
 require 'rubygems'
-require "openshift-origin-node/config"
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
+require "openshift-origin-common/config"
 require 'syslog'
 require 'fcntl'
 

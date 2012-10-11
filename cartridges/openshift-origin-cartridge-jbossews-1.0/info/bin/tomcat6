@@ -1,6 +1,6 @@
 #!/bin/bash
 
-resource_limits_file=`readlink -f /etc/stickshift/resource_limits.conf`
+resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
 resource_limits_file_name=`basename $resource_limits_file`
 node_profile=`echo ${resource_limits_file_name/*./}`
 case "$node_profile" in
