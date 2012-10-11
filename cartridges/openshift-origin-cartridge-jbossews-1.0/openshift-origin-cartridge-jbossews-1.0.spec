@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.3
+Version:   1.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,18 +133,9 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Wed Oct 10 2012 Unknown name <bdecoste@gmail.com> 1.0.3-1
-- ews cart (bdecoste@gmail.com)
-- ews cart (bdecoste@gmail.com)
-- ews cart (bdecoste@gmail.com)
-- ews cart (bdecoste@gmail.com)
+* Wed Oct 10 2012 William DeCoste <wdecoste@redhat.com> 1.0.1-1
+- update
 
-* Wed Oct 10 2012 Unknown name <bdecoste@gmail.com> 1.0.2-1
-- ews cart (bdecoste@gmail.com)
-
-* Tue Oct 09 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
-- new package built with tito
-
-* Fri Oct 05 2012 William DeCoste <wdecoste@redhat.com> 1.0.0-1
+* Wed Oct 10 2012 William DeCoste <wdecoste@redhat.com> 1.0.0-1
 - initial
 
