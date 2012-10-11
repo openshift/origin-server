@@ -1002,9 +1002,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       end
     end
     sup_max = 1000000 if sup_max==-1
-    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale and (Integer(max_scale) > sup_max or Integer(max_scale) < sup_min) )
+    max_scale_int = nil
+    max_scale_int = Integer(max_scale) if max_scale
+    max_scale_int = 1000000 if max_scale_int==-1 
+    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale_int and ( max_scale_int > sup_max or max_scale_int < sup_min) )
       Rails.logger.debug("min_scale: #{min_scale}, sup_min: #{sup_min}, sup_max : #{sup_max}")
-      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 164)
+      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 168)
     end
     cart_current_min = 0
     storage_map.keys.each { |group_name| 
@@ -1015,8 +1018,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       target_min = Integer(min_scale) - cart_current_min
       iter = storage_map.keys.each
       while target_min != 0 do
-        group_name = iter.next
-        break if group_name.nil?
+        begin
+          group_name = iter.next
+          break if group_name.nil?
+        rescue Exception=>e
+          break
+        end
         ginst = self.group_instance_map[group_name]
         ginst_max = ginst.max
         ginst_max = 1000000 if ginst.max==-1
@@ -1039,14 +1046,19 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         end
       end
       if target_min != 0
-        iter = storage_map.keys.each
-        raise OpenShift::UserException("Internal error while setting cartridge min value.", 153)
+        self.save
+        raise OpenShift::UserException.new("Could not completely distribute scales_from to all groups. Value constrained to #{Integer(min_scale)-target_min}", 169)
       end
     end
     if max_scale
       target_max = Integer(max_scale)
       storage_map.keys.each { |group_name, component_instances|
         gi = self.group_instance_map[group_name]
+        if target_max==-1 
+          next if gi.supported_max!=-1
+          gi.max = target_max
+          break
+        end
         if gi.supported_max==-1 or( (gi.supported_max-gi.min) > target_max )
           rest_total = 0
           storage_map.keys.each { |other_group_name|
