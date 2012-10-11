@@ -11,12 +11,9 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbossas-7/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
-if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
 then 
-	OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.stg.xml"
-elif `echo $OPENSHIFT_GEAR_DNS | grep -qe "\.rhcloud\.com"`
-then
-  OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
+    OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.rhcloud.xml"
 fi
 
 resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`

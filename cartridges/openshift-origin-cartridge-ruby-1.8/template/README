@@ -21,19 +21,19 @@ directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
 
 Ruby Mirror
 ===========
-OpenShift is mirroring rubygems.org at http://mirror1.prod.rhcloud.com/mirror/ruby/
+OpenShift is mirroring rubygems.org at http://mirror1.ops.rhcloud.com/mirror/ruby/
 This mirror is on the same network as your application, and your gem download should be faster.
 To use the OpenShift mirror: 
 
 Edit your Gemfile and replace
   source 'http://rubygems.org'
 with
-  source 'http://mirror1.prod.rhcloud.com/mirror/ruby/'
+  source 'http://mirror1.ops.rhcloud.com/mirror/ruby/'
 
 Edit your Gemfile.lock and replace
   remote: http://rubygems.org/
 with
-  remote: http://mirror1.prod.rhcloud.com/mirror/ruby/
+  remote: http://mirror1.ops.rhcloud.com/mirror/ruby/
 
 
 Environment Variables
