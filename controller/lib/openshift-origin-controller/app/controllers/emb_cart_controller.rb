@@ -177,8 +177,8 @@ class EmbCartController < BaseController
     app_id = params[:application_id]
     cartridge_name = params[:id]
     additional_storage = params[:additional_storage]
-    min_scale = params[:min_scale]
-    max_scale = params[:max_scale]
+    min_scale = params[:scales_from]
+    max_scale = params[:scales_to]
     
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
