@@ -5,6 +5,9 @@
     margin-left: 0;
     padding: 25px 0;
   }
+  .text-warning {
+    color: #EED99D;
+  }
   @media (max-width: 767px) {
     .console-inner-block {
       padding: 25px;
@@ -48,7 +51,7 @@
         = render :partial => application_type.template
       - if application_type.learn_more_url
         = link_to "Learn more", application_type.learn_more_url
-      %h5 What you get?
+      %h5 What you get
       %ul.unstyled
         %li A public rhcloud.com domain name
         %li Web requests automatically routed to your app
@@ -58,14 +61,14 @@
         - if application_type.template.nil?
           %li{:title => 'By default, an application is created as a single instance. To set up you application for scalability, select it here. Note that scalability requires the use of one extra gear.'}
             - if advanced and (max_gears - gears_used) >= 2
-              = form.select :scale, [['Runs as a single instance',false],['Runs as a scalable application',true]]
+              = form.select :scale, [['Runs one instance of your app',false],['Runs as a scalable application',true]]
             - else
-              Runs as a single instance
+              Runs one instance of your app
               = form.hidden_field :scale, :value => false
               - if (max_gears - gears_used) >= 2
                 = link_to 'Change', application_type_path(application_type, :advanced => true)
               - else
-                %em ...to make this app scalable, delete another app first.
+                %span{:class => 'text-warning', :title=> "You need at least two free gears to create a scaling application; you are currently using #{gears_used} out of #{max_gears.to_i}."} (not enough free gears for scaling)
         %li{:title => (gear_sizes.length > 1 ? 'For most applications, the "small" gear size provides plenty of resources to run in.  If you require more resources, select a larger gear size here.' : nil)}        
           - if advanced and gear_sizes.length > 1
             = form.select :gear_profile, gear_sizes.map{ |size| ['Runs on a ' << size << ' gear', size]}
