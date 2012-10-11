@@ -51,7 +51,7 @@ Then /^the php file permissions are correct/ do
   gid = Etc.getpwnam(gear_uuid).gid
   mcs = get_mcs_level(uid)
   se_context = "unconfined_u:object_r:openshift_var_lib_t:#{mcs}"
-  se_contex2 = "unconfined_u:object_r:openshift_rw_file_t:#{mcs}"
+  se_context2 = "unconfined_u:object_r:openshift_rw_file_t:#{mcs}"
   # Configure files (relative to app_home)
   configure_files = { "php-5.3" => ['root', 'root', '40755', se_context],
                     "php-5.3/" => ['root', 'root', '40755', se_context],
@@ -64,7 +64,7 @@ Then /^the php file permissions are correct/ do
                     "app-root/data/" => [gear_uuid, gear_uuid, '40755', se_context2],
                     "php-5.3/logs/" => [gear_uuid, gear_uuid, '40755', se_context],
                     "php-5.3/phplib/pear/" => [gear_uuid, gear_uuid, '40755', se_context],
-                    "app-root/data/" => [gear_uuid, gear_uuid, '40750', se_contex2],
+                    "app-root/data/" => [gear_uuid, gear_uuid, '40750', se_context2],
                     "app-root/repo/" => [gear_uuid, gear_uuid, '40750', se_context],
                     "php-5.3/run/" => [gear_uuid, gear_uuid, '40755', se_context],
                     "php-5.3/run/httpd.pid" => [gear_uuid, gear_uuid, '100644', se_context],
