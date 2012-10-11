@@ -17,6 +17,6 @@ options = {
     :multiple => false,
     
 }
-config = OpenShift::Config.instance
+config = OpenShift::Config.new
 
 Daemons.run("#{config.get("CARTRIDGE_BASE_PATH")}/haproxy-1.4/info/bin/haproxy_ctld", options)

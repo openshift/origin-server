@@ -70,7 +70,7 @@ hook_name = args['--hook-name']
 $oo_debug = true if args['--debug']
 $porcelain = args['--porcelain'] ? true : false
 
-config = OpenShift::Config.instance
+config = OpenShift::Config.new
 unless gear_uuid
   usage
   exit -100
