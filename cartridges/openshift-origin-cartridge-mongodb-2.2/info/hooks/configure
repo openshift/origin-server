@@ -54,6 +54,8 @@ fi
 
 MONGODB_PORT=27017
 MONGODB_IP=`find_open_ip $uid $uuid $MONGODB_PORT`
+HOST_VAR=OPENSHIFT_MONGODB_DB_HOST
+PORT_VAR=OPENSHIFT_MONGODB_DB_PORT
 
 #
 # Create the core of the application
@@ -110,8 +112,14 @@ if is_a_scalable_app; then
    if $(dirname "$0")/expose-port "$@"; then
        source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
        source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PROXY_PORT
-       mongodb_ip=${OPENSHIFT_GEAR_DNS:-"$MONGODB_IP"}
-       mongodb_port=${OPENSHIFT_MONGODB_DB_PROXY_PORT:-$MONGODB_PORT}
+       if [ -n "$OPENSHIFT_GEAR_DNS" ]; then
+         mongodb_ip=$OPENSHIFT_GEAR_DNS
+         HOST_VAR=OPENSHIFT_GEAR_DNS
+       fi
+       if [ -n "$OPENSHIFT_MONGODB_DB_PROXY_PORT" ]; then
+         mongodb_port=$OPENSHIFT_MONGODB_DB_PROXY_PORT
+         PORT_VAR=OPENSHIFT_MONGODB_DB_PROXY_PORT
+       fi
    fi
 fi
 
@@ -125,11 +133,11 @@ client_result ""
 
 if is_a_scalable_app; then
     source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
-    client_result "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
-    client_result "MongoDB gear-local connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$mongodb_port/"
+    client_result "Connection URL: mongodb://\$$HOST_VAR:\$$PORT_VAR/"
+    client_result 'MongoDB gear-local connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
     client_result ""
 else
-    client_result "Connection URL: mongodb://$MONGODB_IP:$mongodb_port/"
+    client_result 'Connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
     client_result ""
     client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
 fi
