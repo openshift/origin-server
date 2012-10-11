@@ -181,6 +181,9 @@ end
 
 system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
 
+system("setsebool httpd_run_stickshift 1 &>/dev/null || :")
+system("setsebool httpd_run_openshift 1 &>/dev/null || :")
+
 print "Opening required ports\n"
 system "lokkit --service=ssh"
 system "lokkit --service=http"
@@ -219,6 +222,8 @@ system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/'
 system "/sbin/restorecon /var/lib/openshift || :"
 system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
+# Set pam-openshift on ssh
+system "sed -i -e 's|pam-selinux|pam-openshift|g' /etc/pam.d/sshd"
 
 config_lines = File.open('/etc/openshift/node.conf').readlines
 File.open('/etc/openshift/node.conf','w') do |f|
