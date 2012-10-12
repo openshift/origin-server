@@ -34,7 +34,7 @@ if [ "${cmd}" == "" ]; then
 fi
 
 if [ -f $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_MONGODB_DB_GEAR_UUID ]; then
-    mongodb_ctl="ssh $OPENSHIFT_MONGODB_DB_GEAR_UUID@$OPENSHIFT_MONGODB_DB_GEAR_DNS rhcsh ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh $cmd"
+    mongodb_ctl="ssh $OPENSHIFT_MONGODB_DB_GEAR_UUID@$OPENSHIFT_MONGODB_DB_GEAR_DNS ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh $cmd"
 else
     mongodb_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mongodb_ctl.sh $cmd"
 fi

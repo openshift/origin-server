@@ -32,7 +32,7 @@ if [ "${cmd}" == "" ]; then
 fi
 
 if [ -f $OPENSHIFT_HOMEDIR/.env/.uservars/OPENSHIFT_MYSQL_DB_GEAR_UUID ]; then
-    mysql_ctl="ssh $OPENSHIFT_MYSQL_DB_GEAR_UUID@$OPENSHIFT_MYSQL_DB_GEAR_DNS rhcsh ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh $cmd"
+    mysql_ctl="ssh $OPENSHIFT_MYSQL_DB_GEAR_UUID@$OPENSHIFT_MYSQL_DB_GEAR_DNS ${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh $cmd"
 else
     mysql_ctl="${CARTRIDGE_BASE_PATH}/$cartridge_type/info/bin/mysql_ctl.sh $cmd"
 fi

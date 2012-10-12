@@ -7,12 +7,9 @@ do
 done
 
 cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
-if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
 then 
-	OPENSHIFT_PYTHON_MIRROR="http://mirror1.stg.rhcloud.com/mirror/python/web/simple"
-elif `echo $OPENSHIFT_GEAR_DNS | grep -qe "\.rhcloud\.com"`
-then
-	OPENSHIFT_PYTHON_MIRROR="http://mirror1.prod.rhcloud.com/mirror/python/web/simple"
+    OPENSHIFT_PYTHON_MIRROR="http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
 fi
 
 # Run when jenkins is not being used or run when inside a build
