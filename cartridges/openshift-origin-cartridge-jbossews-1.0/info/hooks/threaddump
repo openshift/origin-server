@@ -51,4 +51,4 @@ run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/app_ctl.sh thread
 
 client_result "Success"
 client_result ""
-client_result "The thread dump file will be available via: rhc app tail -a $1 -f $cartridge_type/$cartridge_type/standalone/tmp/$cartridge_type.log -o '-n 250'"
+client_result "The thread dump file will be available via: rhc app tail -a $1 -f $cartridge_type/$cartridge_type/logs/catalina.out -o '-n 250'"
