@@ -210,7 +210,7 @@ system "restorecon -v /cgroup"
 system "chkconfig cgconfig on"
 system "chkconfig cgred on"
 
-system "chkconfig cgconfig start"
+system "service cgconfig start"
 system "service cgred start"
 if use_systemd
   system "systemctl enable openshift-cgroups.service"

@@ -162,7 +162,6 @@ end
 
 system "yum install -y qpid-cpp-server"
 
-find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
 insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
 
 system <<-EOOF
@@ -324,8 +323,11 @@ unless build
   end
   
   print "Setup mongo db user\n"
+  print `/usr/bin/mongo localhost/admin --eval 'db.addUser("openshift", "mooo")'`
   print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
 end
+find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+system "service mongod start" unless build
 
 ### End mongo setup
 
