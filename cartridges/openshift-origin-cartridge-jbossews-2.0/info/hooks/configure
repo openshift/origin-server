@@ -7,7 +7,7 @@ source "/etc/openshift/node.conf"
 : << --COMMENT--
 # jboss.version
 jboss_home = the location where the jboss server is installed
-jboss_version = the name/type of the jboss cartridge, e.g., jbossews-1.0
+jboss_version = the name/type of the jboss cartridge, e.g., jbossews-2.0
 # /etc/openshift/node.conf
 CREATE_APP_SYMLINK = Enable user-unobfuscate to create ~/appname-namespace in addition to ~/uuid
 GEAR_BASE_DIR=Users home dirs (where customer data ends up)
@@ -123,7 +123,6 @@ mkdir -p ${jboss_version}/{conf,logs,bin}
 
 ln -s /etc/alternatives/${jboss_version}/bin/bootstrap.jar ${APP_JBOSS}/bin/bootstrap.jar
 ln -s /etc/alternatives/${jboss_version}/bin/commons-daemon.jar ${APP_JBOSS}/bin/commons-daemon.jar
-ln -s /etc/alternatives/${jboss_version}/bin/commons-logging-tomcat-juli.jar ${APP_JBOSS}/bin/commons-logging-tomcat-juli.jar
 ln -s /etc/alternatives/${jboss_version}/bin/tomcat-juli.jar ${APP_JBOSS}/bin/tomcat-juli.jar
 ln -s /etc/alternatives/${jboss_version}/lib ${APP_JBOSS}/lib
 
@@ -140,8 +139,8 @@ cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/tomcat-users.xml "$APP_JBOSS"/conf
 cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/catalina.properties "$APP_JBOSS"/conf
 cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/logging.properties "$APP_JBOSS"/conf
 
-# Link to the tomcat6 script
-ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/tomcat6 $APP_JBOSS_BIN_DIR/tomcat6
+# Link to the tomcat7 script
+ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/tomcat7 $APP_JBOSS_BIN_DIR/tomcat7
 
 # Link to the standalone.conf file
 #ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/standalone.conf $APP_JBOSS_BIN_DIR/standalone.conf
