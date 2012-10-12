@@ -30,15 +30,16 @@ killtree() {
     for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
         killtree ${_child}
     done
-    echo kill -TERM ${_pid}
-    kill -TERM ${_pid}
+    echo kill -9 ${_pid}
+    kill -9 ${_pid}
 }
 # Check if the jbossas process is running
 isrunning() {
     # Check for running app
     if [ -f "$JBOSS_PID_FILE" ]; then
       jbpid=$(cat $JBOSS_PID_FILE);
-      if /bin/ps --pid $jbpid 1>&2 >/dev/null;
+      running=`/bin/ps --no-headers --pid $jbpid`
+      if test -n "$running";
       then
         return 0
       fi
