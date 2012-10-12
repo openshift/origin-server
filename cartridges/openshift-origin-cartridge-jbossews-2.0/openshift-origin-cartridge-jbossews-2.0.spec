@@ -1,10 +1,10 @@
-%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossews-1.0
-%global jbossver 1.0.2.GA
-%global oldjbossver 1.0.1.GA
+%global cartridgedir %{_libexecdir}/openshift/cartridges/jbossews-2.0
+%global jbossver 2.0.0.GA
+%global oldjbossver 2.0.0.CR1
 
-Summary:   Provides JBossEWS1.0 support
-Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.3
+Summary:   Provides JBossEWS2.0 support
+Name:      openshift-origin-cartridge-jbossews-2.0
+Version:   1.0.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -19,7 +19,7 @@ BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
-Requires: tomcat6
+Requires: tomcat7
 Requires: lsof
 Requires: java-1.7.0-openjdk
 Requires: java-1.7.0-openjdk-devel
@@ -34,7 +34,7 @@ Requires: maven
 
 
 %description
-Provides JBossEWS1.0 support to OpenShift
+Provides JBossEWS2.0 support to OpenShift
 
 
 %prep
@@ -103,9 +103,9 @@ alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 10
 alternatives --set maven-3.0 /usr/share/maven
 %endif
 
-alternatives --remove jbossews-1.0 /usr/share/tomcat6
-alternatives --install /etc/alternatives/jbossews-1.0 jbossews-1.0 /usr/share/tomcat6 102
-alternatives --set jbossews-1.0 /usr/share/tomcat6
+alternatives --remove jbossews-2.0 /usr/share/tomcat7
+alternatives --install /etc/alternatives/jbossews-2.0 jbossews-2.0 /usr/share/tomcat7 102
+alternatives --set jbossews-2.0 /usr/share/tomcat7
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss ews 1.0.* upstream.
@@ -135,15 +135,7 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Thu Oct 11 2012 William DeCoste <wdecoste@redhat.com> 1.0.3-1
-- update
-
-* Thu Oct 11 2012 William DeCoste <wdecoste@redhat.com> 1.0.2-1
-- update
-
-* Wed Oct 10 2012 William DeCoste <wdecoste@redhat.com> 1.0.1-1
-- update
-
-* Wed Oct 10 2012 William DeCoste <wdecoste@redhat.com> 1.0.0-1
+* Thu Oct 11 2012 William DeCoste <wdecoste@redhat.com> 1.0.1-1
 - initial
+
 
