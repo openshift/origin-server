@@ -17,7 +17,7 @@ BuildRequires: git
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: httpd
-Obsoletes: cartridge-cron-1.4
+Obsoletes: cartridge-diy-0.1
 
 %description
 Provides diy support to OpenShift
