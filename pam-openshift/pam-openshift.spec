@@ -30,6 +30,11 @@ install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_openshift
 ln -s pam_openshift.so %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
+install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
+
+mkdir -p %{buildroot}/%{_sysconfdir}/security/namespace.d
+install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -39,7 +44,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
-
+%attr(0755,root,root) %{_sbindir}/oo-namespace-init
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
 * Wed Oct 10 2012 Rob Millner <rmillner@redhat.com> 0.99.13-1
