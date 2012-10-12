@@ -221,11 +221,9 @@ else
   system "service openshift-cgroups start"
 end
 
-system("setsebool httpd_run_stickshift 1 &>/dev/null || :")
-system("setsebool httpd_run_openshift 1 &>/dev/null || :")
-
-system("setsebool httpd_run_stickshift 1 &>/dev/null || :")
-system("setsebool httpd_run_openshift 1 &>/dev/null || :")
+system("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
+system("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
+system("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
@@ -267,8 +265,18 @@ system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/'
 system "/sbin/restorecon /var/lib/openshift || :"
 system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
-# Set pam-openshift on ssh
+# Set pam-openshift and polyinstantiation
 system "sed -i -e 's|pam-selinux|pam-openshift|g' /etc/pam.d/sshd"
+["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
+  begin
+    File.open("/etc/pam.d/#{pamf}", File::RDWR) do |f|
+      if f.read()["pam_namespace.so"].nil?
+        f.write("session\t\trequired\tpam_namespace.so no_unmount_on_close\n")
+      end
+    end
+  rescue Errno::ENOENT
+  end
+end
 
 config_lines = File.open('/etc/openshift/node.conf').readlines
 File.open('/etc/openshift/node.conf','w') do |f|
