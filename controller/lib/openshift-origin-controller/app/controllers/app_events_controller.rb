@@ -14,7 +14,7 @@ class AppEventsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "APPLICATION_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
 
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "APPLICATION_EVENT") unless application
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
@@ -72,7 +72,7 @@ class AppEventsController < BaseController
           msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
           #TODO: We need to reconsider how we are reporting messages to the client
           message = Message.new(:result, msg, 0)
-          application = Application.find(@cloud_user, id)
+          application = get_application(id)
           if $requested_api_version >= 1.2
             app = RestApplication12.new(application, get_url, nolinks)
           else
@@ -88,7 +88,7 @@ class AppEventsController < BaseController
     rescue Exception => e
       return render_exception(e, "#{event.sub('-', '_').upcase}_APPLICATION")
     end
-    application = Application.find(@cloud_user, id)
+    application = get_application(id)
     if $requested_api_version >= 1.2
       app = RestApplication12.new(application, get_url, nolinks)
     else

@@ -8,10 +8,10 @@ class Application < OpenShift::Cartridge
                 :domain, :group_override_map, :working_comp_inst_hash,
                 :working_group_inst_hash, :configure_order, :start_order,
                 :scalable, :proxy_cartridge, :init_git_url, :node_profile,
-                :ssh_keys, :ngears, :usage_records, :destroyed_gears
+                :ssh_keys, :ngears, :usage_records, :destroyed_gears, :user_agent
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map,
-                :working_comp_inst_hash, :working_group_inst_hash,
+                :working_comp_inst_hash, :working_group_inst_hash, :user_agent,
                 :init_git_url, :group_override_map
   include_attributes :comp_instances, :group_instances
 
