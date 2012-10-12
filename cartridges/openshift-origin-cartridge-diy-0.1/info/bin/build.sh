@@ -10,13 +10,9 @@ for f in ~/.env/*; do
 done
 
 CONFIG_DIR="$CARTRIDGE_BASE_PATH/diy-0.1/info/configuration"
-OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
-if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.(stg|int|dev)\.rhcloud\.com"`
-then 
-    export OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.stg.xml"
-elif `echo $OPENSHIFT_GEAR_DNS | grep -qe "\.rhcloud\.com"`
-then
-    export OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.prod.xml"
+export OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
+if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`; then
+    export OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.rhcloud.xml"
 fi
 
 user_build.sh

@@ -76,7 +76,7 @@ function is_db_on_dbgear {
 function ssh_dbgear {
     _set_db_env
    gear_user_and_host="$_db_gear_uuid@$_db_gear_dns"
-   ssh $gear_user_and_host rhcsh "$@"
+   ssh $gear_user_and_host "$@"
 }
 
 function control_db_on_dbgear {
