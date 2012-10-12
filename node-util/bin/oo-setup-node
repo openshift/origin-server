@@ -266,14 +266,10 @@ system "/sbin/restorecon /var/lib/openshift || :"
 system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
 # Set pam-openshift and polyinstantiation
-system "sed -i -e 's|pam-selinux|pam-openshift|g' /etc/pam.d/sshd"
+find_and_replace("/etc/pam.d/sshd", "pam-selinux", "pam-openshift")
 ["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
   begin
-    File.open("/etc/pam.d/#{pamf}", File::RDWR) do |f|
-      if f.read()["pam_namespace.so"].nil?
-        f.write("session\t\trequired\tpam_namespace.so no_unmount_on_close\n")
-      end
-    end
+    insert_if_not_exist("/etc/pam.d/#{pamf}", "pam_namespace.so", "session\t\trequired\tpam_namespace.so no_unmount_on_close\n")
   rescue Errno::ENOENT
   end
 end
