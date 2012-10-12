@@ -213,7 +213,19 @@ module CommandHelper
       $logger.info { "Embed #{type} into #{app.inspect}: OUTPUT\n#{result}" }
       log_event "#{time} ADD_EMBED_CART #{app.name} #{type} #{app.login}"
       if type.start_with?('mysql-')
-        app.mysql_hostname = /^Connection URL: mysql:\/\/(.*)\/$/.match(result)[1]
+        # Recent versions of rhc now return a connection URL in this format:
+        #
+        #    mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/
+        #
+        # So, we have to extract the env vars and source them from the gear
+        # directory to get the actual values to attach to the app.
+
+        # Source the env var values from the gear directory
+        host_val = `source /var/lib/openshift/#{app.uid}/.env/OPENSHIFT_MYSQL_DB_HOST;echo $OPENSHIFT_MYSQL_DB_HOST`.chomp!
+        port_val = `source /var/lib/openshift/#{app.uid}/.env/OPENSHIFT_MYSQL_DB_PORT;echo $OPENSHIFT_MYSQL_DB_PORT`.chomp!
+
+        # Assign the hostname ourselves, in host:port format
+        app.mysql_hostname = "#{host_val}:#{port_val}"
         app.mysql_user = /^ +Root User: (.*)$/.match(result)[1]
         app.mysql_password = /^ +Root Password: (.*)$/.match(result)[1]
         app.mysql_database = /^ +Database Name: (.*)$/.match(result)[1]
