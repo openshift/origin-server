@@ -31,6 +31,7 @@ Requires:       libcgroup
 Requires:       libcgroup-tools
 %endif
 Requires:       pam-openshift
+Requires:       quota
 Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby
@@ -67,6 +68,7 @@ mkdir -p %{buildroot}%{appdir}/.httpd.d
 mkdir -p %{buildroot}%{_initddir}
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/openshift
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
+mkdir -p %{buildroot}%{_libexecdir}/openshift/lib
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -82,6 +84,10 @@ mv %{buildroot}%{geminstdir}/conf/* %{buildroot}%{_sysconfdir}/openshift
 # Symlink into the ruby site library directories
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
+
+#move pam limit binaries to proper location
+mv %{buildroot}%{geminstdir}/misc/bin/teardown_pam_fs_limits.sh %{buildroot}%{_libexecdir}/openshift/lib
+mv %{buildroot}%{geminstdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}%{_libexecdir}/openshift/lib
 
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
@@ -123,6 +129,8 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/openshift
 %{_bindir}/*
+%{_libexecdir}/openshift/lib/setup_pam_fs_limits.sh
+%{_libexecdir}/openshift/lib/teardown_pam_fs_limits.sh
 %config(noreplace) %{_sysconfdir}/openshift/node.conf
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf

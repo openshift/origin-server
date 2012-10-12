@@ -1,6 +1,8 @@
 #!/bin/bash
- 
+
 #. /etc/bashrc
+
+[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
 
 source /etc/init.d/functions 2> /dev/null
 source /usr/libexec/openshift/cartridges/abstract/info/lib/util
@@ -12,7 +14,17 @@ do
 done
 
 function welcome {
-    cat <<EOF
+    cat 1>&2 <<EOF
+
+    *********************************************************************
+
+    You are accessing a service that is for use only by authorized users.  
+    If you do not have authorization, discontinue use at once. 
+    Any use of the services is subject to the applicable terms of the 
+    agreement which can be found at: 
+    https://openshift.redhat.com/app/legal
+
+    *********************************************************************
 
     Welcome to OpenShift shell
 
@@ -40,11 +52,7 @@ function ctl_all {
 
 function mysql() {
    #  Setup default options.
-   if [ -n "$OPENSHIFT_DB_GEAR_DNS" ]; then
-      hostopt="-h $OPENSHIFT_DB_GEAR_DNS"
-   else
-      [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_MYSQL_DB_HOST"
-   fi
+   [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_MYSQL_DB_HOST"
    portopt="-P ${OPENSHIFT_MYSQL_DB_PORT:-3306}"
    useropt="-u ${OPENSHIFT_MYSQL_DB_USERNAME:-'admin'}"
    passopt=--password="$OPENSHIFT_MYSQL_DB_PASSWORD"
@@ -65,6 +73,16 @@ function mysql() {
 }  #  End of  mysql  function.
 
 
+function psql() {
+    PGDATABASE="$OPENSHIFT_APP_NAME" \
+        PGHOST="$OPENSHIFT_POSTGRESQL_DB_HOST" \
+        PGPORT="${OPENSHIFT_POSTGRESQL_DB_PORT:-5432}" \
+        PGUSER="${OPENSHIFT_POSTGRESQL_DB_USERNAME:-'admin'}" \
+        PGPASSWORD="${OPENSHIFT_POSTGRESQL_DB_PASSWORD}" \
+        /usr/bin/psql --set HISTFILE="~/app-root/data/.psql_history" "$@"
+}  #  End of psql function.
+
+
 function mongo() {
    if test $# -gt 0; then
       uopt=""
@@ -77,17 +95,19 @@ function mongo() {
    if echo "$@" | egrep "\-\-host|$OPENSHIFT_MONGODB_DB_HOST" > /dev/null; then
       hopt=""  #  Do not override if --host is passed.
    else
-      hopt="${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+      if [ -n "$OPENSHIFT_MONGODB_DB_GEAR_DNS" ]; then
+         hopt="${OPENSHIFT_MONGODB_DB_GEAR_DNS:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+      else
+         hopt="${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+      fi
    fi
 
-   /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@"
+   ( unset LD_LIBRARY_PATH; /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@" )
 
 }  #  End of  mongo  function.
 
 
 function help {
-# FIXME: Comment out quota for now - till the selinux policy is in place.
-# quota           list free space
     cat <<EOF
 Help menu: The following commands are available to help control your openshift
 application and environment.
@@ -102,6 +122,8 @@ ps              list running applications
 kill            kill running applications
 mysql           interactive MySQL shell
 mongo           interactive MongoDB shell
+psql            interactive PostgreSQL shell
+quota           list disk usage
 
 EOF
 }
@@ -111,10 +133,13 @@ alias tail_all="/usr/bin/tail -f */logs/*"
 
 export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "
 export TMOUT=300
+export SHELL=/bin/bash
 welcome
 
-if [ -z $SSH_TTY ]
-then
+# Since the user is actively using this gear, unidle the gear (if idle).
+which unidle_gear.sh &> /dev/null  &&  unidle_gear.sh "${PS1:+'show-messages'}"
+
+if [ -z $SSH_TTY ]; then
     echo "WARNING: This ssh terminal was started without a tty." 1>&2
     echo "          It is highly recommended to login with: ssh -t" 1>&2
 fi

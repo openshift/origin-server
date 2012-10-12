@@ -42,18 +42,7 @@ function openshift_gears() {
 
 function get_mcs_level() {
     # UID=$1
-
-    SETSIZE=1023
-    TIER=$SETSIZE
-
-    ORD=$1
-    while [ $ORD -gt $(($TIER)) ]
-    do
-        ORD=$(($ORD - $TIER))
-        TIER=$(($TIER - 1))
-    done
-    TIER=$(($SETSIZE - $TIER))
-    echo s0:c$TIER,c$(($ORD + $TIER))
+    /usr/bin/oo-get-mcs-level $1
 }
 
 #
@@ -150,7 +139,7 @@ function setuppam() {
     if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]
     then
         echo "found"
-        /usr/libexec/openshift/lib/express/setup_pam_fs_limits.sh $uuid
+        /usr/libexec/openshift/lib/setup_pam_fs_limits.sh $uuid
     fi
 }
 
@@ -169,7 +158,7 @@ function startcart() {
         print_column -n 59 "    $2"
 
         script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
-        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_t -l $mcs_level $script_name start)
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name start)
         RETVAL=$?
         if [ $RETVAL -eq 0 ]
         then
@@ -192,7 +181,7 @@ function stopcart() {
 	mcs_level=$(get_mcs_level $uid)
     print_column -n 59 "    $2"
     script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
-    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -t openshift_t -l $mcs_level $script_name stop)
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name stop)
     RETVAL=$?
     if [ $RETVAL -eq 0 ]
     then
@@ -289,16 +278,17 @@ case "$1" in
 
     for gear in $(grep ':OpenShift guest:' /etc/passwd | cut -d: -f6)
     do
-        for cartridge in $(ls -d $gear/* |grep -v 'app-root|git')
+        for cartridge in $(ls -d $gear/* |grep -E -v 'app-root|git')
         do
             cartridge=$(basename $cartridge)
             script_name=/usr/libexec/openshift/cartridges/$cartridge/info/bin/app_ctl.sh
-			source $gear/.env/OPENSHIFT_APP_NAME
-			echo -n "    Checking http for $OPENSHIFT_APP_NAME"
+            source $gear/.env/OPENSHIFT_APP_NAME
+            echo -n "    Checking http for $OPENSHIFT_APP_NAME"
             runas=$(basename $gear)
-            uid=$(id -u "$run_as")
-			mcs_level=$(get_mcs_level $uid)
-            daemon --user=$run_as --pidfile=httpd_$runas_$cartridge runcon -t openshift_t -l $mcs_level $script_name status
+            uid=$(id -u "$runas")
+	    mcs_level=$(get_mcs_level $uid)
+
+            daemon --user=$runas --pidfile=httpd_$runas_$cartridge runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name status
             RETVAL=$?
             echo
             if [ $RETVAL -eq 0 ]

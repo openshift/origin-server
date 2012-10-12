@@ -31,6 +31,7 @@ commands_map = {
     "deploy.sh": "/bin/bash",
     "rhc-list-ports": "/bin/bash",
     "post_deploy.sh": "/bin/bash",
+    "quota": "/usr/bin/quota"
 }
 
 comment_re = re.compile("#.*$")
@@ -225,6 +226,9 @@ if __name__ == '__main__':
             print "Invalid repository %s: not a directory" % thearg
             sys.exit(3)
         allargs = [thearg]
+
+    elif basecmd in ('quota',):
+        allargs = []
 
     runcon = '/usr/bin/runcon'
     mcs_level = get_mcs_level(os.getuid())
