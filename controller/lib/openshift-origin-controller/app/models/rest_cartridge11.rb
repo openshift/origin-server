@@ -1,6 +1,6 @@
 class RestCartridge11 < OpenShift::Model
   attr_accessor :type, :name, :version, :display_name, :description, :license, :license_url, :supported_scales_from, :supported_scales_to,
-                :tags, :website, :help_topics, :links, :properties, :status_messages, :colocated_with,
+                :tags, :website, :help_topics, :links, :properties, :status_messages, :collocated_with, :gear_profile,
                 :current_scale, :scales_with, :scales_from, :scales_to, :base_gear_storage, :additional_gear_storage
   
   def initialize(type, name, app, url, status_messages, nolinks=false)
@@ -11,8 +11,9 @@ class RestCartridge11 < OpenShift::Model
     self.supported_scales_from = 0
     self.supported_scales_to = nil 
     self.scales_with = nil
+    self.gear_profile = nil
     self.current_scale = 0
-    self.colocated_with = []
+    self.collocated_with = []
     self.status_messages = status_messages
     prop_values = nil
     cart = CartridgeCache.find_cartridge(name)
@@ -122,11 +123,12 @@ class RestCartridge11 < OpenShift::Model
       end
       self.base_gear_storage = group_instance.get_cached_min_storage_in_gb
       self.additional_gear_storage = comp_instance.addtl_fs_gb
+      self.gear_profile = group_instance.node_profile
 
       group_instance.component_instances.each { |cname|
         cinst = app.comp_instance_map[cname]
         if cinst.parent_cart_name!=cartridge.name and cinst.parent_cart_name != app.name
-          colocated_with << cinst.parent_cart_name unless colocated_with.include? cinst.parent_cart_name
+          collocated_with << cinst.parent_cart_name unless collocated_with.include? cinst.parent_cart_name
         end
       }
     else
