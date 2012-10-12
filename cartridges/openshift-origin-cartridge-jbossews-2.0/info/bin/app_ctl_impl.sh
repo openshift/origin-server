@@ -64,10 +64,11 @@ function ishttpup() {
 function replace_envs() {
 	sed_replace_env=$(print_sed_exp_replace_env_var)
 
-	sed -i ${sed_replace_env} "${CART_DIR}/jbossews-1.0"/conf/server.xml > /dev/null 2>&1
+	sed -i ${sed_replace_env} "${CART_DIR}/jbossews-2.0"/conf/server.xml > /dev/null 2>&1
 }
 
 function start_app() {
+    echo "!!!!!!!!!!! start_app" 1>&2
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
        ENABLE_JPDA=1
     fi
@@ -89,8 +90,10 @@ function start_app() {
             
             export CATALINA_HOME=$APP_JBOSS
             export CATALINA_BASE=$APP_JBOSS
-            ${CART_DIR}/jbossews-1.0/bin/tomcat6 start
+            echo "!!!!!!!!!!! tomcat7 $CATALINA_HOME $OPENSHIFT_GEAR_UUID" 1>&2
+            ${CART_DIR}/jbossews-2.0/bin/tomcat7 start
             PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | awk '{print $2}'`
+            echo "!!!!!!!!!!! PROCESS_ID $PROCESS_ID $JBOSS_PID_FILE" 1>&2
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
