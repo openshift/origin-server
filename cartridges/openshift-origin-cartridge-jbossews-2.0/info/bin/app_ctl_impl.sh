@@ -93,7 +93,7 @@ function start_app() {
             export CATALINA_BASE=$APP_JBOSS
             echo "!!!!!!!!!!! tomcat7 $CATALINA_HOME $OPENSHIFT_GEAR_UUID" 1>&2
             ${CART_DIR}/jbossews-2.0/bin/tomcat7 start
-            PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | awk '{print $2}'`
+            PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-1.0 | awk '{print $2}'`
             echo "!!!!!!!!!!! PROCESS_ID $PROCESS_ID $JBOSS_PID_FILE" 1>&2
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
