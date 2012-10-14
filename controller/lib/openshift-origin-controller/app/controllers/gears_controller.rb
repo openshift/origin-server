@@ -11,7 +11,7 @@ class GearsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "LIST_GEARS") if !domain || !domain.hasAccess?(@cloud_user)
 
-    app = Application.find(@cloud_user,app_id)
+    app = get_application(app_id)
     return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
                         101, "LIST_GEARS") unless app
    

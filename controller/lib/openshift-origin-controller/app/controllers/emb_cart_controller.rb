@@ -13,7 +13,7 @@ class EmbCartController < BaseController
                         "LIST_APP_CARTRIDGES") if !domain || !domain.hasAccess?(@cloud_user)
 
     Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "LIST_APP_CARTRIDGES") unless application
 
@@ -45,7 +45,7 @@ class EmbCartController < BaseController
                         "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
-    application = Application.find(@cloud_user, application_id)
+    application = get_application(application_id)
     return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'",
                         101, "SHOW_APP_CARTRIDGE") if !application
    
@@ -95,7 +95,7 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "EMBED_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "EMBED_CARTRIDGE") unless application
 
@@ -133,7 +133,7 @@ class EmbCartController < BaseController
       return render_exception(e, "EMBED_CARTRIDGE")
     end
 
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
 
     application.embedded.each do |key, value|
       if key == name
@@ -163,7 +163,7 @@ class EmbCartController < BaseController
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "REMOVE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_format_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                                101, "REMOVE_CARTRIDGE") unless application
     
@@ -177,7 +177,7 @@ class EmbCartController < BaseController
       return render_format_exception(e, "REMOVE_CARTRIDGE")
     end
       
-    application = Application.find(@cloud_user, id)
+    application = get_application(id)
     if $requested_api_version >= 1.2
       app = RestApplication12.new(application, get_url, nolinks)
     else
@@ -199,7 +199,7 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "UPDATE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    app = Application.find(@cloud_user,app_id)
+    app = get_application(app_id)
     return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
                         101, "UPDATE_CARTRIDGE") unless app
                         

@@ -118,6 +118,12 @@ class BaseController < ActionController::Base
       @cloud_user = cu
     end
   end
+
+  def get_application(id)
+    app = Application.find(@cloud_user, id)
+    app.user_agent = request.headers['User-Agent'] if app
+    app
+  end
   
   def rest_replies_url(*args)
     return "/broker/rest/api"
