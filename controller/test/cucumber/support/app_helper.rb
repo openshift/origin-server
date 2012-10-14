@@ -101,6 +101,7 @@ module AppHelper
         when "perl-5.10" then "perl/index.pl"
         when "jbossas-7" then "src/main/webapp/index.html"
         when "jbosseap-6.0" then "src/main/webapp/index.html"
+        when "jbossews-1.0" then "src/main/webapp/index.html"
         when "nodejs-0.6" then "index.html"
       end
     end
