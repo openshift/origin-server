@@ -35,7 +35,7 @@ class ApplicationsController < BaseController
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "SHOW_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "SHOW_APPLICATION") if !application or application.domain.uuid != domain.uuid
     if $requested_api_version >= 1.2
@@ -64,7 +64,7 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
 
-    application = Application.find(@cloud_user,app_name)
+    application = get_application(app_name)
     return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 
                         100, "ADD_APPLICATION", "name") if application
 
@@ -141,7 +141,7 @@ class ApplicationsController < BaseController
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "DELETE_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_format_error(:not_found, "Application #{id} not found.", 101,
                                "DELETE_APPLICATION") if !application or application.domain.uuid != domain.uuid
     

@@ -376,6 +376,7 @@ class LegacyBrokerController < ApplicationController
   def get_app_from_request(user)
     app = Application.find(user, @req.app_name)
     raise OpenShift::UserException.new("An application named '#{@req.app_name}' does not exist", 101) if app.nil?
+    app.user_agent = request.headers["User-Agent"]
     return app
   end
   

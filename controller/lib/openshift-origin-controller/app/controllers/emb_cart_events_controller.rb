@@ -14,7 +14,7 @@ class EmbCartEventsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "CARTRIDGE_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
 
-    application = Application.find(@cloud_user,id)
+    application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "CARTRIDGE_EVENT") unless application
     return render_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
@@ -38,7 +38,7 @@ class EmbCartEventsController < BaseController
       return render_exception(e, "CARTRIDGE_EVENT")
     end
    
-    application = Application.find(@cloud_user, id)
+    application = get_application(id)
     if $requested_api_version >= 1.2
       app = RestApplication12.new(application, get_url, nolinks)
     else
