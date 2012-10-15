@@ -84,7 +84,6 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-nosql-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 ln -s %{cartridgedir}/../abstract/info/bin/restore_tar.sh %{buildroot}%{cartridgedir}/info/bin/restore_tar.sh
-ln -s %{cartridgedir}/../abstract/info/bin/tidy.sh %{buildroot}%{cartridgedir}/info/bin/tidy.sh
 
 #ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
