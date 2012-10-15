@@ -152,10 +152,13 @@ module Console
         end
 
         # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
-        contents = contents.join if contents.respond_to?(:join)
-        control_grp = template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => html_class.join(' ') })
-        template.concat(control_grp) if block_given? && !::Formtastic::Util.rails3?
-        control_grp
+        #contents = contents.join if contents.respond_to?(:join)
+        unless html_options[:without_errors]
+          contents << send(:"error_#{inline_errors}", [*@input_inline_errors], {})
+          html_class << 'error' unless @input_inline_errors.empty?
+        end
+
+        template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => html_class.join(' ') })
       end
 
       def input_inline?

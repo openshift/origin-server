@@ -23,16 +23,19 @@ class ScalingController < ConsoleController
 
   def update
     user_default_domain
+    @user = User.find :one, :as => current_user
     @application = @domain.find_application params[:application_id]
-    @cartridge = Cartridge.new({
-      :name => params[:id], 
-      :application => @application
-    }.merge(params[:cartridge].slice(:scales_from, :scales_to)), true)
+    @cartridges = @application.cartridges
+    @cartridge = @cartridges.find{ |c| c.name == params[:id] } or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
+
+    range = [params[:cartridge][:scales_from].to_i, params[:cartridge][:scales_to].to_i]
+    range.reverse! if range.first > range.last && range.last != -1
+    @cartridge.scales_from, @cartridge.scales_to = range
 
     if @cartridge.save
-      redirect_to application_scaling_path, :flash => {:success => "Updated scaling on #{@cartridge.display_name}"}
+      redirect_to application_scaling_path, :flash => {:success => "Updated scale settings for cartridge '#{@cartridge.display_name}'"}
     else
-      render :edit
+      render :show
     end
   end
 

@@ -29,25 +29,27 @@ class Console::ModelHelperTest < ActionView::TestCase
   def test_scale_from_options
     assert_equal({
         :as => :select, 
-        :collection => [['1',1],['2',2],['3',3]]
+        :collection => [['1',1],['2',2],['3',3]],
+        :include_blank => false,
       }, 
-      scale_from_options(stub(:scales_from => 1, :scales_to => -1), 3))
+      scale_from_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 3))
     assert_equal({
         :as => :text
       }, 
-      scale_from_options(stub(:scales_from => 1, :scales_to => -1), 6, 5))
+      scale_from_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 6, 5))
   end
 
   def test_scale_to_options
     assert_equal({
         :as => :select, 
-        :collection => [['1',1],['2',2],['3',3],['All available', -1]]
+        :collection => [['1',1],['2',2],['3',3],['All available', -1]],
+        :include_blank => false,
       },
-      scale_to_options(stub(:scales_from => 1, :scales_to => -1), 3))
+      scale_to_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 3))
     assert_equal({
         :as => :text,
         :hint => 'Use -1 to scale to your current account limits',
       },
-      scale_to_options(stub(:scales_from => 1, :scales_to => -1), 6, 5))
+      scale_to_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 6, 5))
   end
 end

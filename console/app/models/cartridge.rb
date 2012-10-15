@@ -21,6 +21,8 @@ class Cartridge < RestApi::Base
   belongs_to :application
   has_one :cartridge_type
   has_many :collocated_with, :class_name => 'string'
+  has_many :properties, :class_name => 'rest_api/base/attribute_hash'
+  has_one  :help_topics, :class_name => 'rest_api/base/attribute_hash'
 
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
 

@@ -31,16 +31,16 @@ module Console::ModelHelper
     (from .. limit).map{ |i| [i.to_s, i] }
   end
   def scale_from_options(obj, max, max_choices=20)
-    if range = scale_range(obj.scales_from, obj.scales_to, max, max_choices)
-      {:as => :select, :collection => range}
+    if range = scale_range(obj.supported_scales_from, obj.supported_scales_to, max, max_choices)
+      {:as => :select, :collection => range, :include_blank => false}
     else
       {:as => :text}
     end
   end
   def scale_to_options(obj, max, max_choices=20)
-    if range = scale_range(obj.scales_from, obj.scales_to, max, max_choices)
-      range << ['All available', -1] if obj.scales_to == -1
-      {:as => :select, :collection => range}
+    if range = scale_range(obj.supported_scales_from, obj.supported_scales_to, max, max_choices)
+      range << ['All available', -1] if obj.supported_scales_to == -1
+      {:as => :select, :collection => range, :include_blank => false}
     else
       {:as => :text, :hint => 'Use -1 to scale to your current account limits'}
     end

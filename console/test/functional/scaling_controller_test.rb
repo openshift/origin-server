@@ -60,13 +60,65 @@ class ScalingControllerTest < ActionController::TestCase
     assert_select 'h2', "mysql-5.0"
   end
 
-  test 'handles PUT on edit' do
-    with_scaling
-    ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.put '/broker/rest/domains/test/applications/test/cartridges/php-5.3.json', json_header(true), {:scales_from => 1, :scales_to => 2}.to_json
-    end
-    put :update, with_scaling.merge(:id => 'php-5.3', :cartridge => {:scales_from => 2, :scales_to => 1})
+  def scalable_app_params
+    {
+      :application_id => with_scalable_app.to_param,
+      :id => scalable_cartridge.name
+    }
+  end
+  def scalable_cartridge
+    with_scalable_app.cartridges.find(&:scales?)
+  end
+  def assert_cart_scales(from, to, message='Cartridge scaling not set correctly')
+    scalable_cartridge.reload.tap{ |c| assert_equal [from,to], [c.scales_from, c.scales_to], message }
+  end
+
+  test 'updates scale range' do
+    put :update, {:cartridge => {:scales_from => 2, :scales_to => 3}}.merge(scalable_app_params)
     assert_redirected_to application_scaling_path
+    puts assigns(:cartridge).inspect
+    assert_cart_scales 2, 3
+  end
+
+  test 'allows fixed scale range' do
+    put :update, {:cartridge => {:scales_from => 3, :scales_to => 3}}.merge(scalable_app_params)
+    assert_redirected_to application_scaling_path
+    assert_cart_scales 3, 3
+  end
+
+  test 'allows unlimited scale range' do
+    put :update, {:cartridge => {:scales_from => 3, :scales_to => -1}}.merge(scalable_app_params)
+    assert_redirected_to application_scaling_path
+    assert_cart_scales 3, -1
+  end
+
+  test 'flips scale range if necessary' do
+    put :update, {:cartridge => {:scales_from => 3, :scales_to => 2}}.merge(scalable_app_params)
+    assert_redirected_to application_scaling_path
+    assert_equal [2, 3], [assigns(:cartridge).scales_from, assigns(:cartridge).scales_to]
+    assert_cart_scales 2, 3
+  end
+
+  test 'rejects unlimited scales_from' do
+    put :update, {:cartridge => {:scales_from => -1, :scales_to => 2}}.merge(scalable_app_params)
+    assert_response :success
+    assert_select 'ul.alert-error > li', /Invalid scaling facter provided/
+  end
+
+  test 'rejects out of range scales_from' do
+    if scalable_cartridge.supported_scales_from > 0
+      put :update, {:cartridge => {:scales_from => 0, :scales_to => 2}}.merge(scalable_app_params)
+      assert_response :success
+      assert_select 'ul.alert-error > li', /Invalid scaling facter provided/
+    else
+      fail 'Test case needs to be updated, a cart can be scaled to 0 now'
+    end
+  end
+
+  test 'rejects impossible scales_to' do
+    put :update, {:cartridge => {:scales_from => 2, :scales_to => -2}}.merge(scalable_app_params)
+    assert_response :success
+    assert_select 'ul.alert-error > li', /Invalid scaling facter provided/
   end
 
   [true, false].each do |mock|

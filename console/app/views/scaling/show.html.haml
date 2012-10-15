@@ -17,7 +17,9 @@
                             :method => :put,
                             :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
 
-          = f.inputs :inline => true, :important => true do
+          = f.semantic_errors :scales_from, :scales_to
+
+          = f.inputs :inline => true, :important => true, :without_errors => true do
 
             Scale this cartridge from
             = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto'}})

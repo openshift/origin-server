@@ -130,10 +130,12 @@
                 .embedded
                   - if cartridge.scales?
                     .embedded-cart
-                      - if cartridge.scales.times == 1
+                      - if cartridge.current_scale == 1
                         = link_to "Scales with HAProxy", application_scaling_path(@application), :title => 'Your web cartridge will automatically scale up when we detect you are receiving more web traffic'
                       - else
-                        = link_to "Scaled up with HAProxy x#{cartridge.scales.times}", application_scaling_path(@application), :title => 'Your web cartridge is running multiple copies to handle increased web traffic'
+                        = link_to "Scaled up with HAProxy x#{cartridge.current_scale}", 
+                                  application_scaling_path(@application), 
+                                  :title => (cartridge.current_scale == cartridge.scales_from) ? 'Your web cartridge is running on the minimum amount of gears and will scale up if needed' : 'Your web cartridge is running multiple copies to handle increased web traffic'
 
                   - if cartridge.builds?
                     .embedded-cart 
