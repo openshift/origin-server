@@ -56,11 +56,13 @@ function _wait_for_mongod_to_startup() {
 }
 
 function _repair_mongod() {
+    authopts=$1
     if ! isrunning ; then
         echo "Attempting to repair MongoDB ..." 1>&2
         tmp_config="/tmp/mongodb.repair.conf"
         grep -ve "fork\s*=\s*true" $MONGODB_DIR/etc/mongodb.conf > $tmp_config
-        /usr/bin/mongod --auth --nojournal --smallfiles -f $tmp_config --repair
+        /usr/bin/mongod $authopts --nojournal --smallfiles -f $tmp_config  \
+                                  --repair
         echo "MongoDB repair status = $?" 1>&2
         rm -f $tmp_config
     else
@@ -69,12 +71,13 @@ function _repair_mongod() {
 }
 
 function _start_mongod() {
-    /usr/bin/mongod --auth --nojournal --smallfiles --quiet  \
+    authopts=${1:-"--auth"}
+    /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
                     -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
     _wait_for_mongod_to_startup
     if ! isrunning; then
-       _repair_mongod
-       /usr/bin/mongod --auth --nojournal --smallfiles --quiet  \
+       _repair_mongod "$authopts"
+       /usr/bin/mongod $authopts --nojournal --smallfiles --quiet  \
                        -f $MONGODB_DIR/etc/mongodb.conf run >/dev/null 2>&1 &
        _wait_for_mongod_to_startup
     fi
@@ -88,7 +91,7 @@ function start() {
     if ! isrunning
     then
         src_user_hook pre_start_mongodb-2.2
-        _start_mongod
+        _start_mongod  "$1"
         run_user_hook post_start_mongodb-2.2
     else
         echo "MongoDB already running" 1>&2
@@ -130,6 +133,9 @@ function stop() {
 case "$1" in
     start)
         start
+    ;;
+    start-noauth)
+        start --noauth
     ;;
     stop)
         stop

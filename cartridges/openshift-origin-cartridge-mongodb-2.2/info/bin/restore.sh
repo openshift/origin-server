@@ -1,6 +1,8 @@
 #!/bin/bash
 cartridge_type="mongodb-2.2"
 
+HAVE_MONGODB_221_RC1=""
+
 # Import Environment Variables
 for f in ~/.env/*
 do
@@ -32,51 +34,34 @@ function die() {
 }  #  End of function  die.
 
 
-function print_jira_7181_warning() {
+function start_mongod_without_auth() {
+   $CART_INFO_DIR/bin/app_ctl.sh stop  ||  :
+   $CART_INFO_DIR/bin/app_ctl.sh start-noauth
+
+}  #  End of function  start_mongod_without_auth.
+
+
+function restart_mongod_with_auth() {
+    $CART_INFO_DIR/bin/app_ctl.sh stop  ||  :
+    start_database_as_user
+
+}  #  End of function  restart_mongod_with_auth.
+
+
+function print_mongo_jira_warnings() {
    echo "
 ============================================================================
-WARNING: Ignoring errors ... Please make sure the errors are related to a
-         mongorestore issue with auth enabled. Otherwise fix the errors.
-         See:  https://jira.mongodb.org/browse/SERVER-7181  for details.
+WARNING: You may have possibly encountered the mongorestore bugs related to
+         MongoDB JIRA issues 7181, 7262 and 7104. We tried working around
+         some these issues. You will need to manually workaround the
+         remaining problems prior to proceeding. For more details, see: 
+             https://jira.mongodb.org/browse/SERVER-7181
+             https://jira.mongodb.org/browse/SERVER-7262
+             https://jira.mongodb.org/browse/SERVER-7104
 ============================================================================
-"
+" 1>&2
 
-}  #  End of function  print_jira_7181_warning.
-
-
-function restore_databases_individually() {
-   #  Temporary fix to handle mongodb bug w/ restore - see
-   #     https://jira.mongodb.org/browse/SERVER-7262
-   #  for details. Remove once we have MONGODB 2.2 RC1 version.
-
-   dumpdir=${1:-"./"}
-   pushd "$dumpdir" > /dev/null
-
-   if [ ! -d "dump" ]; then
-       echo "MongoDB restore attempted but no dump directory was found!" 1>&2
-       popd  > /dev/null
-       return 0
-   fi
-
-   #  Operate on the databases individually.
-   for dbname in `ls dump/`; do
-       if ! mongorestore -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb --drop -d $dbname dump/$dbname; then
-           if [ -f "dump/$dbname/system.users.bson" ]; then
-               #  mongorestore has issues on a server w/ auth enabled.
-               #  See: https://jira.mongodb.org/browse/SERVER-7181 for details.
-               #  Ignore errors if there's a users collection.
-               print_jira_7181_warning
-           else
-               popd > /dev/null
-	       /bin/rm -rf /tmp/mongodump.$$
-               die 71 "ERROR" "Error restoring MongoDB database $dbname"
-           fi
-       fi
-   done
-
-   popd  > /dev/null
-
-}  #  End of function  restore_databases_individually.
+}  #  End of function  print_mongo_jira_warnings.
 
 
 function restore_from_mongodb_snapshot() {
@@ -88,23 +73,26 @@ function restore_from_mongodb_snapshot() {
    if ! tar -zxf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ; then
       popd > /dev/null
       /bin/rm -rf /tmp/mongodump.$$
+      restart_mongod_with_auth
       die 0 "WARNING" "Could not restore MongoDB databases - extract failed!"
    fi
 
    #  Restore from the "dump".
-   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
+   creds="-u $OPENSHIFT_MONGODB_DB_USERNAME         \
+          -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" "
 
-   #  FIXME: Temporary commented out due to mongo issue w/ restore.
+   #  FIXME: Temporarily commented out auth due to mongo issue w/ restore.
    #        See  https://jira.mongodb.org/browse/SERVER-7262 for details.
-   #  Use the else part once we have MONGODB 2.2 RC1 version in OpenShift.
-   if [ -z "$HAVE_MONGODB_22_RC1" ]; then
-       restore_databases_individually "/tmp/mongodump.$$"
-   else
-       if ! mongorestore -h $OPENSHIFT_MONGODB_DB_HOST $creds --directoryperdb --drop; then
-           popd > /dev/null
-           /bin/rm -rf /tmp/mongodump.$$
-           die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
-        fi
+   [ -z "$HAVE_MONGODB_221_RC1" ]  &&  creds=""
+
+   if ! mongorestore -h $OPENSHIFT_MONGODB_DB_HOST              \
+                     --port $OPENSHIFT_MONGODB_DB_PORT $creds   \
+                     --directoryperdb --drop  1>&2; then
+       print_mongo_jira_warnings
+       popd > /dev/null
+       /bin/rm -rf /tmp/mongodump.$$
+       restart_mongod_with_auth
+       die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
    fi
 
 
@@ -121,8 +109,20 @@ if [ ! -f $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ]; then
    echo "MongoDB restore attempted but no dump was found!" 1>&2
    die 0 "ERROR" "$OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz does not exist"
 else
-   start_database_as_user
+   #  FIXME: Temporarily modified due to mongo issue w/ restore.
+   #        See  https://jira.mongodb.org/browse/SERVER-7262 for details.
+   #  Need to start the server w/ noauth.
+   start_mongod_without_auth
    restore_from_mongodb_snapshot
+   restart_mongod_with_auth
+
+   #  Use the commented code below (in place of the above workaround) once we
+   #  have MONGODB 2.2.1 RC1 installed on OpenShift.
+   #
+   #  if [ -n "$HAVE_MONGODB_221_RC1" ]; then
+   #     start_database_as_user
+   #     restore_from_mongodb_snapshot
+   #  fi
 fi
 
 exit 0
