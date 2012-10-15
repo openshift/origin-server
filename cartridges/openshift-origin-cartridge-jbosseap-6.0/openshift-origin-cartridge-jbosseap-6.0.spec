@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   0.7.0
+Version:   0.7.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -168,6 +168,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.7.1-1
+- Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
+- Both prod and stg mirrors point to the ops mirror -- so use
+  mirror1.ops.rhcloud.com - also makes for consistent behaviour across
+  DEV/STG/INT/PROD. (ramr@redhat.com)
+- Fix 'Obsoletes' for jbosseap6, port-proxy, mongodb-2.2, and diy
+  (pmorie@gmail.com)
+- official eap6 rpms (bdecoste@gmail.com)
+- official eap6 rpms (bdecoste@gmail.com)
+
 * Tue Oct 09 2012 William DeCoste <wdecoste@redhat.com> 0.7.0-1
 - official eap6 rpms
 

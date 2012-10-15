@@ -1,6 +1,6 @@
 Summary:        Plugin to enable m-collective communication over amqp 1.0 enabled broker
 Name:           mcollective-qpid-plugin
-Version: 0.2.2
+Version: 0.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -38,6 +38,9 @@ cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugi
 /usr/share/doc/mcollective-qpid-plugin/LICENSE
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.2.3-1
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+
 * Fri Oct 05 2012 Krishna Raman <kraman@gmail.com> 0.2.2-1
 - Rename pass 3: Manual fixes (kraman@gmail.com)
 - Rename pass 2: variables, modules, classes (kraman@gmail.com)

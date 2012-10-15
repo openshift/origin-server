@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 0.29.7
+Version: 0.29.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.29.8-1
+- Both prod and stg mirrors point to the ops mirror -- so use
+  mirror1.ops.rhcloud.com - also makes for consistent behaviour across
+  DEV/STG/INT/PROD. (ramr@redhat.com)
+- Fix reference to obsolete variable. (mpatel@redhat.com)
+
 * Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.29.7-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 

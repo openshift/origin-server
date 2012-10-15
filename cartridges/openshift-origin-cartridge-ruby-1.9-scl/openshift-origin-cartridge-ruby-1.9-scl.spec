@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 0.6.5
+Version: 0.6.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -206,6 +206,14 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.6.6-1
+- BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
+  command (calfonso@redhat.com)
+- Both prod and stg mirrors point to the ops mirror -- so use
+  mirror1.ops.rhcloud.com - also makes for consistent behaviour across
+  DEV/STG/INT/PROD. (ramr@redhat.com)
+- Fix for Bug 862876 (jhonce@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.6.5-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 

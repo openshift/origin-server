@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.9
+Version:        0.0.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -72,6 +72,9 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.10-1
+- Minor fix for the kerberos/ldap sample config files (bleanhar@redhat.com)
+
 * Thu Oct 11 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.0.9-1
 - Centralize plug-in configuration (miciah.masters@gmail.com)
 - Merge pull request #619 from kraman/master (openshift+bot@redhat.com)

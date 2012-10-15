@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 0.16.5
+Version: 0.16.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
+- Merge pull request #655 from mrunalp/bugs/864519 (openshift+bot@redhat.com)
+- BZ 864519: Fix for git push failing for scalable apps w/ dbs.
+  (mpatel@redhat.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.16.5-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 

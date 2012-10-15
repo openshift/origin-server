@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.7
+Version:        0.0.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,14 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.8-1
+- removing addressable dep, not needed. (admiller@redhat.com)
+- Fixed select_input call to parts() (nhr@redhat.com)
+- Added error processing for select inputs. (hripps@redhat.com)
+- Restored automatic error collection for inline elements (hripps@redhat.com)
+- BZ849627 Refactored error handling for inline form elements
+  (hripps@redhat.com)
+
 * Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.0.7-1
 - Merge pull request #601 from smarterclayton/production_assets_broken
   (openshift+bot@redhat.com)

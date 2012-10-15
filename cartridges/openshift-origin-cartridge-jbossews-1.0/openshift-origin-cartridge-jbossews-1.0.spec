@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.3
+Version:   1.0.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -137,6 +137,20 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 1.0.4-1
+- BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
+  command (calfonso@redhat.com)
+- BZ866327 (bdecoste@gmail.com)
+- fixed ews scaling (bdecoste@gmail.com)
+- fixed ews pid for scaled (bdecoste@gmail.com)
+- BZ865282 and updated sample app (bdecoste@gmail.com)
+- updated isrunning (bdecoste@gmail.com)
+- added ews2 and cleaned ews1 (bdecoste@gmail.com)
+- added ews2 and cleaned ews1 (bdecoste@gmail.com)
+- update (bdecoste@gmail.com)
+- update (bdecoste@gmail.com)
+- updated ews cart (bdecoste@gmail.com)
+
 * Thu Oct 11 2012 William DeCoste <wdecoste@redhat.com> 1.0.3-1
 - update
 

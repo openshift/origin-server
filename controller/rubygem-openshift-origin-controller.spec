@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.12
+Version: 0.17.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,33 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.17.13-1
+- added ews tests (bdecoste@gmail.com)
+- Merge pull request #668 from bdecoste/master (openshift+bot@redhat.com)
+- updated ews tests (bdecoste@gmail.com)
+- get_application cleanup for user-agent (rchopra@redhat.com)
+- Update mysql connection URL parsing to fix tests (ironcladlou@gmail.com)
+- Merge pull request #660 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #659 from ironcladlou/idler-tests
+  (openshift+bot@redhat.com)
+- Merge pull request #644 from bdecoste/master (openshift+bot@redhat.com)
+- Merge pull request #654 from pravisankar/dev/ravi/bug/858203
+  (openshift+bot@redhat.com)
+- spell collocation; gear_profile in the cartridge (rchopra@redhat.com)
+- fix for bug#865497 (rchopra@redhat.com)
+- Don't follow redirects for health checks (ironcladlou@gmail.com)
+- Fix for Bug# 858203 (rpenta@redhat.com)
+- Fix for bug# 863973 (rpenta@redhat.com)
+- added tests and enabled ews (bdecoste@gmail.com)
+- rename max_scale/min_scale to scales_to/scales_from (rchopra@redhat.com)
+- Merge pull request #619 from kraman/master (openshift+bot@redhat.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+- rework set_min_max on cartridge (rchopra@redhat.com)
+- Fix for 862086 (rpenta@redhat.com)
+- Merge pull request #613 from kraman/master (openshift+bot@redhat.com)
+- Module name and gem path fixes for auth plugins (kraman@gmail.com)
+
 * Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.17.12-1
 - Merge pull request #607 from brenton/streamline_auth_misc1-rebase
   (openshift+bot@redhat.com)

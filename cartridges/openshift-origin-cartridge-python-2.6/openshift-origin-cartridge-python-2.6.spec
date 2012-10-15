@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
-Version: 0.98.8
+Version: 0.98.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.98.9-1
+- Both prod and stg mirrors point to the ops mirror -- so use
+  mirror1.ops.rhcloud.com - also makes for consistent behaviour across
+  DEV/STG/INT/PROD. (ramr@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.98.8-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 

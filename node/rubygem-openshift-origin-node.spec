@@ -6,7 +6,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.7
+Version: 0.17.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -110,6 +110,17 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.17.8-1
+- Merge pull request #635 from Miciah/etc-plugin-conf12
+  (openshift+bot@redhat.com)
+- Merge pull request #633 from jwhonce/dev/bz864681 (openshift+bot@redhat.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Fix for Bug 864681 (jhonce@redhat.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.7-1
 - fix obsoletes (dmcphers@redhat.com)
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
