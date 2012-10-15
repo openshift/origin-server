@@ -240,11 +240,20 @@ class EmbCartController < BaseController
     if scales_from or scales_to
       begin
         app.set_user_min_max(storage_map, scales_from, scales_to)
+      rescue OpenShift::UserException=>e
+        return render_format_error(:unprocessable_entity, e.message, 168,
+                         "UPDATE_CARTRIDGE") 
       rescue Exception=>e
         return render_format_error(:forbidden, e.message, 164,
                          "UPDATE_CARTRIDGE") 
       end
     end
-    render_format_success(:ok, "application", app, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
+    cart_type = cartridge_name==app.framework ? "standalone" : "embedded"
+    if $requested_api_version >= 1.1
+      cartridge = RestCartridge11.new(cart_type, cartridge_name, app, get_url, nil, nolinks)
+    else
+      cartridge = RestCartridge10.new(cart_type, cartridge_name, app, get_url, nil, nolinks)
+    end
+    render_format_success(:ok, "cartridge", cartridge, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
   end
 end
