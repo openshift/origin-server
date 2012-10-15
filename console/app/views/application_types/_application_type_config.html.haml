@@ -1,38 +1,5 @@
-:css
-  .console-inner-block {
-    background: #222222;
-    color: #B0B0B0;
-    margin-left: 0;
-    padding: 25px 0;
-  }
-  .text-warning {
-    color: #EED99D;
-  }
-  @media (max-width: 767px) {
-    .console-inner-block {
-      padding: 25px;
-    }
-  }
-  #new_application .controls input {
-    width: 175px;
-  }
-  ul.unstyled {
-    margin-bottom: 25px;
-  }
-  @media (min-width:980px) and (max-width:1200px) {
-    #new_application .controls input {
-      width: 145px;
-    }
-  }
-  @media (min-width: 768px) and (max-width:979px) {
-    #new_application .controls input {
-      width: 80px;
-    }
-  }
-  
 = div_for application_type, :class => defined?(classes) ? classes : nil do
-  .clearfix
-    %h2= application_type.name
+  %h2= application_type.name
   .row-fluid
     .span8 
       - if application_type.tags.include? :in_development

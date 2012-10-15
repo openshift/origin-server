@@ -73,7 +73,36 @@ input:-moz-placeholder, select:-moz-placeholder, textarea:-moz-placeholder {
  color: #444;
 	}
 
-#new_application .controls input { width: 210px; }
+#new_application .controls input { width: 175px; }
+
+@media (min-width:980px) and (max-width:1200px) {
+    #new_application .controls input {
+        width: 145px;
+    }
+}
+
+@media (min-width: 768px) and (max-width:979px) {
+    #new_application .controls input {
+        width: 80px;
+    }
+}
+
+.console-inner-block {
+    background: #222222;
+    color: #B0B0B0;
+    margin-left: 0;
+    padding: 25px 0;
+}
+
+@media (max-width: 767px) {
+    .console-inner-block {
+        padding: 25px;
+    }
+}
+
+.text-warning {
+    color: #EED99D;
+}
 
 // Disabled and read-only inputs
 input[disabled],
