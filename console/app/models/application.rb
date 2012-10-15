@@ -36,10 +36,10 @@ class Application < RestApi::Base
     Gear.find :all, child_options
   end
   def gear_groups
-    @gear_groups ||= GearGroup.simplify(GearGroup.find(:all, child_options), self)
+    @gear_groups ||= GearGroup.find(:all, child_options)
   end
   def cartridge_gear_groups
-    @cartridge_groups ||= GearGroup.infer(cartridges, self)
+    @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
   end
 
   def web_url
@@ -83,10 +83,6 @@ class Application < RestApi::Base
     building_with.present?
   end
 
-  def jenkins_server?
-    framework == 'jenkins-1.4'
-  end
-
   # FIXME it is assumed that eventually this will be server functionality
   def destroy_build_cartridge
     return true if !builds?
@@ -96,6 +92,7 @@ class Application < RestApi::Base
 
   def reload
     @gear_groups = nil
+    @cartridge_gear_groups = nil
     super
   end
 

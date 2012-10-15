@@ -11,8 +11,11 @@ class BuildingControllerTest < ActionController::TestCase
   def app_without_builds
     {:name => 'test', :framework => 'php-5.3'}
   end
+  def app_can_build
+    {:name => 'test', :framework => 'php-5.3', :building_app => 'jenkins'}
+  end
   def app_with_builds
-    {:name => 'test', :framework => 'php-5.3', :building_with => 'jenkins-client-1.4', :build_job_url => 'Job URL: http://foo/builds'}
+    {:name => 'test', :framework => 'php-5.3', :building_with => 'jenkins-client-1.4', :build_job_url => 'Job URL: http://foo/builds', :building_app => 'jenkins'}
   end
   def jenkins_app
     {:name => 'jenkins', :framework => 'jenkins-1.4'}
@@ -23,9 +26,13 @@ class BuildingControllerTest < ActionController::TestCase
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.delete '/broker/rest/domains/test/applications/test/cartridges/jenkins-client-1.4.json', json_header, {}.to_json
-      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
+        {:name => 'jenkins-client-1.4', :tags => ['ci_builder']},
+        {:name => 'jenkins-1.4', :tags => ['ci']},
+      ].to_json
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
+      mock.get '/broker/rest/domains/test/applications/jenkins.json', json_header, other_app.to_json if other_app
       mock.get '/broker/rest/domains/test/applications.json', json_header, [app, other_app].compact.to_json
       mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
         {:name => '@@app/comp-web/php-5.3', :gears => [
@@ -51,7 +58,7 @@ class BuildingControllerTest < ActionController::TestCase
 
   def with_jenkins_and_app
     with_unique_user
-    with_app(jenkins_app)
+    with_app(jenkins_app, app_can_build)
   end
 
   def with_builds
@@ -111,7 +118,7 @@ class BuildingControllerTest < ActionController::TestCase
     Cartridge.any_instance.expects(:has_exit_code?).at_least_once.returns(true)
 
     # Build the REST environment
-    app_args = with_app(jenkins_app, app_without_builds)
+    app_args = with_app(jenkins_app, app_can_build)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.post '/broker/rest/domains/test/applications/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422

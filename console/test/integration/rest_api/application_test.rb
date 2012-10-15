@@ -3,14 +3,8 @@ require File.expand_path('../../../test_helper', __FILE__)
 class RestApiApplicationTest < ActiveSupport::TestCase
   include RestApiAuth
 
-  def setup
-    with_configured_user
-  end
-  def teardown
-    cleanup_domain
-  end
-
   def test_create
+    with_configured_user
     setup_domain
 
     app = Application.new :as => @user
@@ -35,23 +29,40 @@ class RestApiApplicationTest < ActiveSupport::TestCase
       assert_equal app.send(key), saved_app.send(key) unless value.nil?
     end
 
+    assert_nil app.building_app
+    assert_nil app.building_with
+
     prefix_options = app.prefix_options
     app.reload
     assert_equal prefix_options, app.prefix_options
   end
 
-  def test_retrieve_gears
-    setup_domain
-    app = Application.create :name => 'test', :domain => @domain, :cartridge => 'php-5.3', :as => @user
+  def test_retrieve_cartridges
+    #setup_domain
+    #app = Application.create :name => 'test', :domain => @domain, :cartridge => 'php-5.3', :as => @user
+    app = with_app
 
-    assert gears = app.gears
-    assert_equal 1, gears.length
+    assert cartridges = app.cartridges
+    assert_equal 1, cartridges.length
+    assert cart = cartridges.first
+    assert_equal app.framework, cart.name
+    assert cart.description
+    assert cart.tags.present?
+
+    # scaling parameters
+    assert_nil cart.scaling_with
+    assert_equal 1, cart.supported_scales_from
+    assert_equal -1, cart.supported_scales_to, 'Bug 866650 has been fixed, change to 1'
+    assert_equal 1, cart.current_scale
+    assert_equal 1, cart.scales_from
+    assert_equal -1, cart.scales_to, 'Bug 866650 has been fixed, change to 1'
+    assert cart.scales?, 'Bug 866650 has been fixed, scales? is now false'
   end
 
   def test_retrieve_gear_groups
-    app = Application.create :name => 'test', :domain => setup_domain, :cartridge => 'php-5.3', :as => @user
+    app = with_app
 
-    cart = Cartridge.new :name => 'php-5.3'
+    cart = Cartridge.new :name => app.framework
 
     assert groups = app.gear_groups
 
