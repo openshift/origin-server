@@ -219,6 +219,7 @@ class LegacyBrokerController < ApplicationController
       raise OpenShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if OpenShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
         begin
+          app.user_agent = request.headers["User-Agent"]
           Rails.logger.debug "Creating application #{app.name}"
           @reply.append app.create
           Rails.logger.debug "Configuring dependencies #{app.name}"

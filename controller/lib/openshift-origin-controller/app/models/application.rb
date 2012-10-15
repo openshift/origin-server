@@ -994,6 +994,9 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def set_user_min_max(storage_map, min_scale, max_scale)
+    if min_scale and max_scale and Integer(min_scale) > Integer(max_scale) and Integer(max_scale)!=-1
+      raise OpenShift::UserException.new("Invalid scaling factors provided. Minimum (#{min_scale}) should always be less than maximum (#{max_scale}).", 170)
+    end
     sup_min = 0
     sup_max = nil 
     storage_map.each do |group_name, component_instance_list|
@@ -1011,7 +1014,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     max_scale_int = 1000000 if max_scale_int==-1 
     if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale_int and ( max_scale_int > sup_max or max_scale_int < sup_min) )
       Rails.logger.debug("min_scale: #{min_scale}, sup_min: #{sup_min}, sup_max : #{sup_max}")
-      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 168)
+      raise OpenShift::UserException.new("Invalid scaling factor provided. Value out of range.", 168)
     end
     cart_current_min = 0
     storage_map.keys.each { |group_name| 
