@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.16.4
+Version: 0.16.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,11 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.16.4-1
 - fix obsoletes (dmcphers@redhat.com)
 
