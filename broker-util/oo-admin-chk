@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-chk: Check all user applications
+
+== Usage
+
+oo-admin-ctl-app OPTIONS
+
+Options:
+-v|--verbose
+    Print information about each check being performed
+-h|--help
+    Show Usage info
+USAGE
+end
+
+opts = GetoptLong.new(
+    ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+verbose = args["--verbose"]
+
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+no_error = true
+summary = []
+
+node_hash = OpenShift::ApplicationContainerProxy.get_all_gears
+
+mongo_hash = {}
+CloudUser.find_all(nil) {|hash|
+  user = CloudUser.hash_to_obj(hash)
+  gear_count = 0
+  user.applications.each { |app|
+    app.group_instances.uniq.each { |gi|
+      gi.gears.each { |gear|
+        gear_count += 1
+        mongo_hash[gear.uuid] = app.name
+      }
+    }
+  }
+  if user.consumed_gears != gear_count
+    msg = "FAIL - user #{user.login} has a mismatch in consumed gears (#{user.consumed_gears}) and actual gears (#{gear_count})!"
+    puts msg if verbose
+    summary << msg
+    no_error = false
+  else
+    puts "OK - user #{user.login} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
+  end
+}
+
+# now check
+puts "Checking application gears in respective nodes :" if verbose
+mongo_hash.each { |mk,mv|
+  print "#{mk}...\t" if verbose
+  if not node_hash.has_key? mk
+    no_error = false
+    puts "FAIL" if verbose
+    summary << "Gear #{mk} in #{mv} does not exist on any node"
+  else
+    puts "OK" if verbose
+  end
+}
+
+# now check reverse
+puts "Checking node gears in application database:" if verbose
+node_hash.each { |nk, nv|
+  print "#{nk}...\t" if verbose
+  if not mongo_hash.has_key? nk
+    no_error = false
+    puts "FAIL" if verbose
+    summary << "Gear #{nk} exists on node #{nv} but does not exist in mongo database"
+  else
+    puts "OK" if verbose
+  end
+}
+
+puts no_error ? "Success" : "Check failed.\n #{summary.join("\n")}"
+exit (no_error ? 0 : 1)
