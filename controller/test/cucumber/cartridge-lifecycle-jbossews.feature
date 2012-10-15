@@ -31,6 +31,15 @@ Feature: Cartridge Lifecycle JBossEAP Verification Tests
     |      type     |
     |   jbossews-1.0   |
     
+  Scenario Outline: Application Tidy
+    Given an existing <type> application
+    When I tidy the application
+    Then the application should be accessible
+
+  Scenarios: Application Tidy Scenarios
+    |      type     |
+    |   jbossews-1.0   |
+    
   Scenario Outline: Application Snapshot
     Given an existing <type> application
     When I snapshot the application
