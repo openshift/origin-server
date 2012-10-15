@@ -33,6 +33,15 @@ class ActiveSupport::TestCase
     not @with_unique_user
   end
 
+  def new_named_user(name)
+    new_user(:login => name, :password => 'foo')
+  end
+
+  def with_gear_size_user
+    set_user(new_named_user('user_with_multiple_gear_sizes@test.com'))
+    @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_multiple_gear_sizes@test.com')))
+  end
+
   # some unit tests or test environments may want to preserve domains
   # created for unique users
   alias_method :cleanup_domain?, :cleanup_user?
