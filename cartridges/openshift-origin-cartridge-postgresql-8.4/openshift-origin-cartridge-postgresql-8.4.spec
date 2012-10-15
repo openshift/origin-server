@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 0.14.5
+Version: 0.14.6
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -101,6 +101,15 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.14.6-1
+- Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
+- Merge pull request #656 from mrunalp/bugs/865087 (openshift+bot@redhat.com)
+- Don't use rhcsh to control remote dbs. Also fix a typo in the postgres
+  cartridge -- variable name. (ramr@redhat.com)
+- BZ 865087: Add postgresql-contrib to cartridge. (mpatel@redhat.com)
+- Cartridge Fix for BZ807443 (jhonce@redhat.com)
+- Fix functions to get installed dbs. (mpatel@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.14.5-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 
