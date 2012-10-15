@@ -239,8 +239,8 @@ class GroupInstance < OpenShift::Model
       comp_groups = ci.elaborate(app)
       c_comp,c_prof,c_cart = ci.get_component_definition(app)
       c_group = c_prof.groups(ci.parent_cart_group)
-      self.supported_min, self.supported_max = GroupInstance::merge_min_max(self.supported_min, self.supported_max, c_group.scaling.min, c_group.scaling.max)
-      self.min, self.max = GroupInstance::merge_min_max(self.min, self.max, c_group.scaling.min, c_group.scaling.max)
+      self.supported_min, self.supported_max = GroupInstance::merge_min_max(self.supported_min, @supported_max, c_group.scaling.min, c_group.scaling.max)
+      self.min, self.max = GroupInstance::merge_min_max(self.min, @max, c_group.scaling.min, c_group.scaling.max)
       group_inst_hash[comp_ref.name] = comp_groups
     }
     
@@ -256,6 +256,22 @@ class GroupInstance < OpenShift::Model
     # deleted components
     self.component_instances.delete_if { |cpath| app.working_comp_inst_hash[cpath].nil? }
     new_components
+  end
+
+  def supported_max
+    if app and not app.scalable
+      return @supported_min 
+    else
+      return @supported_max
+    end
+  end
+
+  def max
+    if app and not app.scalable
+      return @min 
+    else
+      return @max
+    end
   end
 
   def self.merge_min_max(min1, max1, min2, max2)

@@ -994,30 +994,39 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def set_user_min_max(storage_map, min_scale, max_scale)
+    if min_scale and max_scale and Integer(min_scale) > Integer(max_scale) and Integer(max_scale)!=-1
+      raise OpenShift::UserException.new("Invalid scaling factors provided. Minimum (#{min_scale}) should always be less than maximum (#{max_scale}).", 170)
+    end
     sup_min = 0
     sup_max = nil 
+    cart_current_min = 0
+    cart_current_max = nil 
     storage_map.each do |group_name, component_instance_list|
       ginst = self.group_instance_map[group_name]
       sup_min += ginst.supported_min
+      cart_current_min += ginst.min
       if sup_max.nil? or ginst.supported_max==-1
         sup_max = ginst.supported_max
       else
         sup_max += ginst.supported_max unless sup_max==-1
       end
+      if cart_current_max.nil? or ginst.max==-1
+        cart_current_max = ginst.max
+      else
+        cart_current_max += ginst.max unless cart_current_max==-1
+      end
     end
     sup_max = 1000000 if sup_max==-1
+    cart_current_max = 100000 if cart_current_max==-1
     max_scale_int = nil
     max_scale_int = Integer(max_scale) if max_scale
     max_scale_int = 1000000 if max_scale_int==-1 
-    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale_int and ( max_scale_int > sup_max or max_scale_int < sup_min) )
-      Rails.logger.debug("min_scale: #{min_scale}, sup_min: #{sup_min}, sup_max : #{sup_max}")
-      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 168)
+    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > cart_current_max) )
+      raise OpenShift::UserException.new("Invalid scales_from factor #{min_scale} provided. Value out of allowed range ( #{sup_min} : #{cart_current_max==1000000 ? -1 : cart_current_max} ).", 168)
     end
-    cart_current_min = 0
-    storage_map.keys.each { |group_name| 
-      gi = self.group_instance_map[group_name]
-      cart_current_min += gi.min
-    }
+    if (max_scale_int and ( max_scale_int > sup_max or max_scale_int < cart_current_min) )
+      raise OpenShift::UserException.new("Invalid scales_to factor #{max_scale} provided. Value out of allowed range ( #{cart_current_min} : #{sup_max==1000000 ? -1 : sup_max} ).", 168)
+    end
     if min_scale
       target_min = Integer(min_scale) - cart_current_min
       iter = storage_map.keys.each
