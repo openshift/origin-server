@@ -240,6 +240,9 @@ class EmbCartController < BaseController
     if scales_from or scales_to
       begin
         app.set_user_min_max(storage_map, scales_from, scales_to)
+      rescue OpenShift::UserException=>e
+        return render_format_error(:unprocessable_entity, e.message, 104,
+                         "UPDATE_CARTRIDGE") 
       rescue Exception=>e
         return render_format_error(:forbidden, e.message, 164,
                          "UPDATE_CARTRIDGE") 
