@@ -54,38 +54,34 @@ Native-Requires:
   - java-1.6.0
   - maven3
 Architecture: noarch
+
 Reservations:
   - MEM >= 100MB
-Profiles:
-  standalone:
-    Provides: jbossews, jboss-ews1.0, jboss-ews1.0.0
-    Reservations:
-      - MEM >= 100MB
+Components:
+  jbossews-server:
+    &jbossews-server-component
+    Publishes:
+      get-doc-root:
+        Type: "FILESYSTEM:doc-root"
+      get-internal-uri:
+        Type: "NET_TCP:http"
+      publish-http-url:
+        Type: "NET_TCP:httpd-proxy-info"
+      publish-gear-endpoint:
+        Type: "NET_TCP:gear-endpoint-info"
+    Subscribes:
+      set-db-connection-info:
+        Type: "NET_TCP:db:connection-info"
+        Required: false
+      set-nosql-db-connection-info:
+        Type: "NET_TCP:nosqldb:connection-info"
+        Required: false
+      set-jdbc-info:
+        Type: "NET_TCP:jdbc"
+Groups:
+  app-servers:
     Components:
-      jbossews-server:
-        &jbossews-server-component
-        Publishes:
-          get-doc-root:
-            Type: "FILESYSTEM:doc-root"
-          get-internal-uri:
-            Type: "NET_TCP:http"
-          publish-http-url:
-            Type: "NET_TCP:httpd-proxy-info"
-          publish-gear-endpoint:
-            Type: "NET_TCP:gear-endpoint-info"
-        Subscribes:
-          set-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-            Required: false
-          set-nosql-db-connection-info:
-            Type: "NET_TCP:nosqldb:connection-info"
-            Required: false
-          set-jdbc-info:
-            Type: "NET_TCP:jdbc"
-    Groups:
-      app-servers:
-        Components:
-          jbossews-server: jbossews-server
-        Scaling:
-          Min: 1
-          Max: -1
+      jbossews-server: jbossews-server
+    Scaling:
+      Min: 1
+      Max: -1
