@@ -36,7 +36,16 @@ cp complete-origin-setup %{buildroot}%{_bindir}/
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0755,-,-) %{_bindir}/oo-* 
+%attr(0755,-,-) %{_bindir}/oo-admin-chk
+%attr(0755,-,-) %{_bindir}/oo-admin-ctl-app
+%attr(0755,-,-) %{_bindir}/oo-admin-ctl-district
+%attr(0755,-,-) %{_bindir}/oo-admin-ctl-domain
+%attr(0755,-,-) %{_bindir}/oo-admin-ctl-template
+%attr(0755,-,-) %{_bindir}/oo-admin-ctl-user
+%attr(0755,-,-) %{_bindir}/oo-admin-move
+%attr(0755,-,-) %{_bindir}/oo-register-dns
+%attr(0755,-,-) %{_bindir}/oo-setup-bind
+%attr(0755,-,-) %{_bindir}/oo-setup-broker
 %attr(0755,-,-) %{_bindir}/complete-origin-setup
 %doc LICENSE
 
