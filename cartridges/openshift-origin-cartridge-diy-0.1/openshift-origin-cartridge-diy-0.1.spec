@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 0.33.6
+Version: 0.33.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.33.7-1
+- Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
+- Both prod and stg mirrors point to the ops mirror -- so use
+  mirror1.ops.rhcloud.com - also makes for consistent behaviour across
+  DEV/STG/INT/PROD. (ramr@redhat.com)
+- Fix 'Obsoletes' for jbosseap6, port-proxy, mongodb-2.2, and diy
+  (pmorie@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.33.6-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 
