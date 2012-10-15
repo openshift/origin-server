@@ -17,7 +17,7 @@ fi
 CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
 
 APP_JBOSS=${CART_DIR}/${cartridge_type}
-APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
+APP_JBOSS_TMP_DIR="$APP_JBOSS"/tmp
 APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir

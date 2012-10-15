@@ -72,3 +72,13 @@ function jenkins_sync_jboss {
 
   jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
 }
+
+function jenkins_sync_jbossews {
+  UPSTREAM_SSH=$1
+
+  jenkins_rsync ~/.m2/ $UPSTREAM_SSH:~/.m2/
+
+  jenkins_rsync ~/$WORKSPACE/webapps/. $UPSTREAM_SSH:~/app-root/repo/webapps/
+
+  jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
+}
