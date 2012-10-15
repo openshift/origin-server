@@ -20,3 +20,5 @@ Feature: Cartridge Runtime Extended Checks (JBoss)
     | jbossas-7    | java      | is not enabled    | should be     |
     | jbosseap-6.0 | java      | is enabled        | should not be |
     | jbosseap-6.0 | java      | is not enabled    | should be     |
+    | jbossews-1.0 | java      | is enabled        | should not be |
+    | jbossews-1.0 | java      | is not enabled    | should be     |
