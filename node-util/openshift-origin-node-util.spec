@@ -48,6 +48,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %doc
+%attr(0750,-,-) %{_bindir}/oo-accept-node
 %attr(0750,-,-) %{_bindir}/oo-idler
 %attr(0750,-,-) %{_bindir}/oo-restorer
 %attr(0750,-,-) %{_bindir}/oo-setup-node
