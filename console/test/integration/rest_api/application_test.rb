@@ -50,7 +50,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert cart.tags.present?
 
     # scaling parameters
-    assert_nil cart.scaling_with
+    assert_nil cart.scales_with
     assert_equal 1, cart.supported_scales_from
     assert_equal -1, cart.supported_scales_to, 'Bug 866650 has been fixed, change to 1'
     assert_equal 1, cart.current_scale

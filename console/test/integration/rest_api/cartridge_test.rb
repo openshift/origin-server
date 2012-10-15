@@ -20,15 +20,16 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
     assert cart.supported_scales_from > 0
     assert_equal(-1, cart.supported_scales_to)
 
-    base = cart.scales_from
+    base = Range.new(cart.supported_scales_from, cart.supported_scales_to == -1 ? User.find(:one, :as => @user).max_gears : [100,cart.supported_scales_to].min).to_a.sample
 
-    cart.scales_from = cart.scales_from + 1
-    cart.scales_to = cart.scales_from
+    name = cart.name
+
+    cart.scales_from = base
+    cart.scales_to = base
     assert cart.save, cart.errors.pretty_inspect
 
-    #cart.reload # Bug in REST API
-    app.reload
-    cart = app.cartridges.find{ |c| c == cart }
+    assert_raises(RestApi::ResourceNotFound, 'Bug 866626 has been fixed'){ cart.reload }
+    cart = Cartridge.find name, app.send(:child_options)
 
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to
