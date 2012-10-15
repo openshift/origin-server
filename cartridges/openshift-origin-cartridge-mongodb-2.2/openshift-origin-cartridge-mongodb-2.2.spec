@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 0.26.6
+Version: 0.26.7
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,18 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.26.7-1
+- Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
+- Merge pull request #653 from pmorie/rename (openshift+bot@redhat.com)
+- Fix for mongorestore to workaround mongo 2.2 bug:
+  https://jira.mongodb.org/browse/SERVER-7262 (ramr@redhat.com)
+- Don't use rhcsh to control remote dbs. Also fix a typo in the postgres
+  cartridge -- variable name. (ramr@redhat.com)
+- Fix 'Obsoletes' for jbosseap6, port-proxy, mongodb-2.2, and diy
+  (pmorie@gmail.com)
+- Cartridge Fix for BZ807443 (jhonce@redhat.com)
+- Fix functions to get installed dbs. (mpatel@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.26.6-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 
