@@ -14,9 +14,9 @@ CART_NS=$(get_cartridge_namespace_from_path)
 CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
 JBOSS_DIR=${CART_DIR}/${CART_NAME}
 
-standalone_tmp=${JBOSS_DIR}/standalone/tmp/
-if [ -d $standalone_tmp ]
+tmp=${JBOSS_DIR}/tmp/
+if [ -d $tmp ]
 then
-    client_message "Emptying tmp dir: $standalone_tmp"
-    rm -rf $standalone_tmp/* $standalone_tmp/.[^.]*
+    client_message "Emptying tmp dir: $tmp"
+    rm -rf $tmp/* $tmp/.[^.]*
 fi
