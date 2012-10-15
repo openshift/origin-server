@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        0.0.6.1
+Version:        0.0.6.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -50,6 +50,14 @@ rm -rf $RPM_BUILD_ROOT
 %doc LICENSE
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.6.2-1
+- Port admin scripts for on-premise (jhonce@redhat.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+
 * Tue Oct 09 2012 Krishna Raman <kraman@gmail.com> 0.0.6.1-1
 - Removing old build scripts Moving broker/node setup utilities into util
   packages (kraman@gmail.com)
