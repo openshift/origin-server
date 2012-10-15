@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.13
+Version:   0.17.14
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,26 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.17.14-1
+- BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
+  command (calfonso@redhat.com)
+- BZ866327 (bdecoste@gmail.com)
+- Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
+- Merge pull request #644 from bdecoste/master (openshift+bot@redhat.com)
+- Don't use rhcsh to control remote dbs. Also fix a typo in the postgres
+  cartridge -- variable name. (ramr@redhat.com)
+- BZ 864519: Fix for git push failing for scalable apps w/ dbs.
+  (mpatel@redhat.com)
+- added tests and enabled ews (bdecoste@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+- Merge pull request #623 from mrunalp/bugs/863998 (openshift+bot@redhat.com)
+- Merge pull request #617 from mrunalp/bugs/util_db_functions_fix
+  (openshift+bot@redhat.com)
+- BZ 863998: Fix path to git repo. (mpatel@redhat.com)
+- Fix functions to get installed dbs. (mpatel@redhat.com)
+- Honor stop_lock during app_ctl stop calls (ironcladlou@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.17.13-1
 - suppressing tmp cleanup errors in tidy script (abhgupta@redhat.com)
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
