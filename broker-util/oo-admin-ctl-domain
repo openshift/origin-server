@@ -22,7 +22,7 @@ Options:
 -s|--ssh_key <ssh key>
     Users SSH key
 -t|--key_type <ssh key type>
-    Users SSH key type (ssh-rsa|ssh-dss)
+    Users SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
 -k|--key_name <ssh key name>
     Users SSH key name
 -h|--help:

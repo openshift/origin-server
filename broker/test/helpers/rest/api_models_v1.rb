@@ -155,6 +155,9 @@ end
 
 class RestUser_V1 < BaseObj_V1
   attr_accessor :login, :consumed_gears, :max_gears, :capabilities, :plan_id, :usage_account_id, :links, :consumed_gear_sizes
+  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
+               'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
                                                                                                        
   def initialize
     self.login = nil
@@ -167,7 +170,7 @@ class RestUser_V1 < BaseObj_V1
       "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
       "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
         Param_V1.new("name", "string"),                                        
-        Param_V1.new("type", "string", ["ssh-rsa", "ssh-dss"]),                            
+        Param_V1.new("type", "string", KEY_TYPES), 
         Param_V1.new("content", "string"),      
       ])                                                                                              
     } unless $nolinks 
@@ -180,8 +183,8 @@ class RestUser_V1 < BaseObj_V1
 end
 
 class RestCartridge_V1 < BaseObj_V1
-  attr_accessor :type, :name, :links, :properties, :status_messages                                                                                                                                                                                                                       
-  
+  attr_accessor :type, :name, :links, :properties, :status_messages
+ 
   def initialize(type=nil, name=nil, app=nil)
     self.name = name
     self.type = type
@@ -275,6 +278,9 @@ end
 
 class RestKey_V1 < BaseObj_V1
   attr_accessor :name, :content, :type, :links
+  KEY_TYPES = ['ssh-rsa', 'ssh-dss', 'ecdsa-sha2-nistp256-cert-v01@openssh.com', 'ecdsa-sha2-nistp384-cert-v01@openssh.com',
+               'ecdsa-sha2-nistp521-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com', 'ssh-dss-cert-v01@openssh.com',
+               'ssh-rsa-cert-v00@openssh.com', 'ssh-dss-cert-v00@openssh.com', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521']
 
   def initialize(name=nil, content=nil, type=nil)
     self.name = name
@@ -283,7 +289,7 @@ class RestKey_V1 < BaseObj_V1
     self.links = {
       "GET" => Link_V1.new("GET", "user/keys/#{name}"),
       "UPDATE" => Link_V1.new("PUT", "user/keys/#{name}", [
-        Param_V1.new("type", "string", ["ssh-rsa", "ssh-dss"]),
+        Param_V1.new("type", "string", KEY_TYPES),
         Param_V1.new("content", "string") ]),
       "DELETE" => Link_V1.new("DELETE", "user/keys/#{name}")
     } unless $nolinks
