@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.16.5
+Version: 0.16.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,11 @@ make -f /usr/share/selinux/devel/Makefile
 popd
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
+- Merge pull request #676 from pravisankar/dev/ravi/bug/852324
+  (openshift+bot@redhat.com)
+- Fix for bug# 852324 (rpenta@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.16.5-1
 - Centralize plug-in configuration (miciah.masters@gmail.com)
 - Fixing a few missed references to ss-* Added command to load openshift-origin
