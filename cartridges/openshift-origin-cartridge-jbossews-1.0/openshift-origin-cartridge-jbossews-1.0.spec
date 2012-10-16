@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.4
+Version:   1.0.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -136,6 +136,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 1.0.5-1
+- Merge pull request #680 from ramr/master (dmcphers@redhat.com)
+- Fix EWS cartridge mirrors. Both prod and stg mirrors point to the ops mirror
+  -- so use mirror1.ops.rhcloud.com - also makes for consistent behaviour
+  across DEV/STG/INT/PROD. (ramr@redhat.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/origin-server
+  (bdecoste@gmail.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 1.0.4-1
 - BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
   command (calfonso@redhat.com)
