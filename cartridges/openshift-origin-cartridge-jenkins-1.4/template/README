@@ -102,9 +102,9 @@ inaccessible.  During a build the following steps take place:
 10) .openshift/action_hooks/deploy is executed on the originating application
 11) Jenkins starts the originating application
 12) .openshift/action_hooks/post_deploy is executed on the originating application
-13) Jenkins archives build artifiacts for later reference
+13) Jenkins archives build artifacts for later reference
 14) After 15 minutes of idle time, the 'build app' will be destroyed and will
-    no longer show up with the 'rhc domain show' command.  The build artificats
+    no longer show up with the 'rhc domain show' command.  The build artifacts
     however, will still exist in Jenkins and can be viewed there.
 
 Users can look at the build job by clicking on it in the Jenkins interface and
