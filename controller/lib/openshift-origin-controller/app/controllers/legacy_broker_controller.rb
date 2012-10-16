@@ -75,10 +75,10 @@ class LegacyBrokerController < ApplicationController
         if @cloud_user.ssh_keys.nil? || @cloud_user.ssh_keys.empty?
           @reply.data = {:keys => {}, :ssh_key => "", :ssh_type => ""}.to_json
         else
-          other_keys = @cloud_user.ssh_keys.reject {|k, v| k == CloudUser::DEFAULT_SSH_KEY_NAME }
-          if @cloud_user.ssh_keys.has_key?(CloudUser::DEFAULT_SSH_KEY_NAME)
-            default_key = @cloud_user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['key'] 
-            default_key_type = @cloud_user.ssh_keys[CloudUser::DEFAULT_SSH_KEY_NAME]['type']
+          other_keys = @cloud_user.ssh_keys.reject {|k, v| k == Key::DEFAULT_SSH_KEY_NAME }
+          if @cloud_user.ssh_keys.has_key?(Key::DEFAULT_SSH_KEY_NAME)
+            default_key = @cloud_user.ssh_keys[Key::DEFAULT_SSH_KEY_NAME]['key'] 
+            default_key_type = @cloud_user.ssh_keys[Key::DEFAULT_SSH_KEY_NAME]['type']
           else
             default_key = default_key_type = ""            
           end
@@ -161,7 +161,7 @@ class LegacyBrokerController < ApplicationController
       raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if OpenShift::ApplicationContainerProxy.blacklisted? @req.namespace
       raise OpenShift::UserException.new("Domain already exists for user. Update the domain to modify.", 158) if !@cloud_user.domains.empty?
 
-      key = Key.new(CloudUser::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
+      key = Key.new(Key::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
       if key.invalid?
          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", false, "Failed to create domain #{@req.namespace}: #{key.errors.first[1][:message]}")
          @reply.resultIO << key.errors.first[1][:message]
@@ -169,7 +169,7 @@ class LegacyBrokerController < ApplicationController
          render :json => @reply, :status => :bad_request 
          return
       end
-      @cloud_user.add_ssh_key(CloudUser::DEFAULT_SSH_KEY_NAME, @req.ssh, @req.key_type)
+      @cloud_user.add_ssh_key(Key::DEFAULT_SSH_KEY_NAME, @req.ssh, @req.key_type)
       domain = Domain.new(@req.namespace, @cloud_user)
       @reply.append domain.save
       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Created domain #{@req.namespace}")
