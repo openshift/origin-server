@@ -28,7 +28,7 @@ class LegacyRequest < OpenShift::Model
   end
   
   validates_each :key_type, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /\A(ssh-rsa|ssh-dss)\z/)
+    if !Key::VALID_SSH_KEY_TYPES.include?(val)
       record.errors.add attribute, {:message => "Invalid key type: #{val}", :exit_code => 116}
     end
   end

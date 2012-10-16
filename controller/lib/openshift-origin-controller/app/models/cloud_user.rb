@@ -7,8 +7,6 @@
   require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
   private :login=, :uuid=, :save_jobs=
 
-  DEFAULT_SSH_KEY_NAME = "default" unless defined? DEFAULT_SSH_KEY_NAME
-
   validates_each :login do |record, attribute, val|
     record.errors.add(attribute, {:message => "Invalid characters found in login '#{val}' ", :exit_code => 107}) if val =~ /["\$\^<>\|%\/;:,\\\*=~]/
   end
@@ -18,7 +16,7 @@
       if !(key_name =~ /\A[A-Za-z0-9]+\z/)
         record.errors.add attribute, {:message => "Invalid key name: #{key_name}", :exit_code => 117}
       end
-      if !(key_info['type'] =~ /\A(ssh-rsa|ssh-dss)\z/)
+      if !Key::VALID_SSH_KEY_TYPES.include?(key_info['type'])
         record.errors.add attribute, {:message => "Invalid key type: #{key_info['type']}", :exit_code => 116}
       end
       if !(key_info['key'] =~ /\A[A-Za-z0-9\+\/=]+\z/)
@@ -31,9 +29,9 @@
                  parent_login=nil)
     super()
     if not ssh.nil?
-      ssh_type = "ssh-rsa" if ssh_type.to_s.strip.length == 0
+      ssh_type = Key::DEFAULT_SSH_KEY_TYPE if ssh_type.to_s.strip.length == 0
       self.ssh_keys = {} unless self.ssh_keys
-      key_name = CloudUser::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
+      key_name = Key::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
       self.ssh_keys[key_name] = { "key" => ssh, "type" => ssh_type }
     else
       self.ssh_keys = {} unless self.ssh_keys
@@ -249,7 +247,7 @@
   
   def add_ssh_key(key_name, key, key_type=nil)
     self.ssh_keys = {} unless self.ssh_keys
-    key_type = "ssh-rsa" if key_type.to_s.strip.length == 0
+    key_type = Key::DEFAULT_SSH_KEY_TYPE if key_type.to_s.strip.length == 0
     self.ssh_keys[key_name] = { "key" => key, "type" => key_type }
     add_save_job('adds', 'ssh_keys', [key, key_type, key_name])
   end
@@ -265,7 +263,7 @@
   end
   
   def update_ssh_key(key, key_type=nil, key_name=nil)
-    key_name = CloudUser::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
+    key_name = Key::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
     remove_ssh_key(key_name)
     add_ssh_key(key_name, key, key_type)
   end
@@ -273,7 +271,7 @@
   def get_ssh_key
     raise OpenShift::UserKeyException.new("ERROR: No ssh keys found for user #{self.login}", 
                                            123) if self.ssh_keys.nil? or not self.ssh_keys.kind_of?(Hash)
-    key_name = (self.ssh_keys.key?(CloudUser::DEFAULT_SSH_KEY_NAME)) ? CloudUser::DEFAULT_SSH_KEY_NAME : self.ssh_keys.keys[0]
+    key_name = (self.ssh_keys.key?(Key::DEFAULT_SSH_KEY_NAME)) ? Key::DEFAULT_SSH_KEY_NAME : self.ssh_keys.keys[0]
     self.ssh_keys[key_name]
   end
  
