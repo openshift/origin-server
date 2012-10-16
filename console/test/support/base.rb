@@ -7,7 +7,21 @@ def inline_test(file)
   require "#{Console::Engine.root}/#{Pathname.new(file).relative_path_from(Rails.application.root)}"
 end
 
+Test::Unit::TestCase.test_order = :random
+
 class ActiveSupport::TestCase
+
+  #
+  # Rails 3.2 + Test::Unit 2.x - handle_exception is not called in
+  # active_support/testing/setup_and_teardown.rb
+  #
+  def add_error(e)
+    if /active_support/ =~ caller[0]
+      super unless handle_exception(e)
+    else
+      super
+    end
+  end
 
   def self.isolate(&block)
     self.module_eval do

@@ -87,7 +87,10 @@ class Application < RestApi::Base
   def destroy_build_cartridge
     return true if !builds?
     cart = Cartridge.new({:application => self, :as => as, :name => building_with}, true)
-    cart.destroy.tap{ |success| cart.errors.full_messages.each{ |m| errors.add(:base, m) } unless success }
+    cart.destroy
+  rescue ActiveResource::ConnectionError => e
+    raise unless set_remote_errors(e, true)
+    #end.tap{ |success| cart.errors.full_messages.each{ |m| errors.add(:base, m) } unless success }
   end
 
   def reload

@@ -878,16 +878,16 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_app_custom_get_method
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/1/applications/testapp1/gears.json', json_header, [
+      mock.get '/broker/rest/domains/1/applications/custom_app_get/gears.json', json_header, [
         { :uuid => 'abc', :components => [ { :name => 'ruby-1.8' } ] },
       ].to_json
     end
-    app = Application.new :name => 'testapp1', :domain => Domain.new(:id => '1', :as => @user)
+    app = Application.new :name => 'custom_app_get', :domain => Domain.new(:id => '1', :as => @user)
     assert_equal({:domain_id => '1'}, app.prefix_options)
     assert_equal 1, (gears = app.gears).length
     assert_equal 'abc', (gear = gears[0]).uuid
     assert_equal 1, gear.components.length
-    assert_equal 'ruby-1.8', gear.components[0].name
+    assert_equal 'ruby-1.8', gear.components[0][:name]
   end
 
   def test_domain_id_tracks_changes

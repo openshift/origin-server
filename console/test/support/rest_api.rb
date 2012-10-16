@@ -130,6 +130,7 @@ class ActiveSupport::TestCase
           app.as = @user
         end
         find_or_create_domain
+        @domain.expects(:destroy).never
         begin
           app = @domain.find_application(app.name)
         rescue

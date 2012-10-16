@@ -81,13 +81,13 @@ class ScalingControllerTest < ActionController::TestCase
 
   test 'allows fixed scale range' do
     put :update, {:cartridge => {:scales_from => 3, :scales_to => 3}}.merge(scalable_app_params)
-    assert_redirected_to application_scaling_path
+    assert_redirected_to application_scaling_path, assigns(:cartridge).errors.inspect
     assert_cart_scales 3, 3
   end
 
   test 'allows unlimited scale range' do
     put :update, {:cartridge => {:scales_from => 3, :scales_to => -1}}.merge(scalable_app_params)
-    assert_redirected_to application_scaling_path
+    assert_redirected_to application_scaling_path, assigns(:cartridge).errors.inspect
     assert_cart_scales 3, -1
   end
 

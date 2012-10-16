@@ -67,7 +67,7 @@ class ActiveResource::Base
         resource_name = 'Constant' + resource_name
         resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
       end
-      resource.prefix = self.class.prefix
+      resource.prefix = self.class.prefix_source
       resource.site   = self.class.site
       resource
     end
@@ -332,13 +332,15 @@ module RestApi
       end
 
       def element_path(id = nil, prefix_options = {}, query_options = nil) #changed
+        check_prefix_options(prefix_options)
+
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        #"#{prefix(prefix_options)}#{collection_name}/#{URI.escape id.to_s}.#{format.extension}#{query_string(query_options)}"
+
         #begin changes
         path = "#{prefix(prefix_options)}#{collection_name}"
         unless singleton?
           raise ArgumentError, "id is required for non-singleton resources #{self}" if id.nil?
-          path << "/#{URI.escape id.to_s}"
+          path << "/#{URI.parser.escape id.to_s}"
         end
         path << ".#{format.extension}#{query_string(query_options)}"
       end

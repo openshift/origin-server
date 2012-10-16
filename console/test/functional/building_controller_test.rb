@@ -87,6 +87,20 @@ class BuildingControllerTest < ActionController::TestCase
     assert_redirected_to application_path(app)
   end
 
+  test "should redraw if destroy fails" do
+    args = with_builds
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.delete '/broker/rest/domains/test/applications/test/cartridges/jenkins-client-1.4.json', json_header, {:messages => [{:text => 'unable to delete'}]}.to_json, 422
+    end
+
+    delete :destroy, args
+    assert assigns(:application)
+    assert assigns(:domain)
+    assert_response :success
+    assert_template :delete
+    assert_select '.alert-error', 'unable to delete'
+  end
+
   test "should see new page without a jenkins app" do
     get :new, with_app
     assert app = assigns(:application)
@@ -118,17 +132,60 @@ class BuildingControllerTest < ActionController::TestCase
     Cartridge.any_instance.expects(:has_exit_code?).at_least_once.returns(true)
 
     # Build the REST environment
-    app_args = with_app(jenkins_app, app_can_build)
+    args = with_app(jenkins_app, app_can_build)
 
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.post '/broker/rest/domains/test/applications/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422
     end
 
     # Simulate the POST
-    post :create, app_args
+    post :create, args
 
     # Check that the flash text matches our desired message
     assert_match /^The Jenkins server is not yet registered with DNS/, flash[:info_pre]
+  end
+
+  test "should create a jenkins server if it does not exist" do
+    args = with_app(nil, app_without_builds)
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.post '/broker/rest/domains/test/applications/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 201
+      mock.post '/broker/rest/domains/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:field => 'result', :text => 'App remote message'}] }.to_json, 201
+    end
+
+    post :create, args.merge({:application => {:name => 'jenkins2'}})
+
+    assert_redirected_to application_building_path(args[:application_id])
+    assert flash[:info_pre].include? 'App remote message'
+  end
+
+  test "should stop if server creation fails" do
+    args = with_app(nil, app_without_builds)
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.post '/broker/rest/domains/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:field => 'base', :text => 'App remote error'}] }.to_json, 422
+    end
+
+    post :create, args.merge({:application => {:name => 'jenkins2'}})
+
+    assert_response :success
+    assert_template :new
+    assert_select '.alert-error', 'App remote error'
+  end
+
+  test "should create a jenkins server and redraw if cart fails" do
+    args = with_app(nil, app_without_builds)
+
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.post '/broker/rest/domains/test/applications/test/cartridges.json', json_header(true), { :name => 'jenkins-client-1.4' }.to_json, 422
+      mock.post '/broker/rest/domains/test/applications.json', json_header(true), { :name => 'jenkins2', :framework => 'jenkins-1.4', :messages => [{:field => 'result', :text => 'App remote message'}] }.to_json, 201
+    end
+
+    post :create, args.merge({:application => {:name => 'jenkins2'}})
+
+    assert_response :success
+    assert_template :new
+    assert flash[:info_pre].include? 'App remote message'
   end
 
   test "should show if all components exist" do

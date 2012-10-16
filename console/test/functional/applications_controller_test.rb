@@ -24,6 +24,12 @@ class ApplicationsControllerTest < ActionController::TestCase
     end
   end
 
+  test 'should redirect new to types' do
+    with_configured_user
+    get :new
+    assert_redirected_to application_types_path
+  end
+
   test 'report and clear cached error if domain not found' do
     with_configured_user
     session[:domain] = 'does_not_exist'
@@ -215,6 +221,13 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form(template.name)})
 
     assert_equal ['message', template.credentials_message], flash[:info_pre]
+  end
+
+  test 'invalid destroy should render page' do
+    Application.any_instance.expects(:destroy).returns(false)
+    delete :destroy, :id => with_app.name
+    assert_response :success
+    assert_template :delete
   end
 
 #  test "should check for empty name" do
