@@ -41,6 +41,10 @@ mkdir -p %{buildroot}%{_bindir}
 gem build %{gemname}.gemspec
 gem install --local --install-dir %{buildroot}%{gemdir} --force %{gemname}-%{version}.gem
 
+# Add documents/examples
+mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
+cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
+
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
@@ -54,6 +58,7 @@ rm -rf %{buildroot}
 
 %files
 #%doc LICENSE COPYRIGHT Gemfile README-LDAP README-KERB
+%doc %{_docdir}/%{name}-%{version}
 #%exclude %{gem_cache}
 #%{gem_instdir}
 #%{gem_spec}
