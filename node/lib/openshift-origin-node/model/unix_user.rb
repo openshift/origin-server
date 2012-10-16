@@ -46,6 +46,10 @@ module OpenShift
 
       @config = OpenShift::Config.new
 
+      # CLOUD_NAME will be interpolated into shell variable names, so it
+      # must only contain characters that are valid in variable names.
+      raise "CLOUD_NAME has an invalid value" unless @config.get("CLOUD_NAME").match /^[a-zA-Z][a-zA-Z0-9_]*$/
+
       @container_uuid = container_uuid
       @application_uuid = application_uuid
       @uuid = container_uuid
