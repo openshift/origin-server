@@ -47,13 +47,13 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%doc
 %attr(0750,-,-) %{_bindir}/oo-accept-node
-%attr(0750,-,-) %{_bindir}/oo-idler
-%attr(0750,-,-) %{_bindir}/oo-restorer
-%attr(0750,-,-) %{_bindir}/oo-setup-node
 %attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
+%attr(0750,-,-) %{_bindir}/oo-idler
+%attr(0750,-,-) %{_bindir}/oo-init-quota
+%attr(0750,-,-) %{_bindir}/oo-restorer
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
+%attr(0750,-,-) %{_bindir}/oo-setup-node
 %doc LICENSE
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf

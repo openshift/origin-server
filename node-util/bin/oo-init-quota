@@ -1,0 +1,121 @@
+#!/bin/sh -e
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+#
+#
+# Initialize quotas for OpenShift Origin
+#
+#
+# Get origin_dir configured value
+if [ -f /etc/openshift/node.conf ]
+then
+    . /etc/openshift/node.conf
+fi
+origin_dir=${GEAR_BASE_DIR}
+
+# override if the user requests it explicitly
+if [ -n "$1" ]
+then
+    origin_dir=$1
+fi
+
+# default if no one gives you a good answer
+# this applies until we get a separate partition for Libra
+# because you can't apply quotas to bind mounts
+origin_dir=${origin_dir:=/var/lib/openshift}
+
+# remove trailing / as they mess up the searches
+origin_dir=$(echo $origin_dir | tr -s / | perl -p -e 's:(.)/$:$1 :')
+
+# find the mount point above a given file or directory
+function get_mountpoint() {
+    df $1 | tail -1 | tr -s ' ' | cut -d' ' -f 6 | sort -u
+}
+
+# find the filesystem type above a given file or directory
+function get_filesystem_type() {
+    grep " $1 " /etc/fstab |tr -s ' ' |cut -d' ' -f3
+}
+
+# get the fstab options for a given mount point
+function get_fstab_mount_options() {
+    cat /etc/fstab | tr -s ' ' | grep " $1 "| awk '{print $4;}'
+}
+
+# get the current mount options for a given mount point
+function get_current_mount_options() {
+    # options are the comma delimited string between parens
+    mount | grep " $1 " | sed -e 's/^.*(// ; s/).*$// ' | sort -u
+}
+
+ORIGIN_MOUNTPOINT=$(get_mountpoint $origin_dir)
+QUOTA_FILE=$( echo ${ORIGIN_MOUNTPOINT}/aquota.user | tr -s /)
+QUOTA_OPTIONS=usrjquota=aquota.user,jqfmt=vfsv0
+
+#
+# Add quota options to libra filesystem mount
+#
+function update_fstab() {
+    # ORIGIN_MOUNTPOINT=$1
+
+    if ! tr -s ' ' </etc/fstab |egrep " $1 ext4 [^ ]+$QUOTA_OPTIONS "; then
+      FSTAB_OPTIONS=$(get_fstab_mount_options $1)
+      NEW_OPTIONS=${FSTAB_OPTIONS},${QUOTA_OPTIONS}
+      # NOTE: double quotes - Variables are shell-substituted before perl runs
+      perl -p -i -e "m: $1 : && s/${FSTAB_OPTIONS}/${NEW_OPTIONS}/" /etc/fstab
+    fi
+}
+
+#
+# Initialize the quota database on the filesystem
+#
+function init_quota_db() {
+    # ORIGIN_MOUNTPOINT=$1
+    # create the quota DB file on the filesystem
+    QUOTA_FILE=$(echo $1/aquota.user | tr -s /)
+    # initialize quota db on the filesystem
+    quotacheck -cmuf $1
+    chmod 600 $QUOTA_FILE
+    restorecon ${QUOTA_FILE}
+    # replace the restorecon when the origin rules allow it
+    chcon -t quota_db_t ${QUOTA_FILE}
+}
+
+
+#
+# MAIN
+#
+FS_TYPE=$(get_filesystem_type $ORIGIN_MOUNTPOINT)
+if [ 'ext4' != "$FS_TYPE" ]; then
+  echo "oo-init-quota only supports ext4 filesystems. You will need to setup user quotas for the '$FS_TYPE' filesystem." 1>&2
+  exit 2
+fi
+
+update_fstab $ORIGIN_MOUNTPOINT
+
+# remount to enable
+CURRENT_OPTIONS=$(get_current_mount_options $ORIGIN_MOUNTPOINT)
+# check to avoid doing it again
+NEW_OPTIONS=${CURRENT_OPTIONS},${QUOTA_OPTIONS}
+
+mount -o remount,${NEW_OPTIONS} $ORIGIN_MOUNTPOINT
+
+init_quota_db $ORIGIN_MOUNTPOINT
+
+# enable quotas
+quotaon -a
