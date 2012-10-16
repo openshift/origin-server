@@ -23,10 +23,11 @@ validate_run_as_user
 cmd=""
 
 case "$1" in
-    start)                    cmd="start"    ;;
-    restart|reload|graceful)  cmd="restart"  ;;
-    stop|graceful-stop)       cmd="stop"     ;;
-    status)                   cmd="status"   ;;
+    start)                    cmd="start"         ;;
+    start-noauth)             cmd="start-noauth"  ;;
+    restart|reload|graceful)  cmd="restart"       ;;
+    stop|graceful-stop)       cmd="stop"          ;;
+    status)                   cmd="status"        ;;
 esac
 
 if [ "${cmd}" == "" ]; then
