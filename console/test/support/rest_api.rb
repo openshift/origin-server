@@ -171,7 +171,7 @@ class ActiveSupport::TestCase
     { :name => uuid,
       :application_type => 'php-5.3',
       :gear_profile => 'medium',
-      :domain_name => 'MEDIUMGEAR'
+      :domain_name => "MG#{uuid}"
     }
   end
 
