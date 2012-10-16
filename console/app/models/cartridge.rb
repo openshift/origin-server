@@ -4,8 +4,14 @@
 class Cartridge < RestApi::Base
   include Comparable
 
+  #use_patch_on_update
+
   schema do
     string :name, 'type'
+    integer :supported_scales_from, :supported_scales_to
+    integer :scales_from, :scales_to, :current_scale
+    string :scales_with
+    string :gear_profile
   end
   custom_id :name
 
@@ -14,9 +20,22 @@ class Cartridge < RestApi::Base
 
   belongs_to :application
   has_one :cartridge_type
+  has_many :collocated_with, :class_name => 'string'
+  has_many :properties, :class_name => 'rest_api/base/attribute_hash'
+  has_one  :help_topics, :class_name => 'rest_api/base/attribute_hash'
 
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
 
+  def collocated_with
+    @attributes[:collocated_with] ||= []
+  end
+
+  def supported_scales_from
+    super || 1
+  end
+  def supported_scales_to
+    super || 1
+  end
   def type
     @attributes[:type]
   end
@@ -35,16 +54,26 @@ class Cartridge < RestApi::Base
     @gears.length
   end
 
+  # deprecated
   def scales
     @scales || ScaleRelation::Null
   end
+
   def scales?
-    @scales.present?
-  end
-  def scales_with(cart, gear_group, times)
-    @scales = ScaleRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name, times
+    @scales.present? || supported_scales_from != supported_scales_to
   end
 
+  # deprecated with args
+  def scales_with(*args)
+    args.length == 0 ? super : begin
+      @scales = ScaleRelation.new args[0], args[1].is_a?(String) ? args[1] : args[1].name, args[2]
+    end
+  end
+
+  #
+  # The build attributes are used for view manipulation only
+  #
+  # deprecated
   def buildable?
     git_url.present? and tags.include? :web_framework
   end
@@ -56,6 +85,10 @@ class Cartridge < RestApi::Base
   end
   def builds_with(cart, gear_group)
     @builds = BuildRelation.new cart, gear_group.is_a?(String) ? gear_group : gear_group.name
+  end
+
+  def grouping
+    @grouping ||= [name].concat(collocated_with).uniq.sort
   end
 
   def <=>(other)
@@ -77,6 +110,7 @@ class Cartridge::ScaleRelation
 
   Null = new(nil,nil,1)
 end
+
 class Cartridge::BuildRelation
   attr_accessor :with, :on
 

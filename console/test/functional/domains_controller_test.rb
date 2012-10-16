@@ -29,6 +29,14 @@ class DomainsControllerTest < ActionController::TestCase
     "d#{uuid[0..10]}%i"
   end
 
+  test "should display domain creation form" do
+    get :new
+
+    assert domain = assigns(:domain)
+    assert_response :success
+    assert_template :new
+  end
+
   test "should create domain" do
     post :create, {:domain => get_post_form}
 

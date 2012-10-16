@@ -5,12 +5,9 @@ class Gear < RestApi::Base
   #custom_id :id
 
   belongs_to :application
+  has_many :components, :class_name => 'rest_api/base/attribute_hash'
 
   def state
     (super || :unknown).to_sym
-  end
-
-  def components
-    @attributes[:components]
   end
 end

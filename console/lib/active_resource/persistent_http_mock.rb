@@ -40,3 +40,29 @@ class ActiveResource::HttpMock
     end
   end
 end
+
+# Add PATCH support
+class ActiveResource::HttpMock::Responder
+  def patch(path, request_headers = {}, body = nil, status = 200, response_headers = {})
+    request  = ActiveResource::Request.new(:patch, path, nil, request_headers)
+    response = ActiveResource::Response.new(body || "", status, response_headers)
+
+    delete_duplicate_responses(request)
+
+    @responses << [request, response]
+  end
+end
+class ActiveResource::HttpMock
+  class << self 
+    def patch(path, body, headers)
+      request = ActiveResource::Request.new(:patch, path, body, headers)
+      self.class.requests << request
+      if response = self.class.responses.assoc(request)
+        response[1]
+      else
+        raise InvalidRequestError.new("Could not find a response recorded for \#{request.to_s} - Responses recorded are: \#{inspect_responses}")
+      end
+    end
+  end
+end
+

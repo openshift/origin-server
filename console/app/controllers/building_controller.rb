@@ -8,26 +8,28 @@ class BuildingController < ConsoleController
 
   def new
     user_default_domain
-    apps = @domain.applications
-    @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
-    @jenkins_server = apps.find{ |a| a.jenkins_server? } || Application.new(:name => 'jenkins', :cartridge => 'jenkins-1.4', :domain => @domain)
-    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4'
+    @application = @domain.find_application params[:application_id]
+    @jenkins_server = if @application.building_app
+        @domain.find_application(@application.building_app) if @application.building_app
+      else
+        Application.new({:name => 'jenkins'}, false)
+      end
+    @cartridge_type = CartridgeType.cached.all.find{ |c| c.tags.include? :ci_builder }
     @cartridge = Cartridge.new :name => @cartridge_type.name
   end
 
   def create
     @domain = Domain.find :one, :as => current_user
-    user_default_domain
-    apps = @domain.applications
-    @application = apps.find{ |a| a.name == params[:application_id] } or raise ActiveResource::ResourceNotFound, params[:application_id]
-    @jenkins_server = apps.find{ |a| a.jenkins_server? }
-    @cartridge_type = CartridgeType.cached.find 'jenkins-client-1.4'
+    @application = @domain.find_application(params[:application_id])
+    @jenkins_server = @domain.find_application(@application.building_app) if @application.building_app
+    @cartridge_type = CartridgeType.cached.all.find{ |c| c.tags.include? :ci_builder }
     @cartridge = Cartridge.new :name => @cartridge_type.name
 
     unless @jenkins_server
+      framework = CartridgeType.cached.all.find{ |c| c.tags.include? :ci }
       @jenkins_server = Application.new(
         :name => params[:application][:name],
-        :cartridge => 'jenkins-1.4',
+        :cartridge => framework,
         :domain => @domain,
         :as => current_user)
 

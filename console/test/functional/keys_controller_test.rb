@@ -9,6 +9,15 @@ class KeysControllerTest < ActionController::TestCase
     'key%i'
   end
 
+  test "should show key creation form" do
+    get :new
+    assert_response :success
+    assert_template :new
+    assert_nil assigns(:first)
+    assert key = assigns(:key)
+    assert !key.persisted?
+  end
+
   test "should create key" do
     post :create, {:key => get_post_form}
 

@@ -27,6 +27,9 @@ module RestApiAuth
   def new_user(opts=nil)
     Test::WebUser.new opts
   end
+  def new_named_user(name)
+    new_user(:login => name, :password => 'foo')
+  end
 
   #
   # Integration tests are designed to run against the 
@@ -52,9 +55,11 @@ module RestApiAuth
   end
 
   def set_user(user)
-    @request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials(user.login, user.password) if user.password
-    @request.cookies['rh_sso'] = user.ticket if user.ticket
-    @request.env['HTTPS'] = 'on'
+    if @request
+      @request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials(user.login, user.password) if user.password
+      @request.cookies['rh_sso'] = user.ticket if user.ticket
+      @request.env['HTTPS'] = 'on'
+    end
     @user = user
   end
 
@@ -96,8 +101,6 @@ class ActionController::TestCase
   #
   def with_configured_user
     set_user(super)
-    #@controller.stubs(:authenticate_user!)
-    #@controller.stubs(:current_user).returns(user)
   end
 
   def mock_controller_user(extends=nil)

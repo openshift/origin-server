@@ -17,6 +17,10 @@ module DomainAware
       end
     end
   end
+
+  def domain_is_missing
+    session.delete :domain
+  end
 end
 RestApi::Base.observers << DomainSessionSweeper
 DomainSessionSweeper.instance
