@@ -24,6 +24,7 @@ module OpenShift
   class UserValidationException < OpenShift::OOException; end
   class AccessDeniedException < UserValidationException; end
   class DNSException < OpenShift::OOException; end
+  class DNSAlreadyExistsException < DNSException; end
   class DNSNotFoundException < DNSException; end
   class EstimatesException < OpenShift::OOException; end
 end

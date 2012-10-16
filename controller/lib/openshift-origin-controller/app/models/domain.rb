@@ -115,47 +115,88 @@ class Domain < OpenShift::UserModel
     old_namespace = old_domain.namespace
     Rails.logger.debug "Updating namespace for domain #{self.uuid} from #{old_namespace} to #{self.namespace}"
     dns_service = OpenShift::DnsService.instance
-    
-    begin
+
+    begin 
       raise OpenShift::UserException.new("A namespace with name '#{self.namespace}' already exists", 103) unless dns_service.namespace_available?(self.namespace)
       dns_service.register_namespace(self.namespace)
       dns_service.deregister_namespace(old_namespace)
       cloud_user = self.user
-      update_namespace_failures = []
+      prepare_failures = []
       
       cloud_user.applications.each do |app|
-        Rails.logger.debug "App's domain #{app.domain.uuid}"
         if app.domain.uuid == self.uuid
           Rails.logger.debug "Updating namespace to #{self.namespace} for app: #{app.name}"
           result = app.prepare_namespace_update(dns_service, self.namespace, old_namespace)
-          update_namespace_failures.push(app.name) unless result[:success]
+          prepare_failures.push(app.name) unless result[:success]
           result_io.append result[:result_io]
         end
+      end if cloud_user.applications
+ 
+      complete_exception = nil
+      begin
+        cloud_user.applications.each do |app|
+          if app.domain.uuid == self.uuid
+            app.complete_namespace_update(self.namespace, old_namespace)
+          end
+        end if cloud_user.applications and prepare_failures.empty?
+      rescue Exception => e
+        complete_exception = e
+        Rails.logger.debug e.message
+        Rails.logger.debug e.backtrace
       end
-      
-      cloud_user.applications.each do |app|
-        if app.domain.uuid == self.uuid
-          app.complete_namespace_update(self.namespace, old_namespace)
+
+      dns_exception = nil
+      begin
+        dns_service.publish if prepare_failures.empty? and !complete_exception
+      rescue Exception => e
+        dns_exception = e
+        Rails.logger.debug e.message
+        Rails.logger.debug e.backtrace
+      end
+
+      # Rollback incase of failures
+      if !prepare_failures.empty? or complete_exception or dns_exception
+        undo_prepare_failures = []
+        undo_prepare_err_msg = ""
+        cloud_user.applications.each do |app|
+          if app.domain.uuid == self.uuid
+            Rails.logger.debug "Undo namespace update to #{old_namespace} for app: #{app.name}"
+            result = app.prepare_namespace_update(dns_service, old_namespace, self.namespace)
+            undo_prepare_failures.push(app.name) unless result[:success]
+            result_io.append result[:result_io]
+          end
+        end if cloud_user.applications
+        undo_prepare_err_msg = "Undo namespace update failed: #{undo_prepare_failures.pretty_inspect.chomp}." unless undo_prepare_failures.empty?
+ 
+        undo_complete_err_msg = "" 
+        begin
+          cloud_user.applications.each do |app|
+            if app.domain.uuid == self.uuid
+              app.complete_namespace_update(old_namespace, self.namespace)
+            end
+          end if cloud_user.applications
+        rescue Exception => e
+          undo_complete_err_msg = "Undo namespace update failed: #{e.message}."
+          Rails.logger.debug e.message
+          Rails.logger.debug e.backtrace
         end
-      end
 
-      if update_namespace_failures.empty?
-        dns_service.publish
-      else
-        raise OpenShift::NodeException.new("Error updating apps: #{update_namespace_failures.pretty_inspect.chomp}.  Updates will not be completed until all apps can be updated successfully.  If the problem persists please contact support.",143)
+        err_msg = "Error updating namespace: "
+        err_code = 143
+        if dns_exception
+          err_msg += dns_exception.message
+          err_code = dns_exception.code if dns_exception.respond_to?('code')
+        elsif complete_exception
+          err_msg += complete_exception.message
+          err_code = complete_exception.code if complete_exception.respond_to?('code')
+        else # prepare failures
+          err_msg += prepare_failures.pretty_inspect.chomp
+        end
+        err_msg += undo_prepare_err_msg + undo_complete_err_msg
+        raise OpenShift::NodeException.new(err_msg + " If the problem persists please contact support.", err_code)
       end
-
-      Rails.logger.debug "notifying domain observer of domain update"
-      notify_observers(:after_domain_update) 
-      #Rails.logger.debug "done notifying the domain observers"
-    rescue OpenShift::OOException => e
-      Rails.logger.error "Exception caught updating namespace: #{e.message}"
-      Rails.logger.debug e.backtrace
-      raise
-    rescue Exception => e
-      Rails.logger.error "Exception caught updating namespace: #{e.message}"
-      Rails.logger.debug e.backtrace
-      raise OpenShift::OOException.new("An error occurred updating the namespace.  If the problem persists please contact support.",1)
+      Rails.logger.debug "Notifying domain observer of domain update"
+      notify_observers(:after_domain_update)
     ensure
       dns_service.close
     end
