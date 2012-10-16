@@ -501,7 +501,7 @@ module RestApi
     # aware
     #
     def reload
-      self.load(prefix_options.merge(self.class.find(to_param, :params => @prefix_options, :as => as).attributes))
+      self.load(prefix_options.merge(self.class.find(to_param, :params => prefix_options, :as => as).attributes))
     end
 
     class << self
