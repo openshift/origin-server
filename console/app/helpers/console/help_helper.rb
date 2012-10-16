@@ -14,12 +14,8 @@ module Console::HelpHelper
     community_base_url 'developers/remote-access#keys'
   end
 
-  def manage_app_cli_user_guide_topic_url
-    user_guide_topic_url 'chap-User_Guide-OpenShift_Command_Line_Interface.html'
-  end
-
   def deploy_hook_user_guide_topic_url
-    user_guide_topic_url 'sect-User_Guide-Using_the_Jenkins_Embedded_Build_System-The_BuildDeploy_Process_in_OpenShift.html'
+    community_base_url 'developers/deploying-and-building-applications'
   end
 
   def add_domains_user_guide_topic_url
