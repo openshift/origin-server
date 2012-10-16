@@ -132,7 +132,7 @@ function stop_database_as_user {
 function get_db_host_as_user {
     _set_db_env
     if is_db_on_dbgear; then
-        ssh_dbgear 'echo $_db_host' 2>/dev/null
+        ssh_dbgear "cartridge_type=$cartridge_type; source /etc/openshift/node.conf; source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util; source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/db; _set_db_env; echo $_db_host" 2> /dev/null
         return 0
     fi
 
