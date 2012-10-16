@@ -17,11 +17,12 @@ function wait_to_start_db {
 
 
 function wait_to_start_db_as_user {
+    ttw=60  #  Time (max) to wait for db to start up.
     if [ -n "$OPENSHIFT_POSTGRESQL_DB_USERNAME" ]
     then
         i=0
         sleep 1
-        while ( ! psql -l > /dev/null 2>&1 ) && [ $i -lt 10 ]
+        while ( ! psql -l > /dev/null 2>&1 ) && [ $i -lt $ttw ]
         do
             sleep 1
             i=$(($i + 1))
