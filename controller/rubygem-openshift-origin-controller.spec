@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.13
+Version: 0.17.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.17.14-1
+- Merge pull request #681 from pravisankar/dev/ravi/bug/821107
+  (openshift+bot@redhat.com)
+- Merge pull request #676 from pravisankar/dev/ravi/bug/852324
+  (openshift+bot@redhat.com)
+- Support more ssh key types (rpenta@redhat.com)
+- Fix for bug# 852324 (rpenta@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.17.13-1
 - added ews tests (bdecoste@gmail.com)
 - Merge pull request #668 from bdecoste/master (openshift+bot@redhat.com)
