@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   0.7.1
+Version:   0.7.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -167,6 +167,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.7.2-1
+- bump spec file, somehow the tito tag got out of sync (admiller@redhat.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/origin-server
+  (bdecoste@gmail.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com>
 - jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
 - Merge branch 'master' of https://github.com/openshift/origin-server
