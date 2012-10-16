@@ -26,7 +26,8 @@ Gem::Specification.new do |s|
   s.add_dependency "activesupport", "~> 3.0.13"
   s.add_dependency "mongo"
   s.add_dependency "openshift-origin-common"
-  s.add_dependency('state_machine')  
+  s.add_dependency('state_machine')
+  s.add_dependency('dnsruby')
   s.add_development_dependency('rake')  
   s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')

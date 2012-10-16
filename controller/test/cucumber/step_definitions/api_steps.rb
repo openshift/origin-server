@@ -137,6 +137,16 @@ Then /^the response should be "([^\"]*)"$/ do |status|
   @response.code.should == status.to_i
 end
 
+Then /^the response should be one of "([^\"]*)"$/ do |acceptable_statuses|
+  response_acceptable = false
+  statuses = acceptable_statuses.split(",")
+  statuses.each do | status|
+    puts "#{@response.body}"  if @response.code != status.to_i
+    response_acceptable = true unless @response.code != status.to_i
+  end
+  response_acceptable.should == true
+end
+
 Then /^the response should be a "([^\"]*)" with attributes "([^\"]*)"$/ do |tag, attributes_str|
   attributes_str = sub_random(attributes_str)
   attributes_array = attributes_str.split("&")
