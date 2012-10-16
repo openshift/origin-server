@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 0.98.7
+Version: 0.98.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.98.8-1
+- fix typos (dmcphers@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.98.7-1
 - Honor stop_lock during app_ctl stop calls (ironcladlou@gmail.com)
 
