@@ -32,7 +32,6 @@ Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
 Requires:  rubygem(rcov)
-Requires:  openshift-origin-cartridge-abstract
 Requires:  rubygem-passenger-native
 Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}
