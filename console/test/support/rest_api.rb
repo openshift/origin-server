@@ -167,6 +167,22 @@ class ActiveSupport::TestCase
     body
   end
 
+  def with_medium_gear_app_form
+    { :name => uuid,
+      :application_type => 'php-5.3',
+      :gear_profile => 'medium',
+      :domain_name => 'MEDIUMGEAR'
+    }
+  end
+
+  def with_scalable_app_form
+    { :name => uuid,
+      :application_type => 'php-5.3',
+      :scale => 'true',
+      :domain_name => 'MEDIUMGEAR'
+    }
+  end
+
   def auth_headers
    h = {}
    h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket

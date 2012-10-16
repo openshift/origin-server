@@ -230,6 +230,37 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_template :delete
   end
 
+  test 'should support the creation of scalable apps with medium gears for privileged users' do
+    with_gear_size_user
+    medium_gear_app = with_medium_gear_app_form
+    medium_gear_app[:scale] = 'true'
+
+    post(:create, {:application => medium_gear_app})
+
+    assert app = assigns(:application)
+    assert app.errors.empty?, app.errors.inspect
+    assert_equal 'medium', app.attributes['gear_profile']
+    assert_equal true, app.attributes['scale']
+
+    delete :destroy, :id => app.id
+  end
+
+  test 'should not allow medium gears for non-privileged users' do
+    with_unique_domain
+    medium_gear_app_form = with_medium_gear_app_form
+    medium_gear_app_form[:domain_name] = @domain.name
+
+    post(:create, {:application => medium_gear_app_form})
+
+    assert app = assigns(:application)
+    assert_not_nil app.errors.messages[:node_profile][0].match('Invalid Size: medium')
+  end
+
+  test 'should prevent scaled apps when not enough gears are available' do
+    # This space intentionally left blank;
+    # Testing this end-to-end would be relatively time consuming right now.
+  end
+
 #  test "should check for empty name" do
 #    form = get_post_form
 #    form[:name]=''
@@ -250,4 +281,5 @@ class ApplicationsControllerTest < ActionController::TestCase
   def get_post_form(name = 'diy-0.1')
     {:name => 'test1', :application_type => name}
   end
+
 end
