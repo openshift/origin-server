@@ -1,0 +1,22 @@
+#!/usr/bin/ruby
+
+# When combined with selinux, this script will allow users to read their own
+# cgroups entries but not other users cgroups entries
+login = `/usr/bin/whoami`.chomp
+
+attribute=ARGV[0]
+unless attribute =~ /\A[a-zA-Z0-9\.\-_]*\z/
+    puts "#{attribute} is an invalid attribute"
+    exit 1
+end
+
+if File.exists? "/cgroup/all/openshift/#{login}/#{attribute}"
+    fp = File.new("/cgroup/all/openshift/#{login}/#{attribute}")
+    value = fp.gets
+    fp.close
+else
+    puts "Could not find attribute #{attribute}"
+    exit 2
+end
+
+puts value

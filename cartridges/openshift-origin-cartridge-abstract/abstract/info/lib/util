@@ -984,11 +984,12 @@ function run_user_hook {
 }
 
 function enable_cgroups {
-    return 0
+    echo $cfs_quota > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
 }
 
 function disable_cgroups {
-    return 0
+    export cfs_quota=$(cat "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us")
+    cat /cgroup/all/openshift/$uuid/cpu.cfs_period_us  > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
 }
 
 function enable_stale_detection {

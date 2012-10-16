@@ -1,6 +1,7 @@
 #!/bin/bash
 source /etc/rc.d/init.d/functions
 source /usr/libexec/openshift/cartridges/abstract/info/lib/util 
+source /etc/openshift/node.conf
 
 lockfile=/var/lock/subsys/openshift-gears
 logfile=/var/log/openshift-gears-async-start.log
@@ -37,7 +38,7 @@ function print_column() {
 }
 
 function openshift_gears() {
-    grep ":OpenShift guest:" /etc/passwd | cut -d: -f1
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1
 }
 
 function get_mcs_level() {
@@ -276,7 +277,7 @@ case "$1" in
   status)
     echo "Checking OpenShift Services: "
 
-    for gear in $(grep ':OpenShift guest:' /etc/passwd | cut -d: -f6)
+    for gear in $(grep ':${GEAR_GECOS}:' /etc/passwd | cut -d: -f6)
     do
         for cartridge in $(ls -d $gear/* |grep -E -v 'app-root|git')
         do
