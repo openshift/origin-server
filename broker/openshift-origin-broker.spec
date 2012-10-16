@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   0.6.14
+Version:   0.6.15
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -171,6 +171,16 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Tue Oct 16 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.15-1
+- Merge pull request #681 from pravisankar/dev/ravi/bug/821107
+  (openshift+bot@redhat.com)
+- BZ866854 - Removing abstract cartridge dep from broker spec
+  (bleanhar@redhat.com)
+- Support more ssh key types (rpenta@redhat.com)
+- Merge pull request #636 from pravisankar/dev/ravi/bug/863973
+  (openshift+bot@redhat.com)
+- Fix for bug# 863973 (rpenta@redhat.com)
+
 * Thu Oct 11 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.14-1
 - Merge pull request #635 from Miciah/etc-plugin-conf12
   (openshift+bot@redhat.com)
