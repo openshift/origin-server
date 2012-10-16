@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.14
+Version:   0.17.15
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.17.15-1
+- Merge branch 'master' of https://github.com/openshift/origin-server
+  (bdecoste@gmail.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.17.14-1
 - BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
   command (calfonso@redhat.com)
