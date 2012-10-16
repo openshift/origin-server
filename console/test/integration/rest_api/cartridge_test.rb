@@ -28,8 +28,10 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
     cart.scales_to = base
     assert cart.save, "Unable to set scales_from/to to #{base}: #{cart.errors.full_messages}"
 
-    assert_raises(RestApi::ResourceNotFound, 'Bug 866626 has been fixed'){ cart.reload }
-    cart = Cartridge.find name, app.send(:child_options)
+    assert_equal base, cart.scales_from
+    assert_equal base, cart.scales_to
+
+    cart.reload rescue omit('Depends on bug 866626 being resolved')
 
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to
