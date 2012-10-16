@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.8
+Version:        0.0.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,32 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.0.9-1
+- Merge pull request #685 from smarterclayton/scaling_support_in_web2
+  (ccoleman@redhat.com)
+- Fix final failing test prior to merge (ccoleman@redhat.com)
+- Set prefix appropriately when subresources are created (ccoleman@redhat.com)
+- More tests (ccoleman@redhat.com)
+- Further clarifying and simplifying tests (ccoleman@redhat.com)
+- Replace hardcoded cart lookups in building_controller with new rest api
+  (ccoleman@redhat.com)
+- Final updates to conform to Rajat's changes (ccoleman@redhat.com)
+- Redo Pry integration, minor tweaks to tests (ccoleman@redhat.com)
+- Switch to using cartridge scaling model vs. gear_group scaling model
+  (ccoleman@redhat.com)
+- Allow missing / invalid domain to properly clear session object
+  (ccoleman@redhat.com)
+- Prepare to infer gear groups from cartridges, simplify build checks with new
+  REST API (ccoleman@redhat.com)
+- Remove site specific variables, ensure set -e is present
+  (ccoleman@redhat.com)
+- Support an important form, tweak HR to be less prominent, add minor JS to
+  emphasize save button (ccoleman@redhat.com)
+- Implement #update on cartridge scaling (ccoleman@redhat.com)
+- Support PATCH on update (ccoleman@redhat.com)
+- Hide label element when not specified (ccoleman@redhat.com)
+- Basic scaling page (ccoleman@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.8-1
 - removing addressable dep, not needed. (admiller@redhat.com)
 - Fixed select_input call to parts() (nhr@redhat.com)
