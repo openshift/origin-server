@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 0.98.5
+Version: 0.98.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.98.6-1
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+- Merge branch 'master' of https://github.com/openshift/origin-server
+  (bdecoste@gmail.com)
+- jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.98.5-1
 - Both prod and stg mirrors point to the ops mirror -- so use
   mirror1.ops.rhcloud.com - also makes for consistent behaviour across
