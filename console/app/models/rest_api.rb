@@ -39,6 +39,9 @@ module RestApi
     def model
       @model.constantize rescue RestApi::Base
     end
+    def domain_missing?
+      @model == 'Domain' || RestApi::Base.remote_errors_for(response).any?{ |m| m[0] == 127 } rescue false
+    end
     def to_s
       "#{model.to_s.titleize}#{ " '#{id}'" unless id.nil?} does not exist"
     end

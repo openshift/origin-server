@@ -47,4 +47,9 @@ class AsyncAwareTest < ActiveSupport::TestCase
     obj.async{ sleep(1) }
     assert_raise(AsyncAware::ThreadTimedOut){ obj.join!(0.01) }
   end
+  test "Thread timeout has message" do
+    ex = AsyncAware::ThreadTimedOut.new(Thread.current, 13045)
+    assert /13045/ =~ ex.to_s
+    assert ex.to_s.include? Thread.current.inspect
+  end
 end

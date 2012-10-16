@@ -10,6 +10,9 @@ module Console
 
     protected
       def resource_not_found(e)
+        if respond_to? :domain_is_missing
+          domain_is_missing if e.respond_to?(:domain_missing?) && e.domain_missing?
+        end
         alternatives = if Application == e.model
                          @domain.applications.map do |app|
                            ["Application #{app.name}", application_path(app)]

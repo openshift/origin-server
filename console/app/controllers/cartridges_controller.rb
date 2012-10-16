@@ -39,12 +39,5 @@ class CartridgesController < ConsoleController
       render 'cartridge_types/show'
     end
   end
-
-  def next_steps
-    user_default_domain
-    @application = @domain.find_application params[:id]
-
-    @wizard = !params[:wizard].nil?
-  end
 end
 

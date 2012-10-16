@@ -21,22 +21,33 @@ module Console::ModelHelper
     end.to_sentence
   end
 
-  def gear_group_count_title(cart, total_gears)
-    extra_gears = total_gears - cart.gear_count
-    if extra_gears > 0
-      "This cartridge uses #{pluralize(extra_gears, "gear")} to " << begin
-        if cart.builds? and cart.scales?
-          "handle builds and scaling. The remaining gears run copies of the web cartridge."
-        elsif cart.builds?
-          "handle builds. The other gear runs the web cartridge"
-        elsif cart.scales?
-          "scale. The remaining gears run copies of the web cartridge."
-        else
-          "expose the other cartridges."
-        end
-      end
+  def cartridge_gear_group_count(group)
+    return 'None' if group.gears.empty?
+    "#{group.gears.length} #{group.gear_profile.to_s.humanize.downcase}"
+  end
+
+  def gear_group_count_title(total_gears)
+    "OpenShift runs each cartridge inside one or more gears on a server and is allocated a fixed portion of CPU time and memory use."
+  end
+
+  def scale_range(from, to, max, max_choices)
+    limit = to == -1 ? max : to
+    return if limit > max_choices
+    (from .. limit).map{ |i| [i.to_s, i] }
+  end
+  def scale_from_options(obj, max, max_choices=20)
+    if range = scale_range(obj.supported_scales_from, obj.supported_scales_to, max, max_choices)
+      {:as => :select, :collection => range, :include_blank => false}
     else
-      "OpenShift runs each cartridge inside one or more gears on a server and is allocated a fixed portion of CPU time and memory use."
+      {:as => :text}
+    end
+  end
+  def scale_to_options(obj, max, max_choices=20)
+    if range = scale_range(obj.supported_scales_from, obj.supported_scales_to, max, max_choices)
+      range << ['All available', -1] if obj.supported_scales_to == -1
+      {:as => :select, :collection => range, :include_blank => false}
+    else
+      {:as => :text, :hint => 'Use -1 to scale to your current account limits'}
     end
   end
 end

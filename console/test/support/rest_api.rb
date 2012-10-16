@@ -23,6 +23,11 @@ class ActiveSupport::TestCase
     end
     set_domain(domain)
   end
+  def find_or_create_domain
+    set_domain(Domain.find(:one, :as => @user))
+  rescue
+    setup_domain
+  end
 
   def cleanup_user?
     not @with_unique_user
@@ -116,25 +121,34 @@ class ActiveSupport::TestCase
       if cached
         setup_from_app(cached)
       else
-        with_unique_domain
         app = yield block if block_given?
         app ||= Application.new :name => uuid
-        app.as ||= @user
-        app.domain_id ||= @domain.id
-        app.save!
+        if app.as
+          set_user(app.as)
+        else
+          with_unique_user
+          app.as = @user
+        end
+        find_or_create_domain
+        @domain.expects(:destroy).never
+        begin
+          app = @domain.find_application(app.name)
+        rescue
+          app.domain = @domain
+          app.save!
+        end
         app
       end
     end
   end
 
   def with_app
-    use_app(:readable_app) { Application.new({:name => "cart#{uuid}", :cartridge => 'ruby-1.8'}) }
+    use_app(:readable_app) { Application.new({:name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user('user_with_normal_app')}) }
   end
 
   def with_scalable_app
-    use_app(:scalable_app) { Application.new({:name => "cart#{uuid}", :cartridge => 'ruby-1.8', :scale => 'true'}) }
+    use_app(:scalable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.8', :scale => true, :as => new_named_user('user_with_scaled_app')}) }
   end
-
 
   def auth_headers
    h = {}

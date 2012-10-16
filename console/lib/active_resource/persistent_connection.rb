@@ -15,6 +15,7 @@ module ActiveResource
     HTTP_FORMAT_HEADER_NAMES = {  :get => 'Accept',
       :put => 'Content-Type',
       :post => 'Content-Type',
+      :patch => 'Content-Type',
       :delete => 'Accept',
       :head => 'Accept'
     }
@@ -116,6 +117,12 @@ module ActiveResource
       with_auth { request(:post, path, body.to_s, build_request_headers(headers, :post, self.site.merge(path))) }
     end
 
+    # Executes a PATCH request.
+    # Used to create new resources.
+    def patch(path, body = '', headers = {})
+      with_auth { request(:patch, path, body.to_s, build_request_headers(headers, :patch, self.site.merge(path))) }
+    end
+
     # Executes a HEAD request.
     # Used to obtain meta-information about resources, such as whether they exist and their size (via response headers).
     def head(path, headers = {})
@@ -137,6 +144,10 @@ module ActiveResource
               req = Net::HTTP::Delete.new path, arguments[0]
             when :put
               req = Net::HTTP::Put.new path, arguments[1]
+              req.body = arguments[0]
+              req
+            when :patch
+              req = Net::HTTP::Patch.new path, arguments[1]
               req.body = arguments[0]
               req
             when :post

@@ -24,6 +24,34 @@ class ApplicationsControllerTest < ActionController::TestCase
     end
   end
 
+  test 'should redirect new to types' do
+    with_configured_user
+    get :new
+    assert_redirected_to application_types_path
+  end
+
+  test 'report and clear cached error if domain not found' do
+    with_configured_user
+    session[:domain] = 'does_not_exist'
+    get :index
+    assert_not_found_page(/Domain 'does_not_exist' does not exist/)
+    assert_nil session[:domain]
+  end
+
+  test 'index will cache domain' do
+    with_unique_domain
+    get :index
+    assert_equal @domain.id, session[:domain]
+  end
+
+  test 'index will use cached domain' do
+    with_unique_domain
+    session[:domain] = @domain.id
+    Domain.expects(:find).never
+    get :index
+    assert_equal @domain.id, session[:domain]
+  end
+
   test "should create JBoss EAP app" do
     create_and_destroy('jbosseap-6.0')
   end
@@ -123,7 +151,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal with_app.name, app.name
     assert groups = assigns(:gear_groups)
     assert_equal 1, groups.length
-    assert groups[0].cartridges.map(&:name).include? with_app.cartridge
+    assert (groups[0].cartridges.map(&:name) - with_app.cartridges.map(&:name)).empty?
     assert groups[0].cartridges[0].display_name
     assert domain = assigns(:domain)
     assert !assigns(:has_keys)
@@ -143,8 +171,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert_equal with_scalable_app.name, app.name
     assert groups = assigns(:gear_groups)
-    assert_equal 1, groups.length
-    assert groups[0].cartridges.map(&:name).include? with_scalable_app.cartridge
+    assert_equal 1, groups.length, groups.pretty_inspect
+    assert (groups[0].cartridges.map(&:name) - with_scalable_app.cartridges.map(&:name)).empty?
     assert domain = assigns(:domain)
   end
 
@@ -193,6 +221,13 @@ class ApplicationsControllerTest < ActionController::TestCase
     post(:create, {:application => get_post_form(template.name)})
 
     assert_equal ['message', template.credentials_message], flash[:info_pre]
+  end
+
+  test 'invalid destroy should render page' do
+    Application.any_instance.expects(:destroy).returns(false)
+    delete :destroy, :id => with_app.name
+    assert_response :success
+    assert_template :delete
   end
 
 #  test "should check for empty name" do

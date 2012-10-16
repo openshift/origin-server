@@ -22,6 +22,8 @@ class CartridgeType < RestApi::Base
   attr_accessor :help_topics
   attr_accessor :priority
 
+  has_many :properties, :class_name => 'rest_api/base/attribute_hash'
+
   self.element_name = 'cartridges'
 
   def initialize(attributes={},persisted=true)

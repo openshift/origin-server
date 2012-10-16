@@ -151,11 +151,11 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_load_remote_errors
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
-    assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => {})); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => nil))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ''))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({})))); end
+    #assert_raise RestApi::BadServerResponseError do RestApi::Base.new.load_remote_errors(stub(:response => stub(:body => ActiveSupport::JSON.encode({:messages => nil})))); end
     begin
       RestApi::Base.new.load_remote_errors(response(''))
     rescue RestApi::BadServerResponseError => e
@@ -200,6 +200,13 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal obj.errors[:base], ["Something awful"]
     assert (obj = RestApi::Base.new).load_remote_errors(response, true, true)
     assert_equal obj.errors[:test], ["hello"]
+  end
+
+  def test_check_errors
+    response = stub(:body => ActiveSupport::JSON.encode({:messages => [{:field => 'test', :text => 'hello', :exit_code => 125}]}))
+    assert errors = RestApi::Base.remote_errors_for(response)
+    assert_equal 1, errors.length
+    assert_equal [125, 'test', 'hello'], errors[0]
   end
 
   def test_serialization
@@ -391,6 +398,21 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal auth2.password, connection2.password
   end
 
+  def test_update_method_patch
+    resource = Class.new(RestApi::Base) do
+      schema{ string :id }
+      self.element_name = 'test'
+      use_patch_on_update
+    end.new({:id => 'test', :as => @user}, true)
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.patch '/broker/rest/tests/test.json', json_header(true), {:id => 'test', :loaded => true}.to_json
+    end
+
+    assert resource.save
+    assert resource.loaded
+  end
+
   def test_load_returns_self
     key = Key.new
     assert_equal key, key.load({})
@@ -406,6 +428,7 @@ class RestApiTest < ActiveSupport::TestCase
     rescue RestApi::ResourceNotFound => e
       assert_equal User, e.model
       assert_equal nil, e.id
+      assert !e.domain_missing?
       assert e.to_s =~ /User does not exist/
     end
   end
@@ -420,7 +443,38 @@ class RestApiTest < ActiveSupport::TestCase
     rescue RestApi::ResourceNotFound => e
       assert_equal Domain, e.model
       assert_equal 'foo', e.id
+      assert !e.domain_missing?
       assert e.to_s =~ /Domain 'foo' does not exist/
+    end
+  end
+
+  def test_find_single_raises_resource_not_found
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, nil, 404
+    end
+    begin
+      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal Application, e.model
+      assert_equal 'bar', e.id
+      assert !e.domain_missing?
+      assert e.to_s =~ /Application 'bar' does not exist/
+    end
+  end
+
+  def test_find_application_fetch_detects_domain_missing
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/foo/applications/bar.json', json_header, {:messages => [{:exit_code => 127}]}.to_json, 404
+    end
+    begin
+      Application.find 'bar', :as => @user, :params => {:domain_id => 'foo'}
+      flunk "Expected to raise RestApi::ResourceNotFound"
+    rescue RestApi::ResourceNotFound => e
+      assert_equal Application, e.model
+      assert_equal 'bar', e.id
+      assert e.domain_missing?
+      assert e.to_s =~ /Application 'bar' does not exist/
     end
   end
 
@@ -595,6 +649,18 @@ class RestApiTest < ActiveSupport::TestCase
     assert Domain.find :one, :as => @user
   end
 
+  def test_app_reload
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
+      mock.get '/broker/rest/domains/a/applications.json', json_header, [{:name => 'a'}].to_json
+      mock.get '/broker/rest/domains/a/applications/a.json', json_header, {:name => 'a', :git_url => 'test'}.to_json
+    end
+    app = Domain.find(:one, :as => @user).applications.first
+    assert_nil app.git_url
+    app.reload
+    assert_equal 'test', app.git_url
+  end
+
   def test_domain_reload
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains.json', json_header, [{:id => 'a'}].to_json
@@ -607,7 +673,6 @@ class RestApiTest < ActiveSupport::TestCase
     domain.reload
     assert_equal oldname, domain.name
   end
-
   def test_domain_names
     domain = Domain.new
     assert_nil domain.name
@@ -813,15 +878,16 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_app_custom_get_method
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/1/applications/testapp1/gears.json', json_header, [
+      mock.get '/broker/rest/domains/1/applications/custom_app_get/gears.json', json_header, [
         { :uuid => 'abc', :components => [ { :name => 'ruby-1.8' } ] },
       ].to_json
     end
-    app = Application.new :name => 'testapp1', :domain => Domain.new(:id => '1', :as => @user)
+    app = Application.new :name => 'custom_app_get', :domain => Domain.new(:id => '1', :as => @user)
+    assert_equal({:domain_id => '1'}, app.prefix_options)
     assert_equal 1, (gears = app.gears).length
     assert_equal 'abc', (gear = gears[0]).uuid
     assert_equal 1, gear.components.length
-    assert_equal 'ruby-1.8', gear.components[0].name
+    assert_equal 'ruby-1.8', gear.components[0][:name]
   end
 
   def test_domain_id_tracks_changes
@@ -1164,17 +1230,13 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_application_job_url
-    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test\n"}}
+    a = Application.new :build_job_url => "https://test/test"
     assert_equal 'https://test/test', a.build_job_url
-    assert a.builds?
-
-    a = Application.new :embedded => {'jenkins-client-1.4' => {:info => "Job URL: https://test/test"}}
-    assert_equal 'https://test/test', a.build_job_url
-    assert a.builds?
-
-    a = Application.new :embedded => {'jenkins-client-1.4' => {}}
-    assert_nil a.build_job_url
     assert !a.builds?
+
+    a = Application.new :building_with => "jenkins-client-1.4"
+    assert_equal 'jenkins-client-1.4', a.building_with
+    assert a.builds?
 
     a = Application.new :embedded => {}
     assert_nil a.build_job_url
@@ -1185,7 +1247,67 @@ class RestApiTest < ActiveSupport::TestCase
     assert !a.builds?
   end
 
-  def test_get_gear_groups
+  def mock_complex_scaling_cartridges
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [
+        {
+          :name => 'mysql-5.1',
+          :collocated_with => [],
+          :scales_from => 1,
+          :scales_to => 1,
+          :current_scale => 1,
+          :supported_scales_from => 1,
+          :supported_scales_to => 1,
+        },
+        {
+          :name => 'haproxy-1.4',
+          :collocated_with => ['php-5.3'],
+          :scales_from => 1,
+          :scales_to => 1,
+          :current_scale => 1,
+          :supported_scales_from => 1,
+          :supported_scales_to => 1,
+        },
+        {
+          :name => 'php-5.3',
+          :collocated_with => ['haproxy-1.4'],
+          :scales_from => 1,
+          :scales_to => 5,
+          :current_scale => 3,
+          :supported_scales_from => 1,
+          :supported_scales_to => 6,
+          :scales_with => 'haproxy-1.4',
+        },
+      ].to_json
+    end
+  end
+
+  def test_infer_cartridge_groups
+    mock_complex_scaling_cartridges
+    mock_types
+
+    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user
+    assert groups = app.cartridge_gear_groups
+    assert_equal 2, groups.length
+    assert_equal 1, groups.first.cartridges.length
+    assert_equal 1, groups[1].cartridges.length
+
+    assert php = groups.first.cartridges.first
+    assert_equal 'php-5.3', php.name
+    assert_equal [true, 1, 3, 5],
+                 [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| php.send(s) }
+
+    assert_equal app.git_url, php.git_url
+    assert_equal app.ssh_url, php.ssh_url
+    assert_equal app.ssh_string, php.ssh_string
+
+    assert mysql = groups[1].cartridges.first
+    assert_equal 'mysql-5.1', mysql.name
+    assert_equal [false, 1, 1, 1],
+                 [:scales?, :scales_from, :current_scale, :scales_to].map{ |s| mysql.send(s) }
+  end
+
+  def mock_complex_scaling_gear_group
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
         {:name => '@@app/comp-web/php-5.3', :gears => [
@@ -1206,27 +1328,6 @@ class RestApiTest < ActiveSupport::TestCase
         ]},
       ].to_json
     end
-    mock_types
-
-    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
-    assert groups = app.gear_groups
-    assert cart1 = groups[0].cartridges[0]
-    assert_equal 2, groups.length # collapsed by simplify
-    assert_same @user, groups[0].send(:as)
-    assert_same @user, groups[1].send(:as)
-    assert_same @user, cart1.send(:as)
-
-    assert_equal app.git_url, cart1.git_url
-
-    assert cart1.scales?
-    assert cart1.scales
-    assert_equal 'haproxy-1.4', cart1.scales.with
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.scales.on
-
-    assert !groups[1].cartridges[0].scales?
-    assert groups[1].cartridges[0].scales
-    assert_nil groups[1].cartridges[0].scales.with
-    assert_nil groups[1].cartridges[0].scales.on
   end
 
   def test_cartridge_buildable
@@ -1240,178 +1341,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert c.buildable?
     t.tags.clear
     assert !c.buildable?
-  end
-
-  def test_get_gear_groups_with_simple_jenkins
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
-        {:name => '@@app/comp-web/php-5.3', :gear_profile => :medium, :gears => [
-          {:id => 1, :state => 'started'}
-        ], :cartridges => [
-          {:name => 'php-5.3'},
-        ]},
-        {:name => '@@app/comp-proxy/php-5.3', :gear_profile => :small, :gears => [
-          {:id => 2, :state => 'started'},
-        ], :cartridges => [
-          {:name => 'haproxy-1.4'},
-          {:name => 'php-5.3'},
-        ]},
-      ].to_json
-    end
-    mock_types
-
-    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
-    assert groups = app.gear_groups
-    assert cart1 = groups[0].cartridges[0]
-    assert_equal 1, groups.length # collapsed by simplify
-    assert_same @user, groups[0].send(:as)
-    assert_same @user, cart1.send(:as)
-
-    assert_equal app.git_url, cart1.git_url
-
-    assert_equal 'php-5.3', cart1.name
-    assert_equal 1, groups[0].cartridges.length, groups[0].pretty_inspect
-    assert !cart1.builds?, groups.pretty_inspect
-    assert cart1.buildable?
-    assert cart1.builds
-    assert_nil cart1.builds.with
-    assert_nil cart1.builds.on
-
-    assert cart1.scales?
-    assert cart1.scales
-    assert_equal 'haproxy-1.4', cart1.scales.with
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.scales.on
-
-    assert_equal 1, cart1.gear_count
-    assert_equal 1, cart1.gears[0].id
-    assert_equal :medium, cart1.gears[0].gear_profile
-
-    assert_equal [Gear.new(:id => 1, :gear_profile => :medium), Gear.new(:id => 2, :gear_profile => :small)], groups[0].gears
-  end
-
-  def test_get_gear_groups_with_jenkins
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
-        {:name => '@@app/comp-web/php-5.3', :gear_profile => :medium, :gears => [
-          {:id => 1, :state => 'started'}
-        ], :cartridges => [
-          {:name => 'php-5.3'},
-        ]},
-        {:name => '@@app/comp-proxy/php-5.3', :gear_profile => :small, :gears => [
-          {:id => 2, :state => 'started'},
-        ], :cartridges => [
-          {:name => 'jenkins-client-1.4'},
-          {:name => 'haproxy-1.4'},
-          {:name => 'php-5.3'},
-        ]},
-      ].to_json
-    end
-    mock_types
-
-    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
-    assert groups = app.gear_groups
-    assert cart1 = groups[0].cartridges[0]
-    assert_equal 1, groups.length # collapsed by simplify
-    assert_same @user, groups[0].send(:as)
-    assert_same @user, cart1.send(:as)
-
-    assert_equal app.git_url, cart1.git_url
-
-    assert_equal 'php-5.3', cart1.name
-    assert_equal 1, groups[0].cartridges.length
-    assert cart1.builds?, groups.pretty_inspect
-    assert cart1.builds
-    assert cart1.buildable?
-    assert_equal 'jenkins-client-1.4', cart1.builds.with.name
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.builds.on
-
-    assert cart1.scales?
-    assert cart1.scales
-    assert_equal 'haproxy-1.4', cart1.scales.with
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.scales.on
-
-    assert_equal 1, cart1.gear_count
-    assert_equal 1, cart1.gears[0].id
-    assert_equal :medium, cart1.gears[0].gear_profile
-
-    assert_equal [Gear.new(:id => 1, :gear_profile => :medium), Gear.new(:id => 2, :gear_profile => :small)], groups[0].gears
-  end
-
-  def test_get_gear_groups_with_jenkins_and_db
-    ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, [
-        {:name => '@@app/comp-web/php-5.3', :gear_profile => :medium, :gears => [
-          {:id => 1, :state => 'started'}
-        ], :cartridges => [
-          {:name => 'php-5.3'},
-        ]},
-        {:name => '@@app/comp-proxy/php-5.3', :gear_profile => :small, :gears => [
-          {:id => 2, :state => 'started'},
-        ], :cartridges => [
-          {:name => 'jenkins-client-1.4'},
-          {:name => 'haproxy-1.4'},
-          {:name => 'php-5.3'},
-          {:name => 'mysql-5.1'},
-        ]},
-      ].to_json
-    end
-    mock_types
-
-    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :as => @user
-    assert groups = app.gear_groups
-    assert_equal 2, groups.length # mysql is the only cart left on group 2
-
-    assert cart1 = groups[0].cartridges[0]
-
-    assert_equal app.git_url, cart1.git_url
-
-    assert_equal 'php-5.3', cart1.name
-    assert_equal 1, groups[0].cartridges.length
-    assert cart1.builds?, groups.pretty_inspect
-    assert cart1.builds
-    assert cart1.buildable?
-    assert_equal 'jenkins-client-1.4', cart1.builds.with.name
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.builds.on
-
-    assert cart1.scales?
-    assert cart1.scales
-    assert_equal 'haproxy-1.4', cart1.scales.with
-    assert_equal '@@app/comp-proxy/php-5.3', cart1.scales.on
-
-    assert_equal 1, cart1.gear_count
-    assert_equal 1, cart1.gears[0].id
-    assert_equal :medium, cart1.gears[0].gear_profile
-
-    assert_equal [Gear.new(:id => 1, :gear_profile => :medium)], groups[0].gears
-
-    assert_equal 1, groups[1].cartridges.length
-    assert cart2 = groups[1].cartridges[0]
-    assert_equal 'mysql-5.1', cart2.name
-    assert !cart2.scales?
-    assert !cart2.builds?
-
-    assert_equal [Gear.new(:id => 2, :gear_profile => :small)], groups[1].gears
-  end
-
-  def test_gear_group_merge
-    gear1 = Gear.new :id => 1, :state => 'started'
-    gear2 = Gear.new :id => 2, :state => 'started'
-    gear3 = Gear.new :id => 3, :state => 'started'
-    cart_a = Cartridge.new :name => 'a'
-    cart_b = Cartridge.new :name => 'b'
-    cart_c = Cartridge.new :name => 'c'
-    group1 = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]})
-    orig1  = GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]})
-    group2 = GearGroup.new({:name => 'group2', :gears => [gear2, gear3], :cartridges => [cart_b, cart_c]})
-
-    assert group1.equal?(group1)
-    assert group1.merge(group1)
-    assert_equal orig1.cartridges, group1.cartridges
-    assert_equal orig1.gears, group1.gears
-
-    group1.merge(group2)
-    assert_equal [cart_a, cart_b, cart_c], group1.cartridges
-    assert_equal [gear1, gear2, gear3], group1.gears
   end
 
   def test_gear_group_move_features
@@ -1438,82 +1367,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
-  def test_gear_group_simplify
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_a = Cartridge.new :name => 'a'
-    groups = [
-      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
-    ]
-    app = Application.new :git_url => 'http://localhost'
-    new_groups = GearGroup.simplify(groups, app)
-
-    assert_equal 1, new_groups.length
-    assert_equal [gear1], new_groups[0].gears
-    assert_equal [cart_a], new_groups[0].cartridges
-  end
-
-  def test_gear_group_simplify_jenkins
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_a = Cartridge.new :name => 'jenkins-1.4'
-    groups = [
-      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
-    ]
-    app = Application.new :git_url => 'http://localhost'
-    new_groups = GearGroup.simplify(groups, app)
-
-    assert_equal 1, new_groups.length
-    assert_equal [gear1], new_groups[0].gears
-    assert_equal [cart_a], new_groups[0].cartridges
-  end
-
-  def test_gear_group_simplify_with_incorrect_tagging
-    mock_types([{:name => 'buildable_framework', :tags => [:ci_builder, :web_framework]}])
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    cart_a = Cartridge.new :name => 'buildable_framework'
-    groups = [
-      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
-    ]
-    app = Application.new :git_url => 'http://localhost'
-    new_groups = GearGroup.simplify(groups, app)
-
-    assert_equal 1, new_groups.length
-    assert_equal [gear1], new_groups[0].gears
-    assert_equal [cart_a], new_groups[0].cartridges
-  end
-
-  def test_gear_group_simplify_scaled_zero
-    mock_types
-
-    gear1 = Gear.new :id => 1, :state => 'started'
-    gear2 = Gear.new :id => 2, :state => 'started'
-    gear3 = Gear.new :id => 3, :state => 'started'
-    cart_a = Cartridge.new :name => 'a'
-    cart_b = Cartridge.new :name => 'php-5.3' #only cartridges with category :web_framework scale
-    cart_c = Cartridge.new :name => 'c'
-    cart_proxy = Cartridge.new :name => 'haproxy-1.4'
-    groups = [
-      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_a]}),
-      GearGroup.new({:name => 'group2', :gears => [gear2], :cartridges => [cart_b, cart_proxy]}),
-      GearGroup.new({:name => 'group3', :gears => [gear3], :cartridges => [cart_c]}),
-    ]
-    app = Application.new :git_url => 'http://localhost'
-    new_groups = GearGroup.simplify(groups, app)
-
-    assert_equal 3, new_groups.length, new_groups.pretty_inspect
-    assert 'group2', new_groups[0].name
-    assert new_groups[0].scales?
-    assert_equal 0, new_groups[0].cartridges[0].scales.times
-    assert_equal groups[0], new_groups[1]
-    assert_equal groups[2], new_groups[2]
-    assert_equal app.git_url, new_groups[0].cartridges[0].git_url
-    assert_nil new_groups[1].cartridges[0].git_url
-  end
-
   #
   # Prime the cartridge type cache so lookups are valid.  Call after 
   # HttpMock.respond_to or use respond_to(false).
@@ -1529,36 +1382,19 @@ class RestApiTest < ActiveSupport::TestCase
     types
   end
 
-  def test_gear_group_simplify_reorders
-    mock_types
-    gear1 = Gear.new :id => 1, :state => 'started'
-    gear2 = Gear.new :id => 2, :state => 'started'
-    gear3 = Gear.new :id => 3, :state => 'started'
-    cart_db1 = Cartridge.new :name => 'mongodb-2.2'
-    cart_db2 = Cartridge.new :name => 'mysql-5.1'
-    cart_web = Cartridge.new :name => 'php-5.3'
-    groups = [
-      GearGroup.new({:name => 'group1', :gears => [gear1], :cartridges => [cart_db1]}),
-      GearGroup.new({:name => 'group2', :gears => [gear2], :cartridges => [cart_db2]}),
-      GearGroup.new({:name => 'group3', :gears => [gear3], :cartridges => [cart_web]}),
-    ]
-    app = Application.new :git_url => 'http://localhost'
-    new_groups = GearGroup.simplify(groups, app)
-
-    assert_equal 3, new_groups.length, new_groups.pretty_inspect
-    assert_equal cart_web.name, new_groups[0].cartridges[0].name
-    assert_equal cart_db1.name, new_groups[1].cartridges[0].name
-    assert_equal cart_db2.name, new_groups[2].cartridges[0].name
-  end
-
   def test_destroy_build_cartridge
-    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me'}, true)
+    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me', :building_with => 'jenkins-client-0.0'}, true)
     Cartridge.any_instance.expects(:destroy).returns(true)
     assert app.destroy_build_cartridge
   end
 
-  def test_destroy_build_cartridge_failures
+  def test_destroy_build_cartridge_not_building
     app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me'}, true)
+    assert app.destroy_build_cartridge
+  end
+
+  def test_destroy_build_cartridge_failures
+    app = Application.new({:domain_id => 'foo', :as => @as, :name => 'me', :building_with => 'jenkins-client-0.0'}, true)
     Cartridge.any_instance.expects(:destroy).raises(ActiveResource::ServerError.new(stub))
     assert_raise(ActiveResource::ServerError) { app.destroy_build_cartridge }
   end
