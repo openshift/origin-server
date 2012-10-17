@@ -19,7 +19,7 @@ GROUP_RETVAL=0
 #
 # Set defaults if not provided
 #
-GEAR_GECOS=${GEAR_GECOS:="openshift guest"}
+GEAR_GECOS=${GEAR_GECOS:="OpenShift guest"}
 
 OPENSHIFT_CGROUP_ROOT=${OPENSHIFT_CGROUP_ROOT:="/openshift"}
 OPENSHIFT_CGROUP_SUBSYSTEMS=${OPENSHIFT_CGROUP_SUBSYSTEMS:="cpu,cpuacct,memory,net_cls,freezer"}
