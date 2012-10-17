@@ -52,11 +52,11 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     # scaling parameters
     assert_nil cart.scales_with
     assert_equal 1, cart.supported_scales_from
-    assert_equal -1, cart.supported_scales_to, 'Bug 866650 has been fixed, change to 1'
+    assert_equal 1, cart.supported_scales_to
     assert_equal 1, cart.current_scale
     assert_equal 1, cart.scales_from
-    assert_equal -1, cart.scales_to, 'Bug 866650 has been fixed, change to 1'
-    assert cart.scales?, 'Bug 866650 has been fixed, scales? is now false'
+    assert_equal 1, cart.scales_to
+    # assert cart.scales?
   end
 
   def test_retrieve_gear_groups
