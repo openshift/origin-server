@@ -51,7 +51,7 @@ install -m 755 %{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 install -m 755 %{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-auth-remote-user/config/initializers/openshift-origin-auth-remote-user-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf
+cp lib/openshift-origin-auth-remote-user/config/initializers/openshift-origin-auth-remote-user-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %clean
 rm -rf %{buildroot}
@@ -73,8 +73,7 @@ rm -rf %{buildroot}
 %{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-ldap.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-kerberos.conf.sample
-
-%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf
+%{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.0.11-1

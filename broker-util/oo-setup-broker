@@ -103,8 +103,9 @@ dns            = args["--static-dns"]
 dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
-use_nm         = File.exist?('/lib/systemd/system/NetworkManager.service')
-build         = args["--build"]
+use_systemd    = File.exist?('/bin/systemd')
+use_nm         = use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service')
+build          = args["--build"]
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -158,7 +159,9 @@ if args["--help"]
 end
 
 ### Begin package setup
-find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+
+system "yum install -y qpid-cpp-server"
+
 insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
 
 system <<-EOOF
@@ -174,13 +177,8 @@ EOOF
 
 system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
 
-insert_if_not_exist("/var/www/openshift/broker/Gemfile", "openshift-origin-auth-mongo", 
-  "\ngem 'openshift-origin-auth-mongo'\n" +
-  "gem 'openshift-origin-dns-bind'\n" +
-  "gem 'openshift-origin-msg-broker-mcollective'\n")
-insert_if_not_exist("/var/www/openshift/broker/config/environments/development.rb", "openshift-origin-dns-bind.rb",
-  "\nrequire File.expand_path('../plugin-config/openshift-origin-dns-bind.rb', __FILE__)\n" +
-  "require File.expand_path('../plugin-config/openshift-origin-msg-broker-mcollective.rb', __FILE__)\n")
+system "mv /etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example /etc/openshift/plugins.d/openshift-origin-auth-mongo.conf"
+system "mv /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
 
 insert_if_not_exist("/etc/mongodb.conf", "smallfiles=true", "\nsmallfiles=true\n")
 system <<-EOF
@@ -325,8 +323,11 @@ unless build
   end
   
   print "Setup mongo db user\n"
+  print `/usr/bin/mongo localhost/admin --eval 'db.addUser("openshift", "mooo")'`
   print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
 end
+find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+system "service mongod start" unless build
 
 ### End mongo setup
 
@@ -370,6 +371,10 @@ system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{no
 unless build
   print "Register admin user\n"
   `mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+end
+
+File.open("/etc/openshift/express.conf", "w") do |f|
+  f.write("libra_server=broker.example.com\n")
 end
  
 ["httpd","sshd","qpidd","mcollective","openshift-broker","openshift-port-proxy"].each do |service|

@@ -3,6 +3,7 @@
 %global gemname openshift-origin-node
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 %define appdir %{_localstatedir}/lib/openshift
+%define apprundir %{_localstatedir}/run/openshift
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
@@ -23,6 +24,15 @@ Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
 Requires:       mercurial
+
+%if 0%{?fedora}%{?rhel} <= 6
+Requires:       libcgroup
+%else
+Requires:       libcgroup-tools
+%endif
+Requires:       pam-openshift
+Requires:       quota
+Requires:       pam-openshift
 Obsoletes: 	rubygem-stickshift-node
 
 BuildRequires:  ruby
@@ -48,7 +58,7 @@ This contains the Cloud Development Node packaged as a ruby site library.
 
 %install
 rm -rf %{buildroot}
-#mkdir -p %{buildroot}%{_bindir}/ss
+#mkdir -p %{buildroot}%{_bindir}/oo
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
@@ -56,7 +66,10 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{appdir}
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
+mkdir -p %{buildroot}%{_initddir}
 ln -sf %{appdir}/.httpd.d %{buildroot}%{_sysconfdir}/httpd/conf.d/openshift
+mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
+mkdir -p %{buildroot}%{_libexecdir}/openshift/lib
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -73,10 +86,36 @@ mv %{buildroot}%{geminstdir}/conf/* %{buildroot}%{_sysconfdir}/openshift
 ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
+#move pam limit binaries to proper location
+mv %{buildroot}%{geminstdir}/misc/bin/teardown_pam_fs_limits.sh %{buildroot}%{_libexecdir}/openshift/lib
+mv %{buildroot}%{geminstdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}%{_libexecdir}/openshift/lib
+
 #move the shell binaries into proper location
 mv %{buildroot}%{geminstdir}/misc/bin/* %{buildroot}%{_bindir}/
-rm -rf %{buildroot}%{geminstdir}/misc
+
+# Create run dir for openshift "services"
+%if 0%{?fedora} >= 15
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+mv %{buildroot}%{geminstdir}/misc/etc/openshift-run.conf %{buildroot}%{_sysconfdir}/tmpfiles.d
+%else
+mkdir -p %{buildroot}%{apprundir}
+%endif
+
+# place an example file
+mv %{buildroot}%{geminstdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
+
 mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+
+%if 0%{?fedora}%{?rhel} <= 6
+mkdir -p %{buildroot}%{_initddir}
+cp %{buildroot}%{geminstdir}/misc/init/openshift-cgroups %{buildroot}%{_initddir}/
+%else
+mkdir -p %{buildroot}/etc/systemd/system
+mv %{buildroot}%{geminstdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
+%endif
+
+# Don't install or package what's left in the misc directory
+rm -rf %{buildroot}%{geminstdir}/misc
 
 %clean
 rm -rf %{buildroot}                                
@@ -91,10 +130,28 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 %{_sysconfdir}/openshift
 %{_bindir}/*
+%{_libexecdir}/openshift/lib/setup_pam_fs_limits.sh
+%{_libexecdir}/openshift/lib/teardown_pam_fs_limits.sh
 %config(noreplace) %{_sysconfdir}/openshift/node.conf
 %attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{_var}/lib/openshift
+
+%if 0%{?fedora}%{?rhel} <= 6
+%attr(0755,-,0)	%{_initddir}/openshift-cgroups
+%else
+%attr(0750,-,-) /etc/systemd/system
+%endif
+
+%if 0%{?fedora} >= 15
+%{_sysconfdir}/tmpfiles.d/openshift-run.conf
+%else
+# upstart files
+%attr(0755,-,-) %{_var}/run/openshift
+%endif
+
+# save the example cgconfig.conf
+%doc %{_docdir}/%{name}-%{version}
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

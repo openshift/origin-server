@@ -25,6 +25,7 @@
 
 TRUE=0
 FALSE=1
+source /etc/openshift/node.conf
 
 function print_help {
     echo "Usage: $0"
@@ -35,7 +36,7 @@ function print_help {
 }
 
 function openshift_gears() {
-    grep ":OpenShift guest:" /etc/passwd | cut -d: -f1
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1
 }
 
 function print_idled {
