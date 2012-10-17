@@ -150,6 +150,14 @@ class ActiveSupport::TestCase
     use_app(:scalable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.8', :scale => true, :as => new_named_user('user_with_scaled_app')}) }
   end
 
+  def mock_body_for(&block)
+    req = ActiveResource::HttpMock.requests.find &block
+    assert req, "No mock request was found for this block"
+    body = req.body
+    body = ActiveSupport::JSON.decode(req.body) if req.headers['Content-Type'].include?('application/json')
+    body
+  end
+
   def auth_headers
    h = {}
    h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
