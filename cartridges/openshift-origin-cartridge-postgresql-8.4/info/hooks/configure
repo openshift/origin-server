@@ -88,18 +88,6 @@ observe_setup_var_lib_dir "$CART_INSTANCE_DIR"
 # Generate a password with no o's O's or 0's
 password=$(generate_password)
 
-#
-# Setup Environment Variables
-#
-echo "export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
-echo "export OPENSHIFT_POSTGRESQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
-echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$POSTGRESQL_IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-echo "export OPENSHIFT_POSTGRESQL_DB_PORT='$POSTGRESQL_PORT'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
-echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET
-echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$POSTGRESQL_IP:$POSTGRESQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
-echo "export OPENSHIFT_POSTGRESQL_DB_LOG_DIR='${CART_INSTANCE_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
-
-
 # Setup psql command files
 touch $APP_HOME/.psql_history $APP_HOME/.pgpass
 chmod 0600 $APP_HOME/.pgpass
@@ -108,10 +96,12 @@ observe_setup_var_lib_file $APP_HOME/.pgpass
 chown $user_id.$group_id  $APP_HOME/.psql_history $APP_HOME/.pgpass
 
 #
-# Start postgres
+# Start postgres and set env variables to use.
+# Note: We can't write the ~/.env/ files as we are still setting up the
+#       postgresql environment and not all values are valid as yet.
 #
 export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'
-export OPENSHIFT_POSTGRESQL_DB_PASSWORD="$password"
+export OPENSHIFT_POSTGRESQL_DB_PASSWORD="admin"
 export OPENSHIFT_POSTGRESQL_DB_HOST="$POSTGRESQL_IP"
 export OPENSHIFT_POSTGRESQL_DB_PORT="$POSTGRESQL_PORT"
 start_database
@@ -129,6 +119,18 @@ EOF
 ## Setup automatic login file.
 echo "$POSTGRESQL_IP:$POSTGRESQL_PORT:*:admin:$password" > $APP_HOME/.pgpass
 chmod 0400 $APP_HOME/.pgpass
+
+#
+# Setup Environment Variables
+#
+echo "export OPENSHIFT_POSTGRESQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
+echo "export OPENSHIFT_POSTGRESQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
+echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$POSTGRESQL_IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
+echo "export OPENSHIFT_POSTGRESQL_DB_PORT='$POSTGRESQL_PORT'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
+echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgres.sock'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_SOCKET
+echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$POSTGRESQL_IP:$POSTGRESQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
+echo "export OPENSHIFT_POSTGRESQL_DB_LOG_DIR='${CART_INSTANCE_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
+
 
 
 psql_ip="$POSTGRESQL_IP"
