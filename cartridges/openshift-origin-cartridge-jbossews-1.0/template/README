@@ -1,6 +1,6 @@
 Repo layout
 =========== 
-deployments/ - location for built wars (Details below)
+webapps/ - location for built wars (Details below)
 src/ - Maven src structure
 pom.xml - Maven build file  
 .openshift/ - location for openshift specific files
@@ -9,6 +9,11 @@ pom.xml - Maven build file
 .openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
 .openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
 .openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
+.openshift/action_hooks/pre_start_jbossews-1.0 - Script that gets run prior to starting EWS1.0
+.openshift/action_hooks/post_start_jbossews-1.0 - Script that gets run after EWS1.0 is started
+.openshift/action_hooks/pre_stop_jbossews-1.0 - Script that gets run prior to stopping EWS1.0
+.openshift/action_hooks/post_stop_jbossews-1.0 - Script that gets run after EWS1.0 is stopped
+
 
 Notes about layout
 ==================
@@ -21,56 +26,41 @@ Note: Every time you push, everything in your remote repo dir gets recreated
 
 Details about layout and deployment options
 ==================
-There are two options for deploying content to the JBoss Application Server within OpenShift:
+There are two options for deploying content to the Tomcat Server within OpenShift. Both options
+can be used together (i.e. build one archive from source and others pre-built)
 
 1) (Preferred) You can upload your content in a Maven src structure as is this sample project and on 
 git push have the application built and deployed.  For this to work you'll need your pom.xml at the 
 root of your repository and a maven-war-plugin like in this sample to move the output from the build
-to the deployments directory.  By default the warName is ROOT within pom.xml.  This will cause the 
+to the webapps directory.  By default the warName is ROOT within pom.xml.  This will cause the 
 webapp contents to be rendered at http://app_name-namespace.rhcloud.com/.  If you change the warName in 
 pom.xml to app_name, your base url would then become http://app_name-namespace.rhcloud.com/app_name.
 
-Note: If you are building locally you'll also want to add any output wars/ears under deployments 
+Note: If you are building locally you'll also want to add any output wars under webapps 
 from the build to your .gitignore file.
+
+Note: If you are running scaled EWS1.0 then you need an application deployed to the root context (i.e. 
+http://app_name-namespace.rhcloud.com/) for the HAProxy load-balancer to recognize that the EWS1.0 instance 
+is active.
 
 or
 
-2) You can git push prebuilt wars (with the corresponding .dodeploy file for exploded wars) into deployments/.  To do this
+2) You can git push pre-built wars into webapps/.  To do this
 with the default repo you'll want to first run 'git rm -r src/ pom.xml' from the root of your repo.
 
-Basic workflows for deploying prebuilt content (each operation will require associated git add/commit/push operations to take effect):
+Basic workflows for deploying pre-built content (each operation will require associated git add/commit/push operations to take effect):
 
 A) Add new zipped content and deploy it:
 
-1. cp target/example.war deployments/
+1. cp target/example.war webapps/
 
-B) Add new unzipped content and deploy it:
+B) Undeploy currently deployed content:
 
-1. cp -r target/example.war/ deployments/
-2. touch deployments/example.war.dodeploy
+1. git rm webapps/example.war
 
-C) Undeploy currently deployed content:
+C) Replace currently deployed zipped content with a new version and deploy it:
 
-1. git rm deployments/example.war.dodeploy deployments/example.war
-
-D) Replace currently deployed zipped content with a new version and deploy it:
-
-1. cp target/example.war deployments/
-
-E) Replace currently deployed unzipped content with a new version and deploy it:
-
-1. git rm -rf deployments/example.war/
-2. cp -r target/example.war/ deployments/
-3. touch deployments/example.war.dodeploy
-
-WARNING:  If you go with option 2) there are a couple issues to keep in mind with both prebuilt and exploded 
-wars.  With exploded wars the main issue is with committing binaries (class and jar files) can make merge 
-conflicts tedious. With prebuilt wars the main issue is each time you modify the war and git push, it 
-takes up the size of the war file away from your OpenShift file system quota.  One alternative to this 
-(other then using Maven from option 1) is to use rsync to push your war into the deployments folder.  You 
-would have to do this after each git push followed by 'rhc app restart -a appname'.  Example:
-
-rsync -avz localdir/deployments/ app_uuid@appname-namespace.rhcloud.com:~/appname/repo/deployments/
+1. cp target/example.war webapps/
 
 Note: You can get the information in the uri above from running 'rhc domain show'
 
@@ -83,52 +73,10 @@ rhc app tidy -a appname
 
 
 Whether you choose option 1) or 2) the end result will be the application 
-deployed into the deployments directory. The deployments directory in the 
-JBoss Application Server distribution is the location end users can place 
+deployed into the webapps directory. The webapps directory in the 
+Tomcat distribution is the location end users can place 
 their deployment content (e.g. war, ear, jar, sar files) to have it 
 automatically deployed into the server runtime.
-
-The filesystem deployment scanner in AS 7 and later works differently from 
-previous JBoss AS releases. The scanner will no longer attempt to directly 
-monitor the deployment content and decide if or when the end user wishes 
-the content to be deployed. Instead, the scanner relies on a system of marker 
-files, with the user's addition or removal of a marker file serving as a sort
-of command telling the scanner to deploy, undeploy or redeploy content.
-
-The marker files always have the same name as the deployment content to which
-they relate, but with an additional file suffix appended. For example, the 
-marker file to indicate the example.war should be deployed is named 
-example.war.dodeploy. Different marker file suffixes have different meanings.
-
-The relevant marker file types are:
-
-.dodeploy     -- Placed by the user to indicate that the given content should 
-                 be deployed into the runtime (or redeployed if already 
-                 deployed in the runtime.)
-
-.deploying    -- Placed by the deployment scanner service to indicate that it 
-                 has noticed a .dodeploy file and is in the process of 
-                 deploying the content. This marker file will be deleted when 
-                 the deployment process completes.
-              
-.deployed     -- Placed by the deployment scanner service to indicate that the 
-                 given content has been deployed into the runtime. If an end 
-                 user deletes this file, the content will be undeployed.
-               
-.faileddeploy -- Placed by the deployment scanner service to indicate that the 
-                 given content failed to deploy into the runtime. The content 
-                 of the file will include some information about the cause of 
-                 the failure.
-
-.undeploying  -- Placed by the deployment scanner service to indicate that it 
-                 has noticed a .deployed file has been deleted and the 
-                 content is being undeployed. This marker file will be deleted 
-                 when the undeployment process completes.
-              
-.undeployed   -- Placed by the deployment scanner service to indicate that the 
-                 given content has been undeployed from the runtime. If an end 
-                 user deletes this file, it has no impact.
-
 
 Environment Variables
 =====================
@@ -136,9 +84,10 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use.  The following list are some common variables but far from exhaustive:
 
-    System.getenv("OPENSHIFT_APP_NAME")   - Application name
-    System.getenv("OPENSHIFT_DATA_DIR")   - For persistent storage (between pushes)
-    System.getenv("OPENSHIFT_TMP_DIR")    - Temp storage (unmodified files deleted after 10 days)
+    System.getenv("OPENSHIFT_APP_NAME")  - Application name
+    System.getenv("OPENSHIFT_DATA_DIR")  - For persistent storage (between pushes)
+    System.getenv("OPENSHIFT_TMP_DIR")   - Temp storage (unmodified files deleted after 10 days)
+    System.getenv("OPENSHIFT_INTERNAL_IP")  - The IP address used to bind EWS1.0
 
 When embedding a database using 'rhc app cartridge add', you can reference environment
 variables for username, host and password. For example, when embedding MySQL 5.1, the 
