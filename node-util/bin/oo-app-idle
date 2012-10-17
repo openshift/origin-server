@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# Script to detect whether the app has not been accessed
+# for the specified number of hours
+require 'date'
+
+OPENSHIFT_GEAR_UUID = ARGV[0]
+IDLE_FOR = ARGV[1].to_i
+LAST_ACCESS_DIR = '/var/lib/openshift/.last_access'
+
+file_path = "#{LAST_ACCESS_DIR}/#{OPENSHIFT_GEAR_UUID}"
+exit 6 unless File.exists?(file_path)
+
+File.open(file_path, 'r') do |file|
+  last_access_time = file.read
+  d1 = DateTime.strptime(last_access_time, "%d/%b/%Y:%H:%M:%S %Z")
+  d2 = DateTime.now
+  hours,minutes,seconds,frac = Date.day_fraction_to_time(d2 - d1)
+  if hours >= IDLE_FOR * 24
+    exit 0
+  else
+    # We return 5 since 1 is returned on exceptions
+    exit 5
+  end
+end

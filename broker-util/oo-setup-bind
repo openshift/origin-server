@@ -73,4 +73,4 @@ BIND_KEYNAME="${node_domain}"
 BIND_KEYVALUE="${KEY}"
 BIND_ZONE="${node_domain}"
 EOF
-perl -p -i -e "s/.*:domain_suffix.*/    :domain_suffix => \"$node_domain\",/" /var/www/stickshift/broker/config/environments/*.rb
+perl -p -i -e "s/.*:domain_suffix.*/    :domain_suffix => \"$node_domain\",/" /var/www/openshift/broker/config/environments/*.rb

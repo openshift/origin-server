@@ -1,15 +1,67 @@
 #
+# Limit resources for a new OpenShift guest user on a node
+#
+# Standard Profile
+#
+node_profile=small
+
+#
+# Quotas: File system limits
+#
+quota_files=40000
+# 1GB.  1 block = 1024byte
+quota_blocks=1048576
+
+# For no over commitment, should be memory_limit_in_bytes / (Total System Memory - 1G)
+max_apps=100
+max_active_apps=100
+
+# PAM - resource limits
+# limits_core
+#<item> can be one of the following:
+# limits_core=unlimited         # limits the core file size (KB)
+# limits_data=unlimited         # max data size (KB)
+# limits_fsize=unlimited        # maximum filesize (KB)
+# limits_memlock=unlimited      # max locked-in-memory address space (KB)
+# limits_nofile=unlimited       # max number of open files
+# limits_rss=unlimited          # max resident set size (KB)
+# limits_stack=unlimited        # max stack size (KB)
+# limits_cpu=unlimited          # max CPU time (MIN)
+limits_nproc=250        # max number of processes
+# limits_as=unlimited           # address space limit (KB)
+# limits_maxlogins=unlimited    # max number of logins for this user
+# limits_maxsyslogins=unlimited # max number of logins on the system
+# limits_priority=unlimited     # the priority to run user process with
+# limits_locks=unlimited        # max number of file locks the user can hold
+# limits_sigpending=unlimited   # max number of pending signals
+# limits_msgqueue=unlimited     # max memory used by POSIX message queues (bytes)
+# limits_nice=19   # max nice priority allowed to raise to values: [-20, 19]
+# limits_rtprio=19 # max realtime priority
+
+#
+# cgroups - more resource limits
+#
+#
+# cpu
+# cpu_rt_period_us=100000
+# cpu_rt_runtime_us=950000
+cpu_shares=128
+cpu_cfs_quota_us=30000
+#
+# memory
+# 1024 * 1024 * 512 = 536870912 = 512MB
+memory_limit_in_bytes=536870912
+memory_memsw_limit_in_bytes=641728512 # 512M + 100M (100M swap)
+# memory_soft_limit_in_bytes=-1
+# memory_swappiness=60
+
+#
 # Apache bandwidth limit
 # 
 apache_bandwidth="all 500000"
 apache_maxconnection="all 20"
 apache_bandwidtherror="510"
-
 #
 # Apache rotatelogs tuning
-#
 rotatelogs_interval=86400
 rotatelogs_format="-%Y%m%d-%H%M%S-%Z"
-
-node_profile=small
-max_active_apps=1000
