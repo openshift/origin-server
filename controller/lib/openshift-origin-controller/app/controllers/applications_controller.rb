@@ -96,6 +96,7 @@ class ApplicationsController < BaseController
     end
  
     begin
+      application.user_agent = request.headers['User-Agent']
       Rails.logger.debug "Creating application #{application.name}"
       application.create
       Rails.logger.debug "Configuring dependencies #{application.name}"
