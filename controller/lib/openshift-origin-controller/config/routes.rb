@@ -28,6 +28,7 @@ Rails.application.routes.draw do
             resources :events, :controller => :emb_cart_events, :only => [:create]
         end
         resources :events, :controller => :app_events, :only => [:create]
+        resource :dns_resolvable, :only => [:show], :controller => :dns_resolvable
       end
     end
   end
