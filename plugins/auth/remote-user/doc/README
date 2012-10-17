@@ -54,10 +54,3 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     curl -k https://localhost/broker/rest/application_templates
     curl -k https://localhost/broker/rest/cartridges
     curl -k https://localhost/broker/rest/api
-
-=== KNOWN ISSUES ===
-* I need to port the conf stub to actually use
-  /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
-
-* We need the /etc/openshift/plugins.d commit to correctly have the gem
-  picked up in the Gemfile without manual intervention.
