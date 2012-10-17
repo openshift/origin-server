@@ -34,9 +34,9 @@ class RestApiKeyTest < ActiveSupport::TestCase
   end
 
   def test_key_create_custom_type
-    assert_difference('Key.find(:all, :as => @user).length', 0, "Bug 821107 is fixed, change me") do
-      key = Key.new :type => 'ecdsa-sha2-nistp52', :name => unique_name, :content => unique_name, :as => @user
-      assert !key.save, "Bug 821107 is fixed, change me"
+    assert_difference('Key.find(:all, :as => @user).length', 1) do
+      key = Key.new :type => 'ecdsa-sha2-nistp521', :name => unique_name, :content => unique_name, :as => @user
+      assert key.save
     end
   end
 
