@@ -55,6 +55,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_bindir}/oo-setup-node
 %doc LICENSE
+%doc README-Idler.md
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
@@ -68,9 +69,6 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %post
-/sbin/chkconfig oddjobd on
-/sbin/service messagebus restart
-/sbin/service oddjobd restart
 
 %changelog
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.2-1

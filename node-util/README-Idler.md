@@ -5,6 +5,15 @@ Idling of unused gears allows for an efficient means of over-subscribing
 machines' resources. Auto-restoring the application upon access further
 reduces operational cost.
 
+Installation
+----------------------
+
+After installing the openshift-origin-node-util rpm, run the following
+commands to make the Idler services active:
+
+# /sbin/chkconfig oddjobd on
+# /sbin/service messagebus restart
+# /sbin/service oddjobd restart
 
 Idling
 ----------------------
