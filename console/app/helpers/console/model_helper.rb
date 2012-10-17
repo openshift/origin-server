@@ -21,6 +21,16 @@ module Console::ModelHelper
     end.to_sentence
   end
 
+  def web_cartridge_scale_title(cartridge)
+    if cartridge.current_scale == cartridge.scales_from
+      'Your web cartridge is running on the minimum amount of gears and will scale up if needed'
+    elsif cartridge.current_scale == cartridge.scales_to
+      'Your web cartridge is running on the maximum amount of gears and cannot scale up any further'
+    else
+      'Your web cartridge is running multiple copies to handle increased web traffic'
+    end
+  end
+
   def cartridge_gear_group_count(group)
     return 'None' if group.gears.empty?
     "#{group.gears.length} #{group.gear_profile.to_s.humanize.downcase}"

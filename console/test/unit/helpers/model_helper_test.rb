@@ -26,6 +26,12 @@ class Console::ModelHelperTest < ActionView::TestCase
     assert_equal 'None', gear_group_count([])
   end
 
+  def test_web_cartridge_scale_title
+    assert /maximum amount/i =~ web_cartridge_scale_title(stub(:current_scale => 2, :scales_from => 1, :scales_to => 2))
+    assert /minimum amount/i =~ web_cartridge_scale_title(stub(:current_scale => 1, :scales_from => 1, :scales_to => 2))
+    assert /multiple copies/i =~ web_cartridge_scale_title(stub(:current_scale => 2, :scales_from => 1, :scales_to => 3))
+  end
+
   def test_scale_from_options
     assert_equal({
         :as => :select, 

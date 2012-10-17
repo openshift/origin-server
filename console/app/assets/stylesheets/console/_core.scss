@@ -55,6 +55,7 @@ input, select, textarea {
 .input-prepend .add-on, .input-append .add-on, .input-prepend-append .add-on-first, .input-prepend-append .add-on-last {
     background-color: #444;
     border: 1px solid #222;
+    text-shadow: none;
     }
     .input-prepend-append input, .input-prepend-append .add-on-middle {
       background: $consoleFormFieldBackground;
