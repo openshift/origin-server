@@ -50,11 +50,17 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %attr(0750,-,-) %{_bindir}/oo-accept-node
 %attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
+%attr(0750,-,-) %{_bindir}/oo-app-idle
+%attr(0750,-,-) %{_bindir}/oo-autoidler
 %attr(0750,-,-) %{_bindir}/oo-idler
+%attr(0750,-,-) %{_bindir}/oo-idler-stats
 %attr(0750,-,-) %{_bindir}/oo-init-quota
+%attr(0750,-,-) %{_bindir}/oo-last-access
+%attr(0750,-,-) %{_bindir}/oo-list-stale
 %attr(0750,-,-) %{_bindir}/oo-restorer
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_bindir}/oo-setup-node
+
 %doc LICENSE
 %doc README-Idler.md
 
@@ -70,6 +76,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %post
+/sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.2-1
