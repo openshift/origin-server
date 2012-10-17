@@ -382,3 +382,19 @@ Feature: applications
      | format | 
      | JSON | 
      | XML | 
+     
+  Scenario Outline: Resolve application dns
+    Given a new user
+    And I accept "<format>"
+    When I send a POST request to "/domains" with the following:"id=api<random>"
+    Then the response should be "201"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    Then the response should be "201"
+    When I send a GET request to "/domains/api<random>/applications/app/dns_resolvable"
+    Then the response should be one of "200,404"
+    
+    Scenarios:
+     | format | 
+     | JSON | 
+     | XML | 
+
