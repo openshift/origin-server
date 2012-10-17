@@ -621,6 +621,15 @@ module RestApi
         end
       end
 
+      def load_attributes_from_response(response)
+        if (response_code_allows_body?(response.code) &&
+            (response['Content-Length'].nil? || response['Content-Length'] != "0") &&
+            !response.body.nil? && response.body.strip.size > 0)
+          load(prefix_options.merge(self.class.format.decode(response.body)), true)
+          @persisted = true
+        end
+      end
+
       def connection(refresh = false)
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})
