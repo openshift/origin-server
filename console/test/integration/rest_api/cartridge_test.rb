@@ -31,7 +31,7 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to
 
-    cart.reload rescue omit('Depends on bug 866626 being resolved')
+    cart.reload 
 
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to

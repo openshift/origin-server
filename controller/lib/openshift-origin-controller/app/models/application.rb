@@ -993,91 +993,122 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
-  def set_user_min_max(storage_map, min_scale, max_scale)
+  def get_user_min_max(cart_group_map)
     sup_min = 0
     sup_max = nil 
-    storage_map.each do |group_name, component_instance_list|
+    cart_current_min = 0
+    cart_current_max = nil 
+    cart_group_map.each do |group_name, component_instance_list|
       ginst = self.group_instance_map[group_name]
       sup_min += ginst.supported_min
+      cart_current_min += ginst.min
       if sup_max.nil? or ginst.supported_max==-1
         sup_max = ginst.supported_max
       else
         sup_max += ginst.supported_max unless sup_max==-1
       end
+      if cart_current_max.nil? or ginst.max==-1
+        cart_current_max = ginst.max
+      else
+        cart_current_max += ginst.max unless cart_current_max==-1
+      end
     end
-    sup_max = 1000000 if sup_max==-1
-    max_scale_int = nil
-    max_scale_int = Integer(max_scale) if max_scale
-    max_scale_int = 1000000 if max_scale_int==-1 
-    if (min_scale and (Integer(min_scale) < sup_min or Integer(min_scale) > sup_max) ) or (max_scale_int and ( max_scale_int > sup_max or max_scale_int < sup_min) )
-      Rails.logger.debug("min_scale: #{min_scale}, sup_min: #{sup_min}, sup_max : #{sup_max}")
-      raise OpenShift::UserException.new("Invalid scaling facter provided. Value out of range.", 168)
+    return cart_current_min, cart_current_max, sup_min, sup_max
+  end
+
+  def set_user_min_max(cart_group_map, min_scale, max_scale)
+    if min_scale and max_scale and Integer(min_scale) > Integer(max_scale) and Integer(max_scale)!=-1
+       #raise OpenShift::UserException.new("Invalid scaling factors provided. Minimum (#{min_scale}) should always be less than maximum (#{max_scale}).", 170)
+       tmp = min_scale
+       min_scale = max_scale
+       max_scale = tmp
     end
-    cart_current_min = 0
-    storage_map.keys.each { |group_name| 
-      gi = self.group_instance_map[group_name]
-      cart_current_min += gi.min
-    }
-    if min_scale
-      target_min = Integer(min_scale) - cart_current_min
-      iter = storage_map.keys.each
-      while target_min != 0 do
-        begin
-          group_name = iter.next
-          break if group_name.nil?
-        rescue Exception=>e
-          break
-        end
-        ginst = self.group_instance_map[group_name]
-        ginst_max = ginst.max
-        ginst_max = 1000000 if ginst.max==-1
-        if target_min > 0
-          if (ginst_max-ginst.min)>target_min
-            ginst.min += target_min
-            target_min = 0
-          else
-            target_min -= (ginst_max-ginst.min)
-            ginst.min = ginst_max
-          end
+    cart_current_min, cart_current_max, sup_min, sup_max = get_user_min_max(cart_group_map)
+    if min_scale and Integer(min_scale)-cart_current_min<0
+      # set min first
+      set_user_min(cart_group_map, min_scale)
+      set_user_max(cart_group_map, max_scale)
+    else
+      set_user_max(cart_group_map, max_scale)
+      set_user_min(cart_group_map, min_scale)
+    end
+
+  end
+
+  def set_user_min(cart_group_map, min_scale)
+    return if not min_scale
+    cart_current_min, cart_current_max, sup_min, sup_max = get_user_min_max(cart_group_map)
+    cart_current_max = 1000000 if cart_current_max==-1
+    if (Integer(min_scale) < sup_min or Integer(min_scale) > cart_current_max) 
+      raise OpenShift::UserException.new("Invalid scales_from factor #{min_scale} provided. Value out of allowed range ( #{sup_min} : #{cart_current_max==1000000 ? -1 : cart_current_max} ).", 168)
+    end
+    target_min = Integer(min_scale) - cart_current_min
+    iter = cart_group_map.keys.each
+    while target_min != 0 do
+      begin
+        group_name = iter.next
+        break if group_name.nil?
+      rescue Exception=>e
+        break
+      end
+      ginst = self.group_instance_map[group_name]
+      ginst_max = ginst.max
+      ginst_max = 1000000 if ginst.max==-1
+      if target_min > 0
+        if (ginst_max-ginst.min)>target_min
+          ginst.min += target_min
+          target_min = 0
         else
-          if (ginst.supported_min-ginst.min) < target_min
-            ginst.min += target_min
-            target_min = 0
-          else
-            target_min += (ginst.min-ginst.supported_min)
-            ginst.min = ginst.supported_min
+          target_min -= (ginst_max-ginst.min)
+          ginst.min = ginst_max
+        end
+      else
+        if (ginst.supported_min-ginst.min) < target_min
+          ginst.min += target_min
+          target_min = 0
+        else
+          target_min += (ginst.min-ginst.supported_min)
+          ginst.min = ginst.supported_min
+        end
+      end
+    end
+    self.save
+    if target_min != 0
+      raise OpenShift::UserException.new("Could not completely distribute scales_from to all groups. Value constrained to #{Integer(min_scale)-target_min}", 169)
+    end
+  end
+
+  def set_user_max(cart_group_map, max_scale)
+    return if not max_scale
+    cart_current_min, cart_current_max, sup_min, sup_max = get_user_min_max(cart_group_map)
+    sup_max = 1000000 if sup_max==-1
+    max_scale_int = Integer(max_scale)
+    max_scale_int = 1000000 if max_scale_int==-1 
+    if (max_scale_int and ( max_scale_int > sup_max or max_scale_int < cart_current_min) )
+      raise OpenShift::UserException.new("Invalid scales_to factor #{max_scale} provided. Value out of allowed range ( #{cart_current_min} : #{sup_max==1000000 ? -1 : sup_max} ).", 168)
+    end
+    target_max = Integer(max_scale)
+    cart_group_map.keys.each { |group_name, component_instances|
+      gi = self.group_instance_map[group_name]
+      if target_max==-1 
+        next if gi.supported_max!=-1
+        gi.max = target_max
+        break
+      end
+      if gi.supported_max==-1 or( (gi.supported_max-gi.min) > target_max )
+        rest_total = 0
+        cart_group_map.keys.each { |other_group_name|
+          next if other_group_name==group_name
+          other_gi = self.group_instance_map[other_group_name]
+          if other_gi.max == -1
+            other_gi.max==other_gi.min
           end
-        end
+          rest_total += other_gi.max
+        }
+        gi.max = (target_max-rest_total)
+        break
       end
-      if target_min != 0
-        self.save
-        raise OpenShift::UserException.new("Could not completely distribute scales_from to all groups. Value constrained to #{Integer(min_scale)-target_min}", 169)
-      end
-    end
-    if max_scale
-      target_max = Integer(max_scale)
-      storage_map.keys.each { |group_name, component_instances|
-        gi = self.group_instance_map[group_name]
-        if target_max==-1 
-          next if gi.supported_max!=-1
-          gi.max = target_max
-          break
-        end
-        if gi.supported_max==-1 or( (gi.supported_max-gi.min) > target_max )
-          rest_total = 0
-          storage_map.keys.each { |other_group_name|
-            next if other_group_name==group_name
-            other_gi = self.group_instance_map[other_group_name]
-            if other_gi.max == -1
-              other_gi.max==other_gi.min
-            end
-            rest_total += other_gi.max
-          }
-          gi.max = (target_max-rest_total)
-          break
-        end
-      }
-    end
+    }
     self.save
   end
 
