@@ -8,11 +8,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-get-quota: Gets the quota for a gear.
+#{$0}: Gets the quota for a gear.
 
 == Usage
 
-oo-get-quota -c <UUID>
+#{$0} -c <UUID>
 
 Options:
 -h|--help:

@@ -20,11 +20,12 @@ def usage
 == Synopsis
 
 oo-broker-auth-key-add: Adds broker auth key to the application. 
+#{$0}: Adds broker auth key to the application.
   This command must be run as root.
 
 == Usage
 
-oo-broker-auth-key-add  \\
+#{$0}  \\
         --with-app-uuid APP_UUID \\
         --with-container-uuid UUID \\
         --with-iv INITIALIZATION_VECTOR \\
