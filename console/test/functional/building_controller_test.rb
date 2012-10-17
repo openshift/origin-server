@@ -183,6 +183,10 @@ class BuildingControllerTest < ActionController::TestCase
 
     post :create, args.merge({:application => {:name => 'jenkins2'}})
 
+    body = mock_body_for{ |r| /applications.json/ =~ r.path }
+    assert_equal 'jenkins-1.4', body['cartridge']
+    assert_equal 'jenkins2', body['name']
+
     assert_response :success
     assert_template :new
     assert flash[:info_pre].include? 'App remote message'
