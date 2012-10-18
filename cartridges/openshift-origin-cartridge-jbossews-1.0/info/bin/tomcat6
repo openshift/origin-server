@@ -1,5 +1,43 @@
 #!/bin/bash
 
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+function replace_envs() {
+	sed_replace_env=$(print_sed_exp_replace_env_var)
+
+	sed -i ${sed_replace_env} "${CATALINA_BASE}/conf/server.xml" > /dev/null 2>&1
+}
+
+# Create a link for each file in user config to server standalone/config
+if [ -d ${OPENSHIFT_REPO_DIR}.openshift/config ]
+then
+  for f in ${OPENSHIFT_REPO_DIR}.openshift/config/*
+  do
+    target=$(basename $f)
+    # Remove any target that is being overwritten
+    if [ -e "${CATALINA_BASE}/conf/$target" ]
+    then
+       echo "Removing existing $target"
+       rm -rf "${CATALINA_BASE}/conf/$target"
+    fi
+    ln -s $f "${CATALINA_BASE}/conf"
+  done
+fi
+# Now go through the standalone/configuration and remove any stale links from previous
+# deployments
+for f in ${CATALINA_BASE}/conf/*
+do
+    target=$(basename $f)
+    if [ ! -e $f ]
+    then
+        echo "Removing obsolete $target"
+        rm -rf $f
+    fi
+done
+
+replace_envs
+
 resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
 resource_limits_file_name=`basename $resource_limits_file`
 node_profile=`echo ${resource_limits_file_name/*./}`
