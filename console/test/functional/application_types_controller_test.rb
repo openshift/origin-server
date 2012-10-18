@@ -49,7 +49,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     end
   end
 
-  test "show page should cache gear sizes and max gears count" do
+  test "show page should cache user capabilities" do
     # set up the test
     with_gear_size_user
     user = User.find(:one, :as => @controller.current_user)
@@ -57,46 +57,35 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # confirm the session is clear of relevant keys
-    assert session.has_key?(:capabilities_gear_sizes) == false
-    assert session.has_key?(:max_gears) == false
+    assert session.has_key?(:user_capabilities) == false
 
     # make the request
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert session[:capabilities_gear_sizes] == user.capabilities.gear_sizes
-    assert session[:max_gears] == user.max_gears
+    assert session[:user_capabilities] == [user.max_gears, user.consumed_gears, user.capabilities.gear_sizes]
+    assert_equal assigns(:gear_sizes), user.capabilities.gear_sizes
+    assert_equal assigns(:max_gears), user.max_gears
+    assert_equal assigns(:gears_used), user.consumed_gears
   end
 
-  test "show page should use cached gear sizes and max gears count" do
-    # set up the test
-    with_gear_size_user
-    types = ApplicationType.all
-    type = types[0]
-
-    # seed the cache with values that will never be returned by the broker.
-    session[:capabilities_gear_sizes] = ['test_value','test_value']
-    session[:max_gears] = -1
-
-    # make the request
-    get :show, :id => type.id
-
-    # confirm that the assigned values match our cached values
-    assert_equal assigns(:gear_sizes), session[:capabilities_gear_sizes]
-    assert_equal assigns(:max_gears), session[:max_gears]
-  end
-
-  test "show page should compute used gear count" do
+  test "show page should refresh cached user_capabilities" do
     # set up the test
     with_gear_size_user
     user = User.find(:one, :as => @controller.current_user)
     types = ApplicationType.all
     type = types[0]
 
+    # seed the cache with values that will never be returned by the broker.
+    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
+
     # make the request
     get :show, :id => type.id
 
-    # confirm expected value
+    # confirm that the assigned values match our cached values
+    assert session[:user_capabilities] == [user.max_gears, user.consumed_gears, user.capabilities.gear_sizes]
+    assert_equal assigns(:gear_sizes), user.capabilities.gear_sizes
+    assert_equal assigns(:max_gears), user.max_gears
     assert_equal assigns(:gears_used), user.consumed_gears
   end
 

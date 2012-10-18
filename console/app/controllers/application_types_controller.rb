@@ -13,9 +13,14 @@ class ApplicationTypesController < ConsoleController
     @application_type = ApplicationType.find params[:id]
     user_default_domain rescue nil
     @application = Application.new :as => current_user
-    @gear_sizes = user_capabilities_gear_sizes
-    @max_gears = user_max_gears
-    @gears_used = user_consumed_gears
+
+    # Make sure we have the latest values for these
+    # by forcing a refresh of user capabilities
+    user_caps = user_capabilities :refresh => true
+    @max_gears = user_caps[:max_gears]
+    @gears_used = user_caps[:consumed_gears]
+    @gear_sizes = user_caps[:gear_sizes]
+
     @advanced = params[:advanced] == 'true'
   end
 end

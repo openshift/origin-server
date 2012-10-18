@@ -112,9 +112,12 @@ class ApplicationsController < ConsoleController
     @application = Application.new app_params
     @application.as = current_user
 
-    @gear_sizes = user_capabilities_gear_sizes
-    @max_gears = user_max_gears
-    @gears_used = user_consumed_gears
+    # Make sure we have the latest values for these
+    # by forcing a refresh of user capabilities
+    user_caps = user_capabilities :refresh => true
+    @max_gears = user_caps[:max_gears]
+    @gears_used = user_caps[:consumed_gears]
+    @gear_sizes = user_caps[:gear_sizes]
 
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)

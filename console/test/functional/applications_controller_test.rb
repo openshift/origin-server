@@ -232,15 +232,27 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test 'should support the creation of scalable apps with medium gears for privileged users' do
     with_gear_size_user
+    user = User.find(:one, :as => @controller.current_user)
     medium_gear_app = with_medium_gear_app_form
     medium_gear_app[:scale] = 'true'
 
+    # seed the cache with values that will never be returned by the broker.
+    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
+
+    # Make the request
     post(:create, {:application => medium_gear_app})
 
+    # Confirm app attributes
     assert app = assigns(:application)
     assert app.errors.empty?, app.errors.inspect
     assert_equal 'medium', app.attributes['gear_profile']
     assert_equal true, app.attributes['scale']
+
+    # Confirm cached user capabilities
+    assert session[:user_capabilities] == [user.max_gears, user.consumed_gears, user.capabilities.gear_sizes]
+    assert_equal assigns(:gear_sizes), user.capabilities.gear_sizes
+    assert_equal assigns(:max_gears), user.max_gears
+    assert_equal assigns(:gears_used), user.consumed_gears
 
     delete :destroy, :id => app.id
   end
