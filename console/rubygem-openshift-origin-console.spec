@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.9
+Version:        0.0.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,27 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.10-1
+- Prefix options are not preserved during save for some rest api resources
+  (ccoleman@redhat.com)
+- Merge pull request #701 from smarterclayton/bug_821107_change_key_test
+  (openshift+bot@redhat.com)
+- Merge pull request #700 from
+  smarterclayton/bug_851345_remove_old_error_mapping (openshift+bot@redhat.com)
+- Bug 821107 - Broker now allows more key types to be saved, update testcase
+  (ccoleman@redhat.com)
+- Bug 851345 - Exit code 102 no longer means UserAlreadyHasDomain, broker fixed
+  underlying issue (ccoleman@redhat.com)
+- Merge pull request #693 from
+  smarterclayton/bug_867264_unable_to_create_jenkins (openshift+bot@redhat.com)
+- Bug 867264 - Not able to create jenkins app (ccoleman@redhat.com)
+- Merge pull request #689 from rajatchopra/master (openshift+bot@redhat.com)
+- patch tests for the respective bug fixes (rchopra@redhat.com)
+- fixes for bugs 866650, 866626, 866544, 866555; also set user-agent while
+  creation of apps (rchopra@redhat.com)
+- Bug 864309 - Change deploy hooks link to point to new community page
+  (ccoleman@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.0.9-1
 - Merge pull request #685 from smarterclayton/scaling_support_in_web2
   (ccoleman@redhat.com)
