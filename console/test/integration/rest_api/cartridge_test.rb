@@ -24,12 +24,16 @@ class RestApiCartridgeTest < ActiveSupport::TestCase
 
     name = cart.name
 
+    prefix = cart.prefix_options.dup
+
     cart.scales_from = base
     cart.scales_to = base
     assert cart.save, "Unable to set scales_from/to to #{base}: #{cart.errors.full_messages}"
 
     assert_equal base, cart.scales_from
     assert_equal base, cart.scales_to
+
+    assert_equal prefix, cart.prefix_options
 
     cart.reload 
 

@@ -657,8 +657,36 @@ class RestApiTest < ActiveSupport::TestCase
     end
     app = Domain.find(:one, :as => @user).applications.first
     assert_nil app.git_url
+    
+    options = app.prefix_options.dup
+    assert !options.empty?
+
     app.reload
     assert_equal 'test', app.git_url
+
+    assert_equal options, app.prefix_options
+  end
+
+  def test_prefix_option_during_reload
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header, {:name => 'foo'}.to_json
+    end
+    cart = Cartridge.find 'foo', :as => @user, :params => {:domain_id => 'a', :application_name => 'b'}
+    assert_equal({:domain_id => 'a', :application_name => 'b'}, cart.prefix_options)
+    cart.reload
+    assert_equal({:domain_id => 'a', :application_name => 'b'}, cart.prefix_options)
+  end
+
+  def test_prefix_option_during_save
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header, {:name => 'foo'}.to_json
+      mock.put '/broker/rest/domains/a/applications/b/cartridges/foo.json', json_header(true), {:name => 'foo'}.to_json
+    end
+    prefix_options = {:domain_id => 'a', :application_name => 'b'}
+    cart = Cartridge.find 'foo', :as => @user, :params => prefix_options
+    assert_equal prefix_options, cart.prefix_options
+    cart.save
+    assert_equal prefix_options, cart.prefix_options
   end
 
   def test_domain_reload
