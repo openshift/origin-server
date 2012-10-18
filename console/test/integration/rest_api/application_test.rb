@@ -56,7 +56,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert_equal 1, cart.current_scale
     assert_equal 1, cart.scales_from
     assert_equal 1, cart.scales_to
-    # assert cart.scales?
+    assert !cart.scales?
   end
 
   def test_retrieve_gear_groups
