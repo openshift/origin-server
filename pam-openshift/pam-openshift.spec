@@ -48,6 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Wed Oct 17 2012 Adam Miller <admiller@redhat.com> 0.99.14-1
+- new package built with tito
+
 * Wed Oct 17 2012 Krishna Raman <kraman@gmail.com> 0.99.14-1
 - Do not setup sandbox by default. (rmillner@redhat.com)
 - Add pam-namespace. (rmillner@redhat.com)
