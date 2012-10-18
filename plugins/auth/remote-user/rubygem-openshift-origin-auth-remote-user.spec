@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.11
+Version:        0.0.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,16 @@ rm -rf %{buildroot}
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.12-1
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.0.11-1
 - Merge pull request #670 from Miciah/openshift-origin-plugin-auth-remote-user-
   install-README (openshift+bot@redhat.com)
