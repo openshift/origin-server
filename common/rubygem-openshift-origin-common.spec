@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.16.6
+Version: 0.16.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -70,6 +70,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.16.7-1
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
 - Merge pull request #676 from pravisankar/dev/ravi/bug/852324
   (openshift+bot@redhat.com)
