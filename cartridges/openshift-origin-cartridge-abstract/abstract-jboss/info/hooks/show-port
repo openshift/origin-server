@@ -26,12 +26,12 @@ done
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CART_NS=$(get_cartridge_namespace_from_path)
-OPENSHIFT_JBOSS_CLUSTER_PORT=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CLUSTER_PORT")
-
 setup_configure "$1" $2 $3
 
 import_env_vars
+
+CART_NS=$(get_cartridge_namespace_from_path)
+OPENSHIFT_JBOSS_CLUSTER_PORT=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CLUSTER_PORT")
 
 proxy_port=$(show_proxy_port $uuid "$OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT")
 ret=$?
