@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.14
+Version: 0.17.15
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.15-1
+- Consistent naming (rmillner@redhat.com)
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+- Merge pull request #689 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #686 from lnader/master (openshift+bot@redhat.com)
+- fixes for bugs 866650, 866626, 866544, 866555; also set user-agent while
+  creation of apps (rchopra@redhat.com)
+- US2108: Better DNS experience (lnader@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.17.14-1
 - Merge pull request #681 from pravisankar/dev/ravi/bug/821107
   (openshift+bot@redhat.com)
