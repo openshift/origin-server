@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.9
+Version: 0.17.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -167,6 +167,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.10-1
+- Merge pull request #710 from jwhonce/master (dmcphers@redhat.com)
+- Fix for Bug 867692 (jhonce@redhat.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.9-1
 - fix typo breaking the build (dmcphers@redhat.com)
 - Fixing GECOS in script file (kraman@gmail.com)
