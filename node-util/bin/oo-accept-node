@@ -34,7 +34,6 @@ optparse = OptionParser.new { |opts|
 optparse.parse!
 
 
-$USERS = %x[grep ":OpenShift guest:" /etc/passwd].split("\n")
 $TC_CHECK=false
 $TC_DATA = %x[tc clas show dev eth0].split("\n").grep(/parent/)
 $ALL_QUOTAS = %x[repquota -a].split("\n")
@@ -130,6 +129,10 @@ def source_file(file)
 end
 
 ###############################
+
+def users
+    $USERS ||= %x[grep ":#{ENV['GEAR_GECOS']}:" /etc/passwd].split("\n")
+end
 
 def load_node_conf
     verbose("loading node configuration file #{$NODE_CONF_FILE}")
@@ -263,11 +266,10 @@ def check_quotas
 end
 
 def check_users
-    #users = %x[grep ":OpenShift guest:" /etc/passwd].split("\n")
-    verbose("checking #{$USERS.length} user accounts")
+    verbose("checking #{users.length} user accounts")
     conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
     user_cgroup="/cgroup/all/openshift/%s"
-    $USERS.each do |user|
+    users.each do |user|
         username,password,uid,gid,gecos,home_dir,shell = user.split(":")
         $ALL_USERS << username #store it so we can use it later
         #Test home dir

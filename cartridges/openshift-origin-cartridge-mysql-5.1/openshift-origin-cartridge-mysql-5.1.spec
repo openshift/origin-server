@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
 Name: openshift-origin-cartridge-mysql-5.1
-Version: 0.33.6
+Version: 0.33.7
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.33.7-1
+- Fix mysql-5.1 snapshot for scalable apps (ironcladlou@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.33.6-1
 - Don't use rhcsh to control remote dbs. Also fix a typo in the postgres
   cartridge -- variable name. (ramr@redhat.com)

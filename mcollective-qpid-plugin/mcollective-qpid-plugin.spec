@@ -1,6 +1,6 @@
 Summary:        Plugin to enable m-collective communication over amqp 1.0 enabled broker
 Name:           mcollective-qpid-plugin
-Version: 0.2.3
+Version: 0.2.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -10,7 +10,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       mcollective
 Requires:       ruby-qpid-qmf
 BuildArch:      noarch
-Obsoletes: 	mcollective-qpid-plugin
 
 %description
 m-collective communication plugin for amqp 1.0 enabled qpid broker
@@ -38,6 +37,16 @@ cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugi
 /usr/share/doc/mcollective-qpid-plugin/LICENSE
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Centralize plug-in configuration (miciah.masters@gmail.com)
 

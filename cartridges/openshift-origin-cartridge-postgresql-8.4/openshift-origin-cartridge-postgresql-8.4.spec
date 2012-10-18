@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 0.14.7
+Version: 0.14.8
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -101,6 +101,10 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.14.8-1
+- Fix for bugz 867299 - Always meet time out error when embed postgresql to
+  app. (ramr@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.14.7-1
 - Fix for bugz 864164 - The PostgreSQL server is not running during deploy hook
   execution. (ramr@redhat.com)

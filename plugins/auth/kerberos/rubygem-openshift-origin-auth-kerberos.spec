@@ -58,7 +58,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/openshift/plugins.d
-cp lib/openshift-origin-auth-kerberos/config/initializers/openshift-origin-auth-kerberos-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-kerberos.conf
+cp lib/openshift-origin-auth-kerberos/config/initializers/openshift-origin-auth-kerberos-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-kerberos.conf.example
 
 %clean
 rm -rf %{buildroot}
@@ -75,7 +75,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-kerberos.conf
+%{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-kerberos.conf.example
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

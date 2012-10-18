@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gemname}
-Version: 0.16.6
+Version: 0.16.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -17,8 +17,6 @@ Requires:       rubygems
 Requires:       rubygem(activemodel)
 Requires:       rubygem(json)
 Requires:       rubygem(rcov)
-Requires:       selinux-policy-targeted
-Requires:       policycoreutils-python
 
 BuildRequires:  ruby
 BuildRequires:  rubygems
@@ -46,12 +44,6 @@ This contains the Cloud Development Common packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
-mkdir -p %{buildroot}/usr/share/selinux/packages/%{name}
-
-#selinux policy
-cp doc/selinux/openshift-origin.te %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/openshift-origin.fc %{buildroot}/usr/share/selinux/packages/%{name}/
-cp doc/selinux/openshift-origin.if %{buildroot}/usr/share/selinux/packages/%{name}/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -72,19 +64,15 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-/usr/share/selinux/packages/%{name}/
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
 %{ruby_sitelib}/%{gemname}.rb
 
-%post
-pushd /usr/share/selinux/packages/%{name}
-rm -f openshift.pp
-make -f /usr/share/selinux/devel/Makefile
-popd
-
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.16.7-1
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
 - Merge pull request #676 from pravisankar/dev/ravi/bug/852324
   (openshift+bot@redhat.com)

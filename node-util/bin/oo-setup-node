@@ -70,6 +70,23 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
+def find_and_replace(file, find, replace)
+  data = File.open(file).read
+  File.open(file, "w") do |f|
+    data = data.gsub(find, replace)
+    f.write(data)
+  end
+end
+
+def insert_if_not_exist(file, find, to_insert)
+  data = File.open(file).read
+  return if data.match(find)
+  File.open(file, "w") do |f|
+    f.write(data)
+    f.write(to_insert)
+  end
+end
+
 broker_ip = args["--with-broker-ip"]
 node_hostname = args["--with-node-hostname"]
 node_domain = args["--domain"] || "example.com"
@@ -92,7 +109,8 @@ dns            = args["--static-dns"]
 dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
-use_nm         = File.exist?('/lib/systemd/system/NetworkManager.service')
+use_systemd    = File.exist?('/bin/systemd')
+use_nm         = use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service')
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -139,7 +157,7 @@ if args["--help"]
   exit -1
 end
 
-### Begin network setup
+print "Network setup\n"
 
 File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
   f.write "DEVICE=#{ext_eth_device}\n"
@@ -179,7 +197,33 @@ if int_eth_device != ext_eth_device
   end
 end
 
-system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
+print "Loading SELinux module\n"
+
+print "Loading CGroups\n"
+find_and_replace("/etc/systemd/system.conf", /^(#?)JoinControllers=.*$/, "JoinControllers=cpu,cpuacct,memory,freezer,net_cls") if use_systemd
+FileUtils.mkdir_p "/cgroup"
+system "cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
+
+system "restorecon -v /etc/cgconfig.conf"
+system "restorecon -v /cgroup"
+
+system "chkconfig cgconfig on"
+system "chkconfig cgred on"
+
+system "service cgconfig start"
+system "service cgred start"
+if use_systemd
+  system "systemctl enable openshift-cgroups.service"
+  system "systemctl start openshift-cgroups.service"
+else
+  system "chkconfig --add openshift-cgroups"
+  system "chkconfig openshift-cgroups on"
+  system "service openshift-cgroups start"
+end
+
+system("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
+system("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
+system("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
@@ -205,6 +249,8 @@ system "service NetworkManager restart && sleep 5" if use_nm
 
 ### End network setup
 
+print "Updating node configuration"
+
 system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/openshift/node.conf"
 system "perl -p -i -e 's/^CLOUD_DOMAIN=.*$/CLOUD_DOMAIN=#{node_domain}/' /etc/openshift/node.conf"
 system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/openshift/node.conf"
@@ -219,6 +265,14 @@ system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/'
 system "/sbin/restorecon /var/lib/openshift || :"
 system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
+# Set pam-openshift and polyinstantiation
+find_and_replace("/etc/pam.d/sshd", "pam-selinux", "pam-openshift")
+["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
+  begin
+    insert_if_not_exist("/etc/pam.d/#{pamf}", "pam_namespace.so", "session\t\trequired\tpam_namespace.so no_unmount_on_close\n")
+  rescue Errno::ENOENT
+  end
+end
 
 config_lines = File.open('/etc/openshift/node.conf').readlines
 File.open('/etc/openshift/node.conf','w') do |f|
@@ -231,15 +285,23 @@ File.open('/etc/openshift/node.conf','w') do |f|
   end
 end
 
+File.open("/etc/openshift/express.conf", "w") do |f|
+  f.write("libra_server=broker.example.com\n")
+end
+
 system "chkconfig openshift-port-proxy on"
 system "hostname #{node_hostname}.#{node_domain}"
 system "/etc/cron.minutely/openshift-facts"
 system "service crond restart"
 system "service mcollective restart"
 system "service openshift-port-proxy restart"
-system "chkconfig openshift-gears on"
-system "systemctl enable openshift-gears.service"
-system "service openshift-gears start"
+if use_systemd
+  system "systemctl enable openshift-gears.service"
+  system "systemctl start openshift-gears.service"
+else
+  system "chkconfig openshift-gears on"
+  system "service openshift-gears start"
+end
 system "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
 
 print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"

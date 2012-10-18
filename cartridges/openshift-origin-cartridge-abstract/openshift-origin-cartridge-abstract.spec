@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.15
+Version:   0.17.16
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,19 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.16-1
+- Fixing outstanding cgroups issues Removing hardcoded references to "OpenShift
+  guest" and using GEAR_GECOS from node.conf instead (kraman@gmail.com)
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+- Fix mysql-5.1 snapshot for scalable apps (ironcladlou@gmail.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.17.15-1
 - Merge branch 'master' of https://github.com/openshift/origin-server
   (bdecoste@gmail.com)

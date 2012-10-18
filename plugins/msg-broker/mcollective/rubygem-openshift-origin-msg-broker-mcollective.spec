@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.4.5
+Version: 0.4.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -63,7 +63,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %clean
 rm -rf %{buildroot}                                
@@ -76,13 +76,26 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%config(noreplace) %{_sysconfdir}/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf
+%{_sysconfdir}/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
+  hook into Rails initializers Making openshift-origin-dns-bind a Rails engine
+  so that it can hook into Rails initializers (kraman@gmail.com)
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.4.5-1
 - Centralize plug-in configuration (miciah.masters@gmail.com)
 

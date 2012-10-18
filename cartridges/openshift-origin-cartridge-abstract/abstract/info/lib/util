@@ -844,46 +844,61 @@ function observe_setup_env_uservars_dir {
 
 function setup_user_vars {
     uid=$(id -u "$uuid")
+    mcs_level=`oo-get-mcs-level $uid`
+    export mcs_level
 }
 
 function observe_setup_app_home {
-    return 0
+    restorecon -R $APP_HOME
 }
 
 function observe_setup_var_lib_dir {
-    return 0
+    restorecon -R $1
+    chcon -l $mcs_level -R $1
 }
 
 function observe_setup_var_lib_file {
-    return 0
+    restorecon $1
+    chcon -l $mcs_level $1
 }
+
 
 function run_as_user {
     _uuid=${uuid:-$OPENSHIFT_GEAR_UUID}
-
     if [ "`whoami`" = "$_uuid" ]; then
-        eval $1
+        #  Run confined as user - temporary bandaid to fix issues with
+        #  ss-connector-execute - connection hooks are run unconfined.
+        if [ "$(runcon | cut -f 3 -d ':')" != "openshift_t" ]; then
+            runcon -t openshift_t -l $mcs_level $@
+        else
+            eval "$1"
+        fi
     else
-      runuser --shell /bin/sh "$_uuid" -c "runcon system_u:system_r:openshift_t:s0-s0:c0.c1023 $1"
+        runuser --shell /bin/sh "$_uuid" -c "runcon -t openshift_t -l $mcs_level $1"
     fi
 }
 
+
 function super_run_as_user {
-    runuser -s /bin/sh "$uuid" -c "runcon system_u:system_r:openshift_t:s0-s0:c0.c1023 $1"
+    /bin/su -s /bin/sh "$uuid" -c "runcon -t openshift_t -l $mcs_level $1"
 }
 
+
+
 function daemon_as_user {
-    daemon --user="$uuid" "$@"
+    daemon --user="$uuid" runcon -r system_r -t openshift_t -l $mcs_level "$@"
 }
 
 function validate_run_as_user {
     uuid=$OPENSHIFT_GEAR_UUID
     setup_user_vars
 
-    if whoami | grep -q root
+    if whoami | grep -q root || ! runcon | grep system_r:openshift_t:$mcs_level > /dev/null
     then
         echo 1>&2
-        echo "Please run script as the correct user, try:" 1>&2
+        echo "Current context: " `runcon` 1>&2
+        echo 1>&2
+        echo "Please run script in the correct context, try:" 1>&2
         echo "run_as_user \"<command>\"" 1>&2
         echo 2>&1
         exit 15
@@ -969,11 +984,12 @@ function run_user_hook {
 }
 
 function enable_cgroups {
-    return 0
+    echo $cfs_quota > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
 }
 
 function disable_cgroups {
-    return 0
+    export cfs_quota=$(cat "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us")
+    cat /cgroup/all/openshift/$uuid/cpu.cfs_period_us  > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
 }
 
 function enable_stale_detection {

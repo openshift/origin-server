@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 0.98.6
+Version: 0.98.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.98.7-1
+- Merge pull request #703 from bdecoste/master (openshift+bot@redhat.com)
+- BZ867063 (bdecoste@gmail.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.98.6-1
 - jboss use abstract restore_tar and tidy (bdecoste@gmail.com)
 - Merge branch 'master' of https://github.com/openshift/origin-server

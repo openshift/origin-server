@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -9,6 +9,7 @@ URL:            http://openshift.redhat.com
 Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
 
 Requires:       oddjob
+Requires:       rng-tools
 Requires:       rubygem-openshift-origin-node
 BuildArch:      noarch
 
@@ -49,11 +50,17 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %attr(0750,-,-) %{_bindir}/oo-accept-node
 %attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
+%attr(0750,-,-) %{_bindir}/oo-app-idle
+%attr(0750,-,-) %{_bindir}/oo-autoidler
 %attr(0750,-,-) %{_bindir}/oo-idler
+%attr(0750,-,-) %{_bindir}/oo-idler-stats
 %attr(0750,-,-) %{_bindir}/oo-init-quota
+%attr(0750,-,-) %{_bindir}/oo-last-access
+%attr(0750,-,-) %{_bindir}/oo-list-stale
 %attr(0750,-,-) %{_bindir}/oo-restorer
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_bindir}/oo-setup-node
+
 %doc LICENSE
 %doc README-Idler.md
 
@@ -69,8 +76,38 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %post
+/sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
+- Port auto-Idler to origin-server (jhonce@redhat.com)
+- Fixing outstanding cgroups issues Removing hardcoded references to "OpenShift
+  guest" and using GEAR_GECOS from node.conf instead (kraman@gmail.com)
+- Use internal functions for that. (rmillner@redhat.com)
+- setup polyinstantiation. (rmillner@redhat.com)
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+- Set a password on the mongo admin db so that application and ssh'd users
+  cannot access the DB. Misc other fixes (kraman@gmail.com)
+- Adding support for quota and pam fs limits (kraman@gmail.com)
+- Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+- Clean up spec file (jhonce@redhat.com)
+- Port oo-init-quota command (jhonce@redhat.com)
+- Port admin scripts for on-premise (jhonce@redhat.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+- Fixed gear admin script and added systemd and init.d startup scripts
+  (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.0.2-1
 - new package built with tito
 
