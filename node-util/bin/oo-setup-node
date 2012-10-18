@@ -266,7 +266,7 @@ system "/sbin/restorecon /var/lib/openshift || :"
 system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
 # Set pam-openshift and polyinstantiation
-find_and_replace("/etc/pam.d/sshd", "pam-selinux", "pam-openshift")
+find_and_replace("/etc/pam.d/sshd", "pam_selinux", "pam_openshift")
 ["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
   begin
     insert_if_not_exist("/etc/pam.d/#{pamf}", "pam_namespace.so", "session\t\trequired\tpam_namespace.so no_unmount_on_close\n")
