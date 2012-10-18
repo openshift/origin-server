@@ -16,4 +16,5 @@ Feature: Cartridge Runtime Extended Checks (Node)
 
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
+#    | nodejs-0.6   | node      | is enabled        | should not be |
     | nodejs-0.6   | node      | is not enabled    | should be     |
