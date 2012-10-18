@@ -26,7 +26,7 @@ class DnsResolvableController < BaseController
       dns.query(name, Dnsruby::Types.A)
       render_success(:ok, "boolean", true, "DNS_RESOLVABLE", "Resolved DNS #{name}")
     rescue 
-      render_error(:not_found, "Could not resolve DNS #{name}", 168, "DNS_RESOLVABLE")
+      render_error(:not_found, "Could not resolve DNS #{name}", 170, "DNS_RESOLVABLE")
     end
   end
 end
