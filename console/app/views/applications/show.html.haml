@@ -135,8 +135,7 @@
                       - else
                         = link_to "Scaled up with HAProxy x#{cartridge.current_scale}", 
                                   application_scaling_path(@application), 
-                                  :title => (cartridge.current_scale == cartridge.scales_from) ? 'Your web cartridge is running on the minimum amount of gears and will scale up if needed' : 'Your web cartridge is running multiple copies to handle increased web traffic'
-
+                                  :title => web_cartridge_scale_title(cartridge)
                   - if cartridge.builds?
                     .embedded-cart 
                       =link_to 'See Jenkins Build jobs', @application.build_job_url, :title=> 'Jenkins is currently running builds for your application'
