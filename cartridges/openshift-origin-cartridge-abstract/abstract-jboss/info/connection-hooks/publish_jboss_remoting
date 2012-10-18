@@ -28,9 +28,11 @@ done
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-source "${GEAR_BASE_DIR}/$3/.env/OPENSHIFT_GEAR_DNS"
-
 CART_NS=$(get_cartridge_namespace_from_path)
+
+source ${GEAR_BASE_DIR}/$3/.env/OPENSHIFT_${CART_NS}_REMOTING_PORT
+source ${GEAR_BASE_DIR}/$3/.env/OPENSHIFT_GEAR_DNS
+
 OPENSHIFT_JBOSS_REMOTING_PORT=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_REMOTING_PORT")
 
 echo ${OPENSHIFT_GEAR_DNS}:${OPENSHIFT_JBOSS_REMOTING_PORT}
