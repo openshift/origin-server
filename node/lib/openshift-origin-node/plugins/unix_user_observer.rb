@@ -58,8 +58,8 @@ module OpenShift
 
     def after_unix_user_destroy(user)
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
-      shellCmd("/usr/bin/oo-admin-ctl-cgroup thawuser #{user.name} > /dev/null") if rc == 0
-      shellCmd("/usr/bin/oo-admin-ctl-cgroup stopuser #{user.name} > /dev/null") if rc == 0
+      shellCmd("/usr/bin/oo-admin-ctl-cgroups thawuser #{user.name} > /dev/null") if rc == 0
+      shellCmd("/usr/bin/oo-admin-ctl-cgroups stopuser #{user.name} > /dev/null") if rc == 0
 
       cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{user.name}"
       out,err,rc = shellCmd(cmd)
