@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.10
+Version:        0.0.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.0.11-1
+- Merge pull request #699 from smarterclayton/us2283_alter_scaling_display
+  (openshift+bot@redhat.com)
+- Take feedback from last design meeting, emphasize minimum/maximum nature of
+  the scale limits, alter text to make form more appealing, make scale
+  multiplier indicate gear usage directly. (ccoleman@redhat.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.10-1
 - Prefix options are not preserved during save for some rest api resources
   (ccoleman@redhat.com)
