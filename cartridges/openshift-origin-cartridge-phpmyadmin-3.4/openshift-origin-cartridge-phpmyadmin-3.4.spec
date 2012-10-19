@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
 Name: openshift-origin-cartridge-phpmyadmin-3.4
-Version: 0.20.4
+Version: 0.20.5
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -63,6 +63,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.20.5-1
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.20.4-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 
