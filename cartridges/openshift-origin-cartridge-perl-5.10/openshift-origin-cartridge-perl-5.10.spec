@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 0.29.8
+Version: 0.29.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.29.9-1
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.29.8-1
 - Both prod and stg mirrors point to the ops mirror -- so use
   mirror1.ops.rhcloud.com - also makes for consistent behaviour across
