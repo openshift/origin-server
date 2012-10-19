@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.3
+Version:        0.0.4
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -79,6 +79,11 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
+- Change libra guest to OpenShift guest (dmcphers@redhat.com)
+- Update Idler documentation (jhonce@redhat.com)
+- Wrong name transition in pam.d/sshd. (rmillner@redhat.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Port auto-Idler to origin-server (jhonce@redhat.com)
 - Fixing outstanding cgroups issues Removing hardcoded references to "OpenShift
