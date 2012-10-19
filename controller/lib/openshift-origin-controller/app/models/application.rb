@@ -419,7 +419,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     # remove any gear out of this ginst
     raise OpenShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
 
-    gear = ginst.gears.first
+    gear = ginst.gears.last
 
     dns = OpenShift::DnsService.instance
     begin
