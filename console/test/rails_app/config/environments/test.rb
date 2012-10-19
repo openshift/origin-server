@@ -36,8 +36,6 @@ RailsApp::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  Console.configure do |config|
-    config.api = :external
-  end
+  Console.configure('~/.openshift/console.conf')
 end
 

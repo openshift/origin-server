@@ -732,7 +732,7 @@ module RestApi
       self.headers.delete 'User-Agent'
       self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
 
-      self.proxy = if config[:proxy] == :ENV
+      self.proxy = if config[:proxy] == 'ENV'
           :ENV
         elsif config[:proxy]
           URI config[:proxy]
