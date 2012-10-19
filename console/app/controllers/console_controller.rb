@@ -15,4 +15,6 @@ class ConsoleController < Console.config.parent_controller.constantize
   private
     def help
     end
+    def unauthorized
+    end
 end

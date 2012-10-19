@@ -1,9 +1,9 @@
 #
 # The simplest possible security strategy - this controller mixin
-# will challenge the user with BASIC authentication, pass that
-# information to the broker, and then cache the ticket and the user
-# identifier in the session until the ticket expires.
-#
+# will look for user info as a header on the request, and pass that
+# info down to the broker.  The broker should be configured to 
+# authenticate with those headers.
+# 
 module Console::Auth::Passthrough
   extend ActiveSupport::Concern
 
@@ -11,20 +11,28 @@ module Console::Auth::Passthrough
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
-    def initialize(opts={})
-      opts.each_pair { |key,value| instance_variable_set("@#{key}", value) }
+    def initialize(username, headers)
+      @username = username
+      @headers = headers.freeze
+    end
+    def login
+      @username
     end
     def email_address
-      login
+      nil
     end
-
+    def to_headers
+      @headers
+    end
     def persisted?
-      false
+      true
     end
   end
 
   included do
     helper_method :current_user, :user_signed_in?, :previously_signed_in?
+
+    rescue_from ActiveResource::UnauthorizedAccess, :with => :console_access_denied
   end
 
   # return the current authenticated user or nil
@@ -35,13 +43,17 @@ module Console::Auth::Passthrough
   # This method should test authentication and handle if the user
   # is unauthenticated
   def authenticate_user!
-    authenticate_or_request_with_http_basic("Authenticate to #{RestApi.site.host}") do |login,password|
-      if login.present?
-        @authenticated_user = PassthroughUser.new :login => login, :password => password
-      else
-        raise Console::AccessDenied
+    @authenticated_user ||= begin
+        username = request.headers[Console.config.passthrough_user_header]
+        raise Console::AccessDenied unless username
+        logger.debug "  Identified user #{username} from header #{Console.config.passthrough_user_header}"
+        PassthroughUser.new(
+          username,
+          Console.config.passthrough_headers.inject({}) do |h, name|
+            h[name] = request.headers[name]
+            h
+          end)
       end
-    end
   end
 
   def user_signed_in?

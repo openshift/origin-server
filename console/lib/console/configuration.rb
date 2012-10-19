@@ -26,6 +26,8 @@ module Console
     config_accessor :disable_static_assets
     config_accessor :parent_controller
     config_accessor :security_controller
+    config_accessor :passthrough_headers
+    config_accessor :passthrough_user_header
     config_accessor :disable_account
     config_accessor :cartridge_type_metadata
     config_accessor :include_helpers
@@ -95,6 +97,9 @@ module Console
           self.security_controller = 'Console::Auth::Basic'
         when 'passthrough'
           self.security_controller = 'Console::Auth::Passthrough'
+          [:passthrough_headers, :passthrough_user_header].each do |s|
+            self.send(:"#{s}=", s.to_s.ends_with?('s') ? config[s].split(',') : config[s]) if config[s]
+          end
         when String
           self.security_controller = config[:console_security]
         end

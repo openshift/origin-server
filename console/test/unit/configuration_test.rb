@@ -81,9 +81,13 @@ class ConfigurationTest < ActiveSupport::TestCase
     expects_file_read(<<-FILE.strip_heredoc)
       broker_url=foo
       console_security=passthrough
+      passthrough_user_header=X-Remote-User
+      passthrough_headers=X-Remote-User,Cookies
     FILE
     Console.configure('file')
     assert_equal Console::Auth::Passthrough, Console.config.security_controller.constantize
+    assert_equal ['X-Remote-User','Cookies'], Console.config.passthrough_headers
+    assert_equal 'X-Remote-User', Console.config.passthrough_user_header
   end
 
   test 'Console.configure sets security_controller to arbitrary' do

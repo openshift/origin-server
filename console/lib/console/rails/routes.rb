@@ -13,6 +13,7 @@ module ActionDispatch::Routing
       def openshift_console_routes
         # Help
         match 'help' => 'console#help', :via => :get, :as => 'console_help'
+        match 'unauthorized' => 'console#unauthorized', :via => :get
 
         # Application specific resources
         resources :application_types, :only => [:show, :index], :id => /[^\/]+/
