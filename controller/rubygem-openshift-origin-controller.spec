@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.15
+Version: 0.17.16
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,21 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.17.16-1
+- Merge pull request #719 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
+- Merge pull request #720 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #718 from pravisankar/dev/ravi/bug/867775
+  (openshift+bot@redhat.com)
+- logging success in user_action.log file if access denied because of invalid
+  credentials or insufficient previleges (abhgupta@redhat.com)
+- fix for bugs 868017, 867349 (rchopra@redhat.com)
+- Fix for bug# 867775 (rpenta@redhat.com)
+- Fix up hot deployment test for nodejs to handle the case that supervisor
+  starts up on the very first hot_deploy marker git push. (ramr@redhat.com)
+- Add node.js hot deployment test (commented for now). (ramr@redhat.com)
+- Merge pull request #706 from lnader/master (dmcphers@redhat.com)
+- US2108: Better DNS experience (lnader@redhat.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.15-1
 - Consistent naming (rmillner@redhat.com)
 - Move SELinux to Origin and use new policy definition. (rmillner@redhat.com)
