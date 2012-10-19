@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   0.6.15
+Version:   0.6.16
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -171,6 +171,11 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Thu Oct 18 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.16-1
+- Merge pull request #657 from Miciah/drop-openshift-origin-node-from-broker-
+  Gemfile-3 (openshift+bot@redhat.com)
+- Drop openshift-origin-node from broker's Gemfile (miciah.masters@gmail.com)
+
 * Tue Oct 16 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.15-1
 - Merge pull request #681 from pravisankar/dev/ravi/bug/821107
   (openshift+bot@redhat.com)

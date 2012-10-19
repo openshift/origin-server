@@ -62,11 +62,7 @@ function ishttpup() {
     return 1
 }
 
-function replace_envs() {
-	sed_replace_env=$(print_sed_exp_replace_env_var)
 
-	sed -i ${sed_replace_env} "${CART_DIR}/jbossews-1.0"/conf/server.xml > /dev/null 2>&1
-}
 
 function start_app() {
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
@@ -86,10 +82,9 @@ function start_app() {
             # Start
             jopts="${JAVA_OPTS}"
             
-            replace_envs
-            
             export CATALINA_HOME=$APP_JBOSS
             export CATALINA_BASE=$APP_JBOSS
+            export CATALINA_TMPDIR=$APP_JBOSS/tmp
             ${CART_DIR}/jbossews-1.0/bin/tomcat6 start
             PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-1.0 | awk '{print $2}'`
             echo $PROCESS_ID > $JBOSS_PID_FILE

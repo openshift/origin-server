@@ -418,13 +418,13 @@ class LegacyBrokerController < ApplicationController
         @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
       end
       unless @login
-        log_action('nil','nil', 'nil', "LEGACY_BROKER", false, "Authentication failed: Invalid user credentials")
+        log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials")
         @reply.resultIO << "Invalid user credentials"
         @reply.exitcode = 97
         render :json => @reply, :status => :unauthorized
       end
     rescue OpenShift::AccessDeniedException
-      log_action('nil','nil', 'nil', "LEGACY_BROKER", false, "Authentication failed: Invalid user credentials")
+      log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials")
       @reply.resultIO << "Invalid user credentials"
       @reply.exitcode = 97
       render :json => @reply, :status => :unauthorized

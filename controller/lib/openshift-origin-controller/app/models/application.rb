@@ -1033,6 +1033,18 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       set_user_min(cart_group_map, min_scale)
     end
 
+    if self.scalable
+      prof = @profile_name_map[@default_profile]
+      cinst = ComponentInstance::find_component_in_cart(prof, self, self.proxy_cartridge, self.get_name_prefix)
+      if cinst
+        group_inst = self.group_instance_map[cinst.group_instance_name]
+        reply = ResultIO.new
+        s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
+          gear.reload(cinst)
+        end
+      end
+    end
+
   end
 
   def set_user_min(cart_group_map, min_scale)
@@ -1122,11 +1134,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         result_io.append gear_result_io
       end
     rescue Exception => e
-      result_io.append e.resultIO if e.respond_to?('resultIO')
       updated = false
-      Rails.logger.debug "Exception caught updating namespace #{e.message}"
-      Rails.logger.debug "DEBUG: Exception caught updating namespace #{e.message}"
+      Rails.logger.debug "Exception caught updating namespace: #{e.message}"
       Rails.logger.debug e.backtrace
+      result_io.append e.resultIO if e.respond_to?('resultIO') and e.resultIO
     end 
     return { :success => updated, :result_io => result_io }
   end

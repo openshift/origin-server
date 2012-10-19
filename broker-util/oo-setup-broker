@@ -314,12 +314,26 @@ print "Starting mongodb\n"
 system "chkconfig mongod on" 
 
 unless build
-  system "service mongod start"
-  
+  # As of Oct 18th, 2012 there is a open bug on mongod start issue
+  # More details: https://jira.mongodb.org/browse/SERVER-7285
+  # Work-Around: Start mongod as mongodb user instead of using sysctl service.
+  #system "service mongod start"
+  system "pkill -u mongodb"
+
+  print "Repair mongodb database if needed..."
+  system "rm -f /var/lib/mongodb/mongod.lock"
+  system "sudo -u mongodb mongod -f /etc/mongodb.conf --repair"
+  while not system('/bin/fgrep "dbexit: really exiting now" /var/log/mongodb/mongodb.log') do
+    print "."
+    sleep 2
+  end
+
   print "Initializing mongodb database..."
+  system "rm -f /var/lib/mongodb/mongod.lock"
+  system "sudo -u mongodb mongod -f /etc/mongodb.conf"
   while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
     print "."
-    sleep 5
+    sleep 3
   end
   
   print "Setup mongo db user\n"

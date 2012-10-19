@@ -9,7 +9,7 @@
       %h2
         = cartridge.display_name
         - if cartridge.scales?
-          %span.pull-right Scaled x#{cartridge.current_scale}
+          %span.pull-right Using #{pluralize(cartridge.current_scale, 'gears')}
 
       - if cartridge.scales?
         = semantic_form_for cartridge,
@@ -19,27 +19,34 @@
 
           = f.semantic_errors :scales_from, :scales_to
 
-          = f.inputs :inline => true, :important => true, :without_errors => true do
+          - if cartridge.tags.include?(:web_framework)
+            %p
+              OpenShift is configured to scale this cartridge with 
+              #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
+              monitors the incoming web traffic to your application and 
+              automatically adds or removes copies of your cartridge
+              (each running on their own gears) to serve requests as needed.
 
-            Scale this cartridge from
-            = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto'}})
-            to
-            = f.input :scales_to, scale_to_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto'}})
+          %p Control the number of gears OpenShift will use for your cartridge:
+
+          = f.inputs :inline => true, :important => true, :without_errors => true do
+            .input-prepend
+              %span.add-on Minimum
+              = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Minimum gears'}})
+            and 
+            .input-prepend
+              %span.add-on Maximum
+              = f.input :scales_to, scale_to_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Maximum gears'}})
+
             #{cartridge.gear_profile} gears
 
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading
 
+
         - if cartridge.tags.include?(:web_framework)
 
           %hr
-
-          %p
-            OpenShift is configured to scale this cartridge with 
-            #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
-            monitors the incoming web traffic to your application and 
-            automatically adds or removes copies of your cartridge
-            (each running on their own gears) to serve requests as need.
 
           %p
             Each scaled gear is created the same way - the normal 
