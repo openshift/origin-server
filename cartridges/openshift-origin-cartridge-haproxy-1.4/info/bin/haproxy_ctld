@@ -339,6 +339,9 @@ end
 
 
 begin
+  data_dir = ENV['OPENSHIFT_DATA_DIR']
+  scale_file = "#{data_dir}/scale_limits.txt"
+  File.delete(scale_file) if File.exists?(scale_file) 
   ha=Haproxy.new("#{HAPROXY_RUN_DIR}/stats")
   if opt['up']
     ha.add_gear(true)
