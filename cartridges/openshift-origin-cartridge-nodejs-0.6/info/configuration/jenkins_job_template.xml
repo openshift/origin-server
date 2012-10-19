@@ -62,6 +62,8 @@
   <builders>
     <hudson.tasks.Shell>
       <command>
+source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
+
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
 # Sync libs - Faster builds
@@ -75,7 +77,7 @@ rsync -l UPSTREAM_SSH:~/nodejs-0.6/node_modules/ ~/nodejs-0.6/node_modules/   ||
 # Deploy new build
 
 # Stop app
-$GIT_SSH UPSTREAM_SSH 'ctl_all stop'
+jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
 rsync -l ~/nodejs-0.6/node_modules/ UPSTREAM_SSH:~/nodejs-0.6/node_modules/  ||  :
@@ -83,7 +85,7 @@ rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/nodejs-0.6/repo/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
-$GIT_SSH UPSTREAM_SSH 'ctl_all start'
+jenkins_start_app UPSTREAM_SSH
 $GIT_SSH UPSTREAM_SSH post_deploy.sh
       </command>
     </hudson.tasks.Shell>

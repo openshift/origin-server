@@ -431,7 +431,7 @@ end
 # Performs a trivial update to the test application source by appending
 # some random stuff to a dummy file. The change is then committed and 
 # pushed to the app's Git repo.
-When /^an update is pushed to the application repo$/ do
+When /^an update (is|has been) pushed to the application repo$/ do |junk|
   record_measure("Runtime Benchmark: Updating #{$temp}/#{@account.name}-#{@app.name} source") do
     tmp_git_root = "#{$temp}/#{@account.name}-#{@app.name}-clone"
 
