@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.16
+Version:   0.17.17
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.17.17-1
+- Merge pull request #717 from pravisankar/dev/ravi/bug/866411
+  (dmcphers@redhat.com)
+- Fix for Bug# 866411 (rpenta@redhat.com)
+- Fix clustering env var references (ironcladlou@gmail.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.17.16-1
 - Fixing outstanding cgroups issues Removing hardcoded references to "OpenShift
   guest" and using GEAR_GECOS from node.conf instead (kraman@gmail.com)
