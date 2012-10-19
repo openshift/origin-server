@@ -23,6 +23,7 @@ Requires:       rubygem(mocha)
 Requires:       rubygem(rspec)
 Requires:       rubygem(rcov)
 Requires:       python
+Requires:       libselinux-python
 Requires:       mercurial
 
 %if 0%{?fedora}%{?rhel} <= 6
