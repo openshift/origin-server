@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
-Version: 0.99.6
+Version: 0.99.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -132,6 +132,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.99.7-1
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.99.6-1
 - BZ863937  Need update rhc app tail to rhc tail for output of rhc threaddump
   command (calfonso@redhat.com)
