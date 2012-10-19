@@ -13,6 +13,7 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildArch: noarch
 Requires: git
+Requires: make
 Requires: mod_ssl
 Obsoletes: stickshift-abstract
 
