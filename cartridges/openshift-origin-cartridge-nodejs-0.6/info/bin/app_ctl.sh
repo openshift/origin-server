@@ -43,6 +43,24 @@ function _status_node_service() {
 }  #  End of function  _status_node_service.
 
 
+function _get_main_script_from_package_json() {
+    node <<NODE_EOF
+try {
+  var zmain = require('$OPENSHIFT_REPO_DIR/package.json').main;
+  if (typeof zmain === 'undefined') {
+    console.log('server.js');
+  }
+  else {
+    console.log(zmain);
+  }
+} catch(ex) {
+  console.log('server.js');
+}
+NODE_EOF
+
+}  #  End of function  _get_main_script_from_package_json.
+
+
 function _start_node_service() {
     _state=`get_app_state`
     if [ -f $cartridge_dir/run/stop_lock -o idle = "$_state" ]; then
@@ -87,11 +105,19 @@ function _start_node_service() {
 
 
     if [ -f "$OPENSHIFT_REPO_DIR/package.json" ]; then
-        nohup npm start -d >> $logf 2>&1 &
+         script_n_opts="$(_get_main_script_from_package_json)"
+         executor_cmdline="npm start -d"
     else
-        #  Backward compatibility.
-        print_missing_package_json_warning
-        nohup node $node_opts $node_app $node_app_args >> $logf 2>&1 &
+         #  Backward compatibility.
+         print_missing_package_json_warning
+         script_n_opts="$node_opts $node_app $node_app_args"
+         executor_cmdline="node $node_opts $node_app $node_app_args"
+    fi
+
+    if [ -f "$OPENSHIFT_REPO_DIR/.openshift/markers/hot_deploy" ]; then
+        nohup supervisor -e 'node|js|coffee' -- $script_n_opts  >> $logf 2>&1 &
+    else
+        nohup $executor_cmdline >> $logf 2>&1 &
     fi
 
     ret=$?
