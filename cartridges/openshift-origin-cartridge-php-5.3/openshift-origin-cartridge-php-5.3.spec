@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 0.98.6
+Version: 0.98.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.98.7-1
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 08 2012 Adam Miller <admiller@redhat.com> 0.98.6-1
 - renaming crankcase -> origin-server (dmcphers@redhat.com)
 
