@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
-Version: 0.98.9
+Version: 0.98.10
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.98.10-1
+- Fix bug with jenkins-enabled hot_deploy[ment] always restarting python apps.
+  (ramr@redhat.com)
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.98.9-1
 - Both prod and stg mirrors point to the ops mirror -- so use
   mirror1.ops.rhcloud.com - also makes for consistent behaviour across
