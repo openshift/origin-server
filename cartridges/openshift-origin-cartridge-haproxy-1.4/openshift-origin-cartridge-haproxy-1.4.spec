@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 0.16.6
+Version: 0.16.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.16.7-1
+- fix for bugs 868017, 867349 (rchopra@redhat.com)
+- BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.16.6-1
 - Merge pull request #655 from mrunalp/bugs/864519 (openshift+bot@redhat.com)
 - BZ 864519: Fix for git push failing for scalable apps w/ dbs.
