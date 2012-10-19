@@ -98,7 +98,7 @@ if app.scalable and node_profile
   exit 1
 end
 
-url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.ss[:domain_suffix]}"
+url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
 
 puts "URL: #{url}"
 puts "Login: #{app.user.login}"

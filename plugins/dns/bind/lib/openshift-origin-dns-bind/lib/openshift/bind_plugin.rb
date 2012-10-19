@@ -9,7 +9,7 @@ module OpenShift
     @oo_dns_provider = OpenShift::BindPlugin
 
     # DEPENDENCIES
-    # Rails.application.config.ss[:domain_suffix]
+    # Rails.application.config.openshift[:domain_suffix]
     # Rails.application.config.dns[...]
 
     attr_reader :server, :port, :keyname, :keyvalue
@@ -20,7 +20,7 @@ module OpenShift
       elsif defined? Rails
         # extract from Rails.application.config[dns,ss]
         access_info = Rails.application.config.dns
-        @domain_suffix = Rails.application.config.ss[:domain_suffix]
+        @domain_suffix = Rails.application.config.openshift[:domain_suffix]
       else
         raise Exception.new("BIND DNS service is not initialized")
       end

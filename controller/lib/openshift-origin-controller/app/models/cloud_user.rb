@@ -38,7 +38,7 @@
     end
     self.login = login
     self.domains = []
-    self.max_gears = Rails.configuration.ss[:default_max_gears]
+    self.max_gears = Rails.configuration.openshift[:default_max_gears]
     self.capabilities = capabilities || {}
     self.parent_user_login = parent_login
 

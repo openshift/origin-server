@@ -63,9 +63,7 @@ Broker::Application.configure do
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
-  # SS Config
-  
-  config.ss = {
+  config.openshift = {
     :domain_suffix => "example.com",
     :default_max_gears => 100
   }

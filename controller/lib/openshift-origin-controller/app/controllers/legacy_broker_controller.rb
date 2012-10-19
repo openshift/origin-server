@@ -25,7 +25,7 @@ class LegacyBrokerController < ApplicationController
       if @cloud_user.domains and @cloud_user.domains.length > 0
         user_info["namespace"] = @cloud_user.domains.first.namespace
       end
-      user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
+      user_info[:rhc_domain] = Rails.configuration.openshift[:domain_suffix]
       app_info = {}
       unless @cloud_user.applications.nil?
         @cloud_user.applications.each do |app|
@@ -179,7 +179,7 @@ class LegacyBrokerController < ApplicationController
     @reply.data = {
       :rhlogin    => @cloud_user.login,
       :uuid       => @cloud_user.uuid,
-      :rhc_domain => Rails.configuration.ss[:domain_suffix]
+      :rhc_domain => Rails.configuration.openshift[:domain_suffix]
     }.to_json
       
     render :json => @reply

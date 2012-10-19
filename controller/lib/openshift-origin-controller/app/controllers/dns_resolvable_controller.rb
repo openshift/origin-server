@@ -18,7 +18,7 @@ class DnsResolvableController < BaseController
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "DNS_RESOLVABLE") unless application
                         
-    name = "#{application.name}-#{application.domain.namespace}.#{Rails.configuration.ss[:domain_suffix]}" 
+    name = "#{application.name}-#{application.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
     nameservers = NameServerCache.get_name_servers             
     
     dns = Dnsruby::Resolver.new(:nameserver => nameservers[rand(nameservers.length)])

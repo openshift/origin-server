@@ -613,7 +613,7 @@ function check_dns_bind() {
     DNS_KEYNAME=`get_application_value "Rails.application.config.dns[:keyname]"`
     DNS_KEYVAL=`get_application_value "Rails.application.config.dns[:keyvalue]"`
     DNS_ZONE=`get_application_value "Rails.application.config.dns[:zone]"`
-    DNS_SUFFIX=`get_application_value "Rails.application.config.ss[:domain_suffix]"`
+    DNS_SUFFIX=`get_application_value "Rails.application.config.openshift[:domain_suffix]"`
     verbose "DNS Server: $DNS_SERVER"
     verbose "DNS Port: $DNS_PORT"
     verbose "DNS Key Name: $DNS_KEYNAME"

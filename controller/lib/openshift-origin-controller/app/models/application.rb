@@ -1145,13 +1145,13 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def complete_namespace_update(new_ns, old_ns)
     self.comp_instances.each do |comp_inst|
       comp_inst.cart_properties.each do |prop_key, prop_value|
-        comp_inst.cart_properties[prop_key] = prop_value.gsub(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+        comp_inst.cart_properties[prop_key] = prop_value.gsub(/-#{old_ns}.#{Rails.configuration.openshift[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.openshift[:domain_suffix]}")
       end
     end
     self.embedded.each_key do |framework|
       if self.embedded[framework].has_key?('info')
         info = self.embedded[framework]['info']
-        info.gsub!(/-#{old_ns}.#{Rails.configuration.ss[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.ss[:domain_suffix]}")
+        info.gsub!(/-#{old_ns}.#{Rails.configuration.openshift[:domain_suffix]}/, "-#{new_ns}.#{Rails.configuration.openshift[:domain_suffix]}")
         self.embedded[framework]['info'] = info
       end
     end
@@ -1164,7 +1164,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   end
   
   def add_alias(server_alias)
-    if !(server_alias =~ /\A[\w\-\.]+\z/) or (server_alias =~ /#{Rails.configuration.ss[:domain_suffix]}$/)
+    if !(server_alias =~ /\A[\w\-\.]+\z/) or (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/)
       raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105) 
     end
     

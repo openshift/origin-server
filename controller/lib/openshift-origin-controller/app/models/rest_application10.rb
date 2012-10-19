@@ -14,9 +14,9 @@ class RestApplication10 < OpenShift::Model
     self.gear_profile = app.node_profile
     self.scalable = app.scalable
     self.scale_min,self.scale_max = app.scaling_limits
-    self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/~/git/#{@name}.git/"
-    self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}/"
-    self.ssh_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.ss[:domain_suffix]}"
+    self.git_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.openshift[:domain_suffix]}/~/git/#{@name}.git/"
+    self.app_url = "http://#{@name}-#{@domain_id}.#{Rails.configuration.openshift[:domain_suffix]}/"
+    self.ssh_url = "ssh://#{@uuid}@#{@name}-#{@domain_id}.#{Rails.configuration.openshift[:domain_suffix]}"
     self.health_check_path = app.health_check_path
     cart_type = "embedded"
     cache_key = "cart_list_#{cart_type}"

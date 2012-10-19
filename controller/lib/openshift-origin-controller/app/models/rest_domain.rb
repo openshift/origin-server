@@ -4,7 +4,7 @@ class RestDomain < OpenShift::Model
   
   def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
-    self.suffix = Rails.application.config.ss[:domain_suffix] 
+    self.suffix = Rails.application.config.openshift[:domain_suffix] 
     
     unless nolinks      
       valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)

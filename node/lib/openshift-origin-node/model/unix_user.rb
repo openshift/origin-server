@@ -87,7 +87,7 @@ module OpenShift
     def create
       skel_dir = @config.get("GEAR_SKEL_DIR") || DEFAULT_SKEL_DIR
       shell    = @config.get("GEAR_SHELL")     || "/bin/bash"
-      gecos    = @config.get("GEAR_GECOS")     || "SS application container"
+      gecos    = @config.get("GEAR_GECOS")     || "OO application container"
       notify_observers(:before_unix_user_create)
       basedir = @config.get("GEAR_BASE_DIR")
 
