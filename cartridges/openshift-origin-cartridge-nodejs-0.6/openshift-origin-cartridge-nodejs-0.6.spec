@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version:   0.14.8
+Version:   0.14.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.14.9-1
+- Add support for nodejs hot deployment. (ramr@redhat.com)
+- Revert "Documentation updates" - add back node.js hot deployment support
+  documention. (ramr@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.14.8-1
 - No more deplist -- readme should say package.json (ramr@redhat.com)
 - Documentation updates (ironcladlou@gmail.com)
