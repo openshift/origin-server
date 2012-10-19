@@ -15,9 +15,9 @@ module OpenShift
     # trusted.  REMOTE_USER must only be set if the web server has verified the
     # password.
     def authenticate(request, login=nil, password=nil)
-      params = request.request_parameters()
-      if params['broker_auth_key'] && params['broker_auth_iv']
-        return validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
+      if request.headers['User-Agent'] == "OpenShift"
+        # password == iv, login == key
+        return validate_broker_key(password, login)
       else
         authenticated_user = request.env[@trusted_header]
         raise OpenShift::AccessDeniedException if authenticated_user.nil?
