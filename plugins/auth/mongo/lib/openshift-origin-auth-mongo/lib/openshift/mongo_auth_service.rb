@@ -46,9 +46,9 @@ module OpenShift
     end
     
     def authenticate(request, login, password)
-      params = request.request_parameters()
-      if params['broker_auth_key'] && params['broker_auth_iv']
-        validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
+      if request.headers['User-Agent'] == "OpenShift"
+        # password == iv, login == key
+        return validate_broker_key(password, login)
       else
         raise OpenShift::AccessDeniedException if login.nil? || login.empty? || password.nil? || password.empty?
         encoded_password = Digest::MD5.hexdigest(Digest::MD5.hexdigest(password) + @salt)
