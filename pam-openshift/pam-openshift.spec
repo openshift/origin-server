@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        0.99.14
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
