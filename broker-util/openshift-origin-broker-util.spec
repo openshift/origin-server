@@ -46,6 +46,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_bindir}/oo-register-dns
 %attr(0755,-,-) %{_bindir}/oo-setup-bind
 %attr(0755,-,-) %{_bindir}/oo-setup-broker
+%attr(0755,-,-) %{_bindir}/oo-accept-broker
 %attr(0755,-,-) %{_bindir}/complete-origin-setup
 %doc LICENSE
 

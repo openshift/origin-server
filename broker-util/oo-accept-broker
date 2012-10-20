@@ -171,6 +171,7 @@ function get_application_value() {
           puts "Error loading libs or gems: #{gem_error}"
           exit 1
         end
+	Broker::Application.initialize!
         puts $1
 EOF
   else
@@ -545,7 +546,7 @@ function check_authentication() {
 
 	    fail abstract auth class: $AUTH_PLUGIN
 	    ;;
-	'Swingshift::MongoAuthService')
+	'OpenShift::MongoAuthService')
 	    verbose "auth plugin: $AUTH_PLUGIN"
 	    check_auth_mongo
             ;;
@@ -673,27 +674,8 @@ function check_dynamic_dns() {
 #
 # ============================================================================
 function find_messaging_plugin() {
-    # OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')
     get_application_value "OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
 }
-
-function check_messaging_oddjob() {
-    verbose checking oddjob messaging
-
-    # config files
-    # 
-    # 
-
-}
-
-#function send_oddjob_message() {
- 
-    #ruby -I ${OSO_BROKER_ROOT} -r rubygems -- <<EOF 2>&1
-    #    require 'openshift-origin-controller'
-    #    require 'gearchanger-oddjob-plugin'
-#EOF
-
-#}
 
 function check_messaging() {
     verbose checking messaging configuration
@@ -705,9 +687,8 @@ function check_messaging() {
 	    ;;
 
 	    
-	'OpenShift::OddJobApplicationContainerProxy')
+	'OpenShift::MCollectiveApplicationContainerProxy')
 	    verbose messaging plugin = $MSG_PLUGIN
-	    check_messaging_oddjob
 	    ;;
 
 	*)
@@ -715,18 +696,6 @@ function check_messaging() {
 	    ;;
     esac
     unset MSG_PLUGIN
-}
-
-function check_node_communications() {
-  sudo -u apache ruby - <<EOF
-require 'rubygems'
-require 'rails'
-require 'bundler'
-require 'openshift-origin-controller'
-require 'gearchanger-oddjob-plugin'
-
-app_proxy = OpenShift::ApplicationContainerProxy.find_one
-EOF
 }
 
 # ==========================================================================

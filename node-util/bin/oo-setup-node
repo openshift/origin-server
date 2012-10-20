@@ -18,6 +18,7 @@
 require 'rubygems'
 require 'parseconfig'
 require 'yaml'
+require 'fileutils'
 
 def usage
     puts <<USAGE
@@ -110,7 +111,7 @@ dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
 use_systemd    = File.exist?('/bin/systemd')
-use_nm         = use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service')
+use_nm         = (use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service'))
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -197,7 +198,28 @@ if int_eth_device != ext_eth_device
   end
 end
 
-print "Loading SELinux module\n"
+print "Enabling quota\n"
+oo_device=%x[df -P /var/lib/openshift | tail -1].split[0]
+oo_mount=%x[df -P /var/lib/openshift | tail -1 | tr -s ' '].split[5]
+unless %x[quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
+  print "... updating fstab and remounting /\n"
+  `awk '{ $2=="/" ? $4="defaults,usrjquota=aquota.user,jqfmt=vfsv0" : $4=$4 ; print $0 }' /etc/fstab > /etc/fstab.new`
+  system "mv /etc/fstab.new /etc/fstab"
+  system "mount -o remount /"
+  system "quotacheck -cmug /"
+end
+
+quota_db_file=File.join(oo_mount,"/aquota.user")
+if File.exists? quota_db_file
+  quota_db_type = %x[secon -f #{quota_db_file} | grep type: ]
+  if quota_db_type !~ /quota_db_t/
+    system "restorecon /aquota.*"
+  end
+else
+  print "... switching quota on\n"
+  system "restorecon /aquota.*"
+  system "quotaon  /"
+end
 
 print "Loading CGroups\n"
 find_and_replace("/etc/systemd/system.conf", /^(#?)JoinControllers=.*$/, "JoinControllers=cpu,cpuacct,memory,freezer,net_cls") if use_systemd
@@ -221,6 +243,7 @@ else
   system "service openshift-cgroups start"
 end
 
+print "Setting node SELinux booleans\n"
 system("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
 system("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
 system("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
@@ -284,6 +307,10 @@ File.open('/etc/openshift/node.conf','w') do |f|
     end
   end
 end
+
+insert_if_not_exist("/etc/sysctl.conf", "net.ipv4.ip_local_port_range = 15000 35530", "net.ipv4.ip_local_port_range = 15000 35530\n")
+insert_if_not_exist("/etc/sysctl.conf", "net.netfilter.nf_conntrack_max = 1048576", "net.netfilter.nf_conntrack_max = 1048576\n")
+insert_if_not_exist("/etc/sysctl.conf", "kernel.sem = 250  32000 32  4096", "kernel.sem = 250  32000 32  4096\n")
 
 File.open("/etc/openshift/express.conf", "w") do |f|
   f.write("libra_server=broker.example.com\n")

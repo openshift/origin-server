@@ -18,6 +18,7 @@
 require 'rubygems'
 require 'parseconfig'
 require 'getoptlong'
+require 'fileutils'
 
 def usage
     puts <<USAGE
@@ -104,8 +105,8 @@ dns_address    = dns.split(/,/) unless dns.nil?
 ext_dhcp       = false
 int_dhcp       = false
 use_systemd    = File.exist?('/bin/systemd')
-use_nm         = use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service')
-build          = args["--build"]
+use_nm         = (use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service'))
+build          = !!args["--build"]
 
 if ext_address.nil? #DHCP
   ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
@@ -159,28 +160,30 @@ if args["--help"]
 end
 
 ### Begin package setup
-
-system "yum install -y qpid-cpp-server"
-
+if `rpm -q qpid-cpp-server 2> /dev/null`.match(/is not installed/)
+  print "Installing qpid AMQP server\n"
+  system "yum install -y qpid-cpp-server"
+end
 insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
 
+print "Installing DNS server related SELinux policies\n"
 system <<-EOOF
-lokkit --service=ssh
-lokkit --service=https
-lokkit --service=http
-lokkit --service=dns
-
 semanage -i - <<_EOF
 boolean -m --on named_write_master_zones
 _EOF
 EOOF
 
-system("semodule -i /usr/share/selinux/packages/rubygem-openshift-origin-common/openshift-origin.pp") if `semodule -l | grep openshift` == ""
+if not File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+  print "Installing configuration for mongo auth service\n"
+  FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example", "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf"
+end
 
-system "mv /etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example /etc/openshift/plugins.d/openshift-origin-auth-mongo.conf"
-system "mv /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example /etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
+if not File.exist?("/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf")
+  print "Installing configuration for mcollective broker plugin\n"
+  FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example", "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
+end
 
-insert_if_not_exist("/etc/mongodb.conf", "smallfiles=true", "\nsmallfiles=true\n")
+print "Installing broker gem dependencies\n"
 system <<-EOF
 pushd /var/www/openshift/broker/
 rm -f Gemfile.lock
@@ -189,6 +192,7 @@ chown apache:apache Gemfile.lock
 popd
 EOF
 
+print "Configuring mcollective client and server to use qpid\n"
 File.open("/etc/mcollective/client.cfg","w") do |f|
   f.write <<-EOF
 topicprefix = /topic/
@@ -249,9 +253,6 @@ if [[ "x`fgrep auth= /etc/qpidd.conf`" == xauth* ]] ; then
 else
   echo "auth=no" >> /etc/qpidd.conf
 fi
-
-chkconfig sshd on
-chkconfig httpd on
 EOF
 
 ### Begin network setup
@@ -297,7 +298,7 @@ end
 system "chkconfig network on"
 system "service network restart" unless build
 
-system "service NetworkManager restart && sleep 5" if use_nm && !build
+system "service NetworkManager restart && sleep 5" if (use_nm && !build)
 
 print "Opening required ports\n"
 system "lokkit --service=ssh"
@@ -313,6 +314,7 @@ system "lokkit -p 5672:tcp"  #qpid
 print "Starting mongodb\n"
 system "chkconfig mongod on" 
 
+insert_if_not_exist("/etc/mongodb.conf", "smallfiles=true", "\nsmallfiles=true\n")
 unless build
   # As of Oct 18th, 2012 there is a open bug on mongod start issue
   # More details: https://jira.mongodb.org/browse/SERVER-7285
@@ -384,7 +386,7 @@ system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{no
 
 unless build
   print "Register admin user\n"
-  `mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+  `mongo openshift_broker_dev --username openshift --password mooo --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
 end
 
 File.open("/etc/openshift/express.conf", "w") do |f|
