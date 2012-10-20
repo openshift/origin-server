@@ -23,7 +23,7 @@ $embedded_cartridge_root ||= "/usr/libexec/openshift/cartridges/embedded"
 $app_registry = {}
 
 module OpenShift
-  TIMEOUT = 90
+  TIMEOUT = 120
 
 
   # Represents a user account. A name and domain will be automatically
