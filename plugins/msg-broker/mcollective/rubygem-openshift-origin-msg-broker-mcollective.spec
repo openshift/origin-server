@@ -15,9 +15,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       ruby(abi) = 1.8
 Requires:       rubygems
 Requires:       mcollective-client
-Requires:       qpid-cpp-client
-Requires:       ruby-qpid-qmf
-#Requires:       qpid-tools
 Requires:       rubygem(openshift-origin-common)
 Requires:       rubygem(json)
 Requires:       selinux-policy-targeted
