@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.16
+Version: 0.17.17
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.17.17-1
+- Merge pull request #731 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #726 from jwhonce/master (openshift+bot@redhat.com)
+- remove last gear in a scaledown event, and not the first (rchopra@redhat.com)
+- removing remaining cases of SS and config.ss (dmcphers@redhat.com)
+- Increased timeout to support jboss tests (jhonce@redhat.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.17.16-1
 - Merge pull request #719 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
 - Merge pull request #720 from rajatchopra/master (openshift+bot@redhat.com)
