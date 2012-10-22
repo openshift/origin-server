@@ -51,7 +51,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "show page should cache user capabilities" do
     # set up the test
-    with_gear_size_user
+    with_user_with_multiple_gear_sizes
     user = User.find(:one, :as => @controller.current_user)
     types = ApplicationType.all
     type = types[0]
@@ -71,7 +71,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "show page should refresh cached user_capabilities" do
     # set up the test
-    with_gear_size_user
+    with_user_with_multiple_gear_sizes
     user = User.find(:one, :as => @controller.current_user)
     types = ApplicationType.all
     type = types[0]

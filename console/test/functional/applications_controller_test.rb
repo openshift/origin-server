@@ -231,10 +231,18 @@ class ApplicationsControllerTest < ActionController::TestCase
   end
 
   test 'should support the creation of scalable apps with medium gears for privileged users' do
-    with_gear_size_user
+    with_user_with_multiple_gear_sizes
+    setup_domain
+
     user = User.find(:one, :as => @controller.current_user)
-    medium_gear_app = with_medium_gear_app_form
-    medium_gear_app[:scale] = 'true'
+
+    medium_gear_app = {
+      :name => uuid,
+      :application_type => 'php-5.3',
+      :gear_profile => 'medium',
+      :scale => 'true',
+      :domain_name => @domain.name
+    }
 
     # seed the cache with values that will never be returned by the broker.
     session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
@@ -259,8 +267,12 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test 'should not allow medium gears for non-privileged users' do
     with_unique_domain
-    medium_gear_app_form = with_medium_gear_app_form
-    medium_gear_app_form[:domain_name] = @domain.name
+    medium_gear_app_form = {
+      :name => uuid,
+      :application_type => 'php-5.3',
+      :gear_profile => 'medium',
+      :domain_name => @domain.name
+    }
 
     post(:create, {:application => medium_gear_app_form})
 

@@ -37,7 +37,7 @@ class ActiveSupport::TestCase
     new_user(:login => name, :password => 'foo')
   end
 
-  def with_gear_size_user
+  def with_user_with_multiple_gear_sizes
     set_user(new_named_user('user_with_multiple_gear_sizes@test.com'))
     @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_multiple_gear_sizes@test.com')))
   end
@@ -165,22 +165,6 @@ class ActiveSupport::TestCase
     body = req.body
     body = ActiveSupport::JSON.decode(req.body) if req.headers['Content-Type'].include?('application/json')
     body
-  end
-
-  def with_medium_gear_app_form
-    { :name => uuid,
-      :application_type => 'php-5.3',
-      :gear_profile => 'medium',
-      :domain_name => "MG#{uuid[0,14]}"
-    }
-  end
-
-  def with_scalable_app_form
-    { :name => uuid,
-      :application_type => 'php-5.3',
-      :scale => 'true',
-      :domain_name => 'MEDIUMGEAR'
-    }
   end
 
   def auth_headers
