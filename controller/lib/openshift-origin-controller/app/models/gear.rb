@@ -298,15 +298,13 @@ class Gear < OpenShift::Model
     results = []
     gi = group_instance
     contains_proxy = false
-    contains_framework = false    
-    contains_mysql = false
+    contains_framework = false
     result_io = ResultIO.new
     
     gi.component_instances.each do |cname|
       ci = self.app.comp_instance_map[cname]
       contains_proxy = true if ci.parent_cart_name == self.app.proxy_cartridge
-      contains_framework = true if ci.parent_cart_name == self.app.framework  
-      contains_mysql = true if ci.parent_cart_name == "mysql-5.1"  
+      contains_framework = true if ci.parent_cart_name == self.app.framework    
     end
 
     if contains_proxy || !self.app.scalable
@@ -320,14 +318,24 @@ class Gear < OpenShift::Model
     if contains_framework
       result_io.append call_update_namespace_hook(self.app.framework, new_ns, old_ns)
     else
-    #  elseif contains_mysql
-       #  Yikes: contains_mysql ... making it more generic.
-       #  We could also probably always call update-namespace on the abstract
-       #  cartridge directly instead of app.framework above since all
-       #  cartridges symlink it from abstract anyway.
       result_io.append call_update_namespace_hook("abstract", new_ns, old_ns)
     end
     result_io
+  end
+  
+  def self.valid_gear_size?(gear_size)
+    Rails.configuration.openshift[:gear_sizes].include?(gear_size)
+  end
+  
+  def self.gear_sizes_display_string
+    # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
+    out = '('
+    Rails.configuration.openshift[:gear_sizes].each_with_index do |gear_size, index|
+      out += gear_size
+      out += '(default)' if gear_size == Rails.configuration.openshift[:default_gear_size] 
+      out += '|' unless index == (Rails.configuration.openshift[:gear_sizes].length - 1) 
+    end
+    out += ')'
   end
 
 private
