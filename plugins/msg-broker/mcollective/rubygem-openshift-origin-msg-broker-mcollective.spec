@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.4.6
+Version: 0.4.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.4.7-1
+- Drop msg-broker requires on qpid packages (miciah.masters@gmail.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.4.6-1
 - Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
   hook into Rails initializers Making openshift-origin-dns-bind a Rails engine
