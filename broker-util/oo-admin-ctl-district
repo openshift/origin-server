@@ -195,7 +195,11 @@ WARNING
   end
 rescue OpenShift::OOException => e
   reply.errorIO << e.message
-  reply.exitcode = e.respond_to?('code') ? e.code : 1
+  if e.respond_to?('code') and e.code
+    reply.exitcode = e.code
+  else
+    reply.exitcode = 1
+  end
 end
 
 puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
