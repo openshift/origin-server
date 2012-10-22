@@ -22,6 +22,7 @@ Requires:  bind
 Requires:  mod_ssl
 Requires:  mod_passenger
 Requires:  mongodb-server
+Requires:  policycoreutils-python
 Requires:  rubygem(rails)
 Requires:  rubygem(xml-simple)
 Requires:  rubygem(bson_ext)
