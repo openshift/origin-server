@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 require 'pp'
+require "/var/www/openshift/broker/config/environment"
 
 def usage
     puts <<USAGE
@@ -21,8 +22,8 @@ Options:
     (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)
 -n|--name <district name>
     District name (Used on create or in place of uuid on other commands)
--p|--node_profile <profile_size>
-    (small(default)|jumbo|exlarge|large|medium|micro) Only needed for create
+-p|--node_profile <gear_size>
+    #{Gear::gear_sizes_display_string} Only needed for create
 -i|--server_identity
     Node server_identity (required)
 -s|--size
@@ -30,7 +31,7 @@ Options:
 -b|--bypass
     Ignore warnings
 -h|--help
-    Show Usage info
+    Show usage info
 USAGE
 end
 
@@ -71,7 +72,6 @@ if args["--help"]
   exit 1
 end
 
-require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
@@ -82,6 +82,11 @@ size     = args['--size'] ? args['--size'].to_i : nil
 bypass   = args['--bypass']
 name     = args['--name']
 node_profile = args['--node_profile']
+
+if node_profile && !Gear::valid_gear_size?(node_profile)
+  puts "Node profile must be one of: #{Gear::gear_sizes_display_string}"
+  exit 1
+end
   
 if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)\z/)
   puts "Command must be one of: (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)"
