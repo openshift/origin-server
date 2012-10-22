@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.4
+Version:        0.0.5
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -79,6 +79,9 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.0.5-1
+- Fixing Origin build scripts (kraman@gmail.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.0.4-1
 - Change libra guest to OpenShift guest (dmcphers@redhat.com)
 - Update Idler documentation (jhonce@redhat.com)
