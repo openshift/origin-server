@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   0.6.16
+Version:   0.6.17
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -172,6 +172,21 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Mon Oct 22 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.17-1
+- Merge pull request #737 from sosiouxme/master (dmcphers@redhat.com)
+- Merge pull request #734 from danmcp/master (openshift+bot@redhat.com)
+- have openshift-broker report bundler problems rather than silently fail. also
+  fix typo in oo-admin-chk usage (lmeyer@redhat.com)
+- Bug 868858 (dmcphers@redhat.com)
+- Bug 868782 - [Installation]Prompt "semanage: command not found"
+  (bleanhar@redhat.com)
+- Merge pull request #728 from kraman/build_script_updates
+  (openshift+bot@redhat.com)
+- Merge pull request #730 from kraman/848255 (openshift+bot@redhat.com)
+- removing remaining cases of SS and config.ss (dmcphers@redhat.com)
+- Fixing Origin build scripts (kraman@gmail.com)
+- Fix for Bugz#848255 (kraman@gmail.com)
+
 * Thu Oct 18 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.16-1
 - Merge pull request #657 from Miciah/drop-openshift-origin-node-from-broker-
   Gemfile-3 (openshift+bot@redhat.com)
