@@ -28,7 +28,7 @@ oo-admin-chk: Check all user applications
 
 == Usage
 
-oo-admin-ctl-app OPTIONS
+oo-admin-chk OPTIONS
 
 Options:
 -v|--verbose

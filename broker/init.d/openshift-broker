@@ -27,22 +27,29 @@ HTTPD_LANG=${HTTPD_LANG-"C"}
 apachectl=/usr/sbin/apachectl
 httpd=${HTTPD-/usr/sbin/httpd}
 prog=openshift-broker
-pidfile=${PIDFILE-/var/www/openshift/broker/httpd/run/httpd.pid}
+osdir=/var/www/openshift/broker/
+pidfile=${PIDFILE-$osdir/httpd/run/httpd.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/openshift-broker}
 RETVAL=0
 
-OPTIONS="-C 'Include /var/www/openshift/broker/httpd/broker.conf' -f /var/www/openshift/broker/httpd/httpd.conf"
+OPTIONS="-C 'Include $osdir/httpd/broker.conf' -f $osdir/httpd/httpd.conf"
 
 # The semantics of these two functions differ from the way apachectl does
 # things -- attempting to start while running is a failure, and shutdown
 # when not running is also a failure.  So we just do it the way init scripts
 # are expected to behave here.
 start() {
-        pushd /var/www/openshift/broker > /dev/null
+        echo -n $"Starting $prog: "
+        pushd $osdir > /dev/null
           rm -rf Gemfile.lock
           bundle install --local > /dev/null
+          RETVAL=$?
         popd > /dev/null
-        echo -n $"Starting $prog: "
+        if [ $RETVAL != 0 ]; then
+          echo $"Bundle failed"
+          echo "Run 'bundle install --local' in $osdir to see the problem."
+	  return $RETVAL
+	fi
         LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
         RETVAL=$?
         echo
