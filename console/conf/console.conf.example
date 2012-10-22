@@ -6,7 +6,7 @@
 #
 # Required
 #
-# BROKER_URL=https://localhost/broker/rest
+BROKER_URL=https://localhost/broker/rest
 
 
 #
@@ -54,7 +54,7 @@
 #   during startup of the console and any errors will prevent
 #   load.
 #
-# CONSOLE_SECURITY=remote_user
+CONSOLE_SECURITY=basic
 
 
 #

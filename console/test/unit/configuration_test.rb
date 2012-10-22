@@ -61,6 +61,10 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert_nil Console.config.security_controller # base config object has no defaults
   end
 
+  test 'Console.configure default succeeds' do
+    Console.configure(File.expand_path('../../../conf/console.conf.example', __FILE__))
+  end
+
   test 'Console.configure raises IO errors' do
     IO.expects(:read).with(File.expand_path('file')).raises(Errno::ENOENT)
     assert_raise(Errno::ENOENT){ Console.configure('file') }

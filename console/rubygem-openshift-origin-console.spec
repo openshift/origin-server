@@ -83,7 +83,7 @@ rm -f Gemfile.lock
 bundle install --local
 
 pushd test/rails_app/
-RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
+CONSOLE_CONFIG_FILE=../../conf/console.conf.example RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
 
 rm -rf tmp/cache/*
 echo > log/production.log
