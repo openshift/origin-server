@@ -65,7 +65,9 @@ Broker::Application.configure do
   ############################################
   config.openshift = {
     :domain_suffix => "example.com",
-    :default_max_gears => 100
+    :default_max_gears => 100,
+    :default_gear_size => "small",
+    :gear_sizes => ["small", "medium"]
   }
 
 end
