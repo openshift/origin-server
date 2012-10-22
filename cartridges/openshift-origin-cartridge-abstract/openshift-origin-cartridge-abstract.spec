@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.17
+Version:   0.17.18
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -70,6 +70,11 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.17.18-1
+- Merge pull request #724 from Miciah/cartridge-abstract-require-make
+  (openshift+bot@redhat.com)
+- Make cartridge-abstract depend on make (miciah.masters@gmail.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.17.17-1
 - Merge pull request #717 from pravisankar/dev/ravi/bug/866411
   (dmcphers@redhat.com)
