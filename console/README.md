@@ -45,18 +45,13 @@ The console needs an OpenShift server to run against - install using
 LiveCD](https://openshift.redhat.com/community/wiki/getting-started-with-openshift-origin-livecd)
 or [in a VM with
 liveinst](https://openshift.redhat.com/community/wiki/build-your-own-paas-from-the-openshift-origin-livecd-using-liveinst).
-Using a text editor create a file ~/.openshift/api.yml and give it the
+Using a text editor create a file ~/.openshift/console.conf and give it the
 following contents:
 
-    url: https://<origin_server>/broker/rest
-    suffix: <origin_suffix>
+    BROKER_URL=https://<origin_server>/broker/rest
+    DOMAIN_SUFFIX=<origin_suffix>
 
 The suffix is the DNS suffix used for applications, and defaults to rhcloud.com. 
-
-Now set the environment variable CONSOLE_API_MODE=external so the
-console knows it should point to that external server.
-
-    $ export CONSOLE_API_MODE=external
 
 Step 4: Run the tests
 
@@ -80,7 +75,7 @@ You can also run your console against our OpenShift hosted service using
 your own account.  To run:
 
     $ cd test/rails_app
-    $ CONSOLE_API_MODE=openshift bundle exec rails s
+    $ CONSOLE_CONFIG_FILE=../../conf/openshift_console.conf bundle exec rails s
 
 You will need to provide your own credentials to access the console.
 

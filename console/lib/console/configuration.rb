@@ -87,6 +87,13 @@ module Console
       @cartridge_type_metadata || File.expand_path(File.join('config', 'cartridge_types.yml'), Console::Engine.root)
     end
 
+    def user_agent
+      @user_agent ||= "openshift_console/#{Console::VERSION::STRING} (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+    end
+    def user_agent=(agent)
+      @user_agent = agent
+    end
+
     protected
 
       def load(file)
@@ -139,7 +146,7 @@ module Console
 
       def freeze_api(config, source)
         @api = {
-          :user_agent => "openshift_console/#{Console::VERSION::STRING} (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+          :user_agent => user_agent,
         }.with_indifferent_access.merge(config)
         @api[:source] = source
         @api.freeze

@@ -45,6 +45,10 @@ class ConfigurationTest < ActiveSupport::TestCase
     assert @ran
   end
 
+  test 'get default user agent' do
+    assert Console.config.user_agent =~ /openshift_console.*?\d+\.\d+\.\d/
+  end
+
   test 'Console.configure reads file' do
     expects_file_read(<<-FILE.strip_heredoc)
       BROKER_URL=foo
