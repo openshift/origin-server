@@ -4,10 +4,10 @@
 # info down to the broker.  The broker should be configured to 
 # authenticate with those headers.
 # 
-module Console::Auth::Passthrough
+module Console::Auth::RemoteUser
   extend ActiveSupport::Concern
 
-  class PassthroughUser < RestApi::Authorization
+  class RemoteUserUser < RestApi::Authorization
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -44,12 +44,14 @@ module Console::Auth::Passthrough
   # is unauthenticated
   def authenticate_user!
     @authenticated_user ||= begin
-        username = request.headers[Console.config.passthrough_user_header]
-        raise Console::AccessDenied unless username
-        logger.debug "  Identified user #{username} from header #{Console.config.passthrough_user_header}"
-        PassthroughUser.new(
-          username,
-          Console.config.passthrough_headers.inject({}) do |h, name|
+        name = request.env[Console.config.remote_user_header]
+        raise Console::AccessDenied unless name
+        display_name = request.env[Console.config.remote_user_name_header] unless Console.config.remote_user_name_header.nil?
+        name = display_name || name
+        logger.debug "  Identified user #{name} from headers"
+        RemoteUserUser.new(
+          name,
+          Console.config.remote_user_copy_headers.inject({}) do |h, name|
             h[name] = request.headers[name]
             h
           end)

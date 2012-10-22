@@ -47,8 +47,8 @@ class ConfigurationTest < ActiveSupport::TestCase
 
   test 'Console.configure reads file' do
     expects_file_read(<<-FILE.strip_heredoc)
-      broker_url=foo
-      broker_api_user=bob
+      BROKER_URL=foo
+      BROKER_API_USER=bob
     FILE
     Console.configure('file')
     assert_equal 'foo', Console.config.api[:url]
@@ -70,30 +70,32 @@ class ConfigurationTest < ActiveSupport::TestCase
 
   test 'Console.configure sets security_controller from basic' do
     expects_file_read(<<-FILE.strip_heredoc)
-      broker_url=foo
-      console_security=basic
+      BROKER_URL=foo
+      CONSOLE_SECURITY=basic
     FILE
     Console.configure('file')
     assert_equal Console::Auth::Basic, Console.config.security_controller.constantize
   end
 
-  test 'Console.configure sets security_controller from passthrough' do
+  test 'Console.configure sets security_controller from remote_user' do
     expects_file_read(<<-FILE.strip_heredoc)
-      broker_url=foo
-      console_security=passthrough
-      passthrough_user_header=X-Remote-User
-      passthrough_headers=X-Remote-User,Cookies
+      BROKER_URL=foo
+      CONSOLE_SECURITY=remote_user
+      REMOTE_USER_HEADER=X-Remote-User
+      REMOTE_USER_NAME_HEADER=X-Remote-User-Name
+      REMOTE_USER_COPY_HEADERS=X-Remote-User,Cookies
     FILE
     Console.configure('file')
-    assert_equal Console::Auth::Passthrough, Console.config.security_controller.constantize
-    assert_equal ['X-Remote-User','Cookies'], Console.config.passthrough_headers
-    assert_equal 'X-Remote-User', Console.config.passthrough_user_header
+    assert_equal Console::Auth::RemoteUser, Console.config.security_controller.constantize
+    assert_equal ['X-Remote-User','Cookies'], Console.config.remote_user_copy_headers
+    assert_equal 'X-Remote-User', Console.config.remote_user_header
+    assert_equal 'X-Remote-User-Name', Console.config.remote_user_name_header
   end
 
   test 'Console.configure sets security_controller to arbitrary' do
     expects_file_read(<<-FILE.strip_heredoc)
-      broker_url=foo
-      console_security=Console::Auth::None
+      BROKER_URL=foo
+      CONSOLE_SECURITY=Console::Auth::None
     FILE
     Console.configure('file')
     assert_equal Console::Auth::None, Console.config.security_controller.constantize
@@ -101,14 +103,14 @@ class ConfigurationTest < ActiveSupport::TestCase
 
   test 'Console.config.api sets api :external' do
     expects_file_read(<<-FILE.strip_heredoc, '~/.openshift/console.conf')
-      broker_url=foo
-      broker_api_source=ignored
-      broker_api_user=bob
-      broker_api_symbol=:foo
-      broker_api_timeout=0
-      broker_api_ssl_options={:verify_mode => OpenSSL::SSL::VERIFY_NONE}
-      broker_proxy_url=proxy
-      console_security=Console::Auth::None
+      BROKER_URL=foo
+      BROKER_API_SOURCE=ignored
+      BROKER_API_USER=bob
+      BROKER_API_SYMBOL=:foo
+      BROKER_API_TIMEOUT=0
+      BROKER_API_SSL_OPTIONS={:verify_mode => OpenSSL::SSL::VERIFY_NONE}
+      BROKER_PROXY_URL=proxy
+      CONSOLE_SECURITY=Console::Auth::None
     FILE
     (config = Console::Configuration.new).api = :external
     assert_equal 'foo', config.api[:url]

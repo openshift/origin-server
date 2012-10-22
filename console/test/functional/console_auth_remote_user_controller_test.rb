@@ -1,11 +1,11 @@
 require File.expand_path('../../test_helper', __FILE__)
 
-class ConsoleAuthPassthroughControllerTest < ActionController::TestCase
+class ConsoleAuthRemoteUserControllerTest < ActionController::TestCase
   uses_http_mock :sometimes
 
-  class ConsoleAuthPassthroughController < ActionController::Base
+  class ConsoleAuthRemoteUserController < ActionController::Base
     include Console::Rescue
-    include Console::Auth::Passthrough
+    include Console::Auth::RemoteUser
 
     before_filter :authenticate_user!, :except => :unprotected
 
@@ -21,13 +21,13 @@ class ConsoleAuthPassthroughControllerTest < ActionController::TestCase
     end
   end
 
-  setup{ Rails.application.routes.draw{ match ':action' => ConsoleAuthPassthroughController } }
+  setup{ Rails.application.routes.draw{ match ':action' => ConsoleAuthRemoteUserController } }
   teardown{ Rails.application.reload_routes! }
 
-  setup{ Console.config.expects(:passthrough_user_header).at_least_once.returns('X-Remote-User') }
-  setup{ Console.config.stubs(:passthrough_headers).returns(['X-Remote-User']) }
+  setup{ Console.config.expects(:remote_user_header).at_least_once.returns('HTTP_X_REMOTE_USER') }
+  setup{ Console.config.stubs(:remote_user_copy_headers).returns(['X-Remote-User']) }
 
-  tests ConsoleAuthPassthroughController
+  tests ConsoleAuthRemoteUserController
 
   test 'should redirect when protected' do
     get :protected
@@ -43,6 +43,23 @@ class ConsoleAuthPassthroughControllerTest < ActionController::TestCase
     assert assigns(:authenticated_user)
     assert_equal 'bob', @controller.current_user.login
     assert_equal 'bob', assigns(:authenticated_user).login
+
+    assert @controller.current_user.persisted?
+    assert @controller.user_signed_in?
+    assert !@controller.previously_signed_in?
+  end
+
+  test 'should override name configured' do
+    Console.config.expects(:remote_user_name_header).at_least_once.returns('HTTP_X_REMOTE_USER_NAME')
+    @request.env['HTTP_X_REMOTE_USER'] = 'bob'
+    @request.env['HTTP_X_REMOTE_USER_NAME'] = 'alice'
+
+    get :protected
+
+    assert_response :success
+    assert assigns(:authenticated_user)
+    assert_equal 'alice', @controller.current_user.login
+    assert_equal 'alice', assigns(:authenticated_user).login
   end
 
   test 'should pass headers to REST API' do

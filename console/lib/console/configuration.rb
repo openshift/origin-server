@@ -25,9 +25,12 @@ module Console
 
     config_accessor :disable_static_assets
     config_accessor :parent_controller
+
     config_accessor :security_controller
-    config_accessor :passthrough_headers
-    config_accessor :passthrough_user_header
+    config_accessor :remote_user_header
+    config_accessor :remote_user_name_header
+    config_accessor :remote_user_copy_headers
+
     config_accessor :disable_account
     config_accessor :cartridge_type_metadata
     config_accessor :include_helpers
@@ -88,20 +91,21 @@ module Console
 
       def load(file)
         config = Console::ConfigFile.new(file)
-        raise InvalidConfiguration, "broker_url not specified in #{file}" unless config[:broker_url]
+        raise InvalidConfiguration, "BROKER_URL not specified in #{file}" unless config[:BROKER_URL]
 
         freeze_api(api_config_from(config), file)
 
-        case config[:console_security]
+        case config[:CONSOLE_SECURITY]
         when 'basic'
           self.security_controller = 'Console::Auth::Basic'
-        when 'passthrough'
-          self.security_controller = 'Console::Auth::Passthrough'
-          [:passthrough_headers, :passthrough_user_header].each do |s|
-            self.send(:"#{s}=", s.to_s.ends_with?('s') ? config[s].split(',') : config[s]) if config[s]
+        when 'remote_user'
+          self.security_controller = 'Console::Auth::RemoteUser'
+          [:remote_user_copy_headers, :remote_user_header, :remote_user_name_header].each do |s|
+            value = config[s.upcase]
+            self.send(:"#{s}=", s.to_s.ends_with?('s') ? value.split(',') : value) if value
           end
         when String
-          self.security_controller = config[:console_security]
+          self.security_controller = config[:CONSOLE_SECURITY]
         end
       end
 
@@ -122,14 +126,14 @@ module Console
 
       def api_config_from(config)
         config.inject(HashWithIndifferentAccess.new) do |h, (k, v)|
-          if match = /^broker_api_(.*)/.match(k)
-            h[match[1]] = to_ruby_value(v)
+          if match = /^BROKER_API_(.*)/.match(k)
+            h[match[1].downcase] = to_ruby_value(v)
           end
           h
         end.merge({
-          :url    => config[:broker_url],
-          :proxy  => config[:broker_proxy_url],
-          :suffix => config[:domain_suffix],
+          :url    => config[:BROKER_URL],
+          :proxy  => config[:BROKER_PROXY_URL],
+          :suffix => config[:DOMAIN_SUFFIX],
         })
       end
 
@@ -146,7 +150,7 @@ module Console
     config.disable_static_assets = false
     config.disable_account = false
     config.parent_controller = 'ApplicationController'
-    config.security_controller = 'Console::Auth::Passthrough'
+    config.security_controller = 'Console::Auth::RemoteUser'
     config.include_helpers = true
   end
 end
