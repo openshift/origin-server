@@ -26,7 +26,7 @@ function get_mcs_level() {
 if [ "$3" = 1 ]; then
     passwd=$(getent passwd "$4")
     homedir=$(echo "$passwd" | cut -f6 -d":")
-    context=$(getfattr --only-values -n security.selinux "$hoemdir" 2>/dev/null)
+    context=$(getfattr --only-values -n security.selinux "$homedir" 2>/dev/null)
     setype=$(echo "$context" | cut -f 3 -d":")
 
     #  Don't change ownership on /sandbox
