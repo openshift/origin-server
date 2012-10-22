@@ -54,6 +54,7 @@ This contains the Cloud Development Controller packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{_sysconfdir}/openshift/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec

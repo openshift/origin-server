@@ -46,12 +46,12 @@ mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-basic.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-auth-remote-user/config/initializers/openshift-origin-auth-remote-user-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
+cp conf/openshift-origin-auth-remote-user.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %clean
 rm -rf %{buildroot}
@@ -70,7 +70,7 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
+%{brokerdir}/httpd/conf.d/%{gemname}-basic.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-ldap.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-kerberos.conf.sample
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example

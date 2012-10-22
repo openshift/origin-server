@@ -19,6 +19,7 @@ require 'rubygems'
 require 'fileutils'
 require 'getoptlong'
 require 'json'
+require "openshift-origin-common/config"
 require "openshift-origin-common/models/model"
 require "openshift-origin-common/models/user_model"
 require "openshift-origin-common/exceptions/oo_exception"

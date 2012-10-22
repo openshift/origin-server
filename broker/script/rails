@@ -9,13 +9,15 @@ require 'rails/commands/server'
 require 'rack'
 require 'webrick'
 require 'webrick/https'
+require 'openshift-origin-node'
 
 module Rails
     class Server < ::Rack::Server
         def default_options
+	    is_dev = File.exist? File.join(OpenShift::Config::CONF_DIR, 'development')
             super.merge({
                 :Port => 443,
-                :environment => (ENV['RAILS_ENV'] || "development").dup,
+                :environment => is_dev ? 'development' : 'production',
                 :daemonize => false,
                 :debugger => false,
                 :pid => File.expand_path("tmp/pids/server.pid"),

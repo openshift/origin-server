@@ -48,6 +48,7 @@ Provides a kerberos auth service based plugin
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}/etc/openshift/plugins.d
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -58,7 +59,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/openshift/plugins.d
-cp lib/openshift-origin-auth-kerberos/config/initializers/openshift-origin-auth-kerberos-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-kerberos.conf.example
+cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/plugins.d/
 
 %clean
 rm -rf %{buildroot}

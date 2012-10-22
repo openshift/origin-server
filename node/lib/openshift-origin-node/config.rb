@@ -5,7 +5,7 @@
 
 require 'rubygems'
 
-require 'openshift-origin-common/config'
+require 'openshift-origin-common'
 
 module OpenShift
   class Config

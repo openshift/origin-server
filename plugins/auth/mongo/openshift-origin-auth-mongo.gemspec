@@ -3,6 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
 bin_dir  = File.join("bin","*")
+conf_dir  = File.join(File.join("conf", "**"), "*")
 spec_file = "rubygem-openshift-origin-auth-mongo.spec"
 
 Gem::Specification.new do |s|
@@ -17,7 +18,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "openshift-origin-auth-mongo"
 
-  s.files       = Dir[lib_dir] + Dir[bin_dir]
+  s.files       = Dir[lib_dir] + Dir[bin_dir] + Dir[conf_dir]
   s.test_files  = Dir[test_dir]
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-auth-mongo.spec openshift-origin-auth-mongo.gemspec LICENSE COPYRIGHT)
