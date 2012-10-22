@@ -871,7 +871,7 @@ $cartridgeBorderWidth: 10px;
   }
 }
 
-.ie9 .table-fixed, .ie8 .table-fixed { table-layout: fixed } // allow td text-overflow
+.ie9 .table-fixed, .ie8 .table-fixed, .ie7 .table-fixed { table-layout: fixed } // allow td text-overflow
 
 .sshkey-name {
   max-width: 80px;
