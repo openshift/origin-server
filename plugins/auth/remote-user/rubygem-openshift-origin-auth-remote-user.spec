@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.12
+Version:        0.0.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,9 @@ rm -rf %{buildroot}
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.0.13-1
+- BZ847976 - Fixing Jenkins integration (bleanhar@redhat.com)
+
 * Thu Oct 18 2012 Adam Miller <admiller@redhat.com> 0.0.12-1
 - Fixed broker/node setup scripts to install cgroup services. Fixed
   mcollective-qpid plugin so it installs during origin package build. Updated
