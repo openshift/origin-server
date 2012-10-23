@@ -1,0 +1,10 @@
+[Unit]
+Description=OpenShift Port Proxy
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+ExecStart=/usr/sbin/openshift-port-proxy
+ExecReload=/bin/kill -USR2 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

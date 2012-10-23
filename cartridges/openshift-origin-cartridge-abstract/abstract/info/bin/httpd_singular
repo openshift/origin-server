@@ -1,0 +1,106 @@
+#!/bin/env ruby
+
+require 'rubygems'
+require 'open4'
+require 'thread'
+require 'tempfile'
+require 'json'
+
+HTTPD_SYSTEM="apachectl"
+HTTPD_CMDS=["graceful"]
+HTTPD_PRE_CMDS=["configtest"]
+LOCKFILE=File.join(Dir::tmpdir,"httpd_singular.lock")
+REQPREFIX="httpd_singular.req"
+
+def single_instance(&block)
+  File.open(LOCKFILE, File::CREAT|File::TRUNC|File::RDWR, 0640) do |f|
+    begin
+      f.flock(File::LOCK_EX)
+      block.call
+    ensure
+      f.flock(File::LOCK_UN)
+    end
+  end
+end
+
+ 
+def async_cat(infd, outbuf)
+  th = Thread.new(infd, outbuf) do
+    loop do
+      Thread.current[:buf] = infd.getc
+      break if Thread.current[:buf].nil?
+      outbuf << Thread.current[:buf]
+    end
+  end
+  return th
+end
+
+def load_reqset(reqset=[])
+  reqfilter="#{REQPREFIX}.#{ARGV[0]}."
+
+  Dir.foreach(Dir::tmpdir) do |dent|
+    next if dent[0,reqfilter.length] != reqfilter
+    fpath=File.join(Dir::tmpdir,dent)
+    next if File.size(fpath) != 0
+    reqset << fpath
+  end
+  reqset.uniq
+end
+
+
+if ! HTTPD_CMDS.include?(ARGV[0])
+  warn("Command must be one of: #{HTTPD_CMDS.join(' ')}")
+  exit(false)
+end
+
+# Create the request
+reqfile = Tempfile.new("#{REQPREFIX}.#{ARGV[0]}.XXXXXX")
+reqfile.sync = true
+
+# Process all requests and get our output back
+rc=0
+single_instance do
+  
+  reqset = load_reqset()
+
+  if reqset.length != 0
+    out=""
+    err=""
+    rc=0
+    [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
+      status = Open4.popen4ext(true, "#{HTTPD_SYSTEM} #{cmd}") do |pid, stdin, stdout, stderr|
+        stdin.close
+        thset = []
+        thset << async_cat(stdout, out)
+        thset << async_cat(stderr, err)
+        thset.each do |th|
+          th.join
+        end
+      end
+      if status.exitstatus != 0
+        rc = status.exitstatus
+        break
+      end
+    end
+
+    reqset.each do |fpath|
+      File.open(fpath,'w') { |f|
+        f.write( { "RC"=> rc,
+                   "STDOUT"=> out,
+                   "STDERR"=> err }.to_json )
+        f.flush()
+      }
+    end
+  end
+
+  reqfile.seek(0, IO::SEEK_SET)
+  res = JSON.parse(reqfile.read)
+  reqfile.unlink()
+  reqfile.close()
+
+  $stderr.write(res["STDERR"])
+  $stdout.write(res["STDOUT"])
+  rc = res["RC"]
+end # single_instance
+
+exit(rc)

@@ -1,0 +1,38 @@
+#footer-nav
+  .container
+    .row
+      %nav.span4
+        %header
+          %h3= link_to 'Developers', developers_url
+        %ul.unstyled
+          %li= link_to 'Get Started', getting_started_path
+          %li= link_to 'User Guide', user_guide_url
+          %li= link_to 'FAQ', faq_url
+          %li= link_to 'Ask on StackOverflow', stack_overflow_url
+
+      %nav.span4
+        %header
+          %h3= link_to 'Community', community_url
+        %ul.unstyled
+          %li= link_to 'Blog', openshift_blog_url
+          %li= link_to 'Forum', forums_url
+          %li= link_to 'IRC Channel', irc_web_url
+          %li= link_to 'Feedback', mailto_openshift_url
+
+      %nav.span4
+        %header
+          %h3= link_to 'OpenShift Origin', opensource_community_url
+        %ul.unstyled
+          %li= link_to 'Get the Source', opensource_download_url
+          %li= link_to 'Community Process', opensource_process_url
+          %li= link_to 'Make it Better', opensource_architecture_url
+          %li= link_to 'OpenShift on GitHub', openshift_github_url
+
+%section#copyright
+  .container
+    Source code for the OpenShift Origin management console is
+    #{link_to "available on Github", openshift_github_project_url('origin-server/tree/master/console')}. See
+    #{link_to "README.md", openshift_github_project_url('origin-server/blob/master/README.md')}
+    for copyright and source information. OpenShift, OpenShift Origin and the OpenShift Logo are 
+    trademarks of Red Hat, Inc.
+

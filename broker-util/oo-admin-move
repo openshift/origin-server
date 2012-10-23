@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-move: Move an app from one node to another
+
+== Usage
+
+oo-admin-move OPTIONS
+
+Options:
+--gear_uuid <gear_uuid>
+    Gear uuid to move
+--destination_district_uuid <district_uuid>
+    Destination district uuid
+-i|--target_server_identity <server_identity>
+    Target server identity
+-p|--node_profile <node_profile>
+    Node profile
+-t|--timeout
+    timeout
+--allow_change_district
+    Allow the move to be between districts
+-h|--help
+    Show Usage info
+USAGE
+end
+
+opts = GetoptLong.new(
+    ["--gear_uuid",        "-g", GetoptLong::REQUIRED_ARGUMENT],
+    ["--destination_district_uuid", "-u", GetoptLong::REQUIRED_ARGUMENT],
+    ["--target_server_identity", "-i", GetoptLong::REQUIRED_ARGUMENT],
+    ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
+    ["--timeout",          "-t", GetoptLong::REQUIRED_ARGUMENT],
+    ["--allow_change_district",  GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+gear_uuid = args["--gear_uuid"]
+target_server_identity = args['--target_server_identity']
+destination_district_uuid = args['--destination_district_uuid']
+node_profile = args['--node_profile']
+allow_change_district = args['--allow_change_district'] ? true : false
+timeout  = args['--timeout']
+
+if args["--help"]
+  usage
+  exit 1
+end
+
+if timeout
+  unless timeout =~ /^[0-9]+$/
+    puts "ERROR: Timeout must be a positive integer"
+    exit 1
+  end
+end
+
+unless gear_uuid
+  puts "ERROR: Please specify gear_uuid for moving gear"
+  exit 1
+end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+# Set the MCollective options
+if timeout
+  Rails.configuration.msg_broker[:rpc_options][:timeout] = timeout.to_i
+end
+
+app = nil
+user = nil
+gear = nil
+
+app, gear = Application.find_by_gear_uuid(gear_uuid)
+
+if gear.nil? or app.nil?
+  puts "ERROR: Gear not found: #{gear_uuid}"
+  exit 1
+end
+
+if app.scalable and node_profile
+  puts "Cannot specify 'node_profile' for a gear belonging to a scalable application."
+  exit 1
+end
+
+url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+
+puts "URL: #{url}"
+puts "Login: #{app.user.login}"
+puts "App UUID: #{app.uuid}"
+puts "Gear UUID: #{gear.uuid}"
+
+destination_container = nil
+destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
+
+reply = app.container.move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+
+puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?

@@ -1,0 +1,43 @@
+Name: haproxy-1.4
+Display-Name: HAProxy 1.4
+Description: "HAProxy can be used as a load balancer and scaling agent for web frameworks"
+Version: 1.4.20
+License:
+License-Url:
+Vendor: http://haproxy.1wt.eu/
+Categories:
+  - cartridge
+  - web_proxy
+  - git_host
+  - scales
+Website:
+Help-Topics:
+Cart-Data:
+Suggests:
+
+Provides:
+  - "haproxy"
+  - "haproxy(version) = 1.4"
+Requires:
+Conflicts:
+Native-Requires:
+  - "haproxy >= 1.4"
+Architecture: noarch
+Publishes:
+  get-balancer-connection-info:
+    Type: "NET_TCP:http:http"
+Subscribes:
+  haproxy-colocation-hack:
+    Type: "FILESYSTEM:haproxy:colocate-hack"
+  set-proxy:
+    Type: "NET_TCP:httpd-proxy-info"
+    Required : false
+  set-gear-endpoints:
+    Type: "NET_TCP:gear-endpoint-info"
+    Required: false
+  set-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+    Required: false
+Scaling:
+  Min: 1
+  Max: 1

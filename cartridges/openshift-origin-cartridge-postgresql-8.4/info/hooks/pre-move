@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Prepare to move to a new ip
+
+# Exit on any errors
+set -e
+
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+[ $# -eq 3 ] || print_help
+
+namespace=`basename $2`
+application="$1"
+uuid=$3
+
+setup_basic_vars
+cartridge_type="postgresql-8.4"
+
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
+source ${CART_INFO_DIR}/lib/util
+
+CART_INSTANCE_DIR="$APP_HOME/$cartridge_type/"
+
+mkdir -p $CART_INSTANCE_DIR/.env
+cp $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST $CART_INSTANCE_DIR/.env
+cp $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT $CART_INSTANCE_DIR/.env
+cp $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD $CART_INSTANCE_DIR/.env
+cp $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME $CART_INSTANCE_DIR/.env

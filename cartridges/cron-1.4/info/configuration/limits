@@ -1,5 +1,0 @@
-#
-#  Maximum allowed run time for all scheduled jobs of a type/frequency for
-#  a stickshift user. See man 1 timeout for more details ...
-#
-MAX_RUN_TIME=5m

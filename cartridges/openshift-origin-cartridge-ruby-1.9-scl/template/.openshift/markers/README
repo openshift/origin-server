@@ -1,0 +1,13 @@
+Markers
+===========
+
+Adding marker files to this directory will have the following effects:
+
+force_clean_build - Previous output from bundle install --deployment will be
+     removed and all gems will be reinstalled according to the current
+     Gemfile/Gemfile.lock.
+
+hot_deploy - Will prevent the apache process from being restarted during
+    build/deployment. Note that mod_passenger will respawn the Rack worker
+    processes if any code has been modified.
+

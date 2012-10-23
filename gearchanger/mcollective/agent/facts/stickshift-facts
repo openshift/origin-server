@@ -1,2 +1,0 @@
-#!/bin/bash
-/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml

@@ -1,0 +1,40 @@
+                    Kerberos Auth Plugin for OpenShift Origin
+                   ----------------------------------
+OpenShift Origin is an optional plugin for OpenShift and it provides authentication. It uses MD5 + salt scheme for encrypting passwords and it uses Mongo datastore for persistence.
+This document describes how to register and authenticate OpenShift Origin user using SWingShift.
+
+* Install OpenShift Origin
+* Configure OpenShift Origin
+* Authenticate OpenShift Origin user
+
+* Install OpenShift Origin
+
+* Configure OpenShift Origin
+  TODO include something about configuring kerberos on the host
+
+  Enable kerberos auth in OpenShift Origin configuration
+
+    systemctl stop openshift-origin-broker.service
+
+    SS_BROKER_ENVDIR=/var/www/openshift/broker/config/environments
+    echo "require File.expand_path('../plugin-config/openshift-origin-auth-kerberos.rb', __FILE__)" >> ${SS_BROKER_ENVDIR}/development.rb
+cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-kerberos.rb
+    Broker::Application.configure do
+      config.auth = {
+        :salt => "ClWqe5zKtEW4CJEMyjzQ",
+
+      }
+    end
+    EOF
+
+    systemctl start openshift-origin-broker.service
+
+* Authenticate OpenShift Origin user
+  Any REST api calls or CLI tools to OpenShift Origin will be processed only for the registered user-name/password
+  Example:
+    The below query fails with 'Access Denied' error.
+    curl -k https://localhost/broker/rest/domains
+
+    The below query succeeds for valid username/password.
+    curl -k --user "<kerberos-user-name>:<password>" https://localhost/broker/rest/domains
+

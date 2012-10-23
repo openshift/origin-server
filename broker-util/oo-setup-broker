@@ -1,0 +1,413 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#    http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'parseconfig'
+require 'getoptlong'
+require 'fileutils'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-setup-broker: Script to setup the broker and required services on this machine.
+  This command must be run as root.
+
+== List of arguments
+  --eip|--external-ip <IP/PREFIX>	Sets up the VM to use a static IP on the external ethernet device. (Defaults to DHCP)
+  --egw|--external-gw <IP>		Gateway for external IP (only for non-dhcp address)
+  --ed |--external-device		Sets up the VM to use specified ethernet device. Default: eth0
+
+  --iip|--internal-ip <IP/PREFIX>	Sets up the VM to use a static IP on the internal ethernet device. (Defaults to DHCP)
+  --id |--internal-device		Sets up the VM to use specified ethernet device. (Defaults to same as external)
+
+   -n  |--static-dns <IP>[,<IP>]        Comma seperated list of IP addresses to use for DNS forwarding
+   -d  |--domain <Domain suffix>        Domain suffix for this cloud (Default: example.com)
+       |--skip-node                     Skip node setup (default: false if openshift-broker-node package is installed)
+  -?   |--help                          Print this message
+       |--build			Used during livecd or AMI build. Only makes configuration changes that do not require running services
+
+USAGE
+end
+
+def find_and_replace(file, find, replace)
+  data = File.open(file).read
+  File.open(file, "w") do |f|
+    data = data.gsub(find, replace)
+    f.write(data)
+  end
+end
+
+def insert_if_not_exist(file, find, to_insert)
+  data = File.open(file).read
+  return if data.match(find)
+  File.open(file, "w") do |f|
+    f.write(data)
+    f.write(to_insert)
+  end
+end
+
+opts = GetoptLong.new(
+    ["--external-ip",           "--eip", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--external-gw",           "--egw", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--external-device",       "--ed" , GetoptLong::OPTIONAL_ARGUMENT],
+
+    ["--internal-ip",           "--iip", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--internal-gw",           "--igw", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--internal-device",       "--id" , GetoptLong::OPTIONAL_ARGUMENT],
+
+    ["--static-dns",            "-n"  , GetoptLong::OPTIONAL_ARGUMENT],
+    ["--skip-node",                     GetoptLong::NO_ARGUMENT],
+    ["--domain",                "-d"  , GetoptLong::OPTIONAL_ARGUMENT],
+    ["--build",                         GetoptLong::NO_ARGUMENT],
+    ["--help",                  "-?"  , GetoptLong::NO_ARGUMENT])
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+
+if args["--help"]
+  usage
+  exit 0
+end
+
+ext_eth_device = args["--external-device"] || "eth0"
+ext_address    = args["--external-ip"]
+ext_address,ext_prefix = ext_address.split("/") unless ext_address.nil?
+ext_gw         = args["--external-gw"]
+
+int_eth_device = args["--internal-device"] || ext_eth_device
+int_address    = args["--internal-ip"]
+int_address,int_prefix = int_address.split("/") unless int_address.nil?
+
+node_domain =  args["--domain"] || "example.com"
+dns            = args["--static-dns"]
+dns_address    = dns.split(/,/) unless dns.nil?
+ext_dhcp       = false
+int_dhcp       = false
+use_systemd    = File.exist?('/bin/systemd')
+use_nm         = (use_systemd and File.exist?('/lib/systemd/system/NetworkManager.service'))
+build          = !!args["--build"]
+
+if ext_address.nil? #DHCP
+  ext_address = `/sbin/ip addr show dev #{ext_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  ext_dhcp = true
+end 
+
+if int_address.nil? #DHCP
+  int_address = `/sbin/ip addr show dev #{int_eth_device} | awk '/inet / { split($2,a, "/") ; print a[1];}'`
+  int_dhcp = true
+end
+
+if !ext_dhcp && (ext_address.nil? || ext_address.empty? || ext_prefix.nil? || ext_prefix.empty? || ext_gw.nil? || ext_gw.empty?)
+  usage
+  print "Must provide --external-ip <IP/PREFIX> and --external-gw <IP> for statically configuring external ethernet device.\n" 
+  exit -1
+end
+
+if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty?)
+  usage
+  print "Must provide --internal-device <DEV> --internal-ip <IP/PREFIX> and --internal-gw <IP> for statically configuring internal ethernet device.\n"
+  exit -1
+end
+
+ext_hw_address = `/sbin/ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+int_hw_address = `/sbin/ip addr show dev #{int_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
+
+if dns_address.nil?
+  if ext_dhcp
+    dns_address = `cat /var/lib/dhclient/dhclient-*#{ext_eth_device}.lease* | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
+    dns_address.delete '127.0.0.1'
+  else
+    dns_address = ["8.8.8.8", "8.8.4.4"]
+  end
+end
+
+if dns_address.nil? || dns_address.length == 0
+  usage
+  print "Error: Unable to determine DNS servers.\n\n"
+  exit -1
+end
+
+if ext_address.nil? || ext_address.empty?
+  usage
+  print "Error: Unable to determine IP address of server.\n\n"
+  exit -1
+end
+
+if args["--help"]
+  usage
+  exit -1
+end
+
+### Begin package setup
+if `rpm -q qpid-cpp-server 2> /dev/null`.match(/is not installed/)
+  print "Installing qpid AMQP server\n"
+  system "yum install -y qpid-cpp-server"
+end
+insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
+
+print "Installing DNS server related SELinux policies\n"
+system <<-EOOF
+semanage -i - <<_EOF
+boolean -m --on named_write_master_zones
+_EOF
+EOOF
+
+if not File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+  print "Installing configuration for mongo auth service\n"
+  FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example", "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf"
+end
+
+if not File.exist?("/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf")
+  print "Installing configuration for mcollective broker plugin\n"
+  FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example", "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
+end
+
+print "Installing broker gem dependencies\n"
+system <<-EOF
+pushd /var/www/openshift/broker/
+rm -f Gemfile.lock
+bundle install
+chown apache:apache Gemfile.lock
+popd
+EOF
+
+print "Configuring mcollective client and server to use qpid\n"
+File.open("/etc/mcollective/client.cfg","w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+loglevel = debug
+logfile = /var/log/mcollective-client.log
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.example.com
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
+
+File.open("/etc/mcollective/server.cfg", "w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+logfile = /var/log/mcollective.log
+loglevel = debug
+daemonize = 1 
+direct_addressing = n
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.example.com
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
+
+system <<-EOF
+/sbin/restorecon -r /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid
+
+if [ ! -f /etc/qpidd.conf.orig ] ; then
+  mv /etc/qpidd.conf /etc/qpidd.conf.orig
+fi
+cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
+if [[ "x`fgrep auth= /etc/qpidd.conf`" == xauth* ]] ; then
+  sed -i -e 's/auth=yes/auth=no/' /etc/qpidd.conf
+else
+  echo "auth=no" >> /etc/qpidd.conf
+fi
+EOF
+
+### Begin network setup
+
+File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
+  f.write "DEVICE=#{ext_eth_device}\n"
+  f.write "ONBOOT=yes\n"
+  f.write "HWADDR=#{ext_hw_address}\n"
+if ext_dhcp
+    f.write "BOOTPROTO=dhcp\n"
+else
+    f.write "BOOTPROTO=static\n"
+    f.write "IPADDR=#{ext_address}\n"
+    f.write "PREFIX=#{ext_prefix}\n"
+    f.write "GATEWAY=#{ext_gw}\n"
+end
+  f.write "DNS1=127.0.0.1\n"
+  dns_address.each_index do |idx|
+    f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
+  end
+
+  f.write "TYPE=Ethernet\n"
+  f.write "DEFROUTE=yes\n"
+  f.write "PEERDNS=no\n" if use_nm
+  f.write "PEERROUTES=yes\n"
+end
+
+if int_eth_device != ext_eth_device
+  File.open("/etc/sysconfig/network-scripts/ifcfg-#{int_eth_device}","w") do |f|
+    f.write "DEVICE=#{int_eth_device}\n"
+    f.write "ONBOOT=yes\n"
+    f.write "HWADDR=#{int_hw_address}\n"
+    if int_dhcp
+      f.write "BOOTPROTO=dhcp\n"
+    else
+      f.write "BOOTPROTO=static\n"
+      f.write "IPADDR=#{int_address}\n"
+      f.write "PREFIX=#{int_prefix}\n"
+    end
+  end
+end
+
+system "chkconfig network on"
+system "service network restart" unless build
+
+system "service NetworkManager restart && sleep 5" if (use_nm && !build)
+
+print "Opening required ports\n"
+system "lokkit --service=ssh"
+system "lokkit --service=http"
+system "lokkit --service=https"
+system "lokkit --service=dns"
+system "lokkit -p 5672:tcp"  #qpid
+
+### End network setup
+
+### Begin mongo setup
+
+print "Starting mongodb\n"
+system "chkconfig mongod on" 
+
+insert_if_not_exist("/etc/mongodb.conf", "smallfiles=true", "\nsmallfiles=true\n")
+unless build
+  # As of Oct 18th, 2012 there is a open bug on mongod start issue
+  # More details: https://jira.mongodb.org/browse/SERVER-7285
+  # Work-Around: Start mongod as mongodb user instead of using sysctl service.
+  #system "service mongod start"
+  system "pkill -u mongodb"
+
+  print "Repair mongodb database if needed..."
+  system "rm -f /var/lib/mongodb/mongod.lock"
+  system "sudo -u mongodb mongod -f /etc/mongodb.conf --repair"
+  while not system('/bin/fgrep "dbexit: really exiting now" /var/log/mongodb/mongodb.log') do
+    print "."
+    sleep 2
+  end
+
+  print "Initializing mongodb database..."
+  system "rm -f /var/lib/mongodb/mongod.lock"
+  system "sudo -u mongodb mongod -f /etc/mongodb.conf"
+  while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
+    print "."
+    sleep 3
+  end
+  
+  print "Setup mongo db user\n"
+  print `/usr/bin/mongo localhost/admin --eval 'db.addUser("openshift", "mooo")'`
+  print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
+end
+find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+system "service mongod start" unless build
+
+### End mongo setup
+
+### Begin BIND DNS setup
+
+unless File.exist?('/etc/rndc.key')
+  print  "Unable to find rnds.key .. generating\n"
+  system "rndc-confgen -a"
+  system "/sbin/restorecon /etc/rndc.* /etc/named.*"
+  system "chown root:named /etc/rndc.key"
+  system "chmod 0640 /etc/rndc.key"
+end
+
+system "/usr/bin/oo-setup-bind #{node_domain}"
+
+print "Configure and start local named\n"
+File.open("/var/named/forwarders.conf", "w") do |f|
+  f.write("forwarders { #{dns_address.join(" ; ")} ; } ;")
+end
+system "/sbin/restorecon -v /var/named/forwarders.conf"
+system "chkconfig named on"
+system "service named restart" unless build
+
+print "Update resolve.conf with dns servers\n"
+File.open("/etc/resolv.conf", "w") do |f|
+  f.write("nameserver 127.0.0.1\n")
+  dns_address.each { |ns| f.write("nameserver #{ns}\n") }
+end
+
+File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","a") do |f|
+  f.write "DNS1=127.0.0.1\n"
+  dns_address.each_index do |idx|
+    f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
+  end
+end
+
+system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless build
+
+### End BIND DNS setup
+
+unless build
+  print "Register admin user\n"
+  `mongo openshift_broker_dev --username openshift --password mooo --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+end
+
+File.open("/etc/openshift/express.conf", "w") do |f|
+  f.write("libra_server=broker.example.com\n")
+end
+ 
+["httpd","sshd","qpidd","mcollective","openshift-broker","openshift-port-proxy"].each do |service|
+  system "chkconfig #{service} on" 
+  system "service #{service} restart" unless build
+end
+
+unless args["--skip-node"] || build || /not installed/.match(`rpm -q openshift-origin-node-util`)
+  print "Connect node services to local broker\n"
+  args = []
+  args += ["--external-ip", "#{ext_address.strip}/#{ext_prefix.strip}"] unless ext_dhcp
+  args += ["--external-gw", ext_gw.strip] unless ext_dhcp
+  args += ["--external-device", ext_eth_device.strip] unless ext_eth_device.nil?
+  args += ["--internal-ip", "#{int_address.strip}/#{int_prefix.strip}"] unless int_dhcp
+  args += ["--internal-device", int_eth_device.strip] unless int_eth_device.nil?
+  args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
+  args += ["--domain", node_domain.strip] unless node_domain.nil?
+
+  system("/usr/bin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
+end

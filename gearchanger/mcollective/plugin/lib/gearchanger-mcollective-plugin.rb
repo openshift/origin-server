@@ -1,3 +1,0 @@
-require "stickshift-common"
-require "gearchanger-mcollective-plugin/gearchanger/mcollective_application_container_proxy.rb"
-StickShift::ApplicationContainerProxy.provider=GearChanger::MCollectiveApplicationContainerProxy

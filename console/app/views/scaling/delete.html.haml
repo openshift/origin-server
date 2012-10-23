@@ -1,0 +1,17 @@
+- breadcrumb_for_application @application, 'Disable Scaling'
+- content_for :page_title, 'Disable Scaling'
+
+%h1 Disable Scaling
+
+%section
+  %p
+    Your application is currently set to scale the web cartridge.  
+    At this time applications that scale cannot have scaling disabled.
+    You must create a new application and migrate your source code if 
+    you wish to remove the high availability proxy cartridge that 
+    provides scaling.
+
+  %p 
+    We hope to add this feature in the future - you can provide feedback
+    about this and other features in OpenShift via our #{link_to 'feature request page', suggest_features_url}.
+

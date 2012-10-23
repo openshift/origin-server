@@ -1,0 +1,138 @@
+.input-prepend, .input-append, .input-prepend-append {
+  margin-bottom: 5px;
+  *zoom: 1;
+	}
+.input-prepend:before,
+.input-append:before,
+.input-prepend:after,
+.input-append:after,
+.input-prepend-append:before,
+.input-prepend-append:after {
+  display: table;
+  content: "";
+	}
+.input-prepend:after, .input-append:after, .input-prepend-append:after {
+  clear: both;
+	}
+.input-append input,
+.input-append .uneditable-input {
+  @include border-radius(3px 0 0 3px);
+	}
+.input-prepend input,
+.input-prepend .uneditable-input {
+  @include border-radius(0 3px 3px 0);
+	}
+.input-prepend input:focus,
+.input-append input:focus,
+.input-prepend-append input:focus,
+.input-prepend .uneditable-input:focus,
+.input-append .uneditable-input:focus {
+  position: relative;
+  z-index: 2;
+	}
+.input-prepend .uneditable-input, .input-append .uneditable-input {
+  border-left-color: #ccc;
+	}
+.input-prepend .add-on, .input-append .add-on, 
+.input-prepend-append .add-on-first, .input-prepend-append .add-on-last {
+  float: left;
+  display: block;
+  width: auto;
+  min-width: 16px;
+  height: 18px;
+  margin-right: -1px;
+  padding: 4px 11px;
+  font-weight: normal;
+  line-height: 18px;
+  color: #999999;
+  text-align: center;
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  @include border-radius(3px 0 0 3px);
+	}
+.input-append .add-on {
+  border-radius: 0 3px 3px 0;
+	}
+.input-prepend-append input {
+  @include border-radius(0);
+  border-left: 0;
+  border-right: 0;
+  float: left;
+	}
+.input-prepend-append .add-on-first {
+	margin-right: 0;
+	}
+.input-prepend-append .add-on-last {
+	display: inline;
+  @include border-radius(0 3px 3px 0);
+	}
+.input-prepend-append .add-on-middle {
+	display: block;
+  float: left;
+  height: 18px;
+  line-height: 18px;
+  padding: 4px 5px;
+  text-align: center;
+  background-color: #fff;
+  color: #999;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  @include box-shadow(0 1px 1px rgba(0, 0, 0, 0.075) inset);
+	}
+.input-prepend .active, .input-append .active, .input-prepend-append .active {
+  background-color: #a9dba9;
+  border-color: #46a546;
+	}
+.input-prepend-append .add-on {
+	border: 1px solid #f4f4f4;
+	}
+.form-inline .input-prepend-append {
+  display: inline-block;
+	}
+.form-inline .input-prepend-append .add-on-first,
+.form-inline .input-prepend-append .add-on-last {
+  vertical-align: middle;
+	}
+.control-group-important .input-prepend-append .add-on-first,
+.control-group-important .input-prepend-append .add-on-last,
+.control-group-important .input-prepend-append .add-on-middle,
+.control-group-important .input-prepend-append input,
+.control-group-important .input-prepend-append input {
+  font-size: 15px;
+  padding: 8px 10px;
+  max-width: 716px;
+  }
+  .control-group-important label {
+  	font-size: 15px;
+  	}
+  .form-horizontal .control-group-important > label {
+    padding-top: 10px;
+    }
+
+.input-prepend-append .error {
+  color: $errorBackground;
+  border-color: $errorBackground;
+  &:focus {
+    border-color: darken($errorBackground, 10%);
+    @include box-shadow(0 0 2px lighten($errorBackground, 20%));
+  }
+}
+
+
+@media (max-width: 480px) {
+	.input-prepend-append input {
+    border-left: 1px solid;
+    border-radius: 0 0 0 0;
+    border-right: 1px solid;
+		}
+	.input-prepend-append .add-on-middle {
+    background-color: #FFFFFF;
+    border-bottom: 0 none;
+    border-top: 0 none;
+    box-shadow: none;
+    display: block;
+    float: left;
+    padding: 0px 6px 5px;
+		}
+}
+

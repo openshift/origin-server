@@ -1,0 +1,54 @@
+- breadcrumb_for_application @application, 'Enable Builds'
+- content_for :page_title, 'Enable Builds'
+
+%h1 Enable Jenkins Builds
+= flashes
+
+%section
+  = semantic_form_for @jenkins_server, :url => application_building_path(@application), :html => {:method => :post, :class => 'form form-horizontal'} do |f|
+    %p 
+      To build with Jenkins, OpenShift needs a server (created as a separate 
+      application) and a Jenkins client cartridge attached to each buildable 
+      application.  Build jobs execute on the gear that contains the client cartridge,
+      while the Jenkins server schedules jobs and stores history and other build
+      results.
+
+    = f.semantic_errors
+
+    - if @jenkins_server.persisted?
+
+
+      %h2 Build server available
+      %p
+        You have created a #{link_to "Jenkins application (#{@jenkins_server.name})", application_path(@jenkins_server)} to 
+        schedule and host builds.  You can log in to Jenkins at:
+
+      %p.well.application-url.larger
+        = link_to @jenkins_server.web_url, @jenkins_server.web_url
+
+    - else
+      %h2 Create server
+      %p
+        You must create a Jenkins server to store build history.  You can customize the name of the application within your domain:
+
+      - errors = @jenkins_server.errors.full_messages.present?
+      = f.inputs do
+        = f.semantic_errors :name, :not => :base
+        = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @jenkins_server}
+
+    %h2 Create cartridge
+    %p
+      The Jenkins client cartridge listens for changes to your Git source code repository and triggers new builds.  If you remove 
+      the cartridge later, your build history will remain but the job will be disabled.
+
+    - render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
+
+    - unless @jenkins_server.persisted?
+      %p Enabling the Jenkins server and configuring your build job may take a few minutes to complete while we wait for your new application to become available through DNS.
+    %p
+      Do you want to enable Jenkins for your application?
+
+    = f.buttons do
+      = link_to "Back", application_path(@application), :class => 'btn'
+      = f.commit_button("Add Jenkins")
+      = f.loading

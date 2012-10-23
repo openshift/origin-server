@@ -1,0 +1,58 @@
+- breadcrumb_for_application @application, 'Add a Cartridge'
+- content_for :page_title, 'Next Steps'
+
+- if @wizard
+  = cartridge_wizard_steps_create 2, :completed => true
+  %h1.invisible Next Steps
+- else
+  %h1 Next Steps
+
+= flashes
+
+.row
+  .span7
+    -# client
+    %h2 Managing your cartridge
+    %p
+      Most of the capabilities of OpenShift are exposed through our command line tool, <code>rhc</code>.
+      Whether it's adding cartridges, checking uptime, or pulling log files from
+      the server, you can quickly put a finger on the pulse of your application.
+      #{link_to "Follow these steps to install the client", getting_started_path(:anchor => 'install_client_tools')}
+      on Linux, Mac OS X, or Windows.
+
+    %p
+      You can get a list of cartridges by running
+
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge list
+    %p
+      You can manage the cartridge by running one of these commands
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge start -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge stop -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge restart -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge reload -a #{@application.name} -c #{@cartridge.name}
+          rhc app cartridge status -a #{@application.name} -c #{@cartridge.name}
+
+    %p
+      You can remove the cartridge by running the following command.
+      .warning
+        Warning: make sure you've backed up any data you wish to keep before running this command
+    %pre.cli
+      = preserve do
+        :escaped
+          rhc app cartridge remove -a #{@application.name} -c #{@cartridge.name}
+
+  .span5
+    %h2 Cartridge info
+    = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true}
+
+    %h2 Accessing your application
+    %p 
+      The 
+      = link_to "application overview page", application_path(@application)
+      provides a summary of your application and its cartridges.

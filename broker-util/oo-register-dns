@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#    http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'parseconfig'
+require 'getoptlong'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-register-dns: Register node's DNS name with Bind
+  This command must be run as root.
+
+== Usage
+
+oo-register-dns --with-node-hostname node1 \\
+                --with-node-ip 192.168.0.1 \\
+                --domain example.com                
+
+== List of arguments
+  -h|--with-node-hostname   host        Hostname for the node (required)
+  -n|--with-node-ip         ip          IP of the node (required)
+  -d|--domain               domain      Domain name for this node (optional, default: example.com)  
+  -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
+  -h|--help                             Print this message
+
+USAGE
+end
+
+opts = GetoptLong.new(
+    ["--with-node-hostname",  "-h", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-node-ip",        "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],    
+    ["--key-file",            "-k", GetoptLong::OPTIONAL_ARGUMENT],        
+    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+ip = args["--with-node-ip"]
+node_hostname = args["--with-node-hostname"]
+node_domain = args["--domain"] || "example.com"
+key = args["--key-file"] || "/var/named/#{node_domain}.key"
+
+if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
+  usage
+  exit -1
+end
+
+command =<<-EOF
+server 127.0.0.1
+update delete #{node_hostname}.#{node_domain} A
+update add #{node_hostname}.#{node_domain} 180 A #{ip}
+send
+EOF
+
+system "nsupdate -k #{key} <<EOF\n#{command}\nEOF"

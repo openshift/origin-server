@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Destroys PostgreSQL instance
+
+function print_help {
+    echo "Usage: $0 app-name namespace uuid"
+
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_postgresql_deconfigure
+    exit 1
+}
+
+while getopts 'd' OPTION
+do
+    case $OPTION in
+        d) set -x
+        ;;
+        ?) print_help
+        ;;
+    esac
+done
+
+
+[ $# -eq 3 ] || print_help
+
+cartridge_type="postgresql-8.4"
+
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
+
+setup_embedded_deconfigure "$1" $2 $3
+disable_cgroups
+
+CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/$cartridge_type/info
+source ${CART_INFO_DIR}/lib/util
+
+CART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+
+# cartridge already removed
+if [ ! -d "$CART_INSTANCE_DIR" ]; then
+  exit 0
+fi
+
+#
+# Teardown port proxy (ignore failures or missing hook)
+#
+( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
+
+# For non-embedded (dedicated) postgresql gear, destroy the git repo and stop app.
+if only_cart_on_gear $cartridge_type; then
+   $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
+
+   enable_stale_detection
+
+   stop_app
+fi
+
+# Stop postgresql before we remove all the variables.
+source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST"
+source_if_exists "$APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT"
+
+stop_database
+confirm_pid_gone "${CART_INSTANCE_DIR}/pid/postgres.pid"
+
+#
+# Remove environment variables
+#
+/bin/rm -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_*
+
+# For non-embedded (dedicated) postgresql gear, destroy the gear.
+if only_cart_on_gear $cartridge_type; then
+    # Remove apache vhost configuration.
+    rm_httpd_proxy $uuid $namespace $application
+fi
+
+rm_cartridge_instance_dir "$cartridge_type"
+enable_cgroups

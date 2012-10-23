@@ -1,0 +1,119 @@
+$baseFontFamily:      "Helvetica Neue", Helvetica, "Liberation Sans", Arial, sans-serif !default;
+$headerFontFamily:    "Helvetica Neue", Helvetica, Arial, sans-serif !default;
+
+$baseLineHeight:          18px;
+$baseFontSize:						13.5px;
+
+$responsivePhone:         480px;
+$responsiveTablet:        768px;
+$responsiveDefault:       980px;
+$responsiveLarge:         1200px;
+
+$gridGutterWidth:         28px;
+$gridColumnWidth:         50px; // 80 * 12 = 960
+
+$gridGutterWidthPhone:    20px; // replaces padding
+
+$gridGutterWidthTablet:   20px;
+$gridColumnWidthTablet:   42.5px; // 62 * 12 = 744 and 12px gutters
+
+$gridGutterWidthLarge:    30px;
+$gridColumnWidthLarge:    60px;
+
+$logoHeight:      90px;
+$logoWidth:       110px;
+$logoSeparation:  10px;
+
+$openshiftRed:                  #CD202C; /* From style guide */
+$openshiftBrightRed:            #EA0011;
+$openshiftDarkRed:              #a1000c; /* action-call dark */
+$openshiftMediumBackgroundGray: #343434; /* From screenshots, for nav */
+$openshiftDarkBackgroundGray:   #333; /* From screenshots, background of sign in link */
+$openshiftAlmostBlack:          #030303;
+$openshiftSeriouslyAlmostBlack: #010101;
+$openshiftLinkGray:             #909090; /* Used on the signup link */
+$openshiftBorderGray:           #b4b4b2; /* From screenshots */
+$genericLightGreen:             #d4e16b;
+
+$cliText:                       #D0E57B;
+$cliBackground:                 #222222;
+
+$breadcrumbDividerColor:        $openshiftDarkRed;
+$breadcrumbTextColor:           $openshiftMediumBackgroundGray; 
+
+$topBarBackgroundColor:         $openshiftSeriouslyAlmostBlack;
+$navBackgroundColor:            $openshiftMediumBackgroundGray;
+$navColumnBackgroundColor:      $openshiftAlmostBlack;
+$belowNavColumnBackgroundColor: #f2f2f2; /* From Hylke's screenshot additions */
+$contentColumnBackgroundColor:  white;
+
+$loginBackgroundColor:          $openshiftDarkBackgroundGray;
+$loginColor:                    white;
+
+$signupLinkColor:               $openshiftLinkGray;
+$textDarkBackground:            #777;
+$subtleTextDarkBackground:			#434343;
+$linkTextDarkBackground:				#fff;
+$darkBackground:                $openshiftAlmostBlack;
+$textLightBackground:           white;
+$lightBackground:               white;
+
+$linkColor:                     $openshiftRed;
+$linkColorHover:                $openshiftDarkRed;
+
+$linkColorBlue:                 #069;
+$linkColorBlueHover:            $openshiftBrightRed;
+$linkColorBlueOnDark:           #42a0bf;
+
+$textColor:                     #404040;
+
+$ribbonColor:                   $openshiftBrightRed;
+$ribbonTextColor:               white;
+$ribbonFoldColor:               #A1000C;
+
+$takeActionBackground:          $openshiftBrightRed;
+$takeActionHighlightBackground: #a1000c;
+
+$grayLighter:										#ededed;
+$grayLight:                     #999;
+$grayDark:                      #2f2f2f;
+$primaryButtonBackground:       #B1E5F2;
+$orange:                        #ffb02e;
+$linkColor:                     #0069d6;
+
+$activeButtonDarkColor:					rgba(0,0,0,0.5);
+$activeButtonLightColor:				rgba(255,255,255,0.5);
+
+$smallText:											11px;
+
+/* FIXME: Need to resolve these colors with _custom.scss */
+$warningText:             #222;
+$warningBackground:       #ffd24e;
+$warningBorder:           darken(adjust-hue($warningBackground, -10), 3%);
+
+$errorText:               white;
+$errorBackground:         #CD1E25;
+$errorBorder:             darken(adjust-hue($errorBackground, -10), 3%);
+
+$successText:             #222;
+$successBackground:       #8ACA1A;
+$successBorder:           darken(adjust-hue($successBackground, -10), 5%);
+
+$infoText:                #222;
+$infoBackground:          #7FC3E1;
+$infoBorder:              darken(adjust-hue($infoBackground, -10), 7%);
+/* END */
+
+$hrBorder:                $openshiftBorderGray;
+
+$darkNoiseBackgroundColor:      black; /* Was going to call this $openshiftNoneMoreBlack */
+
+$lightStripesColor:             #e6e6e6;
+$lightStripesAltColor:          #e4e4e4;
+$lightStripesBackground:        #e5e5e5;
+$stripesText:                   $openshiftMediumBackgroundGray;
+$stripesHover:                  #ccc;
+
+$pollBarColor:                  $openshiftDarkRed;
+
+$consoleFormFieldBackground:		#aaa;

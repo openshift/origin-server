@@ -1,0 +1,13 @@
+[Unit]
+Description=OpenShift Gears
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/oo-admin-ctl-gears startall
+ExecStop=/usr/bin/oo-admin-ctl-gears stopall
+ExecReload=/usr/bin/oo-admin-ctl-gears restartall
+Restart=no
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

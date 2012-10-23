@@ -1,0 +1,207 @@
+/* Twitter Bootstrap Customizations
+------------------------------------------------ 
+------------------------------------------------ */
+
+.column-content {
+  padding-top: 25px;
+  section {
+    margin-bottom: 25px;
+  }
+}
+
+.row-content {
+  margin-bottom: 30px;
+}
+
+#content {
+	min-height: 400px;
+	}
+
+.page-header {
+	padding-bottom: 0;
+	}
+
+
+// form overrides
+input, 
+textarea {
+  @include box-shadow(0);
+	}
+input:focus, 
+textarea:focus {
+  @include box-shadow(0);
+	}
+
+.form-actions {
+	background-color: none;
+	}
+.side-block {
+	margin-top: 5px;
+  margin-bottom: 0;
+  color: #6e6e6e;
+  background: #f0f0f0;
+  padding: 20px;
+	}
+
+// hero overrides
+.hero-unit {
+  padding: 20px 25px;
+  margin-bottom: 25px;
+  background-color: #f2f2f2;
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+  box-shadow: 1px 3px 0px rgba(0, 0, 0, 0.1);
+	}
+.hero-unit h1 {
+  margin-bottom: 0;
+  font-size: 35px;
+  line-height: 1;
+  letter-spacing: -1px;
+	}
+.hero-unit p {
+  font-size: 18px;
+  font-weight: 200;
+  line-height: 27px;
+	}
+
+// wizard steps
+.wizard-steps {
+	margin: 5px 0 13px;
+	overflow: hidden;
+	}  
+.wizard-steps li {
+  font-size: 11px;
+  font-weight: bold;
+  float: left;
+  padding: 3px 21px;
+  text-align: center;
+  background-color: #F0F0F0;
+  color: #999;
+  text-shadow: 0 1px 2px #fff;
+  list-style: none;
+	}
+.wizard-steps li.active {
+  color: #000;
+  background-color: #d8d8d8;
+	}
+.thumbnail {
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	}
+
+.icon-loading {
+  margin: 0 5px;
+  vertical-align: middle;
+	}
+
+
+// FORM FIELD FEEDBACK STATES
+// --------------------------
+
+// Warning
+.control-group.warning {
+  @include formFieldState($warningBackground, $warningBackground, $warningBackground);
+}
+// Error
+.control-group.error {
+  @include formFieldState($errorBackground, $errorBackground, $errorBackground);
+}
+// Success
+.control-group.success {
+  @include formFieldState($successBackground, $successBackground, $successBackground);
+}
+
+
+/* Print styles */
+
+@media print {
+  * { background: transparent !important; color: black !important; text-shadow: none !important; filter:none !important; -ms-filter: none !important; } /* Black prints faster: sanbeiji.com/archives/953 */
+  a, a:visited { color: #444 !important; text-decoration: underline; }
+  a[href]:after { content: " (" attr(href) ")"; }
+  abbr[title]:after { content: " (" attr(title) ")"; }
+  .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }  /* Don't show links for images, or javascript/internal links */
+  pre, blockquote footer nav
+  thead { display: table-header-group; } /* css-discuss.incutio.com/wiki/Printing_Tables */
+  tr, img { page-break-inside: avoid; }
+  img { max-width: 100% !important; }
+  @page { margin: 0.5cm; }
+  p, h2, h3 { orphans: 3; widows: 3; }
+  h2, h3{ page-break-after: avoid; }
+}
+
+
+
+/* Responsive styles */
+@media (max-width: 767px) {
+	.hero-unit {
+  	padding: 0;
+  	margin-bottom: 13px;
+  	background-color: #fff;
+  	border: none;
+  	-webkit-border-radius: 0;
+  	-moz-border-radius: 0;
+  	border-radius: 0;
+  	box-shadow: none;
+		}
+	.hero-unit h1 {
+		font-size: 26px;
+		}
+}
+
+@media (min-width: 768px) and (max-width: 980px) {
+	
+}
+
+
+@media (max-width: 980px) { 
+	#utility-nav {
+	  margin: 8px 5px 0 0;
+	 	}
+	.navbar .nav-collapse {
+    clear: left;
+    // height: auto; /* override js toggle */
+  	}
+  .navbar .nav {
+    float: none;
+    margin: 0;
+  	}
+  .navbar .nav > li {
+    float: none;
+  	}
+	.navbar .nav > li > a {
+    padding: 6px 15px 8px;
+    font-weight: bold;
+    color: #999999;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+  	}
+  .navbar .nav .active > a, .navbar .nav .active > a:hover {
+    background-color: #111111;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.2) inset, 0 -1px 2px rgba(0, 0, 0, 0.35);
+    color: #FFFFFF;
+    cursor: default;
+    text-decoration: none;
+		}
+  .navbar .nav > li > a:hover {
+    background-color: #1a1a1a;
+  	}
+}
+
+	  
+@media (min-width: 980px) {
+  .navbar .nav > li > a {
+  	-webkit-border-radius: 6px 6px 0 0;
+  		 -moz-border-radius: 6px 6px 0 0;
+  			    border-radius: 6px 6px 0 0;
+		}
+}
+
+@media (min-width: 1200px) {
+}
+

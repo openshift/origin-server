@@ -1,0 +1,145 @@
+#!/bin/bash
+
+#. /etc/bashrc
+
+[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
+
+source /etc/init.d/functions 2> /dev/null
+source /usr/libexec/openshift/cartridges/abstract/info/lib/util
+
+# Import Environment Variables
+for f in ~/.env/*
+do
+    . $f
+done
+
+function welcome {
+    cat 1>&2 <<EOF
+
+    *********************************************************************
+
+    You are accessing a service that is for use only by authorized users.  
+    If you do not have authorization, discontinue use at once. 
+    Any use of the services is subject to the applicable terms of the 
+    agreement which can be found at: 
+    https://openshift.redhat.com/app/legal
+
+    *********************************************************************
+
+    Welcome to OpenShift shell
+
+    This shell will assist you in managing OpenShift applications.
+
+    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+    Shell access is quite powerful and it is possible for you to
+    accidentally damage your application.  Proceed with care!
+    If worse comes to worst, destroy your application with 'rhc app destroy'
+    and recreate it
+    !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
+
+    Type "help" for more info.
+
+EOF
+}
+
+function ctl_all {
+    case "$1" in
+        start) start_app ;;
+        stop)  stop_app ;;
+    esac
+}
+
+
+function mysql() {
+   #  Setup default options.
+   [ -n "$OPENSHIFT_MYSQL_DB_HOST" ]  &&  hostopt="-h $OPENSHIFT_MYSQL_DB_HOST"
+   portopt="-P ${OPENSHIFT_MYSQL_DB_PORT:-3306}"
+   useropt="-u ${OPENSHIFT_MYSQL_DB_USERNAME:-'admin'}"
+   passopt=--password="$OPENSHIFT_MYSQL_DB_PASSWORD"
+
+   #  Unset default value if it was provided to us.
+   for arg in $@; do
+      case "$arg" in
+         --host=*|-h)      unset hostopt  ;;
+         --port=*|-P)      unset portopt  ;;
+         --user=*|-u)      unset useropt  ;;
+         --password=*|-p)  unset passopt  ;;
+         *)  ;;
+      esac
+   done
+
+   /usr/bin/mysql ${hostopt} ${portopt} ${useropt} ${passopt} "$@"
+
+}  #  End of  mysql  function.
+
+
+function psql() {
+    PGDATABASE="$OPENSHIFT_APP_NAME" \
+        PGHOST="$OPENSHIFT_POSTGRESQL_DB_HOST" \
+        PGPORT="${OPENSHIFT_POSTGRESQL_DB_PORT:-5432}" \
+        PGUSER="${OPENSHIFT_POSTGRESQL_DB_USERNAME:-'admin'}" \
+        PGPASSWORD="${OPENSHIFT_POSTGRESQL_DB_PASSWORD}" \
+        /usr/bin/psql --set HISTFILE="~/app-root/data/.psql_history" "$@"
+}  #  End of psql function.
+
+
+function mongo() {
+   if test $# -gt 0; then
+      uopt=""
+      popt=""
+   else
+      uopt="--username ${OPENSHIFT_MONGODB_DB_USERNAME:-'admin'}"
+      [ -n "$OPENSHIFT_MONGODB_DB_PASSWORD" ]  &&  popt="--password $OPENSHIFT_MONGODB_DB_PASSWORD"
+   fi
+
+   if echo "$@" | egrep "\-\-host|$OPENSHIFT_MONGODB_DB_HOST" > /dev/null; then
+      hopt=""  #  Do not override if --host is passed.
+   else
+      if [ -n "$OPENSHIFT_MONGODB_DB_GEAR_DNS" ]; then
+         hopt="${OPENSHIFT_MONGODB_DB_GEAR_DNS:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+      else
+         hopt="${OPENSHIFT_MONGODB_DB_HOST:-'127.0.0.1'}:${OPENSHIFT_MONGODB_DB_PORT:-27017}/admin"
+      fi
+   fi
+
+   ( unset LD_LIBRARY_PATH; /usr/bin/mongo ${hopt} ${uopt} ${popt} "$@" )
+
+}  #  End of  mongo  function.
+
+
+function help {
+    cat <<EOF
+Help menu: The following commands are available to help control your openshift
+application and environment.
+
+ctl_app         control your application (start, stop, restart, etc)
+ctl_all         control application and deps like mysql in one command
+tail_all        tail all log files
+export          list available environment variables
+rm              remove files / directories
+ls              list files / directories
+ps              list running applications
+kill            kill running applications
+mysql           interactive MySQL shell
+mongo           interactive MongoDB shell
+psql            interactive PostgreSQL shell
+quota           list disk usage
+
+EOF
+}
+
+alias ctl_app=$(get_framework_ctl_script $OPENSHIFT_GEAR_UUID)
+alias tail_all="/usr/bin/tail -f */logs/*"
+
+export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "
+export TMOUT=300
+export SHELL=/bin/bash
+welcome
+
+# Since the user is actively using this gear, unidle the gear (if idle).
+which unidle_gear.sh &> /dev/null  &&  unidle_gear.sh "${PS1:+'show-messages'}"
+
+if [ -z $SSH_TTY ]; then
+    echo "WARNING: This ssh terminal was started without a tty." 1>&2
+    echo "          It is highly recommended to login with: ssh -t" 1>&2
+fi

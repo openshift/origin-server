@@ -1,0 +1,204 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'getoptlong'
+require 'pp'
+require "/var/www/openshift/broker/config/environment"
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-district: Control districts
+
+== Usage
+
+oo-admin-ctl-district OPTIONS
+
+Options:
+-u|--uuid     <district uuid>
+    District uuid  (alphanumeric)
+-c|--command <command>
+    (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)
+-n|--name <district name>
+    District name (Used on create or in place of uuid on other commands)
+-p|--node_profile <gear_size>
+    #{Gear::gear_sizes_display_string} Only needed for create
+-i|--server_identity
+    Node server_identity (required)
+-s|--size
+    Size to add or remove (positive number) (required)
+-b|--bypass
+    Ignore warnings
+-h|--help
+    Show usage info
+USAGE
+end
+
+def append_district(district, io)
+  district.available_uids = "<#{district.available_uids.length} uids hidden>"
+  io << "\n\n#{district.attributes.pretty_inspect}"
+end
+
+def get_district(uuid, name)
+  if uuid
+    district = District.find(uuid)
+  else
+    district = District.find_by_name(name)
+  end
+end
+
+opts = GetoptLong.new(
+    ["--uuid",             "-u", GetoptLong::REQUIRED_ARGUMENT],
+    ["--server_identity",  "-i", GetoptLong::REQUIRED_ARGUMENT],
+    ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--size",             "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--name",             "-n", GetoptLong::REQUIRED_ARGUMENT],
+    ["--node_profile",     "-p", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+if args["--help"]
+  usage
+  exit 1
+end
+
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+uuid     = args["--uuid"]
+command  = args['--command']
+server_identity  = args['--server_identity']
+size     = args['--size'] ? args['--size'].to_i : nil
+bypass   = args['--bypass']
+name     = args['--name']
+node_profile = args['--node_profile']
+
+if node_profile && !Gear::valid_gear_size?(node_profile)
+  puts "Node profile must be one of: #{Gear::gear_sizes_display_string}"
+  exit 1
+end
+  
+if command && !(command =~ /\A(add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)\z/)
+  puts "Command must be one of: (add-node|remove-node|deactivate-node|activate-node|add-capacity|remove-capacity|create|destroy)"
+  exit 1
+end
+
+district = nil
+if uuid || name
+  district = get_district(uuid, name)
+  if !district
+    if command != 'create'
+      puts "District '#{uuid ? uuid : name}' not found."
+      exit 1
+    end
+  elsif command == 'create'
+    puts "District '#{name}' already exists"
+    exit 1
+  end
+  unless server_identity || (command != 'add-node' && command != 'remove-node' && command != 'deactivate-node' && command != 'activate-node')
+    puts "--server_identity is required with command: #{command}"
+    exit 1
+  end
+  unless size || (command != 'add-capacity' && command != 'remove-capacity')
+    puts "--size is required with command: #{command}"
+    exit 1
+  end
+elsif command
+  if command != 'create'
+    puts "--uuid or --name is required with command: #{command}"
+  else
+    puts "--name is required with create"
+  end
+  exit 1
+end
+
+reply = ResultIO.new
+begin
+  case command
+  when "add-node"
+    district.add_node(server_identity)
+    reply.resultIO << "Success!"
+  when "remove-node"
+    district.remove_node(server_identity)
+    reply.resultIO << "Success!"
+  when "deactivate-node"
+    district.deactivate_node(server_identity)
+    reply.resultIO << "Success!"
+  when "activate-node"
+    district.activate_node(server_identity)
+    reply.resultIO << "Success!"
+  when "add-capacity"
+    district.add_capacity(size)
+    reply.resultIO << "Success!"
+  when "remove-capacity"
+    district.remove_capacity(size)
+    reply.resultIO << "Success!"
+  when "create"
+    puts "node_profile not specified.  Using default: small" unless node_profile
+    district = District.new
+    district.construct(name, node_profile)
+    district.save
+    uuid = district.uuid
+    reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
+  when "destroy"
+    unless bypass
+      puts <<-WARNING
+!!!! WARNING !!!! WARNING !!!! WARNING !!!!
+You are about to destroy the #{uuid ? uuid : name} district.
+
+This is NOT reversible, all remote data for this district will be removed.
+WARNING
+  
+      print "Do you want to destroy this district (y/n): "
+      begin
+        agree = gets.chomp
+        if agree != 'y'
+          puts "\n"
+          exit 217
+        end
+      rescue Interrupt
+        puts "\n"
+        exit 217
+      end
+    end
+
+    district.delete
+    reply.resultIO << "Successfully destroyed district: #{uuid ? uuid : name}" if reply.resultIO.string.empty?
+  
+  else
+    if district
+      append_district(district, reply.resultIO)
+    else
+      districts = District.find_all
+      unless districts.empty?
+        districts.each do |district|
+          append_district(district, reply.resultIO)
+        end
+      else
+        puts "No districts created yet.  Use 'oo-admin-ctl-district -c create' to create one."
+      end
+    end
+  end
+  if (uuid || name) && command && command != 'destroy'
+    district = get_district(uuid, name)
+    append_district(district, reply.resultIO)
+  end
+rescue OpenShift::OOException => e
+  reply.errorIO << e.message
+  reply.exitcode = e.respond_to?('code') ? e.code : 1
+end
+
+puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+puts "#{reply.resultIO.string}" unless reply.resultIO.string.empty?
+exit reply.exitcode

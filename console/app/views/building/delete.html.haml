@@ -1,0 +1,22 @@
+- breadcrumb_for_application @application, 'Disable Jenkins Builds'
+- content_for :page_title, 'Disable Jenkins Builds'
+
+%h1 Disable Jenkins Builds
+
+= semantic_form_for @application, :url => application_building_path(@application), :html => {:method => :delete, :class => 'form'} do |f|
+  %p 
+    OpenShift is configured to build this application with 
+    #{link_to 'Jenkins', jenkins_help_url } when you make 
+    changes through Git. If you remove the Jenkins cartridge
+    your build history and results are preserved, but new 
+    changes to Git will no longer start builds.
+
+  %p 
+    Are you sure you wish to disable builds for this 
+    application?
+
+  = f.semantic_errors
+  = f.buttons do
+    = link_to 'Cancel', @referer || application_path(@application), :class => 'btn'
+    = f.commit_button :label => "Remove Jenkins", :button_html => {:class => 'btn btn-danger'}
+    = f.loading

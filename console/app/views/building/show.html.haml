@@ -1,0 +1,12 @@
+- breadcrumb_for_application @application, 'Building your Application'
+- content_for :page_title, 'Building your Application'
+
+%h1 Building your Application
+
+%section
+  %p OpenShift is configured to build this application with #{link_to 'Jenkins', jenkins_help_url } when you make changes through Git. You can track the progress of builds through the following Jenkins job:
+
+  %p.well.application-url.larger
+    = link_to @application.build_job_url, @application.build_job_url
+
+  %p If you no longer wish to run Jenkins builds, you can #{link_to "remove the Jenkins cartridge", delete_application_building_path(@application) }.

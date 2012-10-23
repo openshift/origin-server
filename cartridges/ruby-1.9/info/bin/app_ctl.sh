@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-CART_NAME="ruby"
-CART_VERSION="1.9"
-source /etc/stickshift/stickshift-node.conf
-httpd_app_ctl_sh=${CARTRIDGE_BASE_PATH}/abstract-httpd/info/bin/app_ctl.sh
-
-myargs="$@"
-/usr/bin/scl enable ruby193 "$httpd_app_ctl_sh $myargs"

@@ -1,0 +1,275 @@
+#!/bin/bash
+
+#
+# Modify the openshift-port-proxy configuration.
+#
+
+
+source /etc/openshift/node.conf
+
+cfgfile=/etc/openshift/port-proxy.cfg
+lockfile="/var/run/openshift-port-proxy.lock"
+reloadlock="/var/run/openshift-port-proxy-reload.lock"
+reqprefix="/tmp/openshift-port-proxy-reload.req"
+
+### 
+# System service routines; systemctl may require modifications
+# but please retain compatability with RHEL 6 init scripts.
+###
+is_running() {
+    service openshift-port-proxy status &>/dev/null
+}
+
+restart() {
+    service openshift-port-proxy restart &>/dev/null
+}
+
+reload() {
+    service openshift-port-proxy reload &>/dev/null
+}
+
+getpid() {
+    for pidf in /var/run/openshift-port-proxy.pid /run/openshift-port-proxy.pid
+    do
+        if [ -e "$pidf" ]
+        then
+            cat "$pidf"
+            return
+        fi
+    done
+}
+###
+
+
+getaddr() {
+    # External due to using DNS for gear->gear
+    ip -4 addr show dev ${EXTERNAL_ETH_DEV:-eth0} scope global | sed -r -n '/inet/ { s/^.*inet ([0-9\.]+).*/\1/; p }' | head -1
+}
+
+fixaddr() {
+    baddr=$(openshift-port-proxy-cfg getaddr)
+    sed -i -r -e '/^[^\#]*bind/ { /127\.[0-9\.]+:/ b; s/([0-9\.]+):/'"$baddr"':/ }' $cfgfile
+}
+
+atomicfg() {
+    cfg_old="${cfgfile}"
+    cfgfile="${cfgfile}.editing"
+
+    rm -f "${cfgfile}"
+    cp -a -f "${cfg_old}" "${cfgfile}"
+
+    "$@"
+    retval=$?
+
+    if [ $retval -ne 0 ]
+    then
+        echo "ERROR: Failed to process: $@"
+        return $retval
+    fi
+
+    if ! /usr/sbin/haproxy -c -q -f "${cfgfile}"
+    then
+        echo "ERROR: New configuration is corrupt."
+        return 254
+    fi
+
+    rm -f "${cfg_old}.bak"
+    ln -f "${cfg_old}" "${cfg_old}.bak"
+    mv -f "${cfgfile}" "${cfg_old}"
+    cfgfile="${cfg_old}"
+
+    return $retval
+}
+
+rollcfg() {
+    if ! is_running
+    then
+        if ! restart
+        then
+            echo "Error: Proxy has failed"
+            return 1
+        fi
+    fi
+
+    
+    if ! haproxy -c -q -f $cfgfile
+    then
+        echo "Error: Proxy configuration is corrupt."
+        return 1
+    fi
+
+    oldpid=$(getpid)
+    
+    if ! reload
+    then
+        echo "openshift-port-proxy failed to reload"
+        return 1
+    fi
+
+    # Wait for the old PID to terminate
+    if [ "$oldpid" ]
+    then
+        iters=0
+        while ps $oldpid &>/dev/null
+        do
+            iters=$(( $iters + 1 ))
+            if [ $iters -gt 60 ]
+            then
+                kill $oldpid
+                usleep 500000
+            fi
+            usleep 500000
+        done
+    fi
+
+    return 0
+}
+
+
+lockwrap() {
+    exec 200>${lockfile} 201>${reloadlock}
+
+    flock 200
+    oldsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+    "$@"
+    retcode=$?
+    newsum=$( md5sum $cfgfile | awk '{ print $1 }' )
+    flock -u 200
+
+    if [ $retcode != 0 ]; then
+        echo "Error: Failed to update proxy."
+        return $retcode
+    fi
+
+    if [ $oldsum != $newsum ]; then
+        reqfile=$(mktemp ${reqprefix}.XXXXXX)
+        flock 201
+
+        reloadreq=()
+        reloadit=""
+        for f in ${reqprefix}.??????
+        do
+            s=$(stat --printf '%s' "$f" )
+            if [ $s -eq 0 ]
+            then
+                reloadreq=( "${reloadreq[@]}" "$f" )
+                reloadit="1"
+            fi
+        done
+
+        if [ "$reloadit" ]
+        then
+            rollcfg
+            retcode=$?
+
+            for f in "${reloadreq[@]}"
+            do
+                echo "$retcode" > "$f"
+            done
+        fi
+
+        retcode=$(cat "$reqfile")
+        rm -f $reqfile
+        flock -u 201
+    fi
+
+    return $retcode
+}
+
+setproxy() {
+    # Set a proxy entry (either add or delete)
+    proxport="$1"
+    target="$2"
+
+    if ! [ "$proxport" -ge 16384 -a "$proxport" -le 65535 ]; then
+        echo "Proxy port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if [ "$target" == "delete" -o "$target" == "del" ]; then
+        sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+        return $?
+    fi
+
+    ipbytes=( $(echo "$target" | cut -f 1 -d : | sed -e 's/\./ /g') )
+    if [ ${#ipbytes[@]} -ne 4 ]; then
+        echo "Dest addr must be a valid IPv4 address."
+        return 1
+    fi
+
+    for byt in "${ipbytes[@]}"; do
+        if ! [ "$byt" -ge 0 -a "$byt" -le 255 ]; then
+            echo "Dest addr must be a valid IP address."
+            return 1
+        fi
+    done
+
+    port=$(echo $target | cut -f 2 -d :)
+    if ! [ "$port" -ge 1 -a "$port" -le 65535 ]; then
+        echo "Dest port must be an integer between 16384 and 65535"
+        return 1
+    fi
+
+    if grep -q "^listen $proxport:$target" $cfgfile; then
+        return 0
+    fi
+
+    baddr=$(getaddr)
+
+    sed -i -e '/^listen '"$proxport"':/,/^# End '"$proxport"':/ d' $cfgfile
+
+    cat <<EOF >> $cfgfile
+listen $proxport:$target
+    mode tcp
+    bind $baddr:$proxport
+    server $proxport $target
+# End $proxport:$target
+EOF
+
+    return $?
+}
+
+setproxies() {
+    while [ "$1" ]; do
+        setproxy "$1" "$2"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed at $1 $2"
+            return 1
+        fi
+        shift; shift
+    done
+    return 0
+}
+
+
+showproxies() {
+    sedexp=""
+    for proxport in "$@"; do
+        sedexp="${sedexp};"'s/^listen \('"$proxport"'\):\(.*\)$/\1 \2/'
+    done
+    sedexp="${sedexp}; T; p"
+    sed -n -e "${sedexp}" $cfgfile
+    return 0
+}
+
+case "$1" in
+    getaddr)
+        getaddr
+        ;;
+    fixaddr)
+        # This can be called from within its own lock, do not deadlock.
+        fixaddr
+        ;;
+    setproxy)
+        shift
+        lockwrap atomicfg setproxies "$@"
+        ;;
+    showproxy)
+        shift
+        lockwrap showproxies "$@"
+        ;;
+    *)
+        echo "Usage: $0 {getaddr|setproxy [proxport] [ip:port]|showproxy [proxport]}"
+        exit 2
+        ;;
+esac

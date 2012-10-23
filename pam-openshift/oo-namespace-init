@@ -1,0 +1,46 @@
+#!/bin/sh -p
+# It receives polydir path as $1, the instance path as $2, 
+# a flag whether the instance dir was newly created (0 - no, 1 - yes) in $3,
+# and user name in $4.
+#
+# The following will create polyinstantiated directories for openshift
+#
+
+function get_mcs_level() {
+    # UID=$1
+
+    SETSIZE=1023
+    TIER=$SETSIZE
+
+    ORD=$1
+    while [ $ORD -gt $(($TIER)) ]
+    do
+        ORD=$(($ORD - $TIER))
+        TIER=$(($TIER - 1))
+    done
+    TIER=$(($SETSIZE - $TIER))
+
+    echo s0:c$TIER,c$(($ORD + $TIER))
+}
+
+if [ "$3" = 1 ]; then
+    passwd=$(getent passwd "$4")
+    homedir=$(echo "$passwd" | cut -f6 -d":")
+    context=$(getfattr --only-values -n security.selinux "$homedir" 2>/dev/null)
+    setype=$(echo "$context" | cut -f 3 -d":")
+
+    #  Don't change ownership on /sandbox
+    [ "$1" == "/sandbox" ] || /bin/chown $4 "$2"
+    /sbin/restorecon "$1"
+
+    # Only do this on openshift users
+    if [ "$setype" = "openshift_var_lib_t" ]
+    then
+        uid=$(id -u "$4")
+        mcs_level=$(get_mcs_level $uid)
+        /sbin/restorecon "$1" "$2"
+        /usr/bin/chcon -l $mcs_level "$1" "$2"
+    fi
+fi
+
+exit 0

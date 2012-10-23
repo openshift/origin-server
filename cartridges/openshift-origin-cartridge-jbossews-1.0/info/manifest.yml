@@ -1,0 +1,87 @@
+Name: jbossews-1.0
+Display-Name: JBoss Enterprise Web Server 1.0
+Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
+Version: 1.0.2
+License: ASL 2.0
+Vendor:  jboss.com
+Categories:
+  - cartridge
+  - web_framework
+Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
+Help-Topics:
+  "Developer Center": https://openshift.redhat.com/community/developers
+Cart-Data:
+  - Key: OPENSHIFT_JBOSSEAP_LOG_DIR
+    Type: environment
+    Description: "Directory to store application log files."
+  - Key: OPENSHIFT_TMP_DIR
+    Type: environment
+    Description: "Directory to store application temporary files."
+  - Key: OPENSHIFT_REPO_DIR
+    Type: environment
+    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+  - Key: OPENSHIFT_INTERNAL_PORT
+    Type: environment
+    Description: "Internal port to which the web-framework binds to."
+  - Key: OPENSHIFT_INTERNAL_IP
+    Type: environment
+    Description: "Internal IP to which the web-framework binds to."
+  - Key: OPENSHIFT_APP_DNS
+    Type: environment
+    Description: "Fully qualified domain name for the application."
+  - Key: OPENSHIFT_APP_NAME
+    Type: environment
+    Description: "Application name"
+  - Key: OPENSHIFT_DATA_DIR
+    Type: environment
+    Description: "Directory to store application data files. Preserved across git-pushes. Not shared across gears."
+  - Key: OPENSHIFT_APP_UUID
+    Type: environment
+    Description: "Unique ID which identified the application. Does not change between gears."
+  - Key: OPENSHIFT_GEAR_UUID
+    Type: environment
+    Description: "Unique ID which identified the gear. This value changes between gears."
+Suggests:
+Provides:
+  - "jbossews"
+  - "jbossews(version) = 1.0.2"
+  - "jbossews(version) >= 1.0"
+  - "jboss-ews1.0"
+  - "jboss-ews1.0.0"
+Requires:
+Conflicts:
+Native-Requires:
+  - java-1.6.0
+  - maven3
+Architecture: noarch
+
+Reservations:
+  - MEM >= 100MB
+Components:
+  jbossews-server:
+    &jbossews-server-component
+    Publishes:
+      get-doc-root:
+        Type: "FILESYSTEM:doc-root"
+      get-internal-uri:
+        Type: "NET_TCP:http"
+      publish-http-url:
+        Type: "NET_TCP:httpd-proxy-info"
+      publish-gear-endpoint:
+        Type: "NET_TCP:gear-endpoint-info"
+    Subscribes:
+      set-db-connection-info:
+        Type: "NET_TCP:db:connection-info"
+        Required: false
+      set-nosql-db-connection-info:
+        Type: "NET_TCP:nosqldb:connection-info"
+        Required: false
+      set-jdbc-info:
+        Type: "NET_TCP:jdbc"
+Groups:
+  app-servers:
+    Components:
+      jbossews-server: jbossews-server
+    Scaling:
+      Min: 1
+      Max: -1

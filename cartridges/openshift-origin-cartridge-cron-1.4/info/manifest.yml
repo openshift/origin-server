@@ -1,0 +1,41 @@
+Name: cron-1.4
+Version: 1.4
+Architecture: noarch
+Display-Name: Cron 1.4
+Description: "The Cron cartridge allows you to run command line programs at scheduled times. Use this for background jobs and periodic processing."
+License: "ASL 2.0"
+License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
+Vendor:
+Categories:
+  - cartridge
+Website:
+Help-Topics:
+  "Getting Started Guide": https://openshift.redhat.com/community/blogs/getting-started-with-cron-jobs-on-openshift
+Cart-Data:
+Suggests:
+
+Provides: openshift-origin-cartridge-cron
+Native-Requires:
+  - cronie
+  - crontabs
+Profiles:
+  scheduler-service:
+    Provides: scheduler-service, cron-service
+    Components:
+      executor:
+        Publishes:
+          get-job-listing:
+            Type: "STRING:jobs"
+        Subscribes:
+          add-job:
+            Type: "STRING:job"
+          remove-job:
+            Type: "STRING:job"
+    Groups:
+      default:
+        Components:
+          job-executor: executor
+        Scaling:
+          Min: 1
+          Max: 1
+Default-Profile: scheduler-service

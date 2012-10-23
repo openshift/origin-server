@@ -1,0 +1,151 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-app: Control user applications
+
+== Usage
+
+oo-admin-ctl-app OPTIONS
+
+Options:
+-l|--rhlogin <rhlogin>
+    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+-a|--app     <application>
+    Application name  (alphanumeric) (required)
+-c|--command <command>
+    (start|stop|force-stop|restart|status|destroy|force-destroy) (required)
+-b|--bypass
+    Ignore warnings
+-h|--help
+    Show Usage info
+USAGE
+end
+
+opts = GetoptLong.new(
+    ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],    
+    ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+login    = args["--rhlogin"]
+app_name = args["--app"]
+command  = args['--command']
+bypass   = args['--bypass']
+
+if login.nil? or app_name.nil? or command.nil? or args["--help"]
+  usage
+  exit 1
+end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+user = CloudUser.find(login)
+unless user
+  print "User #{login} not found.\n"
+  exit 1
+end
+app = Application.find(user,app_name)
+unless app
+  print "Application #{app_name} for user #{login} not found.\n"
+  exit 1
+end
+
+def check_user_response
+  begin
+    agree = gets.chomp
+    if agree != 'y'
+      puts "\n"
+      exit 217
+    end
+  rescue Interrupt
+    puts "\n"
+    exit 217
+  end
+end
+
+reply = ResultIO.new
+case command
+when "start"
+  reply.append app.start
+when "stop"
+  reply.append app.stop  
+when "force-stop"
+  reply.append app.force_stop  
+when "restart"
+  reply.append app.restart  
+when "status"
+  reply.append app.status  
+when "force-destroy"
+  unless bypass
+    puts <<-WARNING
+  !!!! WARNING !!!! WARNING !!!! WARNING !!!!
+  You are about to destroy the #{app_name} application.
+
+  This is NOT reversible, all remote data for this application will be forcefully removed.
+  WARNING
+
+    print "Do you want to forcefully destroy this application (y/n): "
+    check_user_response
+  end
+  
+  begin
+    reply.append app.cleanup_and_delete
+    reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
+  rescue Exception=>e
+    reply = ResultIO.new
+    user = CloudUser.find(login)
+    app = Application.find(user,app_name)
+    current_consumed_gears = user.consumed_gears
+    gear_count = app.gears.length
+    app.gears.each { |g|
+      begin
+        g.destroy
+      rescue Exception=>e
+        puts "WARNING: Check gear #{g.uuid} on node '#{g.server_identity}', because destroy did not succeed cleanly. The gear may exist on node, but not in database."
+      end
+    }
+    app.delete
+    user = CloudUser.find(login)
+    new_consumed_gears = user.consumed_gears
+    if new_consumed_gears!=(current_consumed_gears-gear_count)
+      puts "WARNING: Please check and fix the user's consumed_gear count vs the actual gears consumed, as they may be out of sync."
+    end
+  end
+when "destroy"
+  unless bypass
+    puts <<-WARNING
+  !!!! WARNING !!!! WARNING !!!! WARNING !!!!
+  You are about to destroy the #{app_name} application.
+
+  This is NOT reversible, all remote data for this application will be removed.
+  WARNING
+
+    print "Do you want to destroy this application (y/n): "
+    check_user_response
+  end
+  
+  reply.append app.cleanup_and_delete
+  reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
+end
+
+puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
+puts "ERROR OUTPUT:\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
+puts reply.resultIO.string.empty? ? "Success" : reply.resultIO.string

@@ -1,0 +1,78 @@
+- breadcrumb_for_application @application, 'Scale your Application'
+- content_for :page_title, 'Scale your Application'
+
+%h1 Scale your Application
+
+%section#scaling-gear-groups
+  - @cartridges.each do |cartridge|
+    .gear-group.tile
+      %h2
+        = cartridge.display_name
+        - if cartridge.scales?
+          %span.pull-right Using #{pluralize(cartridge.current_scale, 'gears')}
+
+      - if cartridge.scales?
+        = semantic_form_for cartridge,
+                            :simple => true,
+                            :method => :put,
+                            :url => application_scaling_cartridge_path(@application.id, cartridge.name) do |f|
+
+          = f.semantic_errors :scales_from, :scales_to
+
+          - if cartridge.tags.include?(:web_framework)
+            %p
+              OpenShift is configured to scale this cartridge with 
+              #{link_to 'the web proxy HAProxy', scaling_help_url }. OpenShift 
+              monitors the incoming web traffic to your application and 
+              automatically adds or removes copies of your cartridge
+              (each running on their own gears) to serve requests as needed.
+
+          %p Control the number of gears OpenShift will use for your cartridge:
+
+          = f.inputs :inline => true, :important => true, :without_errors => true do
+            .input-prepend
+              %span.add-on Minimum
+              = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Minimum gears'}})
+            and 
+            .input-prepend
+              %span.add-on Maximum
+              = f.input :scales_to, scale_to_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Maximum gears'}})
+
+            #{cartridge.gear_profile} gears
+
+            = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
+            = f.loading
+
+
+        - if cartridge.tags.include?(:web_framework)
+
+          %hr
+
+          %p
+            Each scaled gear is created the same way - the normal 
+            post, pre, and deploy hooks are executed.  Each cartridge will have its
+            own copy of runtime data, so be sure to use a database if you need to share
+            data across your web cartridges.
+
+          %p
+            For status information about traffic to your application, see the HAProxy status page:
+
+          %p.application-url.larger
+            = link_to @application.scale_status_url, @application.scale_status_url, :target => '_blank'
+
+      - elsif cartridge.tags.include? :scales
+        %p This cartridge assists other cartridges in scaling, but does not itself scale.
+      - else
+        %p This cartridge does not scale.
+  %p
+    For more information about scaling your application see
+    #{link_to 'our scaling guide in the Developer Center', scaling_help_url}.
+
+- content_for :javascripts do
+  :javascript
+    jQuery('#scaling-gear-groups FORM').each(function() {
+      btn = $('INPUT.btn', this)[0];
+      $('SELECT', this).change(function() {
+        $(btn).addClass('btn-primary');
+      });
+    });

@@ -1,0 +1,350 @@
+#!/usr/bin/env ruby
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+
+require 'rubygems'
+require 'optparse'
+
+$OPTIONS = {}
+
+optparse = OptionParser.new { |opts|
+  opts.banner = "\nUsage: #{$0}\n"+
+                "\nExample: #{$0} -v\n\n"
+
+    $OPTIONS[:verbose] = false
+    opts.on('-v','--verbose', 'Print verbose statements') { |verbose|
+        $OPTIONS[:verbose] = verbose
+    }
+}
+optparse.parse!
+
+
+$TC_CHECK=false
+$TC_DATA = %x[tc clas show dev eth0].split("\n").grep(/parent/)
+$ALL_QUOTAS = %x[repquota -a].split("\n")
+
+$LIBRA_CONF_DIR="/etc/openshift"
+$NODE_CONF_FILE=File.join($LIBRA_CONF_DIR, "/node.conf")
+$RESOURCE_LIMITS_FILE=File.join($LIBRA_CONF_DIR,"/resource_limits.conf")
+$LIMITS_CONF_DIR="/etc/security/limits.d"
+#
+# Control variables.  Override for testing
+#
+DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on"
+DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
+    rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
+#                  cartridge-rack-1.1.
+#                  cartridge-wsgi-3.2
+#                  cartridge-php-5.3"
+DEFAULT_SERVICES="mcollective cgconfig cgred httpd"
+DEFAULT_MINSEM=512
+
+$SEBOOL_LIST="SEBOOL_LIST"
+$PACKAGES="PACKAGES"
+$SERVICES="SERVICES"
+$MINSEM="MINSEM"
+
+
+####### GLOBAL VARS ########
+$CGROUP_PASS=true
+$TC_PASS=true
+$ALL_USERS = []
+###########################
+
+if ENV[$SEBOOL_LIST].nil?
+    $SEBOOL_LIST=DEFAULT_SEBOOL_LIST
+else
+    eputs "WARNING: ENV overrides SEBOOL_LIST"
+end
+
+if ENV[$PACKAGES].nil?
+    $PACKAGES=DEFAULT_PACKAGES
+else
+    eputs "WARNING: ENV overrides PACKAGES"
+end
+
+if ENV[$SERVICES].nil?
+    $SERVICES=DEFAULT_SERVICES
+else
+    eputs "WARNING: ENV overrides SERVICES"
+end
+
+if ENV[$MINSEM].nil?
+    $MINSEM=DEFAULT_MINSEM
+else
+    eputs "WARNING: ENV overrides MINSEM"
+end
+
+
+def eputs(msg)
+    $stderr.write("#{msg}\n")
+end
+
+######## UTILITIES ########
+
+def verbose(msg)
+    if $OPTIONS[:verbose]
+        $stdout.write("INFO: #{msg}\n")
+    end
+end
+
+def do_fail(msg)
+    eputs("FAIL: " + msg)
+    $STATUS += 1
+end
+
+def source_file(file)
+    i = 0
+    IO.foreach(file) { |line|
+        next if line =~ /^#/
+        next if line =~ /^$/
+        if line.include?"#"
+            name,value = line.split("#")[0].split("=")
+        else
+            name,value = line.strip.split[0].split("=")
+        end
+        #$stdout.flush
+        #puts "Setting vars #{name}=>#{value.gsub('"',"")}"
+        next if name.nil? or value.nil?
+        #puts "Setting vars #{name}=>#{value.gsub('"',"")}"
+        ENV["#{name}"]=value.gsub('"','').strip
+        #p ENV
+        #exit
+    }
+end
+
+###############################
+
+def users
+    $USERS ||= %x[grep ":#{ENV['GEAR_GECOS']}:" /etc/passwd].split("\n")
+end
+
+def load_node_conf
+    verbose("loading node configuration file #{$NODE_CONF_FILE}")
+    do_fail("FAIL: No configuration file: #{$NODE_CONF_FILE}") unless File.exists? $NODE_CONF_FILE
+
+    #Source it in bash, grep it in ruby
+    source_file($NODE_CONF_FILE)
+    if ENV["GEAR_BASE_DIR"].nil?
+        do_fail("GEAR_BASE_DIR is not set in the node configuration")
+    else
+        $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
+    end
+    do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
+    $GEAR_HTTPD_DIR=File.join($GEAR_BASE_DIR,"/.httpd.d")
+
+    verbose("loading resource limit file #{$RESOURCE_LIMITS_FILE}")
+
+    do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
+    source_file($RESOURCE_LIMITS_FILE)
+end
+
+def check_selinux()
+    verbose("checking selinux status")
+    unless %x[getenforce] =~ /Enforcing/
+        do_fail("selinux is not enabled")
+    else
+        verbose("checking selinux origin policy")
+        do_fail("selinux origin policy is not loaded") unless %x[/usr/bin/timeout -s9 10 /usr/sbin/semodule -l] =~ /openshift-origin/
+    end
+    verbose("checking selinux booleans")
+    $SEBOOL_LIST.split.each { |bool|
+        name,value = bool.split(':')
+        result = %x[getsebool #{name}]
+        do_fail("selinux boolean #{name} should be #{value}") unless result =~ /#{name} --> #{value}/
+    }
+
+    do_fail("invalid selinux labels in OPENSHIFT_DIR $GEAR_BASE_DIR") unless %x[restorecon -n -v #{$GEAR_BASE_DIR}] =~ //
+end
+
+def check_packages
+    verbose("checking package list")
+    not_installed = %x[rpm -q #{$PACKAGES}].split("\n").grep(/not/)
+    not_installed.each { |pack_not_installed|
+        do_fail(pack_not_installed)
+    }
+    #$PACKAGES.each { |pack|
+         #do_fail("package #{pack} is not installed") if %x[rpm -q #{pack}] =~ /not/
+    #}
+
+end
+
+def check_services
+    verbose("checking services")
+    $SERVICES.split.each { |service|
+        %x[service #{service} status &>/dev/null]
+        do_fail("service #{service} not running") unless $?.exitstatus == 0
+    }
+end
+
+
+def check_semaphores
+    verbose("checking kernel semaphores >= #{$MINSEM}")
+    semcount=%x[sysctl kernel.sem | cut -f4].strip.to_i
+    do_fail("kernel.sem semaphores too low: #{semcount} < #{$MINSEM}") if semcount <= $MINSEM
+end
+
+#
+# Check cgroup config
+#
+def check_cgroup_config
+    verbose("checking cgroups configuration")
+
+    if %x[lscgroup cpu,cpuacct,memory,freezer,net_cls:/openshift 2>/dev/null | wc -l].strip.to_i < 1
+        do_fail("lscgroup /openshift path does not exist")
+        $CGROUP_PASS=false
+    end
+
+    ["/cgroup", "/cgroup/all", "/cgroup/all/openshift"].each { |path|
+        verbose("checking presence of #{path}")
+        next if File.exists? path
+        do_fail("cgroup root /cgroup directory does not exist")
+        $CGROUP_PASS=false
+        break
+    }
+end
+
+#
+# Check tc config
+#
+def check_tc_config
+    verbose("checking presence of tc qdisc")
+    qdiscresponse="qdisc htb 1: root"
+
+    result = %x[tc qdisc show dev eth0 | grep -q "#{qdiscresponse}"]
+    if $?.exitstatus != 0
+        do_fail("tc htb qdisc not configured")
+        $TC_PASS=false
+    else
+        verbose("checking for cgroup filter")
+        if %x[tc filter show dev eth0 | grep 'cgroup handle' | uniq | wc -l].strip.to_i < 1
+            do_fail("no cgroup filter configured")
+            $TC_PASS=false
+        else
+            verbose("checking presence of tc classes")
+            if %x[tc class show dev eth0 | grep 'class htb' | wc -l].strip.to_i < 1
+                do_fail("no htb classes configured")
+                $TC_PASS=false
+            end
+        end
+    end
+end
+
+def check_quotas
+    verbose("checking filesystem quotas")
+    oo_device=%x[df -P #{$GEAR_BASE_DIR} | tail -1].split[0]
+    oo_mount=%x[df -P #{$GEAR_BASE_DIR} | tail -1 | tr -s ' '].split[5]
+    unless %x[quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
+        do_fail "quotas are not enabled on #{oo_mount} (#{oo_device})"
+    end
+
+    quota_db_file=File.join(oo_mount,"/aquota.user")
+    if File.exists? quota_db_file
+        verbose("checking quota db file selinux label")
+        quota_db_type = %x[secon -f #{quota_db_file} | grep type: ]
+        if quota_db_type !~ /quota_db_t/
+            do_fail("quota db file: selinux type is incorrect: #{quota_db_type}")
+        end
+    else
+        do_fail("quota db file #{quota_db_file} does not exist")
+    end
+end
+
+def check_users
+    verbose("checking #{users.length} user accounts")
+    conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
+    user_cgroup="/cgroup/all/openshift/%s"
+    users.each do |user|
+        username,password,uid,gid,gecos,home_dir,shell = user.split(":")
+        $ALL_USERS << username #store it so we can use it later
+        #Test home dir
+        do_fail("user #{username} does not have a home directory #{home_dir}") unless File.exists? home_dir
+        do_fail("user #{username} does not have a PAM limits file") unless File.exists?(conf_dir_templ % username)
+        if $CGROUP_PASS
+            do_fail("user #{username} does not have a cgroup directory") unless File.exists?(user_cgroup % username)
+        end
+        if $TC_CHECK && $TC_PASS
+            hex_uid = uid.to_i.to_s(16)
+            tc_results = $TC_DATA.grep(/1:#{hex_uid}/)
+            do_fail("user #{username} must have 1 tc class entry: actual=#{tc_results.length}") if tc_results.length != 1
+        end
+
+        results = $ALL_QUOTAS.grep(/#{username}/)
+        if results.length == 0 ||
+           results[0].split[4].to_i == 0 ||
+           results[0].split[7].to_i == 0
+            do_fail("user #{username} does not have quotas imposed")
+        end
+    end
+
+end
+
+def check_system_httpd_configs
+    verbose("checking system httpd configs")
+    Dir.foreach($GEAR_HTTPD_DIR) { |cfile|
+        next if cfile[0,1] == "."
+        next if cfile[-5,5] != ".conf"
+        if ! $ALL_USERS.include?(cfile[0,32])
+            do_fail("httpd config file #{cfile} doesn't have an associated user")
+        end
+    }
+end
+
+def check_app_dirs
+    verbose("checking application dirs")
+    copy_all_users = $ALL_USERS.dup
+    Dir.foreach($GEAR_BASE_DIR) { |entry|
+        next if entry[0,1] == "."
+        next if entry == 'lost+found'
+        next if entry == 'last_access.log'
+        next if File.symlink? File.join($GEAR_BASE_DIR,entry)
+        next unless File.directory? File.join($GEAR_BASE_DIR,entry)
+        [ ".ssh", ".env", ".sandbox", ".tmp" ].each { |dotdir|
+             do_fail("directory #{entry} doesn't have a #{dotdir} directory") unless File.directory? File.join($GEAR_BASE_DIR,entry,dotdir)
+        }
+        ind = copy_all_users.index(entry)
+        if ind
+          copy_all_users.delete_at(ind)
+        else
+          do_fail("directory #{entry} doesn't have an associated user")
+        end
+    }
+end
+
+if __FILE__ == $0
+    $STATUS=0
+    load_node_conf
+    check_selinux
+    check_packages
+    check_services
+    check_semaphores
+    check_cgroup_config
+    check_tc_config if $TC_CHECK
+    check_quotas
+    check_users
+    check_app_dirs
+    check_system_httpd_configs
+
+    if $STATUS == 0
+        puts "PASS"
+    else
+        eputs "#{$STATUS} ERRORS"
+    end
+    exit($STATUS)
+end
+

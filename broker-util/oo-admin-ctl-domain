@@ -1,0 +1,149 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'getoptlong'
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-domain: Manage user domains
+
+== Usage
+
+oo-admin-ctl-domain OPTIONS
+
+Options:
+-l|--rhlogin <rhlogin>
+    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+-n|--namespace <Namespace>
+    Namespace for application(s) (alphanumeric - max 16 chars) (required)
+-c|--command (create|update|delete|info)
+-s|--ssh_key <ssh key>
+    Users SSH key
+-t|--key_type <ssh key type>
+    Users SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
+-k|--key_name <ssh key name>
+    Users SSH key name
+-h|--help:
+    Show Usage info
+USAGE
+end
+
+opts = GetoptLong.new(
+    ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--namespace",        "-n", GetoptLong::REQUIRED_ARGUMENT],    
+    ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--ssh_key",          "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--key_type",         "-t", GetoptLong::REQUIRED_ARGUMENT],
+    ["--key_name",         "-k", GetoptLong::REQUIRED_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+    opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+    usage
+    exit -100
+end
+
+login = args["--rhlogin"]
+ssh_key = args["--ssh_key"]
+ssh_type = args["--key_type"]
+ssh_name = args["--key_name"]
+namespace = args["--namespace"]
+
+if login.nil? or args["--help"]
+  usage
+  exit 1
+end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+
+reply = ResultIO.new
+case args["--command"]
+when "create"
+  if ssh_key.nil? || namespace.nil? || login.nil?
+    print "Please provide rhlogin, ssh key and namespace to create the user\n"
+    exit -1
+  end
+  user = CloudUser.find(login)
+  if user
+    print "User #{login} already exists. Please use the 'update' command to alter ssh keys or namespace.\n"
+    exit -1
+  end
+  
+  user = CloudUser.new(login, ssh_key, ssh_type, ssh_name)
+  reply.append user.save
+  reply.resultIO << "Successfully created user.\n"
+
+  domain = Domain.new(namespace, user)
+  domain.save
+  reply.resultIO << "Successfully created domain.\n"  
+when "update"
+  user = CloudUser.find(login)
+  unless user
+    print "User with login: #{login} not found\n"
+    exit 1
+  end
+  
+  unless ssh_key.nil?
+    user.update_ssh_key(ssh_key, ssh_type, ssh_name)
+    user.save
+  end
+
+  d = nil
+  if user.domains.empty?
+    d = Domain.new(namespace, user)
+    d.save
+  else
+    d = user.domains.first
+    unless d.namespace == namespace
+      d.namespace = namespace
+      d.save
+    end
+  end
+
+  reply.resultIO << "Successfully updated user.\n"
+when "delete"
+  user = CloudUser.find(login)
+  unless user
+    print "User with login: #{login} not found\n"
+    exit 1
+  end
+  unless user.domains.empty?
+    print "User still has domains. Delete them first\n"
+    exit 1
+  end
+  unless user.applications.empty?
+    print "User still has applications. Delete them first\n"
+    exit 1
+  end
+  reply.append user.delete
+  reply.resultIO << "Successfully deleted user.\n"  
+else
+  user = CloudUser.find(login)
+  unless user
+    print "User with login: #{login} not found\n"
+    exit 1
+  end
+  reply.resultIO << "RHLogin: #{user.login}\n"
+  if user.domains.empty?
+    reply.resultIO << "Namespace: No namespace registered\n"
+  else
+    reply.resultIO << "Namespace: #{user.domains.first.namespace}\n"
+  end
+  reply.resultIO << "SSH keys:\n"
+  user.ssh_keys.each do |name,key|
+    reply.resultIO << "\t#{name}:\n#{key}\n\n"
+  end unless user.ssh_keys.nil?
+  reply.resultIO << "Applications:\n"
+  user.applications.each do |app|
+    reply.resultIO << app.as_json.to_yaml
+  end
+end
+
+print reply.resultIO.string

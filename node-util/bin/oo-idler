@@ -1,0 +1,141 @@
+#!/bin/bash
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# Idle applications
+#
+# oo-idler takes an existing running application and disables it to free up
+# memory and cpu resources.  It uses oo-restorer to automatically turn the
+# application back on when a request comes to it (like
+# http://app-dom.example.com)
+
+TRUE=0
+FALSE=1
+source /etc/openshift/node.conf
+
+function print_help {
+    echo "Usage: $0"
+    echo "  -u UUID       idles the app"
+    echo "  -l            list all idled apps"
+    echo "  -n            don't restart httpd"
+    exit 1
+}
+
+function openshift_gears() {
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1
+}
+
+function print_idled {
+    for appid in $(openshift_gears)
+    do
+        if is_idled "$appid"
+        then
+            echo "$appid is idled"
+        fi
+    done
+}
+
+function get_state {
+    source "/var/lib/openshift/$1/.env/OPENSHIFT_HOMEDIR"
+    cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state
+}
+
+function is_idled {
+    appid=$1
+
+    HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${appid}"*/00000_default.conf`
+    if ! grep -q ' #ProxyPass' $HTTP_DIR/*.conf 2>/dev/null
+    then
+        return $FALSE
+    fi
+
+    if [ ! -f $HTTP_DIR/0000000000000_disabled.conf ]
+    then
+        return $FALSE
+    fi
+
+    _test=`get_state $appid`
+    return `test idle = "$_test"`
+}
+
+function is_stopped {
+    _test=`get_state $1`
+    return `test stopped = "$_test"`
+}
+
+while getopts 'u:dln' OPTION
+do
+case $OPTION in
+        u) uuid=$OPTARG
+    ;;
+        d) set -x
+    ;;
+        l) list_idled="TRUE"
+    ;;
+        n) no_httpd_restart="TRUE"
+    ;;
+        ?) print_help
+    ;;
+esac
+done
+
+if [ ! -z "$list_idled" ]
+then
+    print_idled
+    exit 0
+fi
+
+if [ -z "$uuid" ] || ! [ -d "/var/lib/openshift/$uuid" ]
+then
+    print_help
+fi
+
+source /usr/libexec/openshift/cartridges/abstract/info/lib/util
+
+# Get the libra_server
+source /etc/openshift/node.conf
+source "/var/lib/openshift/${uuid}/.env/OPENSHIFT_HOMEDIR"
+
+if `is_idled "$uuid"` || `is_stopped "$uuid"` ; then
+    exit 0 # app is already idled or stopped, nothing to do
+fi
+
+HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
+sed -i "s/ ProxyPass/ #ProxyPass/g" $HTTP_DIR/*.conf
+
+
+cat > $HTTP_DIR/0000000000000_disabled.conf <<EOF
+Alias / /var/www/html/restorer.php/${uuid}/
+EOF
+
+if [ -z "$no_httpd_restart" ]
+then
+    service httpd graceful
+fi
+
+/usr/bin/oo-admin-ctl-gears stopgear "${uuid}"
+
+# Disable
+# code copied from node/lib/util_ext
+runuser --shell /bin/sh "$uuid" -c "echo idle >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
+
+# Get primary cart run directory
+framework_carts=$(get_installed_framework_carts)
+primary_framework_cart=${framework_carts[0]}
+touch "${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
+
+/usr/bin/logger -p local0.notice -t oo_idler "Idled: ${uuid}"

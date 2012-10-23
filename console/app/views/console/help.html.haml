@@ -1,0 +1,90 @@
+:css
+  .row-help a { font-weight: bold; }
+-#:css
+  .row-help > .span3 {
+    position: relative;
+  }
+  .row-help > .span3 > h2:after {
+    content: ' ';
+    position: absolute;
+    right: -10px;
+    top: 0;
+    border-color: transparent #C83423;
+    border-style: solid;
+    border-width: 0 0 36px 10px;
+  }
+  .row-help > .span3 > h2:before {
+    content: ' ';
+    position: absolute;
+    left: -18px;
+    top: 0;
+    width: 10px;
+    border-color: #C83423 transparent;
+    border-style: solid;
+    border-width: 0 0 36px 10px;
+  }
+  .row-help > .span3 > h2 {
+    border-color: #C83423;
+    background-color: #C83423;
+  }
+  .row-help > .span3:first-child > h2:before {
+    border-left: 10px;
+    left: -10px;
+    border-color: #C83423;
+  }
+
+%section.row.row-help
+  .span3
+    %h2 Create
+    %p
+      %strong Just starting with OpenShift?
+    %p Get your first application up off the ground through the application creation wizard.
+    %p #{link_to 'Create an app now', application_types_path, :class => 'btn btn-primary'}
+    %p If you prefer the command line, #{link_to 'our Getting Started page', getting_started_path} will help you install the client tools, create your application, and make your first change.
+    %p 
+      Our #{link_to 'Get Started Fast page', developers_get_started_fast_url} has tutorials for creating apps based many different technologies like 
+      #{link_to 'Drupal', openshift_github_project_url('drupal-example')},
+      #{link_to 'Ruby on Rails', openshift_github_project_url('rails-example')}, and
+      #{link_to 'Wordpress', openshift_github_project_url('wordpress-example')}. If you don't see your favorite framework, #{link_to 'let us know', mailto_openshift_url}.
+
+  .span3
+    %h2 Learn
+    %p 
+      %strong Want to explore our platform?
+    %p #{link_to 'The Developer Center', developers_url} is the first destination for new developers to find the information you need about OpenShift.
+    %p When you're looking for a great reference for understanding OpenShift, look no further than the #{link_to 'the User Guide', user_guide_url}.  It covers the entire experience and can be downloaded as HTML or PDF when you're on the go.
+    %p Our technology highlight pages bring together what you need to know - #{link_to 'JBoss', jboss_resources_url} and #{link_to 'MongoDB', mongodb_resources_url} are up now, with more to come.
+    %p For some great technology dives #{link_to 'see our Videos page', videos_url}.
+    -# Some of our favorites are below.
+
+  .span3
+    %h2 Troubleshoot
+    %p 
+      %strong Hit a bump in the road?
+    %p Our #{link_to 'community forum', post_to_forum_url} is watched round the clock by an army of developers, evangelists, and OpenShift devotees.
+    %form.form-search{:method => 'get', :action => community_search_url}
+      %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums'}
+      %button.search{:type => 'submit', :value => 'Search'}
+    %p Check out the #{link_to 'Knowledge Base', knowledge_base_url} for known headaches and #{link_to 'FAQ', faq_url} for more general questions
+    %p Talk directly to the team on IRC - #{link_to 'freenode.net on channel #openshift', irc_web_url}.
+
+  .span3
+    %h2 Engage
+    %p 
+      %strong Need to know what's new?
+    %p The OpenShift newsletter is a great way to track the latest news.
+    %p #{link_to 'Subscribe today', newsletter_signup_url, :class => 'btn btn-primary'}
+    %p OpenShift is #{link_to "powered by open source ", opensource_community_url} and can be #{link_to "run on your laptop", opensource_download_path}. #{link_to "Get involved today", get_involved_url} and help drive our evolution.
+    %p Follow us on Twitter at #{link_to '@openshift', openshift_twitter_url} or read the #{link_to 'OpenShift blog', openshift_blog_url}.
+    %p If you've found a real humdinger of a problem with the console, site, or community - #{link_to 'file a bug', open_bug_url, :target => '_blank' } and we'll try to make it right.
+
+-#%section.row
+  .span12
+    %h2 Videos
+    %ul.thumbnails
+      %li.span3
+        .thumbnail
+          %h5 Product Tour
+          = link_to 'video1' do
+            %img{:src => '/app/images/video_stills/OpenShift-Express-demo.png'}
+          %p This video walks you through the high level functionality of OpenShift Express, from installing the client tools, creating a subdomain to deploying your app onto the cloud.

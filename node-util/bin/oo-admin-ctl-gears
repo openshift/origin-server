@@ -1,0 +1,339 @@
+#!/bin/bash
+source /etc/rc.d/init.d/functions
+source /usr/libexec/openshift/cartridges/abstract/info/lib/util 
+source /etc/openshift/node.conf
+
+lockfile=/var/lock/subsys/openshift-gears
+logfile=/var/log/openshift-gears-async-start.log
+numparallel=5
+timeout=90
+
+# colors, use like: echo "${RED}FAILED!!!${NORM}"
+RED=$(echo -e "\033[31m")
+GREEN=$(echo -e "\033[32m")
+NORM=$(echo -e "\033[0m")
+
+function print_column() {
+    sameline="false"
+    if [ "$1" == "-n" ]
+    then
+        shift
+        sameline="true"
+    fi
+
+    length=$1
+    msg=$2
+    numspaces=$(( $length - ${#msg} ))
+
+    echo -n "$msg"
+
+    for ix in $(seq $numspaces)
+    do
+        echo -n ' '
+    done
+    if [ "$sameline" == "false" ]
+    then
+        echo
+    fi
+}
+
+function openshift_gears() {
+    grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f1
+}
+
+function get_mcs_level() {
+    # UID=$1
+    /usr/bin/oo-get-mcs-level $1
+}
+
+#
+# Given a username, get the home directory
+#
+function homedir() {
+    # USERNAME=$1
+    grep "^$1:" /etc/passwd | cut -d: -f 6
+}
+
+RETVAL=0
+GROUP_RETVAL=0
+
+# Disable IPV6 - SELinux Friendly
+if [ -f /proc/sys/net/ipv6/conf/all/disable_ipv6 ]
+then
+    echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+fi
+
+if [ -f /proc/sys/net/ipv6/conf/default/disable_ipv6 ]
+then
+    echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+fi
+
+function _log_message() {
+    faclvl=$1
+    shift
+    [ -z "$@" ]  &&  return 0
+    /usr/bin/logger -i -s -t "openshift-gears-service" -p $faclvl "$@"
+}
+
+function log_info() {
+    _log_message user.info "$@"
+}
+
+function log_error() {
+    _log_message user.err "$@"
+}
+
+function return_output() {
+    if [ "$1" ]; 
+	then
+		echo >> "$1" 2>&1
+		cat "$1" | sed -e "s#\[  OK  \]#\[  ${GREEN}OK${NORM}  \]#" -e "s#\[FAILED\]#\[${RED}FAILED${NORM}\]#"
+		rm -f "$1"
+    fi
+}
+
+function return_terminate() {
+    log_error "Timeout $1 $2"	
+    print_column -n 59 "Timeout $2..."
+    echo "[${RED}FAILED${NORM}]"
+    exit 1
+}
+
+function startgear() {
+    # GEARNAME=$1
+    local OUTFILE=$(mktemp /var/run/openshift/openshift_init-startgear-$1.XXXXXXXX)
+    trap "return_terminate startgear $1 $OUTFILE" USR1
+	log_info "Starting $1..."
+    echo "Starting $1..." >> $OUTFILE 2>&1
+    (
+      APP_HOME=/var/lib/openshift/$1
+      for component in $(get_start_order)
+      do
+        startcart $1 $component >> $OUTFILE 2>&1
+      done
+    ) &
+    wait
+	log_info "Started $1"
+    return_output $OUTFILE
+}
+
+function stopgear() {
+    # GEARNAME=$1
+    local OUTFILE=$(mktemp /var/run/openshift/openshift_init-stopgear-$1.XXXXXXXX)
+    trap "return_terminate stopgear $1 $OUTFILE" USR1
+    log_info "Stopping $1..."
+    echo "Stopping $1..." >> $OUTFILE 2>&1
+    (
+      APP_HOME=/var/lib/openshift/$1
+      for component in $(get_stop_order)
+      do
+        stopcart $1 $component >>$OUTFILE 2>&1
+      done
+    ) &
+    wait
+    log_info "Stopped $1"
+    return_output $OUTFILE
+}
+
+function setuppam() {
+    uuid=$1
+    if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]
+    then
+        echo "found"
+        /usr/libexec/openshift/lib/setup_pam_fs_limits.sh $uuid
+    fi
+}
+
+function startcart() {
+    # GEARNAME=$1
+    # CARTRIDGE=$2
+    uid=$(id -u "$1")
+    setuppam $1
+    mcs_level=$(get_mcs_level $uid)
+
+    locks=$(ls /var/lib/openshift/$1/*/run/stop_lock 2>/dev/null |grep -ve 'app-root|git' |wc -l)
+    if [ "$locks" -gt 0 ]
+    then
+        echo "$1 is locked"
+    else
+        print_column -n 59 "    $2"
+
+        script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
+        local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name start)
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]
+        then
+            echo_success
+        else
+            GROUP_RETVAL=$(($GROUP_RETVAL+1))
+            echo_failure
+            echo
+            echo $OUTPUT
+            echo
+        fi
+        echo
+    fi
+}
+
+function stopcart() {
+    # GEARNAME=$1
+    # CARTRIDGE=$2
+    uid=$(id -u "$1")
+	mcs_level=$(get_mcs_level $uid)
+    print_column -n 59 "    $2"
+    script_name=/usr/libexec/openshift/cartridges/$2/info/bin/app_ctl.sh
+    local OUTPUT=$(daemon --user="$1" --pidfile=httpd_$1-$2 runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name stop)
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]
+    then
+        echo_success
+    else
+        GROUP_RETVAL=$(($GROUP_RETVAL+1))
+        echo_failure
+        echo
+        echo $OUTPUT
+        echo
+    fi
+    echo
+}
+
+function start_backgrounded() {
+    log_info "Starting OpenShift services in the background ..."
+    nohup /usr/bin/oo-admin-ctl-gears waited-startall > $logfile 2>&1 &
+    bgpid=$!
+    log_info "Background start initiated - process id = $bgpid"
+    log_info "Check $logfile for more details."
+    echo
+    echo "Note: In the future, if you wish to start the OpenShift services in the"
+    echo "      foreground (waited), use:  service openshift-gears waited-start"
+    echo
+}
+
+function waited_start() {
+    log_info "Starting OpenShift Services: "
+    echo
+
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "idle" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears startgear {}
+
+    log_info "All OpenShift services started"
+    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
+    [ $GROUP_RETVAL -eq 0 ] && success || failure
+    echo
+    return $GROUP_RETVAL
+}
+
+function stop() {
+    log_info "Stopping OpenShift Services: "
+    echo
+
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "stopped|idle" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears stopgear {}
+
+    log_info "All OpenShift services stopped"
+    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
+    [ $GROUP_RETVAL -eq 0 ] && success || failure
+    echo
+    return $GROUP_RETVAL
+}
+
+function restart() {
+    # This restarts each app individually. DO NOT change it to simply call stop() and start()
+    log_info "Restarting OpenShift Services: "
+    echo
+
+	for uuid in $(openshift_gears)
+    do
+        /bin/egrep -q -v "idle|stopped" /var/lib/openshift/$uuid/app-root/runtime/.state && echo $uuid || echo "Skipping $uuid" 1>&2
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears restartgear {}
+
+    echo -n "All OpenShift services restarted"
+    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
+    [ $GROUP_RETVAL -eq 0 ] && success || failure
+    echo
+    return $GROUP_RETVAL
+}
+
+case "$1" in
+  startall)
+    start_backgrounded
+    ;;
+  stopall)
+    stop
+    ;;
+  restartall)
+    restart
+    ;;
+  condrestartall)
+    [ -f "$lockfile" ] && restart
+    ;;
+  waited-startall)
+    waited_start
+    ;;
+  status)
+    echo "Checking OpenShift Services: "
+
+    for gear in $(grep ':${GEAR_GECOS}:' /etc/passwd | cut -d: -f6)
+    do
+        for cartridge in $(ls -d $gear/* |grep -E -v 'app-root|git')
+        do
+            cartridge=$(basename $cartridge)
+            script_name=/usr/libexec/openshift/cartridges/$cartridge/info/bin/app_ctl.sh
+            source $gear/.env/OPENSHIFT_APP_NAME
+            echo -n "    Checking http for $OPENSHIFT_APP_NAME"
+            runas=$(basename $gear)
+            uid=$(id -u "$runas")
+	    mcs_level=$(get_mcs_level $uid)
+
+            daemon --user=$runas --pidfile=httpd_$runas_$cartridge runcon -r system_r -u system_u -t openshift_t -l $mcs_level $script_name status
+            RETVAL=$?
+            echo
+            if [ $RETVAL -eq 0 ]
+            then
+                echo_success
+            else
+                GROUP_RETVAL=$(($GROUP_RETVAL+1))
+                echo_failure
+            fi
+        done
+    done
+    echo
+    ;;
+
+  startgear)
+    startgear $2
+    ;;
+
+  stopgear)
+    stopgear $2
+    ;;
+
+  restartgear)
+    stopgear $2
+    startgear $2
+    ;;
+
+  startcart)
+    startcart $2 $3
+    ;;
+
+  stopcart)
+    stopcart $2 $3
+    ;;
+
+  restartcart)
+    stopcart $2 $3
+    startcart $2 $3
+    ;;
+
+  *)
+    echo "Usage: $0 {startall|stopall|status|restartall|condrestartall}"
+    exit 1
+esac
+
+exit $RETVAL
+

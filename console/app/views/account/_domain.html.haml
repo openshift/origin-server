@@ -1,0 +1,14 @@
+%h2 Namespace
+%p 
+  Your namespace is unique to your account and is the suffix of the public URLs we assign to your applications.
+  See #{link_to 'the User Guide', user_guide_url}
+  for information about adding your own domain names to an application.
+
+- if @domain
+  .well
+    http://applicationname&ndash;<strong class="namespace">#{@domain.name}</strong>.#{RestApi.application_domain_suffix}
+  .btn-toolbar
+    = link_to "Change your namespace...", edit_domain_path, :class => 'btn'
+
+- else
+  = render Domain.new

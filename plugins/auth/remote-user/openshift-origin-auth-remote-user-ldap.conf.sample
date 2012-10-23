@@ -1,0 +1,40 @@
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule ldap_module modules/mod_ldap.so
+LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
+
+# By default the LDAPCacheTTL directive is set to 600 seconds.  If you want to
+# effectively disable LDAP caching in mod_ldap, set the directive to 0. There
+# is a performance trade-off, but disabling the cache will make things like
+# password changes effective immediately.
+# http://httpd.apache.org/docs/2.4/mod/mod_ldap.html
+# LDAPCacheTTL 0
+
+<Location /broker>
+    AuthName "OpenShift"
+    AuthType Basic
+    AuthBasicProvider ldap
+    AuthLDAPURL "ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
+    require valid-user
+
+    # The node->broker auth is handled in the Ruby code
+    BrowserMatch OpenShift passthrough
+    Allow from env=passthrough
+
+    Order Deny,Allow
+    Deny from all
+    Satisfy any
+</Location>
+
+# The following APIs do not require auth:
+<Location /broker/rest/application_templates*>
+    Allow from all
+</Location>
+
+<Location /broker/rest/cartridges*>
+    Allow from all
+</Location>
+
+<Location /broker/rest/api*>
+    Allow from all
+</Location>

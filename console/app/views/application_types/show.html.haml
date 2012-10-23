@@ -1,0 +1,37 @@
+-#:css
+  .application_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px;}
+  .application_type > ul.meta > li {display: inline;}
+  .application_type > ul.meta > li > label {display: inline;}
+
+%h1.invisible Configure New Application
+= app_wizard_steps_create 1
+= flashes
+
+= render :partial => @application_type, :locals => {:hide_link => true, :extra_info => true, :classes => 'tile'}
+
+= semantic_form_for @application, :html => {:class => 'form-horizontal'} do |f|
+  = f.hidden_field :application_type, :value => @application_type.id
+
+  - errors = @application.errors.full_messages.present?
+  = f.semantic_errors :name, :domain_name, :node_profile
+
+  = f.inputs do
+    = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @application}
+
+    -# if @gear_sizes and @gear_sizes.length > 1
+      .control-group
+        %label{:for => :gear_profile, :class => "control-label"} Gear Size
+        = f.input :gear_profile, :collection => options_for_select(@gear_sizes, @gear_sizes[0]), :include_blank => false, :class => @application.errors[:node_profile].present? ? 'error' : '', :label => false
+        .row
+          .controls
+            .help-block.span6
+              Different gear sizes may be available for your application.  For most
+              application the
+              %strong small
+              gear size provides plenty of resources to run in.  If you require
+              more resources you may change it here.
+
+  = f.buttons do
+    = link_to "Back", application_types_path, :class => 'btn'
+    = f.commit_button :button_html => { :name => 'submit' } 
+    = f.loading

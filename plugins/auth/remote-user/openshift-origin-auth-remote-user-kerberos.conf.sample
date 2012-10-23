@@ -1,0 +1,34 @@
+LoadModule auth_basic_module modules/mod_auth_basic.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule auth_kerb_module modules/mod_auth_kerb.so
+<Location /broker>
+    AuthName "OpenShift"
+    AuthType Kerberos
+    KrbMethodNegotiate On
+    KrbMethodK5Passwd On
+    KrbServiceName HTTP/www.example.com
+    KrbAuthRealms EXAMPLE.COM
+    Krb5KeyTab /var/www/openshift/broker/httpd/conf.d/http.keytab
+    require valid-user
+
+    # The node->broker auth is handled in the Ruby code
+    BrowserMatch OpenShift passthrough
+    Allow from env=passthrough
+
+    Order Deny,Allow
+    Deny from all
+    Satisfy any
+</Location>
+
+# The following APIs do not require auth:
+<Location /broker/rest/application_templates*>
+    Allow from all
+</Location>
+
+<Location /broker/rest/cartridges*>
+    Allow from all
+</Location>
+
+<Location /broker/rest/api*>
+    Allow from all
+</Location>

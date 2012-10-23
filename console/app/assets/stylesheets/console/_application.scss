@@ -1,0 +1,146 @@
+/***********************************************************
+* Application standard layouts 
+*/
+
+.application-info {
+	position: relative;
+	
+  &.warning {
+  	border-left: 2px dashed #bb161c;
+	}
+	
+  .name {
+    text-transform: capitalize;
+    display: inline-block;
+    margin-bottom: 5px;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+
+  > .url {
+    display: inline-block;
+    vertical-align: text-bottom;
+    white-space: nowrap;
+    vertical-align: middle;
+    font-size: 12px;
+  }
+
+	.gear-numbers {
+		color: #bcbdbc;
+	}
+  .emblem {
+  	vertical-align: middle;
+  	padding: 2px 0;
+
+    margin-right: 15px;
+    margin-top: 6px;
+    img {
+  		margin-right: 7px;
+		  vertical-align: middle;
+  	}
+  }
+}
+
+.section-header > .application-info {
+
+  > .url {
+    line-height: 36px; // chosen to match h1
+    font-size: 16px;
+  }
+
+  // move these under .application-info
+	.emblem {	
+    img {
+      vertical-align: middle;
+      margin-right: 13px;
+      margin-bottom: 3px;
+    }
+  }
+	.total-cost {	
+		font-size: 32px;
+		font-weight: 200;
+		margin-top: 10px;
+		padding-right: 30px;
+    text-align: right;
+	}
+}
+
+.tile-dark .application-info {
+  left: -5px;
+  margin-right: -10px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+
+  > .url {
+    // line-height: 34px; chosen to match h2
+  }
+}
+
+@media (max-width: 480px) {
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      width: 74%;
+    }
+  }
+}
+
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .section-header > .application-info {
+    margin-right: 0;
+    left: 0;
+  }
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 80%;
+    }
+    .emblem {
+      margin-right: 7px;
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+  .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 375px;
+    }
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1199px) {
+  .console.index .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 475px;
+    }
+  }
+}
+
+
+@media (min-width: 1200px) {
+  .console.index .application-info {
+    > .url,
+    > .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 565px;
+    }
+  }
+}

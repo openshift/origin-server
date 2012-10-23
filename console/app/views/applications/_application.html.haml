@@ -1,0 +1,34 @@
+:css
+  .subtitle  { margin-top: 0.8em; margin-left: 0.5em;}
+
+.hero-unit
+  .row-fluid
+    .span12.title
+      %h2.pull-left
+        = application.name
+      .pull-left.subtitle
+        = application.framework_name
+        -# Status and gears not supported yet
+        -#.span1
+        -#  Status:
+        -#  %img{:src => '/app/images/icons/success.png'}
+        -#.span4
+        -#  Gears:
+      .row-fluid
+        .span12
+          %strong.app_url
+            = link_to application.web_url, application.web_url
+        <!--.span1.web_icon-->
+      .row-fluid
+        .span12
+          %pre.command-line.git_url
+            = application.git_url
+        <!--.span1.git_icon-->
+  
+      .row-fluid
+        .span6
+          Created
+          = "#{time_ago_in_words(application.creation_time)} ago"
+        .span6.right
+          = link_to("Delete", delete_application_path(application), :class => ['btn', 'btn-danger'])
+          = link_to("Details »", application_path(application), :class => ['btn', 'btn-info'])

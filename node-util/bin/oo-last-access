@@ -1,0 +1,154 @@
+#!/usr/bin/env ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'fileutils'
+
+class LastAccessUpdater
+  def initialize(app_root_dir, access_log_file)
+    @log_file = access_log_file
+    @all_apps_info = Hash.new
+    @app_root_dir = app_root_dir
+    @last_access_data = Hash.new
+    @addrs_ignore = Array.new
+    @hosts_ignore = ["localhost"]
+  end
+
+  def load_addrs_ignore
+    matchaddr = Regexp.new('inet6? (.*)\/[0-9]')
+    lines = %x[/sbin/ip -o addr show]
+    for line in lines
+      begin
+        @addrs_ignore << matchaddr.match(line)[1]
+      rescue NoMethodError:
+      end
+    end
+  end
+
+  # Read a property from app's environment files
+  def read_app_property(app_uuid, property)
+    file_path = "#{@app_root_dir}/#{app_uuid}/.env/#{property}"
+    begin
+      File.open(file_path) do |file|
+        file.each_line do |line|
+          parts = line.split("=")
+          return parts[1].strip.delete("'")
+        end
+      end
+    rescue Exception => e
+      puts "EXCEPTION: #{e}"
+      return nil
+    end
+  end
+
+  def read_app_data(app_uuid)
+    val = read_app_property(app_uuid, 'OPENSHIFT_GEAR_DNS')
+    if val
+      @all_apps_info[val] = app_uuid
+    end
+  end
+
+  # Create a hash of app dns --> app uuid
+  def load_apps_data
+    # Iterate over all files in root directory
+    Dir["#{@app_root_dir}/*"].each do |file|
+      file_name = File.basename(file)
+
+      # If filename is a length 32 uuid, then it is an app
+      if file_name =~ /^[0-9a-f]{32}$/
+        read_app_data(file_name)
+      end
+    end
+  end
+
+  def print_apps_data
+    @all_apps_info.each do |app_dns, app_uuid|
+      puts "#{app_dns} - #{app_uuid}"
+    end
+  end
+
+  def parse_log
+    # Doing the file read with awk is 10x faster than doing it inside
+    # Ruby and we desperately need speed here.
+    ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
+                   @addrs_ignore.map { |a| "$1 != \"#{a}\"" }].flatten.join(' && ')
+    lines = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{@log_file}]
+    for line in lines
+      parts = line.split("=")
+      timestamp = parts[1].delete("[").delete("]").strip
+      hostname = parts[0].strip
+      # puts "#{hostname}-->#{timestamp}"
+      # Virtual host is same as app dns
+      app_uuid = @all_apps_info[hostname]
+      if app_uuid
+        @last_access_data[app_uuid] = timestamp
+      end
+    end
+  end
+
+  def persist_last_access_data
+    begin
+      FileUtils.mkdir_p(ENV["LAST_ACCESS_DIR"]) unless File.directory?(ENV["LAST_ACCESS_DIR"])
+    rescue Exception => e
+      puts "EXCEPTION: #{e}"
+    end
+
+    @last_access_data.each do |k, v|
+      file_path = "#{ENV["LAST_ACCESS_DIR"]}/#{k}"
+      begin
+        File.open(file_path, 'w') { |f| f.write(v) }
+      rescue Exception => e
+        puts "EXCEPTION: #{e}"
+      end
+    end
+  end
+end
+
+def source_file(file)
+    IO.foreach(file) { |line|
+        next if line =~ /^#/
+        next if line =~ /^$/
+        if line.include?"#"
+            name,value = line.split("#")[0].split("=")
+        else
+            name,value = line.strip.split[0].split("=")
+        end
+        next if name.nil? or value.nil?
+        ENV["#{name}"]=value.gsub('"','').strip
+    }
+end
+
+# Cool trick from ruby-forum
+def single_instance(&block)
+  if File.open($0).flock(File::LOCK_EX|File::LOCK_NB)
+    block.call
+  else
+    warn "Script #{ $0 } is already running"
+  end
+end
+
+single_instance do
+  source_file("/etc/openshift/node.conf")
+  ENV["GEAR_BASE_DIR"]     ||= "/var/lib/openshift"
+  ENV["APACHE_ACCESS_LOG"] ||= "/var/log/httpd/access_log"
+  ENV["LAST_ACCESS_DIR"]   ||= "/var/lib/openshift/.last_access"
+
+  l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], ENV["APACHE_ACCESS_LOG"])
+  l.load_addrs_ignore
+  l.load_apps_data
+  l.parse_log
+  l.persist_last_access_data
+end
