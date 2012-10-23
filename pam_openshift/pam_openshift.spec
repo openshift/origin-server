@@ -13,6 +13,8 @@ BuildRequires:  libattr-devel
 
 Provides:       pam-libra = %{version}-%{release}
 Provides:       pam-openshift = %{version}-%{release}
+Obsoletes:      pam-libra < %{version}-%{release}
+Obsoletes:      pam-openshift < %{version}-%{release}
 
 %description
 The Openshift PAM module configures proper SELinux context for
