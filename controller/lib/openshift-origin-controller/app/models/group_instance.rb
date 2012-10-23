@@ -117,10 +117,9 @@ class GroupInstance < OpenShift::Model
       raise e 
     end
 
-    if @addtl_fs_gb.kind_of?(Integer) and @addtl_fs_gb > 0
-      additional_storage = Integer(@addtl_fs_gb)
+    if @addtl_fs_gb.kind_of?(Integer) or @addtl_fs_gb.kind_of?(Float) and @addtl_fs_gb > 0
       min_storage = get_cached_min_storage_in_gb()
-      set_quota(additional_storage + min_storage, nil, [gear])
+      set_quota(@addtl_fs_gb + min_storage, nil, [gear])
     end
 
     app.add_node_settings([gear])
