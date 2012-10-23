@@ -12,8 +12,7 @@ BuildRequires:  pam-devel
 BuildRequires:  libselinux-devel
 BuildRequires:  libattr-devel
 
-Provides:       pam-libra
-Obsoletes:      pam-libra
+Provides:       pam-libra = %{version}-%{release}
 
 %description
 The Openshift PAM module configures proper SELinux context for
