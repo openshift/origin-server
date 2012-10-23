@@ -230,6 +230,61 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_template :delete
   end
 
+  test 'should support the creation of scalable apps with medium gears for privileged users' do
+    with_user_with_multiple_gear_sizes
+    setup_domain
+
+    user = User.find(:one, :as => @controller.current_user)
+
+    medium_gear_app = {
+      :name => uuid,
+      :application_type => 'php-5.3',
+      :gear_profile => 'medium',
+      :scale => 'true',
+      :domain_name => @domain.name
+    }
+
+    # seed the cache with values that will never be returned by the broker.
+    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
+
+    # Make the request
+    post(:create, {:application => medium_gear_app})
+
+    # Confirm app attributes
+    assert app = assigns(:application)
+    assert app.errors.empty?, app.errors.inspect
+    assert_equal 'medium', app.attributes['gear_profile']
+    assert_equal true, app.attributes['scale']
+
+    # Confirm cached user capabilities
+    assert session[:user_capabilities] == [user.max_gears, user.consumed_gears, user.capabilities.gear_sizes]
+    assert_equal assigns(:gear_sizes), user.capabilities.gear_sizes
+    assert_equal assigns(:max_gears), user.max_gears
+    assert_equal assigns(:gears_used), user.consumed_gears
+
+    delete :destroy, :id => app.id
+  end
+
+  test 'should not allow medium gears for non-privileged users' do
+    with_unique_domain
+    medium_gear_app_form = {
+      :name => uuid,
+      :application_type => 'php-5.3',
+      :gear_profile => 'medium',
+      :domain_name => @domain.name
+    }
+
+    post(:create, {:application => medium_gear_app_form})
+
+    assert app = assigns(:application)
+    assert_not_nil app.errors.messages[:node_profile][0].match('Invalid Size: medium')
+  end
+
+  test 'should prevent scaled apps when not enough gears are available' do
+    # This space intentionally left blank;
+    # Testing this end-to-end would be relatively time consuming right now.
+  end
+
 #  test "should check for empty name" do
 #    form = get_post_form
 #    form[:name]=''
@@ -250,4 +305,5 @@ class ApplicationsControllerTest < ActionController::TestCase
   def get_post_form(name = 'diy-0.1')
     {:name => 'test1', :application_type => name}
   end
+
 end

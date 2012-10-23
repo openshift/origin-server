@@ -112,7 +112,13 @@ class ApplicationsController < ConsoleController
     @application = Application.new app_params
     @application.as = current_user
 
-    @gear_sizes = ["small"]
+    # Make sure we have the latest values for these
+    # by forcing a refresh of user capabilities
+    user_caps = user_capabilities :refresh => true
+    @max_gears = user_caps[:max_gears]
+    @gears_used = user_caps[:consumed_gears]
+    @gear_sizes = user_caps[:gear_sizes]
+
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
     @domain = Domain.find :first, :as => current_user
@@ -124,6 +130,9 @@ class ApplicationsController < ConsoleController
         #FIXME: Ideally this should be inferred via associations between @domain and @application
         @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
         logger.debug "Found errors during domain creation #{@application.errors.inspect}"
+
+        # Preserve the advanced mode status and show the error.
+        @advanced = params[:advanced] == 'true'
         return render 'application_types/show'
       end
     end
@@ -146,6 +155,9 @@ class ApplicationsController < ConsoleController
       redirect_to get_started_application_path(@application, :wizard => true, :template => (@application_type.template.present? || nil)), :flash => {:info_pre => messages}
     else
       logger.debug @application.errors.inspect
+
+      # Preserve the advanced mode status and show the error.
+      @advanced = params[:advanced] == 'true'
       render 'application_types/show'
     end
   end

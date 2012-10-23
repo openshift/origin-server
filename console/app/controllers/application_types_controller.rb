@@ -14,8 +14,13 @@ class ApplicationTypesController < ConsoleController
     user_default_domain rescue nil
     @application = Application.new :as => current_user
 
-    # hard code for now but we want to get this from the server eventually
-    @gear_sizes = ["small"] # gear size choice only shows if there is more than
-                            # one option
+    # Make sure we have the latest values for these
+    # by forcing a refresh of user capabilities
+    user_caps = user_capabilities :refresh => true
+    @max_gears = user_caps[:max_gears]
+    @gears_used = user_caps[:consumed_gears]
+    @gear_sizes = user_caps[:gear_sizes]
+
+    @advanced = params[:advanced] == 'true'
   end
 end

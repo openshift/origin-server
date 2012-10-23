@@ -41,6 +41,10 @@ class ApplicationType
     @priority || 0
   end
 
+  def scalable?
+    @scalable ||= CartridgeType.cached.find(self.id).attributes.has_key?('scaling_info')
+  end
+
   class << self
     def all(*arguments)
       find(:all, *arguments)
@@ -59,6 +63,7 @@ class ApplicationType
         raise "Unsupported scope"
       end
     end
+
     protected
       def find_single(id, *arguments)
         find_every(*arguments).find{ |t| t.id == id } or raise NotFound, id
