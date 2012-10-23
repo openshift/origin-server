@@ -39,8 +39,14 @@ done
 replace_envs
 
 resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
-resource_limits_file_name=`basename $resource_limits_file`
-node_profile=`echo ${resource_limits_file_name/*./}`
+if [ "$resource_limits_file" = "/etc/openshift/resource_limits.conf" ]; 
+then
+	source /etc/openshift/resource_limits.conf
+else
+	resource_limits_file_name=`basename $resource_limits_file`
+	node_profile=`echo ${resource_limits_file_name/*./}`
+fi
+
 case "$node_profile" in
     micro)
         memory_options="-client -Xmx100m -XX:MaxPermSize=100m -XX:+AggressiveOpts"
