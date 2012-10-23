@@ -18,13 +18,13 @@ class EmbCartController < BaseController
                         101, "LIST_APP_CARTRIDGES") unless application
 
     cartridges = Array.new
-    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nil, nolinks)) if $requested_api_version >= 1.1
+    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nil, nolinks)) if $requested_api_version != 1.0
 
     application.embedded.each_key do |key|
-      if $requested_api_version >= 1.1
-        cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
-      else
+      if $requested_api_version == 1.0
         cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
+      else
+        cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
       end
       cartridges.push(cartridge)
     end if application.embedded
@@ -53,16 +53,16 @@ class EmbCartController < BaseController
     application.embedded.each do |key, value|
       if key == id
         app_status = application.status(key, false) if status_messages
-        if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, app_status, nolinks)
-        else
+        if $requested_api_version == 1.0
           cartridge = RestCartridge10.new("embedded", key, application, get_url, app_status, nolinks)
+        else
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, app_status, nolinks)
         end
         break
       end
     end if application.embedded
 
-    if !cartridge and id == application.framework and $requested_api_version >= 1.1
+    if !cartridge and id == application.framework and $requested_api_version != 1.0
       app_status = application.status(application.framework, false) if status_messages
       app_status.each do |gear_status|
         #FIXME: work around until cartridge status hook provides better interface
@@ -137,10 +137,10 @@ class EmbCartController < BaseController
 
     application.embedded.each do |key, value|
       if key == name
-        if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
-        else
+        if $requested_api_version == 1.0
           cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
+        else
+          cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
         end
         messages = []
         messages.push(Message.new(:info, "Added #{name} to application #{id}"))
@@ -178,10 +178,10 @@ class EmbCartController < BaseController
     end
       
     application = get_application(id)
-    if $requested_api_version >= 1.2
-      app = RestApplication12.new(application, get_url, nolinks)
-    else
+    if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
+    else
+      app = RestApplication12.new(application, get_url, nolinks)
     end
     render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
@@ -249,10 +249,10 @@ class EmbCartController < BaseController
       end
     end
     cart_type = cartridge_name==app.framework ? "standalone" : "embedded"
-    if $requested_api_version >= 1.1
-      cartridge = RestCartridge11.new(cart_type, cartridge_name, app, get_url, nil, nolinks)
-    else
+    if $requested_api_version == 1.0
       cartridge = RestCartridge10.new(cart_type, cartridge_name, app, get_url, nil, nolinks)
+    else
+      cartridge = RestCartridge11.new(cart_type, cartridge_name, app, get_url, nil, nolinks)
     end
     render_format_success(:ok, "cartridge", cartridge, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
   end
