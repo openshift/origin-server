@@ -584,7 +584,8 @@ module OpenShift
         pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
 
         # rsync
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/openshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
+        rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
 
         # move and post-move
         post_move_cart(cart, destination_gear, keep_uid, idle)
@@ -952,7 +953,8 @@ module OpenShift
         reply.append destination_container.create(app, gear, quota_blocks, quota_files)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-        log_debug `eval \`ssh-agent\`; ssh-add /var/www/openshift/broker/config/keys/rsync_id_rsa; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
+        rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
