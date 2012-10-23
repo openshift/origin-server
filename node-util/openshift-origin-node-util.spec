@@ -11,6 +11,8 @@ Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-
 Requires:       oddjob
 Requires:       rng-tools
 Requires:       rubygem-openshift-origin-node
+Requires:       php >= 5.3.2
+Requires:       php < 5.4.0
 BuildArch:      noarch
 
 %description
