@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.11
+Version:        0.8.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Oct 23 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.12-1
+- removing remaining cases of SS and config.ss (dmcphers@redhat.com)
+- Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
+  hook into Rails initializers Making openshift-origin-dns-bind a Rails engine
+  so that it can hook into Rails initializers (kraman@gmail.com)
+
 * Thu Oct 11 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.11-1
 - Centralize plug-in configuration (miciah.masters@gmail.com)
 
