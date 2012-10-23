@@ -183,15 +183,6 @@ if not File.exist?("/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollec
   FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example", "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
 end
 
-print "Installing broker gem dependencies\n"
-system <<-EOF
-pushd /var/www/openshift/broker/
-rm -f Gemfile.lock
-bundle install
-chown apache:apache Gemfile.lock
-popd
-EOF
-
 print "Configuring mcollective client and server to use qpid\n"
 File.open("/etc/mcollective/client.cfg","w") do |f|
   f.write <<-EOF
@@ -383,6 +374,15 @@ end
 system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" unless build
 
 ### End BIND DNS setup
+
+print "Installing broker gem dependencies\n"
+system <<-EOF
+pushd /var/www/openshift/broker/
+rm -f Gemfile.lock
+bundle install
+chown apache:apache Gemfile.lock
+popd
+EOF
 
 unless build
   print "Register admin user\n"

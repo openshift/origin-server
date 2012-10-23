@@ -5,7 +5,6 @@
 [ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
 
 source /etc/init.d/functions 2> /dev/null
-source /usr/libexec/openshift/cartridges/abstract/info/lib/util
 
 # Import Environment Variables
 for f in ~/.env/*
@@ -42,10 +41,20 @@ function welcome {
 EOF
 }
 
+
+function _get_app_ctl_script() {
+    bash <<EOF
+        source /etc/openshift/node.conf
+        source \${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+        get_framework_ctl_script "$@"
+EOF
+}
+
+
 function ctl_all {
     case "$1" in
-        start) start_app ;;
-        stop)  stop_app ;;
+        start) start_app.sh ;;
+        stop)  stop_app.sh  ;;
     esac
 }
 
@@ -128,7 +137,7 @@ quota           list disk usage
 EOF
 }
 
-alias ctl_app=$(get_framework_ctl_script $OPENSHIFT_GEAR_UUID)
+alias ctl_app=$(_get_app_ctl_script $OPENSHIFT_GEAR_UUID)
 alias tail_all="/usr/bin/tail -f */logs/*"
 
 export PS1="[$OPENSHIFT_GEAR_DNS \W]\> "

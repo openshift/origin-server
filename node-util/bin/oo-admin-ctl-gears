@@ -277,7 +277,7 @@ case "$1" in
   status)
     echo "Checking OpenShift Services: "
 
-    for gear in $(grep ':${GEAR_GECOS}:' /etc/passwd | cut -d: -f6)
+    for gear in $(grep ":${GEAR_GECOS}:" /etc/passwd | cut -d: -f6)
     do
         for cartridge in $(ls -d $gear/* |grep -E -v 'app-root|git')
         do

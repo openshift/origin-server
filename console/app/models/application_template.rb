@@ -70,6 +70,10 @@ class ApplicationTemplate < RestApi::Base
     str
   end
 
+  def included_cartridges
+    @included_cartridges ||= descriptor['Requires'].map{|cart_id| CartridgeType.find(cart_id)}
+  end
+
   #def attribute(s)
   #  return get_metadata(s) if [:description, :website, :version, :git_url, :git_project_url].include?(s.to_sym)
   #  attr = {:name => 'Name', :provides => 'Requires'}[s.to_sym]

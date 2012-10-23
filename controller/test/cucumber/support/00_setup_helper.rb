@@ -19,9 +19,9 @@ $bind_keyvalue=""
 
 # oddjob service name and selinux context (specify nil if no alternate context is being used)
 $gear_update_plugin_service = "oddjobd"
-$selinux_user = nil
-$selinux_role = nil
-$selinux_type = nil
+$selinux_user = "unconfined_u"
+$selinux_role = "system_r"
+$selinux_type = "openshift_initrc_t"
 
 # User registration flag and script
 $registration_required = true
@@ -90,7 +90,7 @@ module SetupHelper
     end
     
     # set the bind keyvalue from the installed plugin config
-    if File.exists?("/var/www/openshift/broker/config/environments/plugin-config/openshift-origin-dns-bind.rb")
+    if File.exists?("/etc/openshift/plugins.d/openshift-origin-dns-bind.conf")
       $bind_keyvalue = `cat /var/named/example.com.key | grep -i secret | gawk -F ' ' '{ print $2 }'`
     end
 

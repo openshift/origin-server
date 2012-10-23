@@ -193,12 +193,7 @@ class RestCartridge_V1 < BaseObj_V1
 
     if app and !$nolinks
       self.links = {
-          "GET" => Link_V1.new("GET", "/cartridges/#{name}"),
-          "UPDATE" => Link_V1.new("PUT", "/cartridges/#{name}", nil, [
-            OptionalParam_V1.new("additional_storage", "integer"),
-            OptionalParam_V1.new("scales_from", "integer"),
-            OptionalParam_V1.new("scales_to", "integer")
-          ])
+          "GET" => Link_V1.new("GET", "/cartridges/#{name}")
       }
       self.links.merge!({
         "START" => Link_V1.new("POST", "/cartridges/#{name}/events", [

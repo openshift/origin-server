@@ -7,6 +7,7 @@ Broker::Application.configure do
       :privkeyfile    => "/etc/openshift/server_priv.pem",
       :privkeypass    => "",
       :pubkeyfile     => "/etc/openshift/server_pub.pem",
+      :rsync_keyfile => "/etc/openshift/rsync_id_rsa",
     }
   end
 end
