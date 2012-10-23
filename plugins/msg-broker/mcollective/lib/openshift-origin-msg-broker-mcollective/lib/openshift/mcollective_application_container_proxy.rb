@@ -403,7 +403,7 @@ module OpenShift
           ResultIO.new          
         end
       end
-      
+ 
       def status(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "status")
@@ -413,7 +413,7 @@ module OpenShift
           ResultIO.new          
         end
       end
-      
+ 
       def tidy(app, gear, cart)
         if framework_carts.include?(cart)        
           run_cartridge_command(cart, app, gear, "tidy") 
@@ -544,6 +544,12 @@ module OpenShift
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
         job = RemoteJob.new('openshift-origin-node', 'app-state-show', args)
+        job
+      end
+
+      def get_status_job(app, gear, cart)
+        args = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
+        job = RemoteJob.new(cart, 'status', args)
         job
       end
 
@@ -1154,13 +1160,11 @@ module OpenShift
       end
 
       def parse_result(mcoll_reply, app=nil, command=nil)
-        result = ResultIO.new
-        
         mcoll_result = mcoll_reply[0]
         output = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
           output = mcoll_result.results[:data][:output]
-          result.exitcode = mcoll_result.results[:data][:exitcode]
+          exitcode = mcoll_result.results[:data][:exitcode]
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
           if server_identity && @id != server_identity
@@ -1170,73 +1174,8 @@ module OpenShift
           end
         end
         
-        if output && !output.empty?
-          output.each_line do |line|
-            if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
-              if line =~ /^CLIENT_MESSAGE: /
-                result.messageIO << line['CLIENT_MESSAGE: '.length..-1]
-              elsif line =~ /^CLIENT_RESULT: /
-                result.resultIO << line['CLIENT_RESULT: '.length..-1]
-              elsif line =~ /^CLIENT_DEBUG: /
-                result.debugIO << line['CLIENT_DEBUG: '.length..-1]
-              else
-                result.errorIO << line['CLIENT_ERROR: '.length..-1]
-              end
-            elsif line =~ /^CART_DATA: /
-              result.data << line['CART_DATA: '.length..-1]
-            elsif line =~ /^CART_PROPERTIES: /
-              property = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
-              result.cart_properties[property[0]] = property[1]
-            elsif line =~ /^APP_INFO: /
-              result.appInfoIO << line['APP_INFO: '.length..-1]
-            elsif result.exitcode == 0
-              if line =~ /^SSH_KEY_(ADD|REMOVE): /
-                if line =~ /^SSH_KEY_ADD: /
-                  key = line['SSH_KEY_ADD: '.length..-1].chomp
-                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
-                else
-                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
-                end
-              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
-                if line =~ /^APP_SSH_KEY_ADD: /
-                  response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
-                  cart,key = response.split(' ')
-                  cart = cart.gsub(".", "-")
-                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
-                else
-                  cart = line['APP_SSH_KEY_REMOVE: '.length..-1].chomp
-                  cart = cart.gsub(".", "-")
-                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
-                end
-              elsif line =~ /^APP_ENV_VAR_REMOVE: /
-                key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
-                result.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
-              elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
-                if line =~ /^ENV_VAR_ADD: /
-                  env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
-                  result.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
-                else
-                  key = line['ENV_VAR_REMOVE: '.length..-1].chomp
-                  result.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
-                end
-              elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
-                if line =~ /^BROKER_AUTH_KEY_ADD: /
-                  result.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
-                else
-                  result.cart_commands.push({:command => "BROKER_KEY_REMOVE", :args => []})
-                end
-              elsif line =~ /^ATTR: /
-                attr = line['ATTR: '.length..-1].chomp.split('=')
-                result.cart_commands.push({:command => "ATTR", :args => [attr[0], attr[1]]})
-              else
-                #result.debugIO << line
-              end
-            else # exitcode != 0
-              result.debugIO << line
-              Rails.logger.debug "DEBUG: server results: " + line
-            end
-          end
-        end
+        result = MCollectiveApplicationContainerProxy.sanitize_result(output)
+        result.exitcode = exitcode
         result
       end
       
@@ -1590,6 +1529,79 @@ module OpenShift
         gear_map
       end
 
+      def self.sanitize_result(output)
+        result = ResultIO.new
+ 
+        if output && !output.empty?
+          output.each_line do |line|
+            if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
+              if line =~ /^CLIENT_MESSAGE: /
+                result.messageIO << line['CLIENT_MESSAGE: '.length..-1]
+              elsif line =~ /^CLIENT_RESULT: /
+                result.resultIO << line['CLIENT_RESULT: '.length..-1]
+              elsif line =~ /^CLIENT_DEBUG: /
+                result.debugIO << line['CLIENT_DEBUG: '.length..-1]
+              else
+                result.errorIO << line['CLIENT_ERROR: '.length..-1]
+              end
+            elsif line =~ /^CART_DATA: /
+              result.data << line['CART_DATA: '.length..-1]
+            elsif line =~ /^CART_PROPERTIES: /
+              property = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
+              result.cart_properties[property[0]] = property[1]
+            elsif line =~ /^APP_INFO: /
+              result.appInfoIO << line['APP_INFO: '.length..-1]
+            elsif result.exitcode == 0
+              if line =~ /^SSH_KEY_(ADD|REMOVE): /
+                if line =~ /^SSH_KEY_ADD: /
+                  key = line['SSH_KEY_ADD: '.length..-1].chomp
+                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
+                else
+                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
+                end
+              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
+                if line =~ /^APP_SSH_KEY_ADD: /
+                  response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
+                  cart,key = response.split(' ')
+                  cart = cart.gsub(".", "-")
+                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
+                else
+                  cart = line['APP_SSH_KEY_REMOVE: '.length..-1].chomp
+                  cart = cart.gsub(".", "-")
+                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
+                end
+              elsif line =~ /^APP_ENV_VAR_REMOVE: /
+                key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
+                result.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
+              elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
+                if line =~ /^ENV_VAR_ADD: /
+                  env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
+                  result.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
+                else
+                  key = line['ENV_VAR_REMOVE: '.length..-1].chomp
+                  result.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
+                end
+              elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
+                if line =~ /^BROKER_AUTH_KEY_ADD: /
+                  result.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
+                else
+                  result.cart_commands.push({:command => "BROKER_KEY_REMOVE", :args => []})
+                end
+              elsif line =~ /^ATTR: /
+                attr = line['ATTR: '.length..-1].chomp.split('=')
+                result.cart_commands.push({:command => "ATTR", :args => [attr[0], attr[1]]})
+              else
+                #result.debugIO << line
+              end
+            else # exitcode != 0
+              result.debugIO << line
+              Rails.logger.debug "DEBUG: server results: " + line
+            end
+          end
+        end
+        result
+      end
+
       def self.execute_parallel_jobs_impl(handle)
 =begin
         handle.each { |id, job_list|
@@ -1623,7 +1635,10 @@ module OpenShift
                 exitcode = mcoll_reply.results[:data][:exitcode]
                 sender = mcoll_reply.results[:sender]
                 Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
-                
+                output.each do |o|
+                  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout]) if o.kind_of?(Hash) and o.include?(:result_stdout)
+                  o[:result_stdout] = r.resultIO.string.chomp if r and (r.resultIO.string.chomp.length != 0)
+                end if output.kind_of?(Array)
                 handle[sender] = output if exitcode == 0
               end
             }
