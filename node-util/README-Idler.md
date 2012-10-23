@@ -17,6 +17,14 @@ commands to make the Idler services active:
  # /sbin/service oddjobd restart
 ```
 
+Make the following changes to the ```/etc/httpd/conf/httpd.conf``` file.
+```
+LogFormat "%h %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" combined
+.
+:
+CustomLog logs/access_log combined
+```
+
 Auto Idling
 ----------------------
 
