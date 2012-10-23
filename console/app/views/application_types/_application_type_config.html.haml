@@ -1,0 +1,73 @@
+= div_for application_type, :class => defined?(classes) ? classes : nil do
+  %h2= application_type.name
+  .row-fluid
+    .span8 
+      - if application_type.tags.include? :in_development
+        .alert
+          This template is development only and not accessible in production
+      - if application_type.description.html_safe?        
+        = application_type.description
+        - if application_type.website
+          %span= link_to application_type.website, application_type.website
+      - else
+        %p
+          = application_type.description
+          - if application_type.website
+            %span= link_to application_type.website, application_type.website
+      - if application_type.template
+        = render :partial => application_type.template
+      - if application_type.learn_more_url
+        = link_to "Learn more", application_type.learn_more_url
+      %h5 What you get
+      %ul.unstyled
+        %li A public rhcloud.com domain name
+        %li Web requests automatically routed to your app
+        - unless application_type.template.nil?
+          - application_type.template.included_cartridges.map(&:display_name).each do |cart_name|
+            %li= cart_name
+        - if application_type.template.nil?
+          %li{:title => 'By default, an application is created as a single instance. To set up you application for scalability, select it here. Note that scalability requires the use of one extra gear.'}
+            - if advanced and (max_gears - gears_used) >= 2
+              = form.select :scale, [['Runs one instance of your app',false],['Runs as a scalable application',true]]
+            - else
+              Runs one instance of your app
+              = form.hidden_field :scale, :value => false
+              - if (max_gears - gears_used) >= 2
+                = link_to 'Change', application_type_path(application_type, :advanced => true)
+              - else
+                %span{:class => 'text-warning', :title=> "You need at least two free gears to create a scaling application; you are currently using #{gears_used} out of #{max_gears.to_i}."} (not enough free gears for scaling)
+        %li{:title => (gear_sizes.length > 1 ? 'For most applications, the "small" gear size provides plenty of resources to run in.  If you require more resources, select a larger gear size here.' : nil)}        
+          - if advanced and gear_sizes.length > 1
+            = form.select :gear_profile, gear_sizes.map{ |size| ['Runs on a ' << size << ' gear', size]}
+          - else
+            = "Runs on a #{gear_sizes.first} gear"
+            = form.hidden_field :gear_profile, :value => gear_sizes.first
+            - if gear_sizes.length > 1
+              = link_to 'Change', application_type_path(application_type, :advanced => true)
+      %fieldset.inputs
+        = render :partial => 'applications/name', :locals => {:form => form, :errors => errors, :application => application}
+    %aside.span4
+      %h5 What does it mean?
+      %p
+        %strong Cartridges
+        are the components of an OpenShift application, and include databases, build systems, and management capabilities. Adding a cartridge to an application provides the desired capability without forcing you to administer or update that feature.
+      %p A <strong>gear</strong> is a resource-constrained container that runs cartridges and your code.
+      - if application_type.template.nil?
+        %p
+          %strong Scaling
+          is when your app automatically uses more gears when it needs it. The use of scaling requires an additional gear, but helps to ensure the your app will be available under heavy loads.
+      %p After this step, OpenShift will allocate your gears, set up your environment, install the cartridges and your software and configure them as needed. Then, it will set up DNS so that your application is accessible worldwide. After your app is created, you can add more cartridges, set up continuousintegration, and more.
+      -# if application_type.license
+        %label License:
+        - if application_type.respond_to? :license_url
+          = link_to application_type.license, application_type.license_url
+        - else
+          %span= application_type.license
+      -# if application_type.version
+        %li.version
+          %label Version:
+          %span= application_type.version
+      -#
+        .alert
+          Please be sure to read the source repository README for any additional configuration that may be required.
+          Some templates may have hard coded passwords or other security related settings that must be modified after creation.
