@@ -8,7 +8,9 @@ URL:            http://www.openshift.com/
 Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  pam-devel libselinux-devel libattr-devel gcc-c++ make
+BuildRequires:  pam-devel
+BuildRequires:  libselinux-devel
+BuildRequires:  libattr-devel
 
 Provides:       pam-libra
 Obsoletes:      pam-libra
