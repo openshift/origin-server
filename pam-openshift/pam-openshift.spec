@@ -1,5 +1,5 @@
 Name:           pam-openshift
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -48,6 +48,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Fix spelling error in script (kraman@gmail.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - Bumping version number based on major changes. (rmillner@redhat.com)
 
