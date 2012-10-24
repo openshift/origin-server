@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.11
+Version:        0.0.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,24 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.12-1
+- Merge pull request #553 from nhr/specify_gear_size (openshift+bot@redhat.com)
+- Revised tests to make proper use of per-test domain (nhr@redhat.com)
+- BZ867779 - Revised capability_aware to allow forced session refresh
+  (nhr@redhat.com)
+- Fixed up test helper (nhr@redhat.com)
+- Modified test to use unique domain (nhr@redhat.com)
+- Added application controller tests (nhr@redhat.com)
+- Moved CSS into core (nhr@redhat.com)
+- Added functional tests (nhr@redhat.com)
+- Updated with feedback from design discussion. (nhr@redhat.com)
+- Added scaling controls to app creation. (nhr@redhat.com)
+- Layout iteration 5 (nhr@redhat.com)
+- Post-review modifications (hripps@redhat.com)
+- US1375 Migrated account upgrade changes to crankcase (hripps@redhat.com)
+- fix for bz868081 and switch to word-break:normal so words aren't broken at
+  wrap (sgoodwin@redhat.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.0.11-1
 - Merge pull request #699 from smarterclayton/us2283_alter_scaling_display
   (openshift+bot@redhat.com)
