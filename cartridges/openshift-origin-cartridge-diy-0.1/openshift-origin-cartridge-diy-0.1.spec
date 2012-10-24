@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 0.33.7
+Version: 0.33.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.33.8-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.33.7-1
 - Merge pull request #661 from ramr/master (openshift+bot@redhat.com)
 - Both prod and stg mirrors point to the ops mirror -- so use
