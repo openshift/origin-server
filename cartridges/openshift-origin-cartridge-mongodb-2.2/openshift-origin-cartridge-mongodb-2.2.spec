@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 0.26.8
+Version: 0.26.9
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.26.9-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.26.8-1
 - Fixes and workarounds for bugz 866385 - Can not restore data in mongodb
   successfully. (ramr@redhat.com)
