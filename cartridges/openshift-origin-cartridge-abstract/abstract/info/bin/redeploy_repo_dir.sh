@@ -8,7 +8,7 @@ done
 
 if [ -z "${GIT_DIR}" ]
 then
-    GIT_DIR="~/git/${OPENSHIFT_GEAR_NAME}.git/"
+    GIT_DIR=~/git/${OPENSHIFT_GEAR_NAME}.git/
 fi
 
 if [ -d "${OPENSHIFT_REPO_DIR}/" -a ! "${OPENSHIFT_REPO_DIR}/" -ef "/" ]; then
