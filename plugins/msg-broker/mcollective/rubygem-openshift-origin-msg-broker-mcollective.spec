@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.4.7
+Version: 0.4.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.4.8-1
+- rsync keypath is in config (rchopra@redhat.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.4.7-1
 - Drop msg-broker requires on qpid packages (miciah.masters@gmail.com)
 
