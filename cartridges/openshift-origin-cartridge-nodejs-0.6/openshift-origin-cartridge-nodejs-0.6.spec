@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version:   0.14.9
+Version:   0.14.10
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.14.10-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.14.9-1
 - Add support for nodejs hot deployment. (ramr@redhat.com)
 - Revert "Documentation updates" - add back node.js hot deployment support
