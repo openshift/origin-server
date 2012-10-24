@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 0.29.9
+Version: 0.29.10
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.29.10-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.29.9-1
 - BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
 
