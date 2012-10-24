@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.13
+Version:        0.0.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,10 @@ rm -rf %{buildroot}
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.14-1
+- BZ867340 new password does not take effect until reboot broker service
+  (calfonso@redhat.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.0.13-1
 - BZ847976 - Fixing Jenkins integration (bleanhar@redhat.com)
 
