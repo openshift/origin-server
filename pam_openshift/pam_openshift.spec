@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version:        1.0.2
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -45,6 +45,10 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Wed Oct 24 2012 Troy Dawson <tdawson@redhat.com> 1.0.3-1
+- new package built with tito
+- renamed pam-openshift to pam_openshift
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
 - Fix spelling error in script (kraman@gmail.com)
 
