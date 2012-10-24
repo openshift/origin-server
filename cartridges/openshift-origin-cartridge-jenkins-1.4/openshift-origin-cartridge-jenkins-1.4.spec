@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 0.98.8
+Version: 0.98.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.98.9-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Tue Oct 16 2012 Adam Miller <admiller@redhat.com> 0.98.8-1
 - fix typos (dmcphers@redhat.com)
 
