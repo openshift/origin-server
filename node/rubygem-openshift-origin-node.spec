@@ -31,10 +31,9 @@ Requires:       libcgroup
 %else
 Requires:       libcgroup-tools
 %endif
-Requires:       pam-openshift
+Requires:       pam_openshift
 Requires:       quota
-Requires:       pam-openshift
-Obsoletes: 	rubygem-stickshift-node
+Obsoletes: 	    rubygem-stickshift-node
 
 BuildRequires:  ruby
 BuildRequires:  rubygems

@@ -1,17 +1,20 @@
-Name:           pam-openshift
-Version:        1.0.2
+Name:           pam_openshift
+Version:        1.0.3
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
 License:        GPLv2
 URL:            http://www.openshift.com/
-Source0:        %{name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 
-BuildRequires:  pam-devel libselinux-devel libattr-devel gcc-c++ make
+BuildRequires:  pam-devel
+BuildRequires:  libselinux-devel
+BuildRequires:  libattr-devel
 
-Provides:       pam-libra
-Obsoletes:      pam-libra
+Provides:       pam-libra = %{version}-%{release}
+Provides:       pam-openshift = %{version}-%{release}
+Obsoletes:      pam-libra < %{version}-%{release}
+Obsoletes:      pam-openshift < %{version}-%{release}
 
 %description
 The Openshift PAM module configures proper SELinux context for
@@ -24,8 +27,6 @@ processes in a session.
 make CFLAGS="%{optflags}"
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
 install -D -m 755 pam_openshift.so.1 %{buildroot}/%{_lib}/security/pam_openshift.so
 ln -s pam_openshift.so %{buildroot}/%{_lib}/security/pam_libra.so
 install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
@@ -35,11 +36,7 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 mkdir -p %{buildroot}/%{_sysconfdir}/security/namespace.d
 install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
-%defattr(0644, root, root)
 %doc AUTHORS ChangeLog COPYING README README.xml
 %attr(0755,root,root) /%{_lib}/security/pam_openshift.so
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
@@ -48,6 +45,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Wed Oct 24 2012 Troy Dawson <tdawson@redhat.com> 1.0.3-1
+- new package built with tito
+- renamed pam-openshift to pam_openshift
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
 - Fix spelling error in script (kraman@gmail.com)
 
