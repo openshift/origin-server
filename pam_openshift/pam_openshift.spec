@@ -1,4 +1,4 @@
-Name:           pam-openshift
+Name:           pam_openshift
 Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Openshift PAM module
@@ -12,6 +12,7 @@ BuildRequires:  libselinux-devel
 BuildRequires:  libattr-devel
 
 Provides:       pam-libra = %{version}-%{release}
+Provides:       pam-openshift = %{version}-%{release}
 
 %description
 The Openshift PAM module configures proper SELinux context for
