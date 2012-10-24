@@ -2,9 +2,7 @@ require 'rails/engine'
 require 'sprockets/railtie'
 
 # Engines must explicitly require dependencies
-require 'sass'
 require 'haml'
-#require 'barista'
 require 'formtastic'
 require 'pp'
 
