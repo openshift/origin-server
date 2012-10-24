@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-authorized-ssh-key-add: Adds an authorized ssh key to the app.
+oo-authorized-ssh-key-add: Adds an authorized ssh key to the app.
   This command must be run as root.
 
 == Usage
 
-ss-authorized-ssh-key-add  \\
+oo-authorized-ssh-key-add  \\
         --with-app-uuid APP_UUID \\
         --with-container-uuid UUID \\
         --with-ssh-key KEY \\
