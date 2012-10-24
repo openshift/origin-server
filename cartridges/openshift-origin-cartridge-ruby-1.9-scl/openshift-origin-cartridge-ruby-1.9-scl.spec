@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 0.6.7
+Version: 0.6.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -206,6 +206,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.6.8-1
+- Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
+
 * Fri Oct 19 2012 Adam Miller <admiller@redhat.com> 0.6.7-1
 - BZ 843286: Enable auth files via htaccess (rmillner@redhat.com)
 
