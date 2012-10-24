@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.17
+Version: 0.17.18
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,22 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.17.18-1
+- Merge pull request #752 from rajatchopra/bug_fix (openshift+bot@redhat.com)
+- fix default capabilities for the case when observer could be missing
+  (rchopra@redhat.com)
+- fix for bug#869212 (rchopra@redhat.com)
+- rsync keypath is in config (rchopra@redhat.com)
+- Merge pull request #743 from lnader/master (openshift+bot@redhat.com)
+- Bug 868331 - REST API should always return the latest unless otherwise
+  specified (lnader@redhat.com)
+- Bug 868331 - JBoss Tools: Unable to deal with embedded cartridges
+  (lnader@redhat.com)
+- Updating setup-broker, moving broken gem setup to after bind plugn setup is
+  completed. Fixing cucumber test helper to use correct selinux policies
+  (kraman@gmail.com)
+- Bug 868858 (dmcphers@redhat.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.17.17-1
 - Merge pull request #731 from rajatchopra/master (openshift+bot@redhat.com)
 - Merge pull request #726 from jwhonce/master (openshift+bot@redhat.com)
