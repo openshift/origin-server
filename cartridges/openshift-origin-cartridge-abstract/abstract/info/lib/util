@@ -1000,6 +1000,11 @@ function  disable_stale_detection {
     return 0
 }
 
+# In practice, this function is only invoked asynchronously, with no defined
+# way of dealing with the hook output. Letting the streams flow back to the
+# parent process is unreliable if the hook outlives the parent. There is no
+# consistent place to store the output on disk. Until these issues are
+# addressed, redirect the standard streams to /dev/null.
 function resolve_application_dependencies {
     uuid=$1
     application=$2
@@ -1010,8 +1015,8 @@ function resolve_application_dependencies {
     done
 
     pushd "${GEAR_BASE_DIR}/${uuid}/git/$application.git"
-    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/pre-receive 2>&1 | tee /dev/null"
-    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/post-receive 2>&1 | tee /dev/null"
+    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/pre-receive &> /dev/null"
+    super_run_as_user "${GEAR_BASE_DIR}/${uuid}/git/$application.git/hooks/post-receive &> /dev/null"
     popd
 }
 
