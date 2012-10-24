@@ -36,6 +36,8 @@ RailsApp::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
-  Console.configure('~/.openshift/console.conf')
+  Console.configure('~/.openshift/console.conf') do |c|
+    c.security_controller = 'Console::Auth::Basic' # test cases depend on basic authentication today
+  end
 end
 

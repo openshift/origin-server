@@ -11,9 +11,8 @@ module ActionDispatch::Routing
     protected
 
       def openshift_console_routes
-        # Help
-        match 'help' => 'console#help', :via => :get, :as => 'console_help'
-        match 'unauthorized' => 'console#unauthorized', :via => :get
+        match 'help' => 'console_index#help', :via => :get, :as => 'console_help'
+        match 'unauthorized' => 'console_index#unauthorized', :via => :get, :as => 'unauthorized'
 
         # Application specific resources
         resources :application_types, :only => [:show, :index], :id => /[^\/]+/

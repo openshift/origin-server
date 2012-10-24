@@ -157,7 +157,7 @@ module Console
     config.disable_static_assets = false
     config.disable_account = false
     config.parent_controller = 'ApplicationController'
-    config.security_controller = 'Console::Auth::RemoteUser'
+    config.security_controller = 'Console::Auth::Basic'
     config.include_helpers = true
   end
 end

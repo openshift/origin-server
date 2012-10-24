@@ -11,10 +11,4 @@ class ConsoleController < Console.config.parent_controller.constantize
   def active_tab
     nil
   end
-
-  private
-    def help
-    end
-    def unauthorized
-    end
 end
