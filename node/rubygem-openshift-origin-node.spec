@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.11
+Version: 0.17.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -168,6 +168,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.17.12-1
+- Remove sourcing abstract/info/lib/util -- brings in "cruft" and fix up rhcsh.
+  (ramr@redhat.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.17.11-1
 - Merge pull request #722 from Miciah/node-require-libselinux-python-2
   (openshift+bot@redhat.com)
