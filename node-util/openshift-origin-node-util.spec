@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.5
+Version:        0.0.6
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -81,6 +81,13 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.6-1
+- Update documentation with expected httpd access log format
+  (jhonce@redhat.com)
+- Idler requires PHP to restore gear (jhonce@redhat.com)
+- fixed single quotes to doubble in oo-admin-ctl-gears GEAR_GECOS subst
+  (mlamouri@redhat.com)
+
 * Mon Oct 22 2012 Adam Miller <admiller@redhat.com> 0.0.5-1
 - Fixing Origin build scripts (kraman@gmail.com)
 
