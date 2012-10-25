@@ -232,7 +232,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
   test 'should support the creation of scalable apps with medium gears for privileged users' do
     with_user_with_multiple_gear_sizes
-    setup_domain
+    find_or_create_domain
 
     user = User.find(:one, :as => @controller.current_user)
 
