@@ -126,27 +126,32 @@ class Gear < OpenShift::Model
   end
 
   def start(comp_inst)
-    get_proxy.start(app,self,comp_inst.parent_cart_name)
+    get_proxy.start(app, self, comp_inst.parent_cart_name)
   end
   
   def stop(comp_inst)
-    get_proxy.stop(app,self,comp_inst.parent_cart_name)    
+    get_proxy.stop(app, self, comp_inst.parent_cart_name) 
   end
   
   def restart(comp_inst)
-    get_proxy.restart(app,self,comp_inst.parent_cart_name)    
+    get_proxy.restart(app, self, comp_inst.parent_cart_name)
   end
   
   def force_stop(comp_inst)
-    get_proxy.force_stop(app,self,comp_inst.parent_cart_name)    
+    get_proxy.force_stop(app, self, comp_inst.parent_cart_name)
   end
   
   def reload(comp_inst)
-    get_proxy.reload(app,self,comp_inst.parent_cart_name)    
+    get_proxy.reload(app, self, comp_inst.parent_cart_name)
   end
   
   def status(comp_inst)
-    get_proxy.status(app,self,comp_inst.parent_cart_name)    
+    get_proxy.status(app, self, comp_inst.parent_cart_name)
+  end
+
+  def status_job(comp_inst)
+    job = get_proxy.get_status_job(app, self, comp_inst.parent_cart_name)
+    job
   end
   
   def show_state()
@@ -154,23 +159,23 @@ class Gear < OpenShift::Model
   end
 
   def tidy(comp_inst)
-    get_proxy.tidy(app,self,comp_inst.parent_cart_name)    
+    get_proxy.tidy(app, self, comp_inst.parent_cart_name)
   end
 
   def expose_port(comp_inst)
-    get_proxy.expose_port(app,self,comp_inst.parent_cart_name)
+    get_proxy.expose_port(app, self, comp_inst.parent_cart_name)
   end
 
   def conceal_port(comp_inst)
-    get_proxy.conceal_port(app,self,comp_inst.parent_cart_name)
+    get_proxy.conceal_port(app, self, comp_inst.parent_cart_name)
   end
  
   def show_port(comp_inst)
-    get_proxy.show_port(app,self,comp_inst.parent_cart_name)
+    get_proxy.show_port(app, self, comp_inst.parent_cart_name)
   end
  
   def threaddump(comp_inst)
-    get_proxy.threaddump(app,self,comp_inst.parent_cart_name)
+    get_proxy.threaddump(app, self, comp_inst.parent_cart_name)
   end
   
   def system_messages(comp_inst)
@@ -227,7 +232,7 @@ class Gear < OpenShift::Model
     job = get_proxy.get_show_state_job(app, self)
     job
   end
-  
+ 
   def env_var_job_add(key, value)
     job = get_proxy.get_env_var_add_job(app, self, key, value)
     job
