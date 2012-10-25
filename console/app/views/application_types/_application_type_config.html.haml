@@ -25,7 +25,7 @@
         - unless application_type.template.nil?
           - application_type.template.included_cartridges.map(&:display_name).each do |cart_name|
             %li= cart_name
-        - if application_type.template.nil?
+        - if application_type.scalable
           %li{:title => 'By default, an application is created as a single instance. To set up you application for scalability, select it here. Note that scalability requires the use of one extra gear.'}
             - if advanced and (max_gears - gears_used) >= 2
               = form.select :scale, [['Runs one instance of your app',false],['Runs as a scalable application',true]]

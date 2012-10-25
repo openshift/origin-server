@@ -16,6 +16,7 @@ class ApplicationType
   attr_accessor :help_topics
   attr_accessor :priority
   attr_accessor :template
+  attr_accessor :scalable
 
   alias_attribute :categories, :tags
   alias_attribute :display_name, :name
@@ -39,10 +40,6 @@ class ApplicationType
 
   def priority
     @priority || 0
-  end
-
-  def scalable?
-    @scalable ||= CartridgeType.cached.find(self.id).attributes.has_key?('scaling_info')
   end
 
   class << self
