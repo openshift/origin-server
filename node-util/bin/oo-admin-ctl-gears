@@ -204,7 +204,7 @@ function stop() {
     done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears stopgear {}
 
     log_info "All OpenShift services stopped"
-    [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
+    [ $GROUP_RETVAL -eq 0 ] && rm -f ${lockfile}
     [ $GROUP_RETVAL -eq 0 ] && success || failure
     echo
     return $GROUP_RETVAL
