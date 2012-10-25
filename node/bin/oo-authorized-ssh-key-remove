@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-authorized-ssh-key-remove: Removes an authorized ssh key from the app.
+oo-authorized-ssh-key-remove: Removes an authorized ssh key from the app.
   This command must be run as root.
 
 == Usage
 
-ss-authorized-ssh-key-remove  \\
+oo-authorized-ssh-key-remove  \\
         --with-app-uuid APP_UUID \\
         --with-container-uuid UUID \\
         --with-ssh-key KEY \\

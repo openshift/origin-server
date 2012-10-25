@@ -8,11 +8,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-get-quota: Gets the quota for a gear.
+oo-get-quota: Gets the quota for a gear.
 
 == Usage
 
-ss-get-quota -c <UUID>
+oo-get-quota -c <UUID>
 
 Options:
 -h|--help:

@@ -8,11 +8,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-set-quota: Sets the quota for a gear.
+oo-set-quota: Sets the quota for a gear.
 
 == Usage
 
-ss-set-quota -c <UUID> -b <BLOCKS> -i <INODES>
+oo-set-quota -c <UUID> -b <BLOCKS> -i <INODES>
 
 Options:
 -h|--help:

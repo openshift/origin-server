@@ -23,12 +23,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-env-var-remove: Removes an env var from the app.
+oo-env-var-remove: Removes an env var from the app.
   This command must be run as root.
 
 == Usage
 
-ss-env-var-remove  --with-app-uuid APP_UUID \\
+oo-env-var-remove  --with-app-uuid APP_UUID \\
                     --with-container-uuid UUID \\
                     --with-key KEY
 

@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-broker-auth-key-add: Adds broker auth key to the application. 
+oo-broker-auth-key-add: Adds broker auth key to the application. 
   This command must be run as root.
 
 == Usage
 
-ss-broker-auth-key-add  \\
+oo-broker-auth-key-add  \\
         --with-app-uuid APP_UUID \\
         --with-container-uuid UUID \\
         --with-iv INITIALIZATION_VECTOR \\
