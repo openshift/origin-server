@@ -7,7 +7,7 @@
 module Console::Auth::RemoteUser
   extend ActiveSupport::Concern
 
-  class RemoteUserUser < RestApi::Authorization
+  class RemoteUser < RestApi::Authorization
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -49,10 +49,11 @@ module Console::Auth::RemoteUser
         display_name = request.env[Console.config.remote_user_name_header] unless Console.config.remote_user_name_header.nil?
         name = display_name || name
         logger.debug "  Identified user #{name} from headers"
-        RemoteUserUser.new(
+        RemoteUser.new(
           name,
           Console.config.remote_user_copy_headers.inject({}) do |h, name|
-            h[name] = request.headers[name]
+            value = request.headers[name]
+            h[name] = value if value.present?
             h
           end)
       end

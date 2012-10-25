@@ -7,7 +7,7 @@
 module Console::Auth::Basic
   extend ActiveSupport::Concern
 
-  class PassthroughUser < RestApi::Authorization
+  class BasicUser < RestApi::Authorization
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -15,16 +15,18 @@ module Console::Auth::Basic
       opts.each_pair { |key,value| instance_variable_set("@#{key}", value) }
     end
     def email_address
-      login
+      nil
     end
 
     def persisted?
-      false
+      true
     end
   end
 
   included do
     helper_method :current_user, :user_signed_in?, :previously_signed_in?
+
+    rescue_from ActiveResource::UnauthorizedAccess, :with => :console_access_denied
   end
 
   # return the current authenticated user or nil
@@ -35,9 +37,9 @@ module Console::Auth::Basic
   # This method should test authentication and handle if the user
   # is unauthenticated
   def authenticate_user!
-    authenticate_or_request_with_http_basic("Authenticate to #{RestApi.site.host}") do |login,password|
+    authenticate_or_request_with_http_basic(auth_realm) do |login,password|
       if login.present?
-        @authenticated_user = PassthroughUser.new :login => login, :password => password
+        @authenticated_user = BasicUser.new :login => login, :password => password
       else
         raise Console::AccessDenied
       end
@@ -51,4 +53,13 @@ module Console::Auth::Basic
   def previously_signed_in?
     cookies[:prev_login] ? true : false
   end
+
+  protected
+    def auth_realm
+      "Authenticate to #{RestApi.site.host}"
+    end
+
+    def console_access_denied
+      request_http_basic_authentication(auth_realm)
+    end
 end

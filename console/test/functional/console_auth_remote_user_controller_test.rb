@@ -25,7 +25,7 @@ class ConsoleAuthRemoteUserControllerTest < ActionController::TestCase
   teardown{ Rails.application.reload_routes! }
 
   setup{ Console.config.expects(:remote_user_header).at_least_once.returns('HTTP_X_REMOTE_USER') }
-  setup{ Console.config.stubs(:remote_user_copy_headers).returns(['X-Remote-User']) }
+  setup{ Console.config.stubs(:remote_user_copy_headers).returns(['X-Remote-User','X-Other-Header']) }
 
   tests ConsoleAuthRemoteUserController
 
