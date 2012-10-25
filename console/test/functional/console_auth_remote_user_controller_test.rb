@@ -44,7 +44,7 @@ class ConsoleAuthRemoteUserControllerTest < ActionController::TestCase
     assert_equal 'bob', @controller.current_user.login
     assert_equal 'bob', assigns(:authenticated_user).login
 
-    assert @controller.current_user.persisted?
+    assert !@controller.current_user.persisted?
     assert @controller.user_signed_in?
     assert !@controller.previously_signed_in?
   end

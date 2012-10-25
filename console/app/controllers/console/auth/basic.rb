@@ -19,7 +19,7 @@ module Console::Auth::Basic
     end
 
     def persisted?
-      true
+      false
     end
   end
 

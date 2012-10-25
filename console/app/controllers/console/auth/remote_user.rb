@@ -25,7 +25,7 @@ module Console::Auth::RemoteUser
       @headers
     end
     def persisted?
-      true
+      false
     end
   end
 
