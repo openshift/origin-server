@@ -315,7 +315,7 @@ unless build
 
   print "Repair mongodb database if needed..."
   system "rm -f /var/lib/mongodb/mongod.lock"
-  system "sudo -u mongodb mongod -f /etc/mongodb.conf --repair"
+  system "su -c 'mongod -f /etc/mongodb.conf --repair' --shell /bin/bash mongodb"
   while not system('/bin/fgrep "dbexit: really exiting now" /var/log/mongodb/mongodb.log') do
     print "."
     sleep 2
@@ -323,7 +323,7 @@ unless build
 
   print "Initializing mongodb database..."
   system "rm -f /var/lib/mongodb/mongod.lock"
-  system "sudo -u mongodb mongod -f /etc/mongodb.conf"
+  system "su -c 'mongod -f /etc/mongodb.conf' --shell /bin/bash mongodb"
   while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
     print "."
     sleep 3
