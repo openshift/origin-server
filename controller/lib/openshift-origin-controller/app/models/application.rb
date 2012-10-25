@@ -677,17 +677,28 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
   def status(dependency=nil, ret_reply=true)
     reply = ResultIO.new
     app_status = []
+    tag = ""
+    handle = RemoteJob.create_parallel_job
+
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
-      
+
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
-      s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
-        status = gear.status(comp_inst)
-        r.append status
-        app_status.push({"gear_id" => gear.uuid, "message" => status.resultIO.string}) unless ret_reply
-      end
-      
-      raise f[0][:exception] if(f.length > 0)      
+      RemoteJob.run_parallel_on_gears(group_inst.gears, handle) { |exec_handle, gear|
+        job = gear.status_job(comp_inst)
+        RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
+      }
+      RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, rc|
+        if rc != 0
+          Rails.logger.error "Error: Getting '#{dependency}' status from gear '#{gear}', errcode: '#{rc}' and output: #{output}"
+          raise OpenShift::UserException.new("Error: Getting '#{dependency}' status from gear '#{gear}', errcode: '#{rc}' and output: #{output}", 143)
+        else
+          r = ResultIO.new
+          r.resultIO << output
+          reply.append r
+          app_status.push({"gear_id" => gear, "message" => output}) unless ret_reply
+        end
+      }
     end
     if ret_reply
       return reply
