@@ -172,7 +172,6 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -v '%{_localstatedir}/log/openshift/user_action.log'
 
 %postun
-/usr/sbin/semodule -e passenger
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
