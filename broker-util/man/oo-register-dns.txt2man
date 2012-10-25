@@ -1,0 +1,43 @@
+NAME
+  oo-register-dns 
+
+SYNOPSIS
+  oo-regsiter-dns [-h|--with-node-hostname name] [-n|--with-node-ip ipaddr] 
+  [-d|--domain domain_name] [-k|--key-file keyfile] [-?|--help]
+
+DESCRIPTION
+  Register OpenShift node DNS name with Bind. This command must be run as root.
+
+OPTIONS
+  -h or --with-node-hostname name  
+    Hostname for the node for the DNS entry. (required)
+
+  -n or --with-node-ip ipaddr  
+    IP Address of the node to be paired with the hostname for the DNS entry. 
+    (required)
+
+  -d or --domain domain_name  
+    Domain name of the hostname for the DNS entry. 
+    (optional, default: example.com)
+
+  -k or --key-file keyfile  
+    Bind keyfile to make the DNS entry in. 
+    (optional, default: /var/named/<domain_name>.key)
+
+  -? or --help  
+    Print basic help information.
+
+EXAMPLE
+
+  $ oo-register-dns --with-node-hostname node1 --with-node-ip 192.168.0.1 
+    --domain example.com 
+
+SEE ALSO
+  complete-origin-setup(8), oo-admin-ctl-district(8), oo-setup-broker(8),
+  oo-admin-move(8), oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-template(8), oo-admin-ctl-domain(8), oo-setup-bind(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+
+AUTHOR
+  
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 

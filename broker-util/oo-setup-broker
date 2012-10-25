@@ -366,6 +366,7 @@ end
 run "/usr/bin/oo-setup-bind #{node_domain}"
 
 $log.info "...updating Bind forwarders file with DNS servers #{dns_address.join(",")}"
+
 File.open("/var/named/forwarders.conf", "w") do |f|
   f.write("forwarders { #{dns_address.join(" ; ")} ; } ;")
 end

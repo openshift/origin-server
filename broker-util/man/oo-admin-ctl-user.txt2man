@@ -1,0 +1,73 @@
+NAME
+  oo-admin-ctl-user
+  
+SYNOPSIS
+  oo-admin-ctl-user [-h|--help] [-l|--rhlogin rh_login] 
+  [--setmaxgears max_gears] [--setconsumedgears consumed_gears]
+  [--listsubaccounts] [--addsubaccount subaccount_login]
+  [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
+  [--addgearsize gear_size] [--removegearsize gear_size]
+  [--inheritgearsizes true|false]
+
+DESCRIPTION
+  Utility to manage users within OpenShift Origin.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+
+  -l|--rhlogin rh_login  
+    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+
+  --setmaxgears max_gears  
+    Set the maximum number of gears an user is allowed to consume.
+
+  --setconsumedgears consumed_gears  
+    Set the number of gears an user has consumed. Use with caution.
+
+  --listsubaccounts  
+    List the subaccounts that have been created under this parent account.
+    (rhlogin)
+
+  --addsubaccount subaccount_login  
+    The subaccount account name to add to the rhlogin parent account.
+
+  --removesubaccount subaccount_login  
+    The subaccount account name to remove from the rhlogin parent account.
+
+  --allowsubaccounts true|false  
+    Add or Remove the capability to manage/maintain subaccounts.
+
+  --addgearsize gear_size  
+    Add gear_size to the capability for this rhlogin user account.
+  
+  --removegearsize gear_size  
+    Remove gear_size from the capability for this rhlogin user account.
+
+  --inheritgearsizes true|false  
+    Allow or Diasllow inheritance of rhlogin user gearsizes capability to
+    subaccounts.
+
+EXAMPLE
+
+  List the current user settings with:
+
+    $ oo-admin-ctl-user -l bob@redhat.com
+
+  Set the maximum number of gears an user is allowed to use with:
+  
+    $ oo-admin-ctl-user -l bob@redhat.com --setmaxgears 10
+
+WARNINGS
+  
+  Cloud SDK currently has an odd behavior that makes this script somewhat 
+  dangerous. DO NOT USE THIS SCRIPT TO MODIFY A LOT OF USERS AT ONCE!
+
+SEE ALSO
+  complete-origin-setup(8), oo-admin-ctl-district(8), oo-setup-broker(8),
+  oo-admin-move(8), oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-template(8), oo-admin-ctl-domain(8), oo-setup-bind(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 

@@ -41,7 +41,7 @@ cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.
 cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 
-cp man8/* %{buildroot}%{_mandir}/man8/
+cp man8/*.8 %{buildroot}%{_mandir}/man8/
 
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}%{_initddir}
@@ -71,7 +71,19 @@ rm -rf $RPM_BUILD_ROOT
 
 %doc LICENSE
 %doc README-Idler.md
+%{_mandir}/man8/oo-accept-node
 %{_mandir}/man8/oo-admin-ctl-gears.8.gz
+%{_mandir}/man8/oo-app-idle
+%{_mandir}/man8/oo-autoidler
+%{_mandir}/man8/oo-idler
+%{_mandir}/man8/oo-idler-stats
+%{_mandir}/man8/oo-init-quota
+%{_mandir}/man8/oo-last-access
+%{_mandir}/man8/oo-list-stale
+%{_mandir}/man8/oo-restorer
+%{_mandir}/man8/oo-restorer-wrapper.sh
+%{_mandir}/man8/oo-setup-node
+%{_mandir}/man8/rhc-list-ports
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf

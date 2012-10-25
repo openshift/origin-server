@@ -1,0 +1,40 @@
+NAME
+  oo-accept-broker 
+  
+SYNOPSIS
+  oo-accept-broker [-hdv] [-a auth_service] [-s storage_service] 
+  [-d dns_service]
+
+DESCRIPTION
+  Verify an OpenShift broker is in in an known valid state, or "accepted" good
+  state. This is most commonly run with no options on the broker.
+  
+OPTIONS
+  -h  
+    Display a simple help dialog.
+  -v  
+    Enable verbose output during the run of the script
+  -d  
+    Enable debugging mode (very verbose)
+  -a auth_service  
+    Authentication service used by the broker, default is mongo.
+  -s storage_service  
+    Storage service used by the broker, default is mongo.
+  -d dns_service  
+    DNS Service used by the broker, default is bind.
+
+EXAMPLE
+
+  $ oo-accept-broker
+  
+HINTS
+  This command should return with the text 'PASS' and return code 0, otherwise
+  the reasons for failure will be output.
+ 
+SEE ALSO
+  complete-origin-setup(8), oo-admin-ctl-district(8), oo-setup-broker(8),
+  oo-admin-move(8), oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-template(8), oo-admin-ctl-domain(8), oo-setup-bind(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 

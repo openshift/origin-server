@@ -32,6 +32,9 @@ mkdir -p %{buildroot}%{_bindir}
 cp oo-* %{buildroot}%{_bindir}/
 cp complete-origin-setup %{buildroot}%{_bindir}/
 
+mkdir -p %{buildroot}%{_mandir}/man8/
+cp man/*.8 %{buildroot}%{_mandir}/man8/
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -49,6 +52,17 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_bindir}/oo-accept-broker
 %attr(0755,-,-) %{_bindir}/complete-origin-setup
 %doc LICENSE
+%{_mandir}/man8/oo-admin-chk.8.gz
+%{_mandir}/man8/oo-admin-ctl-app.8.gz
+%{_mandir}/man8/oo-admin-ctl-district.8.gz
+%{_mandir}/man8/oo-admin-ctl-domain.8.gz
+%{_mandir}/man8/oo-admin-ctl-template.8.gz
+%{_mandir}/man8/oo-admin-ctl-user.8.gz
+%{_mandir}/man8/oo-admin-move.8.gz
+%{_mandir}/man8/oo-register-dns.8.gz
+%{_mandir}/man8/oo-setup-bind.8.gz
+%{_mandir}/man8/oo-setup-broker.8.gz
+%{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.6.2-1

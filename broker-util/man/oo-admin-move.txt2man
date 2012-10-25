@@ -1,0 +1,48 @@
+NAME
+  oo-admin-move
+  
+SYNOPSIS
+  oo-admin-move [-h|--help] [--gear_uuid gear-uuid] 
+  [--destination_district_uuid district-uuid]
+  [-i|--target_server_identity server-identity]
+  [-p|--node_profile node-profile] [-t|--timeout time-out]
+  [--allow_change_district true|false]
+
+DESCRIPTION
+  Used to move a gear from one node in a district to another, or potentially
+  between districts.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+  
+  --gear_uuid gear-uuid  
+    Gear uuid to move. Alphanumeric, canonical way to identify the gear.
+
+  --destination_district_uuid district-uuid  
+    Destination district uuid the gear will be moved to.
+
+  -i|--target_server_identity server-identity  
+    Target server identity.
+
+  -p|--node_profile node-profile  
+    Node profile.
+
+  -t|--timeout time-out  
+    Timeout value for the move.
+
+  --allow_change_district true|false  
+    Allow or Disallow a gear to change districts.
+
+EXAMPLE
+
+  $ oo-admin-move
+  
+SEE ALSO
+  complete-origin-setup(8), oo-admin-ctl-district(8), oo-setup-broker(8),
+  oo-admin-move(8), oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-template(8), oo-admin-ctl-domain(8), oo-setup-bind(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 

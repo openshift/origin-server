@@ -1,0 +1,34 @@
+NAME
+  oo-namespace-init - create polyinstantiated directories for openshift
+SYNOPSIS
+  oo-namespace-init POLYDIR INSTANCEDIR NEW USERNAME
+
+DESCRIPTION
+  oo-namespace-init will create polyinstantiated directories for openshift
+
+  It receives polydir path as $1, the instance path as $2,
+  a flag whether the instance dir was newly created (0 - no, 1 - yes) in $3,
+  and user name in $4.
+
+PARAMETERS
+
+  POLYDIR
+    polyinstantiated directory path
+
+  INSTANCEDIR
+    instance directory path
+  
+  NEW
+    flag whether the instance dir was newly created or not
+    (0 - no, 1 - yes)
+  
+  USERNAME
+    user name of newly created instance directory
+ 
+EXAMPLE
+
+  $ oo-namespace-init /etc /var/lib/openshift/aabbcc/.env/etc 1 aaabbbccc
+
+AUTHOR
+  
+  OpenShift
