@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-app-destroy: Deletes an application container.
+oo-app-destroy: Deletes an application container.
   This command must be run as root.
 
 == Usage
 
-ss-app-destroy --with-container-uuid UUID \\
+oo-app-destroy --with-container-uuid UUID \\
                --with-container-name NAME \\
                --with-app-uuid APP_UUID \\
                --with-app-name APP_NAME \\

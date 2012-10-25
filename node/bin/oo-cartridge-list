@@ -23,11 +23,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-ss-cartridge-list: Lists all cartridges installed on the node
+oo-cartridge-list: Lists all cartridges installed on the node
 
 == Usage
 
-ss-cartridge-list --with-descriptors [--porcelain]
+oo-cartridge-list --with-descriptors [--porcelain]
 
 Options:
 -h|--help:

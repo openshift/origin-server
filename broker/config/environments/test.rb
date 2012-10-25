@@ -62,7 +62,7 @@ Broker::Application.configure do
   # OpenShift Configuration Below this point #
   ############################################
   config.openshift = {
-    :domain_suffix => "dev.rhcloud.com",
+    :domain_suffix => "example.com",
     :default_max_gears => 3,
     :default_gear_size => "small",
     :gear_sizes => ["small", "medium"]
