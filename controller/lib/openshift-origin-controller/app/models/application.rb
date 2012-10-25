@@ -396,7 +396,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     raise OpenShift::NodeException.new("Cannot find #{comp_name} in app #{self.name}.", 1, result_io) if cinst.nil?
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise OpenShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
-    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit '#{ginst.max}' in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
+    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.", 104, result_io) if ginst.gears.length >= ginst.max and ginst.max > 0
     raise OpenShift::UserException.new("Cannot scale up beyond gear limit '#{user.max_gears}'", 104, result_io) if user.consumed_gears >= user.max_gears
     result, new_gear = ginst.add_gear(self)
     result_io.append result
@@ -417,7 +417,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     ginst = self.group_instance_map[cinst.group_instance_name]
     raise OpenShift::NodeException.new("Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{self.name}.", 1, result_io) if ginst.nil?
     # remove any gear out of this ginst
-    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements for group '#{ginst.min}'", 1, result_io) if ginst.gears.length <= ginst.min
+    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements", 1, result_io) if ginst.gears.length <= ginst.min
 
     gear = ginst.gears.last
 
