@@ -40,7 +40,7 @@
     self.domains = []
     self.max_gears = Rails.configuration.openshift[:default_max_gears]
     self.capabilities = capabilities || {}
-    self.capabilities['gear_sizes'] = [Rails.application.config.openshift[:default_gear_size]] unless self.capabilities.has_key?('gear_sizes') or parent_login
+    self.capabilities['gear_sizes'] = [Rails.application.config.openshift[:default_gear_size]] unless self.capabilities.has_key?('gear_sizes') 
     self.parent_user_login = parent_login
 
     self.consumed_gears = 0
