@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 0.29.10
+Version: 0.29.11
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -113,6 +113,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.29.11-1
+- Bug 870423 - [Installation] mod_bw package should be pull in as dependency
+  when installing perl cartridge (bleanhar@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.29.10-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 
