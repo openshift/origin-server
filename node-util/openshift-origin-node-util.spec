@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.6
+Version:        0.0.7
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -81,6 +81,10 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.0.7-1
+- Fix lock file (jhonce@redhat.com)
+- Refactor oo-admin-ctl-gears to use lib/util functions (jhonce@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.6-1
 - Update documentation with expected httpd access log format
   (jhonce@redhat.com)
