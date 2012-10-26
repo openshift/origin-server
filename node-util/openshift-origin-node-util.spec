@@ -33,10 +33,13 @@ mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 mkdir -p %{buildroot}/%{_localstatedir}/www/html/
+mkdir -p %{buildroot}%{_mandir}/man8/
 
 cp conf/oddjob/openshift-restorer.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
+
+cp man8/* %{buildroot}%{_mandir}/man8/
 
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}%{_initddir}
@@ -65,6 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %doc LICENSE
 %doc README-Idler.md
+%{_mandir}/man8/oo-admin-ctl-gears.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
