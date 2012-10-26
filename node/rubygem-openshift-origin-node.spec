@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 0.17.12
+Version: 0.17.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -167,6 +167,12 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.17.13-1
+- Add support for ctl_all restart. (ramr@redhat.com)
+- fixing file name typo in usage and fixing domain name in test environment
+  file (abhgupta@redhat.com)
+- changing requires from pam-openshift to pam_openshift (tdawson@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.17.12-1
 - Remove sourcing abstract/info/lib/util -- brings in "cruft" and fix up rhcsh.
   (ramr@redhat.com)
