@@ -69,4 +69,4 @@ Reservations:
   - MEM >= 10MB
 Scaling:
   Min: 1
-  Max: -1
+  Max: 1
