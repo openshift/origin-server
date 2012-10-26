@@ -53,8 +53,9 @@ EOF
 
 function ctl_all {
     case "$1" in
-        start) start_app.sh ;;
-        stop)  stop_app.sh  ;;
+        start)    start_app.sh               ;;
+        stop)     stop_app.sh                ;;
+        restart)  stop_app.sh; start_app.sh  ;;
     esac
 }
 
