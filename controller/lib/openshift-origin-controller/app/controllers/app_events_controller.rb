@@ -48,6 +48,15 @@ class AppEventsController < BaseController
           msg = "Application #{id} called show port"
           msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "add-alias"
+          applications = Application.find_all(@cloud_user)
+          applications.each do |app|
+            app.aliases.each do |a|
+              if a == server_alias
+                return render_error(:unprocessable_entity, "Alias already in use.", 140,
+                   "APPLICATION_EVENT", "event")
+              end 
+            end unless app.aliases.nil?
+          end
           application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
         when "remove-alias"
