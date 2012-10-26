@@ -1,6 +1,6 @@
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 0.4.5
+Version: 0.4.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -51,6 +51,9 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.4.6-1
+- Parallelize application status call (rpenta@redhat.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.4.5-1
 - Fixing obsoletes for openshift-origin-port-proxy (kraman@gmail.com)
 
