@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.18
+Version: 0.17.19
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,15 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.17.19-1
+- Merge pull request #765 from pravisankar/dev/ravi/bug/865895
+  (openshift+bot@redhat.com)
+- Merge pull request #760 from rajatchopra/master (openshift+bot@redhat.com)
+- Fix for bug# 865895 (rpenta@redhat.com)
+- fix messaing for bug#869951 (rchopra@redhat.com)
+- Parallelize application status call (rpenta@redhat.com)
+- enable defaults on subaccounts also (rchopra@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.17.18-1
 - Merge pull request #752 from rajatchopra/bug_fix (openshift+bot@redhat.com)
 - fix default capabilities for the case when observer could be missing
