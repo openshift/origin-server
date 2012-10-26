@@ -17,6 +17,7 @@ class ApplicationType
   attr_accessor :priority
   attr_accessor :template
   attr_accessor :scalable
+  alias_method :scalable?, :scalable
 
   alias_attribute :categories, :tags
   alias_attribute :display_name, :name

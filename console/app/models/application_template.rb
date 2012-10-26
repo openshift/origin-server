@@ -77,6 +77,7 @@ class ApplicationTemplate < RestApi::Base
   def scalable
     false
   end
+  alias_method :scalable?, :scalable
 
   #def attribute(s)
   #  return get_metadata(s) if [:description, :website, :version, :git_url, :git_project_url].include?(s.to_sym)
