@@ -66,7 +66,5 @@ RailsApp::Application.configure do
     config.sass.relative_assets = true
   end
 
-  Console.configure do |c|
-    c.api = (ENV['CONSOLE_API_MODE'] || 'openshift').to_sym
-  end
+  Console.configure(ENV['CONSOLE_CONFIG_FILE'] || '/etc/openshift/console.conf')
 end

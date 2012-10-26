@@ -6,6 +6,7 @@ module Console
       rescue_from ActiveResource::ConnectionError, :with => :generic_error
       rescue_from ActiveResource::ResourceNotFound, :with => :page_not_found
       rescue_from RestApi::ResourceNotFound, :with => :resource_not_found
+      rescue_from Console::AccessDenied, :with => :console_access_denied
     end
 
     protected
@@ -37,6 +38,11 @@ module Console
         logger.error "Unhandled exception reference ##{@reference_id}: #{e.message}\n#{e.backtrace.join("\n  ")}"
         @message, @alternatives = message, alternatives
         render 'console/error'
-      end 
+      end
+
+      def console_access_denied(e)
+        logger.debug "Access denied: #{e}"
+        redirect_to unauthorized_path
+      end
   end
 end

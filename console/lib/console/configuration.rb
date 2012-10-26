@@ -1,5 +1,6 @@
 require 'active_support/configurable'
 require 'active_support/core_ext/hash'
+require 'console/config_file'
 
 module Console
 
@@ -7,8 +8,9 @@ module Console
  # Console.configure do |config|
  # config.disable_assets = 10
  # end
- def self.configure(&block)
-   yield config
+ def self.configure(file=nil,&block)
+   config.send(:load, file) if file
+   yield config if block_given?
  end
 
  # Global settings for Console
@@ -22,8 +24,13 @@ module Console
     include ActiveSupport::Configurable
 
     config_accessor :disable_static_assets
-    config_accessor :disable_passthrough
     config_accessor :parent_controller
+
+    config_accessor :security_controller
+    config_accessor :remote_user_header
+    config_accessor :remote_user_name_header
+    config_accessor :remote_user_copy_headers
+
     config_accessor :disable_account
     config_accessor :cartridge_type_metadata
     config_accessor :include_helpers
@@ -31,9 +38,6 @@ module Console
     Builtin = {
       :openshift => {
         :url => 'https://openshift.redhat.com/broker/rest',
-        #:ssl_options => {},
-        #:proxy => '',
-        :authorization => :passthrough,
         :suffix => 'rhcloud.com'
       },
       :local => {
@@ -43,62 +47,37 @@ module Console
     }
     Builtin.freeze
 
-    def api=(config=nil)
-      config = case config
-        when nil
-          symbol = :local
-          config = Builtin[:local]
-        when :none
-          return false
-        when :external
-          begin
-            symbol = :external
-            path = File.expand_path('~/.openshift/api.yml')
-            Builtin[:openshift].with_indifferent_access.merge(YAML.load(IO.read(path)))
-          rescue Exception => e
-            raise InvalidConfiguration, <<-EXCEPTION, e.backtrace
-The console is configured to use the external file #{path} (through config.openshift = :external symbol in your environment file), but the file cannot be loaded.
-
-By default you must only specify user and password in #{path}, but you can set any other attribute that the .openshift config option accepts.
-
-E.g. to connect to production OpenShift with a test account, you must only provide:
-
-user: my_test_openshift_account@email.com
-password: my_password
-
-  #{e.message}
-            EXCEPTION
-          end
-        when Symbol
-          symbol = config
-          Builtin[config] || config
+    def api=(config)
+      config = case
+        when Builtin[config]
+          source = config
+          Builtin[config]
+        when config == :external
+          source = '~/.openshift/console.conf'
+          api_config_from(Console::ConfigFile.new(source))
+        when config.respond_to?(:[])
+          source = 'object in config'
+          Builtin[:openshift].with_indifferent_access.merge(config)
         else
-          raise "Invalid argument to config.openshift"
+          raise InvalidConfiguration, "Invalid argument to Console.config.api #{config.inspect}"
         end
 
-      unless config && defined? config[:url]
-        raise InvalidConfiguration, <<-EXCEPTION
+      unless config[:url]
+        raise InvalidConfiguration, <<-EXCEPTION.strip_heredoc
+          The console requires that Console.config.api be set to a symbol or endpoint configuration object.  Active configuration is #{Rails.env}
 
-The Console requires that Console.config.api be set to a symbol or endpoint configuration object.  Active configuration is #{Rails.env}
+          '#{config.inspect}' via #{source} is not valid.
 
-'#{config.inspect}' is not valid.
-
-Valid symbols: #{Builtin.each_key.collect {|k| ":#{k}"}.join(', ')}
-Valid api object:
-  {
-    :url => '' # A URL pointing to the root of the REST API, e.g. 
-               # https://openshift.redhat.com/broker/rest
-  }
+          Valid symbols: #{Builtin.each_key.collect {|k| ":#{k}"}.concat([:external]).join(', ')}
+          Valid api object:
+            {
+              :url => '' # A URL pointing to the root of the REST API, e.g. 
+                         # https://openshift.redhat.com/broker/rest
+            }
         EXCEPTION
       end
 
-      @api = {
-        :user_agent => "openshift_console/#{Console::VERSION::STRING} (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
-      }.with_indifferent_access.merge(config)
-      @api[:symbol] = symbol
-      @api.freeze
-
-      @api
+      freeze_api(config, source)
     end
     def api
       @api
@@ -107,14 +86,78 @@ Valid api object:
     def cartridge_type_metadata
       @cartridge_type_metadata || File.expand_path(File.join('config', 'cartridge_types.yml'), Console::Engine.root)
     end
+
+    def user_agent
+      @user_agent ||= "openshift_console/#{Console::VERSION::STRING} (ruby #{RUBY_VERSION}; #{RUBY_PLATFORM})"
+    end
+    def user_agent=(agent)
+      @user_agent = agent
+    end
+
+    protected
+
+      def load(file)
+        config = Console::ConfigFile.new(file)
+        raise InvalidConfiguration, "BROKER_URL not specified in #{file}" unless config[:BROKER_URL]
+
+        freeze_api(api_config_from(config), file)
+
+        case config[:CONSOLE_SECURITY]
+        when 'basic'
+          self.security_controller = 'Console::Auth::Basic'
+        when 'remote_user'
+          self.security_controller = 'Console::Auth::RemoteUser'
+          [:remote_user_copy_headers, :remote_user_header, :remote_user_name_header].each do |s|
+            value = config[s.upcase]
+            self.send(:"#{s}=", s.to_s.ends_with?('s') ? value.split(',') : value) if value
+          end
+        when String
+          self.security_controller = config[:CONSOLE_SECURITY]
+        end
+      end
+
+      def to_ruby_value(s)
+        case
+        when s == nil
+          nil
+        when s[0] == '{'
+          eval(s)
+        when s[0] == ':'
+          s[1..-1].to_sym
+        when s =~ /^\d+$/
+          s.to_i
+        else
+          s
+        end
+      end
+
+      def api_config_from(config)
+        config.inject(HashWithIndifferentAccess.new) do |h, (k, v)|
+          if match = /^BROKER_API_(.*)/.match(k)
+            h[match[1].downcase] = to_ruby_value(v)
+          end
+          h
+        end.merge({
+          :url    => config[:BROKER_URL],
+          :proxy  => config[:BROKER_PROXY_URL],
+          :suffix => config[:DOMAIN_SUFFIX],
+        })
+      end
+
+      def freeze_api(config, source)
+        @api = {
+          :user_agent => user_agent,
+        }.with_indifferent_access.merge(config)
+        @api[:source] = source
+        @api.freeze
+      end
   end
 
   configure do |config|
     config.disable_static_assets = false
-    config.disable_passthrough = false
     config.disable_account = false
     config.parent_controller = 'ApplicationController'
+    config.security_controller = 'Console::Auth::Basic'
     config.include_helpers = true
-    config.api = nil
   end
 end
