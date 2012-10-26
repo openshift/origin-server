@@ -1,0 +1,1 @@
+require Console.config.security_controller.underscore

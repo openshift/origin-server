@@ -11,3 +11,4 @@
 *.redcar*
 .*.swp
 .sass-cache
+.rvmrc
