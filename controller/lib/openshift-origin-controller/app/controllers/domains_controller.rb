@@ -55,7 +55,7 @@ class DomainsController < BaseController
     end
 
     domain = RestDomain.new(domain, get_url, nolinks)
-    render_success(:created, "domain", domain, "ADD_DOMAIN", "Created domain with namespace #{namespace}")
+    render_success(:created, "domain", domain, "ADD_DOMAIN", "Created domain with namespace #{namespace}", true)
   end
 
   # PUT /domains/<existing_id>

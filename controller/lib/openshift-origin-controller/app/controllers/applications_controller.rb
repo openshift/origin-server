@@ -125,12 +125,13 @@ class ApplicationsController < BaseController
       app = RestApplication12.new(application, get_url, nolinks)
     end
     messages = []
-    messages.push(Message.new(:info, "Application #{application.name} was created."))
+    log_msg = "Application #{application.name} was created."
+    messages.push(Message.new(:info, log_msg))
 
     current_ip = application.get_public_ip_address
     messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
     messages.push(Message.new(:info, app_configure_reply.resultIO.string, 0, :result)) if app_configure_reply
-    render_success(:created, "application", app, "ADD_APPLICATION", nil, nil, nil, messages) 
+    render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages) 
   end
   
   # DELELTE domains/[domain_id]/applications/[id]

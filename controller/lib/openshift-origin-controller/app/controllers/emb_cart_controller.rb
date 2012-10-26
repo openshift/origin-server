@@ -143,10 +143,11 @@ class EmbCartController < BaseController
           cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
         end
         messages = []
-        messages.push(Message.new(:info, "Added #{name} to application #{id}"))
+        log_msg = "Added #{name} to application #{id}"
+        messages.push(Message.new(:info, log_msg))
         messages.push(Message.new(:info, cart_create_reply.resultIO.string, 0, :result))
         messages.push(Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo))
-        return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", nil, nil, nil, messages)
+        return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", log_msg, nil, nil, messages)
 
       end
     end if application.embedded
