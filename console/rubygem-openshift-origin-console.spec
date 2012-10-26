@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.12
+Version:        0.0.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,14 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.0.13-1
+- Bug 869494 - Using :text instead of :string for input selection on scale page
+  when range is large (ccoleman@redhat.com)
+- Revised test setup to reuse domain if available (nhr@redhat.com)
+- Merge pull request #753 from smarterclayton/console_assets_in_production
+  (openshift+bot@redhat.com)
+- Remove sass requires, handled by gemfile (ccoleman@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.12-1
 - Merge pull request #553 from nhr/specify_gear_size (openshift+bot@redhat.com)
 - Revised tests to make proper use of per-test domain (nhr@redhat.com)
