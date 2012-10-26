@@ -131,12 +131,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{brokerdir}/LICENSE
 
 %post
-/bin/touch %{brokerdir}/log/production.log
-/bin/touch %{brokerdir}/log/development.log
-/bin/touch %{brokerdir}/httpd/logs/error_log
-/bin/touch %{brokerdir}/httpd/logs/access_log
-/bin/touch %{_localstatedir}/log/openshift/user_action.log
-
 %if %{with_systemd}
 systemctl --system daemon-reload
 # if under sysv, hopefully we don't need to reload anything
