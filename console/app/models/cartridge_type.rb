@@ -83,7 +83,7 @@ class CartridgeType < RestApi::Base
   end
 
   def scalable
-    self.attributes['supported_scales_to'] > 1
+    self.attributes['supported_scales_to'] > self.attributes['supported_scales_from']
   end
 
   def <=>(other)
