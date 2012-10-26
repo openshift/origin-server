@@ -16,6 +16,7 @@ BuildRequires: git
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: mod_perl
+Requires: mod_bw
 Requires: perl-DBD-SQLite
 Requires: perl-DBD-MySQL
 Requires: perl-MongoDB
