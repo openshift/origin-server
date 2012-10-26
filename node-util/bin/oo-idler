@@ -101,6 +101,7 @@ fi
 
 if [ -z "$uuid" ] || ! [ -d "/var/lib/openshift/$uuid" ]
 then
+    echo "Unknown gear UUID: $uuid"
     print_help
 fi
 
