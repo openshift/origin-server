@@ -75,6 +75,7 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/sessions
 mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_sysconfdir}/openshift
 
 cp -r . %{buildroot}%{brokerdir}
 %if %{with_systemd}
@@ -93,6 +94,9 @@ mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{bu
 
 mkdir -p %{buildroot}%{_localstatedir}/log/openshift
 touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
+
+cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
+cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -114,6 +118,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{brokerdir}/config/environments/production.rb
 %config(noreplace) %{brokerdir}/config/environments/development.rb
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
+%config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%{_sysconfdir}/openshift/broker-dev.conf
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
@@ -166,7 +172,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -v '%{_localstatedir}/log/openshift/user_action.log'
 
 %postun
-/usr/sbin/semodule -e passenger -r openshift-origin-common
+/usr/sbin/semodule -e passenger
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run

@@ -32,40 +32,49 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
-
+  
+  ############################################
+  # OpenShift Configuration Below this point #
+  ############################################
+  
   config.datastore = {
     :replica_set => false,
-    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     :host_port => ["localhost", 27017],
-
+  
     :user => "openshift",
     :password => "mooo",
     :db => "openshift_broker_dev",
-    :collections => {:user => "user_test", :district => "district_test"}
+    :collections => {:user => "user",
+                     :district => "district",
+                     :application_template => "template"}
   }
   
   config.usage_tracking = {
     :datastore_enabled => false,
     :syslog_enabled => false
   }
-
+  
   config.analytics = {
-    :enabled => false # global flag for whether any analytics should be enabled
+    :enabled => false
   }
-
+  
   config.user_action_logging = {
     :logging_enabled => true,
     :log_filepath => "/var/log/openshift/user_action.log"
   }
-
-  ############################################
-  # OpenShift Configuration Below this point #
-  ############################################
+  
   config.openshift = {
     :domain_suffix => "example.com",
     :default_max_gears => 3,
     :default_gear_size => "small",
-    :gear_sizes => ["small", "medium"]
+    :gear_sizes => ["small","medium"]
   }
-
+  
+  config.auth = {
+    :salt => "foobarbaz",
+    :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",
+    :privkeypass => "",
+    :pubkeyfile  => "/var/www/openshift/broker/config/server_pub.pem",
+    :rsync_keyfile => "/etc/openshift/rsync_id_rsa"
+  }
 end

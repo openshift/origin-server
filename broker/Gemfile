@@ -13,7 +13,7 @@ gem 'rest-client'
 gem 'systemu'
 
 # Load plugin gems.
-Dir["/etc/openshift/plugins.d/*.conf"].map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
+Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
