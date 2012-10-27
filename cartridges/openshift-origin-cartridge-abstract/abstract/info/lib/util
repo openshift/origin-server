@@ -378,7 +378,7 @@ function get_framework_ctl_script() {
 # Tell whether cart is the only cart on a gear
 #
 function only_cart_on_gear() {
-    ret=$(ls $APP_HOME/ | grep -ve "app-root\|git" | grep -v $1 | wc -l)
+    ret=$(ls ${APP_HOME:-$OPENSHIFT_HOMEDIR}/ | grep -ve "app-root\|git" | grep -v $1 | wc -l)
     return $ret
 }
 

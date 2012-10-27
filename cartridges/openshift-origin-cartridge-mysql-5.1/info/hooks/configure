@@ -137,6 +137,8 @@ else
     client_result 'Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
     client_result ""
     client_result "You can manage your new MySQL database by also embedding phpmyadmin-3.4."
+    client_result "The phpmyadmin username and password will be the same as the MySQL credentials above."
+
 fi
 
 cart_props "connection_url=mysql://$mysql_ip:$mysql_port/"
