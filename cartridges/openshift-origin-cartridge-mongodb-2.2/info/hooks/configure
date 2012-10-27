@@ -140,6 +140,7 @@ else
     client_result 'Connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
     client_result ""
     client_result "You can manage your new MongoDB by also embedding rockmongo-1.1"
+    client_result "The rockmongo username and password will be the same as the MongoDB credentials above."
 fi
 
 cart_props "connection_url=mongodb://$mongodb_ip:$mongodb_port/"
