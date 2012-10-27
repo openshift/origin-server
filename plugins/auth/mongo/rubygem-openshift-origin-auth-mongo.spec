@@ -62,7 +62,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp %{buildroot}/%{geminstdir}/lib/openshift-origin-auth-mongo/config/initializers/openshift-origin-auth-mongo-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example
+cp %{buildroot}/%{geminstdir}/conf/openshift-origin-auth-mongo.conf.example %{buildroot}/etc/openshift/plugins.d/
 
 %clean
 rm -rf %{buildroot}

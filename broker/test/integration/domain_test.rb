@@ -4,6 +4,10 @@ require 'mocha'
 
 class DomainTest < ActiveSupport::TestCase
 
+  def setup
+    OpenShift::DnsService.provider=OpenShift::DnsService
+  end
+
   test "create" do
     login = "user_" + gen_uuid
     cu = CloudUser.new(login, "1234", nil, "default")

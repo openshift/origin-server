@@ -15,7 +15,7 @@
 #++
 
 require 'rubygems'
-require 'openshift-origin-common/config'
+require 'openshift-origin-common'
 
 module OpenShift
   #load OPENSHIFT_NODE_PLUGINS

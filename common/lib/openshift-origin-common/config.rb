@@ -32,17 +32,18 @@ module OpenShift
       end
     end
 
-    def get(name)
+    def get(name, default=nil)
       val = @conf.get_value(name)
+      val = default.to_s if (val.nil? and !default.nil?)
       val.gsub!(/\\:/,":") if not val.nil?
       val.gsub!(/[ \t]*#[^\n]*/,"") if not val.nil?
       val = val[1..-2] if not val.nil? and val.start_with? "\""
       val
     end
 
-    def get_bool(name)
+    def get_bool(name, default=nil)
       # !! is used to normalise the value to either a 1 (true) or a 0 (false).
-      !!(get(name) =~ /^(true|t|yes|y|1)$/i)
+      !!(get(name, default) =~ /^(true|t|yes|y|1)$/i)
     end
   end
 end
