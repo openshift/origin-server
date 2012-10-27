@@ -402,7 +402,20 @@ function create_standard_network_env_vars {
     INTERNAL_PORT=${2:-8080}
     echo "export OPENSHIFT_INTERNAL_IP='$INTERNAL_IP'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
     echo "export OPENSHIFT_INTERNAL_PORT='$INTERNAL_PORT'" > $APP_HOME/.env/OPENSHIFT_INTERNAL_PORT
+    create_cloudfoundry_network_env_vars $INTERNAL_IP $INTERNAL_PORT
+    create_heroku_network_env_vars $INTERNAL_IP $INTERNAL_PORT
 }
+
+function create_cloudfoundry_network_env_vars {
+    echo "export VCAP_APP_HOST='$1'" > $APP_HOME/.env/VCAP_APP_HOST
+    echo "export VCAP_APP_PORT='$2'" > $APP_HOME/.env/VCAP_APP_PORT
+}
+
+function create_heroku_network_env_vars {
+    echo "export IP='$1'" > $APP_HOME/.env/IP
+    echo "export PORT='$2'" > $APP_HOME/.env/PORT
+}
+
 
 function create_cart_network_env_vars {
     CART_IP=$1
