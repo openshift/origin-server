@@ -29,6 +29,13 @@ done
 source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+# Remove deprecated env vars that were left behind for backwards compatibility
+for v in "OPENSHIFT_NOSQL_DB_GEAR_DNS" "OPENSHIFT_NOSQL_DB_GEAR_UUID" "OPENSHIFT_NOSQL_DB_HOST" \
+         "OPENSHIFT_NOSQL_DB_PASSWORD" "OPENSHIFT_NOSQL_DB_PORT"      "OPENSHIFT_NOSQL_DB_URL" \
+         "OPENSHIFT_NOSQL_DB_USERNAME";
+do
+    app_remove_env_var $v
+done
 
 for v in "OPENSHIFT_MONGODB_DB_GEAR_DNS" "OPENSHIFT_MONGODB_DB_GEAR_UUID" "OPENSHIFT_MONGODB_DB_HOST" \
          "OPENSHIFT_MONGODB_DB_PASSWORD" "OPENSHIFT_MONGODB_DB_PORT"      "OPENSHIFT_MONGODB_DB_URL" \

@@ -29,6 +29,14 @@ done
 source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
+# Remove deprecated env vars that were left behind for backwards compatibility
+for v in "OPENSHIFT_DB_GEAR_UUID" "OPENSHIFT_DB_GEAR_DNS" "OPENSHIFT_DB_USERNAME" \
+         "OPENSHIFT_DB_PASSWORD"  "OPENSHIFT_DB_HOST"     "OPENSHIFT_DB_PORT" \
+         "OPENSHIFT_DB_URL"       "OPENSHIFT_DB_SOCKET"
+do
+    app_remove_env_var $v
+done
+
 for v in "OPENSHIFT_POSTGRESQL_DB_GEAR_UUID" "OPENSHIFT_POSTGRESQL_DB_GEAR_DNS" "OPENSHIFT_POSTGRESQL_DB_USERNAME" \
          "OPENSHIFT_POSTGRESQL_DB_PASSWORD"  "OPENSHIFT_POSTGRESQL_DB_HOST"     "OPENSHIFT_POSTGRESQL_DB_PORT" \
          "OPENSHIFT_POSTGRESQL_DB_URL"       "OPENSHIFT_POSTGRESQL_DB_SOCKET"
