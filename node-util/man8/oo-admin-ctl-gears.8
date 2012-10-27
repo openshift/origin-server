@@ -1,0 +1,81 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-gears.8
+.\" 
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "OO-ADMIN-CTL-GEARS" "8" "2012-10-26" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-admin-ctl-gears \- Control the OpenShift gears hosted on this node
+.SH SYNOPSIS
+.B "oo-admin-ctl-gears {COMMAND} [gear uuid]"
+.SH DESCRIPTION
+.B "oo-admin-ctl-gears"
+may be used to control and check the status of the OpenShift gears hosted on this node
+.SH OPTIONS
+The following commands are understood:
+.TP
+.B "startall"
+start all gears and their component cartridges on this node.
+This command uses multiple threads to start the gears as quickly as possible.
+The results are recorded in a log file while the threads run in the background.
+Control is returned to the terminal before the gears have been started.
+.TP
+.B "stopall"
+stop all gears and their component cartridges on this node
+.TP
+.B "restartall"
+restart all gears and their component cartridges on this node
+.TP
+.B "condrestartall"
+start all gears if they have not already been started
+.TP
+.B "waited-startall"
+start all gears  and their components in the foreground.
+Control will only be returned to the terminal after all the gears have been started.
+.TP
+.B "status"
+shows a cartridge dependent status for each cartridge in each gear
+.TP
+.B "list"
+list all the gears hosted on the node
+.TP
+.BI "startgear" " gear uuid"
+start given gear's component cartridges
+.TP
+.BI "stopgear" " gear uuid"
+stop given gear's component cartridges
+.TP
+.BI "restartgear" " gear uuid"
+restart given gear's component cartridges
+.SH EXIT STATUS
+On success 0 is returned, a non-zero failure code otherwise.
+.SH FILES
+.TP
+.FN /var/lock/subsys/openshift-gears
+The lock file used in support of the
+.B condrestartall
+command
+.TP
+.FN /var/log/openshift-gears-async-start.log
+The gear and component cartridge output during a back-grounded start is recorded in this file.
+.SH NOTES
+.nr step 1 1
+.IP \n[step] 2
+.B restart
+commands call the cartridge's restart command which may be optimized to
+run faster than calling the stop and start commands.
+.IP \n+[step] 2
+Not all cartridges provide meaningful status. 
+.IP \n+[step] 2
+.B oo-admin-ctl-gears
+is of no value on a broker node that does not host gears.
+.SH BUGS
+The 
+.B status
+command does not scale to a large number of hosted gears.
+This will be corrected in a future version of the OpenShift product.
+.SH SEE ALSO
+openshift-gears(8),
+openshift-gears.service(8)
+
