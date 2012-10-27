@@ -190,8 +190,9 @@ class GroupInstance < OpenShift::Model
     result_io = ResultIO.new
     return result_io if not app.scalable
     deficit = self.min - self.gears.length
-    if (deficit + self.app.user.consumed_gears) > self.app.user.max_gears
-      raise OpenShift::UserException.new("#{self.app.user.login} has a gear limit of #{self.app.user.max_gears} and this app requires #{deficit} more gears. Check the 'scales_from' limit of all cartridges of the app?", 104) 
+    u = CloudUser.find(self.app.user.login)
+    if (deficit + u.consumed_gears) > u.max_gears
+      raise OpenShift::UserException.new("#{u.login} has a gear limit of #{u.max_gears} and this app requires #{deficit} more gears. Check the 'scales_from' limit of all cartridges of the app?", 104) 
     end
     deficit.times do
       result, new_gear = add_gear(app)

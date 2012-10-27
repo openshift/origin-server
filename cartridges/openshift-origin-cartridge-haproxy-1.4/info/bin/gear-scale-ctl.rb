@@ -75,7 +75,7 @@ class Gear_scale_ctl
     if not File.exists? scale_file
       gear_info_url = "#{$base_url % opts["server"]}#{$create_url % opts['namespace']}/#{opts['app']}"
       request = RestClient::Request.new(:method => :get, :url => gear_info_url, :timeout => 120,
-          :headers => {:accept => 'application/json', :user_agent => 'OpenShift'},
+          :headers => {:accept => 'application/json;version=1.0', :user_agent => 'OpenShift'},
           :payload => params
           )
 
