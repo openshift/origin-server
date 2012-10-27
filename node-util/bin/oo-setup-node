@@ -19,6 +19,46 @@ require 'rubygems'
 require 'parseconfig'
 require 'yaml'
 require 'fileutils'
+require 'logger'
+require 'open4'
+
+$log = Logger.new(STDOUT)
+$log.level = Logger::INFO
+
+def find_and_replace(file, find, replace)
+  $log.debug("Replacing #{find} with #{replace} in file #{file}")
+  data = File.open(file).read
+  File.open(file, "w") do |f|
+    data = data.gsub(find, replace)
+    f.write(data)
+  end
+end
+
+def insert_if_not_exist(file, find, to_insert)
+  $log.debug("Checking if #{find} exists in file #{file}")
+  data = File.open(file).read
+  return if data.match(find)
+  $log.debug("...inserting #{to_insert} in file #{file}")
+  File.open(file, "w") do |f|
+    f.write(data)
+    f.write(to_insert)
+  end
+end
+
+def run(cmd)
+  $log.debug("Running command:")
+  $log.debug(cmd)
+  error_str = ""
+  status = Open4.popen4(cmd) do |pid, stdin, stdout, stderr|
+    $log.debug(stdout.read)
+    error_str = stderr.read
+  end
+  $log.error(error_str) if (status.to_i != 0 and !error_str.empty?)
+  $log.debug("Exit: #{status}")
+  return status.to_i
+end
+
+
 
 def usage
     puts <<USAGE
@@ -158,8 +198,8 @@ if args["--help"]
   exit -1
 end
 
-print "Network setup\n"
-
+$log.info "Configuring networking"
+$log.info "...configuring external network"
 File.open("/etc/sysconfig/network-scripts/ifcfg-#{ext_eth_device}","w") do |f|
   f.write "DEVICE=#{ext_eth_device}\n"
   f.write "ONBOOT=yes\n"
@@ -172,7 +212,7 @@ else
     f.write "PREFIX=#{ext_prefix}\n"
     f.write "GATEWAY=#{ext_gw}\n"
 end
-  f.write "DNS1=#{broker_ip}\n"
+  f.write "DNS1=127.0.0.1\n"
   dns_address.each_index do |idx|
     f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
   end
@@ -184,6 +224,7 @@ end
 end
 
 if int_eth_device != ext_eth_device
+  $log.info "...configuring internal network"
   File.open("/etc/sysconfig/network-scripts/ifcfg-#{int_eth_device}","w") do |f|
     f.write "DEVICE=#{int_eth_device}\n"
     f.write "ONBOOT=yes\n"
@@ -198,97 +239,83 @@ if int_eth_device != ext_eth_device
   end
 end
 
-print "Enabling quota\n"
+File.open("/etc/sysconfig/network", "w") do |f|
+  f.write("NETWORKING=yes\n")
+  f.write("HOSTNAME=#{node_hostname}.#{node_domain}\n")
+end
+run "chkconfig network on"
+
+$log.info "Setting node SELinux booleans\n"
+run("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
+run("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
+run("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
+
+$log.info "Opening required ports\n"
+run "lokkit --service=ssh"
+run "lokkit --service=http"
+run "lokkit --service=https"
+
+$log.info "Setting up m-collective to use qpid"
+find_and_replace("/etc/mcollective/client.cfg", /^plugin\.qpid\.host=.*$/, "plugin.qpid.host=#{broker_ip}")
+find_and_replace("/etc/mcollective/server.cfg", /^plugin\.qpid\.host=.*$/, "plugin.qpid.host=#{broker_ip}")
+
+$log.info "Generating mcollective facts"
+run "/etc/cron.minutely/openshift-facts"
+run "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
+
 oo_device=%x[df -P /var/lib/openshift | tail -1].split[0]
 oo_mount=%x[df -P /var/lib/openshift | tail -1 | tr -s ' '].split[5]
+$log.info "Enabling quota on filesystem #{oo_mount}"
 unless %x[quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
-  print "... updating fstab and remounting /\n"
-  `awk '{ $2=="/" ? $4="defaults,usrjquota=aquota.user,jqfmt=vfsv0" : $4=$4 ; print $0 }' /etc/fstab > /etc/fstab.new`
-  system "mv /etc/fstab.new /etc/fstab"
-  system "mount -o remount /"
-  system "quotacheck -cmug /"
+  $log.info "... updating fstab and remounting #{oo_mount}"
+  run "awk '{ $2==\"#{oo_mount}\" ? $4=\"defaults,usrjquota=aquota.user,jqfmt=vfsv0\" : $4=$4 ; print $0 }' /etc/fstab > /etc/fstab.new"
+  run "mv /etc/fstab.new /etc/fstab"
+  run "mount -o remount /"
+  run "quotacheck -cmug /"
 end
 
 quota_db_file=File.join(oo_mount,"/aquota.user")
 if File.exists? quota_db_file
   quota_db_type = %x[secon -f #{quota_db_file} | grep type: ]
   if quota_db_type !~ /quota_db_t/
-    system "restorecon /aquota.*"
+    run "restorecon /aquota.*"
   end
 else
-  print "... switching quota on\n"
-  system "restorecon /aquota.*"
-  system "quotaon  /"
+  $log.info "... switching quota on\n"
+  run "restorecon /aquota.*"
+  run "quotaon #{oo_mount}"
 end
 
-print "Loading CGroups\n"
+$log.info "Enabling CGroups"
 find_and_replace("/etc/systemd/system.conf", /^(#?)JoinControllers=.*$/, "JoinControllers=cpu,cpuacct,memory,freezer,net_cls") if use_systemd
 FileUtils.mkdir_p "/cgroup"
-system "cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
+run "cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
 
-system "restorecon -v /etc/cgconfig.conf"
-system "restorecon -v /cgroup"
+run "restorecon -v /etc/cgconfig.conf"
+run "restorecon -v /cgroup"
+run "chkconfig cgconfig on"
+run "chkconfig cgred on"
 
-system "chkconfig cgconfig on"
-system "chkconfig cgred on"
-
-system "service cgconfig start"
-system "service cgred start"
 if use_systemd
-  system "systemctl enable openshift-cgroups.service"
-  system "systemctl start openshift-cgroups.service"
+  run "systemctl enable openshift-cgroups.service"
 else
-  system "chkconfig --add openshift-cgroups"
-  system "chkconfig openshift-cgroups on"
-  system "service openshift-cgroups start"
+  run "chkconfig --add openshift-cgroups"
+  run "chkconfig openshift-cgroups on"
 end
 
-print "Setting node SELinux booleans\n"
-system("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
-system("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
-system("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
+$log.info "Updating node configuration"
+find_and_replace("/etc/openshift/node.conf", /^PUBLIC_IP=.*$/, "PUBLIC_IP=#{ext_address}")
+find_and_replace("/etc/openshift/node.conf", /^CLOUD_DOMAIN=.*$/, "CLOUD_DOMAIN=#{node_domain}")
+find_and_replace("/etc/openshift/node.conf", /^PUBLIC_HOSTNAME=.*$/, "PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}")
+find_and_replace("/etc/openshift/node.conf", /^(# )?EXTERNAL_ETH_DEV=.*$/, "EXTERNAL_ETH_DEV=#{ext_eth_device}")
+find_and_replace("/etc/openshift/node.conf", /^(# )?INTERNAL_ETH_DEV=.*$/, "INTERNAL_ETH_DEV=#{int_eth_device}")
+find_and_replace("/etc/openshift/node.conf", /^BROKER_HOST=.*$/, "BROKER_HOST=\"#{broker_ip}\"")
 
-print "Opening required ports\n"
-system "lokkit --service=ssh"
-system "lokkit --service=http"
-system "lokkit --service=https"
+$log.info "Restore SELinux default security contexts."
+run "/sbin/restorecon /var/lib/openshift || :"
+run "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
-File.open("/etc/dhcp/dhclient.conf", "w") do |f|
-  f.write("prepend domain-name-servers #{broker_ip};")
-  f.write("supersede host-name \"#{node_hostname}\";")
-  f.write("supersede domain-name \"#{node_domain}\";")
-end
-
-File.open("/etc/sysconfig/network", "w") do |f|
-  f.write("NETWORKING=yes\n")
-  f.write("HOSTNAME=#{node_hostname}.#{node_domain}\n")
-end
-
-system "chkconfig network on"
-system "service network restart"
-
-#try to restart network manager and wait for it to acquire IP
-system "service NetworkManager restart && sleep 5" if use_nm
-
-### End network setup
-
-print "Updating node configuration"
-
-system "perl -p -i -e 's/^PUBLIC_IP=.*$/PUBLIC_IP=#{ext_address}/' /etc/openshift/node.conf"
-system "perl -p -i -e 's/^CLOUD_DOMAIN=.*$/CLOUD_DOMAIN=#{node_domain}/' /etc/openshift/node.conf"
-system "perl -p -i -e 's/^PUBLIC_HOSTNAME=.*$/PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/openshift/node.conf"
-system "perl -p -i -e 's/^(# )?EXTERNAL_ETH_DEV=.*$/EXTERNAL_ETH_DEV=#{ext_eth_device}/' /etc/openshift/node.conf"
-system "perl -p -i -e 's/^(# )?INTERNAL_ETH_DEV=.*$/INTERNAL_ETH_DEV=#{int_eth_device}/' /etc/openshift/node.conf"
-
-system "perl -p -i -e 's/^HOSTNAME=.*$/HOSTNAME=#{node_hostname}.#{node_domain}/' /etc/sysconfig/network"
-system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/client.cfg"
-system "perl -p -i -e 's/^plugin\.qpid\.host=.*$/plugin.qpid.host=#{broker_ip}/' /etc/mcollective/server.cfg"
-
-# Restore SELinux default security contexts.
-system "/sbin/restorecon /var/lib/openshift || :"
-system "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
-
-# Set pam-openshift and polyinstantiation
+$log.info "Set pam-openshift and polyinstantiation"
 find_and_replace("/etc/pam.d/sshd", "pam_selinux", "pam_openshift")
 ["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
   begin
@@ -297,38 +324,34 @@ find_and_replace("/etc/pam.d/sshd", "pam_selinux", "pam_openshift")
   end
 end
 
-config_lines = File.open('/etc/openshift/node.conf').readlines
-File.open('/etc/openshift/node.conf','w') do |f|
-  config_lines.each do |line|
-    if line.start_with? "BROKER_HOST"
-      f.write("BROKER_HOST=\"#{broker_ip}\"\n")
-    else
-      f.write(line)
-    end
-  end
-end
-
+$log.info "Increasing kernel port, connection and semaphore limits"
 insert_if_not_exist("/etc/sysctl.conf", "net.ipv4.ip_local_port_range = 15000 35530", "net.ipv4.ip_local_port_range = 15000 35530\n")
 insert_if_not_exist("/etc/sysctl.conf", "net.netfilter.nf_conntrack_max = 1048576", "net.netfilter.nf_conntrack_max = 1048576\n")
 insert_if_not_exist("/etc/sysctl.conf", "kernel.sem = 250  32000 32  4096", "kernel.sem = 250  32000 32  4096\n")
 
+$log.info "Updating system wide OpenShift CLI configuration to use local broker"
 File.open("/etc/openshift/express.conf", "w") do |f|
   f.write("libra_server=broker.example.com\n")
 end
 
-system "chkconfig openshift-port-proxy on"
-system "hostname #{node_hostname}.#{node_domain}"
-system "/etc/cron.minutely/openshift-facts"
-system "service crond restart"
-system "service mcollective restart"
-system "service openshift-port-proxy restart"
-if use_systemd
-  system "systemctl enable openshift-gears.service"
-  system "systemctl start openshift-gears.service"
-else
-  system "chkconfig openshift-gears on"
-  system "service openshift-gears start"
+$log.info "Updating root user's OpenShift configuration to use 'admin' user"
+FileUtils.mkdir_p "/root/.openshift"
+File.open("/root/.openshift/express.conf", "w") do |f|
+  f.write("username=admin\n")
 end
-system "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
 
-print "NOTE: Please ensure that the clocks between broker and node are in sync.\n"
+
+["httpd", "sshd", "mcollective", "openshift-port-proxy", "crond"].each do |service|
+  run "chkconfig #{service} on"
+end
+
+if use_systemd
+  run "systemctl enable openshift-gears.service"
+  run "systemctl start openshift-gears.service"
+else
+  run "chkconfig openshift-gears on"
+  run "service openshift-gears start"
+end
+
+$log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
+$log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"
