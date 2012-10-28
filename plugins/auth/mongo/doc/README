@@ -59,7 +59,7 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-mongo.rb
 
 * Register OpenShift Origin user
 
-    /usr/bin/ss-register-user --user <user-name> --password <password>
+    /usr/bin/oo-register-user --user <user-name> --password <password>
 
 * Authenticate OpenShift Origin user
   Any REST api calls or CLI tools to OpenShift Origin will be processed only for the registered user-name/password
