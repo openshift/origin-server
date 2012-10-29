@@ -9,7 +9,7 @@
 
 Summary:   The OpenShift Enterprise Management Console
 Name:      openshift-console
-Version:   0.0.1
+Version:   0.0.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -128,6 +128,9 @@ chcon -R -t httpd_var_run_t %{consoledir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Mon Oct 29 2012 Chris Alfonso <calfonso@redhat.com> 0.0.2-1
+- new package built with tito
+
 * Fri Oct 26 2012 Unknown name 0.0.1-1
 - new package built with tito
 
