@@ -70,12 +70,12 @@ class BaseController < ActionController::Base
         subuser_name = request.headers["X-Impersonate-User"]
 
         if @parent_user.nil?
-          Rails.logger.debug "#{@login} tried to impersinate user but #{@login} user does not exist"
+          Rails.logger.debug "#{@login} tried to impersonate user but #{@login} user does not exist"
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
         if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
-          Rails.logger.debug "#{@parent_user.login} tried to impersinate user but does not have require capability."
+          Rails.logger.debug "#{@parent_user.login} tried to impersonate user but does not have require capability."
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
