@@ -13,13 +13,7 @@ html {
 
 .error-reference { color: #606060 }
 
-/* changes to bootstrap */
-@media (max-width: 480px) {
-  input[class*="span"], select[class*="span"], textarea[class*="span"], .uneditable-input {
-    min-height: 28px;
-  }
-}
-
+ 
 @media (max-width: 767px) {
   .form-horizontal .control-label {
     float: none;
@@ -41,9 +35,13 @@ html {
 
 // Forms
 // ----------------------------------------
-input, select, textarea {
+
+input,
+select, 
+textarea,
+.uneditable-input {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.075) inset;
-  background: $consoleFormFieldBackground;
+  background: #aaa;
   border: 1px solid #222;
   color: #222222;
 	}
@@ -51,19 +49,32 @@ input, select, textarea {
     background: #eee; color: #000;
     box-shadow: none;
     }
-
-.input-prepend .add-on, .input-append .add-on, .input-prepend-append .add-on-first, .input-prepend-append .add-on-last {
+.input-prepend-append {
+  @include clearfix()
+}
+.input-prepend-append .add-on-first, .input-prepend-append .add-on-last {
     background-color: #444;
     border: 1px solid #222;
     text-shadow: none;
+    float: left;
     }
-    .input-prepend-append input, .input-prepend-append .add-on-middle {
-      background: $consoleFormFieldBackground;
-      border-top: 1px solid #222;
-      border-bottom: 1px solid #222;
-      color: #000;
-      }
-      .input-prepend-append input:focus {background: #eee;}
+.input-prepend-append .add-on-first {border-right: 0;@include border-radius($inputBorderRadius 0 0 $inputBorderRadius);margin-right: -1px;}
+.input-prepend-append .add-on-last {border-left: 0;@include border-radius(0 $inputBorderRadius $inputBorderRadius 0);margin-left: -1px;}
+.input-prepend-append input, .input-prepend-append .add-on-middle {
+    background: #aaa;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+    color: #000;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    float: left;
+    }
+.input-prepend-append input:focus {
+    background: #eee;
+    color: #000;
+    }
 
 
 input::-webkit-input-placeholder, select::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
@@ -105,7 +116,7 @@ input:-moz-placeholder, select:-moz-placeholder, textarea:-moz-placeholder {
 }
 
 // Disabled and read-only inputs
-input[disabled],
+/*input[disabled],
 select[disabled],
 textarea[disabled],
 input[readonly],
@@ -120,6 +131,7 @@ textarea[readonly] {
 input[type="radio"], input[type="checkbox"],input[type="image"] {
   width: auto;
 }
+*/
 
 ::-moz-selection {background: #f0f392;color: black;}
 ::-selection {background: #f0f392;color: black;}
