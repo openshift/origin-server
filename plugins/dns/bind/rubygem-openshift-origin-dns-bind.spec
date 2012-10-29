@@ -49,6 +49,7 @@ Provides a Bind DNS service based plugin
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}/etc/openshift/plugins.d
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -61,6 +62,9 @@ ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 # Add documents/examples
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
+
+#Config file
+cp %{buildroot}/%{gemdir}/gems/%{gemname}-%{version}/conf/openshift-origin-dns-bind.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-dns-bind.conf.example
 
 # Compile SELinux policy
 mkdir -p %{buildroot}/usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
@@ -79,6 +83,7 @@ rm -rf %{buildroot}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 /usr/share/selinux/packages/rubygem-openshift-origin-dns-bind
+/etc/openshift/plugins.d/openshift-origin-dns-bind.conf.example
 
 %files -n ruby-%{gemname}
 %{ruby_sitelib}/%{gemname}

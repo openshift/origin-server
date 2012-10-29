@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 0.26.9
+Version: 0.26.10
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.26.10-1
+- Merge pull request #777 from rmillner/master (openshift+bot@redhat.com)
+- Fix to cleanup old env vars after migration on removing db from scalable app.
+  (mpatel@redhat.com)
+- BZ 849543: Add informative message about the cartridge credentials.
+  (rmillner@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.26.9-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 

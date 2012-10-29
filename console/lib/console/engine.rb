@@ -6,7 +6,7 @@ require 'haml'
 require 'formtastic'
 require 'pp'
 
-require 'console/version'
+require 'console'
 require 'console/configuration'
 
 module Console

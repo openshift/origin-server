@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        0.0.12
+Version:        0.0.14
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -83,7 +83,7 @@ rm -f Gemfile.lock
 bundle install --local
 
 pushd test/rails_app/
-RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
+CONSOLE_CONFIG_FILE=../../conf/console.conf.example RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
 
 rm -rf tmp/cache/*
 echo > log/production.log
@@ -122,6 +122,32 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.0.14-1
+- Merge pull request #738 from smarterclayton/console_remote_user
+  (openshift+bot@redhat.com)
+- Persisted model objects don't implement id (ccoleman@redhat.com)
+- Bug 869590 - Only copy headers that are present, when BASIC enabled force
+  reauth if broker returns 401 (ccoleman@redhat.com)
+- Bug 869590 - Infinite redirect on visit to /unauthorized
+  (ccoleman@redhat.com)
+- Console needs a base file to build, update filename to match Krishna's
+  preference (ccoleman@redhat.com)
+- Fix user-agent, update documentation to reflect changes to config.
+  (ccoleman@redhat.com)
+- Finalize parameter and class names (ccoleman@redhat.com)
+- Implement Auth::Passthrough completely, have unauthorized escape values
+  (ccoleman@redhat.com)
+- Switch to loading from a config file, split authorization into 3 modes, add
+  test (ccoleman@redhat.com)
+
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.0.13-1
+- Bug 869494 - Using :text instead of :string for input selection on scale page
+  when range is large (ccoleman@redhat.com)
+- Revised test setup to reuse domain if available (nhr@redhat.com)
+- Merge pull request #753 from smarterclayton/console_assets_in_production
+  (openshift+bot@redhat.com)
+- Remove sass requires, handled by gemfile (ccoleman@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.12-1
 - Merge pull request #553 from nhr/specify_gear_size (openshift+bot@redhat.com)
 - Revised tests to make proper use of per-test domain (nhr@redhat.com)

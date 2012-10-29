@@ -40,7 +40,7 @@ class Console::ModelHelperTest < ActionView::TestCase
       }, 
       scale_from_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 3))
     assert_equal({
-        :as => :text
+        :as => :string
       }, 
       scale_from_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 6, 5))
   end
@@ -53,7 +53,7 @@ class Console::ModelHelperTest < ActionView::TestCase
       },
       scale_to_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 3))
     assert_equal({
-        :as => :text,
+        :as => :string,
         :hint => 'Use -1 to scale to your current account limits',
       },
       scale_to_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 6, 5))

@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 0.98.8
+Version: 0.98.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.98.9-1
+- updated jboss modules readme (bdecoste@gmail.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.98.8-1
 - Merge pull request #188 from slagle/dev/slagle-ssl-certificate
   (openshift+bot@redhat.com)

@@ -75,6 +75,7 @@ mkdir -p %{buildroot}%{brokerdir}/tmp/sessions
 mkdir -p %{buildroot}%{brokerdir}/tmp/sockets
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_sysconfdir}/openshift
 
 cp -r . %{buildroot}%{brokerdir}
 %if %{with_systemd}
@@ -94,14 +95,17 @@ mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{bu
 mkdir -p %{buildroot}%{_localstatedir}/log/openshift
 touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
+cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
+cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(0640,apache,apache,0750)
-%attr(0666,-,-) %{brokerdir}/log/production.log
-%attr(0666,-,-) %{brokerdir}/log/development.log
-%attr(0666,-,-) %{_localstatedir}/log/openshift/user_action.log
+%attr(0644,-,-) %ghost %{brokerdir}/log/production.log
+%attr(0644,-,-) %ghost %{brokerdir}/log/development.log
+%attr(0644,-,-) %{_localstatedir}/log/openshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -114,6 +118,8 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{brokerdir}/config/environments/production.rb
 %config(noreplace) %{brokerdir}/config/environments/development.rb
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
+%config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%{_sysconfdir}/openshift/broker-dev.conf
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
@@ -131,12 +137,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{brokerdir}/LICENSE
 
 %post
-/bin/touch %{brokerdir}/log/production.log
-/bin/touch %{brokerdir}/log/development.log
-/bin/touch %{brokerdir}/httpd/logs/error_log
-/bin/touch %{brokerdir}/httpd/logs/access_log
-/bin/touch %{_localstatedir}/log/openshift/user_action.log
-
 %if %{with_systemd}
 systemctl --system daemon-reload
 # if under sysv, hopefully we don't need to reload anything
@@ -161,12 +161,11 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
-/sbin/restorecon -rv /usr/lib/ruby/gems/1.8/gems/passenger-*
+/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
 /sbin/restorecon -v '%{_localstatedir}/log/openshift/user_action.log'
 
 %postun
-/usr/sbin/semodule -e passenger -r openshift-origin-common
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run

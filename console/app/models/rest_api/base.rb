@@ -685,13 +685,17 @@ module RestApi
       super connection.site, connection.format
       @connection = connection
       @as = as
-      @user = @as.login if @as.respond_to? :login
-      @password = @as.password if @as.respond_to? :password
+      unless @as.respond_to? :to_headers
+        @user = @as.login if @as.respond_to? :login
+        @password = @as.password if @as.respond_to? :password
+      end
     end
 
     def authorization_header(http_method, uri)
       headers = super
-      if @as.respond_to? :ticket and @as.ticket
+      if @as.respond_to? :to_headers
+        headers.merge!(@as.to_headers)
+      elsif @as.respond_to? :ticket and @as.ticket
         (headers['Cookie'] ||= '') << "rh_sso=#{@as.ticket}"
       end
       headers
@@ -732,7 +736,7 @@ module RestApi
       self.headers.delete 'User-Agent'
       self.headers['User-Agent'] = config[:user_agent] if config[:user_agent]
 
-      self.proxy = if config[:proxy] == :ENV
+      self.proxy = if config[:proxy] == 'ENV'
           :ENV
         elsif config[:proxy]
           URI config[:proxy]

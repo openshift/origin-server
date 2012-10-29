@@ -9,8 +9,11 @@ module AppHelper
     # The regex to parse the ssh output from the create app results
     SSH_OUTPUT_PATTERN = %r|ssh://([^@]+)@([^/]+)|
 
+    # Default password
+    DEFPASSWD = "xyz123"
+
     # attributes to represent the general information of the application
-    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid, :git_url
+    attr_accessor :name, :namespace, :login, :password, :type, :hostname, :repo, :file, :embed, :snapshot, :uid, :git_url, :owner
 
     # attributes to represent the state of the rhc_create_* commands
     attr_accessor :create_domain_code, :create_app_code
@@ -22,8 +25,8 @@ module AppHelper
     attr_accessor :mysql_hostname, :mysql_user, :mysql_password, :mysql_database
 
     # Create the data structure for a test application
-    def initialize(namespace, login, type, name, password="xyz123")
-      @name, @namespace, @login, @type, @password = name, namespace, login, type, password
+    def initialize(namespace, login, type, name, password, owner)
+      @name, @namespace, @login, @type, @password, @owner = name, namespace, login, type, password, owner
       @hostname = "#{name}-#{namespace}.#{$domain}"
       @repo = "#{$temp}/#{namespace}_#{name}_repo"
       @file = "#{$temp}/#{namespace}.json"
@@ -36,7 +39,7 @@ module AppHelper
         chars = ("1".."9").to_a
         namespace = "ci" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
         login = "cucumber-test_#{namespace}@example.com"
-        app = TestApp.new(namespace, login, type, name)
+        app = TestApp.new(namespace, login, type, name, DEFPASSWD, Process.pid)
         unless app.reserved?
           app.persist
           return app
@@ -45,7 +48,7 @@ module AppHelper
     end
 
     def self.find_on_fs
-      Dir.glob("#{$temp}/*.json").collect {|f| TestApp.from_file(f)}
+      Dir.glob("#{$temp}/*.json").collect {|f| TestApp.from_file(f)}.select { |app| ( ( app.owner == Process.pid ) or app.owner.nil? ) }
     end
 
     def self.from_file(filename)
@@ -53,7 +56,7 @@ module AppHelper
     end
 
     def self.from_json(json)
-      app = TestApp.new(json['namespace'], json['login'], json['type'], json['name'])
+      app = TestApp.new(json['namespace'], json['login'], json['type'], json['name'], json['password'], json['owner'])
       app.embed = json['embed']
       app.mysql_user = json['mysql_user']
       app.mysql_password = json['mysql_password']

@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.email = ['ccoleman@redhat.com', 'ffranz@redhat.com','dmcphers@redhat.com', 'mhicks@redhat.com', 'edirsh@redhat.com', 'fotios@redhat.com', 'johnp@redhat.com']
   s.homepage = 'https://github.com/openshift/origin-server/tree/master/console'
 
-  s.files = Dir['Gemfile', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*', 'vendor/**/*']
+  s.files = Dir['Gemfile', 'LICENSE', 'COPYRIGHT', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*', 'vendor/**/*', 'conf/**/*']
   s.test_files = Dir['test/**/*']
 
   # Console gem dependencies are explicitly specific since they must

@@ -1,6 +1,6 @@
 class ConsoleController < Console.config.parent_controller.constantize
+  include Console.config.security_controller.constantize
   include CapabilityAware
-  include Console::Auth::Passthrough unless Console.config.disable_passthrough
   include DomainAware
   include SshkeyAware
 
@@ -11,8 +11,4 @@ class ConsoleController < Console.config.parent_controller.constantize
   def active_tab
     nil
   end
-
-  private
-    def help
-    end
 end

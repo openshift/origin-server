@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gemname}
-Version: 0.4.8
+Version: 0.4.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,7 +60,7 @@ ln -s %{geminstdir}/lib/%{gemname} %{buildroot}%{ruby_sitelib}
 ln -s %{geminstdir}/lib/%{gemname}.rb %{buildroot}%{ruby_sitelib}
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-msg-broker-mcollective/config/initializers/openshift-origin-msg-broker-mcollective-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
+cp %{buildroot}/%{gemdir}/gems/%{gemname}-%{version}/conf/openshift-origin-msg-broker-mcollective.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
 %clean
 rm -rf %{buildroot}                                
@@ -80,6 +80,19 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.4.10-1
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.4.9-1
+- Parallelize application status call (rpenta@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.4.8-1
 - rsync keypath is in config (rchopra@redhat.com)
 

@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 0.17.18
+Version: 0.17.20
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -54,6 +54,7 @@ This contains the Cloud Development Controller packaged as a ruby site library.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 mkdir -p %{buildroot}%{ruby_sitelib}
+mkdir -p %{buildroot}%{_sysconfdir}/openshift/
 
 # Build and install into the rubygem structure
 gem build %{gemname}.gemspec
@@ -80,6 +81,31 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.17.20-1
+- Merge pull request #777 from rmillner/master (openshift+bot@redhat.com)
+- Merge pull request #749 from kraman/global_broker_config
+  (openshift+bot@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- improve scaling experience - bug#869226 (rchopra@redhat.com)
+- BZ 869862: Lock apps to the cucumber processes which created them.
+  (rmillner@redhat.com)
+
+* Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.17.19-1
+- Merge pull request #765 from pravisankar/dev/ravi/bug/865895
+  (openshift+bot@redhat.com)
+- Merge pull request #760 from rajatchopra/master (openshift+bot@redhat.com)
+- Fix for bug# 865895 (rpenta@redhat.com)
+- fix messaing for bug#869951 (rchopra@redhat.com)
+- Parallelize application status call (rpenta@redhat.com)
+- enable defaults on subaccounts also (rchopra@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.17.18-1
 - Merge pull request #752 from rajatchopra/bug_fix (openshift+bot@redhat.com)
 - fix default capabilities for the case when observer could be missing

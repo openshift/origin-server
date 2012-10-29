@@ -237,24 +237,29 @@ class BaseController < ActionController::Base
                             field=nil, msg_type=nil, messages=nil, format=false)
     reply = RestReply.new(status)
     user_info = get_cloud_user_info(@cloud_user)
+
+    logger_msg = nil
+    if msg
+      msg_type = :error unless msg_type
+      reply.messages.push(Message.new(msg_type, msg, err_code, field))
+      logger_msg = msg
+    end
     if messages && !messages.empty?
       reply.messages.concat(messages)
-      if log_tag
-        log_msg = []
-        messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, log_msg.join(', '))
+      unless logger_msg
+        msg = []
+        messages.each { |m| msg.push(m.text) }
+        logger_msg = msg.join(', ')
       end
-    else
-      msg_type = :error unless msg_type
-      reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, msg) if log_tag
     end
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, logger_msg) if log_tag
     render_response(reply, format)
   end
 
   def render_exception_internal(ex, log_tag, format)
     Rails.logger.error ex
     Rails.logger.error ex.backtrace
+
     error_code = ex.respond_to?('code') ? ex.code : 1
     if ex.kind_of? OpenShift::UserException
       status = :unprocessable_entity
@@ -270,18 +275,22 @@ class BaseController < ActionController::Base
                               msg_type=nil, messages=nil, format=false)
     reply = RestReply.new(status, type, data)
     user_info = get_cloud_user_info(@cloud_user)
+
+    logger_msg = nil
+    if log_msg
+      msg_type = :info unless msg_type
+      reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg
+      logger_msg = log_msg
+    end
     if messages && !messages.empty?
       reply.messages.concat(messages)
-      if log_tag
-        log_msg = []
-        messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '))
+      unless logger_msg
+        msg = []
+        messages.each { |m| msg.push(m.text) }
+        logger_msg = msg.join(', ')
       end
-    else
-      msg_type = :info unless msg_type
-      reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg) if log_tag
     end
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg) if log_tag
     render_response(reply, format)
   end
 

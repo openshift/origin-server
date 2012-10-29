@@ -49,7 +49,7 @@ module Console::ModelHelper
     if range = scale_range(obj.supported_scales_from, obj.supported_scales_to, max, max_choices)
       {:as => :select, :collection => range, :include_blank => false}
     else
-      {:as => :text}
+      {:as => :string}
     end
   end
   def scale_to_options(obj, max, max_choices=20)
@@ -57,7 +57,7 @@ module Console::ModelHelper
       range << ['All available', -1] if obj.supported_scales_to == -1
       {:as => :select, :collection => range, :include_blank => false}
     else
-      {:as => :text, :hint => 'Use -1 to scale to your current account limits'}
+      {:as => :string, :hint => 'Use -1 to scale to your current account limits'}
     end
   end
 end

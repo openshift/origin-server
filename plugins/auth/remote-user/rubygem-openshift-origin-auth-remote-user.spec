@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.14
+Version:        0.0.15
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -46,12 +46,12 @@ mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 cp -r doc/* %{buildroot}%{_docdir}/%{name}-%{version}/
 
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
-install -m 755 %{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-basic.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-ldap.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
+install -m 755 conf/%{gemname}-kerberos.conf.sample %{buildroot}%{brokerdir}/httpd/conf.d
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
-cp lib/openshift-origin-auth-remote-user/config/initializers/openshift-origin-auth-remote-user-defaults.conf %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
+cp conf/openshift-origin-auth-remote-user.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %clean
 rm -rf %{buildroot}
@@ -70,12 +70,23 @@ rm -rf %{buildroot}
 %{gemdir}/gems/%{gemname}-%{version}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
-%{brokerdir}/httpd/conf.d/%{gemname}.conf.sample
+%{brokerdir}/httpd/conf.d/%{gemname}-basic.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-ldap.conf.sample
 %{brokerdir}/httpd/conf.d/%{gemname}-kerberos.conf.sample
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.0.15-1
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- Bug 870339 - Authorization is failed on JbossTool (bleanhar@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.0.14-1
 - BZ867340 new password does not take effect until reboot broker service
   (calfonso@redhat.com)

@@ -28,7 +28,11 @@ OSO_CFG_DIR=${OSO_BROKER_ROOT}/config
 OSO_ENV_DIR=${OSO_CFG_DIR}/environments
 OSO_INI_DIR=${OSO_CFG_DIR}/initializers
 
-OSO_ENVIRONMENT=${OSO_ENVIRONMENT:=development}
+if [ -e '/etc/openshift/development' ] ; then
+  OSO_ENVIRONMENT=${OSO_ENVIRONMENT:=development}
+else
+  OSO_ENVIRONMENT=${OSO_ENVIRONMENT:=production}
+fi
 
 AUTH_PLUGINS="mongo"
 NAME_PLUGINS="bind"
@@ -165,7 +169,7 @@ function get_application_value() {
         begin
           require 'openshift-origin-controller'
           require 'config/application'
-          require 'config/initializers/broker'
+          #require 'config/initializers/broker'
           require 'config/environments/$OSO_ENVIRONMENT'
         rescue Bundler::GemNotFound => gem_error
           puts "Error loading libs or gems: #{gem_error}"

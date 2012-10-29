@@ -308,6 +308,50 @@ module MCollective
         return rc, output
       end
 
+      def complete_process_gracefully(pid, stdin, stdout)
+        stdin.close
+        ignored, status = Process::waitpid2 pid
+        exitcode = status.exitstatus
+        # Do this to avoid cartridges that might hold open stdout
+        output = ""
+        begin
+          Timeout::timeout(5) do
+            while (line = stdout.gets)
+              output << line
+            end
+          end
+        rescue Timeout::Error
+          Log.instance.info("WARNING: stdout read timed out")
+        end
+
+        if exitcode == 0
+          Log.instance.info("(#{exitcode})\n------\n#{output}\n------)")
+        else
+          Log.instance.info("ERROR: (#{exitcode})\n------\n#{output}\n------)")
+        end
+        return exitcode, output
+      end
+
+      def handle_cartridge_action(cartridge, action, args)
+        exitcode = 0
+        output = ""
+
+        if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"
+          cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          Log.instance.info("handle_cartridge_action executing #{cart_cmd}")
+          pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
+        elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
+          cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+          Log.instance.info("handle_cartridge_action executing #{cart_cmd}")
+          pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
+        else
+          exitcode = 127
+          output = "ERROR: action '#{action}' not found."
+        end
+        exitcode, output = complete_process_gracefully(pid, stdin, stdout) if exitcode == 0
+        return exitcode, output
+      end
+
       #
       # Passes arguments to cartridge for use
       #
@@ -328,58 +372,23 @@ module MCollective
           cmd = "oo-#{action}"
           if action == 'connector-execute'
             pid, stdin, stdout, stderr = oo_connector_execute(cmd, args)
+            exitcode, output = complete_process_gracefully(pid, stdin, stdout)
           else
-            rc, output = handle_oo_cmd(action, args)
-            reply[:output] = output
-            reply[:exitcode] = rc
-            if rc == 0
-              Log.instance.info("cartridge_do_action (#{rc})\n------\n#{output}\n------)")
-            else
-              Log.instance.info("cartridge_do_action ERROR (#{rc})\n------\n#{output}\n------)")
-            end
-            reply.fail! "cartridge_do_action failed #{rc}.  Output #{output}" unless rc == 0
-            return 0
+            exitcode, output = handle_oo_cmd(action, args)
           end
         else
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
-          if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
-            Log.instance.info("cartridge_do_action executing #{cart_cmd}")
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
-          elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
-            cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
-            Log.instance.info("cartridge_do_action executing #{cart_cmd}")
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
-          else
-            reply[:exitcode] = 127
-            reply.fail! "cartridge_do_action ERROR action '#{action}' not found."
-          end
+          exitcode, output = handle_cartridge_action(cartridge, action, args)
         end
-        stdin.close
-        ignored, status = Process::waitpid2 pid
-        exitcode = status.exitstatus
-        # Do this to avoid cartridges that might hold open stdout
-        output = ""
-        begin
-          Timeout::timeout(5) do
-            while (line = stdout.gets)
-              output << line
-            end
-          end
-        rescue Timeout::Error
-          Log.instance.info("cartridge_do_action WARNING - stdout read timed out")
-        end
-
+        reply[:exitcode] = exitcode
+        reply[:output] = output
         if exitcode == 0
           Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
         else
-          Log.instance.info("cartridge_do_action ERROR (#{exitcode})\n------\n#{output}\n------)")
+          reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
+          Log.instance.info("cartridge_do_action failed (#{exitcode})\n------\n#{output}\n------)")
         end
-
-        reply[:output] = output
-        reply[:exitcode] = exitcode
-        reply.fail! "cartridge_do_action failed #{exitcode}.  Output #{output}" unless exitcode == 0
       end
      
       #
