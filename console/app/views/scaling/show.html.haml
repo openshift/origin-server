@@ -29,7 +29,7 @@
 
           %p Control the number of gears OpenShift will use for your cartridge:
 
-          = f.inputs :inline => true, :important => true, :without_errors => true do
+          = f.inputs :inline => true, :without_errors => true do
             .input-prepend
               %span.add-on Minimum
               = f.input :scales_from, scale_from_options(cartridge, @user.max_gears).merge({:input_html => {:style => 'width: auto', :title => 'Minimum gears'}})

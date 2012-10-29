@@ -28,11 +28,11 @@
           :class => "domain_name #{'error' if application.errors.include? :domain_name}"
         %span.add-on-last>= ".#{RestApi.application_domain_suffix}"
     -#.row.control-group.error
-      #app-errors.span
+      #app-errors
     - if @domain and @domain.persisted?
-      .help-block.span7
+      .help-block
         %p.smaller Your application name uniquely identifies the application and becomes part of your public URL. You can add your own domain names to the application later.
     - else
-      .help-block-multiple.span7
+      .help-block-multiple
         %p.smaller Your application name uniquely identifies the application and becomes part of your public URL. You can add your own domain names to the application later.
         %p.smaller Because this is your first application, you need to set a name under which your applications will be grouped

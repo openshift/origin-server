@@ -80,6 +80,7 @@ $grayDark:                      #2f2f2f;
 $primaryButtonBackground:       #B1E5F2;
 $orange:                        #ffb02e;
 $linkColor:                     #0069d6;
+$white:                         #fff;
 
 $activeButtonDarkColor:					rgba(0,0,0,0.5);
 $activeButtonLightColor:				rgba(255,255,255,0.5);
@@ -116,4 +117,10 @@ $stripesHover:                  #ccc;
 
 $pollBarColor:                  $openshiftDarkRed;
 
-$consoleFormFieldBackground:		#aaa;
+$inputBackground:               #fafafa !default;
+$inputBorder:                   #ccc !default;
+$inputBorderRadius:             3px;
+$inputDisabledBackground:       #444 !default;
+$inputDisabledBorder:           #222 !default;
+$horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
+

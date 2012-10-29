@@ -162,24 +162,28 @@
     padding: 0 20px;
   }
   
+  // FORM FIELDS
+  // -----------
   // Make span* classes full width
+  .input-large,
+  .input-xlarge,
+  .input-xxlarge,
   input[class*="span"],
   select[class*="span"],
   textarea[class*="span"],
   .uneditable-input {
-    display: block;
-    width: 100%;
-    min-height: 26px; /* Make inputs at least the height of their button counterpart */
-    /* Makes inputs behave like true block-level elements */
-    -webkit-box-sizing: border-box; /* Older Webkit */
-       -moz-box-sizing: border-box; /* Older FF */
-        -ms-box-sizing: border-box; /* IE8 */
-            box-sizing: border-box; /* CSS3 spec*/
+    @include input-block-level();
   }
   // But don't let it screw up prepend/append inputs
+  .input-prepend input,
+  .input-append input,
   .input-prepend input[class*="span"],
   .input-append input[class*="span"] {
+    display: inline-block; // redeclare so they don't wrap to new lines
     width: auto;
+  }
+  .controls-row [class*="span"] + [class*="span"] {
+    margin-left: 0;
   }
 
   // ADDED: containers which don't need gutters in small layouts
