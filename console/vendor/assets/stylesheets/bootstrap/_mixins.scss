@@ -277,6 +277,18 @@
 }
 
 
+// FORMS
+// --------------------------------------------------
+
+// Block level inputs
+// This is also a class, defined at the bottom of the file
+@mixin input-block-level() {
+  display: block;
+  width: 100%;
+  min-height: 28px;        // Make inputs at least the height of their button counterpart
+  @include box-sizing(border-box); // Makes inputs behave like true block-level elements
+}
+
 
 // Form field states (used in forms.scss)
 // --------------------------------------------------
@@ -309,6 +321,13 @@
   }
 }
 
+// Navbar vertical align
+// -------------------------
+// Vertically center elements in the navbar.
+// Example: an element has a height of 30px, so write out `.navbarVerticalAlign(30px);` to calculate the appropriate top margin.
+@mixin navbarVerticalAlign($elementHeight) {
+  margin-top: ($navbarHeight - $elementHeight) / 2;
+}
 
 
 // CSS3 PROPERTIES
@@ -576,4 +595,8 @@
   border-top: $arrowWidth solid transparent;
   border-bottom: $arrowWidth solid transparent;
   border-right: $arrowWidth solid $black;
+}
+
+.input-block-level {
+  @include input-block-level;
 }
