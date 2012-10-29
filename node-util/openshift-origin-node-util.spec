@@ -29,6 +29,7 @@ run on a node instance.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 cp bin/oo-* %{buildroot}%{_bindir}/
+cp bin/rhc-* %{buildroot}%{_bindir}/
 
 mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
@@ -66,6 +67,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{_bindir}/oo-restorer
 %attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_bindir}/oo-setup-node
+%attr(0755,-,-) %{_bindir}/rhc-list-ports
 
 %doc LICENSE
 %doc README-Idler.md
