@@ -1,5 +1,6 @@
 [Unit]
 Description=OpenShift CGroups
+After=runlevel3.target
 
 [Service]
 Type=forking

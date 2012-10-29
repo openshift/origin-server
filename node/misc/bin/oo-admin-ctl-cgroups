@@ -245,7 +245,16 @@ startall() {
     then
         RETVAL=1
         GROUP_RETVAL=3
-        echo "cgconfig service not running"
+        echo "cgconfig service not running. attempting to start it"
+        service cgconfig start
+        return $GROUP_RETVAL
+    fi
+
+    if !(service cgconfig status >/dev/null)
+    then
+        RETVAL=1
+        GROUP_RETVAL=3
+        echo "cgconfig service not running."
 
         return $GROUP_RETVAL
     fi
@@ -270,7 +279,8 @@ startall() {
     done
 
     # kick the Cgroups rules daemon
-    service cgred reload
+    #service cgred reload
+    pkill -USR2 cgrulesengd
 
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
     [ $GROUP_RETVAL -eq 0 ] && (echo -n "[ OK ]") || (echo -n "[ FAILED ]")
@@ -335,7 +345,8 @@ stopall() {
     done
 
     # notify the cgroup rule daemon
-    service cgred reload
+    #service cgred reload
+    pkill -USR2 cgrulesengd
 
     # remove the openshift root cgroup
     delete_cgroup
@@ -443,7 +454,8 @@ case "$1" in
     if (service cgconfig status >/dev/null)
     then
         startuser $2
-        service cgred reload
+        #service cgred reload
+        pkill -USR2 cgrulesengd
     else
         RETVAL=1
         echo "cgconfig service not running"
@@ -454,7 +466,8 @@ case "$1" in
     if (service cgconfig status >/dev/null)
     then
         stopuser $2
-        service cgred reload
+        #service cgred reload
+        pkill -USR2 cgrulesengd
     else
         RETVAL=1
         echo "cgconfig service not running"
