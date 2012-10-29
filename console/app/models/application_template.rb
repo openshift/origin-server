@@ -74,6 +74,11 @@ class ApplicationTemplate < RestApi::Base
     @included_cartridges ||= descriptor['Requires'].map{|cart_id| CartridgeType.find(cart_id)}
   end
 
+  def scalable
+    false
+  end
+  alias_method :scalable?, :scalable
+
   #def attribute(s)
   #  return get_metadata(s) if [:description, :website, :version, :git_url, :git_project_url].include?(s.to_sym)
   #  attr = {:name => 'Name', :provides => 'Requires'}[s.to_sym]
@@ -102,7 +107,7 @@ class ApplicationTemplate < RestApi::Base
   def to_application_type
     attrs = { :id => name, :name => display_name }
 
-    [:tags, :description, :website, :version, :template, :provides].each do |m|
+    [:tags, :description, :website, :version, :template, :provides, :scalable].each do |m|
       attrs[m] = send(m)
     end
 

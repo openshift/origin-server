@@ -3,7 +3,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 0.16.8
+Version: 0.16.9
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.16.9-1
+- improve scaling experience - bug#869226 (rchopra@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.16.8-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 

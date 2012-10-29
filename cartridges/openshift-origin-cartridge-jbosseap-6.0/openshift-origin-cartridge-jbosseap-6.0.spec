@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   0.7.5
+Version:   0.7.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -167,6 +167,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.7.6-1
+- updated jboss modules readme (bdecoste@gmail.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.7.5-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 

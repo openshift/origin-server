@@ -82,6 +82,11 @@ class CartridgeType < RestApi::Base
     true
   end
 
+  def scalable
+    self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
+  end
+  alias_method :scalable?, :scalable
+
   def <=>(other)
     return 0 if name == other.name
     c = self.class.tag_compare(tags, other.tags)
@@ -95,7 +100,7 @@ class CartridgeType < RestApi::Base
     attrs = {:id => name, :name => display_name}
     [:version, :license, :license_url,
      :tags, :description, :website,
-     :help_topics, :priority].each do |m|
+     :help_topics, :priority, :scalable].each do |m|
       attrs[m] = send(m)
     end
     ApplicationType.new attrs

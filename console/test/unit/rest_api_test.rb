@@ -959,6 +959,25 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '1.4', type.version
   end
 
+  def test_cartridge_type_scalable_check
+    assert scalable_type = CartridgeType.new(:name => 'nodejs-0.6', :display_name => 'Node.JS scalable', :website => 'test')
+    scalable_type.attributes['supported_scales_from'] = 1
+    scalable_type.attributes['supported_scales_to'] = 2
+
+    # Values are purposely set at higher than 1 in this test
+    assert non_scalable_type = CartridgeType.new(:name => 'diy-0.1', :display_name => 'DIY non-scalable', :website => 'test')
+    non_scalable_type.attributes['supported_scales_from'] = 3
+    non_scalable_type.attributes['supported_scales_to'] = 3
+
+    assert_equal true, scalable_type.scalable?
+    assert_equal false, non_scalable_type.scalable?
+  end
+
+  def test_application_template_scalable_check
+    assert app_template = ApplicationTemplate.new
+    assert_equal false, app_template.scalable?
+  end
+
   def test_cartridge_type_find
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
@@ -1196,6 +1215,10 @@ class RestApiTest < ActiveSupport::TestCase
       mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
       ].to_json
     end
+
+    # For this test, stub the scalability logic; we test it separately
+    CartridgeType.any_instance.stubs(:scalable).returns(true)
+
     types = ApplicationType.find :all
     assert_equal 1, types.length, types.inspect
     types.each do |type|
