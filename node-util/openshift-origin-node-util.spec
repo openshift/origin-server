@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.7
+Version:        0.0.8
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -88,6 +88,21 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/bin/oo-restorer* || :
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.0.8-1
+- Merge pull request #775 from brenton/rhc-list-ports1
+  (openshift+bot@redhat.com)
+- Fixing rhc-list-ports permissions issue (bleanhar@redhat.com)
+- Updating broker setup script (kraman@gmail.com)
+- Merge pull request #777 from rmillner/master (openshift+bot@redhat.com)
+- BZ 867242: Add a specific error on bad UUID. (rmillner@redhat.com)
+- BZ 869874: Do not attempt status report for non-existant cartridges.
+  (rmillner@redhat.com)
+- node-util needs apache group created before it is installed
+  (jhonce@redhat.com)
+- Fix for Bug 867198 (jhonce@redhat.com)
+- Bug 835501 - 'rhc-port-foward' returns 'No available ports to forward '
+  (bleanhar@redhat.com)
+
 * Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.0.7-1
 - Fix lock file (jhonce@redhat.com)
 - Refactor oo-admin-ctl-gears to use lib/util functions (jhonce@redhat.com)
