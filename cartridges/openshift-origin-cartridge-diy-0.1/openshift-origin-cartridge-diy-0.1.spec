@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 0.33.8
+Version: 0.33.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.33.9-1
+- Fixing scaling in DIY cart manifest to indicate non-scalable cartridge.
+  (Bugz# 870459) (kraman@gmail.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.33.8-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 
