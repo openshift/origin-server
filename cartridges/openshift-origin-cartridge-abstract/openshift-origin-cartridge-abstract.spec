@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   0.17.19
+Version:   0.17.20
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -70,6 +70,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.17.20-1
+- BZ 867322: Test if a cart was the only cart on a gear was failing.
+  (rmillner@redhat.com)
+
 * Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.17.19-1
 - Decouple hook subprocess streams from the parent process
   (ironcladlou@gmail.com)
