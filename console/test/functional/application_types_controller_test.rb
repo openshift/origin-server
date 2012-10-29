@@ -46,6 +46,13 @@ class ApplicationTypesControllerTest < ActionController::TestCase
       assert assigns(:application)
       assert_nil assigns(:domain)
       assert css_select('input#application_domain_name').present?
+      if t.tags.include?(:template) or t.id == 'diy-0.1'
+        # Sanity-check known non-scalable types
+        assert_equal false, t.scalable?
+      elsif t.id == 'php-5.3'
+        # Sanity-check a known scaling-capable type
+        assert_equal true, t.scalable?
+      end
     end
   end
 
