@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.0.0
+Version: 1.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -116,6 +116,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 0.98.8-1
 - Merge branch 'master' into dev/slagle-ssl-certificate (jslagle@redhat.com)
 
