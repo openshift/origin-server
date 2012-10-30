@@ -54,6 +54,7 @@ mkdir node_modules
 npmgl="$CART_INFO_DIR/configuration/npm_global_module_list"
 module_list=$(perl -ne 'print if /^\s*[^#\s]/' "$npmgl" | tr '\n' ' ')
 npm link $module_list > /dev/null 2>&1
+mv node_modules .node_modules
 popd > /dev/null
 
 #
