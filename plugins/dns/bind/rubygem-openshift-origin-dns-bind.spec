@@ -5,7 +5,7 @@
 
 Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gemname}
-Version:        0.8.12
+Version:        1.0.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
