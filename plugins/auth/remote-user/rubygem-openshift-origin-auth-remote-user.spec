@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        0.0.15
+Version:        1.0.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
