@@ -1,21 +1,24 @@
-#!/usr/bin/ruby
+#!bin/bash
 
-system "service mongod start"
-print "Initializing mongodb database..."
-while not system('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') do
-  print "."
+# Start mongo
+service mongod start
+
+printf "Initializing mongodb database...\n"
+while ! $(fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log) do
+  printf "."
   sleep 5
 end
+printf "\n"
 
-print "Setup mongo db user\n"
-print `/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'`
+printf "Setup mongo db user\n"
+mongo localhost/openshift_broker_dev --eval 'db.addUser("openshift", "mooo")'
 
-print "Register admin user\n"
-print `mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'`
+printf "Register admin user\n"
+mongo openshift_broker_dev --eval 'db.auth_user.update({"_id":"admin"}, {"_id":"admin","user":"admin","password":"2a8462d93a13e51387a5e607cbd1139f"}, true)'
 
-ext_address = `/sbin/ip addr show dev eth0 | awk '/inet / { split(\$2,a, "/") ; print a[1];}'`
-system "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip}"
-system "/usr/bin/oo-setup-node --with-node-hostname broker --with-broker-ip #{ext_address}"
+ext_address="$(ip addr show dev eth0 | awk '/inet / { split($2,a, "/") ; print a[1];}')"
+oo-register-dns -h broker -n $ext_address
+oo-setup-node --with-node-hostname broker --with-broker-ip $ext_address
 
-system "service openshift-broker restart"
-system "/sbin/chkconfig livesys-late-openshift off"
+service openshift-broker restart
+chkconfig livesys-late-openshift off
