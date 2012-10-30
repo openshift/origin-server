@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
 Name: openshift-origin-cartridge-mysql-5.1
-Version: 1.0.0
+Version: 1.0.1
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+
 * Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.33.9-1
 - Merge pull request #777 from rmillner/master (openshift+bot@redhat.com)
 - Fix to cleanup old env vars after migration on removing db from scalable app.
