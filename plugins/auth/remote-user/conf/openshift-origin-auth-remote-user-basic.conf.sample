@@ -9,7 +9,7 @@ LoadModule authz_user_module modules/mod_authz_user.so
     require valid-user
 
     # The node->broker auth is handled in the Ruby code
-    BrowserMatchNoCase OpenShift passthrough
+    BrowserMatchNoCase ^OpenShift passthrough
     Allow from env=passthrough
 
     # Console traffic will hit the local port.  mod_proxy will set this header automatically.
