@@ -1,0 +1,31 @@
+NAME
+  oo-restorer 
+  
+SYNOPSIS
+  oo-restorer [-?d] -u gear_uuid 
+
+DESCRIPTION
+  Takes an application out of an idle state so that it can serve requests
+  again.
+OPTIONS
+  -?  
+    Display a simple help menu.
+
+  -d  
+    Enable debugging mode. Very verbose.
+
+  -u gear_uuid  
+    The UUID of the gear who's application needs to be restored.
+
+EXAMPLE
+
+  $ oo-restorer -u $uuid
+  
+SEE ALSO
+  oo-accept-node(8), oo-admin-ctl-gears(8), oo-app-idle(8), oo-autoidler(8),
+  oo-idler(8), oo-idler-stats(8), oo-init-quota(8), oo-last-access(8),
+  oo-list-stale(8), oo-restorer(8), oo-restorer-wrapper.sh(8),
+  oo-setup-node(8), rhc-list-ports(8)
+
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 

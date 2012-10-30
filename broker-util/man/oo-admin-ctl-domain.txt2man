@@ -1,0 +1,53 @@
+NAME
+  oo-admin-ctl-domain
+  
+SYNOPSIS
+  oo-admin-ctl-domain [-h|--help] [-l|--rhlogin rh_login] 
+  [-n|--namespace name_space] [-c|--command cmd] [-s|--ssh_key sshkey]
+  [-t|--key_type sshkey_type] [-k|--key_name sshkey_name]
+
+DESCRIPTION
+  This is an utility for all district operations on OpenShift Origin.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+
+  -l|--rhlogin rh_login  
+    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+
+  -n|--namespace name_space  
+    Namespace for application(s), alphanumeric, 16 chars max. Required.
+
+  -c|--command cmd  
+    Command to enact upon the domain. Available commands are: create,
+    update, delete, info.
+
+  -s|--ssh_key sshkey
+    The user's SSH key.
+
+  -t|--key_type sshkey_type
+    User's SSH key type. Available types are ssh-rsa, ssh-dss, 
+    ecdsa-sha2-nistp256-cert-v01@openssh.com, 
+    ecdsa-sha2-nistp384-cert-v01@openssh.com,
+    ecdsa-sha2-nistp521-cert-v01@openssh.com,
+    ssh-rsa-cert-v01@openssh.com, ssh-dss-cert-v01@openssh.com, 
+    ssh-rsa-cert-v00@openssh.com, ssh-dss-cert-v00@openssh.com, 
+    ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521
+
+  -k|--key_name sshkey_name
+    User's SSH key name.
+
+EXAMPLE
+
+  $ oo-admin-ctl-domain -l mylogin -n mynamespace -c update -s $ssh_key 
+  -t ssh-rsa -k example_key
+  
+SEE ALSO
+  complete-origin-setup(8), oo-admin-ctl-district(8), oo-setup-broker(8),
+  oo-admin-move(8), oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-template(8), oo-admin-ctl-domain(8), oo-setup-bind(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 
