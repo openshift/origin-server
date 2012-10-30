@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.0.0
+Version:        1.0.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -65,6 +65,59 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- Added man pages for broker-util/node-util, port complete-origin-setup to bash
+  (admiller@redhat.com)
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- fix broker-util version number (admiller@redhat.com)
+- Updating broker setup script (kraman@gmail.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- sudo is not allowed within a command that is being executed using su
+  (abhgupta@redhat.com)
+- Merge pull request #741 from pravisankar/dev/ravi/bug/853082
+  (openshift+bot@redhat.com)
+- Fix for bug# 853082 (rpenta@redhat.com)
+- Updating setup-broker, moving broken gem setup to after bind plugn setup is
+  completed. Fixing cucumber test helper to use correct selinux policies
+  (kraman@gmail.com)
+- Merge pull request #737 from sosiouxme/master (dmcphers@redhat.com)
+- have openshift-broker report bundler problems rather than silently fail. also
+  fix typo in oo-admin-chk usage (lmeyer@redhat.com)
+- Bug 868858 (dmcphers@redhat.com)
+- Fixing Origin build scripts (kraman@gmail.com)
+- removing remaining cases of SS and config.ss (dmcphers@redhat.com)
+- Fix for Bugs# 853082, 847572 (rpenta@redhat.com)
+- Set a password on the mongo admin db so that application and ssh'd users
+  cannot access the DB. Misc other fixes (kraman@gmail.com)
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+- Merge pull request #681 from pravisankar/dev/ravi/bug/821107
+  (openshift+bot@redhat.com)
+- Merge pull request #678 from jwhonce/dev/scripts (dmcphers@redhat.com)
+- Support more ssh key types (rpenta@redhat.com)
+- Automatic commit of package [openshift-origin-broker-util] release
+  [0.0.6.2-1]. (admiller@redhat.com)
+- Port oo-init-quota command (jhonce@redhat.com)
+- Port admin scripts for on-premise (jhonce@redhat.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Fixing a few missed references to ss-* Added command to load openshift-origin
+  selinux module (kraman@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.0.6.2-1
 - Port admin scripts for on-premise (jhonce@redhat.com)
 - Centralize plug-in configuration (miciah.masters@gmail.com)
