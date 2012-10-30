@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        1.0.0
+Version:        1.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,26 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- Merge branch 'master' of git://github.com/openshift/origin-server
+  (sgoodwin@redhat.com)
+- Update all form related styles to the latest in https://github.com/thomas-
+  mcdonald/bootstrap-sass based on bootstrap v2.1.0. Doing so required changes
+  in several partials that are hooked into these latest styles.
+  (sgoodwin@redhat.com)
+- Merge pull request #769 from nhr/US1375_improved_scalability_detection
+  (openshift+bot@redhat.com)
+- Modified scalability determination method to match Cartridges
+  (nhr@redhat.com)
+- Added unit and functional tests (nhr@redhat.com)
+- Aliased scalability checks to ruby-approved 'scalable?' syntax
+  (nhr@redhat.com)
+- Revised to evaluate supported_scales_to against support_scales_from
+  (nhr@redhat.com)
+- Application types now inherit a scalability check from their parents
+  (nhr@redhat.com)
+
 * Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.0.14-1
 - Merge pull request #738 from smarterclayton/console_remote_user
   (openshift+bot@redhat.com)
