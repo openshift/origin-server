@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.0.0
+Version: 1.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,14 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- Merge pull request #786 from danmcp/master (openshift+bot@redhat.com)
+- Merge pull request #778 from lnader/master (openshift+bot@redhat.com)
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- Cleanup typo in messages. (ramr@redhat.com)
+- Bug 860972 - Should provide meaningful error message when adding existing
+  alias to another app (lnader@redhat.com)
+
 * Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.17.20-1
 - Merge pull request #777 from rmillner/master (openshift+bot@redhat.com)
 - Merge pull request #749 from kraman/global_broker_config
