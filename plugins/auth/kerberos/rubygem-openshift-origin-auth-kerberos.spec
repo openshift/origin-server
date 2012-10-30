@@ -64,10 +64,6 @@ cp conf/openshift-origin-auth-kerberos.conf.example %{buildroot}/etc/openshift/p
 %clean
 rm -rf %{buildroot}
 
-%post
-/usr/bin/openssl genrsa -out /var/www/openshift/broker/config/server_priv.pem 2048
-/usr/bin/openssl rsa    -in /var/www/openshift/broker/config/server_priv.pem -pubout > /var/www/openshift/broker/config/server_pub.pem
-
 %files
 %defattr(-,root,root,-)
 %dir %{geminstdir}
