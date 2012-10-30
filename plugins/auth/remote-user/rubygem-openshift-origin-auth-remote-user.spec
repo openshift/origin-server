@@ -7,7 +7,7 @@
 
 Summary:        OpenShift Origin plugin for remote-user authentication
 Name:           rubygem-%{gemname}
-Version:        1.0.0
+Version:        1.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -76,6 +76,13 @@ rm -rf %{buildroot}
 %{_sysconfdir}/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- Merge pull request #786 from danmcp/master (openshift+bot@redhat.com)
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- OpenShift Origin console package (calfonso@redhat.com)
+- First pass at trusting the local console-to-broker traffic
+  (bleanhar@redhat.com)
+
 * Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.0.15-1
 - Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
   scripts will load production environment unless the
