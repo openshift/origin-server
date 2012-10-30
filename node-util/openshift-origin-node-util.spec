@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        0.0.8
+Version:        1.0.0
 Release:        1%{?dist}
 
 Group:          Network/Daemons

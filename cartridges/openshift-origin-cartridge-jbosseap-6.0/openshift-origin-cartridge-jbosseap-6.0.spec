@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   0.7.6
+Version:   1.0.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
