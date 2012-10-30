@@ -1,0 +1,15 @@
+[Unit]
+Description=The OpenShift Console
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/var/www/openshift/console/httpd/run/httpd.pid
+EnvironmentFile=/etc/sysconfig/openshift-console
+ExecStart=/usr/sbin/httpd $OPTIONS -k start
+ExecReload=/usr/sbin/httpd $OPTIONS -t
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/usr/sbin/httpd $OPTIONS -k stop
+
+[Install]
+WantedBy=multi-user.target
