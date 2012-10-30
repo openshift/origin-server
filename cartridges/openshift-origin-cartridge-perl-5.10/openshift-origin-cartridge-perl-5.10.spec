@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.0.0
+Version: 1.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -113,6 +113,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+
 * Fri Oct 26 2012 Adam Miller <admiller@redhat.com> 0.29.11-1
 - Bug 870423 - [Installation] mod_bw package should be pull in as dependency
   when installing perl cartridge (bleanhar@redhat.com)
