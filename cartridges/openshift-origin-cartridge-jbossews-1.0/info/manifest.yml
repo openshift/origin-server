@@ -1,13 +1,13 @@
 Name: jbossews-1.0
 Display-Name: JBoss Enterprise Web Server 1.0
-Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
+Description: "The only enterprise-class web server solution you need for large-scale websites and lightweight web applications. Build and deploy enterprise Java in the cloud."
 Version: 1.0.2
 License: ASL 2.0
 Vendor:  jboss.com
 Categories:
   - cartridge
   - web_framework
-Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
+Website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:

@@ -256,3 +256,16 @@
   :version: "1.4"
   :name: jenkins-1.4
   :priority: 1
+  
+  :version: JBoss EWS 1.0.2
+  :website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
+  :name: jbossews-1.0
+  :license_url: http://www.gnu.org/licenses/gpl-3.0.html
+- :description: The only enterprise-class web server solution you need for large-scale websites and lightweight web applications
+  :type: standalone
+  :categories: 
+  - :web_framework
+  - :new
+  :display_name: JBoss Enterprise Web Server 1.0
+  :license: GNU LPGL 2.1
+  :help_topics: {}
