@@ -3,7 +3,7 @@
 
 
 Name: openshift-origin-cartridge-cron-1.4
-Version: 1.0.0
+Version: 1.0.1
 Release: 1%{?dist}
 Summary: Embedded cron support for express
 
@@ -87,6 +87,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+
 * Mon Oct 15 2012 Adam Miller <admiller@redhat.com> 0.10.5-1
 - Fix for Bug 865358 (jhonce@redhat.com)
 
