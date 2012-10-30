@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 1.0.0
+Version: 1.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+
 * Mon Oct 29 2012 Adam Miller <admiller@redhat.com> 0.33.9-1
 - Fixing scaling in DIY cart manifest to indicate non-scalable cartridge.
   (Bugz# 870459) (kraman@gmail.com)
