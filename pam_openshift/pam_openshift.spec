@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version:        1.0.4
+Version:        1.0.5
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -45,6 +45,10 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.5-1
+- Added man pages for broker-util/node-util, port complete-origin-setup to bash
+  (admiller@redhat.com)
+
 * Wed Oct 24 2012 Dan McPherson <dmcphers@redhat.com> 1.0.4-1
 - new package built with tito
 
