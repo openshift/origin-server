@@ -28,9 +28,9 @@ run on a broker instance.
 %install
 rm -rf %{buildroot}
 
-mkdir -p %{buildroot}%{_bindir}
-cp oo-* %{buildroot}%{_bindir}/
-cp complete-origin-setup %{buildroot}%{_bindir}/
+mkdir -p %{buildroot}%{_sbindir}
+cp oo-* %{buildroot}%{_sbindir}/
+cp complete-origin-setup %{buildroot}%{_sbindir}/
 
 mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
@@ -39,18 +39,18 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0755,-,-) %{_bindir}/oo-admin-chk
-%attr(0755,-,-) %{_bindir}/oo-admin-ctl-app
-%attr(0755,-,-) %{_bindir}/oo-admin-ctl-district
-%attr(0755,-,-) %{_bindir}/oo-admin-ctl-domain
-%attr(0755,-,-) %{_bindir}/oo-admin-ctl-template
-%attr(0755,-,-) %{_bindir}/oo-admin-ctl-user
-%attr(0755,-,-) %{_bindir}/oo-admin-move
-%attr(0755,-,-) %{_bindir}/oo-register-dns
-%attr(0755,-,-) %{_bindir}/oo-setup-bind
-%attr(0755,-,-) %{_bindir}/oo-setup-broker
-%attr(0755,-,-) %{_bindir}/oo-accept-broker
-%attr(0755,-,-) %{_bindir}/complete-origin-setup
+%attr(0755,-,-) %{_sbindir}/oo-admin-chk
+%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-app
+%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-district
+%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-domain
+%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-template
+%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-user
+%attr(0755,-,-) %{_sbindir}/oo-admin-move
+%attr(0755,-,-) %{_sbindir}/oo-register-dns
+%attr(0755,-,-) %{_sbindir}/oo-setup-bind
+%attr(0755,-,-) %{_sbindir}/oo-setup-broker
+%attr(0755,-,-) %{_sbindir}/oo-accept-broker
+%attr(0755,-,-) %{_sbindir}/complete-origin-setup
 %doc LICENSE
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz

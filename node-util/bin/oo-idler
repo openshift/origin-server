@@ -128,7 +128,7 @@ then
     service httpd graceful
 fi
 
-/usr/bin/oo-admin-ctl-gears stopgear "${uuid}"
+/usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"
 
 # Disable
 # code copied from node/lib/util_ext

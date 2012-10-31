@@ -36,8 +36,8 @@ the HTTP metrics for each gear.
 
 A basic crontab entry reducing the git update check to 5 days:
 ```
-0 * * * * /usr/bin/oo-last-access > /var/lib/openshift/last_access.log 2>&1
-30 7,19 * * * /usr/bin/oo-autoidler 5
+0 * * * * /usr/sbin/oo-last-access > /var/lib/openshift/last_access.log 2>&1
+30 7,19 * * * /usr/sbin/oo-autoidler 5
 ```
 
 Manual Idling
@@ -58,7 +58,7 @@ A cron job or daemon may be used to implement your business logic for
 when to idle a gear.  Once a gear has been selected to be idled use the
 following command:
 ```
-/usr/bin/oo-idler -u <gear uuid>
+/usr/sbin/oo-idler -u <gear uuid>
 ```
 
 Auto Restoring
@@ -76,7 +76,7 @@ Manual Restoring
 A gear may be restored without accessing it's URL  using the following
 command:
 ```
-/usr/bin/oo-restorer -u <gear uuid>
+/usr/sbin/oo-restorer -u <gear uuid>
 ```
 
 

@@ -34,7 +34,7 @@ do
         # Determine if something was committed using the git objects directory
         objects_modified=$(find $APPHOME/git -name objects -mtime -$days)
         if [ -z "${objects_modified}" ]; then
-            if /usr/bin/oo-app-idle $f $days; then
+            if /usr/sbin/oo-app-idle $f $days; then
                 echo "$f is stale"
             fi
         fi
