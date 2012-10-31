@@ -11,24 +11,24 @@
 
 case "$1" in
   start)
-    /usr/bin/oo-admin-ctl-gears startall
+    /usr/sbin/oo-admin-ctl-gears startall
     ;;
   stop)
-    /usr/bin/oo-admin-ctl-gears stopall
+    /usr/sbin/oo-admin-ctl-gears stopall
     ;;
   restart|force-reload)
-    /usr/bin/oo-admin-ctl-gears restartall
+    /usr/sbin/oo-admin-ctl-gears restartall
     ;;
   reload)
     ;;
   condrestart)
-    /usr/bin/oo-admin-ctl-gears condrestartall
+    /usr/sbin/oo-admin-ctl-gears condrestartall
     ;;
   waited-start)
-    /usr/bin/oo-admin-ctl-gears waited-startall
+    /usr/sbin/oo-admin-ctl-gears waited-startall
     ;;
   status)
-    /usr/bin/oo-admin-ctl-gears status
+    /usr/sbin/oo-admin-ctl-gears status
     ;;
   *)
     echo "Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"

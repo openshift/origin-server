@@ -371,7 +371,7 @@ unless File.exist?('/etc/rndc.key')
   run "chown root:named /etc/rndc.key"
   run "chmod 0640 /etc/rndc.key"
 end
-run "/usr/bin/oo-setup-bind #{node_domain}"
+run "/usr/sbin/oo-setup-bind #{node_domain}"
 
 $log.info "...updating Bind forwarders file with DNS servers #{dns_address.join(",")}"
 
@@ -397,7 +397,7 @@ end
 
 $log.info "...register broker with local dns server"
 run "service named restart"
-run "/usr/bin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" 
+run "/usr/sbin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" 
 run "service named stop"
 
 $log.info "Updating system wide OpenShift CLI configuration to use local broker"
@@ -439,7 +439,7 @@ unless args["--skip-node"] || /not installed/.match(`rpm -q openshift-origin-nod
   args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
   args += ["--domain", node_domain.strip] unless node_domain.nil?
 
-  system("/usr/bin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
+  system("/usr/sbin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
 else
   log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
   log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"

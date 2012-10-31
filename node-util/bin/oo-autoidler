@@ -24,13 +24,13 @@ source /etc/openshift/node.conf
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 function get_appids_to_idle() {
-    /usr/bin/oo-list-stale $days 2>/dev/null | /bin/awk '{print $1}'
+    /usr/sbin/oo-list-stale $days 2>/dev/null | /bin/awk '{print $1}'
 }
 
 function print_stats() {
     (
         echo -n "$1: " ;
-        /usr/bin/oo-idler-stats
+        /usr/sbin/oo-idler-stats
     ) | /usr/bin/logger -p local0.notice -t origin_auto_idler
 }
 
@@ -38,7 +38,7 @@ print_stats "Before"
 
 for user in `get_appids_to_idle`
 do
-    /usr/bin/oo-idler -n -u $user > /dev/null 2>&1
+    /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
     httpd_restart="TRUE"
 done
 
