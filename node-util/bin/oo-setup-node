@@ -253,6 +253,7 @@ run "/sbin/chkconfig network on"
 $log.info "Setting node SELinux booleans\n"
 run("/usr/sbin/setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
 run("/usr/sbin/setsebool -P httpd_run_openshift 1 &>/dev/null || :")
+run("/usr/sbin/setsebool -P httpd_verify_dns 1 &>/dev/null || :")
 run("/usr/sbin/setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
 
 $log.info "Opening required ports\n"
