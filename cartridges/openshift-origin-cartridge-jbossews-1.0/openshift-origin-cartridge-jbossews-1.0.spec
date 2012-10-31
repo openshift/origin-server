@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version:   1.0.8
+Version:   1.0.9
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -136,6 +136,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.9-1
+- BZ871314 (bdecoste@gmail.com)
+
 * Wed Oct 24 2012 Adam Miller <admiller@redhat.com> 1.0.8-1
 - Merge pull request #188 from slagle/dev/slagle-ssl-certificate
   (openshift+bot@redhat.com)
