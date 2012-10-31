@@ -18,8 +18,10 @@ Source0:   openshift-console%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
+%global gemdir %{gem_dir}
 %else
 %define with_systemd 0
+%global gemdir %(scl enable ruby193 "ruby -rubygems -e 'puts Gem::dir'" 2>/dev/null)
 %endif
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -50,7 +52,7 @@ mkdir -p %{buildroot}%{_initddir}
 %endif
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{openshiftconfigdir}
-mkdir -p %{buildroot}%{htmldir}
+mkdir -p %{buildroot}%{htmldir}/
 mkdir -p %{buildroot}%{consoledir}
 mkdir -p %{buildroot}%{consoledir}/httpd/root
 mkdir -p %{buildroot}%{consoledir}/httpd/run
@@ -123,10 +125,10 @@ _EOF
 chcon -R -t httpd_log_t %{consoledir}/httpd/logs
 chcon -R -t httpd_tmp_t %{consoledir}/httpd/run
 chcon -R -t httpd_var_run_t %{consoledir}/httpd/run
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
-
+/sbin/restorecon -rv %{gemdir}/passenger*
 %changelog
 * Mon Oct 29 2012 Chris Alfonso <calfonso@redhat.com> 0.0.2-1
 - new package built with tito
