@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,12 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Merge pull request #800 from bdecoste/master (openshift+bot@redhat.com)
+- fix yml for RECENTLY ADDED tag (bdecoste@gmail.com)
+- Merge pull request #790 from bdecoste/master (openshift+bot@redhat.com)
+- BZ871314 (bdecoste@gmail.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - bumping specs to at least 1.0.0 (dmcphers@redhat.com)
 - Merge branch 'master' of git://github.com/openshift/origin-server
