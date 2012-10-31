@@ -106,13 +106,13 @@ mv %{buildroot}%{geminstdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{nam
 
 mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
-%if 0%{?fedora}%{?rhel} <= 6
+#%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}%{_initddir}
 cp %{buildroot}%{geminstdir}/misc/init/openshift-cgroups %{buildroot}%{_initddir}/
-%else
-mkdir -p %{buildroot}/etc/systemd/system
-mv %{buildroot}%{geminstdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
-%endif
+#%else
+#mkdir -p %{buildroot}/etc/systemd/system
+#mv %{buildroot}%{geminstdir}/misc/services/openshift-cgroups.service %{buildroot}/etc/systemd/system/openshift-cgroups.service
+#%endif
 
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{geminstdir}/misc
@@ -137,11 +137,11 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{_var}/lib/openshift
 
-%if 0%{?fedora}%{?rhel} <= 6
+#%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,0)	%{_initddir}/openshift-cgroups
-%else
-%attr(0750,-,-) /etc/systemd/system
-%endif
+#%else
+#%attr(0750,-,-) /etc/systemd/system
+#%endif
 
 %if 0%{?fedora} >= 15
 %{_sysconfdir}/tmpfiles.d/openshift-run.conf

@@ -98,9 +98,10 @@ opts = GetoptLong.new(
 
     ["--static-dns",            "-n"  , GetoptLong::OPTIONAL_ARGUMENT],
     ["--help",                  "-?"  , GetoptLong::NO_ARGUMENT],
-    ["--with-broker-ip",        "-b", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-node-hostname",    "-h", GetoptLong::REQUIRED_ARGUMENT],
-    ["--domain",                "-d", GetoptLong::OPTIONAL_ARGUMENT]
+    ["--with-broker-ip",        "-b"  , GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-node-hostname",    "-h"  , GetoptLong::REQUIRED_ARGUMENT],
+    ["--debug",                         GetoptLong::NO_ARGUMENT],
+    ["--domain",                "-d"  , GetoptLong::OPTIONAL_ARGUMENT]
 )
 
 args = {}
@@ -135,6 +136,10 @@ node_domain = args["--domain"] || "example.com"
 if args["--help"] || (broker_ip.nil? || broker_ip.empty? || node_hostname.nil? || node_hostname.empty?)
   usage
   exit -1
+end
+
+if args["--debug"]
+  $log.level = Logger::DEBUG
 end
 
 ext_eth_device = args["--external-device"] || "eth0"
@@ -243,17 +248,17 @@ File.open("/etc/sysconfig/network", "w") do |f|
   f.write("NETWORKING=yes\n")
   f.write("HOSTNAME=#{node_hostname}.#{node_domain}\n")
 end
-run "chkconfig network on"
+run "/sbin/chkconfig network on"
 
 $log.info "Setting node SELinux booleans\n"
-run("setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
-run("setsebool -P httpd_run_openshift 1 &>/dev/null || :")
-run("setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
+run("/usr/sbin/setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
+run("/usr/sbin/setsebool -P httpd_run_openshift 1 &>/dev/null || :")
+run("/usr/sbin/setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
 
 $log.info "Opening required ports\n"
-run "lokkit --service=ssh"
-run "lokkit --service=http"
-run "lokkit --service=https"
+run "/usr/sbin/lokkit --service=ssh"
+run "/usr/sbin/lokkit --service=http"
+run "/usr/sbin/lokkit --service=https"
 
 $log.info "Setting up m-collective to use qpid"
 find_and_replace("/etc/mcollective/client.cfg", /^plugin\.qpid\.host=.*$/, "plugin.qpid.host=#{broker_ip}")
@@ -263,15 +268,15 @@ $log.info "Generating mcollective facts"
 run "/etc/cron.minutely/openshift-facts"
 run "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
 
-oo_device=%x[df -P /var/lib/openshift | tail -1].split[0]
-oo_mount=%x[df -P /var/lib/openshift | tail -1 | tr -s ' '].split[5]
+oo_device=%x[/bin/df -P /var/lib/openshift | tail -1].split[0]
+oo_mount=%x[/bin/df -P /var/lib/openshift | tail -1 | tr -s ' '].split[5]
 $log.info "Enabling quota on filesystem #{oo_mount}"
-unless %x[quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
+unless %x[/sbin/quotaon -u -p #{oo_mount} 2>&1].strip == "user quota on #{oo_mount} (#{oo_device}) is on"
   $log.info "... updating fstab and remounting #{oo_mount}"
-  run "awk '{ $2==\"#{oo_mount}\" ? $4=\"defaults,usrjquota=aquota.user,jqfmt=vfsv0\" : $4=$4 ; print $0 }' /etc/fstab > /etc/fstab.new"
-  run "mv /etc/fstab.new /etc/fstab"
-  run "mount -o remount /"
-  run "quotacheck -cmug /"
+  run "/bin/awk '{ $2==\"#{oo_mount}\" ? $4=\"defaults,usrjquota=aquota.user,jqfmt=vfsv0\" : $4=$4 ; print $0 }' /etc/fstab > /etc/fstab.new"
+  run "/bin/mv /etc/fstab.new /etc/fstab"
+  run "/bin/mount -o remount /"
+  run "/sbin/quotacheck -cmug /"
 end
 
 quota_db_file=File.join(oo_mount,"/aquota.user")
@@ -282,26 +287,26 @@ if File.exists? quota_db_file
   end
 else
   $log.info "... switching quota on\n"
-  run "restorecon /aquota.*"
-  run "quotaon #{oo_mount}"
+  run "/sbin/restorecon /aquota.*"
+  run "/sbin/quotaon #{oo_mount}"
 end
 
 $log.info "Enabling CGroups"
 find_and_replace("/etc/systemd/system.conf", /^(#?)JoinControllers=.*$/, "JoinControllers=cpu,cpuacct,memory,freezer,net_cls") if use_systemd
 FileUtils.mkdir_p "/cgroup"
-run "cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
+run "/bin/cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
 
-run "restorecon -v /etc/cgconfig.conf"
-run "restorecon -v /cgroup"
-run "chkconfig cgconfig on"
-run "chkconfig cgred on"
+run "/sbin/restorecon -v /etc/cgconfig.conf"
+run "/sbin/restorecon -v /cgroup"
+run "/sbin/chkconfig cgconfig on"
+run "/sbin/chkconfig cgred on"
 
-if use_systemd
-  run "systemctl enable openshift-cgroups.service"
-else
-  run "chkconfig --add openshift-cgroups"
-  run "chkconfig openshift-cgroups on"
-end
+#if use_systemd
+#  run "/bin/systemctl enable openshift-cgroups.service"
+#else
+  run "/sbin/chkconfig --add openshift-cgroups"
+  run "/sbin/chkconfig openshift-cgroups on"
+#end
 
 $log.info "Updating node configuration"
 find_and_replace("/etc/openshift/node.conf", /^PUBLIC_IP=.*$/, "PUBLIC_IP=#{ext_address}")
@@ -342,15 +347,15 @@ end
 
 
 ["httpd", "sshd", "mcollective", "openshift-port-proxy", "crond"].each do |service|
-  run "chkconfig #{service} on"
+  run "/sbin/chkconfig #{service} on"
 end
 
 if use_systemd
-  run "systemctl enable openshift-gears.service"
-  run "systemctl start openshift-gears.service"
+  run "/bin/systemctl enable openshift-gears.service"
+  run "/bin/systemctl start openshift-gears.service"
 else
-  run "chkconfig openshift-gears on"
-  run "service openshift-gears start"
+  run "/sbin/chkconfig openshift-gears on"
+  run "/sbin/service openshift-gears start"
 end
 
 $log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."

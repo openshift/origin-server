@@ -30,10 +30,11 @@ rm -rf %{buildroot}
 
 mkdir -p %{buildroot}%{_sbindir}
 cp oo-* %{buildroot}%{_sbindir}/
-cp complete-origin-setup %{buildroot}%{_sbindir}/
 
 mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
+mkdir -p %{buildroot}/usr/share/openshift/kickstarts
+cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstarts
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -50,7 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_sbindir}/oo-setup-bind
 %attr(0755,-,-) %{_sbindir}/oo-setup-broker
 %attr(0755,-,-) %{_sbindir}/oo-accept-broker
-%attr(0755,-,-) %{_sbindir}/complete-origin-setup
+/usr/share/openshift/kickstarts/openshift-origin-remix.ks
+
 %doc LICENSE
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz

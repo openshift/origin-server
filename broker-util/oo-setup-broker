@@ -59,22 +59,22 @@ def run(cmd)
 end
 
 def stop_mongo
-  run "pkill -u mongodb"
+  run "/usr/bin/pkill -u mongodb"
 
   $log.debug("Repair mongodb database if needed...")
-  run "rm -f /var/lib/mongodb/mongod.lock"
-  run "su -c 'mongod -f /etc/mongodb.conf --repair' --shell /bin/bash mongodb"
+  run "/bin/rm -f /var/lib/mongodb/mongod.lock"
+  run "/bin/su -c 'mongod -f /etc/mongodb.conf --repair' --shell /bin/bash mongodb"
   $log.debug("Waiting for repair to complete")  
   while run('/bin/fgrep "dbexit: really exiting now" /var/log/mongodb/mongodb.log') != 0 do
     $log.info("...")
     sleep 2
   end
-  run "rm -f /var/lib/mongodb/mongod.lock"
+  run "/bin/rm -f /var/lib/mongodb/mongod.lock"
 end
 
 def start_mongo
   $log.debug "Initializing mongodb database"
-  run "su -c 'mongod -f /etc/mongodb.conf' --shell /bin/bash mongodb"
+  run "/bin/su -c 'mongod -f /etc/mongodb.conf' --shell /bin/bash mongodb"
   while run('/bin/fgrep "[initandlisten] waiting for connections" /var/log/mongodb/mongodb.log') != 0 do
     $log.info("...")
     sleep 3
@@ -227,7 +227,7 @@ end
 $log.info "Configuring mcollective messaging plugin"
 if `rpm -q qpid-cpp-server 2> /dev/null`.match(/is not installed/)
   $log.info "...installing qpid AMQP server"
-  run "yum install -y qpid-cpp-server"
+  run "/usr/bin/yum install -y qpid-cpp-server"
 end
 
 $log.info "...configuring qpid server"
@@ -235,13 +235,13 @@ run <<-EOF
 /sbin/restorecon -r /usr/sbin/mcollectived /var/log/mcollective.log /run/mcollective.pid
 
 if [ ! -f /etc/qpidd.conf.orig ] ; then
-  mv /etc/qpidd.conf /etc/qpidd.conf.orig
+  /bin/mv /etc/qpidd.conf /etc/qpidd.conf.orig
 fi
-cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
+/bin/cp -f /etc/qpidd.conf.orig /etc/qpidd.conf
 if [[ "x`fgrep auth= /etc/qpidd.conf`" == xauth* ]] ; then
-  sed -i -e 's/auth=yes/auth=no/' /etc/qpidd.conf
+  /bin/sed -i -e 's/auth=yes/auth=no/' /etc/qpidd.conf
 else
-  echo "auth=no" >> /etc/qpidd.conf
+  /bin/echo "auth=no" >> /etc/qpidd.conf
 fi
 EOF
 
@@ -340,36 +340,37 @@ if int_eth_device != ext_eth_device
   end
 end
 
-run "chkconfig network on"
+run "/sbin/chkconfig network on"
 
 $log.info "Configuring Mongo DB"
 $log.info "...setup mongo db admin users"
 $log.info "......disable mongo auth"
+insert_if_not_exist("/etc/mongodb.conf", /^smallfiles = .*$/, "smallfiles = true")
 find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = false")
 restart_mongo
 $log.info "......set db admin users"
 run "/usr/bin/mongo localhost/openshift_broker_dev --eval 'db.addUser(\"openshift\", \"mooo\")'"
 run "/usr/bin/mongo localhost/admin --eval 'db.addUser(\"openshift\", \"mooo\")'"
 $log.info "......register mongo auth admin user"
-run "mongo openshift_broker_dev --username openshift --password mooo --eval 'db.auth_user.update({\"_id\":\"admin\"}, {\"_id\":\"admin\",\"user\":\"admin\",\"password\":\"2a8462d93a13e51387a5e607cbd1139f\"}, true)'"
+run "/usr/bin/mongo openshift_broker_dev --username openshift --password mooo --eval 'db.auth_user.update({\"_id\":\"admin\"}, {\"_id\":\"admin\",\"user\":\"admin\",\"password\":\"2a8462d93a13e51387a5e607cbd1139f\"}, true)'"
 stop_mongo
 $log.info "......enable mongo auth"
-find_and_replace("/etc/mongodb.conf", /^#auth = .*$/, "auth = true")
+find_and_replace("/etc/mongodb.conf", /^auth = .*$/, "auth = true")
 
 $log.info "Configuring BIND DNS server"
 $log.info "...installing DNS server related SELinux policies (This might take a while)"
 run <<-EOOF
-semanage -i - <<_EOF
+/usr/sbin/semanage -i - <<_EOF
 boolean -m --on named_write_master_zones
 _EOF
 EOOF
 
 unless File.exist?('/etc/rndc.key')
   $log.info  "...generating rndc.key file"
-  run "rndc-confgen -a"
+  run "/usr/sbin/rndc-confgen -a"
   run "/sbin/restorecon /etc/rndc.* /etc/named.*"
-  run "chown root:named /etc/rndc.key"
-  run "chmod 0640 /etc/rndc.key"
+  run "/bin/chown root:named /etc/rndc.key"
+  run "/bin/chmod 0640 /etc/rndc.key"
 end
 run "/usr/sbin/oo-setup-bind #{node_domain}"
 
@@ -379,7 +380,7 @@ File.open("/var/named/forwarders.conf", "w") do |f|
   f.write("forwarders { #{dns_address.join(" ; ")} ; } ;")
 end
 run "/sbin/restorecon -v /var/named/forwarders.conf"
-run "chkconfig named on"
+run "/sbin/chkconfig named on"
 
 $log.info "...update resolve.conf to use local dns server"
 File.open("/etc/resolv.conf", "w") do |f|
@@ -425,21 +426,22 @@ insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GI
  
 $log.info "Enabling OpenShift services"
 ["httpd","sshd","qpidd","mcollective","openshift-broker","mongod"].each do |service|
-  run "chkconfig #{service} on" 
+  run "/sbin/chkconfig #{service} on" 
 end
 
 unless args["--skip-node"] || /not installed/.match(`rpm -q openshift-origin-node-util`)
   $log.info "Configuring node services"
-  args = []
-  args += ["--external-ip", "#{ext_address.strip}/#{ext_prefix.strip}"] unless ext_dhcp
-  args += ["--external-gw", ext_gw.strip] unless ext_dhcp
-  args += ["--external-device", ext_eth_device.strip] unless ext_eth_device.nil?
-  args += ["--internal-ip", "#{int_address.strip}/#{int_prefix.strip}"] unless int_dhcp
-  args += ["--internal-device", int_eth_device.strip] unless int_eth_device.nil?
-  args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
-  args += ["--domain", node_domain.strip] unless node_domain.nil?
+  cmd_args = []
+  cmd_args += ["--external-ip", "#{ext_address.strip}/#{ext_prefix.strip}"] unless ext_dhcp
+  cmd_args += ["--external-gw", ext_gw.strip] unless ext_dhcp
+  cmd_args += ["--external-device", ext_eth_device.strip] unless ext_eth_device.nil?
+  cmd_args += ["--internal-ip", "#{int_address.strip}/#{int_prefix.strip}"] unless int_dhcp
+  cmd_args += ["--internal-device", int_eth_device.strip] unless int_eth_device.nil?
+  cmd_args += ["--static-dns", dns_address.uniq.join(",")] unless dns_address.nil?
+  cmd_args += ["--domain", node_domain.strip] unless node_domain.nil?
+  cmd_args += ["--debug"] if args["--debug"]
 
-  system("/usr/sbin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{args.join(' ')}")
+  system("/usr/sbin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{cmd_args.join(' ')}")
 else
   log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
   log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"

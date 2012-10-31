@@ -6,7 +6,7 @@
 #               Mike McGrath <mmcgrath@redhat.com>
 #               Mark lamourine <markllama@redhat.com>
 #
-# chkconfig:    345 6 94
+# chkconfig:    345 16 84
 #
 # Required-Start: cgconfig cgred
 #
