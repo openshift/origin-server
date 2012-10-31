@@ -216,6 +216,14 @@ if not File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
   FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf.example", "/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf"
 end
 
+$log.info "Generating broker authentication keys"
+if not File.exist?("/etc/openshift/server_priv.pem")
+  run <<-EOF
+/usr/bin/openssl genrsa -out /etc/openshift/server_priv.pem 2048
+/usr/bin/openssl rsa -in /etc/openshift/server_priv.pem -pubout > /etc/openshift/server_pub.pem
+EOF
+end
+
 $log.info "Configuring mcollective messaging plugin"
 if `rpm -q qpid-cpp-server 2> /dev/null`.match(/is not installed/)
   $log.info "...installing qpid AMQP server"
