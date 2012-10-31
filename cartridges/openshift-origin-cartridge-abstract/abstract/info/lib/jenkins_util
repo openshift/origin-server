@@ -82,3 +82,14 @@ function jenkins_sync_jbossews {
 
   jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
 }
+
+# If the previous and current commits didn't upload .bundle sync previous bundled gems.
+# Note: Adding .openshift/markers/force_clean_build at the root of the repo will trigger a clean rebundle
+function restore_cached_ruby_bundles {
+  UPSTREAM_SSH=$1
+
+  if [ ! -f .openshift/markers/force_clean_build ] && ! [ -d .bundle ] && ! git show master~1:.bundle > /dev/null 2>&1
+  then
+    jenkins_rsync --include='.bundle/' --include='.bundle/***' --include='vendor/' --include='vendor/***' --exclude='*' $UPSTREAM_SSH:~/app-root/runtime/repo/ ~/$WORKSPACE
+  fi
+}

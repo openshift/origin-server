@@ -70,19 +70,15 @@ source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 # If a Gemfile is committed then bundle install
 if [ -f Gemfile ]
 then
-  # If the previous and current commits didn't upload .bundle sync previous bundled gems.
-  # Note: Adding .openshift/markers/force_clean_build at the root of the repo will trigger a clean rebundle
-  if [ -f .openshift/markers/force_clean_build ] &amp;&amp; ! [ -d .bundle ] &amp;&amp; ! git show master~1:.bundle > /dev/null 2>&amp;1
-  then
-    jenkins_rsync --include '.bundle/***' --include 'vendor/***' --exclude '*' UPSTREAM_SSH:~/ruby-1.9/repo/ .
-  fi
+  # Restore cached items from upstream unless a clean rebuild is specified
+  restore_cached_ruby_bundles UPSTREAM_SSH
 
   echo 'Bundling RubyGems based on Gemfile/Gemfile.lock to vendor/bundle'
   bundle install --deployment
-  bundle exec rake assets:precompile 2>/dev/null
-fi
 
-# Deploy new build
+  echo 'Precompiling assets to public/assets'
+  bundle exec rake assets:precompile
+fi
 
 # Stop app
 jenkins_stop_app UPSTREAM_SSH
