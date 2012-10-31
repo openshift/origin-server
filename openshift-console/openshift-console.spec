@@ -14,14 +14,14 @@ Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-console%{version}.tar.gz
+Source0:   openshift-console-%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
-%global gemdir %{gem_dir}
+%global gemdir /usr/share/rubygems/gems
 %else
 %define with_systemd 0
-%global gemdir %(scl enable ruby193 "ruby -rubygems -e 'puts Gem::dir'" 2>/dev/null)
+%global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
 %endif
 
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -52,7 +52,7 @@ mkdir -p %{buildroot}%{_initddir}
 %endif
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{openshiftconfigdir}
-mkdir -p %{buildroot}%{htmldir}/
+mkdir -p %{buildroot}%{htmldir}
 mkdir -p %{buildroot}%{consoledir}
 mkdir -p %{buildroot}%{consoledir}/httpd/root
 mkdir -p %{buildroot}%{consoledir}/httpd/run
