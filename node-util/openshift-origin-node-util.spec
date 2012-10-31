@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -100,6 +100,10 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Fixes for LiveCD build (kraman@gmail.com)
+- move broker/node utils to /usr/sbin/ everywhere (admiller@redhat.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - fix man page path names for node-util spec (admiller@redhat.com)
 - Added man pages for broker-util/node-util, port complete-origin-setup to bash
