@@ -1,6 +1,6 @@
 Name: jbossews-1.0
-Display-Name: JBoss Enterprise Web Server 1.0
-Description: "The only enterprise-class web server solution you need for large-scale websites and lightweight web applications. Build and deploy enterprise Java in the cloud."
+Display-Name: Tomcat (JBoss Enterprise Web Server 1.0)
+Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 6. Build and deploy JSPs and Servlets in the cloud."
 Version: 1.0.2
 License: ASL 2.0
 Vendor:  jboss.com
