@@ -26,17 +26,6 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     /usr/bin/openssl rsa -in /etc/openshift/server_priv.pem -pubout > /etc/openshift/server_pub.pem
 
 * Edit the configuration in /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
-  NOTE: See current issues.  This step can be skipped for now.
-
-  Set the salt to something only you know.
-
-* Edit /var/www/openshift/broker/Gemfile to add the plugin:
-
-  gem 'openshift-origin-auth-remote-user'
-
-  NOTE: Be sure to remote any other authentication plugins.  You may need to
-  remove plugin references from
-  /var/www/openshift/broker/config/environments/development.rb as well.
 
 * Restart the openshift-origin-broker service
     service openshift-origin-broker restart
@@ -54,10 +43,3 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     curl -k https://localhost/broker/rest/application_templates
     curl -k https://localhost/broker/rest/cartridges
     curl -k https://localhost/broker/rest/api
-
-=== KNOWN ISSUES ===
-* I need to port the conf stub to actually use
-  /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.
-
-* We need the /etc/openshift/plugins.d commit to correctly have the gem
-  picked up in the Gemfile without manual intervention.
