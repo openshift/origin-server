@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.0.1
+Version:        1.0.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -67,6 +67,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Fixes for LiveCD build (kraman@gmail.com)
+- move broker/node utils to /usr/sbin/ everywhere (admiller@redhat.com)
+- Bug 871436 - moving the default path for AUTH_PRIVKEYFILE and AUTH_PUBKEYFILE
+  under /etc (bleanhar@redhat.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - Added man pages for broker-util/node-util, port complete-origin-setup to bash
   (admiller@redhat.com)
