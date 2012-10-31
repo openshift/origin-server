@@ -9,7 +9,7 @@
 
 Summary:   The OpenShift Enterprise Management Console
 Name:      openshift-console
-Version:   0.0.2
+Version:   0.0.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -130,6 +130,11 @@ chcon -R -t httpd_var_run_t %{consoledir}/httpd/run
 /sbin/restorecon -R -v /var/run
 /sbin/restorecon -rv %{gemdir}/passenger*
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
+- Bug 871705 - renaming a sample conf file for consistency
+  (bleanhar@redhat.com)
+- Restorecon takes scl into consideration (calfonso@redhat.com)
+
 * Mon Oct 29 2012 Chris Alfonso <calfonso@redhat.com> 0.0.2-1
 - new package built with tito
 
