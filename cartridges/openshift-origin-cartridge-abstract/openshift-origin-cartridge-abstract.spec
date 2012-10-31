@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   1.0.1
+Version:   1.0.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -70,6 +70,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Fix bundle caching during Jenkins builds (ironcladlou@gmail.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - bumping specs to at least 1.0.0 (dmcphers@redhat.com)
 
