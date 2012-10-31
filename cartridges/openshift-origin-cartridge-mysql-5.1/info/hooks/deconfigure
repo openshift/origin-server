@@ -63,6 +63,11 @@ confirm_pid_gone "${MYSQL_DIR}/pid/mysql.pid"
 #
 /bin/rm -f $APP_HOME/.env/OPENSHIFT_MYSQL_DB*
 
+# Remove deprecated env vars
+if [ -f $APP_HOME/.env/TYPELESS_TRANSLATED_VARS ]; then
+    sed -i '/OPENSHIFT_DB_*/d' $APP_HOME/.env/TYPELESS_TRANSLATED_VARS
+fi
+
 # For non-embedded (dedicated) mysql gear, destroy the gear.
 if only_cart_on_gear $cartridge_type; then
     # Remove apache vhost configuration.
