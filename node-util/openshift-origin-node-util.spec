@@ -27,9 +27,9 @@ run on a node instance.
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}%{_bindir}
-cp bin/oo-* %{buildroot}%{_bindir}/
-cp bin/rhc-* %{buildroot}%{_bindir}/
+mkdir -p %{buildroot}%{_sbindir}
+cp bin/oo-* %{buildroot}%{_sbindir}/
+cp bin/rhc-* %{buildroot}%{_sbindir}/
 
 mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
@@ -55,19 +55,19 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0750,-,-) %{_bindir}/oo-accept-node
-%attr(0750,-,-) %{_bindir}/oo-admin-ctl-gears
-%attr(0750,-,-) %{_bindir}/oo-app-idle
-%attr(0750,-,-) %{_bindir}/oo-autoidler
-%attr(0750,-,-) %{_bindir}/oo-idler
-%attr(0750,-,-) %{_bindir}/oo-idler-stats
-%attr(0750,-,-) %{_bindir}/oo-init-quota
-%attr(0750,-,-) %{_bindir}/oo-last-access
-%attr(0750,-,-) %{_bindir}/oo-list-stale
-%attr(0750,-,-) %{_bindir}/oo-restorer
-%attr(0750,-,apache) %{_bindir}/oo-restorer-wrapper.sh
-%attr(0750,-,-) %{_bindir}/oo-setup-node
-%attr(0755,-,-) %{_bindir}/rhc-list-ports
+%attr(0750,-,-) %{_sbindir}/oo-accept-node
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-gears
+%attr(0750,-,-) %{_sbindir}/oo-app-idle
+%attr(0750,-,-) %{_sbindir}/oo-autoidler
+%attr(0750,-,-) %{_sbindir}/oo-idler
+%attr(0750,-,-) %{_sbindir}/oo-idler-stats
+%attr(0750,-,-) %{_sbindir}/oo-init-quota
+%attr(0750,-,-) %{_sbindir}/oo-last-access
+%attr(0750,-,-) %{_sbindir}/oo-list-stale
+%attr(0750,-,-) %{_sbindir}/oo-restorer
+%attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
+%attr(0750,-,-) %{_sbindir}/oo-setup-node
+%attr(0755,-,-) %{_sbindir}/rhc-list-ports
 
 %doc LICENSE
 %doc README-Idler.md
@@ -97,7 +97,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %post
-/sbin/restorecon /usr/bin/oo-restorer* || :
+/sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1

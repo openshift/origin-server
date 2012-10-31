@@ -168,7 +168,7 @@ function setuppam() {
 
 function start_backgrounded() {
     log_info "Starting OpenShift services in the background ..."
-    nohup /usr/bin/oo-admin-ctl-gears waited-startall > $logfile 2>&1 &
+    nohup /usr/sbin/oo-admin-ctl-gears waited-startall > $logfile 2>&1 &
     bgpid=$!
     log_info "Background start initiated - process id = $bgpid"
     log_info "Check $logfile for more details."
@@ -185,7 +185,7 @@ function waited_start() {
 	for uuid in $(openshift_gears)
     do
         /bin/egrep -q -v "idle" "$GEAR_BASE_DIR/$uuid/app-root/runtime/.state" && echo $uuid || echo "Skipping $uuid" 1>&2
-    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears startgear {}
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/sbin/oo-admin-ctl-gears startgear {}
 
     log_info "All OpenShift services started"
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
@@ -201,7 +201,7 @@ function stop() {
 	for uuid in $(openshift_gears)
     do
         /bin/egrep -q -v "stopped|idle" "$GEAR_BASE_DIR/$uuid/app-root/runtime/.state" && echo $uuid || echo "Skipping $uuid" 1>&2
-    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears stopgear {}
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/sbin/oo-admin-ctl-gears stopgear {}
 
     log_info "All OpenShift services stopped"
     [ $GROUP_RETVAL -eq 0 ] && rm -f ${lockfile}
@@ -218,7 +218,7 @@ function restart() {
 	for uuid in $(openshift_gears)
     do
         /bin/egrep -q -v "idle|stopped" "$GEAR_BASE_DIR/$uuid/app-root/runtime/.state" && echo $uuid || echo "Skipping $uuid" 1>&2
-    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/bin/oo-admin-ctl-gears restartgear {}
+    done | xargs -I{} -n 1 -P $numparallel /usr/bin/timeout -s USR1 $timeout /usr/sbin/oo-admin-ctl-gears restartgear {}
 
     echo -n "All OpenShift services restarted"
     [ $GROUP_RETVAL -eq 0 ] && touch ${lockfile}
