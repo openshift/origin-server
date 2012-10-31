@@ -61,6 +61,11 @@ confirm_pid_gone "${MONGODB_DIR}/pid/mongodb.pid"
 #
 /bin/rm -f $APP_HOME/.env/OPENSHIFT_MONGODB_DB_*
 
+# Remove deprecated env vars
+if [ -f $APP_HOME/.env/TYPELESS_TRANSLATED_VARS ]; then
+    sed -i '/OPENSHIFT_NOSQL_DB_*/d' $APP_HOME/.env/TYPELESS_TRANSLATED_VARS
+fi
+
 # For non-embedded (dedicated) mongo gear, destroy the gear.
 if only_cart_on_gear $cartridge_type; then
     # Remove apache vhost configuration.
