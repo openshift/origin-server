@@ -33,13 +33,21 @@ of use.  The following list are some common variables but far from exhaustive:
     $_ENV['OPENSHIFT_DATA_DIR']  - For persistent storage (between pushes)
     $_ENV['OPENSHIFT_TMP_DIR']   - Temp storage (unmodified files deleted after 10 days)
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
-variables for username, host and password:
+When embedding a database using 'rhc app cartridge add', you can reference
+environment variables for username, host and password. Example for mysql:
 
-    $_ENV['OPENSHIFT_DB_HOST']      - DB host
-    $_ENV['OPENSHIFT_DB_PORT']      - DB Port
-    $_ENV['OPENSHIFT_DB_USERNAME']  - DB Username
-    $_ENV['OPENSHIFT_DB_PASSWORD']  - DB Password
+    $_ENV['OPENSHIFT_MYSQL_DB_HOST']      - DB host
+    $_ENV['OPENSHIFT_MYSQL_DB_PORT']      - DB Port
+    $_ENV['OPENSHIFT_MYSQL_DB_USERNAME']  - DB Username
+    $_ENV['OPENSHIFT_MYSQL_DB_PASSWORD']  - DB Password
+
+When embedding a NoSQL database using 'rhc app cartridge add', you can
+reference environment variables for username, host and password.
+Example for MongoDB:
+    $_ENV['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB Host
+    $_ENV['OPENSHIFT_MONGODB_DB_PORT']      - NoSQL DB Port
+    $_ENV['OPENSHIFT_MONGODB_DB_USERNAME']  - NoSQL DB Username
+    $_ENV['OPENSHIFT_MONGODB_DB_PASSWORD']  - NoSQL DB Password
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.

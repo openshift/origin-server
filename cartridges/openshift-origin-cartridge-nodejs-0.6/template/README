@@ -37,15 +37,16 @@ of use.  The following list are some common variables but far from exhaustive:
     process.env.OPENSHIFT_DATA_DIR  - For persistent storage (between pushes)
     process.env.OPENSHIFT_TMP_DIR   - Temp storage (unmodified files deleted after 10 days)
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
-variables for username, host and password:
-    process.env.OPENSHIFT_DB_HOST      - DB Host
-    process.env.OPENSHIFT_DB_PORT      - DB Port
-    process.env.OPENSHIFT_DB_USERNAME  - DB Username
-    process.env.OPENSHIFT_DB_PASSWORD  - DB Password
+When embedding a database using 'rhc app cartridge add', you can reference
+environment variables for username, host and password. Example for mysql:
+    process.env.OPENSHIFT_MYSQL_DB_HOST      - DB Host
+    process.env.OPENSHIFT_MYSQL_DB_PORT      - DB Port
+    process.env.OPENSHIFT_MYSQL_DB_USERNAME  - DB Username
+    process.env.OPENSHIFT_MYSQL_DB_PASSWORD  - DB Password
 
-When embedding a NoSQL database using 'rhc app cartridge add', you can reference environment
-variables for username, host and password:
+When embedding a NoSQL database using 'rhc app cartridge add', you can
+reference environment variables for username, host and password.
+Example for MongoDB:
     process.env.OPENSHIFT_MONGODB_DB_HOST      - NoSQL DB Host
     process.env.OPENSHIFT_MONGODB_DB_PORT      - NoSQL DB Port
     process.env.OPENSHIFT_MONGODB_DB_USERNAME  - NoSQL DB Username
