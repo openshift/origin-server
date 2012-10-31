@@ -9,7 +9,7 @@ require 'rails/commands/server'
 require 'rack'
 require 'webrick'
 require 'webrick/https'
-require 'openshift-origin-node'
+require 'openshift-origin-common'
 
 module Rails
     class Server < ::Rack::Server
