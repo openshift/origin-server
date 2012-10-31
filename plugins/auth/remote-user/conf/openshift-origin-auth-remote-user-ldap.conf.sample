@@ -18,7 +18,7 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
     require valid-user
 
     # The node->broker auth is handled in the Ruby code
-    BrowserMatchNoCase OpenShift passthrough
+    BrowserMatchNoCase ^OpenShift passthrough
     Allow from env=passthrough
 
     # Console traffic will hit the local port.  mod_proxy will set this header automatically.
