@@ -25,7 +25,7 @@ class NameServerCache
 
   def self.get_name_servers
     dns = Dnsruby::DNS.new()
-    resources = dns.getresources("rhcloud.com", Dnsruby::Types.NS)
+    resources = dns.getresources(Rails.application.config.openshift[:domain_suffix], Dnsruby::Types.NS)
     @nameservers = []
     resources.each do |resource|
       @nameservers.push(resource.domainname.to_s)
