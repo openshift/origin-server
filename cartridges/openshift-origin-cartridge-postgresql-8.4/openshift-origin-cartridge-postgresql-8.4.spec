@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.0.1
+Version: 1.0.2
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -101,6 +101,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Cleanup deprecated env vars during db deconfigure. (mpatel@redhat.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - bumping specs to at least 1.0.0 (dmcphers@redhat.com)
 
