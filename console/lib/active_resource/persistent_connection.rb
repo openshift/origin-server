@@ -236,7 +236,7 @@ module ActiveResource
         return http unless defined?(@ssl_options)
 
         [:ca_path, :ca_file,
-         :cert, :key, :cert_store, :ssl_timeout,
+         :cert, :key, :cert_store, :ssl_timeout, :ssl_version,
          :verify_mode, :verify_callback, :verify_depth
         ].each do |sym|
           http.send(:"#{sym}=", @ssl_options[sym]) if @ssl_options[sym]
