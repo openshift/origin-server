@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.0.1
+Version: 1.0.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,13 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
+- Merge pull request #807 from pravisankar/dev/ravi/bug/nameserver_cache
+  (openshift+bot@redhat.com)
+- Fix nameserver cache: Use domain_suffix from config instead of rhcloud.com so
+  that its generic for hosted/onprem/origin (rpenta@redhat.com)
+- Fix for bugs# 871741, 871710 (rpenta@redhat.com)
+
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
 - Merge pull request #786 from danmcp/master (openshift+bot@redhat.com)
 - Merge pull request #778 from lnader/master (openshift+bot@redhat.com)
