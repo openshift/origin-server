@@ -20,7 +20,7 @@ fi
 
 start() {
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_HOMEDIR/diy-0.1/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $OPENSHIFT_HOMEDIR/$cartridge_type/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
         return 0
     fi
@@ -39,7 +39,7 @@ stop() {
 reload() {
     # Ensure app's not stopped/idle.
     _state=`get_app_state`
-    if [ -f $OPENSHIFT_GEAR_DIR/run/stop_lock -o idle = "$_state" ]; then
+    if [ -f $OPENSHIFT_HOMEDIR/$cartridge_type/run/stop_lock -o idle = "$_state" ]; then
         echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_GEAR_NAME}' to start back up." 1>&2
         return 0
     fi
