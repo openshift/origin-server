@@ -1,3 +1,4 @@
+# Provided by the mod_auth_kerb package
 LoadModule auth_basic_module modules/mod_auth_basic.so
 LoadModule authz_user_module modules/mod_authz_user.so
 LoadModule auth_kerb_module modules/mod_auth_kerb.so
