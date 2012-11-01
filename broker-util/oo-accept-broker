@@ -25,6 +25,8 @@ OSO_CONF_DIR=${OSO_CONF_DIR:=/etc/openshift}
 OSO_BROKER_ROOT=${OSO_BROKER_ROOT:=/var/www/openshift/broker}
 
 OSO_CFG_DIR=${OSO_BROKER_ROOT}/config
+OSO_HTTPD_DIR=${OSO_BROKER_ROOT}/httpd
+OSO_HTTPD_CONF_DIR=${OSO_HTTPD_DIR}/conf.d
 OSO_ENV_DIR=${OSO_CFG_DIR}/environments
 OSO_INI_DIR=${OSO_CFG_DIR}/initializers
 
@@ -75,6 +77,8 @@ then
 else
     echo WARNING: ENV overrides SERVICES >&2
 fi
+
+BROKER_REST_API_BASE="https://localhost/broker/rest/"
 
 # ============================================================================
 #
@@ -529,6 +533,47 @@ function check_auth_mongo() {
     # check OpenShift Origin user (username/password)
     check_mongo_login $DS_HOST:$DS_PORT $DS_NAME $DS_USER $DS_PASS
 }
+
+function get_http_response_code() {
+    curl -k -s -o /dev/null -w '%{http_code}'  "$1"
+}
+
+assert_rest_api_returns() {
+    if [ "$1" = "$(get_http_response_code "$2")" ]
+    then
+        verbose "Got HTTP $1 response from $2"
+    else
+        fail "Did not get expected HTTP $1 response from $2"
+    fi
+}
+
+function check_auth_remote_user() {
+    verbose checking remote-user auth configuration
+
+    RU_TRUSTED_HEADER=`get_application_value "Rails.application.config.auth[:trusted_header]"`
+    verbose "Auth trusted header: $RU_TRUSTED_HEADER"
+
+    if grep -q 'BrowserMatchNoCase\s\+\^OpenShift\s\+passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf \
+       && grep -q 'Allow\s\+from\s\+env=passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf
+    then
+        verbose 'Auth passthrough is enabled for OpenShift services'
+    else
+        fail 'Auth passthrough appears not to be enabled, which will break JBossTools and node-to-broker authentication'
+    fi
+
+    UNAUTHENTICATED_APIS="api application_templates cartridges"
+    AUTHENTICATED_APIS="user domains"
+
+    for api in $UNAUTHENTICATED_APIS
+    do
+        assert_rest_api_returns 200 "${BROKER_REST_API_BASE}${api}"
+    done
+
+    for api in $AUTHENTICATED_APIS
+    do
+        assert_rest_api_returns 401 "${BROKER_REST_API_BASE}${api}"
+    done
+}
 # ============================================================================
 #
 # Cloud User Authentication
@@ -555,6 +600,11 @@ function check_authentication() {
 	    check_auth_mongo
             ;;
 	
+	'OpenShift::RemoteUserAuthService')
+	    verbose "auth plugin: $AUTH_PLUGIN"
+	    check_auth_remote_user
+            ;;
+
 	*)
 	    fail unknown auth class: $AUTH_PLUGIN
 	    ;;
