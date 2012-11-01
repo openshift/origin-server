@@ -69,6 +69,11 @@ confirm_pid_gone "${CART_INSTANCE_DIR}/pid/postgres.pid"
 #
 /bin/rm -f $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_*
 
+# Remove deprecated env vars
+if [ -f $APP_HOME/.env/TYPELESS_TRANSLATED_VARS ]; then
+    sed -i '/OPENSHIFT_DB_*/d' $APP_HOME/.env/TYPELESS_TRANSLATED_VARS
+fi
+
 # For non-embedded (dedicated) postgresql gear, destroy the gear.
 if only_cart_on_gear $cartridge_type; then
     # Remove apache vhost configuration.
