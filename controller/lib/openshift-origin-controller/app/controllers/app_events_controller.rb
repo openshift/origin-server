@@ -80,6 +80,7 @@ class AppEventsController < BaseController
           r = application.threaddump
           msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
           #TODO: We need to reconsider how we are reporting messages to the client
+          success_msg = "Application event '#{event}' successful" unless msg.include?("not supported")
           message = Message.new(:result, msg, 0)
           application = get_application(id)
           if $requested_api_version >= 1.2
@@ -88,7 +89,7 @@ class AppEventsController < BaseController
             app = RestApplication10.new(application, get_url, nolinks)
           end
           render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION",
-			   "Application event '#{event}' successful", true, nil, [message])
+			   success_msg, true, nil, [message])
 	  return
        else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
