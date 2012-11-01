@@ -24,7 +24,8 @@ class GenerateConsoleViewTask < Rake::TaskLib
     end
     def controller
       controller = controller_class.new
-      controller.request = ActionDispatch::TestRequest.new
+      controller.request = ActionDispatch::TestRequest.new({'SCRIPT_NAME' => ENV['RAILS_RELATIVE_URL_ROOT']})
+      controller.env = controller.request.env
       controller
     end
 
