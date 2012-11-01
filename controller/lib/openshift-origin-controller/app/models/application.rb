@@ -682,12 +682,16 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
 
     self.comp_instance_map.each do |comp_inst_name, comp_inst|
       next if !dependency.nil? and (comp_inst.parent_cart_name != dependency)
+      next if comp_inst.parent_cart_name == self.name
 
       group_inst = self.group_instance_map[comp_inst.group_instance_name]
-      RemoteJob.run_parallel_on_gears(group_inst.gears, handle) { |exec_handle, gear|
+      group_inst.gears.each do |gear|
         job = gear.status_job(comp_inst)
-        RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-      }
+        RemoteJob.add_parallel_job(handle, tag, gear, job)
+      end
+    end
+    if RemoteJob.has_jobs(handle)
+      RemoteJob.run_parallel_on_gears([], handle) { }
       RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, rc|
         if rc != 0
           Rails.logger.error "Error: Getting '#{dependency}' status from gear '#{gear}', errcode: '#{rc}' and output: #{output}"

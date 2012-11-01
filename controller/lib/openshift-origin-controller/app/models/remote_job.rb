@@ -13,6 +13,10 @@ class RemoteJob < OpenShift::Model
     return { }
   end
 
+  def self.has_jobs(handle)
+    !handle.empty?
+  end
+
   def self.run_parallel_on_gears(gears, handle, &block)
     gears.each { |gear|
       block.call(handle, gear)
