@@ -1,4 +1,12 @@
-#Kerberos integration with the OpenShift broker requires that you have a kerberos kdc setup.  The service host needs to have a service principle added for the OpenShift broker proxy (httpd) server.  Once a service principle is created, you'll want to add it to the kdc keytab file.  Once added to the kdc keytab file, you'll want to extract the keytab file to the OpenShift broker proxy and point to this extracted keytab file in the OpenShift broker proxy httpd configuration file.
+#The Broker side of the configuration requires the mod_auth_kerb package to be
+#installed.
+
+#Apart from that you must also have a kerberos kdc setup.  The service host
+#needs to have a service principle added for the OpenShift broker proxy (httpd)
+#server.  Once a service principle is created, you'll want to add it to the kdc
+#keytab file.  Once added to the kdc keytab file, you'll want to extract the
+#keytab file to the OpenShift broker proxy and point to this extracted keytab
+#file in the OpenShift broker proxy httpd configuration file.
 
 Steps to perform on the kdc:
 1) #install the krb packages
