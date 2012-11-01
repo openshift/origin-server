@@ -993,11 +993,11 @@ function disable_cgroups {
 }
 
 function enable_stale_detection {
-    return 0
+    rm -f "${APP_HOME}/.disable_stale"
 }
 
 function  disable_stale_detection {
-    return 0
+    touch "${APP_HOME}/.disable_stale"
 }
 
 # In practice, this function is only invoked asynchronously, with no defined
