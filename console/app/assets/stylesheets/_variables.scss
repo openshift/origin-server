@@ -76,6 +76,7 @@ $takeActionHighlightBackground: #a1000c;
 
 $grayLighter:										#ededed;
 $grayLight:                     #999;
+$grayMedium:                    #505050;
 $grayDark:                      #2f2f2f;
 $primaryButtonBackground:       #B1E5F2;
 $orange:                        #ffb02e;
@@ -123,4 +124,8 @@ $inputBorderRadius:             3px;
 $inputDisabledBackground:       #444 !default;
 $inputDisabledBorder:           #222 !default;
 $horizontalComponentOffset:     180px !default; /* Horizontal forms & lists */
+
+// Input placeholder text color
+// -------------------------
+$placeholderText:         $grayLight !default;
 
