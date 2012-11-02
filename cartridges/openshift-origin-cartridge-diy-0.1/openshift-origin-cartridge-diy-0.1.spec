@@ -2,7 +2,7 @@
 
 Summary:   Provides diy support
 Name:      openshift-origin-cartridge-diy-0.1
-Version: 1.1.0
+Version: 1.1.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -104,6 +104,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
+- bump_minor_versions for sprint 20 (admiller@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.0.2-1
 - Fix README to use new variable scheme + fixup wrong variable in diy cart.
   (ramr@redhat.com)
