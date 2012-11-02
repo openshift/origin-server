@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.1.1
+Version: 1.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #815 from pravisankar/dev/ravi/fix_nameserver_resolver
+  (openshift+bot@redhat.com)
+- Fix name server cache: query up the chain to find dns resolver nameservers
+  (rpenta@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 
