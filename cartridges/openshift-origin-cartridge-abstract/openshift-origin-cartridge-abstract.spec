@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.1.0
+Version: 1.1.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -70,6 +70,9 @@ rm -rf $RPM_BUILD_ROOT
 %post
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
+- bump_minor_versions for sprint 20 (admiller@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.0.3-1
 - Port enable/disable_stale_detection (jhonce@redhat.com)
 
