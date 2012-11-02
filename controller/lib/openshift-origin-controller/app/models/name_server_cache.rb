@@ -33,6 +33,7 @@ class NameServerCache
       else
         dp = domain.partition('.')
         domain = dp[2]
+        resources = dns.getresources(domain, Dnsruby::Types.NS)
       end
     end
     raise OpenShift::UserException.new("Unable to find nameservers for domain '#{Rails.application.config.openshift[:domain_suffix]}'",
