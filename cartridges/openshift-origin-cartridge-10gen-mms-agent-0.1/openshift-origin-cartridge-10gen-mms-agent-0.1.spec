@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.15.5
+Version: 1.16.0
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
