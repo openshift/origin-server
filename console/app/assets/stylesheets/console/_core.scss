@@ -61,7 +61,6 @@ textarea,
 .input-prepend-append .add-on-first {border-right: 0;@include border-radius($inputBorderRadius 0 0 $inputBorderRadius);margin-right: -1px;}
 .input-prepend-append .add-on-last {border-left: 0;@include border-radius(0 $inputBorderRadius $inputBorderRadius 0);margin-left: -1px;}
 .input-prepend-append input, .input-prepend-append .add-on-middle {
-    background: #aaa;
     border-top: 1px solid #222;
     border-bottom: 1px solid #222;
     color: #000;
@@ -71,18 +70,38 @@ textarea,
     border-right: 0;
     float: left;
     }
-.input-prepend-append input:focus {
-    background: #eee;
-    color: #000;
-    }
+
+input:-moz-placeholder,
+textarea:-moz-placeholder {
+  color: $grayMedium;
+  background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    background-color: $grayLighter;
+  }
+}
+
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  color: $grayMedium;
+  background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    background-color: $grayLighter;
+  }
+}
+
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+  color: $grayMedium;
+  background-color: $grayLight;
+  &:focus {
+    color: $grayLight;
+    background-color: $grayLighter;
+  }
+}
 
 
-input::-webkit-input-placeholder, select::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
- color: #444;
-	}
-input:-moz-placeholder, select:-moz-placeholder, textarea:-moz-placeholder {
- color: #444;
-	}
 
 #new_application .controls input { width: 175px; }
 
