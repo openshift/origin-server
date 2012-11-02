@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version: 1.1.0
+Version: 1.1.1
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -45,6 +45,9 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
+- bump_minor_versions for sprint 20 (admiller@redhat.com)
+
 * Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.6-1
 - Fixes for LiveCD build (kraman@gmail.com)
 
