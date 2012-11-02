@@ -59,7 +59,7 @@ Given /^a new gear with namespace "([^\"]*)" and app name "([^\"]*)"$/ do |names
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, name]
-  run command
+  runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
@@ -79,7 +79,7 @@ Given /^a new guest account$/ do
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, appname]
-  run command
+  runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
@@ -104,7 +104,7 @@ When /^I create a guest account$/ do
   }
 
   command = $controller_config_format % [acctname, acctname, namespace, appname]
-  run command
+  runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
   # get and store the account UID's by name
   @account['uid'] = Etc.getpwnam(acctname).uid
@@ -117,7 +117,7 @@ When /^I delete the guest account$/ do
                                            @account['accountname'],
                                            @account['namespace'],
                                            @account['appnames'][0]]
-  run command
+  runcon(command, $selinux_user, $selinux_role, $selinux_type)
 
 end
 
