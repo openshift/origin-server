@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version:        1.0.6
+Version:        1.0.7
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -45,6 +45,10 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Fri Nov 02 2012 Adam Miller <admiller@redhat.com> 1.0.7-1
+- The introduction of polydir shm caused errors in oo-namespace-init.
+  (rmillner@redhat.com)
+
 * Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 1.0.6-1
 - Fixes for LiveCD build (kraman@gmail.com)
 
