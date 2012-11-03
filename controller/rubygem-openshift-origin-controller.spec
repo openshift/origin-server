@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.0.3
+Version: 1.0.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,10 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Nov 02 2012 Adam Miller <admiller@redhat.com> 1.0.4-1
+- Fix name server cache: query up the chain to find dns resolver nameservers
+  (rpenta@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.0.3-1
 - BZ872129 - Should not return Application event 'thread-dump' successful when
   rhc threaddump unsupported application (calfonso@redhat.com)
