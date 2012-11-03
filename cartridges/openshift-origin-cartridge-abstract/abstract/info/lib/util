@@ -869,18 +869,18 @@ function run_as_user {
         #  Run confined as user - temporary bandaid to fix issues with
         #  ss-connector-execute - connection hooks are run unconfined.
         if [ "$(runcon | cut -f 3 -d ':')" != "openshift_t" ]; then
-            runcon -t openshift_t -l $mcs_level $@
+            runcon -r system_r -t openshift_t -l $mcs_level $@
         else
             eval "$1"
         fi
     else
-        runuser --shell /bin/sh "$_uuid" -c "runcon -t openshift_t -l $mcs_level $1"
+        runuser --shell /bin/sh "$_uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
     fi
 }
 
 
 function super_run_as_user {
-    /bin/su -s /bin/sh "$uuid" -c "runcon -t openshift_t -l $mcs_level $1"
+    /bin/su -s /bin/sh "$uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
 }
 
 

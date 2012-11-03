@@ -30,7 +30,7 @@ if [ "$3" = 1 ]; then
     setype=$(echo "$context" | cut -f 3 -d":")
 
     #  Don't change ownership on /sandbox
-    [ "$1" == "/sandbox" ] || /bin/chown $4 "$2"
+    [ "$1" == "/sandbox" -o "$2" == "tmpfs" ] || /bin/chown $4 "$2"
     /sbin/restorecon "$1"
 
     # Only do this on openshift users
@@ -38,8 +38,10 @@ if [ "$3" = 1 ]; then
     then
         uid=$(id -u "$4")
         mcs_level=$(get_mcs_level $uid)
-        /sbin/restorecon "$1" "$2"
-        /usr/bin/chcon -l $mcs_level "$1" "$2"
+        /sbin/restorecon "$1"
+        /usr/bin/chcon -l $mcs_level "$1"
+        [ "$2" == "tmpfs" ] || /sbin/restorecon "$2"
+        [ "$2" == "tmpfs" ] || /usr/bin/chcon -l $mcs_level "$2"
     fi
 fi
 
