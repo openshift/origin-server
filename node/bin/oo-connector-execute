@@ -24,12 +24,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-connector-execute: Executes a connector on a cartridge component
+#{$0}: Executes a connector on a cartridge component
   This command must be run as root.
 
 == Usage
 
-oo-connector-execute GEAR_UUID CART_NAME HOOK_NAME <args-to-connector>
+#{$0} GEAR_UUID CART_NAME HOOK_NAME <args-to-connector>
 
 Options:
 -h|--help:

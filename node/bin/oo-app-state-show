@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-app-state-show: Returns the application state on the gear. 
+#{$0}: Returns the application state on the gear.
   This command must be run as root.
 
 == Usage
 
-oo-app-state-show  --with-app-uuid APP_UUID \\
+#{$0}  --with-app-uuid APP_UUID \\
                    --with-container-uuid UUID
 
 Options:

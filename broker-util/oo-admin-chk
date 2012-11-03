@@ -24,11 +24,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-admin-chk: Check all user applications
+#{$0}: Check all user applications
 
 == Usage
 
-oo-admin-chk OPTIONS
+#{$0} OPTIONS
 
 Options:
 -v|--verbose

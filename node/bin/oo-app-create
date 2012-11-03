@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-app-create: Creates a new application container. 
+#{$0}: Creates a new application container.
   This command must be run as root.
 
 == Usage
 
-oo-app-create   --with-app-uuid e335712492e011e1bae700262df50034 \\
+#{$0}   --with-app-uuid e335712492e011e1bae700262df50034 \\
                 --with-container-uuid 1c3a5f7a92e111e188d800262df50034 \\
                 --with-namespace mydomain \\
                 --with-app-name myapp
