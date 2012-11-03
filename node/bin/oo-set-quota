@@ -8,11 +8,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-set-quota: Sets the quota for a gear.
+#{$0}: Sets the quota for a gear.
 
 == Usage
 
-oo-set-quota -c <UUID> -b <BLOCKS> -i <INODES>
+#{$0} -c <UUID> -b <BLOCKS> -i <INODES>
 
 Options:
 -h|--help:

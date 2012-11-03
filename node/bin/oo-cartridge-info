@@ -19,11 +19,11 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-cartridge-info: Gets the descriptor for a given cartridge name
+#{$0}: Gets the descriptor for a given cartridge name
 
 == Usage
 
-oo-cartridge-info [CART]
+#{$0} [CART]
 
 Options:
 -h|--help:

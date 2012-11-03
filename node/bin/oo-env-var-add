@@ -19,12 +19,12 @@ def usage
     puts <<USAGE
 == Synopsis
 
-oo-env-var-add: Adds an environment var to the app. 
+#{$0}: Adds an environment var to the app.
   This command must be run as root.
 
 == Usage
 
-oo-env-var-add  --with-app-uuid APP_UUID \\
+#{$0}  --with-app-uuid APP_UUID \\
                 --with-container-uuid UUID \\
                 --with-key KEY \\
                 --with-value VALUE

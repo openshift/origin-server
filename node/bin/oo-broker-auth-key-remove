@@ -23,7 +23,7 @@ def usage
 
 == Usage
 
-oo-broker-auth-key-remove  --with-app-uuid APP_UUID --with-container-uuid UUID
+#{$0}  --with-app-uuid APP_UUID --with-container-uuid UUID
 
 Options:
 -h|--help:
