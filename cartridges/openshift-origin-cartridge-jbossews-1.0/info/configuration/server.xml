@@ -129,7 +129,7 @@
            NOTE: For building this application with Jenkins in OpenShift unpackWARs needs to be false
        -->
       <Host name="localhost"  appBase="webapps"
-            unpackWARs="true" autoDeploy="true"
+            unpackWARs="false" autoDeploy="true"
             xmlValidation="false" xmlNamespaceAware="false">
 
         <!-- SingleSignOn valve, share authentication between web applications
