@@ -126,6 +126,7 @@
 
       <!-- Define the default virtual host
            Note: XML Schema validation will not work with Xerces 2.2.
+           NOTE: For building this application with Jenkins in OpenShift unpackWARs needs to be false
        -->
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true"
