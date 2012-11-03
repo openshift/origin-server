@@ -716,6 +716,10 @@ module OpenShift
     # @param [Integer] The user ID
     # @return [String] The SELinux MCS label
     def get_mcs_label(uid)
+      if ((uid.to_i < 0) || (uid.to_i>523776))
+        raise ArgumentError, "Supplied UID must be between 0 and 523776."
+      end
+
       setsize=1023
       tier=setsize
       ord=uid.to_i
