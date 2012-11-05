@@ -84,6 +84,17 @@ ln -sf /etc/httpd/conf/magic %{buildroot}%{consoledir}/httpd/conf/magic
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%preun
+if [ "$1" -eq "0" ]; then
+%if %{with_systemd}
+   /bin/systemctl --no-reload disable openshift-console.service
+   /bin/systemctl stop openshift-console.service
+%else
+   /sbin/service openshift-console stop || :
+   /sbin/chkconfig --del openshift-console || :
+%endif
+fi
+
 %files
 %defattr(0640,apache,apache,0750)
 %attr(0750,apache,apache) %{consoledir}/script
@@ -108,8 +119,11 @@ rm -rf $RPM_BUILD_ROOT
 /bin/touch %{consoledir}/httpd/logs/access_log
 
 %if %{with_systemd}
-systemctl --system daemon-reload
-# if under sysv, hopefully we don't need to reload anything
+/bin/systemctl --system daemon-reload
+/bin/systemctl try-restart openshift-console.service
+%else
+/sbin/chkconfig --add openshift-console || :
+/sbin/service openshift-console condrestart || :
 %endif
 
 #selinux updated
@@ -118,6 +132,7 @@ boolean -m --on httpd_can_network_connect
 boolean -m --on httpd_can_network_relay
 boolean -m --on httpd_read_user_content
 boolean -m --on httpd_enable_homedirs
+boolean -m --on httpd_execmem
 fcontext -a -t httpd_var_run_t '%{consoledir}/httpd/run(/.*)?'
 fcontext -a -t httpd_log_t '%{consoledir}/httpd/logs(/.*)?'
 _EOF
