@@ -16,25 +16,35 @@
 #++
 
 # Script to detect whether the app has not been accessed
-# for the specified number of hours
+# for the specified number of days
+#
+# exit status
+# when 0: gear has not been access in $1 days
+#         -OR- gear has never been accessed
+# when 1: exception occurred
+# when 5: gear has been active within $1 days
+
 require 'date'
 
 OPENSHIFT_GEAR_UUID = ARGV[0]
-IDLE_FOR = ARGV[1].to_i
+IDLE_FOR = ARGV[1].to_i * 24
 LAST_ACCESS_DIR = '/var/lib/openshift/.last_access'
 
-file_path = "#{LAST_ACCESS_DIR}/#{OPENSHIFT_GEAR_UUID}"
-exit 6 unless File.exists?(file_path)
-
-File.open(file_path, 'r') do |file|
-  last_access_time = file.read
-  d1 = DateTime.strptime(last_access_time, "%d/%b/%Y:%H:%M:%S %Z")
-  d2 = DateTime.now
-  hours,minutes,seconds,frac = Date.day_fraction_to_time(d2 - d1)
-  if hours >= IDLE_FOR * 24
-    exit 0
-  else
-    # We return 5 since 1 is returned on exceptions
-    exit 5
+file_path = File.join(LAST_ACCESS_DIR, OPENSHIFT_GEAR_UUID)
+if File.exists?(file_path)
+  File.open(file_path, 'r') do |file|
+    last_access_time = file.read
+    d1 = DateTime.strptime(last_access_time, "%d/%b/%Y:%H:%M:%S %Z")
+    d2 = DateTime.now
+    hours,minutes,seconds,frac = Date.day_fraction_to_time(d2 - d1)
+    if hours >= IDLE_FOR
+      exit 0
+    else
+      # We return 5 since 1 is returned on exceptions
+      exit 5
+    end
   end
+else
+  # If application has yet to be accessed, it's "idle"
+  exit 0
 end
