@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding from internal to external port
 Name:          openshift-origin-port-proxy
-Version: 1.0.1
+Version: 1.1.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
