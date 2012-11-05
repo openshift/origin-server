@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-controller.spec openshift-origin-controller.gemspec LICENSE COPYRIGHT)
   s.require_paths = ["lib"]
 
-  s.add_dependency "activesupport", "~> 3.0.13"
+  s.add_dependency "activesupport", "~> 3.2.8"
   s.add_dependency "mongo"
   s.add_dependency "openshift-origin-common"
   s.add_dependency('state_machine')
@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')
   s.add_development_dependency('mocha')
-  s.add_development_dependency('rcov')
   s.add_development_dependency('cucumber')
   s.add_development_dependency('dnsruby')
   s.add_development_dependency('open4')
