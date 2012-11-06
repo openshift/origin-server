@@ -148,6 +148,8 @@ module OpenShift
   # NOTE: Instantiating the TestGear is not enough for it to be used; make
   # sure to call TestGear.create before performing cartridge operations.
   class TestGear
+    include CommandHelper
+    
     attr_reader :uuid, :carts, :app, :container
 
     def initialize(app)
@@ -166,21 +168,30 @@ module OpenShift
     # cartridge operations.
     def create()
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
-
-      begin
-        @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
-        @container.create
-      rescue => e
-        $logger.error(e.message)
-        $logger.error(e.backtrace.join("\n"))
-        raise e
+      
+      outbuf = []
+      cmd = "oo-app-create -a #{@app.uuid} -c #{@uuid} --with-app-name #{@app.name} --with-namespace #{@app.account.domain}"
+      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
+      if exit_code != 0
+        $logger.error(outbuf)
+        raise Exception.new(outbuf)
       end
+
+      # Create the container object for use in the event listener later
+      @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
     end
 
     # Destroys the gear via ApplicationContainer
     def destroy()
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
-      @container.destroy
+
+      outbuf = []
+      cmd = "oo-app-destroy -a #{@app.uuid} -c #{@uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}"
+      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
+      if exit_code != 0
+        $logger.error(outbuf)
+        raise Exception.new(outbuf)
+      end
     end
 
     # Creates a new TestCartridge and associates it with this gear.
