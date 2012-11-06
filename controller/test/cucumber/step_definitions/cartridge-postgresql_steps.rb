@@ -1,6 +1,6 @@
 # step descriptions for PostgreSQL cartridge behavior.
 
-require 'postgres'
+require 'pg'
 require 'fileutils'
 
 
