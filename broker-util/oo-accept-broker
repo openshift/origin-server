@@ -448,7 +448,8 @@ function check_datastore_mongo() {
         fi
 
         # check service enabled
-	if (service mongod status 2>/dev/null | grep enabled 2>&1 >/dev/null)
+	if (service mongod status 2>/dev/null | grep enabled 2>&1 >/dev/null \
+            || chkconfig --list 2>/dev/null | grep '^mongod.*2:on.*3:on.*4:on.*5:on' 2>&1 >/dev/null)
         then
 	    verbose "LOCAL: mongod service enabled"
         else
@@ -456,7 +457,7 @@ function check_datastore_mongo() {
         fi
 
         # check service started
-	if (service mongod status 2>/dev/null | grep 'active (running)' 2>&1 >/dev/null)
+	if (service mongod status 2>/dev/null | grep 'running' 2>&1 >/dev/null)
         then
 	    verbose "LOCAL: mongod service running"
         else
