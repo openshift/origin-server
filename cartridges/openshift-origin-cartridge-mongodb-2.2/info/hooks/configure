@@ -39,12 +39,6 @@ source ${CART_INFO_DIR}/lib/util
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 source_if_exists "$APP_HOME/.env/OPENSHIFT_HOMEDIR"
 
-databases=$(get_local_databases)
-if [ -n "$databases" ]; then
-    client_error "Only 1 embedded database permitted - application currently has '$databases'"
-    exit 132
-fi
-
 create_cartridge_instance_dir "$cartridge_type"
 
 # This gear is dedicated to running mongodb - configure it as such.
