@@ -17,7 +17,7 @@ BuildArch: noarch
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: openshift-origin-cartridge-abstract
+Requires: openshift-origin-cartridge-abstract-jboss
 Requires: rubygem(openshift-origin-node)
 Requires: jbossas-appclient
 Requires: jbossas-bundles
