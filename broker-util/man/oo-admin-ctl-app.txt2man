@@ -6,14 +6,14 @@ SYNOPSIS
   [-a|--app app_name] [-c|--command cmd] [-b|--bypass]
 
 DESCRIPTION
-  Control user applicationsin OpenShift Origin.  
+  oo-admin-ctl-app may be used to control and check the status of the OpenShift Origin hosted applications
 
 OPTIONS
   -h|--help  
     Display a simple help dialog.
 
   -l|--rhlogin rh_login  
-    Red Hat longin, RHN or OpenShift login with OpenShift access. Required.
+    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
 
   -a|--app app_name  
     Application name, alphanumeric. Required.
