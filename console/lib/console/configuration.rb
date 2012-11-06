@@ -42,7 +42,7 @@ module Console
       },
       :local => {
         :url => 'https://localhost/broker/rest',
-        :suffix => 'dev.rhcloud.com'
+        :suffix => 'rhcloud.com'
       }
     }
     Builtin.freeze
