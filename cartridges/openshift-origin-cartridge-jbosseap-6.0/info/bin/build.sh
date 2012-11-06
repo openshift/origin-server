@@ -96,24 +96,40 @@ then
 
     if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
     then
-        echo "Found pom.xml... attempting to build with 'mvn -e clean package -Popenshift -DskipTests'"
         if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
-    then
-      export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
-    else
+        then
+           export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+        else
           export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
         fi
+        
         export M2_HOME=/etc/alternatives/maven-3.0
         export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
         export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
         pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+        
+        if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbosseap-6.0" ]
+        then
+           echo "Sourcing pre_build_jbosseap-6.0" 1>&2
+           source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbosseap-6.0
+        fi
+        
+        if [ -z "$MAVEN_OPTS" ]; then
+        	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+        fi
+        if [ -z "$MAVEN_ARGS" ]; then
+		    export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+        fi
+        
+        echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
+        
         if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]
         then
             mvn --global-settings $OPENSHIFT_MAVEN_MIRROR --version
-            mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTests
+            mvn --global-settings $OPENSHIFT_MAVEN_MIRROR $MAVEN_ARGS
         else
             mvn --version
-            mvn clean package -Popenshift -DskipTests
+            mvn $MAVEN_ARGS
         fi
         popd > /dev/null
     fi
