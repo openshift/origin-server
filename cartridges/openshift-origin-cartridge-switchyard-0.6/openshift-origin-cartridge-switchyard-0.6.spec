@@ -1,10 +1,10 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/switchyard-0.6
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
-Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 1.0.0
+Name: openshift-origin-cartridge-switchyard-0.6
+Version: 1.0.1
 Release: 1%{?dist}
-Summary: Embedded jenkins client support for express 
+Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
 License: ASL 2.0
 URL: https://openshift.redhat.com
@@ -37,11 +37,17 @@ Provides embedded switchyard support for JBoss cartridges
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp LICENSE %{buildroot}%{cartridgedir}/
-cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
+cp LICENSE %{buildroot}%{cartridgedir}/
+cp COPYRIGHT %{buildroot}%{cartridgedir}/
+
+%post
+
+alternatives --remove switchyard-0.6 /usr/share/switchyard
+alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0.6 /usr/share/switchyard 102
+alternatives --set switchyard-0.6 /usr/share/switchyard
 
 
 %clean
@@ -56,13 +62,14 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/%{name}
-%{cartridgedir}/info/changelog
-%{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 
 
 %changelog
+* Wed Nov 07 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
+- new package built with tito
+
 * Tue Nov 06 2012 William DeCoste <wdecoste@redhat.com> 
 - initial
