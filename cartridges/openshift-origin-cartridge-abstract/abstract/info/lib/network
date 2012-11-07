@@ -7,6 +7,11 @@ LI_CONTROLLER_LIB_NETWORK=true
 function address() {
     # uid=$1
     # final=$2
+    if [ $uid -lt 0 -o $uid -gt 262143 ]
+    then
+        echo "The UID is outside our working range: $uid" 1>&2
+        exit 5
+    fi
     printf "0x%08x\n" "$((0x7f000000 + $(($1<<7)) + $2))"
 }
 

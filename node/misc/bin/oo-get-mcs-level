@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function usage() {
-    echo "Usage: $0 [uid]"  >&2
+    echo "Usage: $0 [uid: 1-523776]"  >&2
     exit 1
 }
 
@@ -24,5 +24,6 @@ function get_mcs_level() {
 
 
 trap usage ERR
-test "$1" -gt 0 &>/dev/null
+test "$1" -ge 1 &>/dev/null
+test "$1" -le 523776 &>/dev/null
 get_mcs_level "$1"
