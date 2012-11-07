@@ -2,23 +2,47 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.1.1
+Version:   1.1.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-origin-cartridge-abstract-%{version}.tar.gz
-
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-
+Source0:   http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
-Requires: git
-Requires: make
-Requires: mod_ssl
+
+Requires:  facter
+Requires:  git
+Requires:  make
+Requires:  mod_ssl
+# abstract/info/connection-hooks/publish-http-url
+Requires:  python
+# abstract/info/bin/jenkins_build
+Requires:  ruby
+Requires:  rubygems
+Requires:  rubygem(json)
+# abstract/info/bin/open_ports.sh
+Requires:  socat
+# abstract/info/bin/nurture_app_push.sh
+Requires:  curl
+# abstract/info/bin/sync_gears.sh
+Requires:  rsync
+# abstract/info/lib/network
+Requires:  lsof
+
 Obsoletes: stickshift-abstract
 
 %description
 This contains the common function used while building cartridges.
+
+%package   jboss
+Summary:   OpenShift common jboss cartridge components
+Requires:  %{name} = %{version}
+# abstract-jboss/info/bin/build.sh
+Requires:  /usr/bin/mvn
+
+%description jboss
+This contains the common function used while building 
+openshift jboss cartridges.
 
 %prep
 %setup -q
@@ -31,43 +55,33 @@ mkdir -p %{buildroot}%{cartdir}
 cp -rv abstract %{buildroot}%{cartdir}/
 cp -rv abstract-httpd %{buildroot}%{cartdir}/
 cp -rv abstract-jboss %{buildroot}%{cartdir}/
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract-httpd
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-httpd
-cp -rv LICENSE %{buildroot}%{cartdir}/abstract-jboss
-cp -rv COPYRIGHT %{buildroot}%{cartdir}/abstract-jboss
 
-%clean
-rm -rf $RPM_BUILD_ROOT
+# Remove bundled library
+rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 
 %files
-%defattr(-,root,root,-)
+%doc COPYRIGHT LICENSE
+%dir %{_libexecdir}/openshift/
+%dir %{_libexecdir}/openshift/cartridges/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-httpd/
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/bin/
-#%{_libexecdir}/openshift/cartridges/abstract-httpd/info
-%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-jboss/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
-%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
-#%{_libexecdir}/openshift/cartridges/abstract-jboss/info
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/info/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/bin/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/lib/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/connection-hooks/
-%{_libexecdir}/openshift/cartridges/abstract/info
-%doc %{_libexecdir}/openshift/cartridges/abstract/COPYRIGHT
-%doc %{_libexecdir}/openshift/cartridges/abstract/LICENSE
-%doc %{_libexecdir}/openshift/cartridges/abstract-httpd/COPYRIGHT
-%doc %{_libexecdir}/openshift/cartridges/abstract-httpd/LICENSE
-%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/COPYRIGHT
-%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/LICENSE
 
-
-%post
+%files jboss
+%doc COPYRIGHT LICENSE
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-jboss/
+%dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
