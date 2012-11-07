@@ -1,39 +1,31 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/cron-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/cron-1.4
 
-
-Name: openshift-origin-cartridge-cron-1.4
-Version: 1.1.0
-Release: 1%{?dist}
-Summary: Embedded cron support for express
-
-Group: Network/Daemons
-License: ASL 2.0
-URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Summary:   Embedded cron support for express
+Name:      openshift-origin-cartridge-cron-1.4
+Version:   1.1.0
+Release:   1%{?dist}
+Group:     Network/Daemons
+License:   ASL 2.0
+URL:       http://openshift.redhat.com
+Source0:   http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
 
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: cronie
-Requires: crontabs
+Requires:  openshift-origin-cartridge-abstract
+Requires:  rubygem(openshift-origin-node)
+Requires:  cronie
+Requires:  crontabs
 Obsoletes: cartridge-cron-1.4
 
 %description
-Provides rhc cron cartridge support
-
+Provides OpenShift cron cartridge support
 
 %prep
 %setup -q
 
-
 %build
 
-
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.d
@@ -42,11 +34,9 @@ mkdir -p %{buildroot}/%{_sysconfdir}/cron.hourly
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.daily
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.weekly
 mkdir -p %{buildroot}/%{_sysconfdir}/cron.monthly
-cp jobs/1minutely %{buildroot}/%{_sysconfdir}/cron.d
-cp -r info %{buildroot}%{cartridgedir}/
-cp -r jobs %{buildroot}%{cartridgedir}/
-cp LICENSE %{buildroot}%{cartridgedir}/
-cp COPYRIGHT %{buildroot}%{cartridgedir}/
+cp -p jobs/1minutely %{buildroot}/%{_sysconfdir}/cron.d
+cp -rp info %{buildroot}%{cartridgedir}/
+cp -rp jobs %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir}/jobs/openshift-origin-cron-minutely %{buildroot}/%{_sysconfdir}/cron.minutely/
@@ -55,24 +45,25 @@ ln -s %{cartridgedir}/jobs/openshift-origin-cron-daily %{buildroot}/%{_sysconfdi
 ln -s %{cartridgedir}/jobs/openshift-origin-cron-weekly %{buildroot}/%{_sysconfdir}/cron.weekly/
 ln -s %{cartridgedir}/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconfdir}/cron.monthly/
 
-
 %post
-service crond restart || :
-
-
-%clean
-rm -rf %{buildroot}
-
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+  systemctl restart  crond.service || :
+%else
+  service crond restart || :
+%endif
 
 %files
-%defattr(-,root,root,-)
+%doc COPYRIGHT LICENSE
+%dir %{cartridgedir}
+%dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{cartridgedir}/jobs/
 %attr(0755,-,-) %{frameworkdir}
-%attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
+%dir %{_sysconfdir}/cron.minutely
+%config(noreplace) %attr(0644,-,-) %{_sysconfdir}/cron.d/1minutely
 %attr(0755,-,-) %{_sysconfdir}/cron.minutely/openshift-origin-cron-minutely
 %attr(0755,-,-) %{_sysconfdir}/cron.hourly/openshift-origin-cron-hourly
 %attr(0755,-,-) %{_sysconfdir}/cron.daily/openshift-origin-cron-daily
@@ -82,9 +73,6 @@ rm -rf %{buildroot}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
-%doc %{cartridgedir}/COPYRIGHT
-%doc %{cartridgedir}/LICENSE
-
 
 %changelog
 * Tue Oct 30 2012 Adam Miller <admiller@redhat.com> 1.0.1-1
