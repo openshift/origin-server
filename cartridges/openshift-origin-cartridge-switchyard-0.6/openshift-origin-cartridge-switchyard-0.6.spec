@@ -36,12 +36,13 @@ Provides embedded switchyard support for JBoss cartridges
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
+mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
+cp LICENSE %{buildroot}%{cartridgedir}/
+cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
-cp LICENSE %{buildroot}%{cartridgedir}/
-cp COPYRIGHT %{buildroot}%{cartridgedir}/
 
 %post
 
@@ -58,7 +59,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/build/
-%config(noreplace) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/%{name}
@@ -68,6 +68,21 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.6-1
+- 
+
+* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.5-1
+- 
+
+* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.4-1
+- 
+
+* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.3-1
+- 
+
+* Wed Nov 07 2012 William DeCoste <wdecoste@redhat.com> 1.0.2-1
+- updated spec
+
 * Wed Nov 07 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
 - new package built with tito
 
