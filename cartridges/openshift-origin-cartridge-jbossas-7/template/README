@@ -13,6 +13,7 @@ pom.xml - Maven build file
 .openshift/action_hooks/post_start_jbossas-7 - Script that gets run after AS7 is started
 .openshift/action_hooks/pre_stop_jbossas-7 - Script that gets run prior to stopping AS7
 .openshift/action_hooks/post_stop_jbossas-7 - Script that gets run after AS7 is stopped
+.openshift/markers - directory for files used to control application behavior. See README in markers directory
 
 
 Notes about layout
