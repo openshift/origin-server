@@ -68,21 +68,6 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.6-1
-- 
-
-* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.5-1
-- 
-
-* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.4-1
-- 
-
-* Wed Nov 07 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.3-1
-- 
-
-* Wed Nov 07 2012 William DeCoste <wdecoste@redhat.com> 1.0.2-1
-- updated spec
-
 * Wed Nov 07 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
 - new package built with tito
 
