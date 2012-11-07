@@ -154,6 +154,9 @@ pam_sm_setcred(pam_handle_t *pamh UNUSED, int flags UNUSED,
 }
 
 static void get_mcs_level(int uid, security_context_t *scon) {
+        if ((uid < 1) || (uid >523776)) {
+          return;
+        }
 	int SETSIZE = 1023;
 	int TIER = SETSIZE;
 
