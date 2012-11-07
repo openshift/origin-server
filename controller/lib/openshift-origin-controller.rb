@@ -2,7 +2,7 @@ require "openshift-origin-common"
 
 module OpenShift
   module Controller
-    require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'controller_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 

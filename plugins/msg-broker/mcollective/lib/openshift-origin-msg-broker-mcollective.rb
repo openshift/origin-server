@@ -2,7 +2,7 @@ require "openshift-origin-common"
 
 module OpenShift
   module McollectiveMsgBrokerModule
-    require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'mcollective_msg_brojer_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 

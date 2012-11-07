@@ -1,6 +1,6 @@
 module OpenShift
   module MongoAuthServiceModule
-    require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'mongo_auth_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 

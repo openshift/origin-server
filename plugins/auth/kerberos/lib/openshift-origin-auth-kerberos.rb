@@ -1,6 +1,6 @@
 module OpenShift
   module KerberosAuthServiceModule
-    require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'kerberos_auth_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 

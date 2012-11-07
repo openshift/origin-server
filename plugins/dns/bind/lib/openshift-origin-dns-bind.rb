@@ -2,7 +2,7 @@ require "openshift-origin-common"
 
 module OpenShift
   module BindDnsModule
-    require 'engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+    require 'bind_dns_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
   end
 end
 

@@ -1053,7 +1053,7 @@ module OpenShift
         rpc_client = rpc_exec_direct('openshift')
         result = nil
         begin
-          Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district', #{mc_args.inspect}, @id, {'identity' => #{@id}})"
+          Rails.logger.debug "DEBUG: rpc_client.custom_request('set_district', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
           result = rpc_client.custom_request('set_district', mc_args, @id, {'identity' => @id})
           Rails.logger.debug "DEBUG: #{result.inspect}"
         ensure
@@ -1150,7 +1150,7 @@ module OpenShift
           rpc_client = rpc_exec_direct('openshift')
           result = nil
           begin
-            Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, @id, {'identity' => @id})"
+            Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
             result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
             Rails.logger.debug "DEBUG: #{result.inspect}" if log_debug_output
           ensure
