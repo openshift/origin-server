@@ -1,23 +1,19 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/diy-0.1
 
-Summary:   Provides diy support
-Name:      openshift-origin-cartridge-diy-0.1
-Version: 1.1.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
-BuildArch: noarch
-
+Summary:       Provides diy support
+Name:          openshift-origin-cartridge-diy-0.1
+Version:       1.1.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+BuildArch:     noarch
 BuildRequires: git
-
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: httpd
-Obsoletes: cartridge-diy-0.1
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      httpd
+Obsoletes:     cartridge-diy-0.1
 
 %description
 Provides diy support to OpenShift
@@ -29,7 +25,7 @@ Provides diy support to OpenShift
 
 %build
 rm -rf git_template
-cp -r template/ git_template/
+cp -rp template/ git_template/
 cd git_template
 git init
 git add -f .
@@ -43,15 +39,12 @@ touch git_template.git/refs/heads/.gitignore
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
-cp -r info %{buildroot}%{cartridgedir}/
-cp LICENSE %{buildroot}%{cartridgedir}/
-cp COPYRIGHT %{buildroot}%{cartridgedir}/
-cp -r git_template.git %{buildroot}%{cartridgedir}/info/data/
+cp -rp info %{buildroot}%{cartridgedir}/
+cp -rp git_template.git %{buildroot}%{cartridgedir}/info/data/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
 ln -s %{cartridgedir}/../abstract/info/hooks/add-module %{buildroot}%{cartridgedir}/info/hooks/add-module
 ln -s %{cartridgedir}/../abstract/info/hooks/info %{buildroot}%{cartridgedir}/info/hooks/info
@@ -82,13 +75,10 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-nosql-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
-
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
+%doc COPYRIGHT LICENSE
+%dir %{cartridgedir}
+%dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
@@ -99,8 +89,6 @@ rm -rf %{buildroot}
 %{cartridgedir}/info/changelog
 %{cartridgedir}/info/control
 %{cartridgedir}/info/manifest.yml
-%doc %{cartridgedir}/COPYRIGHT
-%doc %{cartridgedir}/LICENSE
 
 
 %changelog
