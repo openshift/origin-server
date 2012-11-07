@@ -2,7 +2,7 @@
 Feature: Cartridge Runtime Extended Checks (Database)
 
   @runtime_extended2
-  Scenario Outline: Embed and then unembed database cartridges
+  Scenario Outline: Embed and then remove database cartridges
     Given a new <app_type> type application
     
     When I embed a <db_cart_type> cartridge into the application
@@ -26,7 +26,7 @@ Feature: Cartridge Runtime Extended Checks (Database)
 
   @runtime_extended2
   @not-origin
-  Scenario Outline: Embed and then unembed database cartridges
+  Scenario Outline: Embed and then remove database cartridges
     Given a new <app_type> type application
     
     When I embed a <db_cart_type> cartridge into the application
@@ -46,3 +46,16 @@ Feature: Cartridge Runtime Extended Checks (Database)
   Scenarios: Embed/Unembed database cartridge scenarios
     | app_type  | db_cart_type    | db_proc   | db_name     |
     | php-5.3   | postgresql-8.4  | postgres  | postgresql  |
+
+  @runtime_extended2
+  Scenario: Embed all databases into one cartridges
+    Given a new php-5.3 type application
+    When I embed a mysql-5.1 cartridge into the application
+    And I embed a postgresql-8.4 cartridge into the application
+    And I embed a mongodb-2.2 cartridge into the application
+    Then a mysqld process will be running
+    And the embedded mysql-5.1 cartridge directory will exist
+    And a postgres process will be running
+    And the embedded postgresql-8.4 cartridge directory will exist
+    And a mongod process will be running
+    And the embedded mongodb-2.2 cartridge directory will exist
