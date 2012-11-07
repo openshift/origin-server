@@ -56,6 +56,9 @@ if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
     rm -rf "${OPENSHIFT_REPO_DIR}"node_modules/*
 fi
 
+#  Newer versions of Node set tmp to $HOME/tmp, so change tmpdir to /tmp.
+npm config set tmp /tmp
+
 if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
     mods=$(perl -ne 'print if /^\s*[^#\s]/' "${OPENSHIFT_REPO_DIR}"/deplist.txt)
     [ -n "$mods" ]  &&  print_deprecation_warning
