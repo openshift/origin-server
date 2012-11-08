@@ -199,9 +199,10 @@ module OpenShift
         path = File.join(basedir, ".httpd.d", "#{uuid}_*")
         FileUtils.rm_rf(Dir.glob(path))
 
-        cartdir = @config.get("CARTRIDGE_BASE_PATH")
-        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
-        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+# Lock inside httpd_singular causing gear destroys to fail. BZ874712
+#        cartdir = @config.get("CARTRIDGE_BASE_PATH")
+#        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
+#        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
 
         dirs = list_home_dir(@homedir)
         out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
