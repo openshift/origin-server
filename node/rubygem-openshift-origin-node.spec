@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 1.1.1
+Version: 1.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -167,6 +167,18 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #851 from brenton/no_trace (openshift+bot@redhat.com)
+- BZ873970, BZ873966 - disabling HTTP TRACE for the Broker, Nodes and Console
+  (bleanhar@redhat.com)
+- Increase the table sizes to cover 15000 nodes in dev and prod.
+  (rmillner@redhat.com)
+- BZ872523 - set quota for gear failed if the device name is too long
+  (bleanhar@redhat.com)
+- Merge pull request #698 from mscherer/fix_doc_node_bin
+  (openshift+bot@redhat.com)
+- do not use old name in the script help message (mscherer@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 
