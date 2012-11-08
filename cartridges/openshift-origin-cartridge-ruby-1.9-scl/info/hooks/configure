@@ -89,15 +89,7 @@ create_standard_env_uservars
 
 observe_setup_env_uservars_dir
 
-# Setup PATH, LD_LIBRARY_PATH and MANPATH for ruby-1.9
-ruby19_dir=$(dirname `scl enable ruby193 "which ruby"`)
-sed -i "s#export \s*PATH=#export PATH=$ruby19_dir:#" $APP_HOME/.env/PATH
-
-ruby19_ld_libs=$(scl enable ruby193 "printenv LD_LIBRARY_PATH")
-echo "export LD_LIBRARY_PATH=$ruby19_ld_libs" > $APP_HOME/.env/LD_LIBRARY_PATH
-
-ruby19_manpath=$(scl enable ruby193 "printenv MANPATH")
-echo "export MANPATH=$ruby19_manpath" > $APP_HOME/.env/MANPATH
+setup_ruby193_scl_path
 
 if [ ! -d $git_url ]; then
     #

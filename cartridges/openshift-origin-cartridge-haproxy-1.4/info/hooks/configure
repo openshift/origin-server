@@ -103,6 +103,8 @@ observe_setup_cart_instance_dir
 # Alter PATH so that the haproxy app_ctl.sh script is called.
 sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
+setup_ruby193_scl_path
+
 #
 # Start the server
 #
