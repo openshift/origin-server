@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.1.2
+Version: 1.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,18 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #845 from brenton/BZ873992-origin
+  (openshift+bot@redhat.com)
+- Merge pull request #844 from jwhonce/dev/bz873810 (openshift+bot@redhat.com)
+- Bug 873992 - [onpremise][Client]Should delete all the prompts about
+  mongodb-2.2 cartridge. (bleanhar@redhat.com)
+- Merge pull request #839 from pravisankar/dev/ravi/fix-env-controller-auth
+  (openshift+bot@redhat.com)
+- Disable auth for environment controller (rpenta@redhat.com)
+- Fix for Bug 873810 (jhonce@redhat.com)
+- fixing origin tests (abhgupta@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #815 from pravisankar/dev/ravi/fix_nameserver_resolver
   (openshift+bot@redhat.com)
