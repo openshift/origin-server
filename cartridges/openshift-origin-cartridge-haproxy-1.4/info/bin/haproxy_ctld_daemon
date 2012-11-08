@@ -1,5 +1,5 @@
-#!/usr/bin/ruby
-#
+#!/usr/bin/env ruby
+
 require 'rubygems'
 require 'daemons'
 require 'openshift-origin-node'
