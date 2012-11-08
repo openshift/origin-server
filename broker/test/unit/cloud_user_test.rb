@@ -23,7 +23,7 @@ class CloudUserTest < ActiveSupport::TestCase
     invalid_chars.length.times do |i|
       user = CloudUser.new("test#{invalid_chars[i].chr}login", "ssh", nil, "namespace")
       assert user.invalid?
-      assert 107, user.errors[:login][0][:exit_code]
+      assert_equal 107, user.errors[:login][0][:exit_code]
     end
     
     user = CloudUser.new("kraman@redhat.com", "ssh", nil, "namespace")
@@ -35,7 +35,7 @@ class CloudUserTest < ActiveSupport::TestCase
     invalid_chars.length.times do |i|
       user = CloudUser.new("kraman@redhat.com", "ssh#{invalid_chars[i].chr}key", nil, "namespace")
       assert user.invalid?
-      assert 108, user.errors[:ssh_keys][0][:exit_code]
+      assert_equal 108, user.errors[:ssh_keys][0][:exit_code]
     end
     
     user = CloudUser.new("kraman@redhat.com", "ABCdef012+/=", nil, "namespace")
