@@ -51,7 +51,7 @@ class Application < OpenShift::Cartridge
   # @param [optional, String] uuid Unique identifier for the application
   # @param [deprecated, String] node_profile Node profile for the first application gear
   # @param [deprecated, String] framework Cartridge name to use as the framwwork of the application
-  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil)
+  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil, other_cartridges=nil, init_git_url=nil)
     self.user = user
     self.domain = domain
     self.node_profile = node_profile
@@ -61,15 +61,23 @@ class Application < OpenShift::Cartridge
     self.ngears = 0
     
     if template.nil?
+      Rails.logger.debug "framework: #{framework} other_cartridges:#{other_cartridges}"
       if self.scalable
         descriptor_hash = YAML.load(template_scalable_app(app_name, framework))
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
+        other_cartridges.each do |cart|
+          self.requires_feature << cart
+        end unless other_cartridges.nil?
       else
         from_descriptor({"Name"=>app_name})
         self.requires_feature = []
-        self.requires_feature << framework unless framework.nil?      
+        self.requires_feature << framework unless framework.nil? 
+        other_cartridges.each do |cart|
+          self.requires_feature << cart
+        end unless other_cartridges.nil?
       end
+      @init_git_url = init_git_url unless init_git_url.nil?
     else
       template_descriptor = YAML.load(template.descriptor_yaml)
       template_descriptor["Name"] = app_name

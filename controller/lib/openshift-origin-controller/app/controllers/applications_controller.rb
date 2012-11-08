@@ -17,8 +17,10 @@ class ApplicationsController < BaseController
       if application.domain.uuid = domain.uuid
         if $requested_api_version == 1.0
           app = RestApplication10.new(application, get_url, nolinks)
-        else
+        elsif $requested_api_version < 1.3
           app = RestApplication12.new(application, get_url, nolinks)
+        else
+          app = RestApplication.new(application, get_url, nolinks)
         end
         apps.push(app)
       end
@@ -40,8 +42,10 @@ class ApplicationsController < BaseController
                         "SHOW_APPLICATION") if !application or application.domain.uuid != domain.uuid
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
-    else
+    elsif $requested_api_version < 1.3
       app = RestApplication12.new(application, get_url, nolinks)
+    else
+      app = RestApplication.new(application, get_url, nolinks)
     end
     render_success(:ok, "application", app, "SHOW_APPLICATION", "Application '#{id}' found")
   end
@@ -50,9 +54,9 @@ class ApplicationsController < BaseController
   def create
     domain_id = params[:domain_id]
     app_name = params[:name]
-    cartridge = params[:cartridge]
+    cartridges = params[:cartridges] || params[:cartridge]
     scale = get_bool(params[:scale])
-    
+    init_git_url = params[:init_git_url]
     template_id = params[:template]
     node_profile = params[:gear_profile]
     node_profile.downcase! if node_profile
@@ -79,12 +83,29 @@ class ApplicationsController < BaseController
                           "ADD_APPLICATION", "template") unless template
       application = Application.new(@cloud_user, app_name, nil, node_profile, nil, template, scale, domain)
     else
-      if !cartridge or not CartridgeCache.cartridge_names('standalone').include?(cartridge)
+      framework_cartridges = []
+      other_cartridges = []
+      Rails.logger.debug "Selected cartridges: #{cartridges.inspect}"
+      if !cartridges
         carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
-        return render_error(:unprocessable_entity, "Invalid cartridge #{cartridge}. Valid values are (#{carts.join(', ')})",
+        return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
                             109, "ADD_APPLICATION", "cartridge")
+      else
+        carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
+        cartridges.each do |cart|
+          framework_cartridges.push(cart) unless not carts.include?(cart)
+          other_cartridges.push(cart) unless carts.include?(cart)
+        end
+        if framework_cartridges.empty? or framework_cartridges.length > 1
+          return render_error(:unprocessable_entity, "You must specify one and only one web framework cartridge. Valid values are (#{carts.join(', ')})",
+                            109, "ADD_APPLICATION", "cartridge")
+        end
       end
-      application = Application.new(@cloud_user, app_name, nil, node_profile, cartridge, nil, scale, domain)
+      begin
+        application = Application.new(@cloud_user, app_name, nil, node_profile, framework_cartridges[0], nil, scale, domain, other_cartridges, init_git_url)
+      rescue Exception => e
+        return render_error(:internal_server_error, "Error returned from server #{e.message}", 1, "ADD_APPLICATION")
+      end
     end
 
     app_configure_reply = nil
@@ -121,8 +142,10 @@ class ApplicationsController < BaseController
 
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
-    else
+    elsif $requested_api_version < 1.3
       app = RestApplication12.new(application, get_url, nolinks)
+    else
+      app = RestApplication.new(application, get_url, nolinks)
     end
     messages = []
     log_msg = "Application #{application.name} was created."

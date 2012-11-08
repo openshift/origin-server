@@ -83,7 +83,12 @@ When /^I send a POST request to "([^\"]*)" with the following:"([^\"]*)"$/ do |p
   params = body.split("&")
   params.each do |param|
     key, value = param.split("=", 2)
-    payload[key] = value
+    if payload[key].nil?
+       payload[key] = value
+    else
+      values = [payload[key], value]
+      payload[key] = values.flatten
+    end
   end
   url = @base_url + path.to_s
   @request = RestClient::Request.new(:method => :post, :url => url,
