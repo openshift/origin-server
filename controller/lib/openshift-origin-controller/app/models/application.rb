@@ -1230,7 +1230,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     
     raise OpenShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep
     if self.scalable
-      raise OpenShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{SCALABLE_EMBEDDED_CARTS.join(',')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
+      allowed_cartridges = SCALABLE_EMBEDDED_CARTS & Application.get_available_cartridges.sort
+      raise OpenShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{allowed_cartridges.join(', ')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
     end
     add_to_requires_feature(dep)
     begin
