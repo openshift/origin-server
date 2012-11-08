@@ -8,7 +8,7 @@ set -e
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t openshift_origin_jenkins_client_configure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_switchyard_configure
     exit 1
 }
 
@@ -50,7 +50,13 @@ fi
 #
 if [ -f "$APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH" ]
 then
-	echo "export OPENSHIFT_JBOSSAS_MODULE_PATH='${OPENSHIFT_JBOSSAS_MODULE_PATH}:/usr/share/switchyard/modules'" > $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+	echo "export OPENSHIFT_JBOSSAS_MODULE_PATH='${OPENSHIFT_JBOSSAS_MODULE_PATH}:/etc/alternatives/switchyard-0.6/modules'" > $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
 else
-    echo "export OPENSHIFT_JBOSSAS_MODULE_PATH='/usr/share/switchyard/modules'" > $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+    echo "export OPENSHIFT_JBOSSAS_MODULE_PATH='/etc/alternatives/switchyard-0.6/modules'" > $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
 fi
+
+client_result ""
+client_result "SwitchYard 0.6 added."
+client_result ""
+
+cart_props "module_path=$OPENSHIFT_JBOSSAS_MODULE_PATH"
