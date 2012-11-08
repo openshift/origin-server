@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.1.1
+Version: 1.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,10 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #816 from sg00dwin/master (openshift+bot@redhat.com)
+- console sepecific input placeholder and focus colors (sgoodwin@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 
