@@ -68,6 +68,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
+- new package built with tito
+
 * Wed Nov 07 2012 Unknown name <bdecoste@gmail.com> 1.0.1-1
 - new package built with tito
 
