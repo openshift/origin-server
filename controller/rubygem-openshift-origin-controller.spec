@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.0.4
+Version: 1.0.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Wed Nov 07 2012 Adam Miller <admiller@redhat.com> 1.0.5-1
+- Fix for Bug 873810 (jhonce@redhat.com)
+
 * Fri Nov 02 2012 Adam Miller <admiller@redhat.com> 1.0.4-1
 - Fix name server cache: query up the chain to find dns resolver nameservers
   (rpenta@redhat.com)
