@@ -516,7 +516,6 @@
 			port="9990" />
 
 		<socket-binding name="http" port="8080" />
-		<socket-binding name="https" port="8443" />
 		<socket-binding name="jacorb" interface="unsecure"
 			port="3528" />
 		<socket-binding name="jacorb-ssl" interface="unsecure"
