@@ -174,8 +174,9 @@ def check_node_public_resolution
     # check that the broker host resolves to an external IP
     begin
       resolved_host = IPSocket.getaddress(broker)
-      localhost.member?(resolved_host) and
-        do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} should be public address, not localhost") 
+      # on devenv or livecd, BROKER_HOST=localhost is considered legit. Will let that be for now.
+      #localhost.member?(resolved_host) and
+        #do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} should be public address, not localhost") 
     rescue Exception => e
       do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} does not resolve (#{e})")
     end
