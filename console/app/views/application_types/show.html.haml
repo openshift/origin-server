@@ -32,7 +32,7 @@
     - Array(@application_type.cartridges).each do |c|
       = hidden_field_tag 'application_type[cartridges][]', c
     = hidden_field_tag 'application_type[initial_git_url]', @application_type.initial_git_url
-    = hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
+    -#= hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
 
   = f.semantic_errors :name, :domain_name, :node_profile
 
@@ -83,15 +83,13 @@
       .controls.first
         - if @advanced
           = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository'
-          = f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
+          -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
         - else
           %h3
             - if @application_type.initial_git_url
               #{link_to @application_type.initial_git_url, @application_type.initial_git_url, :target => "_blank"}
-              - if @application_type.initial_git_branch
+              -# if @application_type.initial_git_branch
                 (branch '#{@application_type.initial_git_branch}')
-              -#= f.hidden_field :initial_git_url
-              -#= f.hidden_field :initial_git_branch
             - else
               Default 
             %small= link_to "Change", advanced_path
