@@ -69,7 +69,7 @@ fi
 
 if $idle
 then
-  rhc-idler -u $uuid
+  oo-idler -u $uuid
 fi
 
 restart_httpd_graceful
