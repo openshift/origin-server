@@ -80,6 +80,7 @@ mkdir "$APP_HOME"/.npm
 mkdir "$APP_HOME"/.node-gyp
 chown $user_id.$group_id -R "$APP_HOME"/.npm "$APP_HOME"/.npmrc  \
                             "$APP_HOME"/.node-gyp
+npm config set tmp /tmp
 
 #
 # Create environment variables
