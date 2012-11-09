@@ -24,4 +24,5 @@
     %span.add-on-last>= ".#{RestApi.application_domain_suffix}"
 
 - unless @domain and @domain.persisted?
-  %p.text-warning Because this is your first application, you need to provide a domain name under which your applications will be grouped
+  %p.help-block
+    %span.text-warning Because this is your first application, you need to provide a domain name under which your applications will be grouped

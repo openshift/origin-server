@@ -149,6 +149,23 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal 1, app.errors[:name].length, app.errors.inspect
   end
 
+  test "should assign errors on invalid gear size" do
+    with_domain
+    app_params = get_post_form
+    app_params[:gear_profile] = 'foobar'
+    post(:create, {:application => app_params})
+
+    assert_template 'application_types/show'
+    assert app = assigns(:application)
+    assert !app.persisted?
+    assert !app.errors.empty?
+    # I need to be fixed to be gear_profile
+    assert app.errors[:node_profile].present?, app.errors.to_hash.inspect
+    assert_equal 1, app.errors[:node_profile].length, app.errors.to_hash.inspect
+
+    assert_select '.alert', /Invalid size: foobar/i
+  end
+
   test "should retrieve application list" do
     app = with_app
 

@@ -47,6 +47,8 @@ class ApplicationTypesController < ConsoleController
     app_params = params[:application] || params
     @advanced = to_boolean(params[:advanced])
 
+    user_default_domain rescue (@domain = Domain.new)
+
     @application_type = params[:id] == 'custom' ?
       ApplicationType.custom(app_params) :
       ApplicationType.find(params[:id])

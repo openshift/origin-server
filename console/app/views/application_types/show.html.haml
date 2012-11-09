@@ -8,23 +8,26 @@
   #new_application.form-horizontal .controls { margin-left: 140px; }
   #new_application.form-horizontal input.expand { width: auto; max-width: -moz-available; }
   #new_application.form-horizontal input.narrow { width: 140px; }
-  #new_application.form-horizontal .controls > h3 { margin-top: 5px; color: #FAFBFC; }
+  #new_application.form-horizontal .controls > h3 { margin-top: 5px; margin-bottom: 0; color: #FAFBFC; }
   #new_application.form-horizontal .controls > h3 > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
   #new_application.form-horizontal .controls > h3 > select { margin-top: -5px; }
   #new_application.form-horizontal .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
-  #new_application.form-horizontal .help-block { color: #949494; max-width: 500px; }
+  #new_application.form-horizontal .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
   #new_application.form-horizontal .form-actions { padding-left: 140px; }
+  #new_application.collapse-help .help-block { white-space: nowrap; opacity: 0.5; margin-top: 0; }
+  #new_application.collapse-help .help-block:hover { opacity: 1; cursor: pointer; }
   @media (max-width: 767px) {
     #new_application.form-horizontal .control-label { margin-left: 0; }
     #new_application.form-horizontal .controls { margin-left: 0; }
+    #new_application.form-horizontal .help-block { max-width: inherit; white-space: normal; }
     #new_application.form-horizontal .controls input { display: inline; }
-    #new_application.form-horizontal h3 { display: inline-block; margin-bottom: 5px; }
+    #new_application.form-horizontal .controls > h3 { display: inline-block; margin-top: 0; }
     #new_application.form-horizontal .form-actions { padding-left: 10px; }
   }
 
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
 
-= semantic_form_for @application, :url => applications_path, :html => {:class => 'form-horizontal'} do |f|
+= semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal #{@domain.persisted? ? 'collapse-help' : ''}"} do |f|
   = hidden_field_tag :advanced, @advanced
   - if @application_type.persisted?
     = f.hidden_field :application_type, :value => @application_type.id
@@ -34,7 +37,7 @@
     = hidden_field_tag 'application_type[initial_git_url]', @application_type.initial_git_url
     -#= hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
 
-  = f.semantic_errors :name, :domain_name, :node_profile
+  = f.semantic_errors :name, :domain_name, :node_profile, :cartridges, :cartridge, :initial_git_url, :initial_git_branch, :scale
 
   - if @application_type.tags.include? :in_development
     .alert This template is development only and not accessible in production
@@ -73,7 +76,7 @@
       %h3.control-label Public URL
       .controls.first
         = render :partial => 'applications/name', :locals => {:form => f, :application => @application}
-      .controls.span7
+      .controls
         %p.help-block
           OpenShift will automatically register this domain name for your application.  You can add
           your own domain name later.
@@ -153,7 +156,8 @@
     .control-group.control-group-important
       %h3.control-label Scaling
       .controls.first
-        - can_scale = @capabilities.gears_free >= 2 and !@application_type.template?
+        - can_scale = can_scale_application_type(@application_type, @capabilities)
+        - scale_reason = cannot_scale_title(@application_type, @capabilities)
         - if can_scale
           - if @advanced
             = f.select :scale, scale_options
@@ -162,8 +166,8 @@
               = scale_options[@application.scale? ? 1 : 0][0]
               %small= link_to 'Change', advanced_path
         - else
-          %h3= scale_options[0][0]
-
+          %h3
+            %span.text-warning{:title => scale_reason}= scale_options[0][0]
 
       .controls
         %p.help-block
@@ -172,13 +176,9 @@
           - if can_scale
             If you allow your application to scale, we'll set up a load balancer and
             allocate more gears to handle traffic as you need it.
-          - elsif !@application_type.template
-            %span.text-warning 
-              You need at least two free gears to create a scaling application; 
-              you are currently using #{@capabilities.consumed_gears} out of 
-              #{@capabilities.max_gears}.
+
           - else
-            This application shares resources and can't be scaled.
+            %span.text-warning= scale_reason
 
     .control-group
       .controls
@@ -194,3 +194,10 @@
     = link_to "Back", application_types_path, :class => 'btn'
     = f.commit_button :button_html => { :name => 'submit', :disabled => @disabled } 
     = f.loading
+
+- if @domain.persisted?
+  - content_for :javascripts do
+    :javascript
+      jQuery('.help-block').click(function() {
+        $("#new_application.collapse-help").removeClass('collapse-help');
+      });

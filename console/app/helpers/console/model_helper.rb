@@ -65,6 +65,20 @@ module Console::ModelHelper
     [['No scaling',false],['Scale with web traffic',true]]
   end
 
+  def can_scale_application_type(type, capabilities)
+    capabilities.gears_free >= 2 and !type.template?
+  end
+
+  def cannot_scale_title(type, capabilities)
+    unless can_scale_application_type(type, capabilities)
+      if !@application_type.template
+        "You need at least two free gears to create a scaling application; you are currently using #{capabilities.consumed_gears} out of #{capabilities.max_gears}."
+      else
+        "This application shares resources and can't be scaled."
+      end
+    end
+  end
+
   def in_groups_by_tag(ary, tags)
     groups = {}
     other = ary.reject do |t|
