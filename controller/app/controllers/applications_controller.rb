@@ -54,7 +54,7 @@ class ApplicationsController < BaseController
   def create
     domain_id = params[:domain_id]
     app_name = params[:name]
-    cartridges = params[:cartridges] || params[:cartridge]
+    cartridges = Array(params[:cartridges] || params[:cartridge])
     scale = get_bool(params[:scale])
     init_git_url = params[:initial_git_url]
     template_id = params[:template]
@@ -86,12 +86,12 @@ class ApplicationsController < BaseController
       framework_cartridges = []
       other_cartridges = []
       Rails.logger.debug "Selected cartridges: #{cartridges.inspect}"
+      carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
       if !cartridges
-        carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
+        
         return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
                             109, "ADD_APPLICATION", "cartridge")
       else
-        carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
         cartridges.each do |cart|
           framework_cartridges.push(cart) unless not carts.include?(cart)
           other_cartridges.push(cart) unless carts.include?(cart)
