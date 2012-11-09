@@ -7,7 +7,7 @@ When /^I add dependencies to (deplist.txt|package.json) on node modules(.*)$/ do
         run("echo -e '#{modules.gsub(" ", "\n")}' >> ./deplist.txt")
       when "package.json"
         pkg = ""
-        File.open("package.json") { |f| pkg = JSON.parse(f.readlines.to_s) }
+        File.open("package.json") { |f| pkg = JSON.parse(f.read) }
         modules.split.each { |m| pkg['dependencies'][m] = "*" }
         File.open("package.json", "w") { |f| f.write(JSON.dump(pkg)) }
       end
