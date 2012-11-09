@@ -184,6 +184,10 @@ module Console::LayoutHelper
     end
   end
 
+  def greetings_for_select
+    [ 'Mr.', 'Mrs.', 'Ms.', 'Miss', 'Dr.', 'Hr.', 'Sr.' ]
+  end
+
   def us_states_for_select
     [
       ['Alabama', 'AL'],
