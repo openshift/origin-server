@@ -111,8 +111,10 @@ source /usr/libexec/openshift/cartridges/abstract/info/lib/util
 source /etc/openshift/node.conf
 source "/var/lib/openshift/${uuid}/.env/OPENSHIFT_HOMEDIR"
 
-if `is_idled "$uuid"` || `is_stopped "$uuid"` ; then
-    exit 0 # app is already idled or stopped, nothing to do
+# If moving an idled scaled application the haproxy cartridge will report to be
+#   already "idled" but the associate httpd conf is not
+if `is_stopped "$uuid"` ; then
+    exit 0 # app is already stopped, nothing to do
 fi
 
 HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
