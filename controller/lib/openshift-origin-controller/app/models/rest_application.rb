@@ -1,7 +1,7 @@
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, 
   :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :building_with, :building_app, 
-  :build_job_url, :init_git_url
+  :build_job_url, :initial_git_url
   include LegacyBrokerHelper
 
   def initialize(app, url, nolinks=false)
@@ -22,7 +22,7 @@ class RestApplication < OpenShift::Model
     self.building_with = nil
     self.building_app = nil
     self.build_job_url = nil
-    self.init_git_url = app.init_git_url
+    self.initial_git_url = app.init_git_url
     
     app.embedded.each { |cname, cinfo|
       cart = CartridgeCache::find_cartridge(cname)

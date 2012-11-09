@@ -56,7 +56,7 @@ class ApplicationsController < BaseController
     app_name = params[:name]
     cartridges = params[:cartridges] || params[:cartridge]
     scale = get_bool(params[:scale])
-    init_git_url = params[:init_git_url]
+    init_git_url = params[:initial_git_url]
     template_id = params[:template]
     node_profile = params[:gear_profile]
     node_profile.downcase! if node_profile

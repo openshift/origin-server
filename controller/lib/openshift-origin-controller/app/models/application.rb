@@ -12,7 +12,7 @@ class Application < OpenShift::Cartridge
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash, :user_agent,
-                :init_git_url, :group_override_map
+                :group_override_map
   include_attributes :comp_instances, :group_instances
 
   APP_NAME_MAX_LENGTH = 32

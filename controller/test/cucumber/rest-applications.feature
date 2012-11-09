@@ -44,7 +44,7 @@ Feature: applications
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-5.3&cartridges=mysql-5.1&cartridges=phpmyadmin-3.4&init_git_url=https://github.com/openshift/wordpress-example"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridges=php-5.3&cartridges=mysql-5.1&cartridges=phpmyadmin-3.4&initial_git_url=https://github.com/openshift/wordpress-example"
     Then the response should be "201"
     And the response should be a "application" with attributes "name=app&framework=php-5.3"
     When I send a DELETE request to "/domains/api<random>/applications/app"
