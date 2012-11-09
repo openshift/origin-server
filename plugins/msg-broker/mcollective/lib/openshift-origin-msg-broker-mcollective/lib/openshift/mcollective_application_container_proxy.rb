@@ -28,14 +28,11 @@ module OpenShift
       def self.find_available_impl(node_profile=nil, district_uuid=nil)
         district = nil
         require_specific_district = !district_uuid.nil?
-        if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
+        if !district_uuid || (district_uuid == 'NONE')
           district = District.find_available(node_profile)
-          if district
-            district_uuid = district.uuid
-            Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
-          elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
-            raise OpenShift::NodeException.new("No district nodes available.", 140)
-          end
+          raise OpenShift::NodeException.new("No district nodes available.", 140) unless district
+          district_uuid = district.uuid
+          Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
         end
         current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district)
         if !current_server
@@ -128,43 +125,37 @@ module OpenShift
 
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
-        if Rails.configuration.msg_broker[:districts][:enabled]
-          if @district
-            district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
-          end
-          if district_uuid && district_uuid != 'NONE'
-            reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
-            raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
-          end
+        if @district
+          district_uuid = @district.uuid
+        else
+          district_uuid = get_district_uuid unless district_uuid
+        end
+        if district_uuid && district_uuid != 'NONE'
+          reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
+          raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
         end
         reserved_uid
       end
       
       def unreserve_uid(uid, district_uuid=nil)
-        if Rails.configuration.msg_broker[:districts][:enabled]
-          if @district
-            district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
-          end
-          if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
-          end
+        if @district
+          district_uuid = @district.uuid
+        else
+          district_uuid = get_district_uuid unless district_uuid
+        end
+        if district_uuid && district_uuid != 'NONE'
+          OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
         end
       end
       
       def inc_externally_reserved_uids_size(district_uuid=nil)
-        if Rails.configuration.msg_broker[:districts][:enabled]
-          if @district
-            district_uuid = @district.uuid
-          else
-            district_uuid = get_district_uuid unless district_uuid
-          end
-          if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
-          end
+        if @district
+          district_uuid = @district.uuid
+        else
+          district_uuid = get_district_uuid unless district_uuid
+        end
+        if district_uuid && district_uuid != 'NONE'
+          OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
         end
       end
       

@@ -446,3 +446,11 @@ else
   log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
   log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"
 end
+
+district_name='openshift_district_dev'
+hostname=`/usr/sbin/mco ping | xargs | cut -d' ' -f1`
+hostname.chomp!
+$log.info "Creating OpenShift District with name '#{district_name}'"
+system("/usr/sbin/oo-admin-ctl-district -c create -n #{district_name}")
+$log.info "Adding node '#{hostname}' to district '#{district_name}'"
+system("/usr/sbin/oo-admin-ctl-district -c add-node -n #{district_name} -i #{hostname}")
