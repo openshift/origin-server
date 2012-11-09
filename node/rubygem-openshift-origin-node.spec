@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 1.1.2
+Version: 1.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -167,6 +167,11 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #857 from jwhonce/dev/bz874712_master
+  (openshift+bot@redhat.com)
+- Fix for Bug 874712 (jhonce@redhat.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #851 from brenton/no_trace (openshift+bot@redhat.com)
 - BZ873970, BZ873966 - disabling HTTP TRACE for the Broker, Nodes and Console
