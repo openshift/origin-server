@@ -125,6 +125,10 @@ class ActiveSupport::TestCase
     use_domain(:any)
   end
 
+  def gears_free?(count)
+    User.find(:one, :as => @user).gears_free >= count
+  end
+
   def use_app(symbol, &block)
     api_fetch(symbol) do |cached|
       if cached

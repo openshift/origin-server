@@ -1,0 +1,9 @@
+= div_for type, :class => 'tile tile-click tile-compact label-tags', :title => type.description do
+  %h3= link_to type.display_name, application_type_path(type)
+  = application_type_tags(type.tags - excluded_tags)
+
+  - if type.tags.include?(:in_development)
+    %p This type is in development and will not be visible in production.
+
+
+  %i.sprite.tile-arrow

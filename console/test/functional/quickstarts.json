@@ -1,0 +1,18 @@
+{
+  "data": [
+    {
+      "quickstart": {
+        "body": "<p>A rich blogging platform with a comprehensive ecosystem of plugins and tools.</p>",
+        "id": "12069",
+        "href": "/community/content/wordpress-34",
+        "name": "Wordpress 3.4",
+        "updated": "1351452778",
+        "cartridges": "php-5.3, mysql-5.1",
+        "initial_git_url": "https://github.com/openshift/wordpress-example",
+        "language": "PHP",
+        "tags": "blog, example, php, wordpress"
+      }
+    }
+  ]
+}
+

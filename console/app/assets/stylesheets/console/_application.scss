@@ -76,6 +76,10 @@
   }
 }
 
+.application_type.tile {
+  margin-bottom: 10px;
+}
+
 @media (max-width: 480px) {
   .application-info {
     > .url,
@@ -144,3 +148,47 @@
     }
   }
 }
+
+#new_application {
+  .application_type {
+    margin-bottom: 0;
+  }
+  ol.spaced-items > li {
+    line-height: 28px; // match SELECT
+    margin-bottom: 3px;
+  }
+  .tile-align {
+    margin-bottom: 5px;
+  }
+  select {
+    vertical-align: baseline;
+    margin-bottom: auto;
+    width: auto;
+    max-width: -moz-available;
+  } // refactor me to a marker class
+}
+
+.form-search {
+  .btn:first-child {
+    border-radius: 0;
+  }
+  span.dropdown { 
+    display: inline-block; 
+  }
+  .btn .caret {
+    border-top-color: white;
+  }
+  .dropdown-toggle {
+    @include box_shadow;
+  }
+  &.open .dropdown-menu { 
+    border-radius: 0; 
+  }
+}
+
+@media (max-width: 479px) {
+    #new_application .controls input {
+        width: 95px;
+    }
+}
+

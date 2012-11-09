@@ -27,6 +27,9 @@ class BaseController < ActionController::Base
       "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
         Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
       ]),
+      "LIST_QUICKSTARTS" => Link.new("List quickstarts", "GET", URI::join(get_url, "/community/api/v1/quickstarts/promoted.json")),
+      "GET_QUICKSTART" => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "/community/api/v1/quickstarts/:id"), [':id']),
+      "SEARCH_QUICKSTARTS" => Link.new("Search quickstarts", "GET", URI::join(get_url, "/community/api/v1/quickstarts.json"), ['search']),
       "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
       "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_templates")),
       "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))

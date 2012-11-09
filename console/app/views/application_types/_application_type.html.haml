@@ -1,17 +1,19 @@
-= div_for application_type, :class => defined?(classes) ? classes : nil do
-  -# This is the application listing view
-  %span.labels
-    - if application_type.tags.include? :new
-      %span.label.label-info.pull-right Recently Added
-    - if application_type.tags.include? :experimental
-      %span.label.pull-right Experimental    
-  %h3= application_type.name
+- type = application_type
+= div_for type, :class => 'tile tile-click label-tags' do
+  %h3= link_to type.display_name, application_type_path(type)
+
   - if application_type.description.html_safe?
     = application_type.description
   - else
     %p= application_type.description
-  - if application_type.tags.include? :in_development
-    %p This template is development only and will not be accessible in production
+
+  - if type.website
+    %p=  link_to type.website, type.website
+
   - if application_type.learn_more_url
-    = link_to "Learn more", application_type.learn_more_url
-  = link_to "Select »", application_type_path(application_type), :class => 'btn'
+    %p= link_to "Learn more", application_type.learn_more_url
+
+  - if application_type.tags.include? :in_development
+    %p This type is development only and will not be accessible in production
+
+  = application_type_tags(type.tags - excluded_tags)

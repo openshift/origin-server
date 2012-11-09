@@ -59,6 +59,41 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert !cart.scales?
   end
 
+  def test_create_multiple_cartridges
+    with_configured_user
+    setup_domain
+
+    assert_create_app({:cartridges => ['ruby-1.9','mysql-5.1']}, "Simple cartridges list") do |app|
+      assert_equal ['ruby-1.9', 'mysql-5.1'], app.cartridges.map(&:name)
+    end
+    assert_create_app({:cartridges => [{:name => 'ruby-1.9'},'mysql-5.1']}, "Mixed objects list") do |app|
+      assert_equal ['ruby-1.9', 'mysql-5.1'], app.cartridges.map(&:name)
+    end
+  end
+
+  def test_create_app_with_initial_git_url
+    with_configured_user
+    setup_domain
+
+    assert_create_app({:initial_git_url => 'https://github.com/openshift/wordpress-example', :cartridges => ['php-5.3']}, "Set initial git URL") do |app|
+      assert_equal ['php-5.3'], app.cartridges.map(&:name)
+      loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
+      omit("No initial_git_url returned") unless loaded_app.initial_git_url
+      assert_equal "https://github.com/openshift/wordpress-example", loaded_app.initial_git_url
+    end
+  end
+
+  def assert_create_app(options, message="", &block)
+    app = Application.new({:name => 'test', :domain => @domain}.merge(options))
+    assert app.save, "#{description} could not be saved, #{app.errors.to_hash.inspect}"
+    begin
+      yield app
+    ensure
+      puts "Unable to delete app" unless app.destroy
+    end
+    app
+  end
+
   def test_retrieve_gear_groups
     app = with_app
 

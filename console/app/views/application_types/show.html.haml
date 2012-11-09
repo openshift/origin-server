@@ -1,24 +1,198 @@
--#:css
-  .application_type {background-color: #F5F5F5; padding: 9px 35px 10px 21px; margin-bottom: 20px;}
-  .application_type > ul.meta > li {display: inline;}
-  .application_type > ul.meta > li > label {display: inline;}
-
 %h1.invisible Configure New Application
 = app_wizard_steps_create 1
+= breadcrumb_for_create_application(@application_type.persisted? ? "Based on '#{@application_type.display_name}'" : "From scratch")
 = flashes
-- form_url = @advanced ? applications_path(:advanced => true) : applications_path
-= semantic_form_for @application, :url => form_url do |f|
-  = f.hidden_field :application_type, :value => @application_type.id
-  - errors = @application.errors.full_messages.present?
+
+:css
+  #new_application.form-horizontal .control-group { margin-bottom: 14px; }
+  #new_application.form-horizontal .controls { margin-left: 140px; }
+  #new_application.form-horizontal input.expand { width: auto; max-width: -moz-available; }
+  #new_application.form-horizontal input.narrow { width: 140px; }
+  #new_application.form-horizontal .controls > h3 { margin-top: 5px; color: #FAFBFC; }
+  #new_application.form-horizontal .controls > h3 > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
+  #new_application.form-horizontal .controls > h3 > select { margin-top: -5px; }
+  #new_application.form-horizontal .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  #new_application.form-horizontal .help-block { color: #949494; max-width: 500px; }
+  #new_application.form-horizontal .form-actions { padding-left: 140px; }
+  @media (max-width: 767px) {
+    #new_application.form-horizontal .control-label { margin-left: 0; }
+    #new_application.form-horizontal .controls { margin-left: 0; }
+    #new_application.form-horizontal .controls input { display: inline; }
+    #new_application.form-horizontal h3 { display: inline-block; margin-bottom: 5px; }
+    #new_application.form-horizontal .form-actions { padding-left: 10px; }
+  }
+
+- advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
+
+= semantic_form_for @application, :url => applications_path, :html => {:class => 'form-horizontal'} do |f|
+  = hidden_field_tag :advanced, @advanced
+  - if @application_type.persisted?
+    = f.hidden_field :application_type, :value => @application_type.id
+  - else
+    - Array(@application_type.cartridges).each do |c|
+      = hidden_field_tag 'application_type[cartridges][]', c
+    = hidden_field_tag 'application_type[initial_git_url]', @application_type.initial_git_url
+    = hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
+
   = f.semantic_errors :name, :domain_name, :node_profile
 
-  = f.inputs do
-    = render :partial => 'application_types/application_type_config', :locals => {:form => f, :classes => 'tile', :application => @application, :application_type => @application_type, :advanced => @advanced, :gear_sizes => @gear_sizes, :gears_used => @gears_used, :max_gears => @max_gears, :errors => errors}
-  
+  - if @application_type.tags.include? :in_development
+    .alert This template is development only and not accessible in production
+
+  %fieldset.inputs
+    .control-group.control-group-important
+      %h3.control-label Based On
+      .controls.first
+        %h3 
+          #{@application_type.display_name} #{@application_type.source.to_s.humanize}
+
+          %small.pull-right.label-tags= application_type_tags(@application_type.tags)
+
+      .controls
+        - if @application_type.persisted?
+          - if @application_type.description.html_safe?
+            = @application_type.description
+          - else
+            %p.help-block= @application_type.description
+
+          - if @application_type.website
+            %p.help-block= link_to @application_type.website, @application_type.website
+          - if @application_type.learn_more_url
+            %p.help-block= link_to "Learn more", @application_type.learn_more_url
+
+        - else
+          %p.help-block 
+            This application is based on a link.
+            -# If you want others to see this application, #{link_to "create a quickstart in our community", create_quickstart_url}.
+          %p.help-block= link_to "Share this link", application_type_url(@application_type.id, @application_type.to_params)
+
+  %fieldset.inputs
+    - errors = @application.errors.full_messages.present?
+    -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
+    .control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}}
+      %h3.control-label Public URL
+      .controls.first
+        = render :partial => 'applications/name', :locals => {:form => f, :application => @application}
+      .controls.span7
+        %p.help-block
+          OpenShift will automatically register this domain name for your application.  You can add
+          your own domain name later.
+
+    .control-group.control-group-important
+      %h3.control-label Source Code
+      .controls.first
+        - if @advanced
+          = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository'
+          = f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
+        - else
+          %h3
+            - if @application_type.initial_git_url
+              #{link_to @application_type.initial_git_url, @application_type.initial_git_url, :target => "_blank"}
+              - if @application_type.initial_git_branch
+                (branch '#{@application_type.initial_git_branch}')
+              -#= f.hidden_field :initial_git_url
+              -#= f.hidden_field :initial_git_branch
+            - else
+              Default 
+            %small= link_to "Change", advanced_path
+
+      .controls
+        %p.help-block 
+          - if @application_type.initial_git_url
+            Your application will start with a copy of the code and configuration provided in 
+            this Git repository.
+          - else
+            We'll create a Git code repository in the cloud, and populate it with a set of 
+            reasonable defaults. 
+
+    .control-group.control-group-important
+      %h3.control-label Gears
+      .controls.first
+        - gear_sizes = @capabilities.gear_sizes
+        - if gear_sizes.length > 1
+          - if @advanced
+            = f.select :gear_profile, gear_sizes.map{ |size| [size.to_s.titleize, size]}
+          - else
+            %h3
+              = gear_sizes.first.to_s.titleize
+              %small= link_to 'Change', advanced_path
+            = f.hidden_field :gear_profile
+
+        - else
+          %h3= gear_sizes.first.to_s.titleize
+          = f.hidden_field :gear_profile
+
+      .controls
+        %p.help-block
+          Gears are the application containers running your code. For most applications,
+          the '#{gear_sizes.first.to_s}' gear size provides plenty of resources.
+
+          - if gear_sizes.length > 1
+            If you require more resources, select a larger gear size here.
+
+    .control-group.control-group-important
+      %h3.control-label Cartridges
+      .controls.first
+        - if @cartridges.present?
+          %h3
+            = map_to_sentence(@cartridges) do |(name, carts)|
+              - if carts.length > 1
+                = select_tag 'application[cartridges][]', options_for_select(carts.sort.map{ |c| [c.display_name, c.name] }), :title => "Choose a cartridge that matches '#{name}'"
+              - elsif carts.length == 1
+                = hidden_field_tag 'application[cartridges][]', [carts.first.name]
+                = carts.first.display_name
+              - else
+                %span.text-warning #{name}
+        - else
+          %h3
+            %span.text-warning{:title => 'All applications require at least a web cartridge'} None
+
+      .controls
+        %p.help-block
+          Applications are composed of cartridges - each of which exposes a service or 
+          capability to your code.  All applications must have a web cartridge.
+
+    .control-group.control-group-important
+      %h3.control-label Scaling
+      .controls.first
+        - can_scale = @capabilities.gears_free >= 2 and !@application_type.template?
+        - if can_scale
+          - if @advanced
+            = f.select :scale, scale_options
+          - else
+            %h3
+              = scale_options[@application.scale? ? 1 : 0][0]
+              %small= link_to 'Change', advanced_path
+        - else
+          %h3= scale_options[0][0]
+
+
+      .controls
+        %p.help-block
+          OpenShift automatically routes web requests to your web gear.
+
+          - if can_scale
+            If you allow your application to scale, we'll set up a load balancer and
+            allocate more gears to handle traffic as you need it.
+          - elsif !@application_type.template
+            %span.text-warning 
+              You need at least two free gears to create a scaling application; 
+              you are currently using #{@capabilities.consumed_gears} out of 
+              #{@capabilities.max_gears}.
+          - else
+            This application shares resources and can't be scaled.
+
+    .control-group
+      .controls
+        - if @application_type.template
+          %p.text-warning
+            After creation, check the repository README for any manual configuration 
+            required to secure this application.
+
+          %p
+            %em Note: It may take up to a minute to deploy your application
+
   = f.buttons do
-    - if @application_type.template
-      %p
-        %em Deploying this application may take a bit longer than normal while we download and configure the necessary cartridges.
     = link_to "Back", application_types_path, :class => 'btn'
-    = f.commit_button :button_html => { :name => 'submit' } 
+    = f.commit_button :button_html => { :name => 'submit', :disabled => @disabled } 
     = f.loading

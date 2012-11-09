@@ -6,6 +6,8 @@ License: ASL 2.0
 Vendor:  jboss.org
 Categories:
   - cartridge
+  - java
+  - jboss
   - web_framework
 Website: http://www.jboss.org
 Help-Topics:

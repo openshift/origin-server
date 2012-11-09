@@ -6,7 +6,11 @@ class CartridgesControllerTest < ActionController::TestCase
     use_app(:cart_testable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.9', :as => new_named_user('user_with_cartridge_testable_app')}) }.tap do |app|
       if remove_carts
         app.cartridges.each do |cart|
-          cart.destroy unless cart.name == app.framework
+          begin
+            cart.destroy unless cart.name == app.framework
+          rescue => e
+            puts "Unable to delete cart #{cart.name}: #{e.message}, #{e.backtrace.join("\n")}"
+          end
         end
       end
     end
@@ -17,7 +21,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
   end
@@ -27,7 +31,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
 
@@ -35,7 +39,7 @@ class CartridgesControllerTest < ActionController::TestCase
     post_form[:cartridge][:name] = 'cron-1.4'
     post(:create, post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
 
     assert_response :success
     assert_template :next_steps
@@ -46,14 +50,14 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
 
     post(:create, get_post_form)
     assert_response :success
     assert cart = assigns(:cartridge)
-    assert !cart.errors.empty?, cart.errors.inspect
+    assert !cart.errors.empty?, cart.errors.to_hash.inspect
     assert cart.errors[:base].present?
     assert_equal 1, cart.errors[:base].length
 

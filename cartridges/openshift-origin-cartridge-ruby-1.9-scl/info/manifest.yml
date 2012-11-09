@@ -4,9 +4,10 @@ Description: "Ruby is a dynamic, reflective, general-purpose object-oriented pro
 Version: 1.0.0
 License: ASL 2.0
 Vendor:
-Website: www.ruby-lang.org
+Website: https://www.ruby-lang.org
 Categories:
   - cartridge
+  - ruby
   - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers

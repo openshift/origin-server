@@ -6,6 +6,11 @@ html {
   word-wrap: break-word;
   text-shadow: none;
 }
+
+.label-new { color: #101010 !important; background-color: #FFB02E !important; }
+.label-premium { color: #101010 !important; background-color: #A6C911 !important; }
+.label-popular { color: #101010 !important; background-color: #BFDCE8 !important; }
+
 .account-total {
 	font-size: 250%;
 	margin-top: 20px;
@@ -102,20 +107,6 @@ textarea::-webkit-input-placeholder {
 }
 
 
-
-#new_application .controls input { width: 175px; }
-
-@media (min-width:980px) and (max-width:1200px) {
-    #new_application .controls input {
-        width: 145px;
-    }
-}
-
-@media (min-width: 768px) and (max-width:979px) {
-    #new_application .controls input {
-        width: 80px;
-    }
-}
 
 .console-inner-block {
     background: #222222;
@@ -460,10 +451,6 @@ figure {
     padding: 17px 20px 18px;
 }
 
-.application_type {
-  margin-bottom: 30px;
-  }
-
 a.console-link {
     margin-right: 20px;
     position: relative;
@@ -664,10 +651,6 @@ $cartridgeBorderWidth: 10px;
 #secondary {
   a {
   color: inherit;
-  }
-  &:hover {
-    color: #fff;
-    text-decoration: none;
   }
   h5 {
     margin: 0 0 3px 0;

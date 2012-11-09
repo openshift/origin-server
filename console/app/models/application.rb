@@ -5,7 +5,7 @@ class Application < RestApi::Base
   schema do
     string :name, :creation_time
     string :uuid, :domain_id
-    string :git_url, :app_url
+    string :git_url, :app_url, :initial_git_url, :initial_git_branch
     string :server_identity
     string :gear_profile, :scale
     string :building_with, :build_job_url, :building_app
@@ -25,13 +25,32 @@ class Application < RestApi::Base
   has_many :gears
   has_many :gear_groups
 
+  attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
+
   def find_cartridge(name)
     Cartridge.find name, child_options
   end
 
   def cartridges
-    Cartridge.find :all, child_options
+    persisted? ? (@cartridges ||= Cartridge.find(:all, child_options)) : []
   end
+  def cartridges=(arr)
+    attributes[:cartridges] = Array(arr).map do |a|
+      if a.is_a?(String)
+        a
+      elsif a.respond_to?(:[])
+        a[:name] || a['name']
+      else
+        a.name
+      end
+    end
+  end
+
+  def cartridge_names
+    persisted? ? cartridges.map(&:name) : attributes[:cartridges]
+  end
+  alias_method :cartridge_names=, :cartridges=
+
   def gears
     Gear.find :all, child_options
   end

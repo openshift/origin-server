@@ -60,4 +60,33 @@ module Console::ModelHelper
       {:as => :string, :hint => 'Use -1 to scale to your current account limits'}
     end
   end
+
+  def scale_options
+    [['No scaling',false],['Scale with web traffic',true]]
+  end
+
+  def in_groups_by_tag(ary, tags)
+    groups = {}
+    other = ary.reject do |t|
+      tags.any? do |tag| 
+        (groups[tag] ||= []) << t if t.tags.include?(tag)
+      end
+    end
+    groups = tags.map do |tag| 
+      types = groups[tag]
+      if types
+        if types.length < 2
+          other.concat(types)
+          nil
+        else
+          [tag, types]
+        end
+      end
+    end.compact!
+    [groups, other]
+  end
+
+  def common_tags_for(ary)
+    ary.length < 2 ? [] : ary.inject(nil){ |tags, a| tags ? (a.tags & tags) : a.tags } || []
+  end
 end
