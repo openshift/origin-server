@@ -34,9 +34,9 @@ module OpenShift
           district_uuid = district.uuid
           Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
         end
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district)
+        current_server, current_capacity, preferred_district = rpc_find_available(district_uuid, node_profile, require_specific_district)
         if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district, true)
+          current_server, current_capacity, preferred_district = rpc_find_available(district_uuid, node_profile, require_specific_district, true)
         end
         district = preferred_district if preferred_district
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
@@ -127,36 +127,30 @@ module OpenShift
         reserved_uid = nil
         if @district
           district_uuid = @district.uuid
-        else
-          district_uuid = get_district_uuid unless district_uuid
+        elsif !district_uuid
+          district_uuid = get_district_uuid
         end
-        if district_uuid && district_uuid != 'NONE'
-          reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
-          raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
-        end
+        reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
+        raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
         reserved_uid
       end
       
       def unreserve_uid(uid, district_uuid=nil)
         if @district
           district_uuid = @district.uuid
-        else
-          district_uuid = get_district_uuid unless district_uuid
+        elsif !district_uuid
+          district_uuid = get_district_uuid
         end
-        if district_uuid && district_uuid != 'NONE'
-          OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
-        end
+        OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
       end
       
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if @district
           district_uuid = @district.uuid
-        else
-          district_uuid = get_district_uuid unless district_uuid
+        elsif !district_uuid
+          district_uuid = get_district_uuid
         end
-        if district_uuid && district_uuid != 'NONE'
-          OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
-        end
+        OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
       end
       
       def create(app, gear, quota_blocks=nil, quota_files=nil)
@@ -308,7 +302,9 @@ module OpenShift
       end
       
       def get_district_uuid
-        rpc_get_fact_direct('district_uuid')
+        district_uuid = rpc_get_fact_direct('district_uuid')
+        raise OpenShift::NodeException.new("Node execution failure: District not found", 143) if !district_uuid or (district_uuid == 'NONE')
+        district_uuid
       end
       
       def get_ip_address
@@ -911,7 +907,7 @@ module OpenShift
             if destination_district_uuid && destination_district_uuid != source_district_uuid
               raise OpenShift::UserException.new("Error moving app.  Cannot change district from '#{source_district_uuid}' to '#{destination_district_uuid}' without allow_change_district flag.", 1)
             else
-              destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
+              destination_district_uuid = source_district_uuid
             end
           end
           destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.node_profile, destination_district_uuid)
@@ -1277,7 +1273,7 @@ module OpenShift
         resultIO
       end
       
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, require_specific_district=false, forceRediscovery=false)
+      def self.rpc_find_available(district_uuid, node_profile=nil, require_specific_district=false, forceRediscovery=false)
         current_server, current_capacity = nil, nil
         additional_filters = [{:fact => "active_capacity",
                                :value => '100',
@@ -1293,21 +1289,13 @@ module OpenShift
           end
         end
 
-        if district_uuid
-          additional_filters.push({:fact => "district_uuid",
-                                   :value => district_uuid,
-                                   :operator => "=="})
-          additional_filters.push({:fact => "district_active",
-                                   :value => true.to_s,
-                                   :operator => "=="})
-        else
-          #TODO how do you filter on a fact not being set
-          additional_filters.push({:fact => "district_uuid",
-                                   :value => "NONE",
-                                   :operator => "=="})
-
-        end
-        
+        raise OpenShift::OOException.new("district uuid not provided") unless district_uuid
+        additional_filters.push({:fact => "district_uuid",
+                                 :value => district_uuid,
+                                 :operator => "=="})
+        additional_filters.push({:fact => "district_active",
+                                 :value => true.to_s,
+                                 :operator => "=="})
         rpc_opts = nil
         unless forceRediscovery
           rpc_opts = rpc_options
@@ -1335,7 +1323,7 @@ module OpenShift
               server_infos << server_infos[i]
             end
           end
-        elsif district_uuid && !require_specific_district
+        elsif !require_specific_district
           # Well that didn't go too well.  They wanted a district.  Probably the most available one.  
           # But it has no available nodes.  Falling back to a best available algorithm.  First
           # Find the most available nodes and match to their districts.  Take out the almost
@@ -1467,7 +1455,6 @@ module OpenShift
             yield response[:senderid], result if result
           end
         end
-
         result
       end
     
