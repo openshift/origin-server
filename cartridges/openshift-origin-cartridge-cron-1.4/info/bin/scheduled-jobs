@@ -58,7 +58,7 @@ function run_all_scheduled_jobs() {
 function setuppam() {
    uuid=$1
    if [ ! -f "/etc/security/limits.d/84-${uuid}.conf" ]; then
-     /usr/libexec/openshift/lib/express/setup_pam_fs_limits.sh $uuid
+     /usr/libexec/openshift/lib/setup_pam_fs_limits.sh $uuid
    fi
 }
 
