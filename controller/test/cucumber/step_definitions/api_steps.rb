@@ -256,12 +256,8 @@ Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
       check_cartridge(cartridge)
     end
   elsif list_type == 'application templates'
-    if items.is_a? Hash
-      check_application_template(items)
-    else
-      items.each do |application_template|
-        check_application_template(application_template)
-      end
+    items.each do |application_template|
+      check_application_template(application_template)
     end
   else
     raise("I don't recognize list type #{list_type}")
@@ -269,7 +265,7 @@ Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
 end
 
 Then /^the response should be a "([^\"]*)"$/ do |item_type|
-  item = unpacked_data(@response.body)
+  item = unpacked_data(@response.body)[0]
   if item_type == 'cartridge'
     check_cartridge(item)
   elsif item_type == 'application template'
@@ -298,7 +294,7 @@ def unpacked_data(response_body)
   elsif @accept_type.upcase == 'XML'
     data = Hash.from_xml(@response.body)['response']['data']['template']
   end
-  data
+  return data.is_a?(Array) ? data : [data]
 end
 
 def sub_random(value)

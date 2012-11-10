@@ -1,10 +1,13 @@
 When /^I provide applicaton descriptor with name '([^\']*)' and dependencies:'([^\']*)' and groups:'([^\']*)'$/ do |app_name, dependencies, groups|
-  dependencies = dependencies.split(",").map{ |dep| "  - #{dep}\n"}
+  requires = "Requires:\n"
+  dependencies.split(",").each do |dep|
+    requires += "  - #{dep}\n"
+  end
   if !groups.empty?
     groups = groups.split(";").map{ |grp| " - [#{grp}]"}
     groups = groups.join("\n")
   end
-  descriptor = "--- \nName: #{app_name}\nRequires: \n#{dependencies}"
+  descriptor = "--- \nName: #{app_name}\n#{requires}"
   descriptor += "GroupOverrides: \n#{groups}\n" if !groups.empty?
 
   payload = {"descriptor" => descriptor}

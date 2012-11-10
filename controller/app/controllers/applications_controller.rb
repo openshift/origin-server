@@ -78,7 +78,7 @@ class ApplicationsController < BaseController
     
     application = nil
     if template_id
-      template = ApplicationTemplate.find(params[:template])
+      template = ApplicationTemplate.find(template_id)
       return render_error(:unprocessable_entity, "Invalid template #{template_id}", 125,
                           "ADD_APPLICATION", "template") unless template
       application = Application.new(@cloud_user, app_name, nil, node_profile, nil, template, scale, domain)
