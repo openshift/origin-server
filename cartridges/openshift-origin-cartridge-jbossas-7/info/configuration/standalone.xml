@@ -274,15 +274,15 @@
                 <protocol type="pbcast.NAKACK"/>
                 <protocol type="UNICAST2"/>
                 <protocol type="pbcast.STABLE"/>
-                <protocol type="pbcast.GMS"/>
-                <protocol type="UFC"/>
-                <protocol type="MFC"/>
-                <protocol type="FRAG2"/>
                 <protocol type="AUTH">
                         <property name="auth_class">org.jgroups.auth.MD5Token</property>
                         <property name="token_hash">SHA</property>
-                        <property name="auth_value">${env.OPENSHIFT_JBOSSAS_CLUSTER}</property>
+                        <property name="auth_value">${env.OPENSHIFT_APP_UUID}</property>
                 </protocol>
+                <protocol type="pbcast.GMS"/>
+                <protocol type="UFC"/>
+                <protocol type="MFC"/>
+                <protocol type="FRAG2"/>  
                 <!--protocol type="pbcast.STATE_TRANSFER"/>
                 <protocol type="pbcast.FLUSH"/-->
             </stack>
