@@ -72,7 +72,7 @@
   %fieldset.inputs
     - errors = @application.errors.full_messages.present?
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}}
+    .control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}, :class => errors ? 'error' : ''}
       %h3.control-label Public URL
       .controls.first
         = render :partial => 'applications/name', :locals => {:form => f, :application => @application}

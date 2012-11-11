@@ -60,7 +60,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert type = assigns(:application_type)
     assert_equal t.display_name, type.display_name
     assert assigns(:application)
-    assert_nil assigns(:domain)
+    assert assigns(:domain)
     assert css_select('input#application_domain_name').present?
     if t.tags.include?(:template) or t.id == 'diy-0.1'
       # Sanity-check known non-scalable types
