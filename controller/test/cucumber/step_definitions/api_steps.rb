@@ -13,6 +13,9 @@ After do |scenario|
   domains = ["api#{@random}", "apiX#{@random}", "apiY#{@random}", "app-api#{@random}"]
   remove_dns_entries(domains)
   @random = nil
+  (@undo_config || []).each do |(main, secondary, value)|
+    Rails.configuration[main.to_sym][secondary.to_sym] = value
+  end
 end
 
 Given /^a new user$/ do
@@ -24,6 +27,11 @@ Given /^a new user$/ do
 
 #TODO authenticate user
 
+end
+
+Given /^the Rails ([^\s]+) configuration key ([^\s]+) is "([^\"]*)"$/ do |main, secondary, value|
+  (@undo_config ||= []) << [main, secondary, Rails.configuration.config[main.to_sym][secondary.to_sym]]
+  Rails.configuration.config[main.to_sym][secondary.to_sym] = value
 end
 
 Given /^I send and accept "([^\"]*)"$/ do |type|
@@ -48,7 +56,23 @@ Given /^an application template UUID$/ do
   # Get a normalized list of templates
   application_templates = unpacked_data(@response.body)
 
-  @application_template_uuid = application_templates[0]['uuid']
+  @uuid = application_templates[0]['uuid']
+end
+
+Given /^a quickstart UUID$/ do
+  path = sub_random('/quickstarts')
+  url = @base_url + path.to_s
+  @request = RestClient::Request.new(:method => :get, :url => url, :headers => @headers)
+  begin
+    @response = @request.execute()
+  rescue => e
+    @response = e.response
+  end
+
+  # Get a normalized list of quickstarts
+  quickstarts = unpacked_data(@response.body)
+
+  @uuid = quickstarts[0]['quickstart']['id']
 end
 
 When /^I send a GET request to "([^\"]*)"$/ do |path|
@@ -140,6 +164,21 @@ end
 Then /^the response should be "([^\"]*)"$/ do |status|
   puts "#{@response.body}"  if @response.code != status.to_i
   @response.code.should == status.to_i
+end
+
+Then /^the response should have the link(?:s)? "([^\"]*)"$/ do |link|
+  response_acceptable = false
+  link_names = link.split(",")
+  missing_names = link_names.select do |name|
+    if link = links[name.strip]
+      URI.parse(link['href'])
+      !link['method'] || !link['rel'] || !link['required_params']
+    else
+      true
+    end
+  end
+  raise "Response did not contain link(s) #{missing_names.join(", ")}" unless missing_names.empty?
+  true
 end
 
 Then /^the response should be one of "([^\"]*)"$/ do |acceptable_statuses|
@@ -259,6 +298,10 @@ Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
     items.each do |application_template|
       check_application_template(application_template)
     end
+  elsif list_type == 'quickstarts'
+    items.each do |item|
+      check_quickstart(item)
+    end
   else
     raise("I don't recognize list type #{list_type}")
   end
@@ -270,6 +313,8 @@ Then /^the response should be a "([^\"]*)"$/ do |item_type|
     check_cartridge(item)
   elsif item_type == 'application template'
     check_application_template(item)
+  elsif item_type == 'quickstart'
+    check_quickstart(item)
   else
     raise("I don't recognize item type #{item_type}")
   end
@@ -284,6 +329,12 @@ end
 def check_application_template(application_template)
   unless application_template.has_key?("uuid") && application_template['uuid'].match(/\S+/)
     raise("I found an application without a UUID")
+  end
+end
+
+def check_quickstart(quickstart)
+  unless quickstart.has_key?("quickstart") && quickstart['quickstart'].has_key?("id") && quickstart['quickstart']['id'].match(/\S+/)
+    raise("I found a quickstart without an ID")
   end
 end
 
@@ -306,7 +357,13 @@ end
 
 def sub_uuid(value)
   if value and value.include? "<uuid>"
-    value = value.sub("<uuid>", @application_template_uuid)
+    value = value.sub("<uuid>", @uuid)
   end
   return value
-end  
+end
+
+def links
+  @links ||= if @accept_type.upcase == "JSON"
+      result = JSON.parse(@response.body)['data']
+    end
+end

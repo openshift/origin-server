@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       resources :keys, :controller => :keys, :constraints => { :id => /[\w]+/ } 
     end
     resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }
+    resources :quickstarts, :only => [:index, :show]
     resources :application_templates
     #keeping for backward compatibility
     resources :application_template, :controller => :application_templates
