@@ -55,6 +55,8 @@ else
     echo "export OPENSHIFT_JBOSSAS_MODULE_PATH='/etc/alternatives/switchyard-0.6/modules'" > $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
 fi
 
+source $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+
 client_result ""
 client_result "SwitchYard 0.6 added."
 client_result ""
