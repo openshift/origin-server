@@ -313,6 +313,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app.errors.empty?, app.errors.inspect
     assert_equal 'medium', app.gear_profile
     assert_equal 'true', app.scale.to_s
+    assert app.persisted?
 
     app.destroy
   end

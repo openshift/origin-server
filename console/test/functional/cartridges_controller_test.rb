@@ -3,11 +3,13 @@ require File.expand_path('../../test_helper', __FILE__)
 class CartridgesControllerTest < ActionController::TestCase
 
   def with_testable_app(remove_carts=false)
-    use_app(:cart_testable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.9', :as => new_named_user('user_with_cartridge_testable_app')}) }.tap do |app|
+    use_app(:cart_testable_app) { Application.new({:name => "carttestable", :cartridge => 'ruby-1.9', :as => new_named_user('user_with_cartridge_testable_app')}) }.tap do |app|
       if remove_carts
-        app.cartridges.each do |cart|
+        Cartridge.all(app.send(:child_options)).each do |cart|
+          next if cart.name == app.framework
+          #puts "Destroying cart #{cart.name}"
           begin
-            cart.destroy unless cart.name == app.framework
+            cart.destroy
           rescue => e
             puts "Unable to delete cart #{cart.name}: #{e.message}, #{e.backtrace.join("\n")}"
           end
