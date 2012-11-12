@@ -33,6 +33,7 @@ class BaseController < ActionController::Base
         "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))
       }
       links.merge!(if base_url = Rails.application.config.openshift[:community_quickstarts_url]
+        base_url = URI.join(get_url, base_url).to_s
         {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(base_url, "v1/quickstarts/promoted.json")),
           "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(base_url, "v1/quickstarts/:id"), [':id']),
