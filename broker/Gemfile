@@ -39,7 +39,7 @@ Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.
 # and rake tasks are available in development mode:
 group :development, :test do
   # The require part from http://tinyurl.com/3pf68ho
-  gem 'mocha', :require => nil
+  gem 'mocha', '0.9.8', :require => nil
   gem 'cucumber'
   gem 'rcov'
 end
