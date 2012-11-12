@@ -8,10 +8,12 @@ class QuickstartsTest < ActiveSupport::TestCase
     assert quickstart.tags.is_a? Array
     assert quickstart.tags.present?
     assert quickstart.tags.all?{ |t| t.is_a? Symbol }
-    assert quickstart.updated > 1.year.ago
     assert quickstart.name.present?
-    assert quickstart.body.present?
-    assert quickstart.href.present?
+    assert quickstart.summary.present?
+    if quickstart.body.present?
+      assert quickstart.href.present?
+      assert quickstart.updated > 1.year.ago
+    end
   end
 
   test 'search quickstarts' do

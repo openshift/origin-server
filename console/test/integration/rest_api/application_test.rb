@@ -109,7 +109,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     assert_equal 1, group.gears.length
     gear = group.gears[0]
     assert gear.is_a? Gear
-    assert_equal :started, gear.state
+    assert [:started, :idle].include? gear.state
     assert gear.id
   end
 end
