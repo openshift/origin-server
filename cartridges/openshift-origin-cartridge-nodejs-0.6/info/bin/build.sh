@@ -42,11 +42,12 @@ function is_node_module_installed() {
 
 gear_tmpdir="${cartridge_dir}/tmp/"
 if [ -d "${gear_tmpdir}saved.node_modules" ]; then
-   node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules"
-   mv "$node_modules_dir" "$gear_tmpdir"
-   mv "${gear_tmpdir}/saved.node_modules" "$node_modules_dir"
-   (shopt -s dotglob; mv -f "${gear_tmpdir}"node_modules/* "$node_modules_dir")
-   rm -rf "${gear_tmpdir}"node_modules
+    node_modules_dir="${OPENSHIFT_REPO_DIR}node_modules/"
+    for d in `ls -a ${gear_tmpdir}saved.node_modules`; do
+        [ -e "${node_modules_dir}$d" ]  ||  \
+            mv "${gear_tmpdir}saved.node_modules/$d" "$node_modules_dir"
+    done
+    rm -rf "${gear_tmpdir}saved.node_modules"
 fi
 
 if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]; then
