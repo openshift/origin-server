@@ -118,7 +118,11 @@ module CommandHelper
       old_repo = app.repo
       app.repo = "#{$temp}/#{new_namespace}_#{app.name}_repo"
       FileUtils.mv old_repo, app.repo
-      `sed -i "s,#{old_hostname},#{new_namespace},g" #{app.repo}/.git/config`
+      
+      if run("grep '#{old_hostname}' #{app.repo}/.git/config") == 0
+        run("sed -i 's,#{old_hostname},#{app.hostname},g' #{app.repo}/.git/config")
+      end
+      
       if run("grep '#{app.name}-#{old_namespace}.#{$domain}' /etc/hosts") == 0
         run("sed -i 's,#{app.name}-#{old_namespace}.#{$domain},#{app.name}-#{new_namespace}.#{$domain},g' /etc/hosts")
       end
