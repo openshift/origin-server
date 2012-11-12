@@ -100,7 +100,8 @@ mkdir -p $APP_HOME/.openshift
 chown ${uuid} $APP_HOME/.openshift $HAPROXY_DIR/run/ $HAPROXY_DIR/logs/ $HAPROXY_DIR/sessions $HAPROXY_DIR/conf/gear-registry.db
 observe_setup_cart_instance_dir
 
-create_standard_path_env_var
+# Alter PATH so that the haproxy app_ctl.sh script is called.
+sed -i "s#export \s*PATH=#export PATH=$CART_INFO_DIR/bin/:#" $APP_HOME/.env/PATH
 
 #
 # Start the server
