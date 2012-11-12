@@ -110,7 +110,7 @@ class Quickstart < RestApi::Base
             :list => (info.link("LIST_QUICKSTARTS").path rescue nil),
             :get => (info.link("SHOW_QUICKSTART").path rescue nil),
             :search => (info.link("SEARCH_QUICKSTARTS").path rescue nil),
-            :search_param => (info.required_params('SEARCH_QUICKSTARTS').first rescue nil),
+            :search_param => (info.required_params('SEARCH_QUICKSTARTS').first[:name] rescue nil),
           }
         end
       end

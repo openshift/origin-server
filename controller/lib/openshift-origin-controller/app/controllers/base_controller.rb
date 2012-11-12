@@ -36,13 +36,19 @@ class BaseController < ActionController::Base
         base_url = URI.join(get_url, base_url).to_s
         {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(base_url, "v1/quickstarts/promoted.json")),
-          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(base_url, "v1/quickstarts/:id"), [':id']),
-          "SEARCH_QUICKSTARTS" => Link.new("Search quickstarts", "GET", URI::join(base_url, "v1/quickstarts.json"), ['search']),
+          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(base_url, "v1/quickstarts/:id"), [
+            Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
+          ]),
+          "SEARCH_QUICKSTARTS" => Link.new("Search quickstarts", "GET", URI::join(base_url, "v1/quickstarts.json"), [
+            Param.new("search", "string", "The search term to use for the quickstart", nil, [])
+          ]),
         }
       else
         {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(get_url, "quickstarts")),
-          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstarts/:id"), [':id']),
+          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstarts/:id"), [
+            Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
+          ]),
         }
       end)
     end
