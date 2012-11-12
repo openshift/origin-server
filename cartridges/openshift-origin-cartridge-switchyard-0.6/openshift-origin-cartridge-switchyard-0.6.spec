@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.1.3
+Version: 1.1.4
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
@@ -70,6 +70,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- added configuration dir (bdecoste@gmail.com)
+- BZ875812 (bdecoste@gmail.com)
+
 * Mon Nov 12 2012 William DeCoste <wdecoste@redhat.com> 1.1.3-1
 - added configuration dir
 
