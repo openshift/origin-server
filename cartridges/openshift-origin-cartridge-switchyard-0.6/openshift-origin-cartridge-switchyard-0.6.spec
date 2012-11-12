@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.1.2
+Version: 1.1.3
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
@@ -37,6 +37,7 @@ Provides embedded switchyard support for JBoss cartridges
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
+mkdir -p %{buildroot}%{cartridgedir}/info/configuration/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -60,6 +61,7 @@ rm -rf %{buildroot}
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0755,-,-) %{cartridgedir}/info/bin/
+%attr(0750,-,-) %{cartridgedir}/info/configuration/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/%{name}
 %{cartridgedir}/info/manifest.yml
@@ -68,6 +70,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Nov 12 2012 William DeCoste <wdecoste@redhat.com> 1.1.3-1
+- added configuration dir
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #855 from bdecoste/master (openshift+bot@redhat.com)
 - US3064 - switchyard (bdecoste@gmail.com)
