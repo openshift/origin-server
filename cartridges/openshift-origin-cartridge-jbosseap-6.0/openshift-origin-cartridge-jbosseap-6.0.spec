@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   1.1.1
+Version:   1.1.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -167,6 +167,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #870 from bdecoste/master (openshift+bot@redhat.com)
+- update jgroups auth key (bdecoste@gmail.com)
+- Merge pull request #869 from bdecoste/master (openshift+bot@redhat.com)
+- BZ874174 (bdecoste@gmail.com)
+- Merge pull request #858 from bdecoste/master (openshift+bot@redhat.com)
+- BZ821556 (bdecoste@gmail.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - US3064 - switchyard (bdecoste@gmail.com)
 - BZ874174 (bdecoste@gmail.com)
