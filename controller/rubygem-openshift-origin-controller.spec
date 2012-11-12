@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.1.3
+Version: 1.1.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,12 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Merge pull request #859 from lnader/master (openshift+bot@redhat.com)
+- US3043: store initial_git_url (lnader@redhat.com)
+- US3043: Allow applications to be created from adhoc application templates
+  (lnader@redhat.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - Merge pull request #845 from brenton/BZ873992-origin
   (openshift+bot@redhat.com)
