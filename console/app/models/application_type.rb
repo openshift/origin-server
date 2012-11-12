@@ -180,7 +180,7 @@ class ApplicationType
           types.concat CartridgeType.cached.standalone
           types.concat ApplicationTemplate.cached.all unless tag == :cartridge
           types.keep_if &TAG_FILTER.curry[[tag]]
-          types.concat Quickstart.search([tag.to_s]) unless tag == :cartridge
+          types.concat Quickstart.search(tag.to_s) unless tag == :cartridge
         else
           types.concat CartridgeType.cached.standalone
           types.concat ApplicationTemplate.cached.all

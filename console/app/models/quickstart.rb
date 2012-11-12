@@ -35,12 +35,16 @@ class Quickstart < RestApi::Base
 
   def cartridges
     @cartridges ||= begin
-      s = (attributes[:cartridges] || '').strip
-      case s[0]
-      when '['
-        ActiveSupport::JSON.decode(s)
+      s = (attributes[:cartridges] || '')
+      if s.is_a? Array
+        s
       else
-        s.split(',').map(&:strip)
+        s = s.strip
+        if s[0] == '['
+          ActiveSupport::JSON.decode(s)
+        else
+          s.split(',').map(&:strip)
+        end
       end
     end
   end
@@ -104,7 +108,7 @@ class Quickstart < RestApi::Base
           {
             :site => (URI.join(info.link("LIST_QUICKSTARTS"), '/') rescue nil),
             :list => (info.link("LIST_QUICKSTARTS").path rescue nil),
-            :get => (info.link("GET_QUICKSTART").path rescue nil),
+            :get => (info.link("SHOW_QUICKSTART").path rescue nil),
             :search => (info.link("SEARCH_QUICKSTARTS").path rescue nil),
             :search_param => (info.required_params('SEARCH_QUICKSTARTS').first rescue nil),
           }
@@ -123,6 +127,6 @@ class Quickstart < RestApi::Base
 
   private
     def tags_from(s)
-      (s || '').split(',').map(&:strip).map(&:to_sym)
+      (s.is_a?(Array) ? s : ((s || '').split(','))).map(&:strip).map(&:to_sym)
     end
 end

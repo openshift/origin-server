@@ -1416,10 +1416,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
-  def fixture_quickstarts
-    @@quickstarts ||= ActiveSupport::JSON.decode(IO.read(File.expand_path('../../fixtures/quickstarts.json', __FILE__)))
-  end
-
   def mock_quickstart
     Quickstart.reset!
     RestApi.reset!
@@ -1443,11 +1439,16 @@ class RestApiTest < ActiveSupport::TestCase
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
         'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
-        'GET_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
+        'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
       }}.to_json
       mock.get('/community/api/v1/quickstarts/promoted.json', anonymous_json_header, quickstart.to_json)
       mock.get '/community/api/v1/quickstart/12069', anonymous_json_header, quickstart.to_json
     end
+  end
+
+  def test_quickstart
+   assert_equal [:test], Quickstart.new(:tags => ['test']).tags
+   assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3']).cartridges
   end
 
   def mock_quickstart_disabled

@@ -162,7 +162,7 @@
           - if @advanced
             = f.select :scale, scale_options
           - else
-            %h3
+            %h3{:title => "Scaling your web cartridge will allocate an extra gear for the load balancer"}
               = scale_options[@application.scale? ? 1 : 0][0]
               %small= link_to 'Change', advanced_path
         - else
