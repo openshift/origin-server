@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   1.1.2
+Version:   1.1.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -84,6 +84,9 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Fix for Bug 874445 (jhonce@redhat.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Increase the table sizes to cover 15000 nodes in dev and prod.
   (rmillner@redhat.com)
