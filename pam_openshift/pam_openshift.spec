@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version: 1.1.1
+Version: 1.1.2
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -47,6 +47,13 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Increase the table sizes to cover 15000 nodes in dev and prod.
+  (rmillner@redhat.com)
+- change libra to openshift in pam_openshift man page (tdawson@redhat.com)
+- The introduction of polydir shm caused errors in oo-namespace-init.
+  (rmillner@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 

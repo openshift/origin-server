@@ -67,7 +67,7 @@ fi
 
 if $idle
 then
-  nohup rhc-idler -u $uuid &> /dev/null &
+  nohup oo-idler -u $uuid &> /dev/null &
 else
   restart_httpd_graceful
 fi

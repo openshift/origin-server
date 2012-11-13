@@ -12,7 +12,7 @@ class Application < OpenShift::Cartridge
   primary_key :name
   exclude_attributes :user, :comp_instance_map, :group_instance_map,
                 :working_comp_inst_hash, :working_group_inst_hash, :user_agent,
-                :init_git_url, :group_override_map
+                :group_override_map
   include_attributes :comp_instances, :group_instances
 
   APP_NAME_MAX_LENGTH = 32
@@ -51,7 +51,7 @@ class Application < OpenShift::Cartridge
   # @param [optional, String] uuid Unique identifier for the application
   # @param [deprecated, String] node_profile Node profile for the first application gear
   # @param [deprecated, String] framework Cartridge name to use as the framwwork of the application
-  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil)
+  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil, other_cartridges=nil, init_git_url=nil)
     self.user = user
     self.domain = domain
     self.node_profile = node_profile
@@ -61,15 +61,23 @@ class Application < OpenShift::Cartridge
     self.ngears = 0
     
     if template.nil?
+      Rails.logger.debug "framework: #{framework} other_cartridges:#{other_cartridges}"
       if self.scalable
         descriptor_hash = YAML.load(template_scalable_app(app_name, framework))
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
+        other_cartridges.each do |cart|
+          self.requires_feature << cart
+        end unless other_cartridges.nil?
       else
         from_descriptor({"Name"=>app_name})
         self.requires_feature = []
-        self.requires_feature << framework unless framework.nil?      
+        self.requires_feature << framework unless framework.nil? 
+        other_cartridges.each do |cart|
+          self.requires_feature << cart
+        end unless other_cartridges.nil?
       end
+      @init_git_url = init_git_url unless init_git_url.nil?
     else
       template_descriptor = YAML.load(template.descriptor_yaml)
       template_descriptor["Name"] = app_name
@@ -1230,7 +1238,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     
     raise OpenShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep
     if self.scalable
-      raise OpenShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{SCALABLE_EMBEDDED_CARTS.join(',')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
+      allowed_cartridges = SCALABLE_EMBEDDED_CARTS & Application.get_available_cartridges.sort
+      raise OpenShift::UserException.new("#{dep} cannot be embedded in scalable app '#{@name}'. Allowed cartridges: #{allowed_cartridges.join(', ')}", 108) if not SCALABLE_EMBEDDED_CARTS.include? dep
     end
     add_to_requires_feature(dep)
     begin

@@ -1,0 +1,66 @@
+.\" Process this file with
+.\" groff -man -Tascii oo-admin-gears.8
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH "OO-LIST-ACCESS" "8" "2012-11-05" "OpenShift" "OpenShift Management Commands"
+.SH NAME
+oo-list-access \- send gear access report to broker
+.SH SYNOPSIS
+.B "oo-list-access [days]"
+.SH DESCRIPTION
+.B "oo-list-access"
+may be used to report the gears hosted on this node that have been accessed within the last
+.I days.
+Default is one day.
+.P
+JSON payload is POST'ed to https://{broker}/broker/nuture
+.SH EXIT STATUS
+On success 0 is returned, a non-zero failure code otherwise.
+.SH FILES
+.TP
+.FN /tmp/last_access.$$
+File used to stage report before transmitting to broker.
+.TP
+.FN /etc/openshift/node.conf
+Contains broker name
+.TP
+.FN /var/lib/openshift/.last_access/{uuid}
+Contains the last access timestamp populated by oo-last-access.
+.SH EXAMPLE
+.P
+JSON payload:
+.nf
+
+json_data={
+   "nuture_action" :  "update_last_access",
+   "gear_timestamps":[
+      {
+         "uuid":"b53a1992-a868-4634-930b-2929363d8c90",
+         "access_time":"12/Nov/2012:13:06:18 -0500"
+      },
+      {
+         "uuid":"92530624-f2f9-446c-b7d7-bb26d81fb7ae",
+         "access_time":"12/Nov/2012:13:07:18 -0500"
+      },
+      {
+         "uuid":"9676a3ca-4b86-4c46-bc09-cdaa4ee73b75",
+         "access_time":"12/Nov/2012:13:08:18 -0500"
+      },
+      {
+         "uuid":"2f8b3165-f764-410e-93e9-38aa7ebfc479",
+         "access_time":"12/Nov/2012:13:09:18 -0500"
+      },
+      {
+         "uuid":"5ff14bfb-9bb5-4d37-8a91-5c66a0b7dae9",
+         "access_time":"12/Nov/2012:13:10:18 -0500"
+      }
+   ]
+}
+.fi
+.PP
+access_time uses the Ruby data format of %d/%b/%Y:%H:%M:%S %z
+.SH SEE ALSO
+oo-last-access(8),
+curl(1)

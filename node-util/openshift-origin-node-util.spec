@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.1.1
+Version: 1.1.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -64,6 +64,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,-) %{_sbindir}/oo-init-quota
 %attr(0750,-,-) %{_sbindir}/oo-last-access
 %attr(0750,-,-) %{_sbindir}/oo-list-stale
+%attr(0750,-,-) %{_sbindir}/oo-list-access
 %attr(0750,-,-) %{_sbindir}/oo-restorer
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-setup-node
@@ -80,6 +81,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-init-quota.8.gz
 %{_mandir}/man8/oo-last-access.8.gz
 %{_mandir}/man8/oo-list-stale.8.gz
+%{_mandir}/man8/oo-list-access.8.gz
 %{_mandir}/man8/oo-restorer.8.gz
 %{_mandir}/man8/oo-restorer-wrapper.sh.8.gz
 %{_mandir}/man8/oo-setup-node.8.gz
@@ -100,6 +102,12 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Fix for Bug 874445 (jhonce@redhat.com)
+
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Fix for BZ872313 (jhonce@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 

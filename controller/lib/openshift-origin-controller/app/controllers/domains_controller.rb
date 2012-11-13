@@ -8,7 +8,11 @@ class DomainsController < BaseController
     Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
     Rails.logger.debug @cloud_user.domains
     @cloud_user.domains.each do |domain|
-      domains.push(RestDomain.new(domain, get_url, nolinks))
+      if $requested_api_version >= 1.3
+          domains.push(RestDomain.new(domain, get_url, nolinks))
+      else
+          domains.push(RestDomain10.new(domain, get_url, nolinks))
+      end
     end
     render_success(:ok, "domains", domains, "LIST_DOMAINS")
   end
@@ -20,7 +24,11 @@ class DomainsController < BaseController
 
     domain = Domain.get(@cloud_user, id)
     if domain and domain.hasAccess?(@cloud_user)
-      domain = RestDomain.new(domain, get_url, nolinks)
+      if $requested_api_version >= 1.3
+        domain = RestDomain.new(domain, get_url, nolinks)
+      else
+        domain = RestDomain10.new(domain, get_url, nolinks)
+      end
       return render_success(:ok, "domain", domain, "SHOW_DOMAIN", "Found domain #{id}")
     end
     render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
@@ -54,7 +62,11 @@ class DomainsController < BaseController
       return render_exception(e, "ADD_DOMAIN") 
     end
 
-    domain = RestDomain.new(domain, get_url, nolinks)
+    if $requested_api_version >= 1.3
+      domain = RestDomain.new(domain, get_url, nolinks)
+    else
+      domain = RestDomain10.new(domain, get_url, nolinks)
+    end
     render_success(:created, "domain", domain, "ADD_DOMAIN", "Created domain with namespace #{namespace}", true)
   end
 
@@ -98,7 +110,11 @@ class DomainsController < BaseController
     end
 
     @cloud_user = CloudUser.find(@login)
-    domain = RestDomain.new(domain, get_url, nolinks)
+    if $requested_api_version >= 1.3
+      domain = RestDomain.new(domain, get_url, nolinks)
+    else
+      domain = RestDomain10.new(domain, get_url, nolinks)
+    end
     render_format_success(:ok, "domain", domain, "UPDATE_DOMAIN", "Updated domain #{id} to #{new_namespace}")
   end
 

@@ -199,9 +199,10 @@ module OpenShift
         path = File.join(basedir, ".httpd.d", "#{uuid}_*")
         FileUtils.rm_rf(Dir.glob(path))
 
-        cartdir = @config.get("CARTRIDGE_BASE_PATH")
-        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
-        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+# Lock inside httpd_singular causing gear destroys to fail. BZ874712
+#        cartdir = @config.get("CARTRIDGE_BASE_PATH")
+#        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
+#        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
 
         dirs = list_home_dir(@homedir)
         out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
@@ -255,13 +256,7 @@ module OpenShift
       authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
       keys = read_ssh_keys authorized_keys_file
       key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
-
-      # BZ 874594
-      if @config.get("CLOUD_NAME")
-        Syslog.alert "Setting CLOUD_NAME in #{OpenShift::Config::NODE_CONF_FILE} has no effect."
-      end
-      cloud_name  = "OPENSHIFT"
-
+      cloud_name  = @config.get("CLOUD_NAME") || "OPENSHIFT"
       ssh_comment = "#{cloud_name}-#{@uuid}#{comment}"
       shell       = @config.get("GEAR_SHELL") || "/bin/bash"
       cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
@@ -317,11 +312,7 @@ module OpenShift
     def add_env_var(key, value, prefix_cloud_name = false, &blk)
       env_dir = File.join(@homedir,'.env/')
       if prefix_cloud_name
-        # BZ 874594
-        if @config.get("CLOUD_NAME")
-          Syslog.alert "Setting CLOUD_NAME in #{OpenShift::Config::NODE_CONF_FILE} has no effect."
-        end
-        key = "OPENSHIFT_#{key}"
+        key = (@config.get('CLOUD_NAME') || 'OPENSHIFT') + "_#{key}"
       end
       filename = File.join(env_dir, key)
       File.open(filename,
@@ -362,11 +353,7 @@ module OpenShift
       [".env", ".env/.uservars"].each do |path|
         env_dir = File.join(@homedir,path)
         if prefix_cloud_name
-          # BZ 874594
-          if @config.get("CLOUD_NAME")
-            Syslog.alert "Setting CLOUD_NAME in #{OpenShift::Config::NODE_CONF_FILE} has no effect."
-          end
-          key = "OPENSHIFT_#{key}"
+          key = (@config.get("CLOUD_NAME") || "OPENSHIFT") + "_#{key}"
         end
         env_file_path = File.join(env_dir, key)
         FileUtils.rm_f env_file_path
@@ -750,7 +737,7 @@ module OpenShift
     def set_selinux_context(path)
       mcs_label=get_mcs_label(@uid)
       shellCmd("restorecon -R #{path}")
-      shellCmd("chcon -R -l #{@mcs_label} #{path}")
+      shellCmd("chcon -R -l #{mcs_label} #{path}/*")
     end
   end
 end

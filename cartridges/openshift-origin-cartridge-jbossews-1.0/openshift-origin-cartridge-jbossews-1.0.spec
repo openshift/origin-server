@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.1.1
+Version: 1.1.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -136,6 +136,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #833 from tdawson/tdawson/fed-update/openshift-origin-
+  cartridge-abstract-1.1.1 (openshift+bot@redhat.com)
+- Cleanup spec for Fedora standards (tdawson@redhat.com)
+- BZ868053 (bdecoste@gmail.com)
+- Merge pull request #822 from bdecoste/master (openshift+bot@redhat.com)
+- BZ872533 (bdecoste@gmail.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 

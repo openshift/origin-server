@@ -309,15 +309,15 @@
 				<protocol type="pbcast.NAKACK" />
 				<protocol type="UNICAST2" />
 				<protocol type="pbcast.STABLE" />
+				<protocol type="AUTH">
+					<property name="auth_class">org.jgroups.auth.MD5Token</property>
+					<property name="token_hash">SHA</property>
+					<property name="auth_value">${env.OPENSHIFT_APP_UUID}</property>
+				</protocol>
 				<protocol type="pbcast.GMS" />
 				<protocol type="UFC" />
 				<protocol type="MFC" />
 				<protocol type="FRAG2" />
-				<protocol type="AUTH">
-					<property name="auth_class">org.jgroups.auth.MD5Token</property>
-					<property name="token_hash">SHA</property>
-					<property name="auth_value">${env.OPENSHIFT_JBOSSEAP_CLUSTER}</property>
-				</protocol>
 				<!--protocol type="pbcast.STATE_TRANSFER"/> <protocol type="pbcast.FLUSH"/ -->
 			</stack>
 		</subsystem>
@@ -516,7 +516,6 @@
 			port="9990" />
 
 		<socket-binding name="http" port="8080" />
-		<socket-binding name="https" port="8443" />
 		<socket-binding name="jacorb" interface="unsecure"
 			port="3528" />
 		<socket-binding name="jacorb-ssl" interface="unsecure"

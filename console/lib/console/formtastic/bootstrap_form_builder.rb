@@ -277,7 +277,27 @@ module Console
       end
 
       def boolean_input(method, options)
-        parts(method, options){ super }
+        html_options  = options.delete(:input_html) || {}
+        checked_value = options.delete(:checked_value) || '1'
+        unchecked_value = options.delete(:unchecked_value) || '0'
+        checked = @object && ActionView::Helpers::InstanceTag.check_box_checked?(@object.send(:"#{method}"), checked_value)
+
+        html_options[:id] = html_options[:id] || generate_html_id(method, "")
+        input_html = template.check_box_tag(
+          "#{@object_name}[#{method}]",
+          checked_value,
+          checked,
+          html_options
+        )
+
+        label_options = options_for_label(options)
+        label_options[:for] ||= html_options[:id]
+
+        safe_input_html = ::Formtastic::Util.html_safe(input_html)
+
+        return safe_input_html if input_inline?
+
+        label(method, options) << template.content_tag(:div, safe_input_html, {:class => 'controls'}) << template.hidden_field_tag((html_options[:name] || "#{@object_name}[#{method}]"), unchecked_value, :id => nil, :disabled => html_options[:disabled])
       end
 
       # remove the button wrapper

@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.1.1
+Version: 1.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,21 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #837 from nhr/US2458_spastic_formtastics
+  (openshift+bot@redhat.com)
+- Merge pull request #861 from
+  smarterclayton/bug_874916_bugzilla_component_changed
+  (openshift+bot@redhat.com)
+- Bug 874916 - Bugzilla for OpenShift changed to OpenShift Online
+  (ccoleman@redhat.com)
+- Added input_inline support for checkboxes + salutations helper
+  (hripps@redhat.com)
+
+* Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Merge pull request #816 from sg00dwin/master (openshift+bot@redhat.com)
+- console sepecific input placeholder and focus colors (sgoodwin@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
 

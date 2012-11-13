@@ -12,8 +12,8 @@ class BaseController < ActionController::Base
   respond_to :json, :xml
   before_filter :check_version, :only => :show
   before_filter :check_nolinks
-  API_VERSION = 1.2
-  SUPPORTED_API_VERSIONS = [1.0,1.1,1.2]
+  API_VERSION = 1.3
+  SUPPORTED_API_VERSIONS = [1.0,1.1,1.2, 1.3]
 
   include UserActionLogger
   
