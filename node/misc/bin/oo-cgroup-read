@@ -1,8 +1,11 @@
 #!/usr/bin/ruby
 
+require 'etc'
+
 # When combined with selinux, this script will allow users to read their own
 # cgroups entries but not other users cgroups entries
-login = `/usr/bin/whoami`.chomp
+euid = Process::Sys.geteuid
+login = Etc.getpwuid(euid).name
 
 attribute=ARGV[0]
 unless attribute =~ /\A[a-zA-Z0-9\.\-_]*\z/
