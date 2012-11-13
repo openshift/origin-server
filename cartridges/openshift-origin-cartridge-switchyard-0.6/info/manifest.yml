@@ -21,7 +21,11 @@ Native-Requires:
 Architecture: noarch
 Reservations:
   - MEM >= 10MB
-Service-Dependencies: ["jbossas-7"]
+Components:
+  default:
+    Service-Dependencies:
+    Publishes:
+    Subscribes:
 Publishes:
 Subscribes:
 Scaling:
