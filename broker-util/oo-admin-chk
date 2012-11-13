@@ -61,32 +61,42 @@ Rails.configuration.analytics[:enabled] = false
 no_error = true
 summary = []
 
+start_time = (Time.now.to_f * 1000).to_i
 node_hash = OpenShift::ApplicationContainerProxy.get_all_gears
+total_time = (Time.now.to_f * 1000).to_i - start_time
+puts "Time to get all gears: #{total_time.to_f/1000}s"
 
 mongo_hash = {}
-CloudUser.find_all(nil) {|hash|
-  user = CloudUser.hash_to_obj(hash)
+start_time = (Time.now.to_f * 1000).to_i
+query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
+fields = {:fields => ["apps.name", "apps.group_instances.gears.uuid", "consumed_gears", "login"]}
+mcursor = OpenShift::DataStore.instance.user_collection.find(query, fields)
+ret = []
+mcursor.each do |hash|
   gear_count = 0
-  user.applications.each { |app|
-    app.group_instances.uniq.each { |gi|
-      gi.gears.each { |gear|
+  hash['apps'].each { |app|
+    app['group_instances'].each { |gi|
+      gi['gears'].each { |gear|
         gear_count += 1
-        mongo_hash[gear.uuid] = app.name
+        mongo_hash[gear['uuid']] = app['name']
       }
     }
   }
-  if user.consumed_gears != gear_count
-    msg = "FAIL - user #{user.login} has a mismatch in consumed gears (#{user.consumed_gears}) and actual gears (#{gear_count})!"
+  if hash['consumed_gears'] != gear_count
+    msg = "FAIL - user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
     puts msg if verbose
     summary << msg
     no_error = false
   else
-    puts "OK - user #{user.login} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
+    puts "OK - user #{hash['login']} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
   end
-}
+end
+
+total_time = (Time.now.to_f * 1000).to_i - start_time
+puts "Time to fetch user data: #{total_time.to_f/1000}s"
 
 # now check
-puts "Checking application gears in respective nodes :" if verbose
+puts "Checking application gears in respective nodes:" if verbose
 mongo_hash.each { |mk,mv|
   print "#{mk}...\t" if verbose
   if not node_hash.has_key? mk
