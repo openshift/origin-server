@@ -35,6 +35,12 @@ setup_basic_hook "$1" $2 $3
 # Get the status of the application
 #
 
-source $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+module_path="OPENSHIFT_JBOSSAS_MODULE_PATH"
+if [ -f "$APP_HOME/.env/OPENSHIFT_JBOSSEAP_CLUSTER" ]
+then
+  module_path="OPENSHIFT_JBOSSEAP_MODULE_PATH"
+fi
 
-client_result "SwitchYard modules are enabled at $OPENSHIFT_JBOSSAS_MODULE_PATH"
+source $APP_HOME/.env/$module_path
+
+client_result "SwitchYard modules are enabled at module_path=/etc/alternatives/switchyard-0.6/modules"
