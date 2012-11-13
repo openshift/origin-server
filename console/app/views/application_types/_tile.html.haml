@@ -1,4 +1,4 @@
-= div_for type, :class => 'tile tile-click tile-compact label-tags', :title => type.description do
+= div_for type, :class => "tile tile-click tile-compact label-tags application_type_#{type.source}", :title => type.description do
   %h3= link_to type.display_name, application_type_path(type)
   = application_type_tags(type.tags - excluded_tags)
 

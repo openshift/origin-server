@@ -12,11 +12,13 @@ class ApplicationTypesController < ConsoleController
       ['Ruby', :ruby],
       ['Node.js', :nodejs],
       ['Perl', :perl],
-      ['Only cartridges', :cartridge],
+      nil,
+      ['All web cartridges', :cartridge],
+      ['All quickstart applications', :instant_app],
       nil,
       ['Blogs', :blog],
       ['Content management systems', :cms],
-      ['MongoDB', :mongo],
+      #['MongoDB', :mongo],
     ]
 
     if @tag = params[:tag].presence
@@ -48,6 +50,8 @@ class ApplicationTypesController < ConsoleController
     @advanced = to_boolean(params[:advanced])
 
     user_default_domain rescue (@domain = Domain.new)
+
+    @compact = false # @domain.persisted?
 
     @application_type = params[:id] == 'custom' ?
       ApplicationType.custom(app_params) :

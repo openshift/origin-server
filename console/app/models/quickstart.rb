@@ -60,7 +60,7 @@ class Quickstart < RestApi::Base
     application
   end
 
-  cache_find_method :every
+  cache_method :find_every, :expires_in => 10.minutes
 
   class << self
     def promoted(opts={})
@@ -70,7 +70,12 @@ class Quickstart < RestApi::Base
     end
 
     def search(terms, opts={})
-      all(opts.merge(:from => (api_links[:search] or raise SearchDisabled), :params => {api_links[:search_param] => terms}))
+      all(opts.merge(
+        :from => (api_links[:search] or raise SearchDisabled),
+        :params => {
+          (api_links[:search_param] or raise SearchDisabled) => terms
+        }
+      ))
     rescue SearchDisabled
       terms.downcase!
       promoted(opts).select do |q|

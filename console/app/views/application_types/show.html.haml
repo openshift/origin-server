@@ -27,7 +27,7 @@
 
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
 
-= semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal #{@domain.persisted? ? 'collapse-help' : ''}"} do |f|
+= semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal #{@compact ? 'collapse-help' : ''}"} do |f|
   = hidden_field_tag :advanced, @advanced
   - if @application_type.persisted?
     = f.hidden_field :application_type, :value => @application_type.id
@@ -87,6 +87,7 @@
         - if @advanced
           = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository'
           -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
+          %span branch 'master'
         - else
           %h3
             - if @application_type.initial_git_url
@@ -99,7 +100,7 @@
 
       .controls
         %p.help-block 
-          - if @application_type.initial_git_url
+          - if @application_type.initial_git_url || @advanced
             Your application will start with a copy of the code and configuration provided in 
             this Git repository.
           - else
@@ -195,7 +196,7 @@
     = f.commit_button :button_html => { :name => 'submit', :disabled => @disabled } 
     = f.loading
 
-- if @domain.persisted?
+- if @compact
   - content_for :javascripts do
     :javascript
       jQuery('.help-block').click(function() {

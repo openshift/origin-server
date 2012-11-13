@@ -51,8 +51,9 @@
   %p #{link_to "See all application types", application_types_path}
 
 %section
-  - unless Quickstart.disabled?
-    %p
+  %p
+    Can't find what you're looking for? Try broadening your search or filtering by another tag.
+    -#%p
       Can't find what you're looking for? #{link_to "Browse the Quickstarts", community_quickstarts_url} 
       on our community, or #{link_to "create your own!", create_quickstart_url}
 

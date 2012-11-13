@@ -1416,10 +1416,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
-  def mock_quickstart
-    Quickstart.reset!
-    RestApi.reset!
-
+  def a_quickstart
     quickstart = {data:[
       {quickstart:{
         body:"<p>An awesome blog hosting platform with a rich ecosystem<\/p>",
@@ -1435,6 +1432,13 @@ class RestApiTest < ActiveSupport::TestCase
         website:"https:\/\/www.wordpress.org"
       }}
     ]}
+  end
+
+  def mock_quickstart
+    Quickstart.reset!
+    RestApi.reset!
+
+    quickstart = a_quickstart
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
@@ -1446,9 +1450,46 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
+  def mock_quickstart_search
+    quickstart = a_quickstart
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
+        'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
+        'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
+        'SEARCH_QUICKSTARTS' => {'href' => 'https://localhost/arbitrary_url/search.json', :required_params => [:name => 'search']},
+      }}.to_json
+      mock.get('/community/api/v1/quickstarts/promoted.json', anonymous_json_header, quickstart.to_json)
+      mock.get '/community/api/v1/quickstart/12069', anonymous_json_header, quickstart.to_json
+      mock.get('/arbitrary_url/search.json?search=bar', anonymous_json_header, {:data => []}.to_json)
+      mock.get('/arbitrary_url/search.json?search=word', anonymous_json_header, quickstart.to_json)
+    end
+  end
+
+  def test_quickstart_caching
+    mock_quickstart_search
+    Quickstart.reset!
+    RestApi.reset!
+    assert_not_equal Quickstart.cached.promoted, Quickstart.cached.search('bar')
+  end
+
   def test_quickstart
    assert_equal [:test], Quickstart.new(:tags => ['test']).tags
    assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3']).cartridges
+  end
+
+  def test_quickstart_search
+    mock_quickstart_search
+    Quickstart.reset!
+    RestApi.reset!
+
+    assert_equal 'search', Quickstart.send(:api_links)[:search_param]
+    assert Quickstart.send(:api_links)[:search].ends_with?('/search.json')
+
+    Quickstart.expects(:promoted).never
+
+    assert_equal [], Quickstart.search('bar')
+    assert_equal 1, Quickstart.search('word').length
+    assert_equal '12069', Quickstart.search('word').first.id
   end
 
   def mock_quickstart_disabled
