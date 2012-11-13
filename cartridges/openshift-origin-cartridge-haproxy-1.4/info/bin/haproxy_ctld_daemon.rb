@@ -19,4 +19,4 @@ options = {
 }
 config = OpenShift::Config.instance
 
-Daemons.run("#{config.get("CARTRIDGE_BASE_PATH")}/haproxy-1.4/info/bin/haproxy_ctld", options)
+Daemons.run("#{config.get("CARTRIDGE_BASE_PATH")}/haproxy-1.4/info/bin/haproxy_ctld.rb", options)
