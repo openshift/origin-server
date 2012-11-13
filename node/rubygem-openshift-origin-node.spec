@@ -7,7 +7,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gemname}
-Version: 1.1.4
+Version: 1.1.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -167,6 +167,16 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Merge remote-tracking branch 'origin-server/master' into BZ874587-origin
+  (bleanhar@redhat.com)
+- Merge pull request #881 from rmillner/wrongmcs (openshift+bot@redhat.com)
+- SS -> OPENSHIFT (dmcphers@redhat.com)
+- Was setting mcs label in the wrong place. (rmillner@redhat.com)
+- Fix for Bug 875949 (jhonce@redhat.com)
+- Bug 874587 - CLOUD_NAME in /etc/openshift/node.conf does not work
+  (bleanhar@redhat.com)
+
 * Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - BZ 872379: Dead code cleanup to fix mount parsing problem.
   (rmillner@redhat.com)
