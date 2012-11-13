@@ -193,6 +193,9 @@ create_cart_network_env_vars $IP
 create_standard_repo_dir_env_var
 create_standard_path_env_var
 
+# source the new PATH so we can modify it
+. $APP_HOME/.env/PATH
+
 if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
 then
 	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
