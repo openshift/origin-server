@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Removes embedded switchyard from an AS7 instance
+# Removes embedded switchyard from an JBoss instance
 
 # Exit on any errors
 set -e
@@ -31,18 +31,20 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_embedded_deconfigure "$1" $2 $3
 
-#
-# Create the core of the application
-#
-
-if [ -f "$APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH" ]
+module_path="OPENSHIFT_JBOSSAS_MODULE_PATH"
+if [ -f "$APP_HOME/.env/OPENSHIFT_JBOSSEAP_CLUSTER" ]
 then
-     sed -i 's/:\/etc\/alternatives\/switchyard-0.6\/modules//g' $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
-     sed -i 's/\/etc\/alternatives\/switchyard-0.6\/modules://g' $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
-     sed -i 's/\/etc\/alternatives\/switchyard-0.6\/modules//g' $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+  module_path="OPENSHIFT_JBOSSEAP_MODULE_PATH"
+fi
+
+if [ -f "$APP_HOME/.env/$module_path" ]
+then
+     sed -i 's/:\/etc\/alternatives\/switchyard-0.6\/modules//g' $APP_HOME/.env/$module_path
+     sed -i 's/\/etc\/alternatives\/switchyard-0.6\/modules://g' $APP_HOME/.env/$module_path
+     sed -i 's/\/etc\/alternatives\/switchyard-0.6\/modules//g' $APP_HOME/.env/$module_path
      
-     if grep -q "''" "$APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH"; then
-     	rm -f $APP_HOME/.env/OPENSHIFT_JBOSSAS_MODULE_PATH
+     if grep -q "''" "$APP_HOME/.env/$module_path"; then
+     	rm -f $APP_HOME/.env/$module_path
      fi
 fi
 
