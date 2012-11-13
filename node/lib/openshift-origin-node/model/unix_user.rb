@@ -37,7 +37,7 @@ module OpenShift
         :container_name
     attr_accessor :debug
 
-    DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR,"skel")
+    DEFAULT_SKEL_DIR = File.join(OpenShift::Config::CONF_DIR, "skel")
 
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
@@ -96,41 +96,33 @@ module OpenShift
         uuid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
         uuid_lock.flock(File::LOCK_EX)
 
-        # Lock to prevent race condition on obtaining a UNIX user uid.
-        # When running without districts, there is a simple search on the
-        #   passwd file for the next available uid.
-        File.open("/var/lock/oo-create", File::RDWR|File::CREAT, 0o0600) do | uid_lock |
-          uid_lock.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
-          uid_lock.flock(File::LOCK_EX)
+        raise UserCreationException.new(
+                "ERROR: unable to create user account, uid not set for #{@uuid}" 
+                ) unless @uid
+ 
+        unless @homedir
+          @homedir = File.join(basedir,@uuid)
+        end
 
-          unless @uid
-            @uid = @gid = next_uid
-          end
+        cmd = %{useradd -u #{@uid} \
+                -d #{@homedir} \
+                -s #{shell} \
+                -c '#{gecos}' \
+                -m \
+                -k #{skel_dir} \
+                #{@uuid}}
+        out,err,rc = shellCmd(cmd)
+        raise UserCreationException.new(
+                "ERROR: unable to create user account #{@uuid}, #{cmd}"
+                ) unless rc == 0
 
-          unless @homedir
-            @homedir = File.join(basedir,@uuid)
-          end
+        FileUtils.chown("root", @uuid, @homedir)
+        FileUtils.chmod 0o0750, @homedir
 
-          cmd = %{useradd -u #{@uid} \
-                  -d #{@homedir} \
-                  -s #{shell} \
-                  -c '#{gecos}' \
-                  -m \
-                  -k #{skel_dir} \
-                  #{@uuid}}
-          out,err,rc = shellCmd(cmd)
-          raise UserCreationException.new(
-                  "ERROR: unable to create user account #{@uuid}, #{cmd}"
-                  ) unless rc == 0
-
-          FileUtils.chown("root", @uuid, @homedir)
-          FileUtils.chmod 0o0750, @homedir
-
-          if @config.get("CREATE_APP_SYMLINKS").to_i == 1
-            unobfuscated = File.join(File.dirname(@homedir),"#{@container_name}-#{namespace}")
-            if not File.exists? unobfuscated
-              FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
-            end
+        if @config.get("CREATE_APP_SYMLINKS").to_i == 1
+          unobfuscated = File.join(File.dirname(@homedir),"#{@container_name}-#{namespace}")
+          if not File.exists? unobfuscated
+            FileUtils.ln_s File.basename(@homedir), unobfuscated, :force=>true
           end
         end
         notify_observers(:after_unix_user_create)
@@ -538,28 +530,6 @@ module OpenShift
       set_selinux_context(homedir)
 
       notify_observers(:after_initialize_homedir)
-    end
-
-    # Private: Determine next available user id.  This is usually determined
-    #           and provided by the broker but is auto determined if not
-    #           provided.
-    #
-    # Examples:
-    #   next_uid =>
-    #   # => 504
-    #
-    # Returns Integer value for next available uid.
-    def next_uid
-      uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
-      gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }
-      min_uid = (@config.get("GEAR_MIN_UID") || "500").to_i
-      max_uid = (@config.get("GEAR_MAX_UID") || "1500").to_i
-
-      (min_uid..max_uid).each do |i|
-        if !uids.include?(i) and !gids.include?(i)
-          return i
-        end
-      end
     end
 
     # Private: Initialize OpenShift Port Proxy for this gear
