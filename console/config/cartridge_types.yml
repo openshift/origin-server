@@ -19,8 +19,6 @@
   - :database
   :display_name: MySQL Database 5.1
   :license: GPLv2 with exceptions
-  :conflicts: 
-  - postgresql-8.4
   :help_topics: {}
 
   :version: MySQL 5.1
@@ -34,8 +32,6 @@
   - :database
   :display_name: PostgreSQL Database 8.4
   :license: PostgreSQL
-  :conflicts: 
-  - mysql-5.1
   :help_topics: {}
 
   :version: PostgreSQL 8.4
