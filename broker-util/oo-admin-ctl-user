@@ -265,10 +265,24 @@ rescue GetoptLong::Error => e
 end
 
 login = args["--rhlogin"]
-maxgears = args["--setmaxgears"].to_i if args["--setmaxgears"]
-consumedgears = args["--setconsumedgears"].to_i if args["--setconsumedgears"]
 allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
 inheritgearsizes = args["--inheritgearsizes"].to_b if args["--inheritgearsizes"]
+
+if args["--setmaxgears"]
+  unless args["--setmaxgears"] =~ /^[0-9]+$/
+    puts "ERROR: Max gears must be a positive integer"
+    exit 1
+  end
+  maxgears = args["--setmaxgears"].to_i
+end
+
+if args["--setconsumedgears"]
+  unless args["--setconsumedgears"] =~ /^[0-9]+$/
+    puts "ERROR: Consumed gears must be a positive integer"
+    exit 1
+  end
+  consumedgears = args["--setconsumedgears"].to_i
+end
 
 if login.nil? or args["--help"]
     usage
