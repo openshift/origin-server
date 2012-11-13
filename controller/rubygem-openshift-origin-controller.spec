@@ -5,7 +5,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gemname}
-Version: 1.1.4
+Version: 1.1.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -81,6 +81,9 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
+- specifying mocha gem version and fixing tests (abhgupta@redhat.com)
+
 * Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - Merge pull request #859 from lnader/master (openshift+bot@redhat.com)
 - US3043: store initial_git_url (lnader@redhat.com)
