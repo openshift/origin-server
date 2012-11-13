@@ -19,6 +19,7 @@
 
 require 'rubygems'
 require 'getoptlong'
+require 'socket'
 
 def usage
     puts <<USAGE
@@ -58,9 +59,61 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
-no_error = true
+errors = false
 summary = []
 
+
+# start with validation of the nodes
+
+localhost = %w[127.0.0.1 ::1]
+# get public_hostname of all nodes
+hosts = Hash.new {|h,k| h[k]=[]}
+OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_hostname") do |s,host|
+  hosts[host] << s
+  begin # test host resolution
+    # public_hostname must resolve as a FQDN, so should be the full name
+    # (the "." at the end blocks adding a search domain)
+    resolved_host = IPSocket.getaddress(host + ".")
+    if localhost.member? resolved_host
+      errors = true
+      summary << "FAIL - PUBLIC_HOSTNAME #{host} for #{s} should be public, not localhost"
+    else
+      puts "OK - PUBLIC_HOSTNAME #{host} for #{s} resolves to #{resolved_host}" if verbose
+    end
+  rescue Exception => e
+    errors = true
+    summary << "FAIL - PUBLIC_HOSTNAME #{host} for #{s} does not resolve as a FQDN (#{e})"
+  end
+end
+
+# get public_ip of all nodes
+ips = Hash.new {|h,k| h[k]=[]}
+OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_ip") do |s,ip|
+  ips[ip] << s
+  if localhost.member? ip
+    errors = true
+    summary << "FAIL - PUBLIC_IP #{ip} should be public, not localhost"
+  else
+    puts "OK - PUBLIC_IP #{ip} for #{s}" if verbose
+  end
+end
+
+hosts.each do |host,ids|
+  if ids.length > 1
+      errors = true
+      summary << "FAIL - multiple node hosts have public_hostname #{host}: #{ids.join ','}"
+  end
+end
+ips.each do |ip,ids|
+  if ids.length > 1
+      errors = true
+      summary << "FAIL - multiple node hosts have public_ip #{ip}: #{ids.join ','}"
+  end
+end
+
+puts summary.join "\n" if errors && verbose
+
+# now do validation of all gears
 node_hash = OpenShift::ApplicationContainerProxy.get_all_gears
 
 mongo_hash = {}
@@ -79,7 +132,7 @@ CloudUser.find_all(nil) {|hash|
     msg = "FAIL - user #{user.login} has a mismatch in consumed gears (#{user.consumed_gears}) and actual gears (#{gear_count})!"
     puts msg if verbose
     summary << msg
-    no_error = false
+    errors = true
   else
     puts "OK - user #{user.login} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
   end
@@ -90,7 +143,7 @@ puts "Checking application gears in respective nodes :" if verbose
 mongo_hash.each { |mk,mv|
   print "#{mk}...\t" if verbose
   if not node_hash.has_key? mk
-    no_error = false
+    errors = true
     puts "FAIL" if verbose
     summary << "Gear #{mk} in #{mv} does not exist on any node"
   else
@@ -103,7 +156,7 @@ puts "Checking node gears in application database:" if verbose
 node_hash.each { |nk, nv|
   print "#{nk}...\t" if verbose
   if not mongo_hash.has_key? nk
-    no_error = false
+    errors = true
     puts "FAIL" if verbose
     summary << "Gear #{nk} exists on node #{nv} but does not exist in mongo database"
   else
@@ -111,5 +164,5 @@ node_hash.each { |nk, nv|
   end
 }
 
-puts no_error ? "Success" : "Check failed.\n #{summary.join("\n")}"
-exit (no_error ? 0 : 1)
+puts errors ? "Check failed.\n #{summary.join("\n")}" : "Success"
+exit (errors ? 1 : 0)

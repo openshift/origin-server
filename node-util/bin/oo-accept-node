@@ -19,6 +19,7 @@
 
 require 'rubygems'
 require 'optparse'
+require 'socket'
 
 $OPTIONS = {}
 
@@ -38,9 +39,9 @@ $TC_CHECK=false
 $TC_DATA = %x[tc clas show dev eth0].split("\n").grep(/parent/)
 $ALL_QUOTAS = %x[repquota -a].split("\n")
 
-$LIBRA_CONF_DIR="/etc/openshift"
-$NODE_CONF_FILE=File.join($LIBRA_CONF_DIR, "/node.conf")
-$RESOURCE_LIMITS_FILE=File.join($LIBRA_CONF_DIR,"/resource_limits.conf")
+$CONF_DIR="/etc/openshift"
+$NODE_CONF_FILE=File.join($CONF_DIR, "/node.conf")
+$RESOURCE_LIMITS_FILE=File.join($CONF_DIR,"/resource_limits.conf")
 $LIMITS_CONF_DIR="/etc/security/limits.d"
 #
 # Control variables.  Override for testing
@@ -51,7 +52,7 @@ DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
 #                  cartridge-rack-1.1.
 #                  cartridge-wsgi-3.2
 #                  cartridge-php-5.3"
-DEFAULT_SERVICES="mcollective cgconfig cgred httpd"
+DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy"
 DEFAULT_MINSEM=512
 
 $SEBOOL_LIST="SEBOOL_LIST"
@@ -140,11 +141,19 @@ def load_node_conf
 
     #Source it in bash, grep it in ruby
     source_file($NODE_CONF_FILE)
-    if ENV["GEAR_BASE_DIR"].nil?
-        do_fail("GEAR_BASE_DIR is not set in the node configuration")
-    else
-        $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
+
+    # make sure required values are set in the conf file
+    %w[
+      GEAR_BASE_DIR GEAR_SKEL_DIR GEAR_SHELL GEAR_GECOS CLOUD_NAME
+      GEAR_MIN_UID GEAR_MAX_UID CARTRIDGE_BASE_PATH
+      PROXY_MIN_PORT_NUM PROXY_PORTS_PER_GEAR OPENSHIFT_HTTP_CONF_DIR
+      CLOUD_DOMAIN BROKER_HOST PUBLIC_IP PUBLIC_HOSTNAME
+    ].each do |value|
+      next unless ENV[value].nil? || ENV[value].empty?
+      do_fail("SEVERE: in #{$NODE_CONF_FILE}, #{value} not defined")
     end
+
+    $GEAR_BASE_DIR=ENV['GEAR_BASE_DIR']
     do_fail("GEAR_BASE_DIR does not exist or is not a directory: #{$GEAR_BASE_DIR}") unless File.exists? $GEAR_BASE_DIR
     $GEAR_HTTPD_DIR=File.join($GEAR_BASE_DIR,"/.httpd.d")
 
@@ -152,6 +161,48 @@ def load_node_conf
 
     do_fail("No resource limits file: #{$RESOURCE_LIMITS_FILE}") unless File.exists? $RESOURCE_LIMITS_FILE
     source_file($RESOURCE_LIMITS_FILE)
+end
+
+def check_node_public_resolution
+    verbose("checking node public hostname resolution")
+
+    localhost = %w[127.0.0.1 ::1]
+    pubhost = ENV["PUBLIC_HOSTNAME"]
+    pubip = ENV["PUBLIC_IP"]
+    broker = ENV["BROKER_HOST"]
+
+    # check that the broker host resolves to an external IP
+    begin
+      resolved_host = IPSocket.getaddress(broker)
+      # on devenv or livecd, BROKER_HOST=localhost is considered legit. Will let that be for now.
+      #localhost.member?(resolved_host) and
+        #do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} should be public address, not localhost") 
+    rescue Exception => e
+      do_fail("#{$NODE_CONF_FILE}: BROKER_HOST #{broker} does not resolve (#{e})")
+    end
+
+    # attempt to resolve the node public hostname
+    begin
+      # must resolve as a FQDN, so should be the full name
+      # (the "." at the end blocks adding a search domain)
+      resolved_host = IPSocket.getaddress(pubhost + ".")
+    rescue Exception => e
+      do_fail("#{$NODE_CONF_FILE}: PUBLIC_HOSTNAME #{pubhost} does not resolve as a FQDN (#{e})")
+      return
+    end
+
+    # make sure public settings resolve correctly to a non-localhost IP
+    do_fail("#{$NODE_CONF_FILE}: PUBLIC_HOSTNAME #{pubhost} should be public, not localhost") if localhost.member? resolved_host
+    do_fail("#{$NODE_CONF_FILE}: PUBLIC_IP #{pubip} should be public, not localhost") if localhost.member? pubip
+
+    # it would be nice to check that the PUBLIC_IP actually ends up at a NIC on this host.
+    # however in settings like EC2, there's no good way to do that.
+    #
+    # but we can check PUBLIC_HOSTNAME resolves to either a NIC on this host or PUBLIC_IP.
+    # in EC2, hostname resolves differently internal vs. external, so will match NIC.
+    # in most places, PUBLIC_HOSTNAME will resolve to PUBLIC_IP
+    my_ips = `ip addr show scope global`.scan(/^\s+inet\s+([\d\.]+)/).flatten.push(pubip).uniq
+    do_fail("#{$NODE_CONF_FILE}: PUBLIC_HOSTNAME #{pubhost} resolves to #{resolved_host}; expected #{my_ips.join '|'}") unless my_ips.member? resolved_host
 end
 
 def check_selinux()
@@ -329,6 +380,7 @@ end
 if __FILE__ == $0
     $STATUS=0
     load_node_conf
+    check_node_public_resolution
     check_selinux
     check_packages
     check_services
