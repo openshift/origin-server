@@ -25,7 +25,7 @@ function set_pam_limits {
     if [ -z "${NOOP}" ]
     then
 	cat <<EOF > ${LIMITSFILE}
-# PAM process limits for guest $customer_id
+# PAM process limits for guest $USERNAME
 # see limits.conf(5) for details
 #Each line describes a limit for a user in the form:
 #
@@ -33,7 +33,7 @@ function set_pam_limits {
 EOF
     else
 	echo "cat <<EOF > ${LIMITSFILE}
-# PAM process limits for guest $customer_id
+# PAM process limits for guest $USERNAME
 # see limits.conf(5) for details
 #Each line describes a limit for a user in the form:
 #
