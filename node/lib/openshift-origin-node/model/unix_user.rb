@@ -738,7 +738,7 @@ module OpenShift
     def set_selinux_context(path)
       mcs_label=get_mcs_label(@uid)
       shellCmd("restorecon -R #{path}")
-      shellCmd("chcon -R -l #{@mcs_label} #{path}")
+      shellCmd("chcon -R -l #{mcs_label} #{path}/*")
     end
   end
 end
