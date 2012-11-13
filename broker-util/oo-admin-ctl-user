@@ -165,13 +165,13 @@ def remove_sub_account(user, subaccount_login)
     end
     
     print "Removing subaccount for #{child_user.login} under #{user.login}... "
-    result = child_user.force_delete
-    puts "Done."
-
-    if result.exitcode != 0
-        puts "An error occurred removing the sub account for #{subaccount_login}."
-        exit 6
+    begin
+      child_user.force_delete
+    rescue Exception => e
+      puts "An error occurred removing the sub account for #{subaccount_login} : #{e.message}"
+      exit 6
     end
+    puts "Done."
 end
 
 def add_gear_size(user, gear_size)
