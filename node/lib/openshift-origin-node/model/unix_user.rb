@@ -255,7 +255,6 @@ module OpenShift
 
       authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
       keys = read_ssh_keys authorized_keys_file
-
       key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
       cloud_name  = @config.get("CLOUD_NAME") || "OPENSHIFT"
       ssh_comment = "#{cloud_name}-#{@uuid}#{comment}"
