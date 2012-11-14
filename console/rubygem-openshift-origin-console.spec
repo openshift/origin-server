@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.1.4
+Version: 1.1.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,30 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
+  (openshift+bot@redhat.com)
+- Test / merge conflict (ccoleman@redhat.com)
+- A few leftover style problems with input-append-prepend in Firefox,
+  placeholder bug in chrome (ccoleman@redhat.com)
+- Remove conflicting metadata (ccoleman@redhat.com)
+- Cleanup visuals of app creation, indicate default git branch, add a date
+  helper for visuals, and ensure jenkins has the instant_app tag.
+  (ccoleman@redhat.com)
+- Support a few edge cases - local quickstarts and idle applications
+  (ccoleman@redhat.com)
+- Attempt to correct test failure issues on test execution and cleanup
+  (ccoleman@redhat.com)
+- Quickstart URLs aren't spec compliant (ccoleman@redhat.com)
+- Implement all templates as the base quickstarts, and make quickstart.rb a bit
+  more flexible (ccoleman@redhat.com)
+- Fix broken test (ccoleman@redhat.com)
+- Add an accordion mode for wider displays, add a unit test for invalid gear
+  size (ccoleman@redhat.com)
+- Disable initial_git_branch UI support until it is implemented
+  (ccoleman@redhat.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - Removed outdated 'conflicts' constraints from cartridge config file
   (hripps@redhat.com)
