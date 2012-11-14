@@ -1,118 +1,58 @@
 ---
-- :conflicts: 
-  - postgresql-8.4
-  :name: mysql-5.1
-- :conflicts: 
-  - mysql-5.1
-  :name: postgresql-8.4
 - :categories: 
   - :blacklist
   - :administration
   :name: 10gen-mms-agent-0.1
+
 - :categories: 
   - :administration
   :display_name: phpMyAdmin 3.4
   :requires:
   - mysql-5.1
   :name: phpmyadmin-3.4
-- :description: An experimental cartridge that demonstrates retrieving real-time statistics from your application. May be removed or replaced in the future.
-  :type: embedded
-  :categories: 
-  - :embedded
-  - :experimental
-  :display_name: OpenShift Metrics 0.1
-  :help_topics: {}
 
-  :version: Metrics 0.1
-  :name: metrics-0.1
-- :description: Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.
-  :type: embedded
-  :categories: 
-  - :embedded
-  - :administration
-  :display_name: phpMoAdmin 1.0
-  :requires: 
+- :requires: 
   - mongodb-2.2
-  :license: GPL v3
-  :help_topics: {}
-
-  :version: phpMoAdmin 1.0
-  :website: http://www.phpmoadmin.com/
   :name: phpmoadmin-1.0
-  :license_url: http://www.gnu.org/licenses/gpl-3.0.html
+
 - :name: cron-1.4
   :priority: 2
-- :description: Web based MongoDB administration tool. Requires the MongoDB cartridge to be installed first.
-  :type: embedded
-  :categories: 
-  - :embedded
+
+- :categories: 
   - :administration
-  :display_name: RockMongo 1.1
   :requires: 
   - mongodb-2.2
-  :license: BSD
-  :help_topics: {}
-
-  :version: RockMongo 1.1
-  :website: http://code.google.com/p/rock-php/wiki/rock_mongo
   :name: rockmongo-1.1
-  :license_url: http://www.opensource.org/licenses/bsd-license.php
-- :description_html: |
-    <p>The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be <a href="/app/console/application_types">created via the new application page</a>.</p>
 
-  :type: embedded
-  :categories: 
-  - :embedded
-  - :productivity
-  - :ci_builder
-  :display_name: Jenkins Client 1.4
-  :license: MIT
-  :help_topics: {}
-
-  :version: Jenkins Client 1.4
-  :website: https://jenkins-ci.org/
-  :name: jenkins-client-1.4
-  :license_url: http://www.opensource.org/licenses/mit-license.php
-- :description: ""
-  :type: embedded
-  :categories: 
+- :categories: 
   - :blacklist
-  - :scales
-  :display_name: High Availability Proxy
-  :license: ""
-  :version: "1.4"
   :name: haproxy-1.4
-  :license_url: ""
+
 - :categories: 
   - :premium
   - :featured
   - :new
-  :help_topics: 
-    How to add JBoss modules to an OpenShift app: /community/kb/kb-e1018-how-can-i-add-jboss-modules-to-an-express-app
-    How to solve java.net.BindException to 8080: /community/kb/kb-e1019-my-jboss-application-has-a-bunch-of-javanetbindexceptions-to-8080-when-starting
   :name: jbosseap-6.0
   :priority: -1
+
 - :name: zend-5.6
   :priority: -1
   :categories:
   - :new
   - :featured
+
 - :description: Ruby is a dynamic, reflective, general-purpose object-oriented programming language. We recommend using Ruby 1.9.3 for new applications.
   :name: ruby-1.8
   :priority: 2
-- :description_html: |
-    <p>The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See <a href="/community/developers/do-it-yourself">the community site</a> for examples of bringing your favorite framework to OpenShift.</p>
 
-  :categories: 
+- :categories: 
   - :custom
   :name: diy-0.1
   :priority: 1
-- :description_html: |
-    <p>Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift.  See <a href="/community/jenkins">the Jenkins info page for more</a>.</p>
 
-  :name: jenkins-1.4
+- :name: jenkins-1.4
   :priority: 1
-  
+
 - :name: jbossews-1.0
   :categories:
   - :new
