@@ -67,7 +67,7 @@ module AppHelper
 
     def update_uid(std_output)
       begin
-        match = std_output.map {|line| line.match(SSH_OUTPUT_PATTERN)}.compact[0]
+        match = std_output.lines.map {|line| line.match(SSH_OUTPUT_PATTERN)}.compact[0]
         @uid = match[1]
       rescue => e
         $logger.error "update_uid failed: #{e.message}\n#{std_output}"

@@ -77,7 +77,7 @@ create_standard_env_uservars
 create_standard_network_env_vars $IP
 create_cart_network_env_vars $IP
 create_standard_repo_dir_env_var
-echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$PATH" > $APP_HOME/.env/PATH
+create_standard_path_env_var
 
 observe_setup_env_uservars_dir
 
