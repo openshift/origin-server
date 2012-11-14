@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -136,6 +136,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Source rewritten PATH before further mods (ironcladlou@gmail.com)
+- Use standard PATH util in jboss carts (ironcladlou@gmail.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #833 from tdawson/tdawson/fed-update/openshift-origin-
   cartridge-abstract-1.1.1 (openshift+bot@redhat.com)
