@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -97,6 +97,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Don't pass a shell script to Daemons (ironcladlou@gmail.com)
+- Restore original PATH logic (ironcladlou@gmail.com)
+- WIP fixes for haproxy Ruby 1.9 usage for scalable apps
+  (ironcladlou@gmail.com)
+- get the broker working again (dmcphers@redhat.com)
+- WIP Ruby 1.9 runtime fixes (ironcladlou@gmail.com)
+- Remove hard-coded ruby references (ironcladlou@gmail.com)
+
 * Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Fix for Bug 874445 (jhonce@redhat.com)
 
