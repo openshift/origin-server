@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.1.5
+Version: 1.1.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
+  (openshift+bot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - Fix bugz 876130 - Node.js application w/ jenkins enabled does not startup
   supervisor on hot_deploy marker push. (ramr@redhat.com)
