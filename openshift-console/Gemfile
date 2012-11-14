@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'minitest', '~> 3.2.0'
+gem 'minitest'
 gem 'openshift-origin-console', :require => 'console', :path => ENV['CONSOLE_PATH']
 group :assets do
         gem 'compass-rails', '~> 1.0.3'
