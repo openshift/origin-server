@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.1.2
+Version: 1.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -87,6 +87,10 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- remove %%prep steps that add gem pre-processing since we're using a .tar.gz
+  (admiller@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - getting specs up to 1.9 sclized (dmcphers@redhat.com)
 
