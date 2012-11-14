@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   1.1.3
+Version:   1.1.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -84,6 +84,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Use standard PATH util in jboss carts (ironcladlou@gmail.com)
+- WIP Ruby 1.9 runtime fixes (ironcladlou@gmail.com)
+- Finish moving the stale disable to Origin. (rmillner@redhat.com)
+
 * Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - Fix for Bug 874445 (jhonce@redhat.com)
 
