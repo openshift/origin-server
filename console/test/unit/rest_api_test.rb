@@ -981,7 +981,8 @@ class RestApiTest < ActiveSupport::TestCase
 
     # default values
     assert_equal :embedded, type.type
-    assert_equal '1.4', type.version
+    assert_nil type.version
+    assert_equal [:blacklist], type.tags
   end
 
   def test_cartridge_type_scalable_check
@@ -1012,13 +1013,13 @@ class RestApiTest < ActiveSupport::TestCase
     type = CartridgeType.find 'haproxy-1.4'
 
     # custom attributes
-    assert_equal 'High Availability Proxy', type.display_name
+    assert_equal 'haproxy-1.4', type.display_name
     assert_equal 'haproxy-1.4', type.name
     assert_nil type.website
 
     # default values
     assert_equal :embedded, type.type
-    assert_equal '1.4', type.version
+    assert_nil type.version
   end
 
   class CacheableRestApi < RestApi::Base
@@ -1171,7 +1172,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal :embedded, type.type
     assert type.embedded?
     assert !type.standalone?
-    assert_equal '1.4', type.version
+    assert_nil type.version
     assert_equal CartridgeType.new(:name => 'haproxy-1.4'), type
     assert_equal 'haproxy-1.4', type.to_param
   end
