@@ -232,14 +232,14 @@ module OpenShift
     end
 
     def find_district(uuid)
-      Rails.logger.debug "find_district(#{uuid})\n\n"
-      hash = find_one_district( "_id" => uuid )
+      Rails.logger.debug "MongoDataStore.find_district(#{uuid})\n\n"
+      hash = find_one( district_collection, "_id" => uuid )
       hash_to_district_ret(hash)
     end
     
     def find_district_by_name(name)
-      Rails.logger.debug "find_district_by_name(#{name})\n\n"
-      hash = find_one_district( "name" => name )
+      Rails.logger.debug "MongoDataStore.find_district_by_name(#{name})\n\n"
+      hash = find_one( district_collection, "name" => name )
       hash_to_district_ret(hash)
     end
     
@@ -253,7 +253,7 @@ module OpenShift
     
     def find_district_with_node(server_identity)
       Rails.logger.debug "find_district_with_node(#{server_identity})\n\n"
-      hash = find_one_district({"server_identities.name" => server_identity })
+      hash = find_one( district_collection, {"server_identities.name" => server_identity } )
       hash_to_district_ret(hash)
     end
     
@@ -262,68 +262,68 @@ module OpenShift
       district_attrs["_id"] = uuid
       orig_server_identities = district_attrs["server_identities"] 
       district_attrs_to_internal(district_attrs)
-      update_district({ "_id" => uuid }, district_attrs, { :upsert => true })
+      update( district_collection, { "_id" => uuid }, district_attrs, { :upsert => true } )
       district_attrs.delete("_id")
       district_attrs["server_identities"] = orig_server_identities
     end
     
     def delete_district(uuid)
       Rails.logger.debug "delete_district(#{uuid})\n\n"
-      remove_district({ "_id" => uuid, "active_server_identities_size" => 0 })
+      remove( district_collection, { "_id" => uuid, "active_server_identities_size" => 0 } )
     end
-    
+
     def reserve_district_uid(uuid)
       Rails.logger.debug "reserve_district_uid(#{uuid})\n\n"
-      hash = find_and_modify_district({
+      hash = find_and_modify( district_collection, {
         :query => {"_id" => uuid, "available_capacity" => {"$gt" => 0}},
         :update => {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }},
         :new => false })
-      hash["available_uids"][0]
+      return hash ? hash["available_uids"][0] : nil
     end
 
     def unreserve_district_uid(uuid, uid)
       Rails.logger.debug "unreserve_district_uid(#{uuid})\n\n"
-      update_district({"_id" => uuid, "available_uids" => {"$ne" => uid}}, {"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
+      update( district_collection, {"_id" => uuid, "available_uids" => {"$ne" => uid}}, {"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }} )
     end
-
+    
     def add_district_node(uuid, server_identity)
       Rails.logger.debug "add_district_node(#{uuid},#{server_identity})\n\n"
-      update_district({"_id" => uuid, "server_identities.name" => { "$ne" => server_identity }}, {"$push" => { "server_identities" => {"name" => server_identity, "active" => true}}, "$inc" => { "active_server_identities_size" => 1 }})
+      update( district_collection, {"_id" => uuid, "server_identities.name" => { "$ne" => server_identity }}, {"$push" => { "server_identities" => {"name" => server_identity, "active" => true}}, "$inc" => { "active_server_identities_size" => 1 }} )
     end
 
     def remove_district_node(uuid, server_identity)
       Rails.logger.debug "remove_district_node(#{uuid},#{server_identity})\n\n"
-      hash = find_and_modify_district({
+      hash = find_and_modify( district_collection, {
         :query => { "_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => false}}}, 
         :update => { "$pull" => { "server_identities" => {"name" => server_identity }}} })
       return hash != nil
     end
-
+    
     def deactivate_district_node(uuid, server_identity)
       Rails.logger.debug "deactivate_district_node(#{uuid},#{server_identity})\n\n"
-      update_district({"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => true}}}, {"$set" => { "server_identities.$.active" => false}, "$inc" => { "active_server_identities_size" => -1 }})
+      update( district_collection, {"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => true}}}, {"$set" => { "server_identities.$.active" => false}, "$inc" => { "active_server_identities_size" => -1 }} )
     end
-    
+
     def activate_district_node(uuid, server_identity)
       Rails.logger.debug "activate_district_node(#{uuid},#{server_identity})\n\n"
-      update_district({"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => false}}}, {"$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 }})
+      update( district_collection, {"_id" => uuid, "server_identities" => {"$elemMatch" => {"name" => server_identity, "active" => false}}}, {"$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 }} )
     end
-    
+
     def add_district_uids(uuid, uids)
       Rails.logger.debug "add_district_capacity(#{uuid},#{uids})\n\n"
-      update_district({"_id" => uuid}, {"$pushAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => uids.length, "max_uid" => uids.length, "max_capacity" => uids.length }})
+      update( district_collection, {"_id" => uuid}, {"$pushAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => uids.length, "max_uid" => uids.length, "max_capacity" => uids.length }} )
     end
 
     def remove_district_uids(uuid, uids)
       Rails.logger.debug "remove_district_capacity(#{uuid},#{uids})\n\n"
-      update_district({"_id" => uuid, "available_uids" => uids[0]}, {"$pullAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => -uids.length, "max_uid" => -uids.length, "max_capacity" => -uids.length }})
+      update( district_collection, {"_id" => uuid, "available_uids" => uids[0]}, {"$pullAll" => { "available_uids" => uids }, "$inc" => { "available_capacity" => -uids.length, "max_uid" => -uids.length, "max_capacity" => -uids.length }} )
     end
 
     def inc_district_externally_reserved_uids_size(uuid)
       Rails.logger.debug "inc_district_externally_reserved_uids_size(#{uuid})\n\n"
-      update_district({"_id" => uuid}, {"$inc" => { "externally_reserved_uids_size" => 1 }})
+      update( district_collection, {"_id" => uuid}, {"$inc" => { "externally_reserved_uids_size" => 1 }} )
     end
-    
+
     def find_available_district(node_profile=nil)
       node_profile = node_profile ? node_profile : "small"
       MongoDataStore.rescue_con_failure do
@@ -612,36 +612,6 @@ module OpenShift
           
     def district_collection
       db.collection(@collections[:district])
-    end
-    
-    def find_one_district(*args)
-      MongoDataStore.rescue_con_failure do
-        district_collection.find_one(*args)
-      end
-    end
-
-    def find_and_modify_district(*args)
-      MongoDataStore.rescue_con_failure do
-        district_collection.find_and_modify(*args)
-      end
-    end
-
-    def insert_district(*args)
-      MongoDataStore.rescue_con_failure do
-        district_collection.insert(*args)
-      end
-    end
-
-    def update_district(*args)
-      MongoDataStore.rescue_con_failure do
-        district_collection.update(*args)
-      end
-    end
-
-    def remove_district(*args)
-      MongoDataStore.rescue_con_failure do
-        district_collection.remove(*args)
-      end
     end
 
     def cursor_to_district_hash(cursor)
