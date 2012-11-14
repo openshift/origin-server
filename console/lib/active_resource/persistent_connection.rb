@@ -20,6 +20,16 @@ module ActiveResource
       :head => 'Accept'
     }
 
+    class ServerRefusedConnection < Errno::ECONNREFUSED
+      def initialize(site,path=nil)
+        @site, @path = site, path
+      end
+
+      def message
+        "Connection refused to #{@site}#{@path}"
+      end
+    end
+
     attr_reader :site, :user, :password, :auth_type, :timeout, :proxy, :ssl_options, :connection_name
     attr_accessor :format
 
@@ -132,32 +142,32 @@ module ActiveResource
     private
       # Makes a request to the remote service.
       def request(method, path, *arguments)
+        req = case method
+          when :get
+            req = Net::HTTP::Get.new path, arguments[0]
+          when :head
+            req = Net::HTTP::Head.new path, arguments[0]
+          when :delete
+            req = Net::HTTP::Delete.new path, arguments[0]
+          when :put
+            req = Net::HTTP::Put.new path, arguments[1]
+            req.body = arguments[0]
+            req
+          when :patch
+            req = Net::HTTP::Patch.new path, arguments[1]
+            req.body = arguments[0]
+            req
+          when :post
+            req = Net::HTTP::Post.new path, arguments[1]
+            req.body = arguments[0]
+            req
+          else
+            raise StandardError, "Method not recognized #{method}"
+          end
         result = ActiveSupport::Notifications.instrument("request.active_resource") do |payload|
           payload[:method]      = method
           payload[:request_uri] = "#{site.scheme}://#{site.host}:#{site.port}#{path}"
-          req = case method
-            when :get
-              req = Net::HTTP::Get.new path, arguments[0]
-            when :head
-              req = Net::HTTP::Head.new path, arguments[0]
-            when :delete
-              req = Net::HTTP::Delete.new path, arguments[0]
-            when :put
-              req = Net::HTTP::Put.new path, arguments[1]
-              req.body = arguments[0]
-              req
-            when :patch
-              req = Net::HTTP::Patch.new path, arguments[1]
-              req.body = arguments[0]
-              req
-            when :post
-              req = Net::HTTP::Post.new path, arguments[1]
-              req.body = arguments[0]
-              req
-            else
-              raise StandardError, "Method not recognized #{method}"
-            end
-           payload[:result] = http.request site, req
+          payload[:result] = http.request site, req
         end
         handle_response(result)
       rescue Timeout::Error => e
@@ -166,6 +176,8 @@ module ActiveResource
         raise SSLError.new(e.message)
       rescue Net::HTTP::Persistent::Error => e
         raise ConnectionError.new(e.message)
+      rescue Errno::ECONNREFUSED => e
+        raise ServerRefusedConnection.new(site, req.path)
       end
 
       # Handles response and error codes from the remote service.

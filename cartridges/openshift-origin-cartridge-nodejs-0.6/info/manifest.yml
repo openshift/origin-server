@@ -6,6 +6,8 @@ License: ASL 2.0
 Vendor: www.nodejs.org
 Categories:
   - cartridge
+  - javascript
+  - nodejs
   - web_framework
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers

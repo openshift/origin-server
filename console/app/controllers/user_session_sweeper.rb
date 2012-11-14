@@ -1,12 +1,12 @@
 class UserSessionSweeper < ActiveModel::Observer
-  observe User
+  observe User, Application, Domain
 
   def self.before(controller)
     self.user_changes = false
     true
   end
   def self.after(controller)
-    controller.session[:capabilities_gear_sizes] = nil if self.user_changes?
+    controller.session[:user_capabilities] = nil if self.user_changes?
   end
 
   def self.user_changes?

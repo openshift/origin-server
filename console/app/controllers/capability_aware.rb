@@ -8,18 +8,10 @@ module CapabilityAware
   # Call this with :refresh => true to force a
   # refresh of the values stored in session
   def user_capabilities(args = {})
-    if args[:refresh] or not session.has_key?(:user_capabilities)
-      user = User.find(:one, :as => current_user)
-      session[:user_capabilities] = [
-        user.max_gears,
-        user.consumed_gears,
-        user.capabilities.gear_sizes
-      ]
-    end
-    { :max_gears => session[:user_capabilities][0],
-      :consumed_gears => session[:user_capabilities][1],
-      :gear_sizes => session[:user_capabilities][2]
-    }
+    @user_capabilities = nil if args[:refresh]
+    @user_capabilities ||=
+      (Capabilities::Cacheable.from(session[:user_capabilities]) rescue nil) ||
+      User.find(:one, :as => current_user).to_capabilities.tap{ |c| session[:user_capabilities] = c.to_a }
   end
 end
 RestApi::Base.observers << UserSessionSweeper

@@ -846,6 +846,31 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal '/broker/rest/domains/test3/applications/testapp1/cartridges.json', cart.send(:collection_path)
   end
 
+  def test_cartridges_assignment
+    app = Application.new
+    assert_equal [], app.cartridges
+    app.cartridges = ['foo']
+    assert_equal ['foo'], app.attributes[:cartridges]
+    assert_equal ['foo'], app.cartridge_names
+    assert_equal [], app.cartridges
+    app.cartridge_names = ['bar']
+    assert_equal ['bar'], app.attributes[:cartridges]
+    assert_equal ['bar'], app.cartridge_names
+
+    app.assign_attributes(:cartridges => ['a','b'])
+    assert_equal ['a','b'], app.attributes[:cartridges]
+
+    app.assign_attributes(:cartridge_names => ['c','d'])
+    assert_equal ['c','d'], app.attributes[:cartridges]
+
+    app = Application.new({:name => 'a', :domain_name => 'b'}, true)
+    Cartridge.expects(:find).once.with(:all, :as => nil, :params => {:application_name => 'a', :domain_id => 'b'}).returns([Cartridge.new(:name => 'test')])
+    carts = app.cartridges
+    assert_equal [Cartridge.new(:name => 'test')], carts
+    assert_same carts, app.cartridges
+    assert_equal ['test'], app.cartridge_names
+  end
+
   def test_cartridge_initialization_object
     app = Application.new :name => 'testapp1', :domain_id => 'test3'
     cart = Cartridge.new :application => app
@@ -956,7 +981,8 @@ class RestApiTest < ActiveSupport::TestCase
 
     # default values
     assert_equal :embedded, type.type
-    assert_equal '1.4', type.version
+    assert_nil type.version
+    assert_equal [:blacklist], type.tags
   end
 
   def test_cartridge_type_scalable_check
@@ -987,13 +1013,13 @@ class RestApiTest < ActiveSupport::TestCase
     type = CartridgeType.find 'haproxy-1.4'
 
     # custom attributes
-    assert_equal 'High Availability Proxy', type.display_name
+    assert_equal 'haproxy-1.4', type.display_name
     assert_equal 'haproxy-1.4', type.name
     assert_nil type.website
 
     # default values
     assert_equal :embedded, type.type
-    assert_equal '1.4', type.version
+    assert_nil type.version
   end
 
   class CacheableRestApi < RestApi::Base
@@ -1128,35 +1154,6 @@ class RestApiTest < ActiveSupport::TestCase
     end
   end
 
-  def test_cartridge_compare
-    mock_types
-
-    ruby18 = CartridgeType.new :name => 'ruby-1.8'
-    ruby = CartridgeType.new :name => 'ruby-1.9'
-    php = CartridgeType.new :name => 'php-5.3'
-    mongo = CartridgeType.new :name => 'mongodb-2.2'
-    cron = CartridgeType.new :name => 'cron-1.4'
-    jenkins = CartridgeType.new :name => 'jenkins-client-1.4'
-
-    assert ruby18 > ruby
-    assert ruby < ruby18
-
-    assert cron > ruby
-    assert ruby < cron
-
-    assert mongo < cron
-    assert cron > mongo
-
-    assert ruby < mongo
-    assert mongo > ruby
-
-    assert php < ruby
-    assert ruby > php
-
-    assert php < jenkins
-    assert ruby < jenkins
-  end
-
   def test_cartridge_type_embedded
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
@@ -1175,7 +1172,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal :embedded, type.type
     assert type.embedded?
     assert !type.standalone?
-    assert_equal '1.4', type.version
+    assert_nil type.version
     assert_equal CartridgeType.new(:name => 'haproxy-1.4'), type
     assert_equal 'haproxy-1.4', type.to_param
   end
@@ -1205,7 +1202,8 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_application_types
-    ActiveResource::HttpMock.respond_to do |mock|
+    mock_quickstart
+    ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
         {:name => 'haproxy-1.4', :type => 'standalone'},
         {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]},
@@ -1220,7 +1218,7 @@ class RestApiTest < ActiveSupport::TestCase
     CartridgeType.any_instance.stubs(:scalable).returns(true)
 
     types = ApplicationType.find :all
-    assert_equal 1, types.length, types.inspect
+    assert_equal 2, types.length, types.inspect
     types.each do |type|
       assert a = ApplicationType.find(type.id)
       assert_equal type.id, a.id
@@ -1234,7 +1232,8 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_application_templates
-    ActiveResource::HttpMock.respond_to do |mock|
+    mock_quickstart_disabled
+    ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
       ].to_json
 
@@ -1337,7 +1336,7 @@ class RestApiTest < ActiveSupport::TestCase
     mock_complex_scaling_cartridges
     mock_types
 
-    app = Application.new :name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user
+    app = Application.new({:name => 'test', :domain_id => 'test', :git_url => 'http://localhost', :ssh_url => 'ssh://a@foo.com', :as => @user}, true)
     assert groups = app.cartridge_gear_groups
     assert_equal 2, groups.length
     assert_equal 1, groups.first.cartridges.length
@@ -1418,12 +1417,134 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
+  def a_quickstart
+    quickstart = {data:[
+      {quickstart:{
+        body:"<p>An awesome blog hosting platform with a rich ecosystem<\/p>",
+        summary:"An awesome blog hosting platform with a rich ecosystem",
+        id:"12069",
+        href:"\/community\/content\/wordpress-34",
+        name:"Wordpress 3.4",
+        updated:"1351538972",
+        cartridges:"php-5.3, mysql-5.1",
+        initial_git_url:"https:\/\/github.com\/openshift\/wordpress-example",
+        language:"PHP",
+        tags:"blog, instant_app, php, wordpress",
+        website:"https:\/\/www.wordpress.org"
+      }}
+    ]}
+  end
+
+  def mock_quickstart
+    Quickstart.reset!
+    RestApi.reset!
+
+    quickstart = a_quickstart
+
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
+        'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
+        'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
+      }}.to_json
+      mock.get('/community/api/v1/quickstarts/promoted.json', anonymous_json_header, quickstart.to_json)
+      mock.get '/community/api/v1/quickstart/12069', anonymous_json_header, quickstart.to_json
+    end
+  end
+
+  def mock_quickstart_search
+    quickstart = a_quickstart
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
+        'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
+        'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
+        'SEARCH_QUICKSTARTS' => {'href' => 'https://localhost/arbitrary_url/search.json', :required_params => [:name => 'search']},
+      }}.to_json
+      mock.get('/community/api/v1/quickstarts/promoted.json', anonymous_json_header, quickstart.to_json)
+      mock.get '/community/api/v1/quickstart/12069', anonymous_json_header, quickstart.to_json
+      mock.get('/arbitrary_url/search.json?search=bar', anonymous_json_header, {:data => []}.to_json)
+      mock.get('/arbitrary_url/search.json?search=word', anonymous_json_header, quickstart.to_json)
+    end
+  end
+
+  def test_quickstart_caching
+    mock_quickstart_search
+    Quickstart.reset!
+    RestApi.reset!
+    assert_not_equal Quickstart.cached.promoted, Quickstart.cached.search('bar')
+  end
+
+  def test_quickstart
+   assert_equal [:test], Quickstart.new(:tags => ['test']).tags
+   assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3']).cartridges
+  end
+
+  def test_quickstart_search
+    mock_quickstart_search
+    Quickstart.reset!
+    RestApi.reset!
+
+    assert_equal 'search', Quickstart.send(:api_links)[:search_param]
+    assert Quickstart.send(:api_links)[:search].ends_with?('/search.json')
+
+    Quickstart.expects(:promoted).never
+
+    assert_equal [], Quickstart.search('bar')
+    assert_equal 1, Quickstart.search('word').length
+    assert_equal '12069', Quickstart.search('word').first.id
+  end
+
+  def mock_quickstart_disabled
+    Quickstart.reset!
+    RestApi.reset!
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {}}.to_json
+    end
+  end
+
+  def test_quickstarts
+    mock_quickstart
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal "Wordpress 3.4", q.name
+    assert_equal "12069", q.id
+    assert q.website
+    assert_equal ['php-5.3', 'mysql-5.1'], q.cartridges
+    assert q.initial_git_url
+    assert q.tags.include?(:blog)
+    assert q.updated > 1.year.ago
+  end
+
+  def test_quickstart_disabled
+    mock_quickstart_disabled
+    assert Quickstart.disabled?
+    assert_equal [], Quickstart.promoted
+    assert_equal [], Quickstart.search('foo')
+
+    Quickstart.expects(:promoted).at_least_once.returns([Quickstart.new(:summary => 'a', :name => 'b', :tags => 'c')])
+    ['a', 'A', 'b', 'B', 'c', 'C'].each do |s|
+      assert Quickstart.search(s).first, s
+    end
+    assert Quickstart.search('d').empty?
+    assert Quickstart.search('D').empty?
+  end
+
+  def test_quickstart_tags
+    assert Quickstart.new(:tags => ApplicationType::PROTECTED_TAGS.join(', ')).tags.empty?
+    assert_equal ApplicationType::PROTECTED_TAGS, Quickstart.new(:admin_tags => ApplicationType::PROTECTED_TAGS.join(', ')).tags
+    assert_equal [:test] + ApplicationType::PROTECTED_TAGS, Quickstart.new(:tags => 'new, test', :admin_tags => ApplicationType::PROTECTED_TAGS.join(', ')).tags
+  end
+
+  def fixture_cartridges
+    @@cart ||= ActiveSupport::JSON.decode(IO.read(File.expand_path('../../fixtures/cartridges.json', __FILE__)))
+  end
+
   #
   # Prime the cartridge type cache so lookups are valid.  Call after 
   # HttpMock.respond_to or use respond_to(false).
   #
   def mock_types(extra=[])
-    types = CartridgeType.send(:type_map).keys.map{ |k| {:name => k} }.concat(extra)
+    types = extra.concat(fixture_cartridges)
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, types.to_json
     end

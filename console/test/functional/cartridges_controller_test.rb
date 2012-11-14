@@ -3,10 +3,16 @@ require File.expand_path('../../test_helper', __FILE__)
 class CartridgesControllerTest < ActionController::TestCase
 
   def with_testable_app(remove_carts=false)
-    use_app(:cart_testable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.9', :as => new_named_user('user_with_cartridge_testable_app')}) }.tap do |app|
+    use_app(:cart_testable_app) { Application.new({:name => "carttestable", :cartridge => 'ruby-1.9', :as => new_named_user('user_with_cartridge_testable_app')}) }.tap do |app|
       if remove_carts
-        app.cartridges.each do |cart|
-          cart.destroy unless cart.name == app.framework
+        Cartridge.all(app.send(:child_options)).each do |cart|
+          next if cart.name == app.framework
+          #puts "Destroying cart #{cart.name}"
+          begin
+            cart.destroy
+          rescue => e
+            puts "Unable to delete cart #{cart.name}: #{e.message}, #{e.backtrace.join("\n")}"
+          end
         end
       end
     end
@@ -17,7 +23,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
   end
@@ -27,7 +33,7 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
 
@@ -35,7 +41,7 @@ class CartridgesControllerTest < ActionController::TestCase
     post_form[:cartridge][:name] = 'cron-1.4'
     post(:create, post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
 
     assert_response :success
     assert_template :next_steps
@@ -46,14 +52,14 @@ class CartridgesControllerTest < ActionController::TestCase
 
     post(:create, get_post_form)
     assert cart = assigns(:cartridge)
-    assert cart.errors.empty?, cart.errors.inspect
+    assert cart.errors.empty?, cart.errors.to_hash.inspect
     assert_response :success
     assert_template :next_steps
 
     post(:create, get_post_form)
     assert_response :success
     assert cart = assigns(:cartridge)
-    assert !cart.errors.empty?, cart.errors.inspect
+    assert !cart.errors.empty?, cart.errors.to_hash.inspect
     assert cart.errors[:base].present?
     assert_equal 1, cart.errors[:base].length
 

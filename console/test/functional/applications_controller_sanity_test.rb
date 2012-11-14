@@ -3,9 +3,9 @@ require File.expand_path('../../test_helper', __FILE__)
 class ApplicationsControllerSanityTest < ActionController::TestCase
   tests ApplicationsController
 
-  def get_post_form(name = 'diy-0.1')
+  def get_post_form(name = 'cart!diy-0.1')
     {
-      :name => 'test1', 
+      :name => 'test1',
       :application_type => name,
       :domain_id => uuid.to_s
     }
@@ -16,7 +16,7 @@ class ApplicationsControllerSanityTest < ActionController::TestCase
     post(:create, {:application => get_post_form})
 
     assert app = assigns(:application)
-    assert app.errors.empty?, app.errors.inspect
+    assert app.errors.empty?, app.errors.to_hash.inspect
     assert domain = assigns(:domain)
     assert_redirected_to get_started_application_path(app, :wizard => true)
 

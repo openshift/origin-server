@@ -23,7 +23,12 @@ BROKER_URL=https://localhost/broker/rest
 #
 # Optional, will use the default Ruby environment settings
 #
+# No certificate checking (INSECURE, use only in trusted networks):
 # BROKER_API_SSL_OPTIONS={:verify_mode => OpenSSL::SSL::VERIFY_NONE}
+#
+# Perform cert checking and require SSLv3 (some Mac environments may
+# need this set):
+# BROKER_API_SSL_OPTIONS={:verify_mode => OpenSSL::SSL::VERIFY_PEER, :ssl_version => :SSLv3}
 
 
 #

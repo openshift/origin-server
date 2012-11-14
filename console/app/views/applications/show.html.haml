@@ -164,6 +164,11 @@
         - @application.aliases.each do |a|
           %li= link_to a, "#{alias_scheme}://#{a}"
 
+    - if @application.initial_git_url.present?
+      %h5 Based On
+      %ul.unstyled
+        %li= link_to @application.initial_git_url, @application.initial_git_url
+
   #assistance
     %h5 New to OpenShift?
     %ul.unstyled

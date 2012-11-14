@@ -3,59 +3,105 @@
   margin-bottom: 20px; 
   background-color: #222;
   color: #b0b0b0;
+
+  > p {
+    margin-bottom: $baseLineHeight / 1.5;
+  }
+
+  > ul.meta > li > label, {
+    display: inline;
+  }
+
+  > h3 > a { 
+    color: #dadada; 
+    text-decoration: none; 
+  }
+
+  &.cartridge_type .warning {
+    color: $orange;
+  }
 }
+
+.label-tags {
+  a.label {
+    color: #666;
+    background-color: transparent;
+    text-decoration: none;
+    margin-right: 5px;
+    text-shadow: none;
+
+    &:hover {
+      color: #111;
+      background-color: #eee !important;
+    }
+  }
+}
+
 .tile-click {
   cursor: pointer;
-}
-.tile-click:hover {
-  background-color: #151515;
-}
-.tile-click:hover h3 {
-  color: #f0f0f0;
-}
-.tile-click:active {
-  background-color: #333;
-  color: white
-}
-.tile > ul.meta > li > label, {
-  display: inline;
-}
 
-.tile.cartridge_type .warning {
-  color: $orange;
-}
+  &:hover {
+    background-color: #151515;
 
-.tile-dark > .tile-click {
-	background: #131313;
-  position: relative;
-	margin-bottom: 3px;
-
-  .tile-target {
-    color:#c0c0c0;
+    h3 {
+      color: #f0f0f0;
+    }
   }
 
-  &:hover  {
-		background: #000;
+  &:active {
+    background-color: #333;
+    color: white
+  }
+}
+
+.tile-compact {
+  h3 {
+    display: inline-block;
+    margin-right: 10px;
+  }
+  a.label {
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -5px;
+  }
+}
+
+.tile-dark {
+  .tile {
+    background: #131313;
+  }
+
+  > .tile-click {
+    position: relative;
+    margin-bottom: 3px;
 
     .tile-target {
-  		color: #f0f0f0;
+      color:#c0c0c0;
     }
+
+    &:hover  {
+      background: #000;
+
+      .tile-target {
+        color: #f0f0f0;
+      }
+      i.tile-arrow {
+        background-position: 0 -30px;
+      }
+    }
+
     i.tile-arrow {
-      background-position: 0 -30px;
+      background-position: 0 0;
+      position: absolute;
+      overflow: hidden;
+      display: block;
+      height: 20px;
+      width: 10px;
+      right: 5px;
+      top: 19px;
+      width: 25px;
     }
   }
-
-  i.tile-arrow {
-    background-position: 0 0;
-    position: absolute;
-    overflow: hidden;
-    display: block;
-    height: 20px;
-    width: 10px;
-    right: 5px;
-    top: 40%;
-    width: 25px;
-	}
 }
 
 .section-body .tile-dark > .tile-click {
@@ -68,7 +114,7 @@
 @media (max-width: 767px) {
   .section-body .row > .tile-click {
     @include expand_for_phone();
-    
+
     i.tile-arrow {
       right: -15px;
     }

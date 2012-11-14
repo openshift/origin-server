@@ -26,13 +26,13 @@ class CartridgeType < RestApi::Base
 
   self.element_name = 'cartridges'
 
-  def initialize(attributes={},persisted=true)
+  def initialize(attributes={},persisted=false)
     attributes = attributes.with_indifferent_access
     name = attributes['name'].presence || attributes[:name].presence
     defaults = self.class.defaults(name)
     defaults.keys.each{ |k| attributes.delete(k) if attributes[k].blank? }
     attributes.reverse_merge!(defaults)
-    super attributes, true
+    super attributes, persisted
   end
 
   def type
@@ -78,10 +78,6 @@ class CartridgeType < RestApi::Base
     @priority || 0
   end
 
-  def persisted?
-    true
-  end
-
   def scalable
     self.attributes['supported_scales_to'] != self.attributes['supported_scales_from']
   end
@@ -96,22 +92,24 @@ class CartridgeType < RestApi::Base
     display_name <=> other.display_name
   end
 
-  def to_application_type
-    attrs = {:id => name, :name => display_name}
-    [:version, :license, :license_url,
-     :tags, :description, :website,
-     :help_topics, :priority, :scalable].each do |m|
-      attrs[m] = send(m)
-    end
-    ApplicationType.new attrs
-  end
-
   def self.embedded(*arguments)
     all(*arguments).select(&:embedded?)
   end
 
   def self.standalone(*arguments)
     all(*arguments).select(&:standalone?)
+  end
+
+  def self.matches(s, opts=nil)
+    every = all(opts)
+    s = s[0..-2] if s.is_a?(String) && s.ends_with?('*')
+    Array(every.find{ |t| t.name == s} || every.select do |t|
+      if s.is_a? String
+        t.name.starts_with? s
+      else
+        s.match(t.name)
+      end
+    end)
   end
 
   cache_find_method :every
@@ -140,9 +138,6 @@ class CartridgeType < RestApi::Base
     end
 
     def self.defaults(name)
-      attrs = type_map[name.to_s]
-      Rails.logger.warn "> The cartridge type '#{name}' is not defined - no metadata is available." unless attrs
-      attrs || {}
+      type_map[name.to_s] || {}
     end
-
 end

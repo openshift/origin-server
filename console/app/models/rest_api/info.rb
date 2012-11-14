@@ -1,6 +1,8 @@
 module RestApi
   # An object which can return info about the REST API
   class Info < RestApi::Base
+    include RestApi::Cacheable
+
     self.element_name = 'api'
     allow_anonymous
     singleton
@@ -20,5 +22,13 @@ module RestApi
     def url
       self.class.site
     end
+    def link(name)
+      URI.parse(data[name]['href']) if data[name]
+    end
+    def required_params(name)
+      data[name]['required_params'] if data[name]
+    end
+
+    cache_find_method :one
   end
 end

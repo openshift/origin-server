@@ -56,7 +56,7 @@ class ActiveResource::Base
       else
         self.class.const_get(resource_name)
       end
-    rescue NameError
+    rescue NameError => e
       begin
         if self.class.const_defined?(resource_name)
           resource = self.class.const_get(resource_name)
@@ -92,13 +92,20 @@ module RestApi
         attrs = root_attributes(decoded)
         decoded = decoded['data'] || {}
       end
-      if decoded.is_a?(Array)
-        decoded.each{ |i| i.delete 'links'; i.merge!(attrs) if attrs }
+      if decoded.is_a? Array
+        decoded.map!{ |obj| delink(obj, attrs) }
       else
-        decoded.delete 'links'
-        decoded.merge!(attrs) if attrs
+        delink(decoded, attrs)
       end
-      decoded
+    end
+
+    def delink(obj, attrs)
+      obj = obj.values.first if obj.is_a?(Hash) && obj.length == 1 && obj.values.first.is_a?(Hash)
+      if obj.is_a? Hash
+        obj.delete 'links'
+        obj.merge!(attrs) if attrs
+      end
+      obj
     end
 
     def root_attributes(hash)
@@ -108,6 +115,7 @@ module RestApi
 
   class Base < ActiveResource::Base
     include ActiveModel::Dirty
+    include ActiveModel::MassAssignmentSecurity
     include RestApi::Cacheable
 
     # Exclude the root from JSON
@@ -418,7 +426,7 @@ module RestApi
         self.class.remote_errors_for(remote_errors.response).each do |m|
           self.class.translate_api_error(errors, *m)
         end
-        Rails.logger.debug "  Found errors on the response object: #{errors.inspect}"
+        Rails.logger.debug "  Found errors on the response object: #{errors.to_hash.inspect}"
         duplicate_errors
       rescue ActiveResource::ConnectionError
         raise
@@ -612,8 +620,18 @@ module RestApi
       super({:root => nil}.merge(options))
     end
 
+    #
+    # Default mass assignment support
+    #
+    def assign_attributes(values, options = {})
+      sanitize_for_mass_assignment(values, options[:as]).each do |k, v|
+        send("#{k}=", v)
+      end
+      self
+    end
+
     protected
-      
+
       # Support patch
       def update
         connection.send(self.class.use_patch_on_update? ? :patch : :put, element_path(prefix_options), encode, self.class.headers).tap do |response|

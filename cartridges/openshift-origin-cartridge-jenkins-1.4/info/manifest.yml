@@ -7,6 +7,7 @@ Vendor:
 Categories:
   - cartridge
   - web_framework
+  - instant_app
   - ci
 Website: http://www.jenkins-ci.org
 Help-Topics:

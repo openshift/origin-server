@@ -6,6 +6,9 @@ License: ASL 2.0
 Vendor:  jboss.com
 Categories:
   - cartridge
+  - java
+  - jboss
+  - jee_full_profile
   - web_framework
 Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
 Help-Topics:

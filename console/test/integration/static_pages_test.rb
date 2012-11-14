@@ -11,6 +11,10 @@ class StaticPagesTest < ActionDispatch::IntegrationTest
   def with_user
   end
 
+  def unexpected_regex
+    /An error has occurred/
+  end
+
   def controller_raises(exception)
     with_configured_user
     ConsoleIndexController.any_instance.expects(:index).raises(exception)
@@ -31,7 +35,7 @@ class StaticPagesTest < ActionDispatch::IntegrationTest
     controller_raises(ActiveResource::ConnectionError.new(nil))
 
     assert_response :success
-    assert_select 'h1', /An error has occurred/
+    assert_select 'h1', unexpected_regex
 
     assert assigns(:reference_id)
     assert_select 'p', /#{assigns(:reference_id)}/

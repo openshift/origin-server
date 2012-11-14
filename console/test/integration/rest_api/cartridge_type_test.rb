@@ -9,11 +9,11 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   def log_types(types)
     types.each do |t|
       Rails.logger.debug <<-TYPE.strip_heredoc
-        Cartridge #{t.display_name} (#{t.name})
+        Type #{t.display_name} (#{t.id})
           description: #{t.description}
           tags:        #{t.tags.inspect}
           version:     #{t.version}
-          provides:    #{t.provides.inspect}
+          cartridges:  #{t.respond_to?(:cartridges) ? t.cartridges.join(', ') : 'n/a'}
           priority:    #{t.priority}
         #{log_extra(t)}
       TYPE
@@ -66,9 +66,11 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     types.sort!
     log_types(types)
 
-    assert types[0].id.starts_with?('jbosseap-'), types[0].id
+    assert types[0].id.starts_with?('cart!jbosseap'), types[0].id
 
-    assert type = types.find{ |t| t.template.present? }
+    type = types.find(&:template?)
+    omit("No templates defined on this server") if type.nil?
+
     template = type.template
     assert template.name
     assert template.description
@@ -76,7 +78,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     assert template.website
     assert template.git_url
     assert template.git_project_url
-    assert_equal type.id, template.name
+    assert_equal type.id, "template!#{template.name}"
     assert template.git_project_url
     assert_same template.tags, template.tags
   end
@@ -84,6 +86,33 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   test 'sort cartridges' do
     array = ['diy-0.1','mongodb-2.2'].map{ |s| Cartridge.new(:name => s) }
     assert_equal array.map(&:name), array.sort.map(&:name)
+  end
+
+  test 'cartridges are sorted properly' do
+    ruby18 = CartridgeType.find 'ruby-1.8'
+    ruby = CartridgeType.find 'ruby-1.9'
+    php = CartridgeType.find 'php-5.3'
+    mongo = CartridgeType.find 'mongodb-2.2'
+    cron = CartridgeType.find 'cron-1.4'
+    jenkins = CartridgeType.find 'jenkins-client-1.4'
+
+    assert ruby18 > ruby
+    assert ruby < ruby18
+
+    assert cron > ruby
+    assert ruby < cron
+
+    assert mongo < cron
+    assert cron > mongo
+
+    assert ruby < mongo
+    assert mongo > ruby
+
+    assert php < ruby
+    assert ruby > php
+
+    assert php < jenkins
+    assert ruby < jenkins
   end
 
   # Currently /application_templates/<string>.json can return an array

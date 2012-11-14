@@ -1,0 +1,66 @@
+%h1.invisible Create a New Application
+= breadcrumb_for_create_application(@type_groups[0][0])
+= app_wizard_steps_create 0, :active => true
+= flashes
+
+%section
+  %p.larger
+    Choose a web programming cartridge or kick the tires with a
+    quickstart. After you create the application 
+    you can add <strong>cartridges</strong> to enable additional 
+    capabilities like databases, metrics, and continuous build 
+    support with Jenkins.
+
+%section
+  %form.form-search{:id => 'form-search-create-apps', :method => 'get'}
+    %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag', :value => @search}
+    - if @browse_tags.present?
+      %span.dropdown
+        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+          Browse by tag...
+          %span.caret
+        %ul.dropdown-menu#tag-filter
+          - @browse_tags.each do |(name, tag)|
+            - if name
+              %li= link_to name, application_types_path(:tag => tag)
+            - else
+              %hr
+
+%section
+  - if @type_groups.length == 1
+
+    - title, types = @type_groups.first
+
+    %h3.divide
+      #{title}
+      - if types.length > 4
+        %small= link_to '(show all)', application_types_path
+    .row
+      - in_columns_of(2, types).each do |types|
+        .span6.tile-dark
+          = render :partial => 'application_type', :collection => types, :locals => {:excluded_tags => []}
+
+  - else
+    .row
+      - in_balanced_columns_of(2, @type_groups).each do |groups|
+        .span6
+          - groups.each do |(title, types)|
+            %h3.divide= title
+            = render :collection => types, :locals => {:excluded_tags => []}
+
+  %p #{link_to "See all application types", application_types_path}
+
+%section
+  %p
+    Can't find what you're looking for? Try broadening your search or filtering by another tag.
+    -#%p
+      Can't find what you're looking for? #{link_to "Browse the Quickstarts", community_quickstarts_url} 
+      on our community, or #{link_to "create your own!", create_quickstart_url}
+
+- content_for :javascripts do
+  :javascript
+    jQuery('.tile-click').click(function(evt) {
+      if (evt.target.type == 'a') return;
+      a = $('h3 > a', this)[0];
+      window.location = a.href
+    });

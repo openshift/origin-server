@@ -67,6 +67,18 @@ module RestApi
     def debug?
       @debug || ENV['REST_API_DEBUG']
     end
+    def force_http_debug
+      unless ActiveResource::Connection.respond_to? :configure_http_with_debug
+        ActiveResource::Connection.class_eval do
+          def configure_http_with_debug(http)
+            configure_http_without_debug(http)
+            http.set_debug_output $stderr
+            http
+          end
+          alias_method_chain :configure_http, :debug
+        end
+      end
+    end
 
     #
     # Is the API reachable?
@@ -79,7 +91,7 @@ module RestApi
     # Return the version information about the REST API
     #
     def info
-      @info ||= RestApi::Info.find :one
+      RestApi::Info.cached.find :one
     rescue Exception => e
       raise ApiNotAvailable, <<-EXCEPTION, e.backtrace
 
@@ -93,14 +105,17 @@ The REST API could not be reached at #{RestApi::Base.site}
       EXCEPTION
     end
 
+    def reset!
+      @info = nil
+    end
+
     # FIXME: May be desirable to replace this with a standard ActiveSupport config object
     def config
       RestApi::Base.instance_variable_get("@last_config") || {}
     end
 
-    # FIXME: replace with a dynamic call to api.json
     def application_domain_suffix
-      config[:suffix]
+      @application_domain_suffix ||= RestApi::Environment.cached.find(:one).domain_suffix
     end
 
     def site
