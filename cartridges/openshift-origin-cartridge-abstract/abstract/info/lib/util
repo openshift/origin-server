@@ -853,13 +853,23 @@ function observe_setup_app_home {
 }
 
 function observe_setup_var_lib_dir {
-    restorecon -R $1
-    chcon -l $mcs_level -R $1
+    if [ -e "$1" ]
+    then
+        restorecon -R $1
+        chcon -l $mcs_level -R $1
+    else
+        warning "The dir does not exist: $1"
+    fi
 }
 
 function observe_setup_var_lib_file {
-    restorecon $1
-    chcon -l $mcs_level $1
+    if [ -e "$1" ]
+    then
+        restorecon $1
+        chcon -l $mcs_level $1
+    else
+        warning "The file does not exist: $1"
+    fi
 }
 
 
