@@ -105,50 +105,43 @@ class ApplicationsController < ConsoleController
   end
 
   def create
-    app_params = params[:application]
+    app_params = params[:application] || params
+    @advanced = to_boolean(params[:advanced])
+    type = app_params[:application_type]
+    domain_name = app_params[:domain_name].presence || app_params[:domain_id].presence
 
-    @application_type = ApplicationType.find app_params[:application_type]
+    @application_type = (type == 'custom' || !type.is_a?(String)) ?
+      ApplicationType.custom(type) :
+      ApplicationType.find(app_params[:application_type])
 
-    @application = Application.new app_params
-    @application.as = current_user
+    @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
+    @capabilities = user_capabilities :refresh => true
+    @cartridges, @missing_cartridges = ApplicationType.matching_cartridges(@application.cartridge_names.presence || @application_type.cartridges)
 
-    # Make sure we have the latest values for these
-    # by forcing a refresh of user capabilities
-    user_caps = user_capabilities :refresh => true
-    @max_gears = user_caps[:max_gears]
-    @gears_used = user_caps[:consumed_gears]
-    @gear_sizes = user_caps[:gear_sizes]
+    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
+    flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
+    @disabled = @missing_cartridges.present? || @cartridges.empty?
 
     # opened bug 789763 to track simplifying this block - with domain_name submission we would
     # only need to check that domain_name is set (which it should be by the show form)
     @domain = Domain.find :first, :as => current_user
     unless @domain
-      @domain = Domain.create :name => @application.domain_name, :as => current_user
+      @domain = Domain.create :name => domain_name, :as => current_user
       unless @domain.persisted?
-        logger.debug "Unable to create domain, #{@domain.errors.inspect}"
+        logger.debug "Unable to create domain, #{@domain.errors.to_hash.inspect}"
         @application.valid? # set any errors on the application object
         #FIXME: Ideally this should be inferred via associations between @domain and @application
         @domain.errors.values.flatten.uniq.each {|e| @application.errors.add(:domain_name, e) }
-        logger.debug "Found errors during domain creation #{@application.errors.inspect}"
 
-        # Preserve the advanced mode status and show the error.
-        @advanced = params[:advanced] == 'true'
         return render 'application_types/show'
       end
     end
-
     @application.domain = @domain
-    if @application_type.template
-      @application.template = @application_type.template.uuid
-    else
-      @application.cartridge = @application_type.cartridge || @application_type.id
-    end
 
     if @application.save
       messages = @application.remote_results
 
-      if @application_type.template
-        t = @application_type.template
+      if t = @application_type.template
         messages << t.credentials_message if t.credentials
       end
 
@@ -156,8 +149,6 @@ class ApplicationsController < ConsoleController
     else
       logger.debug @application.errors.inspect
 
-      # Preserve the advanced mode status and show the error.
-      @advanced = params[:advanced] == 'true'
       render 'application_types/show'
     end
   end

@@ -5,14 +5,6 @@ class ApplicationTemplate < RestApi::Base
     string :descriptor_yaml, :display_name
   end
 
-  #class Metadata < RestApi::Base
-  #  has_one :credential
-  #  class Credential < RestApi::Base
-  #  end
-  #end
-
-  #has_one :metadata
-
   custom_id :name
 
   [:description, :website, :version, :git_url, :git_project_url].each do |s|
@@ -55,7 +47,7 @@ class ApplicationTemplate < RestApi::Base
 
   def credentials_message
     creds = credentials
-    return if credentials.empty?
+    return if creds.blank?
 
     str =  "Your application contains pre-configured accounts, here are their credentials. " +
            "You may want to change them as soon as possible.\n"
@@ -70,50 +62,29 @@ class ApplicationTemplate < RestApi::Base
     str
   end
 
-  def included_cartridges
-    @included_cartridges ||= descriptor['Requires'].map{|cart_id| CartridgeType.find(cart_id)}
-  end
-
   def scalable
     false
   end
   alias_method :scalable?, :scalable
 
-  #def attribute(s)
-  #  return get_metadata(s) if [:description, :website, :version, :git_url, :git_project_url].include?(s.to_sym)
-  #  attr = {:name => 'Name', :provides => 'Requires'}[s.to_sym]
-  #  return get_descriptor(attr) if attr
-  #  super
-  #end
+  def cartridges
+    @cartridges ||= descriptor['Requires'] || []
+  end
 
-  #def method_missing(method, *args, &block)
-    # These attributes are defined in the metadata
-  #  metadata = [:description, :website, :version, :git_url, :git_project_url]
-
-    # These attributes are defined in the descriptor
-  #  descriptor_map = 
-
-    # See if we know about the missing method
-  #  case method
-  #  when *metadata
-  ##    get_metadata(method)
-  #  when *descriptor_map.keys
-  #    get_descriptor(descriptor_map[method])
-  #  else
-  #    super
-  #  end
-  #end
-
-  def to_application_type
-    attrs = { :id => name, :name => display_name }
-
-    [:tags, :description, :website, :version, :template, :provides, :scalable].each do |m|
-      attrs[m] = send(m)
-    end
-
-    ApplicationType.new attrs
+  alias_method :initial_git_url, :git_url
+  def initial_git_branch
+    nil
   end
 
   cache_find_method :single
   cache_find_method :every
+
+  protected
+    def self.find_single(s, opts=nil)
+      all(opts).find{ |t| t.name == s }
+    end
+
+    def self.disabled?
+      !RestApi.info.link('LIST_TEMPLATES') rescue true
+    end
 end

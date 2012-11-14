@@ -60,4 +60,47 @@ module Console::ModelHelper
       {:as => :string, :hint => 'Use -1 to scale to your current account limits'}
     end
   end
+
+  def scale_options
+    [['No scaling',false],['Scale with web traffic',true]]
+  end
+
+  def can_scale_application_type(type, capabilities)
+    capabilities.gears_free >= 2 and !type.template?
+  end
+
+  def cannot_scale_title(type, capabilities)
+    unless can_scale_application_type(type, capabilities)
+      if !@application_type.template
+        "You need at least two free gears to create a scaling application; you are currently using #{capabilities.consumed_gears} out of #{capabilities.max_gears}."
+      else
+        "This application shares resources and can't be scaled."
+      end
+    end
+  end
+
+  def in_groups_by_tag(ary, tags)
+    groups = {}
+    other = ary.reject do |t|
+      tags.any? do |tag| 
+        (groups[tag] ||= []) << t if t.tags.include?(tag)
+      end
+    end
+    groups = tags.map do |tag| 
+      types = groups[tag]
+      if types
+        if types.length < 2
+          other.concat(types)
+          nil
+        else
+          [tag, types]
+        end
+      end
+    end.compact!
+    [groups, other]
+  end
+
+  def common_tags_for(ary)
+    ary.length < 2 ? [] : ary.inject(nil){ |tags, a| tags ? (a.tags & tags) : a.tags } || []
+  end
 end

@@ -34,7 +34,10 @@
       - errors = @jenkins_server.errors.full_messages.present?
       = f.inputs do
         = f.semantic_errors :name, :not => :base
-        = render :partial => 'applications/name', :locals => {:form => f, :errors => errors, :application => @jenkins_server}
+        .control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}}
+          %h3.control-label Public URL
+          .controls
+            = render :partial => 'applications/name', :locals => {:form => f, :application => @jenkins_server}
 
     %h2 Create cartridge
     %p

@@ -6,6 +6,17 @@ module Console::LayoutHelper
     arr.enum_for(:each_with_index).inject(Array.new(count) {[]}){ |a, (item,i)| a[i % count] << item; a }
   end
 
+  def in_balanced_columns_of(count, groups)
+    columns = Array.new(count){ [] }
+    counts = Array.new(count,0)
+    groups.each do |group|
+      column = counts.index(counts.min)
+      columns[column] << group
+      counts[column] += group[1].size
+    end
+    columns
+  end
+
   def navigation_tabs(options={}, &block)
     content = capture(&block)
     content_tag(:ul, content, :class => 'nav')
@@ -129,7 +140,7 @@ module Console::LayoutHelper
       :ol,
       (items + [options[:and]].compact).each_with_index.map do |item, index|
         name = item[:name]
-        content = if index < active and item[:link] and !options[:completed]
+        content = if item[:link] and ((index < active and !options[:completed]) or options[:active])
           link_to(name, send("#{item[:link]}")).html_safe
         else
           name
@@ -175,6 +186,12 @@ module Console::LayoutHelper
     ] + args
   end
 
+  def breadcrumb_for_create_application(*args)
+    breadcrumbs_for_each [
+      link_to('Create an application', application_types_path), 
+    ] + args
+  end
+
   def take_action(link, text, *args)
     options = args.extract_options!
     link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do
@@ -186,6 +203,19 @@ module Console::LayoutHelper
 
   def greetings_for_select
     [ 'Mr.', 'Mrs.', 'Ms.', 'Miss', 'Dr.', 'Hr.', 'Sr.' ]
+  end
+
+  def map_to_sentence(items, &block)
+    items.map{ |c| capture_haml{ yield c }.strip }.to_sentence.html_safe
+  end
+
+  HIDDEN_TAGS = [:featured, :instant_app, :framework, :web_framework, :experimental, :in_development, :template, :cartridge]
+  IMPORTANT_TAGS = [:new, :premium]
+
+  def application_type_tags(tags)
+    (tags - HIDDEN_TAGS).uniq.sort!.partition{ |t| IMPORTANT_TAGS.include?(t) }.flatten.map do |tag| 
+      link_to tag.to_s.humanize, application_types_path(:tag => tag), :class => "label label-#{tag}"
+    end.join.html_safe
   end
 
   def us_states_for_select

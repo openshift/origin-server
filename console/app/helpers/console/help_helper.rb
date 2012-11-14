@@ -221,6 +221,14 @@ module Console::HelpHelper
     community_base_url 'policy/tax-exemptions'
   end
 
+  def create_quickstart_url
+    community_base_url 'node/add/quickstart'
+  end
+
+  def community_quickstarts_url
+    community_base_url 'quickstarts'
+  end
+
   def console_help_links
     [
       {:href => developers_url,

@@ -2,30 +2,38 @@
 * Customizations
 */
 
+.dropdown-menu {
+	background-color: #333;
+  background-color:rgba(60, 60, 60, 0.9);
+  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
+  @include border-radius($radius: 0 0 3px 3px);
+
+  a {
+    color: #cacbcc;
+  }
+  > li > a:hover {
+    border-radius: 0px;
+    background-color: #5a5b5c;
+  }
+
+  hr {
+    margin: 9px 0;
+  }
+}
+
 #utility-nav > li.dropdown,
 #utility-nav > li:last-child {
 	margin-left: 15px;
 }
 #utility-nav .dropdown-menu {
-	background-color: #333;
-  background-color:rgba(60, 60, 60, 0.9);
-  @include box-shadow(0 0 1px rgba(255, 255, 255, 0.25) inset);
   position: relative;
   min-width: 1px;
   width:100%;
   float: none;
   border:none;
-  @include border-radius($radius: 0 0 3px 3px);
 }
 @media (max-width:767px) {
 	#utility-nav .dropdown-menu {position:absolute;}
-}
-#utility-nav .dropdown-menu a {
-  color: #cacbcc;
-}
-#utility-nav .dropdown-menu > li > a:hover {
-  border-radius: 0px;
-  background-color: #5a5b5c;
 }
 #utility-nav .dropdown.open .dropdown-toggle {
   color: #CACBCC;

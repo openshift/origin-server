@@ -8,8 +8,10 @@ class User < RestApi::Base
     string :login, :plan_id
   end
 
+  include Capabilities
   has_many :keys
   has_many :domains
+  has_one :consumed_gear_sizes, :class_name => 'rest_api/base/attribute_hash'
 
   def plan_id
     super or 'freeshift'
@@ -21,4 +23,5 @@ class User < RestApi::Base
   def plan=(plan)
     @plan_id = plan.is_a?(String) ? plan : plan.id
   end
+
 end

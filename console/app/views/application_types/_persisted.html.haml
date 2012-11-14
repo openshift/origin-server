@@ -1,0 +1,26 @@
+%h3= application_type.display_name
+- if application_type.description.html_safe?
+  = application_type.description
+- else
+  %p= application_type.description
+
+- if application_type.website
+  %p Website: #{link_to application_type.website, application_type.website}
+
+- unless application_type.cartridge?
+  %p 
+    Cartridges:
+    - if application_type.cartridges.present?
+      = map_to_sentence(application_type.cartridges) do |c|
+        - if missing_cartridges.include?(c)
+          %span.text-warning{:title => "OpenShift could not locate any cartridges that match '#{c}'"}= c
+        - else
+          = c
+    - else
+      %span.text-warning{:title => "No cartridges specified"} none
+
+- if application_type.learn_more_url
+  %p= link_to "Learn more", application_type.learn_more_url
+
+= application_type_tags(application_type.tags)
+

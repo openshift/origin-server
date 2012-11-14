@@ -55,7 +55,7 @@ class ScalingControllerTest < ActionController::TestCase
 
   test 'displays form and title for scaling' do
     get :show, with_scaling(2)
-    assert_select 'h2', "PHP 5.3"
+    assert_select 'h2', "php-5.3"
     assert_select 'h2', "extra-1.0"
     assert_select 'h2', "mysql-5.0"
   end
