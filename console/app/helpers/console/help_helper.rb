@@ -10,6 +10,10 @@ module Console::HelpHelper
     user_guide_topic_url 'index.html'
   end
 
+  def newsletter_signup_url
+    community_base_url 'newsletter/signup'
+  end
+
   def ssh_keys_help_path
     community_base_url 'developers/remote-access#keys'
   end
