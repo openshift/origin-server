@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.1.7
+Version: 1.1.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.8-1
+- Merge pull request #906 from ironcladlou/db-test-fixes (dmcphers@redhat.com)
+- Fix typo resulting in undefined stepdef (ironcladlou@gmail.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
 - Compare retcode as an int rather than string (ironcladlou@gmail.com)
 - Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
