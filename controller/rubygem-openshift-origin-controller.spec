@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.1.6
+Version: 1.1.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
+- Compare retcode as an int rather than string (ironcladlou@gmail.com)
+- Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
+  (openshift+bot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- Quickstart URLs aren't spec compliant (ccoleman@redhat.com)
+- Relativize base URL (ccoleman@redhat.com)
+- Support COMMUNITY_QUICKSTARTS_URL parameter for serving hardcoded quickstarts
+  vs. public quickstarts, and test that these values are returned.
+  (ccoleman@redhat.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
 - fix testdescriptor generator (dmcphers@redhat.com)
 - get the broker working again (dmcphers@redhat.com)
