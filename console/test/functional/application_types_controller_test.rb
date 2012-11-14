@@ -135,14 +135,18 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     with_unique_user
     get :show, :id => 'custom', :cartridges => ['ruby-1.9', 'mysql-5.1'].to_json
     assert_response :success
-    assert_select 'h3', /Ruby 1\.9|MySQL/i, 0
+    assert assigns(:cartridges).blank?
+    assert_select '.alert.alert-error', /No cartridges are defined for this type/i
+    assert_select 'h3 > span.text-warning', 'None'
   end
 
   test "should not fail on custom invalid JSON" do
     with_unique_user
-    get :show, :id => 'quickstart!test', :cartridges => "[{'ruby-1.9'}, {'mysql-5.1'}]"
+    get :show, :id => 'custom', :cartridges => "[{'ruby-1.9'}, {'mysql-5.1'}]"
     assert_response :success
-    assert_select 'h3', /Ruby 1\.9|MySQL/i, 0
+    assert assigns(:cartridges).blank?
+    assert_select '.alert.alert-error', /No cartridges are defined for this type/i
+    assert_select 'h3 > span.text-warning', 'None'
   end
 
   test "should render custom initial_git_url" do
