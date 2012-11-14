@@ -34,6 +34,8 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
+--unresilient
+    This option is faster when lots of error conditions are present but allows for false positives for in process changes
 -h|--help
     Show Usage info
 USAGE
@@ -41,6 +43,7 @@ end
 
 opts = GetoptLong.new(
     ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--unresilient",            GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -52,16 +55,25 @@ rescue GetoptLong::Error => e
     exit -100
 end
 
+if args["--help"]
+  usage
+  exit 1
+end
+
+
 verbose = args["--verbose"]
+unresilient = args["--unresilient"]
 
 
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
-  
-def datastore_has_gear?(gear_uuid) 
-  hash = OpenShift::DataStore.instance.user_collection.find_one({ "apps.group_instances.gears.uuid" => gear_uuid }, {:fields => []})
-  return !hash.nil?
+
+def datastore_has_gear?(gear_uuid, login=nil)
+    query = { "apps.group_instances.gears.uuid" => gear_uuid }
+    query['_id'] = login if login
+    hash = OpenShift::DataStore.instance.user_collection.find_one(query, {:fields => []})
+    return !hash.nil?
 end
 
 no_error = true
@@ -81,7 +93,7 @@ mcursor.each do |hash|
     app['group_instances'].each { |gi|
       gi['gears'].each { |gear|
         gear_count += 1
-        datastore_hash[gear['uuid']] = creation_time
+        datastore_hash[gear['uuid']] = [hash['login'], creation_time]
       }
     }
   }
@@ -104,11 +116,13 @@ puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 
 # now check
 puts "Checking application gears on corresponding nodes:" if verbose
-datastore_hash.each { |gear_uuid, creation_time|
+datastore_hash.each { |gear_uuid, value|
+  login = value[0]
+  creation_time = value[1]
   print "#{gear_uuid}...\t" if verbose
   if (Time.now - creation_time) > 600
     if not node_hash.has_key? gear_uuid
-      if datastore_has_gear?(gear_uuid)
+      if unresilient || datastore_has_gear?(gear_uuid, login)
         no_error = false
         puts "FAIL" if verbose
         summary << "Gear #{gear_uuid} does not exist on any node"
@@ -128,7 +142,7 @@ puts "Checking node gears in application database:" if verbose
 node_hash.each { |gear_uuid, server_identity|
   print "#{gear_uuid}...\t" if verbose
   if not datastore_hash.has_key? gear_uuid
-    if !datastore_has_gear?(gear_uuid)
+    if unresilient || !datastore_has_gear?(gear_uuid)
       no_error = false
       puts "FAIL" if verbose
       summary << "Gear #{gear_uuid} exists on node #{server_identity} but does not exist in mongo database"
