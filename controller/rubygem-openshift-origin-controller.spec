@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.1.5
+Version: 1.1.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,25 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- fix testdescriptor generator (dmcphers@redhat.com)
+- get the broker working again (dmcphers@redhat.com)
+- Move trap-user.feature and trap-user-extended.feature to origin-server
+  (pmorie@gmail.com)
+- Test support and nodejs test fixes for Ruby 1.9 (ironcladlou@gmail.com)
+- fixing tests (dmcphers@redhat.com)
+- Remove hard-coded ruby references (ironcladlou@gmail.com)
+- add config to gemspec (dmcphers@redhat.com)
+- Moving plugins to Rails 3.2.8 engine (kraman@gmail.com)
+- Ruby 1.9 compatibility fixes (ironcladlou@gmail.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- Merge pull request #894 from jwhonce/master (openshift+bot@redhat.com)
+- Merge pull request #888 from pravisankar/dev/ravi/bug/876124
+  (dmcphers@redhat.com)
+- Fix for Bug# 876124 (rpenta@redhat.com)
+- Move idler tests to origin-server (jhonce@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+
 * Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - specifying mocha gem version and fixing tests (abhgupta@redhat.com)
 
