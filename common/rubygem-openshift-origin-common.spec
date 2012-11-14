@@ -44,12 +44,7 @@ This contains the Cloud Development Common packaged as a ruby site library
 documentation files.
 
 %prep
-%{?scl:scl enable %scl "}
-#gem unpack %{SOURCE0}
-#%setup -q -D -T -n  %{gem_name}-%{version}
-%setup -q -D -n  %{gem_name}-%{version}
-#gem spec %{SOURCE0} -l --ruby > %{gem_name}.gemspec
-%{?scl:"}
+%setup -q
 
 %build
 mkdir -p ./%{gem_dir}
