@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #900 from bdecoste/master (openshift+bot@redhat.com)
+- BZ844858 (bdecoste@gmail.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Mon Nov 12 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #870 from bdecoste/master (openshift+bot@redhat.com)
 - update jgroups auth key (bdecoste@gmail.com)
