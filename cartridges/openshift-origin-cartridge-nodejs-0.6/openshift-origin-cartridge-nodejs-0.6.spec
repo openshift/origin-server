@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.1.4
+Version: 1.1.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Fix bugz 876130 - Node.js application w/ jenkins enabled does not startup
+  supervisor on hot_deploy marker push. (ramr@redhat.com)
+
 * Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - Fix for bugz 874634 - handle modules packaged along w/ the app and updates.
   (ramr@redhat.com)
