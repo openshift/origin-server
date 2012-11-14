@@ -98,7 +98,7 @@ Then /^the application will be updated$/ do
     path = "/var/lib/openshift/#{app_uuid}/app-root/repo/#{@app.name}/index.html"
     $logger.debug "jenkins built application path = #{path}"
     `grep 'Jenkins Builder Testing' "#{path}"`
-    $?.to_s.should be == "0"
+    $?.to_i.should be == 0
 end
 
 Then /^I deconfigure the diy application with jenkins enabled$/ do
