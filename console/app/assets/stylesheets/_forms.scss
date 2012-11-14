@@ -70,7 +70,7 @@ input,
   //height: $baseLineHeight;
   padding: 4px;
   margin-bottom: 9px;
-  font-size: $baseFontSize;
+  font-size: floor($baseFontSize);
   line-height: $baseLineHeight;
   min-height: $baseLineHeight;
   color: $grayDark;
@@ -693,9 +693,9 @@ legend + .control-group {
 // ---------------------------
 
 .control-group-important {
-  font-size: $baseFontSize + 1;
+  font-size: floor($baseFontSize + 1);
   input, textarea, select, .uneditable-input, .add-on, .add-on-first, .add-on-last, .add-on-middle {
-    font-size: $baseFontSize + 1;
+    font-size: floor($baseFontSize + 1);
     padding: 8px 10px;
   }
   .add-on.middle {

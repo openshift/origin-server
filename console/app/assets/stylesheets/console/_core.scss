@@ -57,7 +57,9 @@ textarea,
 .input-prepend-append {
   @include clearfix()
 }
-.input-prepend-append .add-on-first, .input-prepend-append .add-on-last {
+.input-prepend-append .add-on-first,
+.input-prepend-append .add-on-last,
+.input-prepend-append .add-on-middle {
     background-color: #444;
     border: 1px solid #222;
     text-shadow: none;
@@ -65,10 +67,13 @@ textarea,
     }
 .input-prepend-append .add-on-first {border-right: 0;@include border-radius($inputBorderRadius 0 0 $inputBorderRadius);margin-right: -1px;}
 .input-prepend-append .add-on-last {border-left: 0;@include border-radius(0 $inputBorderRadius $inputBorderRadius 0);margin-left: -1px;}
-.input-prepend-append input, .input-prepend-append .add-on-middle {
+.input-prepend-append input {
+    color: #000;
+}
+.input-prepend-append input,
+.input-prepend-append .add-on-middle {
     border-top: 1px solid #222;
     border-bottom: 1px solid #222;
-    color: #000;
     margin-bottom: 0;
     border-radius: 0;
     border-left: 0;
@@ -99,10 +104,10 @@ textarea:-ms-input-placeholder {
 input::-webkit-input-placeholder,
 textarea::-webkit-input-placeholder {
   color: $grayMedium;
-  background-color: $grayLight;
+  //background-color: $grayLight;
   &:focus {
     color: $grayLight;
-    background-color: $grayLighter;
+    //background-color: $grayLighter;
   }
 }
 
