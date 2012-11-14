@@ -19,6 +19,7 @@
 
 require 'rubygems'
 require 'getoptlong'
+require 'time'
 
 def usage
     puts <<USAGE
@@ -57,28 +58,30 @@ verbose = args["--verbose"]
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
+  
+def datastore_has_gear?(gear_uuid) 
+  hash = OpenShift::DataStore.instance.user_collection.find_one({ "apps.group_instances.gears.uuid" => gear_uuid }, {:fields => []})
+  return !hash.nil?
+end
 
 no_error = true
 summary = []
 
-start_time = (Time.now.to_f * 1000).to_i
-node_hash = OpenShift::ApplicationContainerProxy.get_all_gears
-total_time = (Time.now.to_f * 1000).to_i - start_time
-puts "Time to get all gears: #{total_time.to_f/1000}s"
-
-mongo_hash = {}
+datastore_hash = {}
 start_time = (Time.now.to_f * 1000).to_i
 query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
-fields = {:fields => ["apps.name", "apps.group_instances.gears.uuid", "consumed_gears", "login"]}
+fields = {:fields => ["apps.creation_time", "apps.group_instances.gears.uuid", "consumed_gears", "login"]}
 mcursor = OpenShift::DataStore.instance.user_collection.find(query, fields)
 ret = []
 mcursor.each do |hash|
   gear_count = 0
+  
   hash['apps'].each { |app|
+    creation_time = Time.parse(app['creation_time'])
     app['group_instances'].each { |gi|
       gi['gears'].each { |gear|
         gear_count += 1
-        mongo_hash[gear['uuid']] = app['name']
+        datastore_hash[gear['uuid']] = creation_time
       }
     }
   }
@@ -91,33 +94,49 @@ mcursor.each do |hash|
     puts "OK - user #{hash['login']} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
   end
 end
-
 total_time = (Time.now.to_f * 1000).to_i - start_time
-puts "Time to fetch user data: #{total_time.to_f/1000}s"
+puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
+
+start_time = (Time.now.to_f * 1000).to_i
+node_hash = OpenShift::ApplicationContainerProxy.get_all_gears
+total_time = (Time.now.to_f * 1000).to_i - start_time
+puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 
 # now check
-puts "Checking application gears in respective nodes:" if verbose
-mongo_hash.each { |mk,mv|
-  print "#{mk}...\t" if verbose
-  if not node_hash.has_key? mk
-    no_error = false
-    puts "FAIL" if verbose
-    summary << "Gear #{mk} in #{mv} does not exist on any node"
-  else
-    puts "OK" if verbose
+puts "Checking application gears on corresponding nodes:" if verbose
+datastore_hash.each { |gear_uuid, creation_time|
+  print "#{gear_uuid}...\t" if verbose
+  if (Time.now - creation_time) > 600
+    if not node_hash.has_key? gear_uuid
+      if datastore_has_gear?(gear_uuid)
+        no_error = false
+        puts "FAIL" if verbose
+        summary << "Gear #{gear_uuid} does not exist on any node"
+      elsif verbose
+        puts "OK"
+      end
+    elsif verbose
+      puts "OK"
+    end
+  elsif verbose
+    put "OK"
   end
 }
 
 # now check reverse
 puts "Checking node gears in application database:" if verbose
-node_hash.each { |nk, nv|
-  print "#{nk}...\t" if verbose
-  if not mongo_hash.has_key? nk
-    no_error = false
-    puts "FAIL" if verbose
-    summary << "Gear #{nk} exists on node #{nv} but does not exist in mongo database"
-  else
-    puts "OK" if verbose
+node_hash.each { |gear_uuid, server_identity|
+  print "#{gear_uuid}...\t" if verbose
+  if not datastore_hash.has_key? gear_uuid
+    if !datastore_has_gear?(gear_uuid)
+      no_error = false
+      puts "FAIL" if verbose
+      summary << "Gear #{gear_uuid} exists on node #{server_identity} but does not exist in mongo database"
+    elsif verbose
+      puts "OK"
+    end
+  elsif verbose
+    puts "OK"
   end
 }
 
