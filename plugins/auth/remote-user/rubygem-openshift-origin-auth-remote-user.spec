@@ -11,7 +11,7 @@
 
 Summary:        OpenShift plugin for remote-user authentication
 Name:           rubygem-%{gem_name}
-Version: 1.1.1
+Version: 1.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -91,5 +91,11 @@ rm -rf %{buildroot}
 /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- add config to gemspec (dmcphers@redhat.com)
+- Moving plugins to Rails 3.2.8 engine (kraman@gmail.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+
 * Thu Nov 01 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 20 (admiller@redhat.com)
