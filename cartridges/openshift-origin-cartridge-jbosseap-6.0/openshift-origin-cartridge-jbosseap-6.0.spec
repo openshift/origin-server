@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version:   1.1.3
+Version:   1.1.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -167,6 +167,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Merge pull request #900 from bdecoste/master (openshift+bot@redhat.com)
+- BZ844858 (bdecoste@gmail.com)
+- Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
+  (openshift+bot@redhat.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - BZ875675 (bdecoste@gmail.com)
 
