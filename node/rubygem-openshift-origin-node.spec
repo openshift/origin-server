@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.1.5
+Version: 1.1.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -168,6 +168,14 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- Ruby 1.9 compatibility fixes (ironcladlou@gmail.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- Merge pull request #886 from rmillner/inhibitidler (dmcphers@redhat.com)
+- One of the SELinux denials was accessing the locale file via whois which is
+  unnecessary if accessing /etc directly. (rmillner@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+
 * Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - Merge remote-tracking branch 'origin-server/master' into BZ874587-origin
   (bleanhar@redhat.com)
