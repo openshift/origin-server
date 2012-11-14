@@ -993,11 +993,11 @@ function disable_cgroups {
 }
 
 function enable_stale_detection {
-    rm -f "${APP_HOME}/.disable_stale"
+    rm -f "${APP_HOME:-$OPENSHIFT_HOMEDIR}/.disable_stale"
 }
 
 function  disable_stale_detection {
-    touch "${APP_HOME}/.disable_stale"
+    touch "${APP_HOME:-$OPENSHIFT_HOMEDIR}/.disable_stale"
 }
 
 # In practice, this function is only invoked asynchronously, with no defined

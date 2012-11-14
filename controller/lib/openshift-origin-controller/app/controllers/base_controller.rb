@@ -282,14 +282,21 @@ class BaseController < ActionController::Base
     Rails.logger.error ex.backtrace
 
     error_code = ex.respond_to?('code') ? ex.code : 1
+    message = ex.message
     if ex.kind_of? OpenShift::UserException
       status = :unprocessable_entity
     elsif ex.kind_of? OpenShift::DNSException
       status = :service_unavailable
+    elsif ex.kind_of? OpenShift::NodeException
+      status = :internal_server_error
+      if ex.resultIO && ex.resultIO.errorIO
+        error_code = ex.resultIO.exitcode
+        message = ex.resultIO.errorIO.string.strip
+      end
     else
       status = :internal_server_error
     end
-    render_error_internal(status, ex.message, error_code, log_tag, nil, nil, nil, format)
+    render_error_internal(status, message, error_code, log_tag, nil, nil, nil, format)
   end
 
   def render_success_internal(status, type, data, log_tag, log_msg=nil, publish_msg=false,
