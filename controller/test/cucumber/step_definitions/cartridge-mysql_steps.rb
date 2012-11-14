@@ -39,7 +39,7 @@ Then /^the mysql database will( not)? +exist$/ do |negate|
   end
 end
 
-Then /^the admin user will have access to mysql$/ do
+Then /^the mysql admin user will have access$/ do
   mysql_cart = @gear.carts['mysql-5.1']
 
   begin
