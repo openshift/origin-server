@@ -32,7 +32,7 @@ module OpenShift
     def after_initialize_homedir(user)
       cmd = "/bin/sh #{File.join('/usr/libexec/openshift/lib', "setup_pam_fs_limits.sh")} #{user.name} #{user.quota_blocks ? user.quota_blocks : ''} #{user.quota_files ? user.quota_files : ''}"
       out,err,rc = shellCmd(cmd)
-      raise OpenShift::UserCreationException.new("Unable to setup pam/fs limits for #{user.name}") unless rc == 0
+      raise OpenShift::UserCreationException.new("Unable to setup pam/fs limits for #{user.name}: stdout -- #{out} stderr -- #{err}") unless rc == 0
     end
 
 

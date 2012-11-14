@@ -10,6 +10,7 @@ Feature: Cartridge Runtime Extended Checks (Database)
     And the embedded <db_cart_type> cartridge directory will exist
     And the <db_name> configuration file will exist
     And the <db_name> database will exist
+    And the <db_name> admin user will have access
     And the embedded <db_cart_type> cartridge control script will not exist
     
     When I remove the <db_cart_type> cartridge from the application
@@ -22,6 +23,8 @@ Feature: Cartridge Runtime Extended Checks (Database)
     | app_type  | db_cart_type    | db_proc   | db_name     |
     | php-5.3   | mysql-5.1       | mysqld    | mysql       |
     | php-5.3   | mongodb-2.2     | mongod    | mongodb     |
+    | ruby-1.9  | mongodb-2.2     | mongod    | mongodb     |
+    | ruby-1.8  | mongodb-2.2     | mongod    | mongodb     |
 
 
   @runtime_extended2

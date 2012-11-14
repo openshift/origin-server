@@ -1233,7 +1233,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply = ResultIO.new
     self.class.notify_observers(:before_add_dependency, {:application => self, :dependency => dep, :reply => reply})
     # Create persistent storage app entry on configure (one of the first things)
-    Rails.logger.debug "DEBUG: Adding embedded app info from persistant storage: #{@name}:#{dep}"
+    Rails.logger.debug "DEBUG: Adding embedded app info from persistent storage: #{@name}:#{dep}"
     self.cart_data = {} if @cart_data.nil?
     
     raise OpenShift::UserException.new("#{dep} already embedded in '#{@name}'", 136) if self.embedded.include? dep

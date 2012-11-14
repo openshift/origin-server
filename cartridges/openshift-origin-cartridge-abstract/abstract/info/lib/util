@@ -419,7 +419,7 @@ function create_standard_repo_dir_env_var {
 }
 
 function create_standard_path_env_var {
-    echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract-httpd/info/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$PATH" > $APP_HOME/.env/PATH
+    echo "export PATH=$CART_INFO_DIR/bin/:$CARTRIDGE_BASE_PATH/abstract-httpd/info/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:/bin:/usr/bin:/sbin:/usr/sbin" > $APP_HOME/.env/PATH
 }
 
 function create_custom_uservars_var {
@@ -1039,6 +1039,18 @@ function in_ci_build {
   else
     return 0
   fi
+}
+
+function setup_ruby193_scl_path {
+  # Setup PATH, LD_LIBRARY_PATH and MANPATH for ruby-1.9
+  ruby19_dir=$(dirname `scl enable ruby193 "which ruby"`)
+  sed -i "s#export \s*PATH=#export PATH=$ruby19_dir:#" $APP_HOME/.env/PATH
+
+  ruby19_ld_libs=$(scl enable ruby193 "printenv LD_LIBRARY_PATH")
+  echo "export LD_LIBRARY_PATH=$ruby19_ld_libs" > $APP_HOME/.env/LD_LIBRARY_PATH
+
+  ruby19_manpath=$(scl enable ruby193 "printenv MANPATH")
+  echo "export MANPATH=$ruby19_manpath" > $APP_HOME/.env/MANPATH
 }
 
 if [ -f /usr/libexec/openshift/lib/util_ext ]

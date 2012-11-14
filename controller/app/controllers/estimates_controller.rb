@@ -13,9 +13,9 @@ class EstimatesController < BaseController
     descriptor = params[:descriptor]
 
     begin
-      raise OpenShift::EstimatesException.new("Invalid estimate object. Estimats only valid for objects: 'application'") if obj != "application"
+      raise OpenShift::EstimatesException.new("Invalid estimate object. Estimates only valid for objects: 'application'") if obj != "application"
       raise OpenShift::EstimatesException.new("Application 'descriptor' NOT specified") if !descriptor
-      # Get available framework cartriges
+      # Get available framework cartridges
       standalone_carts = Application.get_available_cartridges("standalone")
 
       # Parse given application descriptor

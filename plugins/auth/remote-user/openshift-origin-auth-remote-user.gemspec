@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+config_dir  = File.join(File.join("config", "**"), "*")
 $:.push File.expand_path("../lib", __FILE__)
 lib_dir  = File.join(File.join("lib", "**"), "*")
 test_dir  = File.join(File.join("test", "**"), "*")
@@ -18,7 +19,7 @@ Gem::Specification.new do |s|
 
   s.rubyforge_project = "openshift-origin-auth-remote-user"
 
-  s.files       = Dir[lib_dir] + Dir[bin_dir] + Dir[conf_dir]
+  s.files       = Dir[lib_dir] + Dir[bin_dir] + Dir[conf_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
   s.files       += %w(README.md Rakefile Gemfile rubygem-openshift-origin-auth-remote-user.spec openshift-origin-auth-remote-user.gemspec LICENSE COPYRIGHT README-LDAP README-KERB)

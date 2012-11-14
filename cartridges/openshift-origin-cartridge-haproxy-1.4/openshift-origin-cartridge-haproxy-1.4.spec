@@ -1,3 +1,7 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/haproxy-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/haproxy-1.4
 
@@ -18,8 +22,8 @@ BuildRequires: git
 
 Requires:  openshift-origin-cartridge-abstract
 Requires:  haproxy
-Requires:  rubygem-daemons
-Requires:  rubygem-rest-client
+Requires:  %{?scl:%scl_prefix}rubygem-daemons
+Requires:  %{?scl:%scl_prefix}rubygem-rest-client
 Obsoletes: cartridge-haproxy-1.4
 
 %description

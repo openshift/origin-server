@@ -7,22 +7,20 @@ class Param_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
-    self.valid_options = valid_options || Array.new
-    self.valid_options = [self.valid_options] unless self.valid_options.kind_of?(Array)
-    self.invalid_options = invalid_options || Array.new
-    self.invalid_options = [self.invalid_options] unless self.invalid_options.kind_of?(Array)
+    self.valid_options = Array(valid_options)
+    self.invalid_options = Array(invalid_options)
   end
 
   def compare(obj)
     if (self.name != obj.name) ||
        (self.type != obj.type) ||
-       ((self.valid_options.to_s.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
-       ((self.invalid_options.to_s.length > 0) && (self.invalid_options.size > obj.invalid_options.size))
+       ((self.valid_options.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
+       ((self.invalid_options.length > 0) && (self.invalid_options.size > obj.invalid_options.size))
       raise_ex("Link Param '#{self.name}' inconsistent")
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options.to_s.length > 0
+    end if self.valid_options.length > 0
   end
 end
 
@@ -33,21 +31,21 @@ class OptionalParam_V1 < BaseObj
     self.name = name
     self.type = type
     self.description = nil
-    valid_options = [valid_options] unless valid_options.kind_of?(Array)
-    self.valid_options = valid_options || Array.new
+    valid_options = Array(valid_options)
+    self.valid_options = Array(valid_options)
     self.default_value = default_value
   end
 
   def compare(obj)
     if (self.name != obj.name) ||
        (self.type != obj.type) ||
-       ((self.valid_options.to_s.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
+       ((self.valid_options.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
        (self.default_value != obj.default_value)
       raise_ex("Link Optional Param '#{self.name}' inconsistent")
     end
     self.valid_options.each do |opt|
       raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
-    end if self.valid_options.to_s.length > 0
+    end if self.valid_options.length > 0
   end
 end
 
@@ -58,8 +56,8 @@ class Link_V1 < BaseObj
     self.rel = nil 
     self.method = method                                                                               
     self.href = href.to_s                                                                              
-    self.required_params = required_params || Array.new                                                
-    self.optional_params = optional_params || Array.new                                                
+    self.required_params = Array(required_params)                                                
+    self.optional_params = Array(optional_params)                                                
   end
 
   def self.to_obj(hash)
