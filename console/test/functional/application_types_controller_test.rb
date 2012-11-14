@@ -131,6 +131,20 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_select 'h3', /MySQL/i
   end
 
+  test "should not render custom valid JSON" do
+    with_unique_user
+    get :show, :id => 'custom', :cartridges => ['ruby-1.9', 'mysql-5.1'].to_json
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9|MySQL/i, 0
+  end
+
+  test "should not fail on custom invalid JSON" do
+    with_unique_user
+    get :show, :id => 'quickstart!test', :cartridges => "[{'ruby-1.9'}, {'mysql-5.1'}]"
+    assert_response :success
+    assert_select 'h3', /Ruby 1\.9|MySQL/i, 0
+  end
+
   test "should render custom initial_git_url" do
     with_unique_user
     get :show,
