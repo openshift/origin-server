@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.1.1
+Version: 1.1.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -91,6 +91,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
+- Cleanup visuals of app creation, indicate default git branch, add a date
+  helper for visuals, and ensure jenkins has the instant_app tag.
+  (ccoleman@redhat.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - Bumping specs to at least 1.1 (dmcphers@redhat.com)
 
