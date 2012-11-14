@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -206,6 +206,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
+  (openshift+bot@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - WIP Ruby 1.9 runtime fixes (ironcladlou@gmail.com)
 
