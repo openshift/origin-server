@@ -122,13 +122,6 @@ class EmbCartController < BaseController
     begin
       application.add_group_override(name, colocate_with) if colocate_with
       cart_create_reply = application.add_dependency(name)
-    rescue OpenShift::NodeException => e
-      if !e.resultIO.nil? && !e.resultIO.errorIO.nil?
-        return render_error(:internal_server_error, e.resultIO.errorIO.string.strip, e.resultIO.exitcode,
-                            "EMBED_CARTRIDGE", "cartridge")
-      else
-        return render_exception(e, "EMBED_CARTRIDGE")
-      end
     rescue Exception => e
       return render_exception(e, "EMBED_CARTRIDGE")
     end
