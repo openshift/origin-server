@@ -10,7 +10,7 @@ Feature: MySQL Application Sub-Cartridge
     And the embedded mysql-5.1 cartridge directory will exist
     And the mysql configuration file will exist
     And the mysql database will exist
-    And the admin user will have access to mysql
+    And the mysql admin user will have access
     
     When I stop the mysql-5.1 cartridge
     Then a mysqld process will not be running
