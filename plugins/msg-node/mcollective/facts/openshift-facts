@@ -1,2 +1,2 @@
 #!/bin/bash
-/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml &> /dev/null
+scl enable ruby193 "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml" &> /dev/null

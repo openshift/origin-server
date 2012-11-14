@@ -200,12 +200,19 @@ chown -R $user_id.$group_id $JAVA_PREFS_DIR
 #
 # Create environment variables
 #
+export CART_INFO_DIR=$JBOSS_CARTRIDGE_ROOT/info
+
 create_standard_cart_env_vars
 create_standard_env_uservars
 create_standard_network_env_vars $IP
 create_cart_network_env_vars $IP
 create_jboss_network_env_vars
 create_standard_repo_dir_env_var
+create_standard_path_env_var
+
+# source the new PATH so we can modify it
+. $APP_HOME/.env/PATH
+
 if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
 then
 	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
@@ -215,7 +222,7 @@ fi
 M2_HOME=/etc/alternatives/maven-3.0
 echo "export JAVA_HOME=$JAVA_HOME" > $APP_HOME/.env/JAVA_HOME
 echo "export M2_HOME=$M2_HOME" > $APP_HOME/.env/M2_HOME
-echo "export PATH=$JBOSS_CARTRIDGE_ROOT/info/bin/:$CARTRIDGE_BASE_PATH/abstract/info/bin/:$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $APP_HOME/.env/PATH
+echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $APP_HOME/.env/PATH
 
 observe_setup_env_uservars_dir
 
@@ -235,7 +242,7 @@ fi
 #
 # Create virtualhost definition for apache
 #
-export CART_INFO_DIR=$JBOSS_CARTRIDGE_ROOT/info
+
 $JBOSS_CARTRIDGE_ROOT/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
 restart_httpd_graceful

@@ -5,15 +5,15 @@ class LegacyRequestTest < ActiveSupport::TestCase
   test "Request validation for unknown request keys" do
     req = LegacyRequest.new.from_json('{"foo": "bar"}')
     assert req.invalid?
-    assert 1, req.errors[:base][0][:exit_code]
+    assert_equal 1, req.errors[:base][0][:exit_code]
   end
   
   test "Request validation: rhlogin" do
-    invalid_chars = '"$^<>|%/;:,\*=~'
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'rhlogin': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"rhlogin\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 107, req.errors[:rhlogin][0][:exit_code]
+      assert_equal 107, req.errors[:rhlogin][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"rhlogin": "kraman@redhat.com"}')
@@ -21,11 +21,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: app_uuid" do
-    invalid_chars = '"$^<>|%/;:,\*=~@'
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'app_uuid': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"app_uuid\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 1, req.errors[:app_uuid][0][:exit_code]
+      assert_equal 1, req.errors[:app_uuid][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"app_uuid": "abcdef0123456789"}')
@@ -33,11 +33,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: app_name" do
-    invalid_chars = '"$^<>|%/;:,\*=~@ '
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'app_name': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@', ' ']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"app_name\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 1, req.errors[:app_name][0][:exit_code]
+      assert_equal 105, req.errors[:app_name][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"app_name": "abcdef0123456789"}')
@@ -52,11 +52,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: cartridge" do
-    invalid_chars = '"$^<>|%/;:,\*=~@ '
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'cartridge': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@', ' ']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"cartridge\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 1, req.errors[:cartridge][0][:exit_code]
+      assert_equal 1, req.errors[:cartridge][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"cartridge": "abcd-1.2.3.4"}')
@@ -74,11 +74,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: action" do
-    invalid_chars = '"$^<>|%/;:,\*=~@ '
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'action': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@', ' ']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"action\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 111, req.errors[:action][0][:exit_code]
+      assert_equal 111, req.errors[:action][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"action": "anaction"}')
@@ -86,11 +86,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: server_alias" do
-    invalid_chars = '"$^<>|%/;:,\*=~@ '
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'server_alias': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@', ' ']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"server_alias\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 105, req.errors[:server_alias][0][:exit_code]
+      assert_equal 105, req.errors[:server_alias][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"server_alias": "a-z_y.b.c.d"}')
@@ -98,11 +98,11 @@ class LegacyRequestTest < ActiveSupport::TestCase
   end
   
   test "Request validation: key_name" do
-    invalid_chars = '"$^<>|%/;:,\*=~@-. '
-    invalid_chars.length.times do |i|
-      req = LegacyRequest.new.from_json("{'key_name': 'test#{invalid_chars[i].chr}sometime'}")
+    invalid_chars = ['&quot;', '$', '^', '<', '>', '|', '%', '/', ';', ':', ',', '\*', '=', '~', '@', '-', '.', ' ']
+    invalid_chars.each do |chr|
+      req = LegacyRequest.new.from_json("{\"key_name\": \"test#{chr}sometime\"}")
       assert req.invalid?
-      assert 106, req.errors[:key_name][0][:exit_code]
+      assert_equal 117, req.errors[:key_name][0][:exit_code]
     end
     
     req = LegacyRequest.new.from_json('{"key_name": "key01"}')

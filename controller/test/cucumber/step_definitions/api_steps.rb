@@ -272,7 +272,7 @@ Then /^the response descriptor should have "([^\"]*)" as dependencies$/ do |deps
   #puts @response.body
   if @accept_type.upcase == "XML"
     page = Nokogiri::XML(@response.body)
-    desc_yaml = page.xpath("//response/data")
+    desc_yaml = page.xpath("//response/data/datum")
     desc = YAML.load(desc_yaml.text.to_s)
   elsif @accept_type.upcase == "JSON"
     page = JSON.parse(@response.body)
@@ -308,7 +308,7 @@ Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
 end
 
 Then /^the response should be a "([^\"]*)"$/ do |item_type|
-  item = unpacked_data(@response.body)
+  item = unpacked_data(@response.body)[0]
   if item_type == 'cartridge'
     check_cartridge(item)
   elsif item_type == 'application template'
@@ -345,7 +345,7 @@ def unpacked_data(response_body)
   elsif @accept_type.upcase == 'XML'
     data = Hash.from_xml(@response.body)['response']['data']['template']
   end
-  data
+  return data.is_a?(Array) ? data : [data]
 end
 
 def sub_random(value)

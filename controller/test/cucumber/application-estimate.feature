@@ -8,13 +8,13 @@ Feature: Application estimate
   Scenario: Estimate application gear usage
     Given a new user
     And I accept "JSON"
-    When I provide applicaton descriptor with name 'TestApp1' and dependencies:'php-5.3,mysql-5.1' and groups:''
+    When I provide application descriptor with name 'TestApp1' and dependencies:'php-5.3,mysql-5.1' and groups:''
     Then the response should be "200"
 	
   Scenario: Estimate application gear usage when groups are explicitly specified
     Given a new user
     And I accept "JSON"
-    When I provide applicaton descriptor with name 'TestApp2' and dependencies:'php-5.3,mysql-5.1' and groups:'php-5.3;mysql-5.1'
+    When I provide application descriptor with name 'TestApp2' and dependencies:'php-5.3,mysql-5.1' and groups:'php-5.3;mysql-5.1'
     Then the response should be "200"
     And should get 1 gears
     And should get 1 gear with 'php-5.3,mysql-5.1' components

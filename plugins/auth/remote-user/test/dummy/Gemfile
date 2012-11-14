@@ -1,6 +1,6 @@
 source 'http://rubygems.org'
 
-gem 'rails', '3.0.13'
+gem 'rails', '3.2.8'
 gem 'openshift-origin-auth-remote-user'
 gem 'mocha'
 # Bundle edge Rails instead:

@@ -27,12 +27,10 @@ Requires:  rubygem(rails)
 Requires:  rubygem(xml-simple)
 Requires:  rubygem(bson_ext)
 Requires:  rubygem(rest-client)
-Requires:  rubygem(thread-dump)
 Requires:  rubygem(parseconfig)
 Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
-Requires:  rubygem(rcov)
 Requires:  rubygem-passenger-native
 Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}

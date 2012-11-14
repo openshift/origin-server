@@ -60,14 +60,14 @@ function wait_to_start() {
 
 
 function _stop_haproxy_ctld_daemon() {
-    haproxy_ctld_daemon stop > /dev/null 2>&1
+    haproxy_ctld_daemon stop 2>&1
 }
 
 function _start_haproxy_ctld_daemon() {
     disable_as="${OPENSHIFT_REPO_DIR}/.openshift/markers/disable_auto_scaling"
     [ -f "$disable_as" ]  &&  return 0
     _stop_haproxy_ctld_daemon  ||  :
-    haproxy_ctld_daemon start > /dev/null 2>&1
+    haproxy_ctld_daemon start 2>&1
 }
 
 
