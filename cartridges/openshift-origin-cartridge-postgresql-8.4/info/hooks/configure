@@ -49,8 +49,6 @@ fi
 
 POSTGRESQL_PORT=5432
 POSTGRESQL_IP=`find_open_ip $uid $uuid $POSTGRESQL_PORT`
-HOST_VAR=OPENSHIFT_POSTGRESQL_DB_HOST
-PORT_VAR=OPENSHIFT_POSTGRESQL_DB_PORT
 
 #
 # Create the core of the application
@@ -135,12 +133,10 @@ if is_a_scalable_app; then
         source $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
         if [ -n "$OPENSHIFT_GEAR_DNS" ]; then
           psql_ip=$OPENSHIFT_GEAR_DNS
-          HOST_VAR=OPENSHIFT_GEAR_DNS
         fi
 
         if [ -n "$OPENSHIFT_POSTGRESQL_DB_PROXY_PORT" ]; then
           psql_port=$OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
-          PORT_VAR=OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
         fi
     fi
 fi
@@ -154,7 +150,7 @@ client_result "   Database Name: ${dbname}"
 client_result ""
 
 if is_a_scalable_app; then
-    client_result "Connection URL: postgresql://\$$HOST_VAR:\$$PORT_VAR/"
+    client_result 'Connection URL: postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
     client_result 'PostgreSQL gear-local connection URL: postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
     client_result ""
 else
