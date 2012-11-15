@@ -93,7 +93,7 @@ mcursor.each do |hash|
       creation_time = Time.parse(app['creation_time'])
       if app['group_instances']
         app['group_instances'].each { |gi|
-          if app['gears']
+          if gi['gears']
             gi['gears'].each { |gear|
               gear_count += 1
               datastore_hash[gear['uuid']] = [hash['login'], creation_time]
@@ -109,6 +109,7 @@ mcursor.each do |hash|
       end
     }
   end
+
   if hash['consumed_gears'] != gear_count
     msg = "FAIL - user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
     puts msg if verbose
