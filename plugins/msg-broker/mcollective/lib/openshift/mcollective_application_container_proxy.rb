@@ -678,7 +678,7 @@ module OpenShift
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
         gear.container = destination_container
-        if app.scalable and not gi.component_instances.include? app.proxy_cartridge
+        if app.scalable and not gi.component_instances.find { |cart| cart.include? app.proxy_cartridge }
           dns = OpenShift::DnsService.instance
           begin
             public_hostname = destination_container.get_public_hostname
@@ -689,7 +689,7 @@ module OpenShift
           end
         end
 
-        if (not app.scalable) or (app.scalable and gi.component_instances.include? app.proxy_cartridge)
+        if (not app.scalable) or (app.scalable and gi.component_instances.find { |cart| cart.include? app.proxy_cartridge } )
           unless app.aliases.nil?
             app.aliases.each do |server_alias|
               reply.append destination_container.send(:run_cartridge_command, app.framework, app, app.gear, "add-alias", server_alias, false)
