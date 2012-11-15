@@ -18,6 +18,11 @@ then
     exit 1
 fi
 
+run_hook() {
+  local path="$OPENSHIFT_REPO_DIR/.openshift/action_hooks/$1"
+  [ -f "$path" -a -x "$path" ] && "$path"
+}
+
 start() {
     _state=`get_app_state`
     if [ -f $OPENSHIFT_HOMEDIR/$cartridge_type/run/stop_lock -o idle = "$_state" ]; then
@@ -25,15 +30,12 @@ start() {
         return 0
     fi
     set_app_state started
-
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/start
+    run_hook start
 }
 
 stop() {
     set_app_state stopped
-    [ -f $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop ] &&
-         $OPENSHIFT_REPO_DIR/.openshift/action_hooks/stop
+    run_hook stop
 }
 
 reload() {
