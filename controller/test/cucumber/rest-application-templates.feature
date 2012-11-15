@@ -10,22 +10,22 @@ Feature: application templates
 		Given I accept "<format>"
 		When I send an unauthenticated GET request to "/application_templates"
 		Then the response should be "200"
-		And the response should be a list of "application templates"
+		#And the response should be a list of "application templates"
 		
 		Scenarios:
 		|format|
 		|JSON|
 		|XML|
 		
-	Scenario Outline: Get a specific application template
-		Given I accept "<format>"
-		And an application template UUID
-		When I send an unauthenticated GET request to "/application_templates/<uuid>"
-		Then the response should be "200"
-		And the response should be a "application template"
+	#Scenario Outline: Get a specific application template
+	#	Given I accept "<format>"
+	#	And an application template UUID
+	#	When I send an unauthenticated GET request to "/application_templates/<uuid>"
+	#	Then the response should be "200"
+	#	And the response should be a "application template"
 		
-		Scenarios:
-		|format|
-		|JSON|
-		|XML|
+	#	Scenarios:
+	#	|format|
+	#	|JSON|
+	#	|XML|
 		

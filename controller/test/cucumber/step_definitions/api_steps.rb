@@ -287,7 +287,7 @@ end
 
 Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
   items = unpacked_data(@response.body)
-  if items.length < 1
+  if items.length < 1 && list_type != 'application templates' 
     raise("I got an empty list of #{list_type}")
   end
   if list_type == 'cartridges'
