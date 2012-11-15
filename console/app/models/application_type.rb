@@ -156,7 +156,7 @@ class ApplicationType
     protected
       def find_single(id, *arguments)
         case (match = /^([^!]+)!(.+)/.match(id) || [])[1]
-        when 'community'; from_quickstart(Quickstart.find match[2])
+        when 'quickstart'; from_quickstart(Quickstart.find match[2])
         when 'cart'; from_cartridge_type(CartridgeType.cached.find match[2])
         when 'template'; from_application_template(ApplicationTemplate.cached.find match[2])
         else raise NotFound.new(id)
@@ -217,7 +217,7 @@ class ApplicationType
         new(attrs, type.persisted?)
       end
       def from_quickstart(type)
-        attrs = { :id => "community!#{type.id}", :source => :quickstart }
+        attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
         [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges, :priority, :scalable, :learn_more_url].each do |m|
           attrs[m] = type.send(m)
         end

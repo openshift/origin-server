@@ -76,7 +76,7 @@ class ApplicationTemplate < RestApi::Base
     nil
   end
 
-  cache_find_method :single
+  cache_find_method :single, lambda{ |*args| [:template, :find, :by_id, args.shift] }
   cache_find_method :every
 
   protected
