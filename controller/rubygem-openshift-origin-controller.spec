@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.1.8
+Version: 1.1.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.9-1
+- fix broker extended tests (dmcphers@redhat.com)
+- more ruby1.9 changes (dmcphers@redhat.com)
+- Merge pull request #911 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #910 from jwhonce/dev/bz876687 (openshift+bot@redhat.com)
+- fix for bug#875258 (rchopra@redhat.com)
+- Merge pull request #907 from danmcp/master (dmcphers@redhat.com)
+- remove spurious output (jhonce@redhat.com)
+- Merge pull request #909 from pravisankar/dev/ravi/us3043_bugs
+  (dmcphers@redhat.com)
+- Merge pull request #904 from bdecoste/master (openshift+bot@redhat.com)
+- Bug 876459 (dmcphers@redhat.com)
+- Fix for bug# 876516 (rpenta@redhat.com)
+- Fix bug# 876124: caused due to ruby 1.8 to 1.9 upgrade (rpenta@redhat.com)
+- switchyard tests (bdecoste@gmail.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.8-1
 - Merge pull request #906 from ironcladlou/db-test-fixes (dmcphers@redhat.com)
 - Fix typo resulting in undefined stepdef (ironcladlou@gmail.com)
