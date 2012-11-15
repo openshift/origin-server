@@ -480,12 +480,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.inspect        
  
-        if e.message.kind_of?(Hash) and e.message[:exception] 
+        if e.kind_of?(OpenShift::GearsException) 
           successful_gears = []
-          successful_gears = e.message[:successful].map{|g| g[:gear]} if e.message[:successful]
+          successful_gears = e.successful.map{|g| g[:gear]} if e.successful
           failed_gears = []
-          failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
-          gear_exception = e.message[:exception]
+          failed_gears = e.failed.map{|g| g[:gear]} if e.failed
+          gear_exception = e.exception
 
           #remove failed component from all gears
           run_on_gears(successful_gears, reply, false) do |gear, r|
@@ -1756,7 +1756,7 @@ private
           result_io.append(e.resultIO)
         end
         if fail_fast
-          raise Exception.new({:successful => successful_runs, :failed => failed_runs, :exception => e})
+          raise OpenShift::GearsException.new(successful_runs, failed_runs, e)
         end
       end
     end

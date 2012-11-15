@@ -18,6 +18,16 @@ module OpenShift
       @server_identity = server_identity
     end
   end
+  class GearsException < StandardError
+    attr_accessor :successful, :failed, :exception
+
+    def initialize(successful=nil, failed=nil, exception=nil)
+      @successful = successful
+      @failed = failed
+      @exception = exception
+    end
+  end
+
   class UserException < OpenShift::OOException; end
   class UserKeyException < OpenShift::OOException; end
   class AuthServiceException < OpenShift::OOException; end
