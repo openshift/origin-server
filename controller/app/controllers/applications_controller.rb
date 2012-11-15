@@ -102,7 +102,7 @@ class ApplicationsController < BaseController
         end
       end
       begin
-        application = Application.new(@cloud_user, app_name, nil, node_profile, framework_cartridges[0], nil, scale, domain, other_cartridges, init_git_url)
+        application = Application.new(@cloud_user, app_name, nil, node_profile, framework_cartridges[0], nil, scale, domain, init_git_url)
       rescue Exception => e
         return render_error(:internal_server_error, "Error returned from server #{e.message}", 1, "ADD_APPLICATION")
       end
@@ -124,6 +124,10 @@ class ApplicationsController < BaseController
       app_configure_reply = application.configure_dependencies
       Rails.logger.debug "Executing connections for #{application.name}"
       application.execute_connections
+      cart_reply = []
+      other_cartridges.each do |cart|
+        cart_reply << application.add_dependency(cart)
+      end if other_cartridges and !other_cartridges.empty?
       begin
         Rails.logger.debug "Creating dns"
         application.create_dns
@@ -154,6 +158,9 @@ class ApplicationsController < BaseController
     current_ip = application.get_public_ip_address
     messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
     messages.push(Message.new(:info, app_configure_reply.resultIO.string, 0, :result)) if app_configure_reply
+    cart_reply.each do |reply|
+      messages.push(Message.new(:info, reply.resultIO.string, 0, :result))
+    end unless cart_reply.empty?
     render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages) 
   end
   

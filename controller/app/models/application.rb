@@ -51,7 +51,7 @@ class Application < OpenShift::Cartridge
   # @param [optional, String] uuid Unique identifier for the application
   # @param [deprecated, String] node_profile Node profile for the first application gear
   # @param [deprecated, String] framework Cartridge name to use as the framwwork of the application
-  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil, other_cartridges=nil, init_git_url=nil)
+  def initialize(user=nil, app_name=nil, uuid=nil, node_profile=nil, framework=nil, template=nil, will_scale=false, domain=nil, init_git_url=nil)
     self.user = user
     self.domain = domain
     self.node_profile = node_profile
@@ -61,21 +61,15 @@ class Application < OpenShift::Cartridge
     self.ngears = 0
     
     if template.nil?
-      Rails.logger.debug "framework: #{framework} other_cartridges:#{other_cartridges}"
+      Rails.logger.debug "framework: #{framework}"
       if self.scalable
         descriptor_hash = YAML.load(template_scalable_app(app_name, framework))
         from_descriptor(descriptor_hash)
         self.proxy_cartridge = "haproxy-1.4"
-        other_cartridges.each do |cart|
-          self.requires_feature << cart
-        end unless other_cartridges.nil?
       else
         from_descriptor({"Name"=>app_name})
         self.requires_feature = []
         self.requires_feature << framework unless framework.nil? 
-        other_cartridges.each do |cart|
-          self.requires_feature << cart
-        end unless other_cartridges.nil?
       end
       @init_git_url = init_git_url unless init_git_url.nil?
     else
@@ -480,12 +474,12 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
         Rails.logger.debug e.message
         Rails.logger.debug e.backtrace.inspect        
  
-        if e.message.kind_of?(Hash) and e.message[:exception] 
+        if e.kind_of?(OpenShift::GearsException) 
           successful_gears = []
-          successful_gears = e.message[:successful].map{|g| g[:gear]} if e.message[:successful]
+          successful_gears = e.successful.map{|g| g[:gear]} if e.successful
           failed_gears = []
-          failed_gears = e.message[:failed].map{|g| g[:gear]} if e.message[:failed]
-          gear_exception = e.message[:exception]
+          failed_gears = e.failed.map{|g| g[:gear]} if e.failed
+          gear_exception = e.exception
 
           #remove failed component from all gears
           run_on_gears(successful_gears, reply, false) do |gear, r|
@@ -1756,7 +1750,7 @@ private
           result_io.append(e.resultIO)
         end
         if fail_fast
-          raise Exception.new({:successful => successful_runs, :failed => failed_runs, :exception => e})
+          raise OpenShift::GearsException.new(successful_runs, failed_runs, e)
         end
       end
     end
