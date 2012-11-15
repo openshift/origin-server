@@ -18,7 +18,7 @@ RequestHeader set X-Remote-User "%{RU}e" env=RU
     require valid-user
 
     # The node->broker auth is handled in the Ruby code
-    BrowserMatch Stickshift passthrough
+    BrowserMatch Openshift passthrough
     Allow from env=passthrough
 
     Order Deny,Allow
