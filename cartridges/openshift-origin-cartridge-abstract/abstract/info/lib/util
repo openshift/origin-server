@@ -849,13 +849,13 @@ function setup_user_vars {
 }
 
 function observe_setup_app_home {
-    restorecon -R $APP_HOME
+    PATH=$PATH:/usr/sbin:/sbin restorecon -R $APP_HOME
 }
 
 function observe_setup_var_lib_dir {
     if [ -e "$1" ]
     then
-        restorecon -R $1
+        PATH=$PATH:/usr/sbin:/sbin restorecon -R $1
         chcon -l $mcs_level -R $1
     else
         warning "The dir does not exist: $1"
@@ -865,7 +865,7 @@ function observe_setup_var_lib_dir {
 function observe_setup_var_lib_file {
     if [ -e "$1" ]
     then
-        restorecon $1
+        PATH=$PATH:/usr/sbin:/sbin restorecon $1
         chcon -l $mcs_level $1
     else
         warning "The file does not exist: $1"
@@ -884,7 +884,7 @@ function run_as_user {
             eval "$1"
         fi
     else
-        runuser --shell /bin/sh "$_uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
+        PATH=$PATH:/usr/sbin:/sbin runuser --shell /bin/sh "$_uuid" -c "runcon -r system_r -t openshift_t -l $mcs_level $1"
     fi
 }
 
