@@ -137,7 +137,7 @@ class ApplicationsController < BaseController
         raise
       end
     rescue Exception => e
-      application.destroy
+      application.destroy(true)
       if application.persisted?
         application.delete
       end
