@@ -1,4 +1,4 @@
-When /^I provide applicaton descriptor with name '([^\']*)' and dependencies:'([^\']*)' and groups:'([^\']*)'$/ do |app_name, dependencies, groups|
+When /^I provide application descriptor with name '([^\']*)' and dependencies:'([^\']*)' and groups:'([^\']*)'$/ do |app_name, dependencies, groups|
   requires = "Requires:\n"
   dependencies.split(",").each do |dep|
     requires += "  - #{dep}\n"
