@@ -9,7 +9,7 @@ exit
 
 # Create a utility script to remove empty branch parents
 cat > /tmp/filter_empty_branch.rb <<FILTER_EMPTY_BRANCH_RB
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 old_parents = gets.chomp.gsub('-p ', ' ')
 
 if old_parents.empty? then
