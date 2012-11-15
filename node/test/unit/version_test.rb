@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 #--
 # Copyright 2010 Red Hat, Inc.
 # 
