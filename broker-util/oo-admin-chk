@@ -82,7 +82,7 @@ summary = []
 datastore_hash = {}
 start_time = (Time.now.to_f * 1000).to_i
 query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
-fields = {:fields => ["apps.name", "apps.creation_time", "apps.group_instances.gears.uuid", "apps.group_instances.name", "consumed_gears", "login"]}
+fields = {:fields => ["apps.name", "apps.creation_time", "apps.group_instances.gears.uuid", "apps.group_instances.gears.uid", "apps.group_instances.name", "consumed_gears", "login"]}
 mcursor = OpenShift::DataStore.instance.user_collection.find(query, fields)
 ret = []
 mcursor.each do |hash|
@@ -96,7 +96,7 @@ mcursor.each do |hash|
           if gi['gears']
             gi['gears'].each { |gear|
               gear_count += 1
-              datastore_hash[gear['uuid']] = [hash['login'], creation_time]
+              datastore_hash[gear['uuid']] = [hash['login'], creation_time, gear['uid']]
             }
           else
             puts "ERROR: Group instance '#{gi['name']}' for application: '#{app['name']}' for user '#{hash['login']}' doesn't have any gears"
@@ -129,9 +129,9 @@ puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 
 # now check
 puts "Checking application gears on corresponding nodes:" if verbose
-datastore_hash.each { |gear_uuid, value|
-  login = value[0]
-  creation_time = value[1]
+datastore_hash.each { |gear_uuid, gear_info|
+  login = gear_info[0]
+  creation_time = gear_info[1]
   print "#{gear_uuid}...\t" if verbose
   if (Time.now - creation_time) > 600
     if not node_hash.has_key? gear_uuid
@@ -152,18 +152,31 @@ datastore_hash.each { |gear_uuid, value|
 
 # now check reverse
 puts "Checking node gears in application database:" if verbose
-node_hash.each { |gear_uuid, server_identity|
+node_hash.each { |gear_uuid, gear_info|
   print "#{gear_uuid}...\t" if verbose
-  if not datastore_hash.has_key? gear_uuid
+  datastore_gear_info = datastore_hash[gear_uuid]
+  if !datastore_gear_info
     if unresilient || !datastore_has_gear?(gear_uuid)
       no_error = false
       puts "FAIL" if verbose
-      summary << "Gear #{gear_uuid} exists on node #{server_identity} but does not exist in mongo database"
+      summary << "Gear #{gear_uuid} exists on node #{gear_info} but does not exist in mongo database"
     elsif verbose
       puts "OK"
     end
-  elsif verbose
-    puts "OK"
+  else
+    puts "OK" if verbose
+    if !datastore_gear_info[2].nil?
+      begin
+        uid = Integer(gear_info.split("uid:")[1].split(']')[0])
+        if uid != datastore_gear_info[2].to_i
+          summary << "Gear #{gear_uuid} is using uid: '#{uid}' but has reserved uid: '#{datastore_gear_info[2].to_i}'"
+          no_error = false
+        end
+      rescue Exception => e
+        summary << "Failed to check gear: '#{gear_uuid}'s uid because of exception: #{e.message}"
+        no_error = false
+      end
+    end
   end
 }
 
