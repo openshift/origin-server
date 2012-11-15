@@ -41,7 +41,7 @@ class Quickstart < RestApi::Base
       else
         s = s.strip
         if s[0] == '['
-          ActiveSupport::JSON.decode(s)
+          ActiveSupport::JSON.decode(s) rescue []
         else
           s.split(',').map(&:strip)
         end
