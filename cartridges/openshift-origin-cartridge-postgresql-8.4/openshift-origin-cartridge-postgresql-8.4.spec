@@ -35,7 +35,10 @@ Requires: php-pear-MDB2-Driver-pgsql
 Requires: php-pgsql
 Requires: postgis
 Requires: python-psycopg2
+%if 0%{?rhel} <= 6 && 0%{?fedora} <=16
 Requires: ruby-postgres
+%endif
+Requires: rubygem-pg
 Requires: rhdb-utils
 Requires: uuid-pgsql
 Obsoletes: cartridge-postgresql-8.4
