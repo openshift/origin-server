@@ -1476,6 +1476,9 @@ class RestApiTest < ActiveSupport::TestCase
   def test_quickstart
    assert_equal [:test], Quickstart.new(:tags => ['test']).tags
    assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3']).cartridges
+
+   assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3'].to_json).cartridges
+   assert_equal [], Quickstart.new(:cartridges => "[{'php-5.3'}]").cartridges
   end
 
   def test_quickstart_search
