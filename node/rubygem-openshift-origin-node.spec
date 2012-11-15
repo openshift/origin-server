@@ -146,7 +146,7 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{appdir}
 
 #%if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,0)	/etc/rc.d/init.d/openshift-cgroups
+%attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif
