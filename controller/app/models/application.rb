@@ -1282,6 +1282,10 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
             reply.append group_inst.remove_gear(gear)
           end
         end
+
+        if f.length > 0
+          raise Exception.new("Failed to remove #{dep} from application #{self.name}. Try again or report to OpenShift Support.")
+        end
       end
     }
     self.save
@@ -1328,7 +1332,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     end
     prof = @profile_name_map[@default_profile]
     cinst = ComponentInstance::find_component_in_cart(prof, self, dependency, self.get_name_prefix)
-    raise OpenShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", 135, result_io) if cinst.nil?
+    raise OpenShift::NodeException.new("Cannot find #{dependency} component in app #{self.name}.", 135, ResultIO.new) if cinst.nil?
 
     ginst = self.group_instance_map[cinst.group_instance_name]
     return ginst.min,ginst.max
