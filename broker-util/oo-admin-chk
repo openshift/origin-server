@@ -82,21 +82,33 @@ summary = []
 datastore_hash = {}
 start_time = (Time.now.to_f * 1000).to_i
 query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
-fields = {:fields => ["apps.creation_time", "apps.group_instances.gears.uuid", "consumed_gears", "login"]}
+fields = {:fields => ["apps.name", "apps.creation_time", "apps.group_instances.gears.uuid", "apps.group_instances.name", "consumed_gears", "login"]}
 mcursor = OpenShift::DataStore.instance.user_collection.find(query, fields)
 ret = []
 mcursor.each do |hash|
   gear_count = 0
   
-  hash['apps'].each { |app|
-    creation_time = Time.parse(app['creation_time'])
-    app['group_instances'].each { |gi|
-      gi['gears'].each { |gear|
-        gear_count += 1
-        datastore_hash[gear['uuid']] = [hash['login'], creation_time]
-      }
+  if hash['apps']
+    hash['apps'].each { |app|
+      creation_time = Time.parse(app['creation_time'])
+      if app['group_instances']
+        app['group_instances'].each { |gi|
+          if app['gears']
+            gi['gears'].each { |gear|
+              gear_count += 1
+              datastore_hash[gear['uuid']] = [hash['login'], creation_time]
+            }
+          else
+            puts "ERROR: Group instance '#{gi['name']}' for application: '#{app['name']}' for user '#{hash['login']}' doesn't have any gears"
+            no_error = false
+          end
+        }
+      else
+        puts "ERROR: Application: '#{app['name']}' for user '#{hash['login']}' doesn't have any group instances"
+        no_error = false
+      end
     }
-  }
+  end
   if hash['consumed_gears'] != gear_count
     msg = "FAIL - user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
     puts msg if verbose
