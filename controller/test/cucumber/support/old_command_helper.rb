@@ -107,7 +107,7 @@ module OldCommandHelper
 
   def rhc_embed_remove_old(app, type)
     rhc_do('rhc_embed_remove_old') do
-      puts app.name
+      # puts app.name
       run("#{$ctl_app_script} -l #{app.login} -a #{app.name} -p #{app.password} -e remove-#{app.embed} -d").should == 0
       app.mysql_hostname = nil
       app.mysql_user = nil

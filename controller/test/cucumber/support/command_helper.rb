@@ -248,7 +248,7 @@ module CommandHelper
 
   def rhc_embed_remove(app, type)
     rhc_do('rhc_embed_remove') do
-      puts app.name
+      # puts app.name
       time = Benchmark.realtime do 
         run("#{$rhc_app_script} cartridge remove -l #{app.login} -a #{app.name} -p #{app.password} -c #{type} -d").should == 0
       end
