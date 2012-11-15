@@ -33,7 +33,7 @@ class LastAccessUpdater
     for line in lines
       begin
         @addrs_ignore << matchaddr.match(line)[1]
-      rescue NoMethodError:
+      rescue NoMethodError
       end
     end
   end
