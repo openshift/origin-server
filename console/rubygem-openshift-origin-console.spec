@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.1.5
+Version: 1.1.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,21 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- Merge pull request #919 from
+  smarterclayton/bug_876894_cache_of_templates_horribly_wrong
+  (openshift+bot@redhat.com)
+- Bug 876894 - Caching of templates is horribly incorrect, causing bad cache
+  fetches (ccoleman@redhat.com)
+- more ruby1.9 changes (dmcphers@redhat.com)
+- Merge pull request #898 from
+  smarterclayton/bug_876525_poorly_formatted_json_should_be_handled
+  (dmcphers@redhat.com)
+- Test was pointing to the wrong id (ccoleman@redhat.com)
+- Bug 876525 - Handle poorly formatted JSON from a quickstart
+  (ccoleman@redhat.com)
+- Remove old helper (ccoleman@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - Merge pull request #895 from smarterclayton/us3046_quickstarts_and_app_types
   (openshift+bot@redhat.com)
