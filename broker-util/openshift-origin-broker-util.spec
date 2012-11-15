@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.1.6
+Version: 1.1.7
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -67,6 +67,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
+- fix ref to wrong var (dmcphers@redhat.com)
+- fix ref to wrong var (dmcphers@redhat.com)
+- handle errors better on invalid data for oo-admin-chk (dmcphers@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
 - add unresilient option to oo-admin-chk (dmcphers@redhat.com)
 
