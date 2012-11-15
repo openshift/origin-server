@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version:       1.1.3
+Version:       1.1.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -92,6 +92,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Fix for Bug 876687 (jhonce@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - Use the standard util for PATH construction (ironcladlou@gmail.com)
 
