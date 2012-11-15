@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.1.6
+Version: 1.1.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -168,6 +168,11 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
+- BZ877125 - File attributes on open shift-cgroups init script are incorrect,
+  should be -rwxr-x--- (calfonso@redhat.com)
+- more ruby1.9 changes (dmcphers@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
 - Ruby 1.9 compatibility fixes (ironcladlou@gmail.com)
 - getting specs up to 1.9 sclized (dmcphers@redhat.com)
