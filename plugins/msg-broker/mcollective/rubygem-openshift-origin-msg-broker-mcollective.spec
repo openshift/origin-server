@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.1.2
+Version: 1.1.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -85,6 +85,12 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Merge pull request #897 from sosiouxme/BZ876271 (openshift+bot@redhat.com)
+- fix for bug#876458 (rchopra@redhat.com)
+- comment and set correct defaults in openshift-origin-msg-broker-
+  mcollective.conf.example (lmeyer@redhat.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - add config to gemspec (dmcphers@redhat.com)
 - Moving plugins to Rails 3.2.8 engine (kraman@gmail.com)
