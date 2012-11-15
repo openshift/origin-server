@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.1.4
+Version: 1.1.5
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -102,6 +102,9 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Fix for Bug 876874 (jhonce@redhat.com)
+
 * Tue Nov 13 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - update verb in JSON payload (jhonce@redhat.com)
 - US2603 man page and packaging (jhonce@redhat.com)
