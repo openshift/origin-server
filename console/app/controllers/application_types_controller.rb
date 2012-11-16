@@ -47,6 +47,7 @@ class ApplicationTypesController < ConsoleController
 
   def show
     app_params = params[:application] || params
+    app_type_params = params[:application_type] || app_params
     @advanced = to_boolean(params[:advanced])
 
     user_default_domain rescue (@domain = Domain.new)
@@ -54,7 +55,7 @@ class ApplicationTypesController < ConsoleController
     @compact = false # @domain.persisted?
 
     @application_type = params[:id] == 'custom' ?
-      ApplicationType.custom(app_params) :
+      ApplicationType.custom(app_type_params) :
       ApplicationType.find(params[:id])
 
     @capabilities = user_capabilities :refresh => true
