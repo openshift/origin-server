@@ -4,6 +4,7 @@ Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be ins
 Version: 1.1.0
 License: ASL 2.0
 Vendor:
+Website: "http://www.phpmyadmin.net/"
 Cart-Data:
   - Key: "username"
     Type: cart_data

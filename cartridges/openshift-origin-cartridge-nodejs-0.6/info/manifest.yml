@@ -4,6 +4,7 @@ Description: "Node.js is a platform built on Chrome's JavaScript runtime for eas
 Version: 0.6.10
 License: ASL 2.0
 Vendor: www.nodejs.org
+Website: "http://www.nodejs.org/"
 Categories:
   - cartridge
   - javascript
