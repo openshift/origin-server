@@ -20,7 +20,12 @@ fi
 
 run_hook() {
   local path="$OPENSHIFT_REPO_DIR/.openshift/action_hooks/$1"
-  [ -f "$path" -a -x "$path" ] && "$path"
+  if [ -f "$path" -a -x "$path" ]
+  then
+    "$path"
+  else
+    return 0
+  fi
 }
 
 start() {
