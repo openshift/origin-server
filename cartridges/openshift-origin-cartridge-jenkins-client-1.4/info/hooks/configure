@@ -65,7 +65,7 @@ create_cartridge_instance_dir "$cartridge_type"
 JENKINS_CLIENT_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 set +e
-for i in {0..30}; do
+for i in {0..50}; do
   /usr/bin/wget --no-check-certificate -q https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${JENKINS_DNS_NAME}jnlpJars/jenkins-cli.jar -O "$OPENSHIFT_HOMEDIR/jenkins-client-1.4/jenkins-cli.jar"
   exit_status=$?
   if [ $exit_status -eq 0 ]; then
