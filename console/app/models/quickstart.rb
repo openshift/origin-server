@@ -38,9 +38,8 @@ class Quickstart < RestApi::Base
   end
 
   def cartridges_spec
-    entity_decoded(cartridges)
+    entity_decoded(attributes[:cartridges])
   end
-  alias_method :cartridge_specs, :cartridges
 
   def scalable
     true
@@ -48,7 +47,7 @@ class Quickstart < RestApi::Base
   alias_method :scalable?, :scalable
 
   def >>(application)
-    application.cartridges = cartridges
+    #application.cartridges = cartridges
     application.initial_git_url = initial_git_url
     application
   end

@@ -119,7 +119,6 @@ class ApplicationsController < ConsoleController
     @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
 
     begin
-      logger.debug @application_type.inspect
       @cartridges, @missing_cartridges = @application_type.matching_cartridges
       flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
     rescue ApplicationType::CartridgeSpecInvalid
