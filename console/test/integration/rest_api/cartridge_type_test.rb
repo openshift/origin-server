@@ -121,7 +121,17 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
   # depending on that behavior.  If this behavior is moved to a new
   # route then we can remove this.
   test 'application template names returned by server' do
-    assert template = ApplicationTemplate.first(:from => :wordpress)
+    template = ApplicationTemplate.first(:from => :wordpress)
+    omit("No templates defined on this server") unless template
     assert_equal 'WordPress', template.display_name
+  end
+
+  test 'match cartridges' do
+    assert_equal [], CartridgeType.cached.matches('bra').map(&:name)
+    assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby').map(&:name)
+    assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('ruby*').map(&:name)
+    assert_equal ['ruby-1.9','ruby-1.8'], CartridgeType.cached.matches('*uby*').map(&:name)
+    assert_equal ['zend-5.6','php-5.3'], CartridgeType.cached.matches('zend-|php-').map(&:name)
+    assert_equal ['php-5.3','zend-5.6'], CartridgeType.cached.matches('php-|zend-').map(&:name)
   end
 end
