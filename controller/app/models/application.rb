@@ -299,7 +299,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           min_gear_count += gi.min
         }
         if ((user.consumed_gears+min_gear_count) > user.max_gears)
-          raise OpenShift::UserException.new("#{user.login} has a gear limit of #{user.max_gears} and this app requires #{min_gear_count} gears.", 104) 
+          raise OpenShift::UserException.new("Creating this application requires #{min_gear_count} gears, and you are using #{user.consumed_gears} of your #{user.max_gears} available gears.", 104) 
         end
       end
       user.applications = [] unless user.applications
