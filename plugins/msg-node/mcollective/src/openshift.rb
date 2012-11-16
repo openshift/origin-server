@@ -552,7 +552,9 @@ module MCollective
         # All the inline calls are made using multiple threads instead of processes
         in_threads = []
         inline_list.each do |parallel_job|
-          in_threads << Thread.new(parallel_job) do |pj|
+          # BZ 876942: Disable threading until we can explore proper concurrency management
+          # in_threads << Thread.new(parallel_job) do |pj|   # BZ 876942
+            pj = parallel_job                                # BZ 876942
             begin
               handle_oo_job(pj)
             rescue Exception => e
@@ -561,7 +563,7 @@ module MCollective
               pj[:result_stderr] = e.message
               next
             end
-          end
+          # end                                              # BZ 876942
         end
         in_threads.each { |thr| thr.join }
 
