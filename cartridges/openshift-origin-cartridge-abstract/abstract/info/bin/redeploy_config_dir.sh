@@ -6,6 +6,12 @@ do
     . $f
 done
 
+if ! [ -e ${OPENSHIFT_HOMEDIR}git/${OPENSHIFT_GEAR_NAME}.git ]
+then
+    echo "WARNING: No git repo; cannot redeploy."
+    exit 0
+fi
+
 rm -rf ${OPENSHIFT_REPO_DIR}.openshift/config/* ${OPENSHIFT_REPO_DIR}.openshift/config/.[^.]*
 
 pushd ${OPENSHIFT_HOMEDIR}git/${OPENSHIFT_GEAR_NAME}.git > /dev/null
