@@ -48,6 +48,7 @@ class Quickstart < RestApi::Base
       end
     end
   end
+  alias_method :cartridge_specs, :cartridges
 
   def scalable
     true

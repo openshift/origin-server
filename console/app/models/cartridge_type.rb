@@ -102,14 +102,11 @@ class CartridgeType < RestApi::Base
 
   def self.matches(s, opts=nil)
     every = all(opts)
-    s = s[0..-2] if s.is_a?(String) && s.ends_with?('*')
-    Array(every.find{ |t| t.name == s} || every.select do |t|
-      if s.is_a? String
-        t.name.starts_with? s
-      else
-        s.match(t.name)
-      end
-    end)
+    s.split('|').map{ |s| s.gsub('*','') }.map do |s|
+      Array(every.find{ |t| t.name == s } || every.select do |t| 
+        t.name.include?(s) 
+      end)
+    end.flatten.uniq
   end
 
   cache_find_method :every
