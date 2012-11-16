@@ -1474,11 +1474,25 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_quickstart
-   assert_equal [:test], Quickstart.new(:tags => ['test']).tags
-   assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3']).cartridges
+    assert_equal [:test], Quickstart.new(:tags => ['test']).tags
 
-   assert_equal ['php-5.3'], Quickstart.new(:cartridges => ['php-5.3'].to_json).cartridges
-   assert_equal [], Quickstart.new(:cartridges => "[{'php-5.3'}]").cartridges
+    assert_equal 'php-5.3', Quickstart.new(:cartridges => 'php-5.3').cartridges_spec
+    assert_equal '"', Quickstart.new(:cartridges => '&quot;').cartridges_spec
+    assert_equal '"', Quickstart.new(:cartridges => '&quot;').cartridges_spec
+
+    assert_equal '"', Quickstart.new(:name => '&quot;').display_name
+  end
+
+  def test_application_type_cartridge_specs
+    assert_equal ['php-5.3'], ApplicationType.new(:cartridges_spec => 'php-5.3').cartridge_specs
+    assert_equal ['php-5.3'], ApplicationType.new(:cartridges => ['php-5.3']).cartridge_specs
+    assert_equal ['php-5.3'], ApplicationType.new(:cartridges => 'php-5.3').cartridge_specs
+    assert_equal ['php-5.3'], ApplicationType.new(:cartridges_spec => ['php-5.3'].to_json).cartridge_specs
+    assert_equal [], ApplicationType.new(:cartridges_spec => nil).cartridge_specs
+    assert_equal [], ApplicationType.new(:cartridges_spec => []).cartridge_specs
+    assert_equal [], ApplicationType.new(:cartridges_spec => '').cartridge_specs
+    assert_raise(ApplicationType::CartridgeSpecInvalid){ ApplicationType.new(:cartridges_spec => "[{").cartridge_specs }
+    assert_raise(ApplicationType::CartridgeSpecInvalid){ ApplicationType.new(:cartridges_spec => '[{name:"php"}]').cartridge_specs }
   end
 
   def test_quickstart_search
@@ -1512,7 +1526,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal "Wordpress 3.4", q.name
     assert_equal "12069", q.id
     assert q.website
-    assert_equal ['php-5.3', 'mysql-5.1'], q.cartridges
+    assert_equal 'php-5.3, mysql-5.1', q.cartridges_spec
     assert q.initial_git_url
     assert q.tags.include?(:blog)
     assert q.updated > 1.year.ago

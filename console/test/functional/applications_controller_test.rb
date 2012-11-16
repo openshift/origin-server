@@ -75,9 +75,8 @@ class ApplicationsControllerTest < ActionController::TestCase
   test "should assign errors when advanced form" do
     with_domain
     app_params = get_post_form
-    app_params[:application_type] = 'custom'
     app_params[:name] = ''
-    post(:create, {:application => app_params, :advanced => true})
+    post(:create, {:application => app_params, :application_type => 'custom', :advanced => true})
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
@@ -100,14 +99,16 @@ class ApplicationsControllerTest < ActionController::TestCase
   test "should assign errors when advanced form with carts" do
     with_domain
     app_params = get_post_form
-    app_params[:application_type] = {
+    app_type = {
       :id => 'custom',
-      :cartridges => ['ruby-1.9'],
+      :cartridges => ['ruby-'],
       :initial_git_url => 'http://foo.com',
       :initial_git_branch => 'bar',
     }
     app_params[:name] = ''
-    post(:create, {:application => app_params, :advanced => true})
+    app_params[:cartridges] = ['ruby-1.8']
+    app_params[:scale] = 'true'
+    post(:create, {:application => app_params, :application_type => app_type, :advanced => true})
 
     assert_template 'application_types/show'
     assert app = assigns(:application)
@@ -116,9 +117,10 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_equal 1, app.errors[:name].length
 
     assert_select '.alert.alert-error', /Application name is required/i
-    assert_select "select[name='application[scale]']"
+    assert_select "select[name='application[scale]'] > option[selected]", 'Scale with web traffic'
     assert_select "input[name='application[initial_git_url]'][value=http://foo.com]"
     #assert_select "input[name='application[initial_git_branch]'][value=bar]"
+    assert_select "select[name='application[cartridges][]'] > option[selected]", 'Ruby 1.8'
   end
 
   test "should assign errors on long name" do
