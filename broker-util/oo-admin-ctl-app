@@ -3,6 +3,8 @@
 require 'rubygems'
 require 'getoptlong'
 
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|removegear)"
+
 def usage
     puts <<USAGE
 == Synopsis
@@ -19,7 +21,7 @@ Options:
 -a|--app     <application>
     Application name  (alphanumeric) (required)
 -c|--command <command>
-    (start|stop|force-stop|restart|status|destroy|force-destroy|removegear) (required)
+    #{CTL_APP_COMMANDS} (required)
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -182,6 +184,10 @@ when "removegear"
   app.configure_dependencies
   app.execute_connections
   reply.append result_io
+else
+  puts "Command must be one of: #{CTL_APP_COMMANDS}"
+  usage
+  exit 255
 end
 
 puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?

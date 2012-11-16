@@ -183,7 +183,7 @@ when "remove"
     print "'#{template.display_name}' template %s\n" % result
   end
 else
-  print "Command must be one of: (add|remove)"
+  puts "Command must be one of: (add|remove)"
   usage
-  exit -100
+  exit 255
 end
