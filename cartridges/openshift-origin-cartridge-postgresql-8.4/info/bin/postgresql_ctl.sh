@@ -12,6 +12,8 @@ CART_INSTALL_DIR=${CARTRIDGE_BASE_PATH}
 CART_INFO_DIR=$CART_INSTALL_DIR/embedded/$CART_DIRNAME/info
 export STOPTIMEOUT=10
 
+cartridge_type="${CART_NAME}-${CART_VERSION}"
+
 function _is_service_running() {
    if [ -f $CART_INSTANCE_DIR/pid/postgres.pid ]; then
       postgres_pid=`cat $CART_INSTANCE_DIR/pid/postgres.pid 2> /dev/null`
