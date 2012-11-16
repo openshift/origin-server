@@ -126,8 +126,12 @@ class GroupInstance < OpenShift::Model
     return [create_result, gear]
   end
 
-  def remove_gear(gear)
-    gear.destroy
+  def remove_gear(gear, force=false)
+    if force
+      return gear.force_destroy
+    else
+      return gear.destroy
+    end
   end
 
   def update_quota(additional_storage, inodes=nil, gear_list=nil)

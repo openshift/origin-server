@@ -316,7 +316,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       Rails.logger.debug e.message
       Rails.logger.debug e.backtrace.join("\n")
       Rails.logger.debug "Rolling back application gear creation"
-      result_io.append self.destroy
+      result_io.append self.destroy(true)
       self.class.notify_observers(:application_creation_failure, {:application => self, :reply => result_io})
       raise
     ensure
@@ -326,7 +326,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     result_io
   end
   
-  # Convience method to cleanup an application
+  # Convenience method to cleanup an application
   def cleanup_and_delete
     reply = ResultIO.new
     reply.append self.destroy_dns
@@ -335,8 +335,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
-  # Destroys all gears. Logs message but does not throw an exception on failure to delete any particular gear.
-  def destroy
+  # Destroys all gears.
+  def destroy(force=false)
     reply = ResultIO.new
     self.class.notify_observers(:before_application_destroy, {:application => self, :reply => reply})
 
@@ -355,7 +355,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
       failures = []
       group_instances.each do |group_inst|
         s,f = run_on_gears(group_inst.gears, reply, false) do |gear, r|
-          r.append group_inst.remove_gear(gear)
+          r.append group_inst.remove_gear(gear, force)
         end
         failures += f
       end

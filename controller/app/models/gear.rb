@@ -67,7 +67,7 @@ class Gear < OpenShift::Model
   end
 
   def destroy
-    ret = get_proxy.destroy(app,self)
+    ret = get_proxy.destroy(app, self)
     if ret.exitcode == 0
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
@@ -83,10 +83,12 @@ class Gear < OpenShift::Model
   end
 
   def force_destroy
+    ret = nil
     begin
       begin
-        get_proxy.destroy(app,self)
+        ret = get_proxy.destroy(app, self)
       rescue Exception => e
+        Rails.logger.error("ERROR: Ignoring a failed destroy for gear with uuid: #{uuid}")
       end
       self.app.destroyed_gears = [] unless self.app.destroyed_gears
       self.app.destroyed_gears << @uuid
@@ -94,8 +96,16 @@ class Gear < OpenShift::Model
     ensure
       self.app.ngears -= 1
       self.group_instance.gears.delete(self)
+      if ret
+        begin
+          app.process_cartridge_commands(ret)
+        rescue Exception => e
+          Rails.logger.error("ERROR: Ignoring a failed process_cartridge_commands for gear with uuid: #{uuid}")
+        end
+      end
       self.app.save
     end
+    return ret
   end
   
   def configure(comp_inst, template_git_url=nil)
