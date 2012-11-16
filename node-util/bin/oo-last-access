@@ -29,13 +29,13 @@ class LastAccessUpdater
 
   def load_addrs_ignore
     matchaddr = Regexp.new('inet6? (.*)\/[0-9]')
-    lines = %x[/sbin/ip -o addr show]
-    for line in lines
+    output = %x[/sbin/ip -o addr show]
+    output.each_line { |line|
       begin
         @addrs_ignore << matchaddr.match(line)[1]
       rescue NoMethodError
       end
-    end
+    }
   end
 
   # Read a property from app's environment files
@@ -85,8 +85,8 @@ class LastAccessUpdater
     # Ruby and we desperately need speed here.
     ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
                    @addrs_ignore.map { |a| "$1 != \"#{a}\"" }].flatten.join(' && ')
-    lines = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{@log_file}]
-    for line in lines
+    output = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{@log_file}]
+    output.each_line { |line|
       parts = line.split("=")
       timestamp = parts[1].delete("[").delete("]").strip
       hostname = parts[0].strip
@@ -96,7 +96,7 @@ class LastAccessUpdater
       if app_uuid
         @last_access_data[app_uuid] = timestamp
       end
-    end
+    }
   end
 
   def persist_last_access_data
