@@ -48,8 +48,6 @@ fi
 
 MONGODB_PORT=27017
 MONGODB_IP=`find_open_ip $uid $uuid $MONGODB_PORT`
-HOST_VAR=OPENSHIFT_MONGODB_DB_HOST
-PORT_VAR=OPENSHIFT_MONGODB_DB_PORT
 
 #
 # Create the core of the application
@@ -108,11 +106,9 @@ if is_a_scalable_app; then
        source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PROXY_PORT
        if [ -n "$OPENSHIFT_GEAR_DNS" ]; then
          mongodb_ip=$OPENSHIFT_GEAR_DNS
-         HOST_VAR=OPENSHIFT_GEAR_DNS
        fi
        if [ -n "$OPENSHIFT_MONGODB_DB_PROXY_PORT" ]; then
          mongodb_port=$OPENSHIFT_MONGODB_DB_PROXY_PORT
-         PORT_VAR=OPENSHIFT_MONGODB_DB_PROXY_PORT
        fi
    fi
 fi
@@ -126,8 +122,7 @@ client_result "   Database Name: $DB_NAME"
 client_result ""
 
 if is_a_scalable_app; then
-    source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
-    client_result "Connection URL: mongodb://\$$HOST_VAR:\$$PORT_VAR/"
+    client_result 'Connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
     client_result 'MongoDB gear-local connection URL: mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
     client_result ""
 else
@@ -144,3 +139,4 @@ cart_props "database_name=$DB_NAME"
 
 set_app_info "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
 enable_cgroups
+ 
