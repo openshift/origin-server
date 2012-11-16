@@ -96,7 +96,7 @@
                 (branch '#{@application_type.initial_git_branch}')
             - else
               Default 
-            %small= link_to "Change", advanced_path
+            %small= link_to "Change", advanced_path, :data => {:submit_form => true}
 
       .controls
         %p.help-block 
@@ -117,7 +117,7 @@
           - else
             %h3
               = gear_sizes.first.to_s.titleize
-              %small= link_to 'Change', advanced_path
+              %small= link_to 'Change', advanced_path, :data => {:submit_form => true}
             = f.hidden_field :gear_profile
 
         - else
@@ -165,7 +165,7 @@
           - else
             %h3{:title => "Scaling your web cartridge will allocate an extra gear for the load balancer"}
               = scale_options[@application.scale? ? 1 : 0][0]
-              %small= link_to 'Change', advanced_path
+              %small= link_to 'Change', advanced_path, :data => {:submit_form => true}
         - else
           %h3
             %span.text-warning{:title => scale_reason}= scale_options[0][0]
@@ -193,12 +193,27 @@
 
   = f.buttons do
     = link_to "Back", application_types_path, :class => 'btn'
-    = f.commit_button :button_html => { :name => 'submit', :disabled => @disabled } 
+    = f.commit_button :button_html => { :disabled => @disabled } 
     = f.loading
 
 - if @compact
   - content_for :javascripts do
     :javascript
-      jQuery('.help-block').click(function() {
-        $("#new_application.collapse-help").removeClass('collapse-help');
+      $(function() {
+        $('.help-block').click(function() {
+          $("#new_application.collapse-help").removeClass('collapse-help');
+        });
       });
+
+- content_for :javascripts do
+  :javascript
+    $(function() {
+      $('a[data-submit-form]').click(function() {
+        $('#advanced').attr('value', 'true');
+        $(this).closest('form').attr({
+          'action': this.href,
+          'method': 'get'
+        }).submit();
+        return false;
+      });
+    });
