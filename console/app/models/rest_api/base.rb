@@ -648,6 +648,18 @@ module RestApi
         end
       end
 
+      #
+      # Drupal 6 doesn't correctly encode JSON, and some non-HTML content needs to be
+      # decoded.
+      #
+      def entity_decoded(s)
+        if s && (s.include?('&#') || s.include?('&quot;'))
+          CGI.unescapeHTML(s)
+        else
+          s
+        end
+      end
+
       def connection(refresh = false)
         @connection = nil if refresh
         @connection ||= self.class.connection({:as => as})

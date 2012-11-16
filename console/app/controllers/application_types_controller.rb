@@ -57,15 +57,21 @@ class ApplicationTypesController < ConsoleController
       ApplicationType.custom(app_params) :
       ApplicationType.find(params[:id])
 
-    @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @capabilities = user_capabilities :refresh => true
-    @cartridges, @missing_cartridges = ApplicationType.matching_cartridges(@application_type.cartridges)
 
+    @application = (@application_type >> Application.new(:as => current_user)).assign_attributes(app_params)
     @application.gear_profile = @capabilities.gear_sizes.first unless @capabilities.gear_sizes.include?(@application.gear_profile)
 
+    begin
+      @cartridges, @missing_cartridges = @application_type.matching_cartridges
+      flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
+    rescue ApplicationType::CartridgeSpecInvalid
+      logger.debug $!
+      flash.now[:error] = "The cartridges defined for this type are not valid.  The #{@application_type.source} may not be correct."
+    end
+
     flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
-    flash.now[:error] = "No cartridges are defined for this type - all applications require at least one web cartridge" unless @cartridges.present?
-    @disabled = @missing_cartridges.present? || @cartridges.empty?
+    @disabled = @missing_cartridges.present? || @cartridges.blank?
 
     user_default_domain rescue nil
   end
