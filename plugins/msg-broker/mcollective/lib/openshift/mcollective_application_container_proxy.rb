@@ -768,9 +768,13 @@ module OpenShift
           # pre-move
           reply.append move_gear_pre(app, gear, state_map, keep_uid)
 
+          unless keep_uid
+            gear.uid = destination_container.reserve_uid(destination_district_uuid)
+            log_debug "DEBUG: Reserved uid '#{gear.uid}' on district: '#{destination_district_uuid}'"
+          end
           begin
             # rsync gear with destination container
-            rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, keep_uid)
+            rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
             app.configure_order.each do |ci_name|
@@ -947,14 +951,9 @@ module OpenShift
         return [destination_container, destination_district_uuid, keep_uid]
       end
 
-      def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, keep_uid)
+      def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
         reply = ResultIO.new
         source_container = gear.container
-        orig_uid = gear.uid
-        unless keep_uid
-          gear.uid = destination_container.reserve_uid(destination_district_uuid)
-          log_debug "DEBUG: Reserved uid '#{gear.uid}' on district: '#{destination_district_uuid}'"
-        end
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
         reply.append destination_container.create(app, gear, quota_blocks, quota_files)
 
