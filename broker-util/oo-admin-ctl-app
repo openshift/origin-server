@@ -19,7 +19,7 @@ Options:
 -a|--app     <application>
     Application name  (alphanumeric) (required)
 -c|--command <command>
-    (start|stop|force-stop|restart|status|destroy|force-destroy) (required)
+    (start|stop|force-stop|restart|status|destroy|force-destroy|removegear) (required)
 -b|--bypass
     Ignore warnings
 -h|--help
@@ -31,6 +31,7 @@ opts = GetoptLong.new(
     ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],    
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--gear_uuid",        "-g", GetoptLong::OPTIONAL_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -47,6 +48,7 @@ login    = args["--rhlogin"]
 app_name = args["--app"]
 command  = args['--command']
 bypass   = args['--bypass']
+gear_uuid = args['--gear_uuid']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
@@ -144,6 +146,42 @@ when "destroy"
   
   reply.append app.cleanup_and_delete
   reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
+when "removegear"
+  result_io = ResultIO.new
+  comp_name = "web"
+  prof = app.profile_name_map[app.default_profile]
+  cinst = ComponentInstance::find_component_in_cart(prof, app, comp_name, app.get_name_prefix)
+  puts "ERROR: Cannot find #{comp_name} in app #{app.name}." if cinst.nil?
+  ginst = app.group_instance_map[cinst.group_instance_name]
+  puts "ERROR: Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{app.name}." if ginst.nil?
+  # remove any gear out of this ginst
+  puts "ERROR: Cannot scale below minimum gear requirements" if ginst.gears.length <= ginst.min
+
+  gear = ginst.gears.find { |g| g.uuid == gear_uuid }
+
+  if gear.nil?
+    puts "ERROR: Gear '#{gear_uuid}' is not one of the scaled gears of the app #{app.name}. Possible ones are #{ginst.gears.map{ |g| g.uuid }.inspect }. Please provide a valid gear with --gear_uuid option."
+   exit 1
+  end
+
+  dns = OpenShift::DnsService.instance
+  begin
+    dns.deregister_application(gear.name, app.domain.namespace)
+    dns.publish
+  ensure
+    dns.close
+  end
+
+  begin
+    result_io.append ginst.remove_gear(gear)
+  rescue Exception => e
+    # pass, this might be a broken gear
+  end
+
+  # inform anyone who needs to know that this gear is no more
+  app.configure_dependencies
+  app.execute_connections
+  reply.append result_io
 end
 
 puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
