@@ -700,7 +700,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
           raise OpenShift::UserException.new("Error: Getting '#{dependency}' status from gear '#{gear}', errcode: '#{rc}' and output: #{output}", 143)
         else
           r = ResultIO.new
-          r.resultIO << output
+          r.resultIO << "#{output}\n"
           reply.append r
           app_status.push({"gear_id" => gear, "message" => output}) unless ret_reply
         end
