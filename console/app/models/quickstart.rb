@@ -17,6 +17,10 @@ class Quickstart < RestApi::Base
   alias_attribute :display_name, :name
   alias_attribute :description, :summary
 
+  def name
+    entity_decoded(super)
+  end
+
   def priority
     super.to_i rescue 0
   end
@@ -33,20 +37,8 @@ class Quickstart < RestApi::Base
     @updated ||= Time.at(attributes[:updated].to_i)
   end
 
-  def cartridges
-    @cartridges ||= begin
-      s = (attributes[:cartridges] || '')
-      if s.is_a? Array
-        s
-      else
-        s = s.strip
-        if s[0] == '['
-          ActiveSupport::JSON.decode(s) rescue []
-        else
-          s.split(',').map(&:strip)
-        end
-      end
-    end
+  def cartridges_spec
+    entity_decoded(cartridges)
   end
   alias_method :cartridge_specs, :cartridges
 

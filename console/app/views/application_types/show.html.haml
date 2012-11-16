@@ -90,7 +90,7 @@
           %span branch 'master'
         - else
           %h3
-            - if @application_type.initial_git_url
+            - if @application_type.initial_git_url.present?
               #{link_to @application_type.initial_git_url, @application_type.initial_git_url, :target => "_blank"}
               -# if @application_type.initial_git_branch
                 (branch '#{@application_type.initial_git_branch}')
@@ -139,7 +139,7 @@
           %h3
             = map_to_sentence(@cartridges) do |(name, carts)|
               - if carts.length > 1
-                = select_tag 'application[cartridges][]', options_for_select(carts.sort.map{ |c| [c.display_name, c.name] }), :title => "Choose a cartridge that matches '#{name}'"
+                = select_tag 'application[cartridges][]', options_for_select(carts.sort.map{ |c| [c.display_name, c.name] }, [carts.map(&:name) & @application.cartridge_names].first ), :title => "Choose a cartridge that matches '#{name}'"
               - elsif carts.length == 1
                 = hidden_field_tag 'application[cartridges][]', [carts.first.name]
                 = carts.first.display_name

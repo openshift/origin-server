@@ -13,7 +13,7 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
           description: #{t.description}
           tags:        #{t.tags.inspect}
           version:     #{t.version}
-          cartridges:  #{t.respond_to?(:cartridges) ? t.cartridges.join(', ') : 'n/a'}
+          cartridges:  #{t.respond_to?(:cartridges) ? t.cartridges.inspect : 'n/a'}
           priority:    #{t.priority}
         #{log_extra(t)}
       TYPE
@@ -113,6 +113,12 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
 
     assert php < jenkins
     assert ruby < jenkins
+  end
+
+  test 'matching cartridges types' do
+    found, missing = ApplicationType.matching_cartridges('php-')
+    assert_equal ['php-5.3'], found['php-'].map(&:name), found.inspect
+    assert missing.empty?
   end
 
   # Currently /application_templates/<string>.json can return an array

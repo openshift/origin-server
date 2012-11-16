@@ -15,8 +15,10 @@ class ApplicationType
     end
   end
 
+  CartridgeSpecInvalid = Class.new(StandardError)
+
   attr_accessor :id, :display_name, :version, :description
-  attr_accessor :cartridges, :initial_git_url, :initial_git_branch
+  attr_accessor :cartridges, :initial_git_url, :initial_git_branch, :cartridges_spec
   attr_accessor :template # DEPRECATED
   attr_accessor :website, :license, :license_url
   attr_accessor :tags, :learn_more_url
@@ -27,7 +29,6 @@ class ApplicationType
   attr_accessor :source
 
   attr_accessible :initial_git_url, :cartridges, :initial_git_branch
-
   alias_attribute :categories, :tags
 
   def initialize(attributes={}, persisted=false)
@@ -51,6 +52,24 @@ class ApplicationType
 
   def cartridges=(cartridges)
     @cartridges = Array(cartridges)
+  end
+
+  def cartridge_specs
+    begin
+      s = (@cartridges_spec || cartridges || [])
+      if s.is_a? Array
+        s
+      else
+        s = s.strip
+        if s[0] == '['
+          ActiveSupport::JSON.decode(s).map{ |s| s.is_a?(Hash) ? s['name'] : s }
+        else
+          s.split(',').map(&:strip)
+        end
+      end
+    rescue
+      raise ApplicationType::CartridgeSpecInvalid, $!, $@
+    end
   end
 
   def <=>(other)
@@ -83,7 +102,7 @@ class ApplicationType
   def quickstart?; source == :quickstart; end
 
   def matching_cartridges
-    self.class.matching_cartridges(cartridges)
+    self.class.matching_cartridges(cartridge_specs)
   end
 
   def >>(app)
@@ -136,9 +155,9 @@ class ApplicationType
       end
     end
 
-    def matching_cartridges(cartridges)
+    def matching_cartridges(cartridge_specs)
       valid, invalid = {}, []
-      Array(cartridges).uniq.each do |c|
+      Array(cartridge_specs).uniq.each do |c|
         if (matches = CartridgeType.cached.matches(c)).present?
           valid[c] = matches
         else
@@ -218,7 +237,7 @@ class ApplicationType
       end
       def from_quickstart(type)
         attrs = { :id => "quickstart!#{type.id}", :source => :quickstart }
-        [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges, :priority, :scalable, :learn_more_url].each do |m|
+        [:display_name, :tags, :description, :website, :initial_git_url, :initial_git_branch, :cartridges_spec, :priority, :scalable, :learn_more_url].each do |m|
           attrs[m] = type.send(m)
         end
 

@@ -81,7 +81,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "should show type page for quickstart" do
     with_unique_user
-    type = ApplicationType.all.select{ |t| t.quickstart? }.sample(1).first
+    type = ApplicationType.all.select(&:quickstart?).sample(1).first
     omit("No quickstarts registered on this server") if type.nil?
 
     get :show, :id => type.id
@@ -90,10 +90,19 @@ class ApplicationTypesControllerTest < ActionController::TestCase
 
   test "should show type page for application template" do
     with_unique_user
-    type = ApplicationType.all.select{ |t| t.template? }.sample(1).first
+    type = ApplicationType.all.select(&:template?).sample(1).first
     omit("No templates registered on this server") if type.nil?
 
     get :show, :id => type.id
+    assert_standard_show_type(type)
+  end
+
+  test "should handle invalid quickstart page" do
+    with_unique_user
+    type = Quickstart.new(:id => 'test', :name => '', :cartridges => '[{')
+    Quickstart.expects(:find).returns(type)
+
+    get :show, :id => 'quickstart!test'
     assert_standard_show_type(type)
   end
 
