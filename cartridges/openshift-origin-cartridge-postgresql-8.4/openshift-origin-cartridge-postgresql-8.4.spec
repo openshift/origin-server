@@ -33,6 +33,7 @@ Requires: perl-DBD-Pg
 Requires: perl-DateTime-Format-Pg
 Requires: php-pear-MDB2-Driver-pgsql
 Requires: php-pgsql
+Requires: gdal
 Requires: postgis
 Requires: python-psycopg2
 %if 0%{?rhel} <= 6 && 0%{?fedora} <=16
