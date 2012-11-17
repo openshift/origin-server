@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.1.2
+Version: 1.1.3
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -105,6 +105,18 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- BZ 877534: Remove DB_SOCKET from db connectors. (mpatel@redhat.com)
+- Merge pull request #928 from rmillner/BZ876944 (openshift+bot@redhat.com)
+- Merge pull request #923 from pmorie/bugs/876800 (dmcphers@redhat.com)
+- Needed cartridge_type to be set. (rmillner@redhat.com)
+- Merge pull request #920 from ramr/master (openshift+bot@redhat.com)
+- BZ876800: Fix connection URLs for mongo,mysql, and postgres for scalable apps
+  (pmorie@gmail.com)
+- Fix for BZ 874881. (mpatel@redhat.com)
+- Fix for bugz 876836 - add gdal (Geospatial Data Abstraction library) support
+  - used w/ GIS modules. (ramr@redhat.com)
+
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Fix for Bug 873810 (jhonce@redhat.com)
 
