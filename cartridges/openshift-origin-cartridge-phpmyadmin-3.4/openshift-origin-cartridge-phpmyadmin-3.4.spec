@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
 Name: openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.1.2
+Version: 1.2.0
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 

@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
 Name: openshift-origin-cartridge-mysql-5.1
-Version: 1.1.4
+Version: 1.2.0
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
