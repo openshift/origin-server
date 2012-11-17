@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   1.1.5
+Version:   1.1.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -84,6 +84,14 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- Merge pull request #926 from jwhonce/dev/bz877172 (dmcphers@redhat.com)
+- Merge pull request #924 from rmillner/BZ876640 (dmcphers@redhat.com)
+- Merge pull request #925 from ironcladlou/scl-refactor (dmcphers@redhat.com)
+- Fix for Bug 877172 (jhonce@redhat.com)
+- BZ 876640: Warn if no git repo. (rmillner@redhat.com)
+- Only use scl if it's available (ironcladlou@gmail.com)
+
 * Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - BZ 876640:Test if the target exists and report error. (rmillner@redhat.com)
 
