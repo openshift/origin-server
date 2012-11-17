@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.1.6
+Version: 1.1.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -122,6 +122,26 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
+- Bug 876853 - Preserve form inputs when clicking 'change'
+  (ccoleman@redhat.com)
+- Remove excess debugging, handle merge of change to Quickstart#cartridges
+  (ccoleman@redhat.com)
+- Bug 877222 - Some values not correctly being carried across - need to know
+  when quickstart is invalid (ccoleman@redhat.com)
+- Merge pull request #929 from smarterclayton/slightly_extend_match_spec
+  (openshift+bot@redhat.com)
+- Merge pull request #913 from
+  smarterclayton/better_gear_limit_message_on_create (openshift+bot@redhat.com)
+- Merge pull request #918 from sg00dwin/master (dmcphers@redhat.com)
+- Extend the match spec to support OR construct 'php-|zend-' returns both PHP
+  and Zend (ccoleman@redhat.com)
+- calling bootstrap-tab.js in console.js adding conditional for ie9
+  (sgoodwin@redhat.com)
+- include bootstrap-tab js (sgoodwin@redhat.com)
+- Return a better error message when the gear limit on app creation is reached.
+  (ccoleman@redhat.com)
+
 * Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
 - Merge pull request #919 from
   smarterclayton/bug_876894_cache_of_templates_horribly_wrong
