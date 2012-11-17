@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.1.5
+Version: 1.1.6
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,11 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
+- Fix for Bug 876874 (jhonce@redhat.com)
+- Merge pull request #925 from ironcladlou/scl-refactor (dmcphers@redhat.com)
+- Only use scl if it's available (ironcladlou@gmail.com)
+
 * Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.5-1
 - Fix for Bug 876874 (jhonce@redhat.com)
 
