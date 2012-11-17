@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.1.9
+Version: 1.1.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.10-1
+- Bug 877340 (dmcphers@redhat.com)
+- Merge pull request #913 from
+  smarterclayton/better_gear_limit_message_on_create (openshift+bot@redhat.com)
+- Bug 876796 (dmcphers@redhat.com)
+- fix typo (dmcphers@redhat.com)
+- Return a better error message when the gear limit on app creation is reached.
+  (ccoleman@redhat.com)
+
 * Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.9-1
 - fix broker extended tests (dmcphers@redhat.com)
 - more ruby1.9 changes (dmcphers@redhat.com)
