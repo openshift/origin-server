@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.1.7
+Version: 1.1.8
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -67,6 +67,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
+* Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.8-1
+- Bug 877347 (dmcphers@redhat.com)
+- fix for bug#876330 (rchopra@redhat.com)
+
 * Thu Nov 15 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
 - fix ref to wrong var (dmcphers@redhat.com)
 - fix ref to wrong var (dmcphers@redhat.com)
