@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
 Name: openshift-origin-cartridge-mysql-5.1
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 Summary: Provides embedded mysql support
 
@@ -80,6 +80,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 21 (admiller@redhat.com)
+
 * Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
 - BZ 877534: Remove DB_SOCKET from db connectors. (mpatel@redhat.com)
 - BZ876800: Fix connection URLs for mongo,mysql, and postgres for scalable apps
