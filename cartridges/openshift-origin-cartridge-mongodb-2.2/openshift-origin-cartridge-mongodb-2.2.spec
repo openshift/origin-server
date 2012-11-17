@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.2.0
+Version: 1.2.1
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 21 (admiller@redhat.com)
+
 * Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - BZ876800: Fix connection URLs for mongo,mysql, and postgres for scalable apps
   (pmorie@gmail.com)
