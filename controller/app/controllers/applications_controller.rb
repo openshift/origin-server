@@ -96,8 +96,11 @@ class ApplicationsController < BaseController
           framework_cartridges.push(cart) unless not carts.include?(cart)
           other_cartridges.push(cart) unless carts.include?(cart)
         end
-        if framework_cartridges.empty? or framework_cartridges.length > 1
-          return render_error(:unprocessable_entity, "You must specify one and only one web framework cartridge. Valid values are (#{carts.join(', ')})",
+        if framework_cartridges.empty?
+          return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{cartridges.to_sentence} is a web cartridge. Please include one of the following cartridges: #{carts.to_sentence}.",
+                            109, "ADD_APPLICATION", "cartridge")
+        elsif framework_cartridges.length > 1
+          return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{carts.to_sentence}.",
                             109, "ADD_APPLICATION", "cartridge")
         end
       end
