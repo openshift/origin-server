@@ -1,6 +1,6 @@
 Name: jbossews-2.0
-Display-Name: JBoss Enterprise Web Server 2.0
-Description: "Market-leading open source enterprise platform for next-generation, highly transactional enterprise Java applications. Build and deploy enterprise Java in the cloud."
+Display-Name: Tomcat 7 (JBoss EWS 2.0)
+Description: "JBoss Enterprise Web Server is the enterprise-class Java web container for large-scale lightweight web applications based on Tomcat 7. Build and deploy JSPs and Servlets in the cloud."
 Version: 2.0.0
 License: ASL 2.0
 Vendor:  jboss.com
@@ -10,7 +10,7 @@ Categories:
   - jboss
   - tomcat
   - web_framework
-Website: http://www.redhat.com/products/jbossenterprisemiddleware/application-platform/
+Website: http://www.redhat.com/products/jbossenterprisemiddleware/web-server/
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
@@ -57,39 +57,34 @@ Native-Requires:
   - java-1.6.0
   - maven3
 Architecture: noarch
+
 Reservations:
   - MEM >= 100MB
-Profiles:
-  standalone:
-    Provides: jbossews, jboss-ews2.0, jboss-ews2.0.0
-    Reservations:
-      - MEM >= 100MB
+Components:
+  jbossews-server:
+    &jbossews-server-component
+    Publishes:
+      get-doc-root:
+        Type: "FILESYSTEM:doc-root"
+      get-internal-uri:
+        Type: "NET_TCP:http"
+      publish-http-url:
+        Type: "NET_TCP:httpd-proxy-info"
+      publish-gear-endpoint:
+        Type: "NET_TCP:gear-endpoint-info"
+    Subscribes:
+      set-db-connection-info:
+        Type: "NET_TCP:db:connection-info"
+        Required: false
+      set-nosql-db-connection-info:
+        Type: "NET_TCP:nosqldb:connection-info"
+        Required: false
+      set-jdbc-info:
+        Type: "NET_TCP:jdbc"
+Groups:
+  app-servers:
     Components:
-      jbossews-server:
-        &jbossews-server-component
-        Publishes:
-          get-doc-root:
-            Type: "FILESYSTEM:doc-root"
-          get-internal-uri:
-            Type: "NET_TCP:http"
-          publish-http-url:
-            Type: "NET_TCP:httpd-proxy-info"
-          publish-gear-endpoint:
-            Type: "NET_TCP:gear-endpoint-info"
-        Subscribes:
-          set-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-            Required: false
-          set-nosql-db-connection-info:
-            Type: "NET_TCP:nosqldb:connection-info"
-            Required: false
-          set-jdbc-info:
-            Type: "NET_TCP:jdbc"
-    Groups:
-      app-servers:
-        Components:
-          jbossews-server: jbossews-server
-        Scaling:
-          Min: 1
-          Max: -1
-Default-Profile: standalone
+      jbossews-server: jbossews-server
+    Scaling:
+      Min: 1
+      Max: -1

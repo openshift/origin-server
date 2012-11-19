@@ -17,7 +17,7 @@ fi
 CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
 
 APP_JBOSS=${CART_DIR}/${cartridge_type}
-APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
+APP_JBOSS_TMP_DIR="$APP_JBOSS"/tmp
 APP_JBOSS_BIN_DIR="$APP_JBOSS"/bin
 
 # For debugging, capture script output into app tmp dir
@@ -62,14 +62,9 @@ function ishttpup() {
     return 1
 }
 
-function replace_envs() {
-	sed_replace_env=$(print_sed_exp_replace_env_var)
 
-	sed -i ${sed_replace_env} "${CART_DIR}/jbossews-2.0"/conf/server.xml > /dev/null 2>&1
-}
 
 function start_app() {
-    echo "!!!!!!!!!!! start_app" 1>&2
     if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
        ENABLE_JPDA=1
     fi
@@ -87,14 +82,11 @@ function start_app() {
             # Start
             jopts="${JAVA_OPTS}"
             
-            replace_envs
-            
             export CATALINA_HOME=$APP_JBOSS
             export CATALINA_BASE=$APP_JBOSS
-            echo "!!!!!!!!!!! tomcat7 $CATALINA_HOME $OPENSHIFT_GEAR_UUID" 1>&2
-            ${CART_DIR}/jbossews-2.0/bin/tomcat7 start
+            export CATALINA_TMPDIR=$APP_JBOSS/tmp
+            ${CART_DIR}/jbossews-1.0/bin/tomcat6 start
             PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-1.0 | awk '{print $2}'`
-            echo "!!!!!!!!!!! PROCESS_ID $PROCESS_ID $JBOSS_PID_FILE" 1>&2
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"

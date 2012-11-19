@@ -6,7 +6,7 @@ set -e
 
 
 # The name of the jbossews cartridge dir under /usr/libexec/openshift/cartridges
-jboss_version=jbossews-2.0
+jboss_version=jbossews-1.0
 
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
