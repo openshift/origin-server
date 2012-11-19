@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -113,6 +113,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Nov 19 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Add missing vars to mod_env (ironcladlou@gmail.com)
+
 * Wed Nov 14 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - US3046: Allow quickstarts to show up in the UI (ccoleman@redhat.com)
 
