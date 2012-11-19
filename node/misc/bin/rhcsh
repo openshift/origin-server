@@ -2,8 +2,6 @@
 
 #. /etc/bashrc
 
-[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
-
 source /etc/init.d/functions 2> /dev/null
 
 # Import Environment Variables
@@ -153,3 +151,5 @@ if [ -z $SSH_TTY ]; then
     echo "WARNING: This ssh terminal was started without a tty." 1>&2
     echo "          It is highly recommended to login with: ssh -t" 1>&2
 fi
+
+[ -f ~/app-root/data/.bash_profile ] && source ~/app-root/data/.bash_profile
