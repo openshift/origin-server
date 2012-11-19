@@ -153,17 +153,26 @@ when "removegear"
   comp_name = "web"
   prof = app.profile_name_map[app.default_profile]
   cinst = ComponentInstance::find_component_in_cart(prof, app, comp_name, app.get_name_prefix)
-  puts "ERROR: Cannot find #{comp_name} in app #{app.name}." if cinst.nil?
+  if cinst.nil?
+    puts "ERROR: Cannot find #{comp_name} in app #{app.name}." 
+    exit 1
+  end
   ginst = app.group_instance_map[cinst.group_instance_name]
-  puts "ERROR: Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{app.name}." if ginst.nil?
+  if ginst.nil?
+    puts "ERROR: Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{app.name}." 
+    exit 1
+  end
   # remove any gear out of this ginst
-  puts "ERROR: Cannot scale below minimum gear requirements" if ginst.gears.length <= ginst.min
+  if ginst.gears.length <= ginst.min
+    puts "ERROR: Cannot scale below minimum gear requirements" 
+    exit 1
+  end
 
   gear = ginst.gears.find { |g| g.uuid == gear_uuid }
 
   if gear.nil?
     puts "ERROR: Gear '#{gear_uuid}' is not one of the scaled gears of the app #{app.name}. Possible ones are #{ginst.gears.map{ |g| g.uuid }.inspect }. Please provide a valid gear with --gear_uuid option."
-   exit 1
+    exit 1
   end
 
   dns = OpenShift::DnsService.instance
