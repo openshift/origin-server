@@ -209,7 +209,7 @@ module Console::LayoutHelper
     items.map{ |c| capture_haml{ yield c }.strip }.to_sentence.html_safe
   end
 
-  HIDDEN_TAGS = [:featured, :instant_app, :framework, :web_framework, :experimental, :in_development, :template, :cartridge]
+  HIDDEN_TAGS = [:featured, :framework, :web_framework, :experimental, :in_development, :template, :cartridge]
   IMPORTANT_TAGS = [:new, :premium]
 
   def application_type_tags(tags)
