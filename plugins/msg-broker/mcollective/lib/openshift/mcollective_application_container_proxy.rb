@@ -1514,18 +1514,21 @@ module OpenShift
 
       def self.get_all_gears_impl
         gear_map = {}
+        sender_map = {}
         rpc_exec('openshift') do |client|
           client.get_all_gears(:gear_map => {}) do |response|
             if response[:body][:statuscode] == 0
               sub_gear_map = response[:body][:data][:output]
               sender = response[:senderid]
               sub_gear_map.each { |k,v|
-                gear_map[k] = "[#{sender}, uid:#{v}]"
+                gear_map[k] = [sender,v]
+                sender_map[sender] = {} if not sender_map.has_key? sender
+                sender_map[sender][Integer(v)] = k
               }
             end
           end
         end
-        gear_map
+        return [gear_map, sender_map]
       end
 
       def self.sanitize_result(output)
