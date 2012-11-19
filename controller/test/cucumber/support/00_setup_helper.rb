@@ -25,7 +25,11 @@ $selinux_type = "openshift_initrc_t"
 
 # User registration flag and script
 $registration_required = true
-$user_register_script_format = "/usr/bin/oo-register-user -l admin -p admin --username %s --userpass %s"
+if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+  $user_register_script_format = "/usr/bin/oo-register-user -l admin -p admin --username %s --userpass %s"
+elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+  $user_register_script_format = "/usr/bin/htpasswd -b /etc/openshift/htpasswd %s %s"
+end
 
 # Alternatie domain suffix for use in alias commands
 $alias_domain = "foobar.com"
