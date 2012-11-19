@@ -13,7 +13,13 @@ $credentials = Base64.encode64("#{$user}:#{$password}")
 $default_timeout = 120 # 120 secs
 
 def register_user
-  cmd = "oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}"
+  if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+    cmd = "oo-register-user -l admin -p admin --username #{$user} --userpass #{$password}"
+  elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
+    cmd = "/usr/bin/htpasswd -b /etc/openshift/htpasswd #{$user} #{$password}"
+  else
+    raise "No authentication plug-in is configured."
+  end
   pid, stdin, stdout, stderr = nil, nil, nil, nil
 
   with_clean_env {
