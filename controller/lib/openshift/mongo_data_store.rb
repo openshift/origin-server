@@ -271,6 +271,15 @@ module OpenShift
       Rails.logger.debug "delete_district(#{uuid})\n\n"
       remove( district_collection, { "_id" => uuid, "active_server_identities_size" => 0 } )
     end
+  
+    def reserve_district_given_uid(uuid, uid)
+      Rails.logger.debug "reserve_district_given_uid(#{uuid}, #{uid})\n\n"
+      hash = find_and_modify( district_collection, {
+        :query => {"_id" => uuid, "available_capacity" => {"$gt" => 0}},
+        :update => {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }},
+        :new => false })
+      return hash ? (hash["available_uids"].include? uid) : false
+    end
 
     def reserve_district_uid(uuid)
       Rails.logger.debug "reserve_district_uid(#{uuid})\n\n"
