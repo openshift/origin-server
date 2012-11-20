@@ -48,6 +48,13 @@ module OpenShift
 
     def self.get_all_gears_impl
     end
+    
+    def self.get_all_active_gears
+      @proxy_provider.get_all_active_gears_impl
+    end
+
+    def self.get_all_active_gears_impl
+    end
 
     def self.execute_parallel_jobs(handle)
       @proxy_provider.execute_parallel_jobs_impl(handle)
