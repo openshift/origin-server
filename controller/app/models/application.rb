@@ -850,7 +850,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     }
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0
-        Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}", 143)
+        Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}")
         gear_states[gear] = 'unknown'
       else
         gear_states[gear] = output
