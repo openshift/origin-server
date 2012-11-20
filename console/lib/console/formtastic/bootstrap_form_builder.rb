@@ -79,6 +79,17 @@ module Console
         end
       end
 
+      def inline_hints_for(method, options) #:nodoc:
+        options[:hint] = localized_string(method, options[:hint], :hint)
+        return if options[:hint].blank? or options[:hint].kind_of? Hash
+        if input_inline?
+          @input_inline_hints << options[:hint]
+          return nil
+        end
+        hint_class = options[:hint_class] || default_hint_class
+        template.content_tag(:p, ::Formtastic::Util.html_safe(options[:hint]), :class => hint_class)
+      end
+
       def inline_errors_for(method, options = {}) #:nodoc:
         return nil unless render_inline_errors?
         errors = error_keys(method, options).map do |x|
@@ -111,6 +122,7 @@ module Console
         elsif html_options[:inline]
           @input_inline = true
           @input_inline_errors = []
+          @input_inline_hints = []
           fieldset = inline_fields_and_wrapping(*(args << html_options), &block)
           @input_inline = false
           @label = nil
@@ -156,6 +168,10 @@ module Console
         unless html_options[:without_errors]
           contents << send(:"error_#{inline_errors}", [*@input_inline_errors], {})
           html_class << 'error' unless @input_inline_errors.empty?
+        end
+
+        @input_inline_hints.each do |hint|
+          contents << template.content_tag(:p, hint, :class => default_hint_class)
         end
 
         template.content_tag(:div, ::Formtastic::Util.html_safe(label || '') << template.content_tag(:div, ::Formtastic::Util.html_safe(contents), {:class => 'controls'}), { :class => html_class.join(' ') })
