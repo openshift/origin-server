@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker and node
 Name:           openshift-origin-util
-Version: 1.0.1
+Version: 1.0.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -31,6 +31,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Nov 21 2012 Dan McPherson <dmcphers@redhat.com> 1.0.2-1
+- new package built with tito
+
 * Wed Nov 21 2012 Dan McPherson <dmcphers@redhat.com> 1.0.1-1
 - new package built with tito
 
