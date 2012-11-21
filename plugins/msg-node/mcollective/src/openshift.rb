@@ -480,7 +480,7 @@ module MCollective
       # Get all gears
       #
       def get_all_gears_action
-        gear_map = request[:gear_map]
+        gear_map = {}
 
         uid_map = {}
         uids = IO.readlines("/etc/passwd").map{ |line| 
@@ -500,6 +500,25 @@ module MCollective
         reply[:exitcode] = 0
       end
 
+      #
+      # Get all gears
+      #
+      def get_all_active_gears_action
+        active_gears = {}
+        dir = "/var/lib/openshift/"
+        filelist = Dir.foreach(dir) { |file| 
+          if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
+            state_file = File.join(dir, file, 'app-root', 'runtime', '.state')
+            if File.exist?(state_file)
+              state = File.read(state_file).chomp
+              active = !('idle' == state || 'stopped' == state)
+              active_gears[file] = nil if active
+            end
+          end
+        }
+        reply[:output] = active_gears
+        reply[:exitcode] = 0
+      end
 
       def handle_oo_job(parallel_job)
         job = parallel_job[:job]
