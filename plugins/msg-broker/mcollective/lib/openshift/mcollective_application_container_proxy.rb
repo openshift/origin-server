@@ -1521,7 +1521,7 @@ module OpenShift
               sub_gear_map = response[:body][:data][:output]
               sender = response[:senderid]
               sub_gear_map.each { |k,v|
-                gear_map[k] = [sender,v]
+                gear_map[k] = [sender,Integer(v)]
                 sender_map[sender] = {} if not sender_map.has_key? sender
                 sender_map[sender][Integer(v)] = k
               }
