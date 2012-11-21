@@ -29,6 +29,8 @@ Requires:  rubygem(parseconfig)
 Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
+Requires:  rubygem(mocha)
+Requires:  rubygem(cucumber)
 Requires:  rubygem-passenger-native
 %if %{with_systemd}
 BuildRequires: systemd-units
