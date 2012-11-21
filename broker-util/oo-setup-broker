@@ -63,6 +63,7 @@ def stop_mongo
 
   $log.debug("Repair mongodb database if needed...")
   run "/bin/rm -f /var/lib/mongodb/mongod.lock"
+  find_and_replace("/etc/mongodb.conf", /^journal = .*$/, "journal = false")
   run "/bin/su -c 'mongod -f /etc/mongodb.conf --repair' --shell /bin/bash mongodb"
   $log.debug("Waiting for repair to complete")  
   while run('/bin/fgrep "dbexit: really exiting now" /var/log/mongodb/mongodb.log') != 0 do
@@ -70,6 +71,7 @@ def stop_mongo
     sleep 2
   end
   run "/bin/rm -f /var/lib/mongodb/mongod.lock"
+  find_and_replace("/etc/mongodb.conf", /^journal = .*$/, "journal = true")
 end
 
 def start_mongo

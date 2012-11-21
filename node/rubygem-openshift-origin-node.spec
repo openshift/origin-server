@@ -112,6 +112,10 @@ mkdir -p %{buildroot}%{apprundir}
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{name}-%{version}/cgconfig.conf
 
+%if 0%{?fedora} >= 18
+  #patch for apache 2.4
+  sed -i 's/include/IncludeOptional/g' httpd/000001_openshift_origin_node.conf
+%endif
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 
 #%if 0%{?fedora}%{?rhel} <= 6

@@ -13,7 +13,6 @@ Requires:       rng-tools
 Requires:       rubygem-openshift-origin-node
 Requires:       httpd
 Requires:       php >= 5.3.2
-Requires:       php < 5.4.0
 BuildArch:      noarch
 
 %description
@@ -96,7 +95,7 @@ rm -rf $RPM_BUILD_ROOT
 %if 0%{?fedora}%{?rhel} <= 6
 %attr(0750,-,-) %{_initddir}/openshift-gears
 %else
-%attr(0750,-,-) /etc/systemd/system
+%attr(0750,-,-) /etc/systemd/system/openshift-gears.service
 %endif
 
 %post

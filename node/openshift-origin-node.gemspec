@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.executables = Dir[bin_dir].map {|binary| File.basename(binary)}
   s.require_paths = ["lib"]
   s.add_dependency("json")
-  s.add_dependency("parseconfig", "0.5.2")
+  s.add_dependency("parseconfig", ">= 0.5.2")
   s.add_dependency("openshift-origin-common")
 
   s.add_development_dependency('rspec')
