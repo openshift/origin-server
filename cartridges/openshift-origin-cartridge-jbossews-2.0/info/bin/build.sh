@@ -9,7 +9,7 @@ done
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbossews-1.0/info/configuration"
+CONFIG_DIR="$CARTRIDGE_BASE_PATH/jbossews-2.0/info/configuration"
 OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.base.xml"
 if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
 then 
@@ -108,10 +108,10 @@ then
         export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
         pushd ${OPENSHIFT_REPO_DIR} > /dev/null
         
-        if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbossews-1.0" ]
+        if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbossews-2.0" ]
         then
-           echo "Sourcing pre_build_jbossews-1.0" 1>&2
-           source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbossews-1.0
+           echo "Sourcing pre_build_jbossews-2.0" 1>&2
+           source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_jbossews-2.0
         fi
         
         if [ -z "$MAVEN_OPTS" ]; then

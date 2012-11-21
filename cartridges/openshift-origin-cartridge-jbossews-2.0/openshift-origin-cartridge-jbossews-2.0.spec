@@ -110,8 +110,8 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss ews 1.0.* upstream.
 #mkdir -p /etc/alternatives/jbossews-6.0/modules/org/postgresql/jdbc/main
-#ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossews-1.0/modules/org/postgresql/jdbc/main
-#cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbossews-1.0/modules/org/postgresql/jdbc/main/module.xml
+#ln -fs /usr/share/java/postgresql-jdbc3.jar /etc/alternatives/jbossews-2.0/modules/org/postgresql/jdbc/main
+#cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbossews-2.0/modules/org/postgresql/jdbc/main/module.xml
 
 
 %clean

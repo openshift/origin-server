@@ -85,8 +85,8 @@ function start_app() {
             export CATALINA_HOME=$APP_JBOSS
             export CATALINA_BASE=$APP_JBOSS
             export CATALINA_TMPDIR=$APP_JBOSS/tmp
-            ${CART_DIR}/jbossews-1.0/bin/tomcat6 start
-            PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-1.0 | awk '{print $2}'`
+            ${CART_DIR}/jbossews-2.0/bin/tomcat7 start
+            PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-2.0 | awk '{print $2}'`
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"

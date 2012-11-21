@@ -7,7 +7,7 @@ source "/etc/openshift/node.conf"
 : << --COMMENT--
 # jboss.version
 jboss_home = the location where the jboss server is installed
-jboss_version = the name/type of the jboss cartridge, e.g., jbossews-1.0
+jboss_version = the name/type of the jboss cartridge, e.g., jbossews-2.0
 # /etc/openshift/node.conf
 CREATE_APP_SYMLINK = Enable user-unobfuscate to create ~/appname-namespace in addition to ~/uuid
 GEAR_BASE_DIR=Users home dirs (where customer data ends up)
