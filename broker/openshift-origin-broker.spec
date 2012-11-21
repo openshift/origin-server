@@ -155,14 +155,11 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
 %{_sysconfdir}/openshift/broker-dev.conf
 
-%defattr(0640,root,root,0750)
+%defattr(-,root,root,-)
 %if %{with_systemd}
-%{_unitdir}/openshift-broker.service
 %attr(0644,-,-) %{_unitdir}/openshift-broker.service
-%{_sysconfdir}/sysconfig/openshift-broker
 %attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-broker
 %else
-%{_initddir}/openshift-broker
 %attr(0750,-,-) %{_initddir}/openshift-broker
 %endif
 
