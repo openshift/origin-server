@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env oo-ruby
 #
 # Control a BIND DNS service for testing
 #

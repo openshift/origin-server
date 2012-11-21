@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env oo-ruby
 #--
 # Copyright 2012 Red Hat, Inc.
 # 
