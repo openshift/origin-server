@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker and node
 Name:           openshift-origin-util-scl
-Version: 1.0.2
+Version: 1.0.3
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -31,6 +31,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Nov 21 2012 Dan McPherson <dmcphers@redhat.com> 1.0.3-1
+- 
+
 * Wed Nov 21 2012 Dan McPherson <dmcphers@redhat.com> 1.0.2-1
 - Automatic commit of package [openshift-origin-util-scl] release [1.0.1-1].
   (dmcphers@redhat.com)
