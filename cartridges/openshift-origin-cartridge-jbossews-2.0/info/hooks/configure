@@ -140,8 +140,8 @@ cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/tomcat-users.xml "$APP_JBOSS"/conf
 cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/catalina.properties "$APP_JBOSS"/conf
 cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/logging.properties "$APP_JBOSS"/conf
 
-# Link to the tomcat6 script
-ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/tomcat6 $APP_JBOSS_BIN_DIR/tomcat6
+# Link to the tomcat7 script
+ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/tomcat7 $APP_JBOSS_BIN_DIR/tomcat7
 
 popd > /dev/null
 
