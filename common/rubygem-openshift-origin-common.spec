@@ -20,6 +20,12 @@ Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
 Requires:       %{?scl:%scl_prefix}rubygem(activemodel)
 Requires:       %{?scl:%scl_prefix}rubygem(json)
+%if 0%{?rhel}
+Requires: openshift-origin-util-scl
+%endif
+%if 0%{?fedora}
+Requires: openshift-origin-util-scl
+%endif
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
