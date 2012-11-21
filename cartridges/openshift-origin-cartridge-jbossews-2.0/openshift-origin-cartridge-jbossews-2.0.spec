@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version:   1.1.0
+Version:   1.0.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -135,6 +135,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Nov 21 2012 Bill DeCoste <bdecoste@gmail.com> 1.0.2-1
+- new package built with tito
+
 * Thu Oct 11 2012 William DeCoste <wdecoste@redhat.com> 1.0.1-1
 - initial
 
