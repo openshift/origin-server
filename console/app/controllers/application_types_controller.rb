@@ -10,6 +10,7 @@ class ApplicationTypesController < ConsoleController
       ['Java', :java],
       ['PHP', :php],
       ['Ruby', :ruby],
+      ['Python', :python],
       ['Node.js', :nodejs],
       ['Perl', :perl],
       nil,
