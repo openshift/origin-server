@@ -1516,7 +1516,7 @@ module OpenShift
         gear_map = {}
         sender_map = {}
         rpc_exec('openshift') do |client|
-          client.get_all_gears(:gear_map => {}) do |response|
+          client.get_all_gears() do |response|
             if response[:body][:statuscode] == 0
               sub_gear_map = response[:body][:data][:output]
               sender = response[:senderid]
@@ -1529,6 +1529,20 @@ module OpenShift
           end
         end
         return [gear_map, sender_map]
+      end
+
+      def self.get_all_active_gears_impl
+        active_gears_map = {}
+        rpc_exec('openshift') do |client|
+          client.get_all_active_gears() do |response|
+            if response[:body][:statuscode] == 0
+              active_gears = response[:body][:data][:output]
+              sender = response[:senderid]
+              active_gears_map[sender] = active_gears
+            end
+          end
+        end
+        active_gears_map
       end
 
       def self.sanitize_result(output)
