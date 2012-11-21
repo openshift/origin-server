@@ -30,7 +30,6 @@ Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
 Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}
 BuildRequires: systemd-units
 Requires:  systemd-units
