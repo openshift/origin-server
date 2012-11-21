@@ -1,5 +1,11 @@
-%define htmldir %{_localstatedir}/www/html
-%define brokerdir %{_localstatedir}/www/openshift/broker
+%global htmldir %{_localstatedir}/www/html
+%global brokerdir %{_localstatedir}/www/openshift/broker
+
+%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
+%global with_systemd 1
+%else
+%global with_systemd 0
+%endif
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
@@ -8,15 +14,7 @@ Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-origin-broker-%{version}.tar.gz
-
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%define with_systemd 1
-%else
-%define with_systemd 0
-%endif
-
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/openshift-origin-broker-%{version}.tar.gz
 Requires:  httpd
 Requires:  bind
 Requires:  mod_ssl
@@ -31,8 +29,9 @@ Requires:  rubygem(parseconfig)
 Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
+Requires:  rubygem(mocha)
+Requires:  rubygem(cucumber)
 Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
 %if %{with_systemd}
 BuildRequires: systemd-units
 Requires:  systemd-units
@@ -51,7 +50,6 @@ This includes the public APIs for the client tools.
 %build
 
 %install
-rm -rf %{buildroot}
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 %else
@@ -75,7 +73,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
 
-cp -r . %{buildroot}%{brokerdir}
+cp -rp . %{buildroot}%{brokerdir}
 %if %{with_systemd}
 mv %{buildroot}%{brokerdir}/systemd/openshift-broker.service %{buildroot}%{_unitdir}
 mv %{buildroot}%{brokerdir}/systemd/openshift-broker.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-broker
@@ -86,53 +84,20 @@ ln -s %{brokerdir}/public %{buildroot}%{htmldir}/broker
 ln -s %{brokerdir}/public %{buildroot}%{brokerdir}/httpd/root/broker
 touch %{buildroot}%{brokerdir}/log/production.log
 touch %{buildroot}%{brokerdir}/log/development.log
-ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
+ln -sf %{_sysconfdir}/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 mkdir -p %{buildroot}%{_localstatedir}/log/openshift
-touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
-cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
-cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
+cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
+cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%files
-%defattr(0640,apache,apache,0750)
-%attr(0644,-,-) %ghost %{brokerdir}/log/production.log
-%attr(0644,-,-) %ghost %{brokerdir}/log/development.log
-%attr(0644,-,-) %{_localstatedir}/log/openshift/user_action.log
-%attr(0750,-,-) %{brokerdir}/script
-%attr(0750,-,-) %{brokerdir}/tmp
-%attr(0750,-,-) %{brokerdir}/tmp/cache
-%attr(0750,-,-) %{brokerdir}/tmp/pids
-%attr(0750,-,-) %{brokerdir}/tmp/sessions
-%attr(0750,-,-) %{brokerdir}/tmp/sockets
-%dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
-%{brokerdir}
-%{htmldir}/broker
-%config(noreplace) %{brokerdir}/config/environments/production.rb
-%config(noreplace) %{brokerdir}/config/environments/development.rb
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
-%config(noreplace) %{_sysconfdir}/openshift/broker.conf
-%{_sysconfdir}/openshift/broker-dev.conf
-
-%defattr(0640,root,root,0750)
-%if %{with_systemd}
-%{_unitdir}/openshift-broker.service
-%attr(0644,-,-) %{_unitdir}/openshift-broker.service
-%{_sysconfdir}/sysconfig/openshift-broker
-%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-broker
-%else
-%{_initddir}/openshift-broker
-%attr(0750,-,-) %{_initddir}/openshift-broker
-%endif
-
-
-%doc %{brokerdir}/COPYRIGHT
-%doc %{brokerdir}/LICENSE
+# Clean up stuff
+rm -f %{buildroot}%{brokerdir}/.gitignore
+rm -f %{buildroot}%{brokerdir}/LICENSE
+rm -f %{buildroot}%{brokerdir}/COPYRIGHT
+rm -f %{buildroot}%{brokerdir}/openshift-origin-broker.spec
 
 %post
 %if %{with_systemd}
@@ -167,6 +132,36 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
+
+%files
+%doc LICENSE COPYRIGHT
+
+%defattr(0640,apache,apache,0750)
+%attr(0644,-,-) %ghost %{brokerdir}/log/production.log
+%attr(0644,-,-) %ghost %{brokerdir}/log/development.log
+%attr(0644,-,-) %ghost %{_localstatedir}/log/openshift/user_action.log
+%attr(0750,-,-) %{brokerdir}/script
+%attr(0750,-,-) %{brokerdir}/tmp
+%attr(0750,-,-) %{brokerdir}/tmp/cache
+%attr(0750,-,-) %{brokerdir}/tmp/pids
+%attr(0750,-,-) %{brokerdir}/tmp/sessions
+%attr(0750,-,-) %{brokerdir}/tmp/sockets
+%dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
+%{brokerdir}
+%{htmldir}/broker
+%config(noreplace) %{brokerdir}/config/environments/production.rb
+%config(noreplace) %{brokerdir}/config/environments/development.rb
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
+%config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%{_sysconfdir}/openshift/broker-dev.conf
+
+%defattr(-,root,root,-)
+%if %{with_systemd}
+%attr(0644,-,-) %{_unitdir}/openshift-broker.service
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-broker
+%else
+%attr(0750,-,-) %{_initddir}/openshift-broker
+%endif
 
 %changelog
 * Mon Oct 22 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.17-1
