@@ -36,6 +36,7 @@ Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:       %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:       %{?scl:%scl_prefix}rubygem(webmock)
 
+
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build

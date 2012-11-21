@@ -32,6 +32,12 @@ Requires:  %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:  %{?scl:%scl_prefix}mod_passenger
 Requires:  %{?scl:%scl_prefix}rubygem-minitest
 Requires:  %{?scl:%scl_prefix}rubygem-therubyracer
+%if 0%{?rhel}
+Requires: openshift-origin-util-scl
+%endif
+%if 0%{?fedora}
+Requires: openshift-origin-util
+%endif
 BuildArch: noarch
 
 %description

@@ -69,7 +69,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-setup-node
 %attr(0755,-,-) %{_sbindir}/rhc-list-ports
-%attr(0755,-,-) %{_sbindir}/oo-exec-ruby
 
 %doc LICENSE
 %doc README-Idler.md
