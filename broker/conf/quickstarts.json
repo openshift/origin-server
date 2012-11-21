@@ -36,7 +36,7 @@
     "initial_git_url":"git://github.com/openshift/drupal-example.git",
     "cartridges":["php-5.3","mysql-5.1"],
     "summary":"An open source content management platform written in PHP powering millions of websites and applications. It is built, used, and supported by an active and diverse community of people around the world.",
-    "tags":["php","drupal","wiki","framework"],
+    "tags":["php","drupal","wiki","framework","instant_app"],
     "admin_tags":[]
   }},
   {"quickstart":{
@@ -76,7 +76,7 @@
     "initial_git_url":"git://github.com/openshift/wordpress-example.git",
     "cartridges":["php-5.3","mysql-5.1"],
     "summary":"A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability.",
-    "tags":["php","wordpress","blog","framework"],
+    "tags":["php","wordpress","blog","framework","instant_app"],
     "admin_tags":[]
   }}
 ]
