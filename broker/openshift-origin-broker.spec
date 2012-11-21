@@ -83,12 +83,11 @@ ln -s %{brokerdir}/public %{buildroot}%{htmldir}/broker
 ln -s %{brokerdir}/public %{buildroot}%{brokerdir}/httpd/root/broker
 touch %{buildroot}%{brokerdir}/log/production.log
 touch %{buildroot}%{brokerdir}/log/development.log
-ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
+ln -sf %{_sysconfdir}/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 mkdir -p %{buildroot}%{_localstatedir}/log/openshift
-touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
 cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
@@ -139,7 +138,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 %defattr(0640,apache,apache,0750)
 %attr(0644,-,-) %ghost %{brokerdir}/log/production.log
 %attr(0644,-,-) %ghost %{brokerdir}/log/development.log
-%attr(0644,-,-) %{_localstatedir}/log/openshift/user_action.log
+%attr(0644,-,-) %ghost %{_localstatedir}/log/openshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
