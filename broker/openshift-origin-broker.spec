@@ -96,6 +96,13 @@ touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 
+%if 0%{?fedora} >= 18
+mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
+%else
+mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{brokerdir}/httpd/httpd.conf
+%endif
+rm %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-*
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 

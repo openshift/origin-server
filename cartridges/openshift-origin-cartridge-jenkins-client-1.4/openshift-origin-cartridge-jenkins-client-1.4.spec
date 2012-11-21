@@ -17,7 +17,11 @@ Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: mysql-devel
 Requires: wget
+%if 0%{?fedora}%{?rhel} <= 6
 Requires: java-1.6.0-openjdk
+%else
+Requires: java-1.7.0-openjdk
+%endif
 Requires: rubygems
 Requires: rubygem-json
 Obsoletes: cartridge-jenkins-client-1.4
