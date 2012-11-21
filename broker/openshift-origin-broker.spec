@@ -93,6 +93,12 @@ touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp -p conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
 
+# Clean up stuff
+rm -f %{buildroot}%{brokerdir}/.gitignore
+rm -f %{buildroot}%{brokerdir}/LICENSE
+rm -f %{buildroot}%{brokerdir}/COPYRIGHT
+rm -f %{buildroot}%{brokerdir}/openshift-origin-broker.spec
+
 %post
 %if %{with_systemd}
 systemctl --system daemon-reload
@@ -128,8 +134,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %files
-%doc %{brokerdir}/COPYRIGHT
-%doc %{brokerdir}/LICENSE
+%doc LICENSE COPYRIGHT
 
 %defattr(0640,apache,apache,0750)
 %attr(0644,-,-) %ghost %{brokerdir}/log/production.log
