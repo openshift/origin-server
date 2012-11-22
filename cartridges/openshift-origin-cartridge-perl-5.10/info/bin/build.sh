@@ -24,7 +24,7 @@ if [[ "$LINUX_DISTRO" =~ $RED_HAT_DISTRO_NAME* ]]
 then
   if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
   then 
-      OPENSHIFT_CPAN_MIRROR="http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/"
+      OPENSHIFT_CPAN_MIRROR="--mirror http://mirror1.ops.rhcloud.com/mirror/perl/CPAN/"
   fi
 fi
 
@@ -41,24 +41,13 @@ then
            echo "***  Please add $f to deplist.txt to install it from CPAN."
            continue;
         fi
-
+        ENABLE_TEST=""
         if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_cpan_tests" ]
         then
             echo ".openshift/markers/enable_cpan_tests!  enabling default cpan tests" 1>&2
-            if [ -n "$OPENSHIFT_CPAN_MIRROR" ]
-            then
-                cpanm --mirror $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
-            else
-                cpanm -L ~/${cartridge_type}/perl5lib "$f"
-            fi
-        else
-            if [ -n "$OPENSHIFT_CPAN_MIRROR" ]
-            then
-                cpanm -n --mirror $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
-            else
-                cpanm -n -L ~/${cartridge_type}/perl5lib "$f"
-            fi
+            ENABLE_TEST="-n"
         fi
+        cpanm $ENABLE_TEST $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
     done
 fi
 
