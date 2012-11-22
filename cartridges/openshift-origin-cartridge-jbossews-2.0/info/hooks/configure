@@ -123,7 +123,6 @@ mkdir -p ${jboss_version}/{conf,logs,bin}
 
 ln -s /etc/alternatives/${jboss_version}/bin/bootstrap.jar ${APP_JBOSS}/bin/bootstrap.jar
 ln -s /etc/alternatives/${jboss_version}/bin/commons-daemon.jar ${APP_JBOSS}/bin/commons-daemon.jar
-ln -s /etc/alternatives/${jboss_version}/bin/commons-logging-tomcat-juli.jar ${APP_JBOSS}/bin/commons-logging-tomcat-juli.jar
 ln -s /etc/alternatives/${jboss_version}/bin/tomcat-juli.jar ${APP_JBOSS}/bin/tomcat-juli.jar
 ln -s /etc/alternatives/${jboss_version}/lib ${APP_JBOSS}/lib
 
