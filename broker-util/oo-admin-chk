@@ -68,6 +68,7 @@ unresilient = args["--unresilient"]
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 60
 
 def datastore_has_gear?(gear_uuid, login=nil)
     query = { "apps.group_instances.gears.uuid" => gear_uuid }
