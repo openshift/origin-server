@@ -22,7 +22,7 @@ require 'getoptlong'
 require 'time'
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{$0}: Check all user applications
@@ -39,6 +39,7 @@ Options:
 -h|--help
     Show Usage info
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -49,15 +50,13 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 if args["--help"]
   usage
-  exit 1
 end
 
 

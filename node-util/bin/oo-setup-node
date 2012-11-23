@@ -61,7 +61,7 @@ end
 
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 oo-setup-node: Configure node hostname and broker IP
@@ -84,6 +84,7 @@ oo-setup-node: Configure node hostname and broker IP
   -?  |--help                           Print this message
 
 USAGE
+  exit 255
 end
 
 require 'openshift-origin-node'
@@ -106,10 +107,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 def find_and_replace(file, find, replace)
@@ -135,7 +135,6 @@ node_domain = args["--domain"] || "example.com"
 
 if args["--help"] || (broker_ip.nil? || broker_ip.empty? || node_hostname.nil? || node_hostname.empty?)
   usage
-  exit -1
 end
 
 if args["--debug"]
@@ -169,15 +168,13 @@ if int_address.nil? #DHCP
 end
 
 if !ext_dhcp && (ext_address.nil? || ext_address.empty? || ext_prefix.nil? || ext_prefix.empty? || ext_gw.nil? || ext_gw.empty?)
+  puts "Must provide --external-ip <IP/PREFIX> and --external-gw <IP> for statically configuring external ethernet device."
   usage
-  print "Must provide --external-ip <IP/PREFIX> and --external-gw <IP> for statically configuring external ethernet device.\n" 
-  exit -1
 end
 
 if !int_dhcp && (int_eth_device.nil? || int_eth_device.empty? || int_eth_device == ext_eth_device || int_address.nil? || int_address.empty? || int_prefix.nil? || int_prefix.empty?)
+  puts "Must provide --internal-device <DEV> --internal-ip <IP/PREFIX> and --internal-gw <IP> for statically configuring internal ethernet device."
   usage
-  print "Must provide --internal-device <DEV> --internal-ip <IP/PREFIX> and --internal-gw <IP> for statically configuring internal ethernet device.\n"
-  exit -1
 end
 
 ext_hw_address = `/sbin/ip addr show dev #{ext_eth_device} | grep 'link/ether' | awk '{ print $2 }'`
@@ -193,14 +190,12 @@ if dns_address.nil?
 end
 
 if dns_address.nil? || dns_address.length == 0
+  puts "Error: Unable to determine DNS servers.\n"
   usage
-  print "Error: Unable to determine DNS servers.\n\n"
-  exit -1
 end
 
 if args["--help"]
   usage
-  exit -1
 end
 
 $log.info "Configuring networking"

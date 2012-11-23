@@ -5,7 +5,7 @@ require 'openshift-origin-node'
 require 'optparse'
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{$0}: Sets the quota for a gear.
@@ -19,6 +19,7 @@ Options:
    Prints this message
 
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -33,12 +34,10 @@ begin
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
-  exit -100
 end
 
 if args["--help"]
   usage
-  exit -1
 end
 
 uuid   = args['--uuid']
@@ -48,7 +47,6 @@ inodes = args['--inodes']
 # modification to at least one parameter (blocks or inodes) must be requested
 if !uuid or (!blocks and !inodes)
   usage
-  exit -100
 end
 
 begin

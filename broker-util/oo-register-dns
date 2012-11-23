@@ -20,7 +20,7 @@ require 'parseconfig'
 require 'getoptlong'
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 oo-register-dns: Register node's DNS name with Bind
@@ -40,6 +40,7 @@ oo-register-dns --with-node-hostname node1 \\
   -h|--help                             Print this message
 
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -52,10 +53,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 ip = args["--with-node-ip"]
@@ -65,7 +65,6 @@ key = args["--key-file"] || "/var/named/#{node_domain}.key"
 
 if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
   usage
-  exit -1
 end
 
 command =<<-EOF

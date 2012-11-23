@@ -16,7 +16,7 @@
 #++
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{$0}: Creates a new application container.
@@ -45,6 +45,7 @@ def usage
   -h|--help                             Print this message
 
 USAGE
+  exit 255
 end
 
 require 'rubygems'
@@ -66,15 +67,13 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 if args["--help"]
   usage
-  exit -1
 end
 
 app_uuid = args['--with-app-uuid']
@@ -93,7 +92,6 @@ $porcelain = args['--porcelain'] ? true : false
 
 unless gear_uuid
   usage
-  exit -100
 end
 
 begin

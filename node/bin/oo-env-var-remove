@@ -20,7 +20,7 @@ require 'openshift-origin-node'
 require 'openshift-origin-node/utils/shell_exec'
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{$0}: Removes an env var from the app.
@@ -40,6 +40,7 @@ UUID: Unique identifier for the application
 NAME: The name of the application to create
 
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -50,10 +51,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ | k, v | args[k]=v }
+  opts.each{ | k, v | args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 uuid = args['--with-container-uuid']
@@ -61,12 +61,10 @@ key = args['--with-key']
 
 if args['--help']
   usage
-  exit -1
 end
 
 unless uuid and key
   usage
-  exit -100
 end
 
 begin
