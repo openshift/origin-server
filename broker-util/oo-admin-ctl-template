@@ -56,10 +56,12 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each do |o, a|
+    args[o] = a
+  end
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
+  exit 255
 end
 
 uuid             = args["--uuid"]
