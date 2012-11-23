@@ -39,6 +39,7 @@ Options:
 
 UUID and Named options can be comma separated lists for remove command
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -61,7 +62,6 @@ begin
   end
 rescue GetoptLong::Error => e
   usage
-  exit 255
 end
 
 uuid             = args["--uuid"]
@@ -76,7 +76,6 @@ metadata         = args["--metadata"]
 
 if args["--help"]
   usage
-  exit 1
 end
 
 require "/var/www/openshift/broker/config/environment"
@@ -88,7 +87,6 @@ when "add"
   if display_name.split(',').length > 1
     print "Can only use multiple names with remove\n"
     usage
-    exit -100
   end
 
   begin
@@ -99,7 +97,6 @@ when "add"
   rescue Exception => e
     print "Invalid descriptor YAML: #{descriptor}\n"
     usage
-    exit -100
   end
 
   begin
@@ -110,7 +107,6 @@ when "add"
   rescue Exception => e
     print "Invalid metadata JSON: #{metadata}\n"
     usage
-    exit -100
   end
 
   tags = "" if tags.nil?
@@ -130,7 +126,6 @@ when "remove"
   if msg
     print msg
     usage
-    exit -100
   end
 
   # Create arrays of stuff to find, the values can be comma separated
@@ -187,5 +182,4 @@ when "remove"
 else
   puts "Command must be one of: (add|remove)"
   usage
-  exit 255
 end
