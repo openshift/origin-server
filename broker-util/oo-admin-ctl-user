@@ -4,7 +4,7 @@ require 'rubygems'
 require 'getoptlong'
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{File.basename $0}: Control user settings.
@@ -55,6 +55,7 @@ Examples:
   Set the maximum number of gears a user is allowed to use with:
     #{File.basename $0} -l bob@redhat.com --setmaxgears 10
 USAGE
+  exit 255
 end
 
 class String
@@ -258,10 +259,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 login = args["--rhlogin"]
@@ -285,8 +285,7 @@ if args["--setconsumedgears"]
 end
 
 if login.nil? or args["--help"]
-    usage
-    exit 1
+  usage
 end
 
 account_to_add = args["--addsubaccount"]

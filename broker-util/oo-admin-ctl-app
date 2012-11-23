@@ -6,7 +6,7 @@ require 'getoptlong'
 CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|removegear)"
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 oo-admin-ctl-app: Control user applications
@@ -27,6 +27,7 @@ Options:
 -h|--help
     Show Usage info
 USAGE
+  exit 255
 end
 
 opts = GetoptLong.new(
@@ -40,10 +41,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 login    = args["--rhlogin"]
@@ -54,7 +54,6 @@ gear_uuid = args['--gear_uuid']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
-  exit 1
 end
 
 require "/var/www/openshift/broker/config/environment"
@@ -196,7 +195,6 @@ when "removegear"
 else
   puts "Command must be one of: #{CTL_APP_COMMANDS}"
   usage
-  exit 255
 end
 
 puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?

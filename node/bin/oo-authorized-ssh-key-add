@@ -16,7 +16,7 @@
 #++
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
 #{$0}: Adds an authorized ssh key to the app.
@@ -38,6 +38,7 @@ UUID: Unique identifier for the application
 SSH_KEY: The ssh key to add
 
 USAGE
+  exit 255
 end
 
 require 'rubygems'
@@ -52,15 +53,13 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 if args["--help"]
   usage
-  exit -1
 end
 
 uuid = args['--with-container-uuid']
@@ -71,7 +70,6 @@ comment = args['--with-ssh-key-comment']
 
 unless uuid and ssh_key
   usage
-  exit -100
 end
 
 begin

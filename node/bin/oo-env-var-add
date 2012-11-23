@@ -52,10 +52,9 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 container_uuid = args['--with-container-uuid']
@@ -65,12 +64,10 @@ value = args['--with-value']
 
 if args["--help"]
   usage
-  exit -1
 end
 
 unless container_uuid and app_uuid and key and value
   usage
-  exit -100
 end
 
 begin
