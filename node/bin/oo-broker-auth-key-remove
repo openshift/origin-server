@@ -16,7 +16,7 @@
 #++
 
 def usage
-    puts <<USAGE
+  puts <<USAGE
 == Synopsis
 
   This command must be run as root.
@@ -32,6 +32,7 @@ Options:
 UUID: Unique identifier for the application
 
 USAGE
+  exit 255
 end
 
 require 'rubygems'
@@ -44,15 +45,13 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-    opts.each{ |k,v| args[k]=v }
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
-    usage
-    exit -100
+  usage
 end
 
 if args["--help"]
   usage
-  exit -1
 end
 
 uuid = args['--with-container-uuid']
@@ -60,7 +59,6 @@ app_uuid = args['--with-app-uuid']
 
 unless uuid
   usage
-  exit -100
 end
 
 begin

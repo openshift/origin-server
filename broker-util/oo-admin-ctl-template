@@ -57,9 +57,7 @@ opts = GetoptLong.new(
 
 args = {}
 begin
-  opts.each do |o, a|
-    args[o] = a
-  end
+  opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
 end
