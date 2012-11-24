@@ -16,7 +16,6 @@
 # limitations under the License.
 #++
 
-
 require 'rubygems'
 require 'getoptlong'
 require 'time'
@@ -34,8 +33,6 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
---unresilient
-    This option is faster when lots of error conditions are present but allows for false positives for in process changes
 -h|--help
     Show Usage info
 USAGE
@@ -44,7 +41,6 @@ end
 
 opts = GetoptLong.new(
     ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
-    ["--unresilient",            GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -59,23 +55,27 @@ if args["--help"]
   usage
 end
 
-
 verbose = args["--verbose"]
-unresilient = args["--unresilient"]
-
 
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
-Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 60
+Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 
 def datastore_has_gear?(gear_uuid, login=nil)
+  $false_positive_check_cnt += 1
+  if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
     query = { "apps.group_instances.gears.uuid" => gear_uuid }
     query['_id'] = login if login
     hash = OpenShift::DataStore.instance.user_collection.find_one(query, {:fields => []})
     return !hash.nil?
+  else
+    return true
+  end
 end
 
+FALSE_POSITIVE_CHECK_LIMIT = 4000
+$false_positive_check_cnt = 0
 no_error = true
 summary = []
 
@@ -135,7 +135,7 @@ datastore_hash.each { |gear_uuid, gear_info|
   print "#{gear_uuid}...\t" if verbose
   if (Time.now - creation_time) > 600
     if not node_hash.has_key? gear_uuid
-      if unresilient || datastore_has_gear?(gear_uuid, login)
+      if datastore_has_gear?(gear_uuid, login)
         no_error = false
         puts "FAIL" if verbose
         summary << "Gear #{gear_uuid} does not exist on any node"
@@ -156,7 +156,7 @@ node_hash.each { |gear_uuid, gear_info|
   print "#{gear_uuid}...\t" if verbose
   datastore_gear_info = datastore_hash[gear_uuid]
   if !datastore_gear_info
-    if unresilient || !datastore_has_gear?(gear_uuid)
+    if !datastore_has_gear?(gear_uuid)
       no_error = false
       puts "FAIL" if verbose
       summary << "Gear #{gear_uuid} exists on node #{gear_info[0]} (uid: #{gear_info[1]}) but does not exist in mongo database"
@@ -181,4 +181,7 @@ node_hash.each { |gear_uuid, gear_info|
 }
 
 puts no_error ? "Success" : "Check failed.\n #{summary.join("\n")}"
+if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
+  puts "WARNING: Only checked the first #{FALSE_POSITIVE_CHECK_LIMIT} errors for false positives."
+end
 exit (no_error ? 0 : 1)

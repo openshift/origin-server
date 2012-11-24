@@ -12,7 +12,7 @@ Broker::Application.configure do
       end
     end
     conf = OpenShift::Config.new(conf_file)
-    
+
     config.msg_broker = {
       :rpc_options => {
         :disctimeout => conf.get("MCOLLECTIVE_DISCTIMEOUT", "5").to_i,
