@@ -1,4 +1,4 @@
-#!/usr/bin/env oo-ruby
+#!/bin/env oo-ruby
 require 'facter'
 require 'yaml'
 require 'tempfile'
