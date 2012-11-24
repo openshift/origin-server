@@ -569,96 +569,8 @@ module OpenShift
         job = RemoteJob.new('openshift-origin-node', 'set-quota', args)
         job
       end
-
-      def move_cartridge(cart, source_gear, destination_gear)
-        app = source_gear.app
-        prof = app.profile_name_map[app.default_profile]
-        cinst = ComponentInstance::find_component_in_cart(prof, app, cart, app.get_name_prefix)
-        ginst = app.group_instance_map[cinst.group_instance_name]
-        if destination_gear.nil?
-          res, destination_gear = ginst.add_gear(app)
-          keep_uid = false
-        else
-          keep_uid = (source_gear.uid==destination_gear.uid)
-        end
-        source_container = source_gear.get_proxy
-        destination_container = destination_gear.get_proxy
-
-        idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, source_gear, cart)
-        
-        # pre-move
-        pre_move_cart(cart, source_gear, leave_stopped, keep_uid)
-
-        # rsync
-        rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{ keep_uid ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{source_gear.uuid}/#{cart}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{destination_gear.uuid}/#{cart}"; ssh-agent -k`
-
-        # move and post-move
-        post_move_cart(cart, destination_gear, keep_uid, idle)
-
-        # deconfigure old gear
-        source_gear.deconfigure(cinst)
-      end
-
-      def post_move_cart(cart, gear, keep_uid, idle)
-        reply = ResultIO.new
-        app = gear.app
-        if embedded_carts.include? cart
-          if app.scalable and cart.include? app.proxy_cartridge
-            log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{gear.name}"
-            reply.append gear.get_proxy.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
-          else
-            log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{gear.name}"
-            embedded_reply = gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
-            component_details = embedded_reply.appInfoIO.string
-            unless component_details.empty?
-              app.set_embedded_cart_info(cart, component_details)
-            end
-            reply.append embedded_reply
-            unless keep_uid
-              log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{gear.name}"
-              reply.append gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
-            end
-          end
-        end
-        if framework_carts.include? cart
-          log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{gear.name}"
-          reply.append gear.get_proxy.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
-        end
-        if app.scalable and not cart.include? app.proxy_cartridge
-          begin
-            reply.append gear.get_proxy.expose_port(app, gear, cart)
-          rescue Exception=>e
-            # just pass because some embedded cartridges do not have expose-port hook implemented (e.g. jenkins-client)
-          end
-        end
-      end
-
-      def pre_move_cart(cart, gear, leave_stopped, keep_uid)
-        reply = ResultIO.new
-        app = gear.app
-        unless leave_stopped
-          log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
-          do_with_retry('stop') do
-            reply.append gear.get_proxy.stop(gear.app, gear, cart)
-          end
-          if framework_carts.include? cart
-            log_debug "DEBUG: Force stopping existing app cartridge '#{cart}' before moving"
-            do_with_retry('force-stop') do
-              reply.append gear.get_proxy.force_stop(app, gear, cart)
-            end
-          end
-        end
-        # execute pre_move
-        if embedded_carts.include? cart and not keep_uid
-          if (app.scalable and not cart.include? app.proxy_cartridge) or not app.scalable
-            log_debug "DEBUG: Performing cartridge level pre-move for embedded #{cart} for '#{app.name}' on #{gear.name}"
-            reply.append gear.get_proxy.send(:run_cartridge_command, "embedded/" + cart, app, gear, "pre-move", nil, false)
-          end
-        end
-      end
       
-      def move_gear_post(app, gear, destination_container, state_map)
+      def move_gear_post(app, gear, destination_container, state_map, keep_uid)
         reply = ResultIO.new
         source_container = gear.container
         gi = app.group_instance_map[gear.group_instance_name]
@@ -690,9 +602,11 @@ module OpenShift
         end
 
         if (not app.scalable) or (app.scalable and gi.component_instances.find { |cart| cart.include? app.proxy_cartridge } )
-          unless app.aliases.nil?
-            app.aliases.each do |server_alias|
-              reply.append destination_container.send(:run_cartridge_command, app.framework, app, app.gear, "add-alias", server_alias, false)
+          unless keep_uid
+            unless app.aliases.nil?
+              app.aliases.each do |server_alias|
+                reply.append destination_container.send(:run_cartridge_command, app.framework, app, app.gear, "add-alias", server_alias, false)
+              end
             end
           end
           app.recreate_dns
@@ -774,36 +688,41 @@ module OpenShift
           end
           begin
             # rsync gear with destination container
-            rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
+            rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid, keep_uid)
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
             app.configure_order.each do |ci_name|
-              next if not gi.component_instances.include? ci_name
+              next if not gi.component_instances.include?(ci_name)
               cinst = app.comp_instance_map[ci_name]
               cart = cinst.parent_cart_name
               next if cart == app.name
               idle, leave_stopped = state_map[ci_name]
-              if embedded_carts.include? cart 
-                if app.scalable and cart.include? app.proxy_cartridge
-                  log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
-                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
-                else
-                  log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
-                  embedded_reply = destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
-                  component_details = embedded_reply.appInfoIO.string
-                  unless component_details.empty?
-                    app.set_embedded_cart_info(cart, component_details)
-                  end
-                  reply.append embedded_reply
-                  unless keep_uid
+              if keep_uid
+                if framework_carts.include?(cart)
+                  log_debug "DEBUG: Restarting httpd proxy for '#{cart}' on #{destination_container.id}"
+                  reply.append destination_container.send(:run_cartridge_command, 'abstract', app, gear, "restart-httpd-proxy", nil, false)
+                end
+              else
+                if embedded_carts.include?(cart)
+                  if app.scalable and cart.include? app.proxy_cartridge
+                    log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
+                    reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+                  else
+                    log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
+                    embedded_reply = destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
+                    component_details = embedded_reply.appInfoIO.string
+                    unless component_details.empty?
+                      app.set_embedded_cart_info(cart, component_details)
+                    end
+                    reply.append embedded_reply
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
                     reply.append destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
                   end
                 end
-              end
-              if framework_carts.include? cart
-                log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
-                reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+                if framework_carts.include?(cart)
+                  log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
+                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+                end
               end
               if app.scalable and not cart.include? app.proxy_cartridge
                 begin
@@ -815,7 +734,7 @@ module OpenShift
             end 
 
             # start the gears again and change DNS entry
-            reply.append move_gear_post(app, gear, destination_container, state_map)
+            reply.append move_gear_post(app, gear, destination_container, state_map, keep_uid)
             app.elaborate_descriptor
             app.execute_connections
             if app.scalable
@@ -842,7 +761,7 @@ module OpenShift
             end
             app.save
 
-          rescue Exception =>e
+          rescue Exception => e
             gear.container = source_container
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
@@ -951,7 +870,7 @@ module OpenShift
         return [destination_container, destination_district_uuid, keep_uid]
       end
 
-      def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid)
+      def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid, keep_uid)
         reply = ResultIO.new
         source_container = gear.container
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
@@ -959,9 +878,16 @@ module OpenShift
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+        end
+        if keep_uid
+          log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{app.name}-#{app.domain.namespace}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          if $?.exitstatus != 0
+            raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
+          end
         end
         reply
       end
