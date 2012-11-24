@@ -1,0 +1,220 @@
+#!/usr/bin/env oo-ruby
+#!/usr/bin/env ruby
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+
+require 'rubygems'
+require 'optparse'
+require 'socket'
+
+OOAS_OPTIONS = {
+    :wait => 5,
+    :verbose => false,
+}
+
+optparse = OptionParser.new { |opts|
+  opts.banner = "\nUsage: #{$0}" +
+                "\nExample: #{$0} -v -w 1" +
+		"\n\nCheck for correctness and consistency across the installation systems\n\n"
+
+    opts.on('-w','--wait seconds', Integer, 'Seconds to wait for node responses (default 5)') do |wait|
+      OOAS_OPTIONS[:wait] = wait
+    end
+    opts.on('-v','--verbose', 'Print verbose statements') { |verbose| OOAS_OPTIONS[:verbose] = verbose }
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+}
+
+$OOAS_STATUS||=0
+
+######## UTILITIES ########
+
+def verbose(msg)
+    if OOAS_OPTIONS[:verbose]
+        $stdout.write("INFO: #{msg}\n")
+    end
+end
+
+def do_fail(msg)
+    eputs("FAIL: " + msg)
+    $OOAS_STATUS += 1
+end
+
+def eputs(msg)
+    $stderr.write "\e[#{31}m#{msg}\e[0m\n"
+end
+
+def load_rails_env
+    require "/var/www/openshift/broker/config/environment"
+    # Disable analytics for admin scripts
+    Rails.configuration.analytics[:enabled] = false
+    Rails.configuration.msg_broker[:rpc_options][:disctimeout] = OOAS_OPTIONS[:wait]
+end
+
+######## TESTS #############
+
+LOCALHOST = %w[127.0.0.1 ::1]
+$NODES_EXIST=false
+
+def check_nodes_public_hostname
+  verbose "checking that each public_hostname resolves to external IP"
+  names_for = Hash.new {|h,k| h[k]=[]}
+  #
+  # get the PUBLIC_HOSTNAME from every node
+  # and make sure it resolves and is not localhost
+  #
+  OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_hostname") do |node,host|
+    names_for[host] << node
+    $NODES_EXIST=true
+    # test host resolution
+    begin
+      # public_hostname must resolve as a FQDN, so should be the full name
+      # (the "." at the end blocks adding a search domain)
+      resolved_host = IPSocket.getaddress(host + ".")
+      if LOCALHOST.member? resolved_host
+        do_fail "PUBLIC_HOSTNAME #{host} for #{node} should be public, not localhost"
+      else
+        verbose "PUBLIC_HOSTNAME #{host} for #{node} resolves to #{resolved_host}"
+      end
+    rescue Exception => e
+      do_fail "PUBLIC_HOSTNAME #{host} for #{node} does not resolve as a FQDN (#{e})"
+    end
+  end
+  names_for.empty? and return #nothing to do...
+  #
+  # check that each hostname is unique
+  # as it causes really confusing problems creating apps if it isn't.
+  #
+  verbose "checking that each public_hostname is unique"
+  names_for.each do |host,nodes|
+    if nodes.length > 1
+      do_fail "multiple node hosts have PUBLIC_HOSTNAME #{host}: #{nodes.join ','}"
+    end
+  end
+end
+
+def check_nodes_public_ip
+  verbose "checking that public_ip has been set for all nodes"
+  nodes_for = Hash.new {|h,k| h[k]=[]}
+  #
+  # get the PUBLIC_IP from every node
+  # and make sure it's not localhost
+  #
+  OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_ip") do |node,ip|
+    nodes_for[ip] << node
+    if LOCALHOST.member? ip
+      do_fail "PUBLIC_IP #{ip} should be public, not localhost"
+    else
+      verbose "PUBLIC_IP #{ip} for #{node}"
+    end
+  end
+  nodes_for.empty? and return #nothing to do...
+  #
+  # check that public_ip is unique for all nodes
+  #
+  verbose "checking that public_ip is unique for all nodes"
+  nodes_for.each do |ip,nodes|
+    if nodes.length > 1
+      do_fail "multiple node hosts have public_ip #{ip}: #{nodes.join ','}"
+    end
+  end
+end
+
+def check_nodes_cartridges
+  verbose "checking that all node hosts have cartridges installed"
+  carts_for = Hash.new
+  all_carts = []
+  #
+  # get the list of cartridges from every node
+  #
+  OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("cart_list") do |node,carts|
+    all_carts << ( carts_for[node] = carts.split('|').sort )
+    if carts.empty?
+      do_fail "host #{node} does not have any cartridges installed"
+    else
+      verbose "cartridges for #{node}: #{carts}"
+    end
+  end
+  carts_for.empty? and return #nothing to do...
+  #
+  # check it's the same on every node
+  #
+  verbose "checking that same cartridges are installed on all node hosts"
+  all_carts = all_carts.flatten.uniq.sort
+  if all_carts.empty?
+    do_fail "no cartridges are installed; please install cartridges on your node hosts"
+    return
+  end
+  any_missing = false
+  carts_for.each do |node,carts|
+    missing = all_carts - carts
+    missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ','}"
+    any_missing ||= !missing.empty?
+  end
+  #
+  # check against broker's probably-cached list of carts
+  #
+  # This gets /broker/rest/cartridges API doc. API versions 1.2 and 1.3 seem OK,
+  # may need to revisit for future versions.
+  return if any_missing # would likely get false positive
+  verbose "checking that broker's cache is not stale"
+  begin
+    require 'json'
+    require 'rest-client'
+    api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
+    api_carts = api_carts["data"].map {|cart| cart["name"]}
+    verbose "API reports carts: #{api_carts.join '|'}"
+    # remove abstract_carts which don't show in the API
+    all_carts.reject! {|cart| cart.start_with? "abstract"}
+    do_fail <<-"MISMATCH" unless api_carts.sort == all_carts.sort
+      The broker's list of cartridges does not match what is available on
+      the node hosts. The broker probably has cached an old list.
+      Broker is missing: #{(all_carts - api_carts).join ", "}
+      Broker has extra: #{(api_carts - all_carts).join ", "}
+      Clear the cache by executing:
+        # cd /var/www/openshift/broker
+        # bundle exec rake tmp:clear
+    MISMATCH
+  rescue StandardError => e
+    do_fail "Couldn't retrieve cartridge list from broker: #{e}"
+  end
+end
+
+#########################################################################
+# If running this script directly, then run everything; if loading script
+# from elsewhere, just load the methods without running any.
+
+if __FILE__ == $0
+  optparse.parse!
+  $OOAS_STATUS=0
+  load_rails_env
+  check_nodes_public_hostname
+  if !$NODES_EXIST
+    do_fail "No node hosts responded. Run 'mco ping' and troubleshoot if this is unexpected."
+  else
+    check_nodes_public_ip
+    check_nodes_cartridges
+  end
+
+  if $OOAS_STATUS == 0
+      puts "PASS"
+  else
+      eputs "#{$OOAS_STATUS} ERRORS"
+  end
+  exit($OOAS_STATUS)
+end
+

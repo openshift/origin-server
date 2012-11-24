@@ -51,6 +51,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_sbindir}/oo-setup-bind
 %attr(0755,-,-) %{_sbindir}/oo-setup-broker
 %attr(0755,-,-) %{_sbindir}/oo-accept-broker
+%attr(0755,-,-) %{_sbindir}/oo-accept-systems
 /usr/share/openshift/kickstarts/openshift-origin-remix.ks
 
 %doc LICENSE
@@ -65,6 +66,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-setup-bind.8.gz
 %{_mandir}/man8/oo-setup-broker.8.gz
 %{_mandir}/man8/oo-accept-broker.8.gz
+%{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
