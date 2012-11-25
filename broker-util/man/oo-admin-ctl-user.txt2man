@@ -2,7 +2,7 @@ NAME
   oo-admin-ctl-user
   
 SYNOPSIS
-  oo-admin-ctl-user [-h|--help] [-l|--rhlogin rh_login] 
+  oo-admin-ctl-user [-h|--help] [-l|--login login_name] 
   [--setmaxgears max_gears] [--setconsumedgears consumed_gears]
   [--listsubaccounts] [--addsubaccount subaccount_login]
   [--removesubaccount subaccount_login] [--allowsubaccounts true|false]
@@ -16,8 +16,8 @@ OPTIONS
   -h|--help  
     Display a simple help dialog.
 
-  -l|--rhlogin rh_login  
-    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+  -l|--login login_name  
+    Login with OpenShift access. Required.
 
   --setmaxgears max_gears  
     Set the maximum number of gears an user is allowed to consume.
@@ -27,25 +27,25 @@ OPTIONS
 
   --listsubaccounts  
     List the subaccounts that have been created under this parent account.
-    (rhlogin)
+    (login)
 
   --addsubaccount subaccount_login  
-    The subaccount account name to add to the rhlogin parent account.
+    The subaccount account name to add to the login parent account.
 
   --removesubaccount subaccount_login  
-    The subaccount account name to remove from the rhlogin parent account.
+    The subaccount account name to remove from the login parent account.
 
   --allowsubaccounts true|false  
     Add or Remove the capability to manage/maintain subaccounts.
 
   --addgearsize gear_size  
-    Add gear_size to the capability for this rhlogin user account.
+    Add gear_size to the capability for this login user account.
   
   --removegearsize gear_size  
-    Remove gear_size from the capability for this rhlogin user account.
+    Remove gear_size from the capability for this login user account.
 
   --inheritgearsizes true|false  
-    Allow or Diasllow inheritance of rhlogin user gearsizes capability to
+    Allow or Diasllow inheritance of login user gearsizes capability to
     subaccounts.
 
 EXAMPLE

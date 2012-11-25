@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear|remove-cartridge)"
 
 def usage
   puts <<USAGE
@@ -16,14 +16,18 @@ oo-admin-ctl-app: Control user applications
 oo-admin-ctl-app OPTIONS
 
 Options:
--l|--rhlogin <rhlogin>
-    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+-l|--login <login_name>
+    Login with OpenShift access (required)
 -a|--app     <application>
     Application name  (alphanumeric) (required)
 -c|--command <command>
     #{CTL_APP_COMMANDS} (required)
 -b|--bypass
     Ignore warnings
+--gear_uuid
+    Gear uuid to operate on
+--cartridge
+    Cartridge to operate on
 -h|--help
     Show Usage info
 USAGE
@@ -31,10 +35,11 @@ USAGE
 end
 
 opts = GetoptLong.new(
-    ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--login",            "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--app",              "-a", GetoptLong::REQUIRED_ARGUMENT],    
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--gear_uuid",        "-g", GetoptLong::OPTIONAL_ARGUMENT],
+    ["--gear_uuid",              GetoptLong::REQUIRED_ARGUMENT],
+    ["--cartridge",              GetoptLong::REQUIRED_ARGUMENT],
     ["--bypass",           "-b", GetoptLong::NO_ARGUMENT],    
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
@@ -46,11 +51,12 @@ rescue GetoptLong::Error => e
   usage
 end
 
-login    = args["--rhlogin"]
+login    = args["--login"]
 app_name = args["--app"]
 command  = args['--command']
 bypass   = args['--bypass']
 gear_uuid = args['--gear_uuid']
+cartridge = args['--cartridge']
 
 if login.nil? or app_name.nil? or command.nil? or args["--help"]
   usage
@@ -62,12 +68,12 @@ Rails.configuration.analytics[:enabled] = false
 
 user = CloudUser.find(login)
 unless user
-  print "User #{login} not found.\n"
+  puts "User #{login} not found."
   exit 1
 end
 app = Application.find(user,app_name)
 unless app
-  print "Application #{app_name} for user #{login} not found.\n"
+  puts "Application #{app_name} for user #{login} not found."
   exit 1
 end
 
@@ -147,7 +153,17 @@ when "destroy"
   
   reply.append app.cleanup_and_delete
   reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
+when "remove-cartridge"
+  unless cartridge
+    puts "Cartridge is required to remove-dependency"
+    exit 1
+  end
+  reply.append app.remove_dependency(cartridge)
 when "remove-gear"
+  unless gear_uuid
+    puts "Gear uuid is required to remove-gear"
+    exit 1
+  end
   result_io = ResultIO.new
   comp_name = "web"
   prof = app.profile_name_map[app.default_profile]
