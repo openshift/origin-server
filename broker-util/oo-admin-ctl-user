@@ -25,26 +25,26 @@ def usage
 #{File.basename $0} OPTIONS
 
 Options:
-  -l|--rhlogin <rhlogin>
+  -l|--login <login_name>
     Red Hat login (RHN or OpenShift login with OpenShift access) (required)
   --setmaxgears <number>
     Set the maximum number of gears a user is allowed to use
   --setconsumedgears <number>
     Set the number of gears a user has consumed (use carefully)
   --listsubaccounts
-    List the subaccounts that have been created under this parent account (rhlogin)
+    List the subaccounts that have been created under this parent account (login)
   --addsubaccount <subaccount login>
-    The sub account to add to the rhlogin parent account
+    The sub account to add to the login parent account
   --removesubaccount <subaccount login>
-    The sub account to remove from the rhlogin parent account
+    The sub account to remove from the login parent account
   --allowsubaccounts (true|false)
     Add / Remove the capability to manage sub accounts 
   --addgearsize <gearsize>
-    Add gearsize to the capability for this rhlogin user
+    Add gearsize to the capability for this login user
   --removegearsize <gearsize>
-    Remove gearsize from the capability for this rhlogin user
+    Remove gearsize from the capability for this login user
   --inheritgearsizes (true|false)
-    Allow / Disallow inheritance of rhlogin user gearsizes capability to sub accounts
+    Allow / Disallow inheritance of login user gearsizes capability to sub accounts
   -h|--help
     Show Usage info
 
@@ -244,7 +244,7 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
 end
 
 opts = GetoptLong.new(
-    ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--login",          "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
@@ -264,7 +264,7 @@ rescue GetoptLong::Error => e
   usage
 end
 
-login = args["--rhlogin"]
+login = args["--login"]
 allowsubaccounts = args["--allowsubaccounts"].to_b if args["--allowsubaccounts"]
 inheritgearsizes = args["--inheritgearsizes"].to_b if args["--inheritgearsizes"]
 

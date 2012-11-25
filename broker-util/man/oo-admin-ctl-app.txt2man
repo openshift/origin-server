@@ -2,8 +2,8 @@ NAME
   oo-admin-ctl-app
   
 SYNOPSIS
-  oo-admin-ctl-app [-h|--help] [-l|--rhlogin rh_login] 
-  [-a|--app app_name] [-c|--command cmd] [-b|--bypass]
+  oo-admin-ctl-app [-h|--help] [-l|--login login_name] [-a|--app app_name] 
+  [-c|--command cmd] [--gear_uuid uuid] [--cartridge cart] [-b|--bypass]
 
 DESCRIPTION
   oo-admin-ctl-app may be used to control and check the status of the OpenShift Origin hosted applications
@@ -12,15 +12,22 @@ OPTIONS
   -h|--help  
     Display a simple help dialog.
 
-  -l|--rhlogin rh_login  
-    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+  -l|--login login_name  
+    Login with OpenShift access. Required.
 
   -a|--app app_name  
     Application name, alphanumeric. Required.
   
   -c|--command cmd  
     Command to envoke upon the application, available commands are: start,
-    stop, force-stop, restart, status, destroy, force-destroy. Required.
+    stop, force-stop, restart, status, destroy, force-destroy, 
+    remove-gear, remove-cartridge. Required.
+    
+  --gear_uuid uuid  
+    Gear uuid to operate on.
+    
+  --cartridge cart  
+    Cartridge to operate on.
   
   -b|--bypass  
     Ignore all warnings.

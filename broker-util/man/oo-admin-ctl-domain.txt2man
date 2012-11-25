@@ -2,7 +2,7 @@ NAME
   oo-admin-ctl-domain
   
 SYNOPSIS
-  oo-admin-ctl-domain [-h|--help] [-l|--rhlogin rh_login] 
+  oo-admin-ctl-domain [-h|--help] [-l|--login login_name] 
   [-n|--namespace name_space] [-c|--command cmd] [-s|--ssh_key sshkey]
   [-t|--key_type sshkey_type] [-k|--key_name sshkey_name]
 
@@ -13,8 +13,8 @@ OPTIONS
   -h|--help  
     Display a simple help dialog.
 
-  -l|--rhlogin rh_login  
-    Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+  -l|--login login_name  
+    Login with OpenShift access. Required.
 
   -n|--namespace name_space  
     Namespace for application(s), alphanumeric, 16 chars max. Required.

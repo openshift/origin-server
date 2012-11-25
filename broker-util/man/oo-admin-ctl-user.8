@@ -6,7 +6,7 @@
 .SH SYNOPSIS
 .nf
 .fam C
-\fBoo-admin-ctl-user\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--rhlogin\fP \fIrh_login\fP] 
+\fBoo-admin-ctl-user\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--login\fP \fIlogin_name\fP] 
 [\fB--setmaxgears\fP \fImax_gears\fP] [\fB--setconsumedgears\fP \fIconsumed_gears\fP]
 [\fB--listsubaccounts\fP] [\fB--addsubaccount\fP \fIsubaccount_login\fP]
 [\fB--removesubaccount\fP \fIsubaccount_login\fP] [\fB--allowsubaccounts\fP true|false]
@@ -26,8 +26,8 @@ Utility to manage users within OpenShift Origin.
 Display a simple help dialog.
 .TP
 .B
-\fB-l\fP|\fB--rhlogin\fP \fIrh_login\fP
-Red Hat login, RHN or OpenShift login with OpenShift access. Required.
+\fB-l\fP|\fB--login\fP \fIlogin_name\fP
+Login with OpenShift access. Required.
 .TP
 .B
 \fB--setmaxgears\fP \fImax_gears\fP
@@ -40,15 +40,15 @@ Set the number of gears an user has consumed. Use with caution.
 .B
 \fB--listsubaccounts\fP
 List the subaccounts that have been created under this parent account.
-(rhlogin)
+(login)
 .TP
 .B
 \fB--addsubaccount\fP \fIsubaccount_login\fP
-The subaccount account name to add to the rhlogin parent account.
+The subaccount account name to add to the login parent account.
 .TP
 .B
 \fB--removesubaccount\fP \fIsubaccount_login\fP
-The subaccount account name to remove from the rhlogin parent account.
+The subaccount account name to remove from the login parent account.
 .TP
 .B
 \fB--allowsubaccounts\fP true|false
@@ -56,15 +56,15 @@ Add or Remove the capability to manage/maintain subaccounts.
 .TP
 .B
 \fB--addgearsize\fP \fIgear_size\fP
-Add \fIgear_size\fP to the capability for this rhlogin user account.
+Add \fIgear_size\fP to the capability for this login user account.
 .TP
 .B
 \fB--removegearsize\fP \fIgear_size\fP
-Remove \fIgear_size\fP from the capability for this rhlogin user account.
+Remove \fIgear_size\fP from the capability for this login user account.
 .TP
 .B
 \fB--inheritgearsizes\fP true|false
-Allow or Diasllow inheritance of rhlogin user gearsizes capability to
+Allow or Diasllow inheritance of login user gearsizes capability to
 subaccounts.
 .SH EXAMPLE
 

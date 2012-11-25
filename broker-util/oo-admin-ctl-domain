@@ -14,7 +14,7 @@ oo-admin-ctl-domain: Manage user domains
 oo-admin-ctl-domain OPTIONS
 
 Options:
--l|--rhlogin <rhlogin>
+-l|--login <login_name>
     Red Hat login (RHN or OpenShift login with OpenShift access) (required)
 -n|--namespace <Namespace>
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
@@ -32,7 +32,7 @@ USAGE
 end
 
 opts = GetoptLong.new(
-    ["--rhlogin",          "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--login",            "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--namespace",        "-n", GetoptLong::REQUIRED_ARGUMENT],    
     ["--command",          "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--ssh_key",          "-s", GetoptLong::REQUIRED_ARGUMENT],
@@ -48,7 +48,7 @@ rescue GetoptLong::Error => e
   usage
 end
 
-login = args["--rhlogin"]
+login = args["--login"]
 ssh_key = args["--ssh_key"]
 ssh_type = args["--key_type"]
 ssh_name = args["--key_name"]
@@ -66,7 +66,7 @@ reply = ResultIO.new
 case args["--command"]
 when "create"
   if ssh_key.nil? || namespace.nil? || login.nil?
-    print "Please provide rhlogin, ssh key and namespace to create the user\n"
+    print "Please provide login, ssh key and namespace to create the user\n"
     exit -1
   end
   user = CloudUser.find(login)
