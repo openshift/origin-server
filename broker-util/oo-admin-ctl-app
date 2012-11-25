@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'getoptlong'
 
-CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|removegear)"
+CTL_APP_COMMANDS = "(start|stop|force-stop|restart|status|destroy|force-destroy|remove-gear)"
 
 def usage
   puts <<USAGE
@@ -147,7 +147,7 @@ when "destroy"
   
   reply.append app.cleanup_and_delete
   reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
-when "removegear"
+when "remove-gear"
   result_io = ResultIO.new
   comp_name = "web"
   prof = app.profile_name_map[app.default_profile]
