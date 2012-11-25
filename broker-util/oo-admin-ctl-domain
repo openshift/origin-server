@@ -15,7 +15,7 @@ oo-admin-ctl-domain OPTIONS
 
 Options:
 -l|--login <login_name>
-    Red Hat login (RHN or OpenShift login with OpenShift access) (required)
+    Login with OpenShift access (required)
 -n|--namespace <Namespace>
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
 -c|--command (create|update|delete|info)
