@@ -41,9 +41,11 @@ module MCollective
           container.create
         rescue OpenShift::UserCreationException => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -65,6 +67,7 @@ module MCollective
           out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           output << out
@@ -88,6 +91,7 @@ module MCollective
           container.user.add_ssh_key(ssh_key, key_type, comment)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -108,6 +112,7 @@ module MCollective
           container.user.remove_ssh_key(ssh_key, comment)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -128,6 +133,7 @@ module MCollective
           container.user.add_broker_auth(iv, token)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -146,6 +152,7 @@ module MCollective
           container.user.remove_broker_auth
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -166,6 +173,7 @@ module MCollective
           container.user.add_env_var(key, value)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -184,6 +192,7 @@ module MCollective
           container.user.remove_env_var(key)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -201,6 +210,7 @@ module MCollective
           output = OpenShift::Node.get_cartridge_list(list_descriptors, porcelain, false)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -219,6 +229,7 @@ module MCollective
           output = container.get_app_state()
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -235,6 +246,7 @@ module MCollective
           output = OpenShift::Node.get_quota(uuid)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
@@ -253,6 +265,7 @@ module MCollective
           output = OpenShift::Node.set_quota(uuid, blocks, inodes)
         rescue Exception => e
           Log.instance.info e.message
+          Log.instance.info e.backtrace
           return -1, e.message
         else
           return 0, output
