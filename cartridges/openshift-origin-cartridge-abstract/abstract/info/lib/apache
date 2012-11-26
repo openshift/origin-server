@@ -13,12 +13,12 @@ function rm_httpd_proxy {
     rm -rf /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf \
            /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application} || \
            echo "Could not remove apache definition" 1>&2
-    ${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || \
+    /usr/sbin/oo-httpd-singular graceful 2> /dev/null || \
     echo "Failed to restart master httpd, please contact support" 1>&2
 }
 
 function restart_httpd_graceful {
-    ${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || \
+    /usr/sbin/oo-httpd-singular graceful 2> /dev/null || \
     error "Failed to restart master httpd, please contact support" 120
 }
 

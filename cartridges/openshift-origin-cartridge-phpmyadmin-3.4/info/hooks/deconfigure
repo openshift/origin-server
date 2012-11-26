@@ -54,5 +54,5 @@ runcon -l s0-s0:c0.c1023 rm -rf "$PHPMYADMIN_DIR"
 #
 rm -f /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/${cartridge_type}.conf || warning "Could not remove phpmyadmin apache definition" 156
 
-${CARTRIDGE_BASE_PATH}/abstract/info/bin/httpd_singular graceful 2> /dev/null || warning "Failed to restart master httpd, please contact support" 120
+/usr/sbin/oo-httpd-singular graceful 2> /dev/null || warning "Failed to restart master httpd, please contact support" 120
 enable_cgroups

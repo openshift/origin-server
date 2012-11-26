@@ -1190,11 +1190,11 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     begin
       self.aliases.push(server_alias)
       self.save      
-      reply.append self.container.add_alias(self, self.gear, self.framework, server_alias)
+      reply.append self.container.add_alias(self, self.gear, server_alias)
     rescue Exception => e
       Rails.logger.debug e.message
       Rails.logger.debug e.backtrace.inspect
-      reply.append self.container.remove_alias(self, self.gear, self.framework, server_alias)      
+      reply.append self.container.remove_alias(self, self.gear, server_alias)      
       self.aliases.delete(server_alias)
       self.save
       raise
@@ -1206,7 +1206,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.aliases = [] unless self.aliases
     reply = ResultIO.new
     begin
-      reply.append self.container.remove_alias(self, self.gear, self.framework, server_alias)
+      reply.append self.container.remove_alias(self, self.gear, server_alias)
     rescue Exception => e
       Rails.logger.debug e.message
       Rails.logger.debug e.backtrace.inspect

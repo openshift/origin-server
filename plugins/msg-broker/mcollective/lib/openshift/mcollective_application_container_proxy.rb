@@ -450,20 +450,24 @@ module OpenShift
         run_cartridge_command(cart, app, gear, "show-port")
       end
 
-      def add_alias(app, gear, cart, server_alias)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "add-alias", server_alias)
-        else
-          ResultIO.new
-        end
+      def add_alias(app, gear, server_alias)
+        args = Hash.new
+        args['--with-container-uuid']=gear.uuid
+        args['--with-container-name']=gear.name
+        args['--with-namespace']=app.domain.namespace
+        args['--with-alias-name']=server_alias
+        result = execute_direct(@@C_CONTROLLER, 'add-alias', args)
+        parse_result(result)
       end
       
-      def remove_alias(app, gear, cart, server_alias)
-        if framework_carts.include?(cart)        
-          run_cartridge_command(cart, app, gear, "remove-alias", server_alias)
-        else
-          ResultIO.new
-        end
+      def remove_alias(app, gear, server_alias)
+        args = Hash.new
+        args['--with-container-uuid']=gear.uuid
+        args['--with-container-name']=gear.name
+        args['--with-namespace']=app.domain.namespace
+        args['--with-alias-name']=server_alias
+        result = execute_direct(@@C_CONTROLLER, 'remove-alias', args)
+        parse_result(result)        
       end
       
       def update_namespace(app, gear, cart, new_ns, old_ns)

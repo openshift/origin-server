@@ -1,6 +1,32 @@
 #!/bin/env oo-ruby
 
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+# Serialize and coalesce requests to reload/restart Apache.
+#
+# oo-httpd-singular will deliver either the reload or restart command
+# to Apache.  As simultaneous and multiple calls can become extremely
+# expensive; the requests are serialized behind a lock file.  Multiple
+# requests; typically queuing up while one request is running will be
+# coalesced into a single restart or reload.
+
 require 'rubygems'
+require 'daemons'
+require 'optparse'
 require 'open4'
 require 'thread'
 require 'tempfile'
@@ -48,6 +74,23 @@ def load_reqset(reqset=[])
 end
 
 
+$OPTIONS = {}
+OptionParser.new do |opts|
+  opts.banner = "\nUsage: #{$0} [-b] [#{HTTPD_CMDS.join('|')}]\n" +
+    "\nExample: #{$0} graceful\n"
+
+  $OPTIONS[:background] = false
+  opts.on('-b', '--[no-]background', 'Run in the background and ignore return status.') do |bg|
+    $OPTIONS[:background] = bg
+  end
+
+  opts.on('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+end.parse!
+
+
 if ! HTTPD_CMDS.include?(ARGV[0])
   warn("Command must be one of: #{HTTPD_CMDS.join(' ')}")
   exit(false)
@@ -56,6 +99,10 @@ end
 # Create the request
 reqfile = Tempfile.new("#{REQPREFIX}.#{ARGV[0]}.XXXXXX")
 reqfile.sync = true
+
+if $OPTIONS[:background]
+  Daemons.daemonize
+end
 
 # Process all requests and get our output back
 rc=0
@@ -98,9 +145,11 @@ single_instance do
   reqfile.unlink()
   reqfile.close()
 
-  $stderr.write(res["STDERR"])
-  $stdout.write(res["STDOUT"])
-  rc = res["RC"]
+  if not $OPTIONS[:background]
+    $stderr.write(res["STDERR"])
+    $stdout.write(res["STDOUT"])
+    rc = res["RC"]
+  end
 end # single_instance
 
 exit(rc)

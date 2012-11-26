@@ -455,6 +455,22 @@ When /^an update (is|has been) pushed to the application repo$/ do |junk|
   end
 end
 
+# Adds/removes aliases from the application
+When /^I add an alias to the application/ do
+  server_alias = "#{@app.name}.#{$alias_domain}"
+
+  @gear.add_alias(server_alias)
+end
+
+
+# Adds/removes aliases from the application
+When /^I remove an alias from the application/ do
+  server_alias = "#{@app.name}.#{$alias_domain}"
+
+  @gear.remove_alias(server_alias)
+end
+
+
 # Asserts the 'cucumber_update_test' file exists after an update
 Then /^the application repo has been updated$/ do
   assert_file_exist File.join($home_root,

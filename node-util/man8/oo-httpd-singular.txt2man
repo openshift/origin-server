@@ -1,0 +1,32 @@
+NAME
+  oo-httpd-singular
+
+SYNOPSIS
+  oo-httpd-singular [-b] COMMAND
+
+DESCRIPTION
+
+  Call COMMAND on the running Apache front-end.  
+
+  Serialize and coalesce multiple requests such that only one instance
+  of oo-httpd-singular is delivering any COMMAND to the front-end
+  Apache and if several calls are waiting they will be coalesced into
+  one call.
+
+  The output and exit code of the call to Apache are returned.
+
+OPTIONS
+
+  COMMAND
+    The command to call on the front-end Apache.
+    Allowed values are: "graceful"
+
+  -b
+    Validate arguments and run in the background discarding results.
+
+EXAMPLE
+
+  $ oo-httpd-singular graceful
+
+AUTHOR
+  Robert Millner <rmillner@redhat.com> - man page written for Openshift Origin
