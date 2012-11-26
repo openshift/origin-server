@@ -13,7 +13,7 @@ Broker::Application.configure do
   conf = OpenShift::Config.new(conf_file)
 
   # Grab this now because we need it for the MONGO_HOST_PORT parsing.
-  replica_sets = conf.get_bool("MONGO_REPLICA_SETS", "false")
+  replica_sets = conf.get_bool("MONGO_REPLICA_SETS", "true")
   hp = conf.get("MONGO_HOST_PORT", "localhost:27017")
 
   # Depending on the value of the MONGO_REPLICA_SETS setting, MONGO_HOST_PORT
@@ -21,7 +21,7 @@ Broker::Application.configure do
 
   if !hp
     raise "Broker is missing Mongo configuration."
-  elif replica_sets
+  elsif replica_sets
     # The string should be of the following form:
     #
     #   host-1:port-1 host-2:port-2 ...
