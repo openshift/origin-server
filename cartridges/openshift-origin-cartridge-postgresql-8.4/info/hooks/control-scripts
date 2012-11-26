@@ -57,46 +57,6 @@ function _reload_postgres_service() {
    :  #  Do nothing.
 }  #  End of function  _reload_postgres_service.
 
-
-function _move_postgres_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-
-CART_INSTANCE_DIR="$APP_HOME/postgresql-8.4/"
-
-observe_setup_var_lib_dir "$CART_INSTANCE_DIR"
-observe_setup_var_lib_file $APP_HOME/.psql_history
-observe_setup_var_lib_file $APP_HOME/.pgpass
-
-. $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
-IP=$OPENSHIFT_INTERNAL_IP
-
-. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
-. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
-. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
-
-ORIG_DB_HOST=$OPENSHIFT_POSTGRESQL_DB_HOST
-
-if [ "$ORIG_DB_HOST" != "$IP" ]
-then
-    echo "export OPENSHIFT_POSTGRESQL_DB_HOST='$IP'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-    echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://$OPENSHIFT_POSTGRESQL_DB_USERNAME:$OPENSHIFT_POSTGRESQL_DB_PASSWORD@$IP:$OPENSHIFT_POSTGRESQL_DB_PORT/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
-
-    sed -i "s,$ORIG_DB_HOST,$IP," $CART_INSTANCE_DIR/data/postgresql.conf
-    echo "$IP:$OPENSHIFT_POSTGRESQL_DB_PORT:*:$OPENSHIFT_POSTGRESQL_DB_USERNAME:$OPENSHIFT_POSTGRESQL_DB_PASSWORD" > $APP_HOME/.pgpass
-
-    set_app_info "Connection URL: postgresql://$IP:$OPENSHIFT_POSTGRESQL_DB_PORT/"
-fi
-
-}  #  End of function  _move_postgres_service.
-
-function _pre_move_postgres_service() {
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-   source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
-
-}  #  End of function  _pre_move_postgres_service.
-
 function _post_move_postgres_service() {
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
    source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
@@ -142,8 +102,6 @@ case "$cmd" in
    stop)      _stop_postgres_service      ;;
    restart)   _restart_postgres_service   ;;
    reload)    _reload_postgres_service    ;;
-   move)      _move_postgres_service      ;;
-   pre-move)  _pre_move_postgres_service  ;;
    post-move) _post_move_postgres_service ;;
 esac
 
