@@ -87,6 +87,7 @@ options = {:fields => ["apps.name",
                        "apps.creation_time",
                        "apps.group_instances.gears.uuid",
                        "apps.group_instances.gears.uid",
+                       "apps.group_instances.gears.server_identity",
                        "apps.group_instances.name",
                        "consumed_gears",
                        "login"],
@@ -104,7 +105,7 @@ OpenShift::DataStore.instance.user_collection.find(query, options) do |mcursor|
             if gi['gears']
               gi['gears'].each { |gear|
                 gear_count += 1
-                datastore_hash[gear['uuid']] = [hash['login'], creation_time, gear['uid']]
+                datastore_hash[gear['uuid']] = [hash['login'], creation_time, gear['uid'], gear['server_identity']]
               }
             else
               puts "ERROR: Group instance '#{gi['name']}' for application: '#{app['name']}' for user '#{hash['login']}' doesn't have any gears"
@@ -143,15 +144,22 @@ puts "Checking application gears on corresponding nodes:" if verbose
 datastore_hash.each { |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
+  server_identity = gear_info[3]
   print "#{gear_uuid}...\t" if verbose
   if (Time.now - creation_time) > 600
     if not node_hash.has_key? gear_uuid
-      if datastore_has_gear?(gear_uuid, login)
+      if sender_hash.has_key? server_identity
+        if datastore_has_gear?(gear_uuid, login)
+          no_error = false
+          puts "FAIL" if verbose
+          summary << "Gear #{gear_uuid} does not exist on any node"
+        elsif verbose
+          puts "OK"
+        end
+      else
         no_error = false
         puts "FAIL" if verbose
-        summary << "Gear #{gear_uuid} does not exist on any node"
-      elsif verbose
-        puts "OK"
+        summary << "Gear #{gear_uuid} on node #{server_identity} wasn't returned from mcollective"
       end
     elsif verbose
       puts "OK"
