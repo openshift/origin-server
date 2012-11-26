@@ -159,7 +159,7 @@ datastore_hash.each { |gear_uuid, gear_info|
       else
         no_error = false
         puts "FAIL" if verbose
-        summary << "Gear #{gear_uuid} on node #{server_identity} wasn't returned from mcollective"
+        summary << "The node #{server_identity} with gear #{gear_uuid} wasn't returned from mcollective"
       end
     elsif verbose
       puts "OK"
