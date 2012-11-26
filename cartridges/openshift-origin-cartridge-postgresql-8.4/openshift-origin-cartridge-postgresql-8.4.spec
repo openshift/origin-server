@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.1.3
+Version: 1.1.4
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -105,6 +105,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Nov 26 2012 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Bug 880108 (dmcphers@redhat.com)
+
 * Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - BZ 877534: Remove DB_SOCKET from db connectors. (mpatel@redhat.com)
 - Merge pull request #928 from rmillner/BZ876944 (openshift+bot@redhat.com)
