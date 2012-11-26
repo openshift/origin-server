@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version:   1.1.6
+Version:   1.1.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -84,6 +84,9 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Mon Nov 26 2012 Adam Miller <admiller@redhat.com> 1.1.7-1
+- Changing same uid move to rsync (dmcphers@redhat.com)
+
 * Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.6-1
 - Merge pull request #926 from jwhonce/dev/bz877172 (dmcphers@redhat.com)
 - Merge pull request #924 from rmillner/BZ876640 (dmcphers@redhat.com)
