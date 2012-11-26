@@ -80,6 +80,7 @@ no_error = true
 summary = []
 
 datastore_hash = {}
+puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
 query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
 options = {:fields => ["apps.name",
@@ -129,11 +130,13 @@ OpenShift::DataStore.instance.user_collection.find(query, options) do |mcursor|
 end
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
+puts "Total gears found in mongo: #{datastore_hash.length}"
 
-start_time = (Time.now.to_f * 1000).to_i
+get_all_gears_start_time = (Time.now.to_f * 1000).to_i
 node_hash, sender_hash = OpenShift::ApplicationContainerProxy.get_all_gears
-total_time = (Time.now.to_f * 1000).to_i - start_time
+total_time = (Time.now.to_f * 1000).to_i - get_all_gears_start_time
 puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
+puts "Total gears found on the nodes: #{node_hash.length}"
 
 # now check
 puts "Checking application gears on corresponding nodes:" if verbose
@@ -192,4 +195,7 @@ puts no_error ? "Success" : "Check failed.\n #{summary.join("\n")}"
 if $false_positive_check_cnt >= FALSE_POSITIVE_CHECK_LIMIT
   puts "WARNING: Only checked the first #{FALSE_POSITIVE_CHECK_LIMIT} errors for false positives."
 end
+total_time = (Time.now.to_f * 1000).to_i - start_time
+puts "Total time: #{total_time.to_f/1000}s"
+puts "Finished at: #{Time.now}"
 exit (no_error ? 0 : 1)
