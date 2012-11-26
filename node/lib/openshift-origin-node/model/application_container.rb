@@ -25,6 +25,17 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     attr_reader :uuid, :application_uuid, :user
 
+    # Represents all possible application states.
+    module State
+      BUILDING = "building"
+      DEPLOYING = "deploying"
+      IDLE = "idle"
+      NEW = "new"
+      STARTED = "started"
+      STOPPED = "stopped"
+      UNKNOWN = "unknown"
+    end
+
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil)
       @config = OpenShift::Config.new
@@ -108,9 +119,39 @@ module OpenShift
         app_state = nil
         File.open(app_state_file) { |input| app_state = input.read.chomp }
       else
-        app_state = 'unknown'
+        app_state = :UNKNOWN
       end
       app_state
+    end
+
+    # Public: Sets the application state.
+    #
+    # new_state - The new state to assign. Must be an ApplicationContainer::State.
+    def set_app_state(new_state)
+      new_state_val = nil
+      begin
+        new_state_val = State.const_get(new_state)
+      rescue
+        raise ArgumentError, "Invalid state '#{new_state}' specified"
+      end
+
+      env = load_env
+      app_state_file = File.join(env[:OPENSHIFT_HOMEDIR], 'app-root', 'runtime', '.state')
+      
+      raise "Couldn't find app state file at #{app_state_file}" unless File.exists?(app_state_file)
+
+      File.open(app_state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
+        file.write "#{new_state_val}\n"
+      }
+    end
+
+    # Public: Sets the app state to "stopped" and causes an immediate forced 
+    # termination of all gear processes.
+    #
+    # TODO: exception handling
+    def force_stop
+      set_app_state(:STOPPED)
+      UnixUser.kill_procs(@user.uid)
     end
 
     # Public: Load a gears environment variables into the environment
