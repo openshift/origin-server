@@ -1,5 +1,5 @@
 Name: jbossews-2.0
-Version: 2.0
+Version: 6.0
 Architecture: noarch
 Provides: jbossews
 Depends: java-1.6.0-openjdk
@@ -7,7 +7,7 @@ Conflicts:
 Type: Cartridge
 Role: misc
 Vendor: www.jboss.org
-DisplayName: JBossEWS-2.0
+DisplayName: JBossEWS-1.0
 Bundles:
 Description: 
 A Java EE certified platform for developing and deploying enterprise Java

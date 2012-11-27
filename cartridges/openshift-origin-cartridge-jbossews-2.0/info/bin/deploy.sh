@@ -19,10 +19,10 @@ else
   CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
   JBOSS_DIR=${CART_DIR}/${CART_NAME}
 
-  standalone_tmp=${JBOSS_DIR}/standalone/tmp
-  if [ -d $standalone_tmp ]
+  tmp=${JBOSS_DIR}/tmp
+  if [ -d $tmp ]
   then
-      for d in $standalone_tmp/*
+      for d in $tmp/*
       do
           if [ -d $d ]
           then

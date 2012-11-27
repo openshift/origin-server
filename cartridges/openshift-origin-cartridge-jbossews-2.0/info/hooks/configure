@@ -25,7 +25,7 @@ GIT_DIR = $APP_HOME/git/$application.git
 M2_DIR = $APP_HOME/.m2 # maven dir
 APP_JBOSS = $JBOSS_INSTANCE_DIR/${jboss_version} # the application jboss root
 APP_JBOSS_BIN_DIR = $JBOSS_INSTANCE_DIR/${jboss_version}/bin
-APP_JBOSS_TMP_DIR = $JBOSS_INSTANCE_DIR/${jboss_version}/standalone/tmp # application jboss tmp dir
+APP_JBOSS_TMP_DIR = $JBOSS_INSTANCE_DIR/${jboss_version}/tmp # application jboss tmp dir
 --COMMENT--
 
 # Exit on any errors
@@ -104,7 +104,7 @@ mkdir -p $M2_DIR
 JAVA_PREFS_DIR=`echo $APP_HOME/.java | tr -s /`
 mkdir -p $JAVA_PREFS_DIR
 
-APP_JBOSS_TMP_DIR="$APP_JBOSS"/standalone/tmp
+APP_JBOSS_TMP_DIR="$APP_JBOSS"/tmp
 mkdir -p ${APP_JBOSS_TMP_DIR}
 
 
@@ -142,9 +142,6 @@ cp ${JBOSS_CARTRIDGE_ROOT}/info/configuration/logging.properties "$APP_JBOSS"/co
 # Link to the tomcat7 script
 ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/tomcat7 $APP_JBOSS_BIN_DIR/tomcat7
 
-# Link to the standalone.conf file
-#ln -s ${JBOSS_CARTRIDGE_ROOT}/info/bin/standalone.conf $APP_JBOSS_BIN_DIR/standalone.conf
-
 popd > /dev/null
 
 # Repo
@@ -154,11 +151,11 @@ else
 	create_repo $application $user_id $group_id $uuid
 fi
 
-# Create a link from the repo/webapps directory to the standalone/webapps content
+# Create a link from the repo/webapps directory to the webapps content
 mkdir -p "$APP_REPO_DIR"/webapps
 ln -s "$APP_REPO_DIR"/webapps "$APP_JBOSS"/webapps
 
-# Create a link from the standalone/log directory to ${APP_DIR}/logs for rhc app tail
+# Create a link from the log directory to ${APP_DIR}/logs for rhc app tail
 ln -s ${jboss_version}/logs "$JBOSS_INSTANCE_DIR"/logs
 
 # Run any specific configuration steps needed by the concrete cart. For now this is
@@ -177,11 +174,9 @@ populate_repo_dir
 # Copy the example WAR to the webapps directories
 cp ${JBOSS_CARTRIDGE_ROOT}/info/data/ROOT.war $APP_REPO_DIR/webapps
 
-#chmod +x "$APP_JBOSS_BIN_DIR/standalone.sh" || error "Failed to chmod new application scripts" 122
 secure_app_dir
 secure_cart_instance_dir
 # Secure script and config dirs.
-#chown $user_id.$group_id -R "$JBOSS_INSTANCE_DIR/${jboss_version}/standalone"
 chown -R $user_id.$group_id $M2_DIR
 observe_setup_app_and_git_dirs
 observe_setup_cart_instance_dir
@@ -196,6 +191,9 @@ create_standard_network_env_vars $IP
 create_cart_network_env_vars $IP
 create_standard_repo_dir_env_var
 create_standard_path_env_var
+
+# source the new PATH so we can modify it
+. $APP_HOME/.env/PATH
 
 if [ -e $APP_HOME/app-root/runtime/repo/.openshift/markers/java7 ];
 then
