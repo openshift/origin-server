@@ -38,7 +38,7 @@ Broker::Application.configure do
   ############################################
   
   config.datastore = {
-    :replica_set => false,
+    :replica_set => true,
     :host_port => ["localhost", 27017],
   
     :user => "openshift",
