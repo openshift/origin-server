@@ -2,12 +2,16 @@ Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
 Version: 1.2.1
 Release:        1%{?dist}
-Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
-
-Requires:       openshift-broker
+Requires:       openshift-origin-broker
+# For oo-register-dns
+Requires:       bind-utils
+# For oo-setup-bind
+Requires:       rng-tools
+# For oo-setup-broker
+Requires:       openssl
 Requires:       ruby(abi) >= 1.8
 %if 0%{?fedora} >= 17
 BuildRequires:  rubygems-devel
@@ -17,8 +21,8 @@ BuildRequires:  rubygems
 BuildArch:      noarch
 
 %description
-This package contains a set of utility scripts for the broker.  They must be
-run on a broker instance.
+This package contains a set of utility scripts for the openshift broker.
+They must be run on a openshift broker instance.
 
 %prep
 %setup -q
@@ -26,8 +30,6 @@ run on a broker instance.
 %build
 
 %install
-rm -rf %{buildroot}
-
 mkdir -p %{buildroot}%{_sbindir}
 cp oo-* %{buildroot}%{_sbindir}/
 
@@ -36,10 +38,8 @@ cp man/*.8 %{buildroot}%{_mandir}/man8/
 mkdir -p %{buildroot}/usr/share/openshift/kickstarts
 cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstarts
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
+%doc LICENSE
 %attr(0755,-,-) %{_sbindir}/oo-admin-chk
 %attr(0755,-,-) %{_sbindir}/oo-admin-ctl-app
 %attr(0755,-,-) %{_sbindir}/oo-admin-ctl-district
@@ -51,9 +51,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_sbindir}/oo-setup-bind
 %attr(0755,-,-) %{_sbindir}/oo-setup-broker
 %attr(0755,-,-) %{_sbindir}/oo-accept-broker
+%dir /usr/share/openshift
+%dir /usr/share/openshift/kickstarts
 /usr/share/openshift/kickstarts/openshift-origin-remix.ks
-
-%doc LICENSE
 %{_mandir}/man8/oo-admin-chk.8.gz
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
