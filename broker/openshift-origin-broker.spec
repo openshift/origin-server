@@ -110,7 +110,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0640,apache,apache,0750)
 %attr(0644,-,-) %ghost %{brokerdir}/log/production.log
 %attr(0644,-,-) %ghost %{brokerdir}/log/development.log
-%attr(0644,-,-) %{_localstatedir}/log/openshift/user_action.log
+%attr(0640,-,-) %{_localstatedir}/log/openshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
