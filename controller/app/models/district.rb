@@ -22,13 +22,13 @@ class District < OpenShift::Model
   end
   
   def self.find(uuid)
-    hash = OpenShift::DataStore.instance.find_district(uuid)
+    hash = OpenShift::DataStore.instance.find_district(uuid, {:read => :primary})
     return nil unless hash
     hash_to_district(hash)
   end
   
   def self.find_by_name(name)
-    hash = OpenShift::DataStore.instance.find_district_by_name(name)
+    hash = OpenShift::DataStore.instance.find_district_by_name(name, {:read => :primary})
     return nil unless hash
     hash_to_district(hash)
   end
