@@ -54,6 +54,8 @@
       <brokerPort></brokerPort>
       <proxyHost></proxyHost>
       <proxyPort>0</proxyPort>
+      <slaveIdleTimeToLive>15</slaveIdleTimeToLive>
+      <maxSlaveIdleTimeToLive>60</maxSlaveIdleTimeToLive>
       <defaultBuilderSize>small</defaultBuilderSize>
       <ignoreBrokerCertCheck>true</ignoreBrokerCertCheck>
     </hudson.plugins.openshift.OpenShiftCloud>

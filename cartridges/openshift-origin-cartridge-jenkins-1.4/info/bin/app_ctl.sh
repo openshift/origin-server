@@ -64,6 +64,29 @@ start_jenkins() {
     fi
 }
 
+stop_nodes() {
+  result=`curl -s --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${OPENSHIFT_GEAR_DNS}/computer/api/json` 
+  nodes=`echo $result | awk -F"[,:]" '{for(i=1;i<=NF;i++){if($i~/displayName\042/){print $(i+1)} } }'`
+  
+  OIFS="${IFS}"
+  NIFS=$'\n'
+
+  IFS="${NIFS}"
+
+  for LINE in ${nodes} ; do
+  
+    node="${LINE%\"}"
+    node="${node#\"}"
+
+    IFS="${OIFS}"
+    
+    result=`curl -s -X POST --insecure https://${JENKINS_USERNAME}:${JENKINS_PASSWORD}@${OPENSHIFT_GEAR_DNS}/computer/${node}/delete`
+
+    IFS="${NIFS}"
+  done
+  IFS="${OIFS}"
+}
+
 stop_jenkins() {
     src_user_hook pre_stop_${cartridge_type}
     set_app_state stopped
