@@ -141,7 +141,7 @@ def get_app_type(app_path, app_name="unknown"):
     if 0 < len(candidates):
         return candidates.pop().rsplit('-', 1)[0]
 
-    candidates = set(["metrics-0.1", "phpmoadmin-1.0", "rockmongo-1.1", "10gen-mms-agent-0.1", \
+    candidates = set(["metrics-0.1", "rockmongo-1.1", "10gen-mms-agent-0.1", \
         "cron-1.4", "haproxy-1.4", "jenkins-client-1.4", "phpmyadmin-3.4"]).intersection(installed)
     if 0 < len(candidates):
         return candidates.pop().rsplit('-', 1)[0]
