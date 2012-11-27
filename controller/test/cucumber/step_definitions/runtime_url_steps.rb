@@ -16,12 +16,6 @@ Then /^the web console for the phpmyadmin\-([\d\.]+) cartridge is( not)? accessi
   }
 end
 
-Then /^the web console for the phpmoadmin\-([\d\.]+) cartridge is( not)? accessible$/ do |version, negate|
-  steps %Q{
-    Then the web console for the phpmoadmin-#{version} cartridge at / is#{negate} accessible
-  }
-end
-
 When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
   host = "#{@app.name}-#{@account.domain}.dev.rhcloud.com"
 
