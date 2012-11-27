@@ -30,18 +30,14 @@ service network stop
 # copy files
 mkdir -p /var/named/dynamic
 pushd $li_repo/misc/devenv/var/named
-cp example.com.db.init /tmp/dummy
-sed 's/example/rhcloud/g' </tmp/dummy  >/var/named/rhcloud.com.db.init
-cp example.com.key /tmp/dummy
-sed 's/example/rhcloud/g' </tmp/dummy  >/var/named/rhcloud.com.key
-cp dynamic/example.com.db /tmp/dummy
-sed 's/example/rhcloud/g' </tmp/dummy  >/var/named/dynamic/rhcloud.com.db
+sed 's/example/rhcloud/g' example.com.db.init     >/var/named/rhcloud.com.db.init
+sed 's/example/rhcloud/g' example.com.key         >/var/named/rhcloud.com.key
+sed 's/example/rhcloud/g' dynamic/example.com.db  >/var/named/dynamic/rhcloud.com.db
 #touch /var/named/dynamic/rhcloud.com.db.jnl
 popd
 
 pushd $li_repo/misc/devenv/etc
-cp named.conf /tmp/dummy
-sed 's/example/rhcloud/g' </tmp/dummy  >/etc/named.conf
+sed 's/example/rhcloud/g' named.conf  >/etc/named.conf
 mkdir -p /var/named/data
 touch /var/named/data/named.run
 touch /var/named/data/queries.log
@@ -57,18 +53,15 @@ mkdir -p /etc/dhcp
 for (( i=0; i < ${#ifc[@]}; i++ ))
 do
   cp dhclient-eth0.conf /etc/dhclient-${ifc[$i]}.conf
-  cp dhcp/dhclient-eth0-up-hooks /tmp/dummy
-  sed s/eth0/${ifc[$i]}/g </tmp/dummy  >/etc/dhcp/dhclient-${ifc[$i]}-up-hooks
+  sed s/eth0/${ifc[$i]}/g <dhcp/dhclient-eth0-up-hooks  >/etc/dhcp/dhclient-${ifc[$i]}-up-hooks
   chmod 755 /etc/dhcp/dhclient-${ifc[$i]}-up-hooks
 done
 cp rndc.conf /etc/rndc.conf
 popd
 
-sed /upstream_hints/d </etc/named.conf >/tmp/dummy
-cp /tmp/dummy /etc/named.conf
+sed -i /upstream_hints/d /etc/named.conf
 
 chown -R named:named /var/named
-rm /tmp/dummy
 
 echo "Setup dhcp update hooks"
 cat <<EOF > /etc/dhcp/dhclient.conf
