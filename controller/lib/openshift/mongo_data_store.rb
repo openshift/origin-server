@@ -173,19 +173,21 @@ module OpenShift
                                { "$pull" => { "usage_records" => {"uuid" => {"$in" => uuids}} }} )
     end
 
-    def db
+    def db(connection_opts=nil)
+      options = {:read => :secondary, :connect_timeout => 60}
+      options.merge!(connection_opts) if connection_opts
       if @replica_set
-        con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary, :connect_timeout => 60})
+        con = Mongo::ReplSetConnection.new(*@host_port << options)
       else
-        con = Mongo::Connection.new(@host_port[0], @host_port[1])
+        con = Mongo::Connection.new(@host_port[0], @host_port[1], options)
       end
       user_db = con.db(@db)
       user_db.authenticate(@user, @password)
       user_db
     end
 
-    def user_collection
-      db.collection(@collections[:user])
+    def user_collection(connection_opts=nil)
+      db(connection_opts).collection(@collections[:user])
     end
 
     def find_one(collection, *args)
@@ -231,15 +233,15 @@ module OpenShift
       end
     end
 
-    def find_district(uuid)
+    def find_district(uuid, connection_opts=nil)
       Rails.logger.debug "MongoDataStore.find_district(#{uuid})\n\n"
-      hash = find_one( district_collection, "_id" => uuid )
+      hash = find_one( district_collection(connection_opts), "_id" => uuid )
       hash_to_district_ret(hash)
     end
     
-    def find_district_by_name(name)
+    def find_district_by_name(name, connection_opts=nil)
       Rails.logger.debug "MongoDataStore.find_district_by_name(#{name})\n\n"
-      hash = find_one( district_collection, "name" => name )
+      hash = find_one( district_collection(connection_opts), "name" => name )
       hash_to_district_ret(hash)
     end
     
@@ -619,8 +621,8 @@ module OpenShift
 
     #district
           
-    def district_collection
-      db.collection(@collections[:district])
+    def district_collection(connection_opts=nil)
+      db(connection_opts).collection(@collections[:district])
     end
 
     def cursor_to_district_hash(cursor)

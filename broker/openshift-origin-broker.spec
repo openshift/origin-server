@@ -120,8 +120,6 @@ rm -rf $RPM_BUILD_ROOT
 %dir %attr(0750,-,-) %{brokerdir}/httpd/conf.d
 %{brokerdir}
 %{htmldir}/broker
-%config(noreplace) %{brokerdir}/config/environments/production.rb
-%config(noreplace) %{brokerdir}/config/environments/development.rb
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
 %{_sysconfdir}/openshift/broker-dev.conf
