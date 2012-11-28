@@ -272,6 +272,25 @@ module MCollective
         end
       end
 
+      def oo_force_stop(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+
+        container_uuid = args['--with-container-uuid']
+        app_uuid = args['--with-app-uuid']
+        
+        output = ""
+        begin
+          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
+          container.force_stop
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
       def oo_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
@@ -315,6 +334,8 @@ module MCollective
           rc, output = oo_get_quota(cmd, args)
         when "set-quota"
           rc, output = oo_set_quota(cmd, args)
+        when "force-stop"
+          rc, output = oo_force_stop(cmd, args)
         else
           return nil, nil
         end
@@ -399,8 +420,8 @@ module MCollective
         if exitcode == 0
           Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{output}\n------)")
         else
-          reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
           Log.instance.info("cartridge_do_action failed (#{exitcode})\n------\n#{output}\n------)")
+          reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
         end
       end
      

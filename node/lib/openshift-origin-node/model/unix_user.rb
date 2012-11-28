@@ -178,9 +178,9 @@ module OpenShift
         # 1. Kill off the easy processes
         # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
         # 3. Attempt to move any processes that didn't die into state 'D' (re: cgroups freeze)
-        kill_procs(@uid)
+        self.class.kill_procs(@uid)
         notify_observers(:before_unix_user_destroy)
-        kill_procs(@uid)
+        self.class.kill_procs(@uid)
 
         purge_sysvipc(uuid)
         initialize_openshift_port_proxy
@@ -620,7 +620,7 @@ module OpenShift
     #
     # Raises exception on error.
     #
-    def kill_procs(id)
+    def self.kill_procs(id)
       if id.nil? or id == ""
         raise ArgumentError, "Supplied ID must be a uid."
       end
@@ -630,8 +630,8 @@ module OpenShift
       #    directories by pam_namespace.
       out = err = rc = nil
       10.times do |i|
-        shellCmd(%{/usr/bin/pkill -9 -u #{id}})
-        out,err,rc = shellCmd(%{/usr/bin/pgrep -u #{id}})
+        OpenShift::Utils::ShellExec.shellCmd(%{/usr/bin/pkill -9 -u #{id}})
+        out,err,rc = OpenShift::Utils::ShellExec.shellCmd(%{/usr/bin/pgrep -u #{id}})
         break unless 0 == rc
 
         Syslog.alert "ERROR: attempt #{i}/10 existing killed process pids #{id}: rc: #{rc} out: #{out} err: #{err}"
@@ -640,7 +640,7 @@ module OpenShift
 
       # looks backwards but 0 implies processes still existed
       if 0 == rc
-        out,err,rc = shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
+        out,err,rc = OpenShift::Utils::ShellExec.shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
         Syslog.alert "ERROR: existing killed processes #{id}: rc: #{rc} out: #{out} err: #{err}"
       end
     end
