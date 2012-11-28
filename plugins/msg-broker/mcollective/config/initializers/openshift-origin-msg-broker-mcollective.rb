@@ -19,7 +19,7 @@ Broker::Application.configure do
         :timeout => conf.get("MCOLLECTIVE_TIMEOUT", "60").to_i,
         :verbose => conf.get_bool("MCOLLECTIVE_VERBOSE", "false"),
         :progress_bar => conf.get_bool("MCOLLECTIVE_PROGRESS_BAR", false),
-        :filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => []},
+        :filter => {"identity" => [], "fact" => [], "agent" => [], "cf_class" => [], "compound" => []},
         :config => conf.get("MCOLLECTIVE_CONFIG", "/etc/mcollective/client.cfg"),
       },
       :districts => {

@@ -9,13 +9,6 @@ require 'facter'
 module MCollective
   module Agent
     class Openshift<RPC::Agent
-      metadata    :name        => "Libra Management",
-                  :description => "Agent to manage Libra services",
-                  :author      => "Mike McGrath",
-                  :license     => "ASL 2.0",
-                  :version     => "0.1",
-                  :url         => "http://www.openshift.com",
-                  :timeout     => 240
 
       def echo_action
         validate :msg, String
