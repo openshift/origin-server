@@ -377,11 +377,11 @@ module OpenShift
       end
       
       def force_stop(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "force-stop")
-        else
-          ResultIO.new          
-        end          
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        result = execute_direct(@@C_CONTROLLER, 'force-stop', args)
+        parse_result(result)
       end
       
       def restart(app, gear, cart)
