@@ -21,7 +21,7 @@ class EstimatesController < BaseController
       # Parse given application descriptor
       descriptor.gsub!('\n', "\n")
       descriptor_hash = YAML.load(descriptor)
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid application descriptor") unless descriptor_hash
+      #log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid application descriptor") unless descriptor_hash
       raise OpenShift::EstimatesException.new("Invalid application descriptor.") unless descriptor_hash
     
       # Find app framework
@@ -34,7 +34,7 @@ class EstimatesController < BaseController
       end if descriptor_hash.has_key?('Requires')
       app_name = descriptor_hash['Name'] || nil
 
-      log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Application name or framework not found in the descriptor") if !framework or !app_name
+      #log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Application name or framework not found in the descriptor") if !framework or !app_name
       raise OpenShift::EstimatesException.new("Application name or framework not found in the descriptor.") if !framework or !app_name
 
       # Elaborate app descriptor

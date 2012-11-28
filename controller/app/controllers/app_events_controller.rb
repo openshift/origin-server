@@ -14,9 +14,12 @@ class AppEventsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "APPLICATION_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
 
+    @domain = domain.namespace
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "APPLICATION_EVENT") unless application
+    
+    @app = application.name
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
                         "APPLICATION_EVENT", "event") if ['add-alias', 'remove-alias'].include?(event) && !server_alias
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104,
