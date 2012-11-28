@@ -11,10 +11,6 @@
   - mysql-5.1
   :name: phpmyadmin-3.4
 
-- :requires: 
-  - mongodb-2.2
-  :name: phpmoadmin-1.0
-
 - :name: cron-1.4
   :priority: 2
 
