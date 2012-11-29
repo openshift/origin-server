@@ -135,7 +135,7 @@ When /^I create a new namespace$/ do
 end
 
 When /^I delete the namespace$/ do
-  ec = run("#{$rhc_script} destroy #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
+  ec = run("#{$rhc_script} domain destroy #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
   ec.should be == 0
 end
 
