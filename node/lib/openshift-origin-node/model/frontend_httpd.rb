@@ -18,6 +18,7 @@ require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
 require 'syslog'
+require 'fileutils'
 
 module OpenShift
   
@@ -92,6 +93,7 @@ module OpenShift
       @container_uuid = container_uuid
       @container_name = container_name
       @namespace = namespace
+      @cloud_domain = @config.get("CLOUD_DOMAIN")
     end
 
     # Public: Initialize an empty configuration for this gear
@@ -126,6 +128,8 @@ module OpenShift
 
       path = File.join(basedir, ".httpd.d", "#{container_uuid}_*")
       FileUtils.rm_rf(Dir.glob(path))
+
+      reload_node_web_proxy
 
       async_opt="-b" if async
       out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful")
@@ -185,6 +189,9 @@ module OpenShift
         f.flush
       end
 
+      create_routes_alias(dname)
+      reload_node_web_proxy
+
       out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular graceful")
       Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
 
@@ -202,15 +209,18 @@ module OpenShift
     def remove_alias(name)
       dname = clean_server_name(name)
       path = server_alias_path(dname)
+      routes_file_path = server_routes_alias_path(dname)
 
       FileUtils.rm_f(path) if File.exist?(path)
+      FileUtils.rm_f(routes_file_path) if File.exist?(routes_file_path)
+
+      reload_node_web_proxy
 
       out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular graceful")
       Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
 
       return out, err, rc
     end
-
 
     # Private: Return a cleaned version of the server name
     def clean_server_name(name)
@@ -232,6 +242,37 @@ module OpenShift
       path = File.join(basedir, '.httpd.d', token, "server_alias-#{dname}.conf")
     end
 
+    # Private: Return path to routes alias file name used by ws proxy server
+    def server_routes_alias_path(name)
+      dname = clean_server_name(name)
+
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      path = File.join(basedir, '.httpd.d', token, "routes_alias-#{dname}.json")
+    end
+
+    # Get path to the default routes.json file created for the node web proxy
+    def default_routes_path
+      basedir = @config.get("GEAR_BASE_DIR")
+      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      File.join(basedir, '.httpd.d', token, "routes.json")
+    end
+
+    # Create an alias routing file for the node web proxy server
+    def create_routes_alias(alias_name)
+      route_file = default_routes_path
+      alias_file = File.join(File.dirname(route_file), "routes_alias-#{alias_name}.json")
+      cmd = "sed 's/#{@container_name}-#{@namespace}\.#{@cloud_domain}/#{alias_name}/g' #{route_file} > #{alias_file}"
+
+      out, err, rc = shellCmd(cmd)
+      Syslog.alert("ERROR: Failure trying to create routes alias json file(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+    end
+
+    # Reload the configuration of the node web proxy server
+    def reload_node_web_proxy
+      out, err, rc = shellCmd("service openshift-node-web-proxy reload")
+      Syslog.alert("ERROR: failure from openshift-node-web-proxy(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+    end
   end
 
 end

@@ -1,0 +1,114 @@
+{
+  "help": {
+    "loggers"    : {
+      "description": "Dictionary of the loggers",
+      "file"       : "Log file name",
+      "rollover": {
+        "description"   : "Log rollover configuration",
+        "max-size-bytes": "Max size of file in bytes (TODO)",
+        "frequency"     : [ "How often log files are rotated. One of: ",
+                            "daily, 1day, 2days, 3days, 4days, 5days, ",
+                            "7days,weekly" ],
+        "suffix"        : "Rolled over log file suffix",
+        "max-retention" : "How many rolled over copies to retain"
+      }
+    },
+
+    "pidfile": "PID file location - write server pid to this file", 
+
+    "routes": {
+      "description": "Dictionary for configuration of routes",
+      "files"      : [ "List of files/single file that contains the ",
+                       "routing information" ],
+      "cmd"        : [ "External system command to run to get a list of ",
+                       "1 or more files containing the routing info"],
+      "redirect404": "Redirect URI to use if there is no route"
+    },
+
+    "servers":  {
+      "description": "Dictionary of all the 'servers' we run",
+      "ports"      : "List of ports/single port a specific server binds to",
+      "protocol"   : "Protocol a specific server supports",
+      "routes"     : {
+        "description": "Routes configuration",
+        "files":       "One or more JSON files containing the routes",
+        "cmd":         [ "External command to run to get a list of files ",
+                         "containing the routes" ]
+      },
+      "ssl"        : {
+        "description": "SSL server configuration",
+        "certificate": "Certificate file - used for security negotiations",
+        "private_key": "Private key associated with the Certificate"
+      }
+    },
+
+
+    "timeouts"   : {
+      "description": "Timeout settings in seconds",
+      "connect"    : "Connection timeout to backend servers.",
+      "check"      : [ "Backend server check interval. Controls how often ",
+                       "we check routing to a previously assumed down ", 
+                       "backend server."
+                    ],
+      "io"         : "Client IO - really timeouts reading from clients",
+      "keep-alive" : "Keep-Alive idle (no traffic) timeout",
+      "websockets" : "WebSocket idle (no traffic) timeout"
+    }
+
+  },
+
+  "loggers": {
+    "access.log": {
+      "file"    : "/tmp/node-web-proxy/access.log",
+      "rollover": {
+        "frequency"     : "daily",
+        "suffix"        : "%F",
+        "max-retention" : 7
+      }
+    },
+
+    "error.log": {
+      "file"    : "/tmp/node-web-proxy/error.log",
+      "rollover": {
+        "max-size-bytes" : "TODO-add-support",
+        "frequency"      : "daily",
+        "suffix"         : "%F",
+        "max-retention"  : 7
+      }
+    }
+  },
+
+  "pidfile": "/tmp/node-web-proxy.pid",
+
+  "routes": {
+    "files"      : "/tmp/node-web-proxy/routes-vhost.json",
+    "unused"     : { "cmd": "/usr/bin/node-find-proxy-route-files" },
+    "redirect404": "https://openshift.redhat.com/app"
+  },
+
+  "servers": {
+    "nonsecure_http_proxy": {
+      "ports"   : [ 8000 ],
+      "protocol": "http"
+    },
+
+    "secure_http_proxy": {
+      "ports"   : [ 8443 ],
+      "protocol": "http",
+      "ssl"     : {
+        "certificate": "/tmp/localhost.crt",
+        "private_key": "/tmp/localhost.key"
+      }
+    }
+  },
+
+  "timeouts": {
+    "description": [ "Timeout values are all specified in seconds" ],
+    "connect"    : 10,
+    "io"         : 300,
+    "keep-alive" : 60,
+    "websockets" : 3600
+  }
+
+}
+
