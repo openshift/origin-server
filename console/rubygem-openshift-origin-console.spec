@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -123,6 +123,15 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- Remove unused phpmoadmin cartridge (jhonce@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- Merge pull request #960 from smarterclayton/no_python_filter
+  (openshift+bot@redhat.com)
+- No python filter in the UI (ccoleman@redhat.com)
+- Revised formtastic to handle hints for inline elements (hripps@redhat.com)
+- Bug 877979 - Instant app tag should be visible to users (ccoleman@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
