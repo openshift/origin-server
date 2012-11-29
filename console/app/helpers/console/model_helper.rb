@@ -40,6 +40,14 @@ module Console::ModelHelper
     "OpenShift runs each cartridge inside one or more gears on a server and is allocated a fixed portion of CPU time and memory use."
   end
 
+  def cartridge_storage(cart, gears = 0)
+    str = "%s GB" % cart.total_storage
+    if gears > 1
+      str << " x #{gears}"
+    end
+    str
+  end
+
   def scale_range(from, to, max, max_choices)
     limit = to == -1 ? max : to
     return if limit > max_choices
@@ -59,6 +67,10 @@ module Console::ModelHelper
     else
       {:as => :string, :hint => 'Use -1 to scale to your current account limits'}
     end
+  end
+
+  def additional_storage_options(obj)
+    {:as => :select, :collection => (0..obj.max_storage_per_gear), :include_blank => false}
   end
 
   def scale_options

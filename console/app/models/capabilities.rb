@@ -10,6 +10,10 @@ module Capabilities
     @gear_sizes ||= capabilities[:gear_sizes].map(&:to_sym)
   end
 
+  def max_storage_per_gear
+    @max_storage_per_gear ||= Integer(capabilities[:max_storage_per_gear]) rescue 0
+  end
+
   def to_capabilities
     Capabilities::Cacheable.from(self)
   end
@@ -28,7 +32,7 @@ module Capabilities
     include Helpers
 
     # Changing this order will break serialization of cached data
-    ATTRS = [:max_gears, :consumed_gears, :gear_sizes].each{ |s| attr_reader s }
+    ATTRS = [:max_gears, :consumed_gears, :gear_sizes, :max_storage_per_gear].each{ |s| attr_reader s }
 
     def initialize(*args)
       arg = args.each
@@ -57,6 +61,9 @@ module Capabilities
       end
       def gear_sizes=(arr)
         @gear_sizes = Array(arr)
+      end
+      def max_storage_per_gear=(i)
+        @max_storage_per_gear = Integer(i) rescue 0
       end
   end
 end

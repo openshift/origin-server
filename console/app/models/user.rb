@@ -24,4 +24,8 @@ class User < RestApi::Base
     @plan_id = plan.is_a?(String) ? plan : plan.id
   end
 
+  def can_modify_storage?
+    max_storage_per_gear > 0
+  end
+
 end

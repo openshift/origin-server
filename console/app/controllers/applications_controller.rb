@@ -165,6 +165,7 @@ class ApplicationsController < ConsoleController
   def show
     #@domain = Domain.find :one, :as => current_user
     user_default_domain
+    @user = User.find :one, :as => current_user
     @application = @domain.find_application params[:id]
 
     async{ @gear_groups = @application.cartridge_gear_groups }
