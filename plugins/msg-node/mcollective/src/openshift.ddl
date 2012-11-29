@@ -4,7 +4,7 @@ metadata    :name        => "Openshift Origin Management",
             :license     => "ASL 2.0",
             :version     => "0.1",
             :url         => "http://www.openshift.com",
-            :timeout     => 60
+            :timeout     => 240
 
 
 action "cartridge_do", :description => "run a cartridge action" do

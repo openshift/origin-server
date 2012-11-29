@@ -9,8 +9,8 @@ require 'facter'
 module MCollective
   module Agent
     class Openshift<RPC::Agent
-      metadata    :name        => "Libra Management",
-                  :description => "Agent to manage Libra services",
+      metadata    :name        => "OpenShift Agent",
+                  :description => "Agent to manage OpenShift services",
                   :author      => "Mike McGrath",
                   :license     => "ASL 2.0",
                   :version     => "0.1",
