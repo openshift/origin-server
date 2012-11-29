@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
 Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 1.2.1
+Version: 1.2.2
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -68,6 +68,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- Merge pull request #962 from danmcp/master (openshift+bot@redhat.com)
+- Merge pull request #905 from kraman/ruby19 (openshift+bot@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- F18 compatibility fixes   - apache 2.4   - mongo journaling   - JDK 7   -
+  parseconfig gem update Bugfix for Bind DNS plugin (kraman@gmail.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
