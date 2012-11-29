@@ -24,7 +24,7 @@ class DomainsController < BaseController
 
     domain = Domain.get(@cloud_user, id)
     if domain and domain.hasAccess?(@cloud_user)
-      @domain = domain.namespace
+      @domain_name = domain.namespace
       if $requested_api_version >= 1.3
         domain = RestDomain.new(domain, get_url, nolinks)
       else
@@ -57,7 +57,7 @@ class DomainsController < BaseController
 
     return render_error(:conflict, "Domain already exists for user. Update the domain to modify.", 158, "ADD_DOMAIN") if !@cloud_user.domains.empty?
 
-    @domain = namespace
+    @domain_name = namespace
     begin
       domain.save
     rescue Exception => e
@@ -105,7 +105,7 @@ class DomainsController < BaseController
       return render_format_error(:unprocessable_entity, nil, nil, "UPDATE_DOMAIN", nil, nil, messages)
     end
 
-    @domain = id
+    @domain_name = id
     begin
       domain.save
     rescue Exception => e
@@ -145,7 +145,7 @@ class DomainsController < BaseController
       end if @cloud_user.applications
     end
 
-    @domain = id
+    @domain_name = id
     begin
       domain.delete
       render_format_success(:no_content, nil, nil, "DELETE_DOMAIN", "Domain #{id} deleted.", true)

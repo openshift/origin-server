@@ -12,13 +12,14 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "LIST_APP_CARTRIDGES") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "LIST_APP_CARTRIDGES") unless application
 
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     cartridges = Array.new
     cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nil, nolinks)) if $requested_api_version != 1.0
 
@@ -46,13 +47,14 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
     application = get_application(application_id)
     return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'",
                         101, "SHOW_APP_CARTRIDGE") if !application
    
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     cartridge = nil 
     application.embedded.each do |key, value|
       if key == id
@@ -99,12 +101,13 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "EMBED_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "EMBED_CARTRIDGE") unless application
 
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     begin
       #container = OpenShift::ApplicationContainerProxy.find_available(application.server_identity)
       container = OpenShift::ApplicationContainerProxy.find_available(nil)
@@ -163,12 +166,13 @@ class EmbCartController < BaseController
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "REMOVE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     application = get_application(id)
     return render_format_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                                101, "REMOVE_CARTRIDGE") unless application
     
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     return render_format_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
                                129, "REMOVE_CARTRIDGE") if !application.embedded or !application.embedded.has_key?(cartridge)
 
@@ -201,12 +205,13 @@ class EmbCartController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "UPDATE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     app = get_application(app_id)
     return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
                         101, "UPDATE_CARTRIDGE") unless app
                         
-    @app = app.name
+    @application_name = app.name
+    @application_uuid = app.uuid
     storage_map = {}
     app.comp_instance_map.values.each do |cinst|
       if cinst.parent_cart_name==cartridge_name

@@ -11,12 +11,13 @@ class GearsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "LIST_GEARS") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     app = get_application(app_id)
     return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
                         101, "LIST_GEARS") unless app
    
-    @app = app.name
+    @application_name = app.name
+    @application_uuid = app.uuid
     begin 
       app_gears_info = []
       gears = app.group_instances.uniq.map{ |ginst| ginst.gears }.flatten

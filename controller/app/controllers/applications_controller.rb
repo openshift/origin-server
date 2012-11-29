@@ -11,7 +11,7 @@ class ApplicationsController < BaseController
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "LIST_APPLICATIONS") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     applications = Application.find_all(@cloud_user)
     apps = Array.new
     applications.each do |application|
@@ -38,12 +38,13 @@ class ApplicationsController < BaseController
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "SHOW_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "SHOW_APPLICATION") if !application or application.domain.uuid != domain.uuid
 
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
     elsif $requested_api_version < 1.3
@@ -69,7 +70,7 @@ class ApplicationsController < BaseController
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "ADD_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
 
@@ -124,6 +125,7 @@ class ApplicationsController < BaseController
       return render_error(:unprocessable_entity, nil, nil, "ADD_APPLICATION", nil, nil, messages)
     end
  
+    @application_name = application.name
     begin
       application.user_agent = request.headers['User-Agent']
       Rails.logger.debug "Creating application #{application.name}"
@@ -140,7 +142,7 @@ class ApplicationsController < BaseController
         Rails.logger.debug "Creating dns"
         application.create_dns
       rescue Exception => e
-        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}")
+        log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "ADD_APPLICATION", false, "Failed to create dns for application #{application.name}: #{e.message}", get_extra_log_args)
         application.destroy_dns
         raise
       end
@@ -181,12 +183,13 @@ class ApplicationsController < BaseController
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "DELETE_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     application = get_application(id)
     return render_format_error(:not_found, "Application #{id} not found.", 101,
                                "DELETE_APPLICATION") if !application or application.domain.uuid != domain.uuid
     
-    @app = application.name
+    @application_name = application.name
+    @application_uuid = application.uuid
     begin
       Rails.logger.debug "Deleting application #{id}"
       application.cleanup_and_delete()
