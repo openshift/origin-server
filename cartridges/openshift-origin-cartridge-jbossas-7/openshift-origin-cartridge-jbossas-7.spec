@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.2.1
+Version: 1.2.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -154,6 +154,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- BZ881365 (bdecoste@gmail.com)
+- Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
+- [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
+- Move force-stop into the the node library (ironcladlou@gmail.com)
+- Merge pull request #976 from jwhonce/dev/rm_post-remove
+  (openshift+bot@redhat.com)
+- US2770: [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
+- US2770: [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
