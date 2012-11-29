@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,10 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- fix require for fedora (dmcphers@redhat.com)
+- add util package for oo-ruby (dmcphers@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
