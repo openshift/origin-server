@@ -4,9 +4,11 @@
 %endif
 %if 0%{?fedora}
     %global vendor_ruby /usr/share/ruby/vendor_ruby/
+    %global mco_root /usr/libexec/mcollective/mcollective/
 %endif
 %if 0%{?rhel}
     %global vendor_ruby /opt/rh/ruby193/root/usr/share/ruby/vendor_ruby/
+    %global mco_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/
 %endif
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
@@ -44,21 +46,24 @@ rm -rf %{buildroot}
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/agent
+mkdir -p %{buildroot}%{mco_root}agent
+mkdir -p %{buildroot}%{mco_root}validator
 mkdir -p %{buildroot}%{vendor_ruby}facter
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
-cp src/openshift.rb %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp src/openshift.ddl %{buildroot}/usr/libexec/mcollective/mcollective/agent/
-cp facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter
+cp src/openshift.rb %{buildroot}%{mco_root}agent/
+cp src/openshift.ddl %{buildroot}%{mco_root}agent/
+cp src/any_validator.rb %{buildroot}%{mco_root}validator/
+cp facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
 cp facts/openshift-facts %{buildroot}/etc/cron.minutely/
 cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 %files
 %defattr(-,root,root,-)
-/usr/libexec/mcollective/mcollective/agent/openshift.rb
-/usr/libexec/mcollective/mcollective/agent/openshift.ddl
+%{mco_root}agent/openshift.rb
+%{mco_root}agent/openshift.ddl
+%{mco_root}validator/any_validator.rb
 %{vendor_ruby}facter/openshift_facts.rb
 %attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
 %attr(0700,-,-) /etc/cron.minutely/openshift-facts
