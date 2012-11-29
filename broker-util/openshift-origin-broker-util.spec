@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -67,6 +67,33 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-broker.8.gz
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- Merge pull request #507 from mscherer/remove_hardcoded_tmp
+  (openshift+bot@redhat.com)
+- rewording (dmcphers@redhat.com)
+- give a different error if a node isn't returned by mcollective
+  (dmcphers@redhat.com)
+- Bug 880285 (dmcphers@redhat.com)
+- fix desc (dmcphers@redhat.com)
+- adding remove cartridge and various cleanup (dmcphers@redhat.com)
+- removegear -> remove-gear for consistency (dmcphers@redhat.com)
+- avoid timeout on long running query in a safe way (dmcphers@redhat.com)
+- use a more reasonable large disctimeout (dmcphers@redhat.com)
+- exit code and usage cleanup (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Working around scl enable limitations with parameter passing
+  (dmcphers@redhat.com)
+- increase disc timeout on admin chk (dmcphers@redhat.com)
+- Merge pull request #962 from danmcp/master (openshift+bot@redhat.com)
+- Merge pull request #905 from kraman/ruby19 (openshift+bot@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- reform the get_all_gears call and add capability to reserve a specific uid
+  from a district (rchopra@redhat.com)
+- fix for bug#877886 (rchopra@redhat.com)
+- F18 compatibility fixes   - apache 2.4   - mongo journaling   - JDK 7   -
+  parseconfig gem update Bugfix for Bind DNS plugin (kraman@gmail.com)
+- remove various hardcoded usage of file in /tmp (mscherer@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
