@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -71,6 +71,16 @@ cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- add any validator for mco 2.2 (dmcphers@redhat.com)
+- Various mcollective changes getting ready for 2.2 (dmcphers@redhat.com)
+- Move force-stop into the the node library (ironcladlou@gmail.com)
+- add backtraces to error conditions in agent (dmcphers@redhat.com)
+- Changing same uid move to rsync (dmcphers@redhat.com)
+- use /bin/env for cron (dmcphers@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- Add method to get the active gears (dmcphers@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
