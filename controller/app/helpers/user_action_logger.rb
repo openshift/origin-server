@@ -13,7 +13,7 @@ module UserActionLogger
     @@action_logger
   end
   
-  def log_action(request_id, user_id, login, action, success = true, description = "")
+  def log_action(request_id, user_id, login, action, success = true, description = "", args = {})
     log_level = success ? Logger::DEBUG : Logger::ERROR
     action_logger = get_action_logger()
 
@@ -22,7 +22,12 @@ module UserActionLogger
       time_obj = Time.new
       date = time_obj.strftime("%Y-%m-%d")
       time = time_obj.strftime("%H:%M:%S")
-      action_logger.info("#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{request_id} USER_ID=#{user_id} LOGIN=#{login} #{description}")
+      
+      message = "#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{request_id} USER_ID=#{user_id} LOGIN=#{login}"
+      message += " DOMAIN=#{@domain}" if args.key?("DOMAIN")
+      message += " APP=#{@app}" if args.key?("APP")
+      
+      action_logger.info("#{message} #{description}")
     end
     
     # Using a block prevents the message in the block from being executed 
