@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -87,6 +87,22 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- Various mcollective changes getting ready for 2.2 (dmcphers@redhat.com)
+- Move force-stop into the the node library (ironcladlou@gmail.com)
+- BZ876465  Embedding scalable app (php) with jenkins fails to create a new
+  builder (calfonso@redhat.com)
+- use a more reasonable large disctimeout (dmcphers@redhat.com)
+- Changing same uid move to rsync (dmcphers@redhat.com)
+- Merge pull request #957 from rajatchopra/master (openshift+bot@redhat.com)
+- Merge pull request #956 from danmcp/master (openshift+bot@redhat.com)
+- fix get_all_gears to provide Integer value of uid (rchopra@redhat.com)
+- Merge pull request #953 from rajatchopra/master (dmcphers@redhat.com)
+- Add method to get the active gears (dmcphers@redhat.com)
+- add obsoletes (dmcphers@redhat.com)
+- reform the get_all_gears call and add capability to reserve a specific uid
+  from a district (rchopra@redhat.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
