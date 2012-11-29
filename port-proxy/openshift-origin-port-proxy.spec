@@ -1,11 +1,10 @@
-Summary:       Script to configure HAProxy to do port forwarding from internal to external port
+Summary:       Script to configure HAProxy to do port forwarding for OpenShift
 Name:          openshift-origin-port-proxy
 Version: 1.1.1
 Release:       1%{?dist}
-Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
-Source0:       openshift-origin-port-proxy-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch:     noarch
 
 # The haproxy daemon is used as the functioning tcp proxy
@@ -13,8 +12,8 @@ Requires:      haproxy
 
 # OpenShift Origin node configuration and /etc/openshift
 Requires:      rubygem(openshift-origin-node)
+Requires:      sed
 Obsoletes:     stickshift-port-proxy
-
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
@@ -22,9 +21,14 @@ Obsoletes:     stickshift-port-proxy
 %define with_systemd 0
 %endif
 
+%if %{with_systemd}
+BuildRequires: systemd-units
+Requires:  systemd-units
+%endif
 
 %description
-Script to configure HAProxy to do port forwarding from internal to external port
+OpenShift script to configure HAProxy to do port forwarding
+from internal to external ports.
 
 %prep
 %setup -q
@@ -32,8 +36,6 @@ Script to configure HAProxy to do port forwarding from internal to external port
 %build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
