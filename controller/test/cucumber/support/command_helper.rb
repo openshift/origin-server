@@ -167,6 +167,7 @@ module CommandHelper
     rhc_do('rhc_tidy') do
       run("#{$rhc_script} app tidy -l #{app.login} -a #{app.name} -p #{app.password} -d").should == 0
     end
+    log_event "#{time} TIDY_APP #{app.name} #{app.login}"
   end
 
   def rhc_create_app(app, use_hosts=true, misc_opts='')
@@ -270,7 +271,7 @@ module CommandHelper
       end
       log_event "#{time} STOP_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app status -l #{app.login} -p #{app.password} #{app.name}  | grep '#{app.get_stop_string}'").should == 0
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -301,9 +302,9 @@ module CommandHelper
       end
       log_event "#{time} START_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app status -l #{app.login} -p #{app.password} #{app.name} | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 1
       end
-      log_event "#{time} STOP_APP #{app.name} #{app.login}"
+      log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
   end
 
@@ -314,7 +315,7 @@ module CommandHelper
       end
       log_event "#{time} RESTART_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app status -l #{app.login} -p #{app.password} #{app.name} | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 1
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -323,11 +324,11 @@ module CommandHelper
   def rhc_ctl_destroy(app, use_hosts=true)
     rhc_do('rhc_ctl_destroy') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app destroy -l #{app.login} -p #{app.password} #{app.name} -b -d").should == 0
+        run("#{$rhc_script} app destroy -l #{app.login} -p #{app.password} #{app.name} --confirm -d").should == 0
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app status -l #{app.login} -p #{app.password} #{app.name} | grep 'does not exist'").should == 0
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep 'does not exist'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
       run("sed -i '/#{app.name}-#{app.namespace}.#{$domain}/d' /etc/hosts") if use_hosts
