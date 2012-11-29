@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,25 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
+- changes for US3078 (abhgupta@redhat.com)
+- Remove unused phpmoadmin cartridge (jhonce@redhat.com)
+- Bug 880370 (dmcphers@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- Merge pull request #945 from smarterclayton/improve_invalid_cart_message
+  (openshift+bot@redhat.com)
+- Improve the invalid cart message to read more naturally for users, and to
+  better reflect what the user has passed. (ccoleman@redhat.com)
+- Merge pull request #956 from danmcp/master (openshift+bot@redhat.com)
+- Merge pull request #954 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
+- Merge pull request #953 from rajatchopra/master (dmcphers@redhat.com)
+- Add method to get the active gears (dmcphers@redhat.com)
+- Fix for bug 875442 (abhgupta@redhat.com)
+- reform the get_all_gears call and add capability to reserve a specific uid
+  from a district (rchopra@redhat.com)
+- Merge pull request #915 from Miciah/devenv-fixes-1 (openshift+bot@redhat.com)
+- Fix tests to work with remote-user auth (miciah.masters@gmail.com)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
