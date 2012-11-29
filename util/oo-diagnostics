@@ -1,0 +1,651 @@
+#!/usr/bin/ruby
+# May need to "ruby oo-diagnostics" to use proper ruby.
+# Run with "-h" for usage.
+#
+# This diagnostic script checks for various commonly-encountered problems
+# on OpenShift hosts. It is intended to evolve quickly in response to
+# actual problems experienced. It does not perform any function or send
+# results anywhere; it just outputs diagnostic information which may be
+# of some use in troubleshooting.
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+class OODiag
+
+  require 'rubygems'
+
+  def initialize(options = nil)
+    @options = options || @options || {
+      :wait => 5,
+      :verbose => false,
+    }
+    @errors = 0
+    @warns = 0
+    @is_broker=false
+    @is_node=false
+    @rpms={}
+    @project_is={}
+    @os_is={}
+  end
+
+  def run_setup
+    initialize
+    load_rpm_list
+    detect_is_node_or_broker
+    detect_project_version
+    detect_os_version
+    load_broker_rails_env if @is_broker
+  end
+
+  def run_tests
+    tests = @options[:tests]
+    tests.nil? || tests.empty? and tests = self.class.instance_methods.select {|m| m.to_s.start_with? "test_"}
+    tests.each do |m|
+      begin
+        verbose "running: #{m}"
+        send m
+      rescue SkipTest
+        verbose "skipping #{m}"
+      rescue StandardError => e
+        do_fail "error running #{m}: #{e.inspect}"
+      end
+    end
+    return [@warns, @errors]
+  end
+
+  ######## UTILITIES ########
+
+  def called_from; caller[1][/`([^']*)'/, 1]; end
+
+  def verbose(msg)
+    @options[:verbose] and $stdout.write("INFO: #{msg}\n")
+  end
+
+  def do_fail(msg)
+    eputs("FAIL: #{called_from}\n" + msg)
+    @errors += 1
+  end
+
+  def eputs(msg)
+    $stderr.write "\e[#{31}m#{msg}\e[0m\n"
+  end
+
+  def do_warn(msg)
+    wputs("WARN: #{called_from}\n" + msg)
+    @warns += 1
+  end
+
+  def wputs(msg)
+    $stderr.write "\e[#{33}m#{msg}\e[0m\n"
+  end
+
+  class SkipTest < StandardError; end
+  def skip_test
+    raise SkipTest
+  end
+
+  # when you need two string arrays to be the same length
+  def pad_arrays!(a, b)
+    a << "0" while a.length < b.length
+    b << "0" while b.length < a.length
+  end
+
+  def is_rpm_minimum_version?(rpm_hash, need_version="", need_release="")
+    # this doesn't account for epoch versions. revise if needed.
+    #
+    # get hash if we were passed a string
+    rpm_hash = @rpms[rpm_hash] or return false if rpm_hash.is_a? String
+    # split out the version/release strings
+    rpm_version = rpm_hash[:version].split '.'
+    rpm_release = rpm_hash[:release].split '.'
+    req_version = need_version.split '.'
+    req_release = need_release.split '.'
+    # pad array lengths with "0" entries so position comparison are equal
+    pad_arrays!(req_version, rpm_version)
+    pad_arrays!(req_release, rpm_release)
+    # pad entries with space and we can just compare string-wise
+    rpm_normalized = (rpm_version+rpm_release).map {|x| '%10s' % x}.join
+    req_normalized = (req_version+req_release).map {|x| '%10s' % x}.join
+    return rpm_normalized >= req_normalized
+  end
+
+  def require_rpm_minimum_version(rpm, need_version="0", need_release="0")
+    unless rpm_hash = @rpms[rpm]
+      do_fail "rpm #{rpm} is not installed"
+      return
+    end
+    if is_rpm_minimum_version?(rpm_hash, need_version, need_release)
+      verbose "rpm #{rpm} installed with at least version #{need_version}-#{need_release}"
+    else
+      do_fail "rpm #{rpm} installed with version #{rpm_hash[:version]}-#{rpm_hash[:release]}; need at least #{need_version}-#{need_release}"
+    end
+  end
+
+  def run_script(script)
+    verbose "running #{script}"
+    output = `#{script} 2>&1`
+    rc = $?.exitstatus
+    if rc == 0
+      verbose "#{script} ran without error:\n--BEGIN OUTPUT--\n#{output}\n--END #{script} OUTPUT--"
+    else
+      do_fail "#{script} had errors:\n--BEGIN OUTPUT--\n#{output}\n--END #{script} OUTPUT--"
+    end
+  end
+
+######## SETUP #############
+
+  def load_rpm_list
+    verbose "loading list of installed packages"
+    `rpm -qa --qf '%{NAME}|%{VERSION}|%{RELEASE}\n'`.split.each do |rpm|
+      rpm = rpm.split '|'
+      @rpms[rpm[0]] = {
+        :name => rpm[0],
+        :version => rpm[1],
+        :release => rpm[2],
+      }
+    end
+    return @rpms
+  end
+
+  def detect_is_node_or_broker
+    @is_broker = %w[openshift-origin-broker rhc-broker].any? {|name| @rpms[name]}
+    verbose "OpenShift broker installed." if @is_broker
+    @is_node= %w[rubygem-openshift-origin-node rhc-node].any? {|name| @rpms[name]}
+    verbose "OpenShift node installed." if @is_node
+    return @is_broker, @is_node
+  end
+
+  def detect_project_version
+    # These tests probably need a lot of work to be robust
+    #
+    @project_is = {}
+    # It's OpenShift Enterprise if there are any el6op RPMs on the system.
+    @project_is[:enterprise] = @rpms.values.select {|rpm| rpm[:release].include? 'el6op'}.length > 0
+    # It's OpenShift Online if not Enterprise but there are RHEL6 RPMs
+    @project_is[:online] = (!@project_is[:enterprise]) &&
+                           @rpms.values.select {|rpm| rpm[:release].include? 'el6'}.length > 0
+    # It's OpenShift Origin otherwise...
+    @project_is[:origin] = !(@project_is[:enterprise] || @project_is[:online])
+
+    return @project_is
+  end
+
+  def detect_os_version
+    # looking for RHEL or Fedora version via /etc/redhat-release
+    # If something else... I dunno
+    release = File.read '/etc/redhat-release'
+    @os_is = {
+      # e.g. Fedora release 17 (Beefy Miracle)
+      :fedora => release.include?('Fedora'),
+      :fedora16 => release.include?('Fedora release 16'),
+      :fedora17 => release.include?('Fedora release 17'),
+      :fedora18 => release.include?('Fedora release 18'),
+      # e.g. Red Hat Enterprise Linux Server release 6.3 (Santiago)
+      :rhel => release.include?('Enterprise Linux'),
+      :rhel6 => release.include?('Enterprise Linux Server release 6'),
+      :rhel7 => release.include?('Enterprise Linux Server release 7'),
+    }
+    return @os_is
+  end
+
+  def load_broker_rails_env
+      require "/var/www/openshift/broker/config/environment"
+      # Disable analytics for admin scripts
+      Rails.configuration.analytics[:enabled] = false
+      Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+  end
+
+######## TESTS #############
+
+  OPENSHIFT_RPMS = %w[ activemq activemq-client facter firebird
+    firebird-classic firebird-debuginfo firebird-devel firebird-doc
+    firebird-filesystem firebird-libfbclient firebird-libfbembed
+    firebird-superserver freetds freetds-debuginfo freetds-devel freetds-doc geos
+    geos-debuginfo geos-devel geos-python geos-ruby haproxy haproxy-debuginfo
+    jboss-eap6-index jboss-eap6-modules jenkins jenkins-plugin-openshift js
+    js-debuginfo js-devel libev libev-debuginfo libev-devel libev-source
+    libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb mcollective
+    mcollective-client mcollective-common mod_bw mod_bw-debuginfo mod_passenger
+    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
+    openshift-origin-broker openshift-origin-broker-util
+    openshift-origin-cartridge-abstract openshift-origin-cartridge-cron-1.4
+    openshift-origin-cartridge-diy-0.1 openshift-origin-cartridge-haproxy-1.4
+    openshift-origin-cartridge-jbosseap-6.0
+    openshift-origin-cartridge-jbossews-1.0
+    openshift-origin-cartridge-jenkins-1.4
+    openshift-origin-cartridge-jenkins-client-1.4
+    openshift-origin-cartridge-mysql-5.1 openshift-origin-cartridge-perl-5.10
+    openshift-origin-cartridge-php-5.3 openshift-origin-cartridge-postgresql-8.4
+    openshift-origin-cartridge-python-2.6 openshift-origin-cartridge-ruby-1.8
+    openshift-origin-cartridge-ruby-1.9-scl openshift-origin-msg-node-mcollective
+    openshift-origin-node-util openshift-origin-port-proxy pam_openshift
+    pam_openshift-debuginfo perl-Algorithm-C3 perl-App-cpanminus perl-Class-C3
+    perl-Class-C3-XS perl-Class-C3-XS-debuginfo perl-Class-DBI perl-Class-DBI-Pg
+    perl-Class-Factory-Util perl-Class-MOP perl-Class-MOP-debuginfo
+    perl-Class-Method-Modifiers perl-DBIx-ContextualFetch perl-DBM-Deep
+    perl-Data-Types perl-Date-Simple perl-Date-Simple-debuginfo
+    perl-DateTime-Calendar-Mayan perl-DateTime-Format-Builder
+    perl-DateTime-Format-HTTP perl-DateTime-Format-IBeat
+    perl-DateTime-Format-MySQL perl-DateTime-Format-Pg
+    perl-DateTime-Format-Strptime perl-DateTime-debuginfo
+    perl-Declare-Constraints-Simple perl-Devel-GlobalDestruction
+    perl-Devel-GlobalDestruction-debuginfo perl-ExtUtils-AutoInstall perl-Ima-DBI
+    perl-Lingua-EN-Inflect perl-MRO-Compat perl-Module-Refresh perl-Moose
+    perl-Mouse perl-Mouse-debuginfo perl-Params-Coerce perl-Path-Class
+    perl-Pod-Eventual perl-SUPER perl-Scope-Guard perl-Sort-Versions
+    perl-Sub-Identify perl-Sub-Identify-debuginfo perl-Sub-Name
+    perl-Sub-Name-debuginfo perl-Test-EOL perl-Test-Fatal perl-Test-Moose
+    perl-Test-NoTabs perl-Test-Requires perl-Time-Piece-MySQL perl-Try-Tiny
+    perl-UNIVERSAL-moniker perl-UNIVERSAL-require perl-aliased php-extras
+    php-extras-debuginfo php-interbase php-mcrypt php-mssql php-pear-MDB2
+    php-pear-MDB2-Driver-pgsql php-php-gettext postgis postgis-debuginfo
+    postgis-docs postgis-jdbc postgis-utils postgresql-ip4r
+    postgresql-ip4r-debuginfo proj proj-debuginfo proj-devel proj-epsg proj-nad
+    proj-static python-virtualenv ragel ragel-debuginfo rhc ruby-RMagick
+    ruby-RMagick-debuginfo ruby-RMagick-doc ruby-hpricot ruby-json ruby-mysql
+    ruby-mysql-debuginfo ruby-nokogiri ruby-openshift-origin-auth-mongo
+    ruby-openshift-origin-common ruby-openshift-origin-controller
+    ruby-openshift-origin-dns-bind ruby-openshift-origin-msg-broker-mcollective
+    ruby-openshift-origin-node ruby-postgres ruby-postgres-debuginfo ruby-sqlite3
+    ruby-systemu ruby193-js ruby193-js-debuginfo ruby193-js-devel
+    ruby193-mod_passenger ruby193-ruby-mysql ruby193-ruby-mysql-debuginfo
+    ruby193-rubygem-addressable ruby193-rubygem-addressable-doc
+    ruby193-rubygem-bson ruby193-rubygem-bson_ext
+    ruby193-rubygem-bson_ext-debuginfo ruby193-rubygem-bson_ext-doc
+    ruby193-rubygem-chunky_png ruby193-rubygem-ci_reporter
+    ruby193-rubygem-compass ruby193-rubygem-compass-rails
+    ruby193-rubygem-compass-rails-doc ruby193-rubygem-crack
+    ruby193-rubygem-crack-doc ruby193-rubygem-daemon_controller
+    ruby193-rubygem-daemon_controller-doc ruby193-rubygem-fastthread
+    ruby193-rubygem-fastthread-debuginfo ruby193-rubygem-file-tail
+    ruby193-rubygem-file-tail-doc ruby193-rubygem-formtastic
+    ruby193-rubygem-formtastic-doc ruby193-rubygem-fssm ruby193-rubygem-fssm-doc
+    ruby193-rubygem-haml ruby193-rubygem-mongo ruby193-rubygem-mongo-doc
+    ruby193-rubygem-open4 ruby193-rubygem-open4-doc ruby193-rubygem-passenger
+    ruby193-rubygem-passenger-debuginfo ruby193-rubygem-passenger-devel
+    ruby193-rubygem-passenger-doc ruby193-rubygem-passenger-native
+    ruby193-rubygem-passenger-native-libs ruby193-rubygem-pg
+    ruby193-rubygem-pg-debuginfo ruby193-rubygem-pg-doc ruby193-rubygem-rdiscount
+    ruby193-rubygem-rdiscount-debuginfo ruby193-rubygem-rdiscount-doc
+    ruby193-rubygem-ruby2ruby ruby193-rubygem-ruby2ruby-doc
+    ruby193-rubygem-ruby_parser ruby193-rubygem-ruby_parser-doc
+    ruby193-rubygem-sexp_processor ruby193-rubygem-sexp_processor-doc
+    ruby193-rubygem-shoulda ruby193-rubygem-shoulda-doc ruby193-rubygem-simplecov
+    ruby193-rubygem-simplecov-doc ruby193-rubygem-simplecov-html
+    ruby193-rubygem-simplecov-html-doc ruby193-rubygem-spruz
+    ruby193-rubygem-spruz-doc ruby193-rubygem-test-unit
+    ruby193-rubygem-test-unit-doc ruby193-rubygem-webmock
+    ruby193-rubygem-webmock-doc ruby193-rubygem-xml-simple rubygem-ParseTree
+    rubygem-ParseTree-doc rubygem-RedCloth rubygem-RedCloth-debuginfo
+    rubygem-RubyInline rubygem-RubyInline-doc rubygem-ZenTest rubygem-ZenTest-doc
+    rubygem-abstract rubygem-abstract-doc rubygem-actionmailer rubygem-actionpack
+    rubygem-activemodel rubygem-activemodel-doc rubygem-activerecord
+    rubygem-activeresource rubygem-activesupport rubygem-addressable
+    rubygem-addressable-doc rubygem-archive-tar-minitar
+    rubygem-archive-tar-minitar-doc rubygem-arel rubygem-arel-doc rubygem-bacon
+    rubygem-bson rubygem-bson_ext rubygem-bson_ext-debuginfo rubygem-bson_ext-doc
+    rubygem-builder rubygem-bundler rubygem-bundler-doc rubygem-columnize
+    rubygem-commander rubygem-commander-doc rubygem-crack rubygem-crack-doc
+    rubygem-cucumber rubygem-daemon_controller rubygem-daemon_controller-doc
+    rubygem-daemons rubygem-diff-lcs rubygem-dnsruby rubygem-dnsruby-doc
+    rubygem-erubis rubygem-erubis-doc rubygem-fastthread rubygem-file-tail
+    rubygem-file-tail-doc rubygem-gherkin rubygem-gherkin-debuginfo
+    rubygem-gherkin-doc rubygem-highline rubygem-hoe rubygem-hoe-doc
+    rubygem-hpricot rubygem-hpricot-debuginfo rubygem-hpricot-doc rubygem-i18n
+    rubygem-i18n-doc rubygem-json rubygem-json-debuginfo rubygem-json-doc
+    rubygem-json_pure rubygem-json_pure-doc rubygem-mail rubygem-mail-doc
+    rubygem-mime-types rubygem-mime-types-doc rubygem-minitest
+    rubygem-minitest-doc rubygem-mocha rubygem-mocha-doc rubygem-mongo
+    rubygem-mongo-doc rubygem-net-ssh rubygem-net-ssh-doc rubygem-nokogiri
+    rubygem-nokogiri-debuginfo rubygem-nokogiri-doc rubygem-open4
+    rubygem-open4-doc rubygem-openshift-origin-auth-mongo
+    rubygem-openshift-origin-auth-remote-user rubygem-openshift-origin-common
+    rubygem-openshift-origin-console rubygem-openshift-origin-console-doc
+    rubygem-openshift-origin-controller rubygem-openshift-origin-dns-bind
+    rubygem-openshift-origin-msg-broker-mcollective rubygem-openshift-origin-node
+    rubygem-parseconfig rubygem-passenger rubygem-passenger-debuginfo
+    rubygem-passenger-devel rubygem-passenger-doc rubygem-passenger-native
+    rubygem-passenger-native-libs rubygem-polyglot rubygem-polyglot-doc
+    rubygem-rack rubygem-rack-mount rubygem-rack-mount-doc rubygem-rack-test
+    rubygem-rails rubygem-railties rubygem-railties-doc rubygem-rake-compiler
+    rubygem-rake-compiler-doc rubygem-rcov rubygem-rcov-debuginfo
+    rubygem-rcov-doc rubygem-rdoc rubygem-rdoc-doc rubygem-regin
+    rubygem-regin-doc rubygem-rest-client rubygem-rspec rubygem-rspec-core
+    rubygem-rspec-core-doc rubygem-ruby2ruby rubygem-ruby2ruby-doc
+    rubygem-ruby_parser rubygem-ruby_parser-doc rubygem-rubyforge
+    rubygem-sexp_processor rubygem-sexp_processor-doc rubygem-shoulda
+    rubygem-shoulda-doc rubygem-sinatra rubygem-spruz rubygem-spruz-doc
+    rubygem-sqlite3 rubygem-sqlite3-debuginfo rubygem-sqlite3-doc
+    rubygem-state_machine rubygem-state_machine-doc rubygem-stomp
+    rubygem-stomp-doc rubygem-systemu rubygem-systemu-doc rubygem-term-ansicolor
+    rubygem-test-spec rubygem-test-unit rubygem-test-unit-doc rubygem-text-format
+    rubygem-thor rubygem-thor-doc rubygem-thread-dump
+    rubygem-thread-dump-debuginfo rubygem-treetop rubygem-trollop rubygem-tzinfo
+    rubygem-tzinfo-doc rubygem-webmock rubygem-webmock-doc rubygem-xml-simple
+    rubygems source-highlight source-highlight-debuginfo source-highlight-devel
+    unittest
+  ]
+
+  LOCALHOST = %w[127.0.0.1 ::1]
+
+  def test_openshift_rpms
+    skip_test unless @project_is[:enterprise]
+    verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
+    OPENSHIFT_RPMS.each do |rpm|
+      if @rpms.has_key?(rpm)
+        @rpms[rpm][:release].include?('el6op') or
+          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{@rpms[rpm][:version]}-#{@rpms[rpm][:release]} does not have 'el6op' in it"
+      end
+    end
+  end
+
+  def test_selinux_policy_rpm
+    skip_test unless @os_is[:rhel6]
+    require_rpm_minimum_version 'selinux-policy', "3.7.19", "155.el6_3.8"
+  end
+
+  def test_broker_cache_permissions
+    skip_test unless @is_broker
+    if `find /var/www/openshift/broker/tmp/cache/ -user root`.length > 0
+      do_fail "broker application cache contains files belonging to root; please clear the cache"
+    else
+      verbose "broker application cache permissions appear fine"
+    end
+  end
+
+  def test_nodes_public_hostname
+    skip_test unless @is_broker
+    require 'socket'
+    verbose "checking that each public_hostname resolves properly"
+    names_for = Hash.new {|h,k| h[k]=[]}
+    #
+    # get the PUBLIC_HOSTNAME from every node
+    # and make sure it resolves and is not localhost
+    #
+    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_hostname") do |node,host|
+      names_for[host] << node
+      # test host resolution
+      begin
+        # public_hostname must resolve as a FQDN, so should be the full name
+        # (the "." at the end blocks adding a search domain)
+        resolved_host = IPSocket.getaddress(host + ".")
+        if LOCALHOST.member? resolved_host
+          do_fail "PUBLIC_HOSTNAME #{host} for #{node} should be public, not localhost"
+        else
+          verbose "PUBLIC_HOSTNAME #{host} for #{node} resolves to #{resolved_host}"
+        end
+      rescue Exception => e
+        do_fail "PUBLIC_HOSTNAME #{host} for #{node} does not resolve as a FQDN (#{e})"
+      end
+    end
+    if names_for.empty?
+      do_fail "No node hosts responded. Run 'mco ping' and troubleshoot if this is unexpected."
+      return
+    end
+    #
+    # check that each hostname is unique
+    # as it causes really confusing problems creating apps if it isn't.
+    #
+    verbose "checking that each public_hostname is unique"
+    names_for.each do |host,nodes|
+      if nodes.length > 1
+        do_fail "multiple node hosts have PUBLIC_HOSTNAME #{host}: #{nodes.join ','}"
+      end
+    end
+  end
+
+  def test_nodes_public_ip
+    skip_test unless @is_broker
+    verbose "checking that public_ip has been set for all nodes"
+    nodes_for = Hash.new {|h,k| h[k]=[]}
+    #
+    # get the PUBLIC_IP from every node
+    # and make sure it's not localhost
+    #
+    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("public_ip") do |node,ip|
+      nodes_for[ip] << node
+      if LOCALHOST.member? ip
+        do_fail "PUBLIC_IP #{ip} should be public, not localhost"
+      else
+        verbose "PUBLIC_IP #{ip} for #{node}"
+      end
+    end
+    nodes_for.empty? and return #nothing to do...
+    #
+    # check that public_ip is unique for all nodes
+    #
+    verbose "checking that public_ip is unique for all nodes"
+    nodes_for.each do |ip,nodes|
+      if nodes.length > 1
+        do_fail "multiple node hosts have public_ip #{ip}: #{nodes.join ','}"
+      end
+    end
+  end
+
+  def test_nodes_cartridges
+    skip_test unless @is_broker
+    verbose "checking that all node hosts have cartridges installed"
+    carts_for = Hash.new
+    all_carts = []
+    #
+    # get the list of cartridges from every node
+    #
+    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("cart_list") do |node,carts|
+      all_carts << ( carts_for[node] = carts.split('|').sort )
+      if carts.empty?
+        do_fail "host #{node} does not have any cartridges installed"
+      else
+        verbose "cartridges for #{node}: #{carts}"
+      end
+    end
+    carts_for.empty? and return #nothing to do...
+    #
+    # check it's the same on every node
+    #
+    verbose "checking that same cartridges are installed on all node hosts"
+    all_carts = all_carts.flatten.uniq.sort
+    if all_carts.empty?
+      do_fail "no cartridges are installed; please install cartridges on your node hosts"
+      return
+    end
+    carts_for.each do |node,carts|
+      missing = all_carts - carts
+      missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ','}"
+    end
+    #
+    #TODO: check against broker's probably-cached list of carts
+    # but - make sure this script does not create a cache with root ownership.
+    #
+    # do_fail "The broker's list of cartridges does not match what is available on the node hosts. Either node hosts do not all have the same cartridges installed or the broker has cached an old list."
+  end
+
+  def test_broker_accept_scripts
+    skip_test unless @is_broker 
+    if @project_is[:online]
+      run_script(@rpms['rhc-devenv'] ? "rhc-accept-devenv" : "rhc-accept-broker")
+    elsif @rpms["openshift-origin-broker-util"]
+      run_script("oo-accept-broker")
+    else
+      do_warn "openshift-origin-broker-util is not installed; you really should install it"
+    end
+  end
+
+  def test_node_accept_scripts
+    skip_test unless @is_node
+    if @rpms["openshift-origin-node-util"]
+      run_script("oo-accept-node")
+    else
+      do_warn "openshift-origin-node-util is not installed; you really should install it"
+    end
+    run_script("rhc-accept-node") if @project_is[:online]
+  end
+
+  def expect_log_error(pattern, tmpfile)
+    out = `grep '#{pattern}' #{tmpfile}`
+    verbose "broker error_log: this message is normal for now:\n  #{out}" unless out.empty?
+  end
+
+  def test_broker_httpd_error_log
+    skip_test unless @is_broker
+    #
+    # create a tmp file with all of the unique error log statements after the most recent openshift-broker start
+    #
+    tmpfile = "/tmp/osediag-log-#{$$}"
+    system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' /var/www/openshift/broker/httpd/logs/error_log | sort -u > #{tmpfile}]
+    #
+    # info about Passenger prespawn errors
+    expect_log_error 'Cannot execute.*prespawn.*Permission denied (13)', tmpfile
+    #
+    # info about mcollective client log error
+    expect_log_error 'Could not start logger: Errno::EACCES', tmpfile
+    #
+    # look for real Passenger startup problems
+    out = `grep 'Passenger could not be initialized\\|Unable to start the Phusion Passenger watchdog' #{tmpfile}`
+    do_fail <<-"ERR" unless out.empty?
+      broker error_log: serious problem(s) with Passenger startup:
+        #{out}
+        The broker is probably not running correctly. rhc tool output may be confusing.
+        Make sure selinux-policy is updated and check the Troubleshooting Guide for tips.
+    ERR
+    #
+    # look for Passenger errors during operation
+    out = `grep 'Unexpected error in mod_passenger' #{tmpfile}`
+    do_fail %Q[broker error_log: serious problem with Passenger operation:\n  #{out.split("\n").first}\n] unless out.empty?
+    #
+    # done with the tmp file
+    system "rm #{tmpfile}"
+  end
+
+  def test_broker_passenger_ps
+    skip_test unless @is_broker
+    verbose "checking the broker application process tree"
+    cmd = 'pstree -A `cat /var/www/openshift/broker/httpd/run/httpd.pid`'
+    out = `#{cmd}`
+    example = <<-"PSEX"
+      Output from: #{cmd}
+      #{out}
+      Should look similar to this:
+      httpd-+-PassengerWatchd-+-PassengerHelper-+-ruby---{ruby}
+            |                 |                 `-6*[{PassengerHelpe}]
+            |                 |-PassengerLoggin---{PassengerLoggi}
+            |                 `-3*[{PassengerWatch}]
+            `-8*[httpd]
+    PSEX
+    return do_fail "Broker httpd doesn't seem to be running at all. Try 'service openshift-broker start'" unless out.include? "httpd"
+    %w{PassengerWatchd PassengerHelper ruby PassengerLoggin}.find do |it|
+      return false if out.include?(it) # process is there, continue checking others
+      do_fail "pstree for broker is missing #{it}. Make sure selinux-policy RPM is up to date and check Troubleshooting guide. \n#{example}"
+      return true # stop with first thing that's missing
+    end
+  end
+
+  def test_for_nonrpm_rubygems
+    # not sure if other projects will want this. uncomment to silence:
+    # skip_test unless @project_is[:enterprise]
+    verbose "checking for presence of gem-installed rubygems"
+
+    # list out all gem directories and find those without RPM ownership
+    gemdirs = `gem environment gempath`.chomp.split(':').
+      map {|dir| dir + "/specifications"}.
+      select {|dir| File.exists? dir}.
+      map {|dir| dir + "/*.gemspec"}
+    verbose "looking in #{gemdirs.join ' '}"
+    disown = `ls #{gemdirs.join ' '} | xargs -n 1 rpm -qf`.
+      split("\n").select {|line| line.end_with? "not owned by any package"}
+    return if disown.empty?
+
+    do_warn <<-"NOOO"
+      The following lines indicate rubygems that were installed from outside
+      sources rather than via yum/RPM. These are unsupported and likely to
+      break OpenShift. If you see multiple versions of any gems with
+      'gem list' you have likely overridden OpenShift-installed gems.
+      Uninstall as necessary with 'gem uninstall <gemname> -v <version>'.
+        \n#{disown.join("\n")}
+    NOOO
+  end
+
+  def test_for_multiple_gem_versions
+    # not sure if other projects will want this. uncomment to silence:
+    # skip_test unless @project_is[:enterprise]
+    verbose "checking for presence of gem-installed rubygems"
+    multiples = `gem list`.split("\n").select {|gem| gem.include? ','}
+    return if multiples.empty?
+
+    do_warn <<-"NOOO"
+      'gem list' indicates the following rubygems are installed with multiple
+      versions. OpenShift gems should be installed via yum/RPM.
+      If you have overridden OpenShift-installed gems, expect problems.
+      Uninstall as necessary with 'gem uninstall <gemname> -v <version>'.
+        \n#{multiples.join("\n")}
+    NOOO
+  end
+
+end #class OODiag
+
+
+############ EXECUTION ##########
+#
+# If this script is running directly, just go ahead and run tests.
+# In a different context (e.g. irb) just load and don't run anything.
+
+if __FILE__ == $0
+
+  #
+  # Options parsing...
+  #
+  require 'optparse'
+  options = {
+    :wait => 5,
+    :verbose => false,
+  }
+  optparse = OptionParser.new { |opts|
+    opts.banner = <<-"USAGE"
+      #{$0}: Detect common problems on OpenShift systems
+
+      Usage: #{$0} [switches] [test methods to run]
+      Example: #{$0}
+      Example: #{$0} -v -w 1 test_nodes_public_hostname
+
+      Switches:
+    USAGE
+
+    opts.on('-v','--verbose', 'Print verbose statements') { |verbose| options[:verbose] = verbose }
+    opts.on('-w','--wait seconds', Integer,
+            'Seconds for broker to wait for node responses (default 5)') { |wait| options[:wait] = wait }
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+  }
+  optparse.parse!
+  options[:tests] = ARGV
+
+  #
+  # execute
+  #
+  o = OODiag.new(options)
+  o.run_setup
+  warns, errors = o.run_tests
+
+  #
+  # summarize
+  #
+  o.wputs "#{warns} WARNINGS" if warns > 0
+  if errors > 0
+    o.eputs "#{errors} ERRORS"
+  else
+    puts "NO ERRORS"
+  end
+  exit errors
+end

@@ -29,6 +29,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %attr(0755,-,-) %{_bindir}/oo-ruby
 %attr(0755,-,-) %{_bindir}/oo-exec-ruby
+%attr(0755,-,-) %{_bindir}/oo-diagnostics
 
 
 %changelog
