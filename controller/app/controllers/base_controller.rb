@@ -63,6 +63,11 @@ class BaseController < ActionController::Base
     login = nil
     password = nil
     @request_id = gen_req_uuid
+    
+    # Initialize domain/app variables to be used for logging in user_action.log
+    # The values will be set in the controllers handling the requests
+    @domain = nil
+    @app = nil
 
     if request.headers['User-Agent'] == "OpenShift"
       if params['broker_auth_key'] && params['broker_auth_iv']
@@ -229,6 +234,14 @@ class BaseController < ActionController::Base
     end
   end
 
+  def get_extra_args
+    args = {}
+    args["APP"] = @app if @app
+    args["DOMAIN"] = @domain if @domain
+    
+    return args
+  end
+  
   def get_error_messages(object, orig_field=nil, display_field=nil)
     messages = []
     object.errors.keys.each do |key|
@@ -255,7 +268,7 @@ class BaseController < ActionController::Base
   end
 
   def render_error_internal(status, msg, err_code=nil, log_tag=nil,
-                            field=nil, msg_type=nil, messages=nil, format=false)
+                            field=nil, msg_type=nil, messages=nil, format=false, internal_error=false)
     reply = RestReply.new(status)
     user_info = get_cloud_user_info(@cloud_user)
 
@@ -273,7 +286,7 @@ class BaseController < ActionController::Base
         logger_msg = msg.join(', ')
       end
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, false, logger_msg) if log_tag
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, logger_msg, get_extra_args) if log_tag
     render_response(reply, format)
   end
 
@@ -296,7 +309,9 @@ class BaseController < ActionController::Base
     else
       status = :internal_server_error
     end
-    render_error_internal(status, message, error_code, log_tag, nil, nil, nil, format)
+    
+    internal_error = status != :unprocessable_entity
+    render_error_internal(status, message, error_code, log_tag, nil, nil, nil, format, internal_error)
   end
 
   def render_success_internal(status, type, data, log_tag, log_msg=nil, publish_msg=false,
@@ -318,7 +333,7 @@ class BaseController < ActionController::Base
         logger_msg = msg.join(', ')
       end
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg) if log_tag
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg, get_extra_args) if log_tag
     render_response(reply, format)
   end
 

@@ -5,7 +5,7 @@ class DnsResolvableController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
   
-  # GET /domains/<id>
+  # GET /domains/[domain_id]/applications/<id>/dns_resolvable
   def show
     domain_id = params[:domain_id]
     id = params[:application_id]
@@ -14,10 +14,12 @@ class DnsResolvableController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "DNS_RESOLVABLE") if !domain || !domain.hasAccess?(@cloud_user)
 
+    @domain = domain.namespace
     application = Application.find(@cloud_user,id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "DNS_RESOLVABLE") unless application
                         
+    @app = application.name
     name = "#{application.name}-#{application.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
     nameservers = NameServerCache.get_name_servers             
     

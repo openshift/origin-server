@@ -10,7 +10,8 @@ class ApplicationsController < BaseController
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "LIST_APPLICATIONS") if !domain || !domain.hasAccess?(@cloud_user)
-    
+
+    @domain = domain.namespace
     applications = Application.find_all(@cloud_user)
     apps = Array.new
     applications.each do |application|
@@ -36,10 +37,13 @@ class ApplicationsController < BaseController
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "SHOW_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
-    
+
+    @domain = domain.namespace
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found", 101,
                         "SHOW_APPLICATION") if !application or application.domain.uuid != domain.uuid
+
+    @app = application.name
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
     elsif $requested_api_version < 1.3
@@ -65,6 +69,7 @@ class ApplicationsController < BaseController
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "ADD_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
+    @domain = domain.namespace
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
 
@@ -176,10 +181,12 @@ class ApplicationsController < BaseController
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "DELETE_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
     
+    @domain = domain.namespace
     application = get_application(id)
     return render_format_error(:not_found, "Application #{id} not found.", 101,
                                "DELETE_APPLICATION") if !application or application.domain.uuid != domain.uuid
     
+    @app = application.name
     begin
       Rails.logger.debug "Deleting application #{id}"
       application.cleanup_and_delete()
