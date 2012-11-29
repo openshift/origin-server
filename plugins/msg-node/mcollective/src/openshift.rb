@@ -540,7 +540,7 @@ module MCollective
       def get_all_active_gears_action
         active_gears = {}
         dir = "/var/lib/openshift/"
-        filelist = Dir.foreach(dir) { |file| 
+        filelist = Dir.foreach(dir) { |file|
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             state_file = File.join(dir, file, 'app-root', 'runtime', '.state')
             if File.exist?(state_file)
