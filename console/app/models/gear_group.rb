@@ -3,6 +3,7 @@ class GearGroup < RestApi::Base
     string :name, :gear_profile
     integer :scales_from, :scales_to
     integer :supported_scales_from, :supported_scales_to
+    integer :base_gear_storage, :additional_gear_storage
   end
   custom_id :name
 
