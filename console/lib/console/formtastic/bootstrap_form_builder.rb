@@ -308,12 +308,16 @@ module Console
 
         label_options = options_for_label(options)
         label_options[:for] ||= html_options[:id]
+        (label_options[:class] ||= []) << 'checkbox'
+
+        input_html << localized_string(method, label_options[:label], :label) || humanized_attribute_name(method)
+        label_options.delete :label
 
         safe_input_html = ::Formtastic::Util.html_safe(input_html)
 
         return safe_input_html if input_inline?
 
-        label(method, options) << template.content_tag(:div, safe_input_html, {:class => 'controls'}) << template.hidden_field_tag((html_options[:name] || "#{@object_name}[#{method}]"), unchecked_value, :id => nil, :disabled => html_options[:disabled])
+        template.content_tag(:div, label(method, safe_input_html, label_options), {:class => 'controls'}) << template.hidden_field_tag((html_options[:name] || "#{@object_name}[#{method}]"), unchecked_value, :id => nil, :disabled => html_options[:disabled])
       end
 
       # remove the button wrapper
