@@ -49,28 +49,14 @@ MONGODB_IP=`find_open_ip $uid $uuid $MONGODB_PORT`
 # Fix permissions
 #
 observe_setup_app_home
-old_uuid=$(stat -c %U $MONGODB_DIR/etc)
-if [ ! "$old_uuid" == "$uuid" ]; then
-    pushd "$MONGODB_DIR" > /dev/null
-    chown -cR --from=$old_uuid.$old_uuid $uuid.$uuid * > /dev/null
-    popd > /dev/null
-fi
 
 #
 # Source database connection variables
 #
-if [ -d $MONGODB_DIR/.env ]; then
-    . $MONGODB_DIR/.env/OPENSHIFT_MONGODB_DB_HOST
-    . $MONGODB_DIR/.env/OPENSHIFT_MONGODB_DB_PORT
-    . $MONGODB_DIR/.env/OPENSHIFT_MONGODB_DB_PASSWORD
-    . $MONGODB_DIR/.env/OPENSHIFT_MONGODB_DB_USERNAME
-    rm -rf $MONGODB_DIR/.env
-else
-    . $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
-    . $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT
-    . $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD
-    . $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME
-fi
+. $APP_HOME/.env/OPENSHIFT_MONGODB_DB_HOST
+. $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PORT
+. $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_MONGODB_DB_USERNAME
 
 ORIG_DB_HOST=$OPENSHIFT_MONGODB_DB_HOST
 
