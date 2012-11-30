@@ -1,4 +1,19 @@
-class UsageRecord < OpenShift::UserModel
+# Class to record usage of gears and filesystem usage for accounting purposes.
+# @!attribute [rw] usage_type 
+#   @return [String] Indicates the record type. One of UsageRecord.USAGE_TYPES
+# @!attribute [rw] event
+#   @return [String] Indicates the record event type. One of UsageRecord.EVENTS
+# @!attribute [rw] sync_time
+#   @return [Time] Time when record was last recorded in accounting backend.
+# @!attribute [rw] gear_uuid
+#   @return [Moped::BSON::ObjectId] The GUID of the gear this event took place on.
+# @!attribute [rw] gear_size
+#   @return [String] The size of the gear.
+# @!attribute [rw] addtl_fs_gb
+#   @return [Integer] The amount of additional storage (in GB) allocated on the gear
+class UsageRecord
+  include Mongoid::Document
+  include Mongoid::Timestamps  
   
   EVENTS = { :begin => "begin",
              :end => "end",
@@ -7,31 +22,23 @@ class UsageRecord < OpenShift::UserModel
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
                   :addtl_fs_gb => "ADDTL_FS_GB" }
 
-  attr_accessor :uuid, :event, :time, :sync_time, :user, :usage_type, :gear_uuid, :gear_size, :addtl_fs_gb
-  primary_key :uuid
-  exclude_attributes :user
-
-  def initialize(event=nil, user=nil, time=nil, uuid=nil, usage_type=nil)
-    self.uuid = uuid ? uuid : OpenShift::Model.gen_uuid
-    self.event = event
-    self.time = time ? time : Time.now.utc
-    self.user = user
-    self.usage_type = usage_type
-    self.sync_time = nil
-  end
-
-  # Deletes the usage record from the datastore
-  def delete
-    super(user.login)
-  end
-
-  # Saves the usage record to the datastore
-  def save
-    super(user.login)
-  end
+  field :event, type: String
+  field :sync_time, type: Time
+  embedded_in :application
+  field :usage_type, type: String  
+  field :gear_uuid, type: Moped::BSON::ObjectId
+  field :gear_size, type: String  
+  field  :addtl_fs_gb, type: Integer
   
-  def delete_by_gear_uuid
-    OpenShift::DataStore.instance.delete_usage_record_by_gear_uuid(user.login, gear_uuid, usage_type)
+  # Deletes all usage records of the specified type for a particular gear.
+  #
+  # == Parameters:
+  # gear_uuid::
+  #   The GUID of the gear
+  #
+  # usage_type::
+  #   The record type to delete. One of UsageRecord.USAGE_TYPES
+  def delete_by_gear_uuid(gear_uuid, usage_type)
+    UsageRecord.where(gear_uuid: gear_uuid, usage_type: usage_type).delete
   end
-
 end

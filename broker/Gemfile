@@ -3,7 +3,6 @@ source 'http://rubygems.org'
 gem 'rails', '~> 3.2.8'
 gem 'json'
 gem 'parseconfig', '0.5.2'
-gem 'mongo'
 gem 'xml-simple'
 gem 'rack'
 gem 'regin'
@@ -11,8 +10,8 @@ gem 'open4'
 gem 'openshift-origin-controller'
 gem 'rest-client'
 gem 'systemu'
-gem 'bson'
-gem 'bson_ext'
+gem 'minitest'
+gem 'mongoid'
 
 # Load plugin gems.
 Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}

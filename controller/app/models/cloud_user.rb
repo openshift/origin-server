@@ -1,334 +1,146 @@
- class CloudUser < OpenShift::UserModel
-  attr_accessor :login, :uuid, :system_ssh_keys, :env_vars, :ssh_keys, :domains, :max_gears, :consumed_gears, :applications,
-                :auth_method, :save_jobs, :usage_records, :gear_usage_records, :capabilities, :parent_user_login,
-                :plan_id, :usage_account_id, :pending_plan_id, :pending_plan_uptime
-  primary_key :login
-  exclude_attributes :applications, :auth_method, :save_jobs, :usage_records
-  require_update_attributes :system_ssh_keys, :env_vars, :ssh_keys, :domains
-  private :login=, :uuid=, :save_jobs=
+# Primary User model for the broker. It keeps track of plan details, capabilities and ssh-keys for the user.
+# @!attribute [r] login
+#   @return [String] Login name for the user.
+# @!attribute [r] capabilities
+#   @return [Hash] Hash representing the capabilities of the user. It is updated using the ss-admin-user-ctl scripts or when a plan changes.
+# @!attribute [r] parent_user_id
+#   @return [Moped::BSON::ObjectId] ID of the parent user object if this object prepresents a sub-account.
+# @!attribute [rw] plan_id
+# @!attribute [rw] pending_plan_id
+# @!attribute [rw] pending_plan_uptime
+# @!attribute [rw] usage_account_id
+# @!attribute [rw] consumed_gears
+#   @return [Integer] Number of gears that are being consumed by applications owned by this user
+# @!attribute [r] ssh_keys
+#   @return [Array[SshKey]] SSH keys used to access applications that the user has access to or owns
+#     @see {#add_ssh_key}, {#remove_ssh_key}, and {#update_ssh_key}
+# @!attribute [r] pending_ops
+#   @return [Array[PendingUserOps]] List of {PendingUserOps} objects
+class CloudUser
+  include Mongoid::Document
+  include Mongoid::Timestamps
+  
+  DEFAULT_SSH_KEY_NAME = "default"
 
-  validates_each :login do |record, attribute, val|
-    record.errors.add(attribute, {:message => "Invalid characters found in login '#{val}' ", :exit_code => 107}) if val =~ /["\$\^<>\|%\/;:,\\\*=~]/
+  field :login, type: String
+  field :capabilities, type: Hash, default: {"subaccounts" => false, "gear_sizes" => ["small"], "max_gears" => 3}
+  field :parent_user_id, type: Moped::BSON::ObjectId
+  field :plan_id, type: String
+  field :pending_plan_id, type: String
+  field :pending_plan_uptime, type: String
+  field :usage_account_id, type: String
+  field :consumed_gears, type: Integer, default: 0
+  embeds_many :ssh_keys, class_name: SshKey.name
+  embeds_many :pending_ops, class_name: PendingUserOps.name
+  has_many :domains, class_name: Domain.name, dependent: :restrict
+  
+  validates :login, presence: true, login: true
+  validates :capabilities, presence: true, capabilities: true
+  
+  index({:login => 1}, {:unique => true})
+  create_indexes
+  
+  # Returns a map of field to error code for validation failures.
+  def self.validation_map
+    {login: 107, capabilities: 107}
   end
-
-  validates_each :ssh_keys do |record, attribute, val|
-    val.each do |key_name, key_info|
-      if !(key_name =~ /\A[A-Za-z0-9]+\z/)
-        record.errors.add attribute, {:message => "Invalid key name: #{key_name}", :exit_code => 117}
-      end
-      if !Key::VALID_SSH_KEY_TYPES.include?(key_info['type'])
-        record.errors.add attribute, {:message => "Invalid key type: #{key_info['type']}", :exit_code => 116}
-      end
-      if !(key_info['key'] =~ /\A[A-Za-z0-9\+\/=]+\z/)
-        record.errors.add attribute, {:message => "Invalid ssh key: #{key_info['key']}", :exit_code => 108}
-      end
-    end if val
+  
+  # Auth method can either be :login or :broker_auth. :login represents a normal authentication with user/pass.
+  # :broker_auth is used when the applciation needs to make a request to the broker on behalf of the user (eg: scale-up)
+  def auth_method=(m)
+    @auth_method = m
   end
-
-  def initialize(login=nil, ssh=nil, ssh_type=nil, key_name=nil, capabilities=nil,
-                 parent_login=nil)
-    super()
-    if not ssh.nil?
-      ssh_type = Key::DEFAULT_SSH_KEY_TYPE if ssh_type.to_s.strip.length == 0
-      self.ssh_keys = {} unless self.ssh_keys
-      key_name = Key::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
-      self.ssh_keys[key_name] = { "key" => ssh, "type" => ssh_type }
+  
+  # @see #auth_method=
+  def auth_method
+    @auth_method
+  end
+  
+  # Convinience method to get the max_gears capability
+  def max_gears
+    self.capabilities["max_gears"]
+  end
+  
+  # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propogated to the
+  # domains/application that the user has access to.
+  def add_ssh_key(key)
+    domains = self.domains
+    if domains.count > 0
+      pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
+      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash , ssh_keys: key.serializable_hash }})
+      self.reload
+      self.run_jobs
     else
-      self.ssh_keys = {} unless self.ssh_keys
+      self.ssh_keys.push key
     end
-    self.login = login
-    self.domains = []
-    self.max_gears = Rails.configuration.openshift[:default_max_gears]
-    self.capabilities = capabilities || {}
-    unless self.capabilities.has_key?('gear_sizes')
-        # set the user's gear capabilities to default if not specified
-        self.capabilities['gear_sizes'] =
-          Rails.application.config.openshift[:default_gear_capabilities] ||
-          [ Rails.application.config.openshift[:default_gear_size] ]
-    end
-    self.parent_user_login = parent_login
-
-    self.consumed_gears = 0
+    self
   end
-
-  def save
-    resultIO = ResultIO.new
-    unless persisted?
-      #new user record
-      resultIO.append(create())
-    end
-
-    if applications && !applications.empty? && save_jobs
-      gears = []
-      tag = ""
-
-      applications.each do |app|
-        app.gears.each do |gear|
-          if !app.destroyed_gears || !app.destroyed_gears.include?(gear.uuid)
-            gears << gear
-          end
-        end
-      end
-
-      handle = RemoteJob.create_parallel_job
-
-      RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
-        if save_jobs['removes']
-          save_jobs['removes'].each do |action, values|
-            case action
-            when 'ssh_keys'
-              values.each do |value|
-                ssh_key = value[0]
-                ssh_key_comment = value[1]
-                job = gear.ssh_key_job_remove(ssh_key, ssh_key_comment)
-                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-              end
-            when 'env_vars'
-              values.each do |value|
-                env_var_key = value[0]
-                job = gear.env_var_job_remove(env_var_key)
-                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-              end
-            when 'broker_auth_keys'
-              values.each do |value|
-                app_uuid = value[0]
-                if app_uuid == gear.app.uuid
-                  job = gear.broker_auth_key_job_remove
-                  RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-                end
-              end
-            end
-          end
-        end
-        if save_jobs['adds']
-          save_jobs['adds'].each do |action, values|
-            case action
-            when 'ssh_keys'
-              values.each do |value|
-                ssh_key = value[0]
-                ssh_key_type = value[1]
-                ssh_key_comment = value[2]
-                job = gear.ssh_key_job_add(ssh_key, ssh_key_type, ssh_key_comment)
-                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-              end
-            when 'env_vars'
-              values.each do |value|
-                env_var_key = value[0]
-                env_var_value = value[1]
-                job = gear.env_var_job_add(env_var_key, env_var_value)
-                RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-              end
-            when 'broker_auth_keys'
-              values.each do |value|
-                app_uuid = value[0]
-                if app_uuid == gear.app.uuid
-                  iv = value[1]
-                  token = value[2]
-                  job = gear.broker_auth_key_job_add(iv, token)
-                  RemoteJob.add_parallel_job(exec_handle, tag, gear, job)
-                end
-              end
-            end
-          end
-        end
-      }
-      RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
-        if status != 0
-          raise OpenShift::NodeException.new("Error updating settings on gear: #{gear} with status: #{status} and output: #{output}", 143)
-        end
-      }
-      save_jobs['removes'].clear if save_jobs['removes']
-      save_jobs['adds'].clear if save_jobs['adds']
-    end
-
-    super(@login)
-
-    resultIO
+  
+  # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propogated to the
+  # domains/application that the user has access to.
+  def update_ssh_key(key)
+    remove_ssh_key(key.name)
+    add_ssh_key(key)
   end
-
-  def applications
-    @applications
+  
+  # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propogated to the
+  # domains/application that the user has access to.
+  def remove_ssh_key(name)
+    key = self.ssh_keys.find_by(name: name)
+    domains = self.domains
+    if domains.count > 0
+      pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
+      CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash } , "$pull" => { ssh_keys: key.serializable_hash }})
+      self.reload
+      self.run_jobs      
+    else
+      key.delete
+    end
+    self
   end
-
+  
   def domains
-    @domains
+    (Domain.where(owner: self) + Domain.where(user_ids: self._id)).uniq
   end
-
-  def self.find_by_uuid(obj_type_of_uuid, uuid)
-    hash = OpenShift::DataStore.instance.find_by_uuid(obj_type_of_uuid, uuid)
-    return nil unless hash
-    hash_to_obj(hash)
-  end
-
-  def self.find_subaccounts_by_parent_login(parent_login)
-    hash_list = OpenShift::DataStore.instance.find_subaccounts_by_parent_login(parent_login)
-    return nil if hash_list.nil? or hash_list.empty?
-    hash_list.map {|hash| hash_to_obj(hash) }
-  end
-
-  def self.hash_to_obj(hash)
-    apps = []
-    if hash["apps"]
-      hash["apps"].each do |app_hash|
-        app = Application.hash_to_obj(app_hash)
-        apps.push(app)
-      end
-      hash.delete("apps")
+  
+  # Return user capabilities. Subaccount user may inherit capabilities from its parent.
+  def capabilities
+    user_capabilities = self.attributes["capabilities"]
+    if self.parent_user_id && CloudUser.where(_id: self.parent_user_id).exists?
+      parent_user = CloudUser.find_by(_id: self.parent_user_id)
+      parent_user.capabilities['inherit_on_subaccounts'].each do |cap|
+        user_capabilities[cap] = parent_user.capabilities[cap] if parent_user.capabilities[cap]
+      end if parent_user && parent_user.capabilities.has_key?('inherit_on_subaccounts')
     end
-    domains = []
-    if hash["domains"]
-      hash["domains"].each do |domain_hash|
-        domain = Domain.hash_to_obj(domain_hash)
-        domains.push(domain)
-      end
-      hash.delete("apps")
-    end
-    usage_records = []
-    if hash["usage_records"]
-      hash["usage_records"].each do |usage_hash|
-        usage_record = UsageRecord.hash_to_obj(usage_hash)
-        usage_records.push(usage_record)
-      end
-      hash.delete("usage_records")
-    end
-    user = super(hash)
-    user.applications = apps
-    apps.each do |app|
-      app.user = user
-      app.reset_state
-    end
-
-    user.domains = domains
-    domains.each do |domain|
-      domain.user = user
-    end
-
-    user.usage_records = usage_records
-    usage_records.each do |usage_record|
-      usage_record.user = user
-    end
-
-    user
+    user_capabilities
   end
-
-  def force_delete
-    self.applications.each do |app|
-      app.cleanup_and_delete()
-    end if self.applications && !self.applications.empty?
-    self.domains.each do |domain|
-      domain.delete
-    end if self.domains && !self.domains.empty?
-    user = CloudUser.find(self.login)
-    user.delete if user
-  end
-
-  def delete
-    if (self.domains && !self.domains.empty?) or (self.applications && !self.applications.empty?)
-      raise OpenShift::UserException.new("Error: User '#{@login}' has valid domain or applications.", 139)
-    end
-    super(@login)
-  end
-
-  def self.find(login)
-    super(login,login)
-  end
-
-  def self.find_all_logins(opts=nil)
-    OpenShift::DataStore.instance.find_all_logins(opts)
-  end
-
-  def add_system_ssh_key(app_name, key)
-    self.system_ssh_keys = {} unless self.system_ssh_keys
-    self.system_ssh_keys[app_name] = key
-    add_save_job('adds', 'ssh_keys', [key, nil, app_name])
-  end
-
-  def remove_system_ssh_key(app_name)
-    self.system_ssh_keys = {} unless self.system_ssh_keys
-    key = self.system_ssh_keys[app_name]
-    return unless key
-    self.system_ssh_keys.delete app_name
-    add_save_job('removes', 'ssh_keys', [key, app_name])
-  end
-
-  def add_ssh_key(key_name, key, key_type=nil)
-    self.ssh_keys = {} unless self.ssh_keys
-    key_type = Key::DEFAULT_SSH_KEY_TYPE if key_type.to_s.strip.length == 0
-    self.ssh_keys[key_name] = { "key" => key, "type" => key_type }
-    add_save_job('adds', 'ssh_keys', [key, key_type, key_name])
-  end
-
-  def remove_ssh_key(key_name)
-    self.ssh_keys = {} unless self.ssh_keys
-
-    # validations
-    raise OpenShift::UserKeyException.new("ERROR: Key name '#{key_name}' doesn't exist for user #{self.login}", 118) if not self.ssh_keys.has_key?(key_name)
-
-    add_save_job('removes', 'ssh_keys', [self.ssh_keys[key_name]["key"], key_name])
-    self.ssh_keys.delete key_name
-  end
-
-  def update_ssh_key(key, key_type=nil, key_name=nil)
-    key_name = Key::DEFAULT_SSH_KEY_NAME if key_name.to_s.strip.length == 0
-    remove_ssh_key(key_name)
-    add_ssh_key(key_name, key, key_type)
-  end
-
-  def get_ssh_key
-    raise OpenShift::UserKeyException.new("ERROR: No ssh keys found for user #{self.login}",
-                                           123) if self.ssh_keys.nil? or not self.ssh_keys.kind_of?(Hash)
-    key_name = (self.ssh_keys.key?(Key::DEFAULT_SSH_KEY_NAME)) ? Key::DEFAULT_SSH_KEY_NAME : self.ssh_keys.keys[0]
-    self.ssh_keys[key_name]
-  end
-
-  def add_env_var(key, value)
-    self.env_vars = {} unless self.env_vars
-    self.env_vars[key] = value
-    add_save_job('adds', 'env_vars', [key, value])
-  end
-
-  def remove_env_var(key)
-    self.env_vars = {} unless self.env_vars
-    self.env_vars.delete key
-    add_save_job('removes', 'env_vars', [key])
-  end
-
-  def add_save_job(section, object, value)
-    self.save_jobs = {} unless self.save_jobs
-    self.save_jobs[section] = {} unless self.save_jobs[section]
-    self.save_jobs[section][object] = [] unless self.save_jobs[section][object]
-    self.save_jobs[section][object] << value
-  end
-
-  private
-
-  def create
-    resultIO = ResultIO.new
-    notify_observers(:before_cloud_user_create)
+  
+  
+  # Runs all jobs in :init phase and stops at the first failure.
+  #
+  # == Returns:
+  # True on success or false on failure
+  def run_jobs
     begin
-      user = CloudUser.find(@login)
-      if user
-        #TODO Rework when we allow multiple domains per user
-        raise OpenShift::UserException.new("User with login '#{@login}' already exists", 102, resultIO)
-      end
-
-      begin
-        Rails.logger.debug "DEBUG: Attempting to add user '#{@login}'"
-        resultIO.debugIO << "Creating user entry login:#{@login}"
-        @uuid = OpenShift::Model.gen_uuid
-        notify_observers(:cloud_user_create_success)
-      rescue Exception => e
-        Rails.logger.debug e
+      ops = pending_ops.where(state: :init)
+      ops.each do |op|
+        case op.op_type
+        when :add_ssh_key
+          op.pending_domains.each { |domain| domain.add_ssh_key(self._id, op.arguments, op) }
+        when :delete_ssh_key
+          op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, op.arguments, op) }
+        end
         begin
-          notify_observers(:cloud_user_create_error)
-        ensure
-          raise
+          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(state: :queued)
+        rescue Mongoid::Errors::DocumentNotFound
+          #ignore. Op state is completed
         end
       end
-    ensure
-      notify_observers(:after_cloud_user_create)
+      true
+    rescue Exception => ex
+      Rails.logger.error ex
+      Rails.logger.error ex.backtrace
+      false
     end
-    resultIO
   end
-
 end

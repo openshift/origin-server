@@ -1,28 +1,30 @@
-require 'action_dispatch/http/mime_types'
-module Mime
-  class Type
-    class << self
-      def lookup(string)
-         LOOKUP[string.split(';').first]
-       end
-    end
-  end
-end
 class BaseController < ActionController::Base
   respond_to :json, :xml
   before_filter :check_version, :only => :show
   before_filter :check_nolinks
   API_VERSION = 1.3
-  SUPPORTED_API_VERSIONS = [1.0,1.1,1.2, 1.3]
-
+  SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3]
   include UserActionLogger
+  #Mongoid.logger.level = Logger::WARN
+  #Moped.logger.level = Logger::WARN
   
   # Initialize domain/app variables to be used for logging in user_action.log
   # The values will be set in the controllers handling the requests
   @domain_name = nil
   @application_name = nil
   @application_uuid = nil
+  
+  before_filter :set_locale
+  def set_locale
+    # if params[:locale] is nil then I18n.default_locale will be used
+    I18n.locale = nil
+  end
 
+  # Override default Rails responder to return status code and objects from PUT/POST/DELETE requests
+  def respond_with(*arguments)
+    super(arguments, :responder => OpenShift::Responder)
+  end
+  
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
     unless nolinks
@@ -38,9 +40,19 @@ class BaseController < ActionController::Base
         "LIST_TEMPLATES" => Link.new("List application templates", "GET", URI::join(get_url, "application_templates")),
         "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))
       }
-      links.merge!(if base_url = Rails.application.config.openshift[:community_quickstarts_url]
+      
+      base_url = Rails.application.config.openshift[:community_quickstarts_url]
+      if base_url.nil?
+        quickstart_links = {
+          "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(get_url, "quickstarts")),
+          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstarts/:id"), [
+            Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
+          ]),
+        }
+        links.merge! quickstart_links
+      else
         base_url = URI.join(get_url, base_url).to_s
-        {
+        quickstart_links = {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(base_url, "v1/quickstarts/promoted.json")),
           "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(base_url, "v1/quickstarts/:id"), [
             Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
@@ -49,14 +61,8 @@ class BaseController < ActionController::Base
             Param.new("search", "string", "The search term to use for the quickstart", nil, [])
           ]),
         }
-      else
-        {
-          "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(get_url, "quickstarts")),
-          "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(get_url, "quickstarts/:id"), [
-            Param.new(":id", "string", "Unique identifier of the quickstart", nil, [])
-          ]),
-        }
-      end)
+        links.merge! quickstart_links
+      end
     end
     
     @reply = RestReply.new(:ok, "links", links)
@@ -64,6 +70,17 @@ class BaseController < ActionController::Base
   end
   
   protected
+  
+  # Generates a unique request ID to identify indivigulal REST API calls in the logs
+  #
+  # == Returns:
+  #   GUID to identify the the request
+  def gen_req_uuid
+    # The request id can be generated differently to make it a bit more meaningful
+    File.open("/proc/sys/kernel/random/uuid", "r") do |file|
+      file.gets.strip.gsub("-","")
+    end
+  end
   
   def authenticate
     login = nil
@@ -93,10 +110,11 @@ class BaseController < ActionController::Base
       @auth_method = auth[:auth_method]
 
       if not request.headers["X-Impersonate-User"].nil?
-        @parent_user = CloudUser.find @login
         subuser_name = request.headers["X-Impersonate-User"]
 
-        if @parent_user.nil?
+        if CloudUser.where(login: @login).exists?
+          @parent_user = CloudUser.find_by(login: @login)
+        else
           Rails.logger.debug "#{@login} tried to impersonate user but #{@login} user does not exist"
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
@@ -104,28 +122,27 @@ class BaseController < ActionController::Base
         if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
           Rails.logger.debug "#{@parent_user.login} tried to impersonate user but does not have require capability."
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
-        end
+        end        
 
-        sub_user = CloudUser.find subuser_name
-        if sub_user && sub_user.parent_user_login != @parent_user.login
-          Rails.logger.debug "#{@parent_user.login} tried to impersinate user #{subuser_name} but does not own the subaccount."
-          raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
-        end
-
-        if sub_user.nil?
-          Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
-          @cloud_user = CloudUser.new(subuser_name,nil,nil,nil,{},@parent_user.login)
-          @cloud_user.parent_user_login = @parent_user.login
-          init_user
+        if CloudUser.where(login: subuser_name).exists?
+          subuser = CloudUser.find_by(login: subuser_name)
+          if subuser.parent_user_id != @parent_user._id
+            Rails.logger.debug "#{@parent_user.login} tried to impersinate user #{subuser_name} but does not own the subaccount."
+            raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
+          end
+          @cloud_user = subuser
         else
-          @cloud_user = sub_user
+          Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
+          @cloud_user = CloudUser.new(login: subuser_name, parent_user_id: @parent_user._id)
+          @cloud_user.with(safe: true).save
         end
       else
-        @cloud_user = CloudUser.find @login
-        if @cloud_user.nil?
+        begin
+          @cloud_user = CloudUser.find_by(login: @login)
+        rescue Mongoid::Errors::DocumentNotFound
           Rails.logger.debug "Adding user #{@login}...inside base_controller"
-          @cloud_user = CloudUser.new(@login)
-          init_user
+          @cloud_user = CloudUser.new(login: @login)
+          @cloud_user.with(safe: true).save
         end
       end
       
@@ -133,27 +150,11 @@ class BaseController < ActionController::Base
     rescue OpenShift::UserException => e
       render_format_exception(e)
     rescue OpenShift::AccessDeniedException
-      log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied")
+      log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_args)
       request_http_basic_authentication
     end
   end
 
-  def init_user()
-    begin
-      @cloud_user.save
-    rescue Exception => e
-      cu = CloudUser.find @login
-      raise unless cu && (@cloud_user.parent_user_login == cu.parent_user_login)
-      @cloud_user = cu
-    end
-  end
-
-  def get_application(id)
-    app = Application.find(@cloud_user, id)
-    app.user_agent = request.headers['User-Agent'] if app
-    app
-  end
-  
   def rest_replies_url(*args)
     return "/broker/rest/api"
   end
@@ -166,18 +167,20 @@ class BaseController < ActionController::Base
   end
 
   def nolinks
-    ignore_links = params[:nolinks]
-    if ignore_links
-      ignore_links.downcase!
-      return true if ["true", "1"].include?(ignore_links)
-      return false if ["false", "0"].include?(ignore_links)
-      raise OpenShift::UserException.new("Invalid value for 'nolinks'. Valid options: [true, false, 1, 0]", 167)
+    get_bool(params[:nolinks])
+  end
+  
+  def check_nolinks
+    begin
+      nolinks
+    rescue Exception => e
+      return render_exception(e)
     end
-    return false
   end
  
   def check_version
     accept_header = request.headers['Accept']
+    Rails.logger.debug accept_header    
     mime_types = accept_header.split(%r{,\s*})
     version_header = API_VERSION
     mime_types.each do |mime_type|
@@ -200,15 +203,7 @@ class BaseController < ActionController::Base
     if not SUPPORTED_API_VERSIONS.include? $requested_api_version
       invalid_version = $requested_api_version
       $requested_api_version = API_VERSION
-      return render_format_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
-    end
-  end
-
-  def check_nolinks
-    begin
-      nolinks
-    rescue Exception => e
-      return render_format_exception(e)
+      return render_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
     end
   end
 
@@ -222,16 +217,9 @@ class BaseController < ActionController::Base
     end
   end
 
-  def gen_req_uuid
-    # The request id can be generated differently to make it a bit more meaningful
-    File.open("/proc/sys/kernel/random/uuid", "r") do |file|
-      file.gets.strip.gsub("-","")
-    end
-  end
- 
   def get_cloud_user_info(cloud_user)
     if cloud_user
-      return { :uuid  => cloud_user.uuid, :login => cloud_user.login }
+      return { :uuid  => cloud_user._id.to_s, :login => cloud_user.login }
     else
       return { :uuid  => 0, :login => 'anonymous' }
     end
@@ -242,65 +230,76 @@ class BaseController < ActionController::Base
     args["APP"] = @application_name if @application_name
     args["DOMAIN"] = @domain_name if @domain_name
     args["APP_UUID"] = @application_uuid if @application_uuid
-    
     return args
   end
   
-  def get_error_messages(object, orig_field=nil, display_field=nil)
+  # Process all validation errors on a model and returns an array of message objects.
+  #
+  # == Parameters:
+  #  object::
+  #    MongoId model to process
+  #  field_name_map::
+  #    Maps an internal field name to a user visible field name. (Optional)
+  def get_error_messages(object, field_name_map={})
     messages = []
     object.errors.keys.each do |key|
-      field = key.to_s
-      field = display_field if orig_field && (key.to_s == orig_field)
+      field = field_name_map[key.to_s] || key.to_s
       err_msgs = object.errors.get(key)
       err_msgs.each do |err_msg|
-        messages.push(Message.new(:error, err_msg[:message], err_msg[:exit_code], field))
+        messages.push(Message.new(:error, err_msg, object.class.validation_map[key], field))
       end if err_msgs
     end if object && object.errors && object.errors.keys
     return messages
   end
-
-  #Due to the bug in rails, 'format' is explicitly used for PUT, DELETE rest calls
-  def render_response(reply, format=false)
-    if format
-      respond_with(reply) do |fmt|
-        fmt.xml { render :xml => reply, :status => reply.status }
-        fmt.json { render :json => reply, :status => reply.status }
-      end
-    else
-      respond_with reply, :status => reply.status
-    end
-  end
-
-  def render_error_internal(status, msg, err_code=nil, log_tag=nil,
-                            field=nil, msg_type=nil, messages=nil, format=false, internal_error=false)
+  
+  # Renders a REST response for an unsuccesful request.
+  #
+  # == Parameters:
+  #  status::
+  #    HTTP Success code. See {ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE}
+  #  msg::
+  #    The error message returned in the REST response
+  #  err_code::
+  #    Error code for the message in the REST response
+  #  log_tag::
+  #    Tag used in action logs
+  #  field::
+  #    Specified the field (if any) that the message applies to.
+  #  msg_type::
+  #    Can be one of :error, :warning, :info. Defaults to :error
+  #  messages::
+  #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
+  #    msg,  err_code, field, and msg_type will be ignored.
+  def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
     reply = RestReply.new(status)
     user_info = get_cloud_user_info(@cloud_user)
-
-    logger_msg = nil
-    if msg
-      msg_type = :error unless msg_type
-      reply.messages.push(Message.new(msg_type, msg, err_code, field))
-      logger_msg = msg
-    end
     if messages && !messages.empty?
       reply.messages.concat(messages)
-      unless logger_msg
-        msg = []
-        messages.each { |m| msg.push(m.text) }
-        logger_msg = msg.join(', ')
+      if log_tag
+        log_msg = []
+        messages.each { |msg| log_msg.push(msg.text) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, log_msg.join(', '), get_extra_args)
       end
+    else
+      msg_type = :error unless msg_type
+      reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, msg, get_extra_args) if log_tag
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, logger_msg, get_extra_log_args) if log_tag
-    render_response(reply, format)
+    respond_with reply, :status => reply.status
   end
-
-  def render_exception_internal(ex, log_tag, format)
+  
+  # Renders a REST response for an exception.
+  #
+  # == Parameters:
+  #  ex::
+  #    The exception to return to the user.
+  #  log_tag::
+  #    Tag used in action logs
+  def render_exception(ex, log_tag=nil)
     Rails.logger.error "Reference ID: #{@request_id}"
     Rails.logger.error ex.message
     Rails.logger.error ex.backtrace
-
     error_code = ex.respond_to?('code') ? ex.code : 1
-    message = ex.message
     if ex.kind_of? OpenShift::UserException
       status = :unprocessable_entity
     elsif ex.kind_of? OpenShift::DNSException
@@ -317,55 +316,46 @@ class BaseController < ActionController::Base
     else
       status = :internal_server_error
     end
-    
+
     internal_error = status != :unprocessable_entity
-    render_error_internal(status, message, error_code, log_tag, nil, nil, nil, format, internal_error)
+    render_error(status, ex.message, error_code, log_tag, nil, nil, nil, internal_error)
   end
 
-  def render_success_internal(status, type, data, log_tag, log_msg=nil, publish_msg=false,
-                              msg_type=nil, messages=nil, format=false)
+  # Renders a REST response with for a succesful request.
+  #
+  # == Parameters:
+  #  status::
+  #    HTTP Success code. See {ActionController::StatusCodes::SYMBOL_TO_STATUS_CODE}
+  #  type::
+  #    Rest object type.
+  #  data::
+  #    REST Object to render
+  #  log_tag::
+  #    Tag used in action logs
+  #  log_msg::
+  #    Message to be logges in action logs
+  #  publish_msg::
+  #    If true, adds a message object to the REST response with type=>msg_type and message=>log_msg
+  #  msg_type::
+  #    Can be one of :error, :warning, :info. Defaults to :error
+  #  messages::
+  #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
+  #    publish_msg, log_msg, and msg_type will be ignored.
+  def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
     reply = RestReply.new(status, type, data)
     user_info = get_cloud_user_info(@cloud_user)
-
-    logger_msg = nil
-    if log_msg
-      msg_type = :info unless msg_type
-      reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg
-      logger_msg = log_msg
-    end
     if messages && !messages.empty?
       reply.messages.concat(messages)
-      unless logger_msg
-        msg = []
-        messages.each { |m| msg.push(m.text) }
-        logger_msg = msg.join(', ')
+      if log_tag
+        log_msg = []
+        messages.each { |msg| log_msg.push(msg.text) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '), get_extra_args)
       end
+    else
+      msg_type = :info unless msg_type
+      reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg, get_extra_args) if log_tag
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg, get_extra_log_args) if log_tag
-    render_response(reply, format)
-  end
-
-  def render_format_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil)
-    render_error_internal(status, msg, err_code, log_tag, field, msg_type, messages, true)
-  end
-
-  def render_format_exception(ex, log_tag=nil)
-    render_exception_internal(ex, log_tag, true)
-  end
-
-  def render_format_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
-    render_success_internal(status, type, data, log_tag, log_msg, publish_msg, msg_type, messages, true)
-  end
-
-  def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil)
-    render_error_internal(status, msg, err_code, log_tag, field, msg_type, messages, false)
-  end
-
-  def render_exception(ex, log_tag=nil)
-    render_exception_internal(ex, log_tag, false)
-  end
-
-  def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
-    render_success_internal(status, type, data, log_tag, log_msg, publish_msg, msg_type, messages, false)
+    respond_with reply, :status => reply.status
   end
 end

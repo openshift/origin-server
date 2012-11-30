@@ -1,66 +1,58 @@
 module OpenShift
-  class Cartridge < OpenShift::UserModel
+  class Cartridge < OpenShift::Model
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
-                  :provides_feature, :requires_feature, :conflicts_feature, :requires, :default_profile,
-                  :path, :profile_name_map, :license_url, :categories, :website, :suggests_feature,
+                  :provides, :requires, :conflicts, :suggests, :native_requires, :default_profile,
+                  :path, :license_url, :categories, :website, :suggests_feature,
                   :help_topics, :cart_data_def
-    exclude_attributes :profile_name_map
-    include_attributes :profiles
+    attr_reader   :profiles
     
     def initialize
       super
-      self.from_descriptor({"Name" => "unknown-cartridge"})
-      self.profile_name_map = {}
+      @_profile_map = {}
+      @profiles = []      
     end
     
-    def all_capabilities
-      caps = self.provides_feature.dup
-      self.profiles.each do |v|
-        caps += v.provides
+    def features
+      features = self.provides.dup
+      self.profiles.each do |profile|
+        features += profile.provides
       end
-      caps.uniq
+      features.uniq
     end
     
-    def profiles=(data)
-      data.each do |value|
-        add_profile(value)
-      end
-    end
-    
-    def profiles(name=nil)
-      @profile_name_map = {} if @profile_name_map.nil?
-      if name.nil?
-        @profile_name_map.values
+    def profile_for_feature(feature)
+      if feature.nil? || self.provides.include?(feature) || self.name == feature
+        return @_profile_map[self.default_profile]
       else
-        @profile_name_map[name]
+        self.profiles.each do |profile|
+          return profile if profile.provides.include? feature
+        end
       end
     end
     
-    def add_profile(profile)
-      profile_name_map_will_change!
-      profiles_will_change!
-      @profile_name_map = {} if @profile_name_map.nil?
-      if profile.class == Profile
-        @profile_name_map[profile.name] = profile
-      else        
-        key = profile["name"]            
-        @profile_name_map[key] = Profile.new
-        @profile_name_map[key].attributes=profile
-      end
+    def components_in_profile(profile)
+      profile = self.default_profile if profile.nil?
+      @_profile_map[profile].components
     end
     
-    # Search for a profile that provides specified capabilities
-    def find_profile(capability)
-      if capability.nil? || self.provides_feature.include?(capability)
-        return @profile_name_map[self.default_profile]
-      end
-      
-      self.profiles.each do |p|
-        return p if p.provides.include? capability
-      end
-      nil
+    def has_component?(component_name)
+      !get_component(component_name).nil?
     end
-                  
+    
+    def get_component(component_name)
+      profiles.each{ |p| return p.get_component(component_name) unless p.get_component(component_name).nil? }
+    end
+    
+    def get_profile_for_component(component_name)
+      profiles.each{ |p| return p unless p.get_component(component_name).nil? }
+    end
+    
+    def profiles=(p)
+      @_profile_map = {}
+      @profiles = p
+      @profiles.each{ |profile| @_profile_map[p.name] = p }
+    end
+    
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"
@@ -70,36 +62,38 @@ module OpenShift
       self.license_url = spec_hash["License-Url"] || ""
       self.vendor = spec_hash["Vendor"] || "unknown"
       self.description = spec_hash["Description"] || ""
-      self.provides_feature = spec_hash["Provides"] || []
-      self.requires_feature = spec_hash["Requires"] || []
-      self.conflicts_feature = spec_hash["Conflicts"] || []
-      self.requires = spec_hash["Native-Requires"] || []
-      self.categories = spec_hash["Categories"] || ["cartridge"]
+      self.provides = spec_hash["Provides"] || []
+      self.requires = spec_hash["Requires"] || []
+      self.conflicts = spec_hash["Conflicts"] || []
+      self.native_requires = spec_hash["Native-Requires"] || []
+      self.categories = spec_hash["Categories"] || []
       self.website = spec_hash["Website"] || ""
-      self.suggests_feature = spec_hash["Suggests"] || []
+      self.suggests = spec_hash["Suggests"] || []
       self.help_topics = spec_hash["Help-Topics"] || {}
       self.cart_data_def = spec_hash["Cart-Data"] || {}
       
-      self.provides_feature = [self.provides_feature] if self.provides_feature.class == String
-      self.requires_feature = [self.requires_feature] if self.requires_feature.class == String
-      self.conflicts_feature = [self.conflicts_feature] if self.conflicts_feature.class == String
+      self.provides = [self.provides] if self.provides.class == String
       self.requires = [self.requires] if self.requires.class == String
+      self.conflicts = [self.conflicts] if self.conflicts.class == String
+      self.native_requires = [self.native_requires] if self.native_requires.class == String
 
       if spec_hash.has_key?("Profiles")
         spec_hash["Profiles"].each do |pname, p|
-          profile = Profile.new.from_descriptor(p)
+          profile = Profile.new.from_descriptor(self, p)
           profile.name = pname
-          add_profile(profile)
+          @profiles << (profile)
+          @_profile_map[profile.name] = profile
         end
       else
         ["Name", "Version", "Architecture", "DisplayName", "License",
            "Provides", "Requires", "Conflicts", "Native-Requires"].each do |k|
           spec_hash.delete(k)
         end
-        p = Profile.new.from_descriptor(spec_hash)
-        p.name = "default"
+        p = Profile.new.from_descriptor(self, spec_hash)
+        p.name = self.name
         p.generated = true
-        add_profile(p)
+        @profiles << p
+        @_profile_map[p.name] = p
       end
       self.default_profile = spec_hash["Default-Profile"] || self.profiles.first.name
       self
@@ -121,14 +115,13 @@ module OpenShift
       h["Help-Topics"] = self.help_topics if self.help_topics and !self.help_topics.empty?
       h["Cart-Data"] = self.cart_data_def if self.cart_data_def and !self.cart_data_def.empty?
 
-      h["Provides"] = self.provides_feature if self.provides_feature && !self.provides_feature.empty?
-      h["Requires"] = self.requires_feature if self.requires_feature && !self.requires_feature.empty?
-      h["Conflicts"] = self.conflicts_feature if self.conflicts_feature && !self.conflicts_feature.empty?
-      h["Suggests"] = self.suggests_feature if self.suggests_feature && !self.suggests_feature.empty? 
-      h["Native-Requires"] = self.requires if self.requires && !self.requires.empty?
+      h["Provides"] = self.provides if self.provides && !self.provides.empty?
+      h["Requires"] = self.requires if self.requires && !self.requires.empty?
+      h["Conflicts"] = self.conflicts if self.conflicts && !self.conflicts.empty?
+      h["Suggests"] = self.suggests if self.suggests && !self.suggests.empty? 
+      h["Native-Requires"] = self.native_requires if self.native_requires && !self.native_requires.empty?
       h["Vendor"] = self.vendor if self.vendor and !self.vendor.empty? and self.vendor != "unknown"
-      h["Default-Profile"] = self.default_profile if self.profile_name_map && !self.profile_name_map[self.default_profile].nil? &&
-                                                      !self.profile_name_map[self.default_profile].generated
+      h["Default-Profile"] = self.default_profile if !self.default_profile.nil? and !self.default_profile.empty? and !@_profile_map[@default_profile].generated
     
       if self.profiles.length == 1 && self.profiles.first.generated
         profile_h = self.profiles.first.to_descriptor
@@ -142,10 +135,6 @@ module OpenShift
       end
       
       h
-    end
-    
-    def get_name_prefix
-      return "/cart-" + self.name
     end
   end
 end

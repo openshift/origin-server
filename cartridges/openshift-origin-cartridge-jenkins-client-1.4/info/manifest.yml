@@ -3,10 +3,9 @@ Display-Name: Jenkins Client 1.4
 Description: "The Jenkins client connects to your Jenkins application and enables builds and testing of your application. Requires the Jenkins Application to be created via the new application page."
 Version: 1.0.0
 License: ASL 2.0
-Vendor: 
 Categories:
-  - cartridge
   - ci_builder
+  - embedded
 Cart-Data:
   - Key: "job_url"
     Type: cart_data
@@ -15,22 +14,18 @@ Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Provides:
+  - "jenkins-client-1.4"
   - "jenkins-client"
-Requires:
-Conflicts:
-Native-Requires:
-Architecture: noarch
-Reservations:
-  - MEM >= 10MB
-Service-Dependencies: ["jenkins-1.4"]
 Publishes:
-  colocate-with-haproxy-hack:
-    Type: "FILESYSTEM:haproxy:colocate-hack"
   get-job-interface-url:
     Type: "NET_TCP:jenkins:job-url"
 Subscribes:
   set-jenkins-url:
     Type: "NET_TCP:jenkins:url"
+Group-Overrides:
+  - components:
+    - jenkins-client
+    - web_proxy    
 Scaling:
   Min: 1
-  Max: -1
+  Max: 1

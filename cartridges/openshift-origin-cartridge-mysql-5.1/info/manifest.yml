@@ -8,6 +8,7 @@ License: ASL 2.0
 Categories:
   - cartridge
   - database
+  - embedded
 Website: http://www.mysql.com
 Help-Topics:
   - "Building with MySQL" : http://docs.redhat.com/docs/en-US/OpenShift/2.0/html/User_Guide/sect-User_Guide-Working_With_Database_Cartridges.html
@@ -26,84 +27,16 @@ Cart-Data:
     Description: "MySQL DB connection URL"
 Suggests:
   - phpmyadmin-3.4
-Provides: mysql
-Native-Requires: 
-  - mysql-server
-  - mysql-devel
+Provides: 
+  - mysql
+  - mysql-singleton-master
 Conflicts:
   - postgresql-8.4
-Profiles:
-  singleton-master:
-    Provides: mysql-singleton-master
-    Components:
-      mysql-server:
-        Publishes:
-          publish-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-#          get-mysql-connection-info:
-#            Type: "NET_TCP:db:mysql"
-#          get-mysql-jdbc-info:
-#            Type: "NET_TCP:jdbc"
-#          get-db-local-connection-info:
-#            Type: "AFUNIX:db:connection-info"
-    Groups:
-      mysql:
-        Components:
-          mysql-server: mysql-server
-        Scaling:
-          Min: 1
-          Max: 1
-
-  master-slave:
-    Provides: mysql-master-slave
-    Components:
-      master:
-        Publishes:
-          get-master:
-            Type: "NET_TCP:db:mysql:master"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-mysql-connection-info:
-            Type: "NET_TCP:db:mysql"
-          get-mysql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-slave:
-            Type: "NET_TCP:db:mysql:slave"
-      slave:
-        Publishes:
-          get-slave:
-            Type: "NET_TCP:db:mysql:slave"
-          get-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-          get-mysql-connection-info:
-            Type: "NET_TCP:db:mysql"
-          get-mysql-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          get-db-local-connection-info:
-            Type: "AFUNIX:db:connection-info"
-        Subscribes:
-          set-master:
-            Type: "NET_TCP:db:mysql:master"
-            Required: True
-    Groups:
-      master:
-        Components:
-          mysql-master: master
-        Scaling:
-          Min: 1
-          Max: 1
-      slaves:
-        Components:
-          mysql-slave: slave
-    Connections:
-      master-slave-connections:
-        Components:
-          - mysql-master
-          - mysql-slave
-    Start-Order:  [master, slaves]
-Default-Profile: singleton-master
+Publishes:
+  publish-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+Scaling:
+  Min: 1
+  Max: 1
 Endpoints:
   - DB_PROXY_PORT: 3306

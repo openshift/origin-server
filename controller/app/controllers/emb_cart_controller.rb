@@ -1,32 +1,30 @@
 class EmbCartController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
-  include LegacyBrokerHelper
-  include CartridgeHelper
+  include RestModelHelper
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges
   def index
     domain_id = params[:domain_id]
     id = params[:application_id]
 
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain #{domain_id} not found", 127,
-                        "LIST_APP_CARTRIDGES") if !domain || !domain.hasAccess?(@cloud_user)
-
-    @domain_name = domain.namespace
-
-    Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
-    application = get_application(id)
-    return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
-                        101, "LIST_APP_CARTRIDGES") unless application
-    #used for user action log
-    @application_name = application.name
-    @application_uuid = application.uuid
+    begin
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      @domain_name = domain.namespace
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_APP_CARTRIDGES")
+    end
     
-    cartridges = get_cartridges(application)
-
-    render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES",
-                   "Listing cartridges for application #{id} under domain #{domain_id}")
+    begin
+      application = Application.find_by(domain: domain, name: id)
+      @application_name = application.name
+      @application_uuid = application._id.to_s
+      cartridges = get_application_rest_cartridges(application)
+      
+      render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES", "Listing cartridges for application #{id} under domain #{domain_id}")
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "LIST_APP_CARTRIDGES")
+    end
   end
   
   # GET /domains/[domain_id]/applications/[application_id]/cartridges/[id]
@@ -34,243 +32,176 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     application_id = params[:application_id]
     id = params[:id]
-    #include=status_messages
-    status_messages = (params[:include] == "status_messages")
+    status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
     
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain #{domain_id} not found", 127,
-                        "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
-    #used for user action log
-    @domain_name = domain.namespace
-    Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
-    application = get_application(application_id)
-    return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'",
-                        101, "SHOW_APP_CARTRIDGE") if !application
-   
-    @application_name = application.name
-    @application_uuid = application.uuid
-    cartridge = nil 
-    application.embedded.each do |key, value|
-      if key == id
-        app_status = application.status(key, false) if status_messages
-        if $requested_api_version == 1.0
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, app_status, nolinks)
-        else
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, app_status, nolinks)
-        end
-        break
-      end
-    end if application.embedded
-
-    if !cartridge and id == application.framework and $requested_api_version != 1.0
-      app_status = application.status(application.framework, false) if status_messages
-      app_status.each do |gear_status|
-        #FIXME: work around until cartridge status hook provides better interface
-        message = "#{application.framework} is started."
-        message = "#{application.framework} is stopped or inaccessible." if gear_status['message'].match(/(stopped)|(inaccessible)/)
-        gear_status['message'] = message
-      end if app_status
-      cartridge = RestCartridge11.new("standalone", application.framework, application, get_url, app_status, nolinks)
+    begin
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      @domain_name = domain.namespace
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_APP_CARTRIDGE")
     end
-    return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE",
-           "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}") if cartridge
-
-    render_error(:not_found, "Cartridge #{id} not found for application #{application_id}",
-                 129, "SHOW_APP_CARTRIDGE")
+    
+    begin
+      application = Application.find_by(domain: domain, name: application_id)
+      @application_name = application.name
+      @application_uuid = application._id.to_s
+      component_instance = application.component_instances.find_by(cartridge_name: id)
+      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides, status_messages)
+      return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
+    end
   end
 
   # POST /domains/[domain_id]/applications/[application_id]/cartridges
   def create
     domain_id = params[:domain_id]
     id = params[:application_id]
-
     name = params[:name]
+    
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
     # some tools may still use it
-    name = params[:cartridge] unless name
+    name = params[:cartridge] if name.nil?
     colocate_with = params[:colocate_with]
+    scales_from = Integer(params[:scales_from]) rescue nil
+    scales_to = Integer(params[:scales_to]) rescue nil
+    additional_storage = Integer(params[:additional_storage]) rescue nil
 
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain #{domain_id} not found", 127,
-                        "EMBED_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
-
-    @domain_name = domain.namespace
-    application = get_application(id)
-    return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
-                        101, "EMBED_CARTRIDGE") unless application
-
-    @application_name = application.name
-    @application_uuid = application.uuid
     begin
-      #container = OpenShift::ApplicationContainerProxy.find_available(application.server_identity)
-      container = OpenShift::ApplicationContainerProxy.find_available(nil)
-      if not check_cartridge_type(name, container, "embedded")
-        carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
-                           Application.get_available_cartridges("embedded")}
-        return render_error(:bad_request, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
-                            109, "EMBED_CARTRIDGE", "cartridge")
-      end
-    rescue Exception => e
-      return render_exception(e, "EMBED_CARTRIDGE")
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      @domain_name = domain.namespace
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "EMBED_CARTRIDGE")
     end
     
-    #TODO: Need a proper method to let us know if cart will get its own gear
-    if application.scalable && colocate_with.nil? && (@cloud_user.consumed_gears >= @cloud_user.max_gears) && name != 'jenkins-client-1.4'
-      return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
-                          104, "EMBED_CARTRIDGE")
-    end
-
-    cart_create_reply = ""
     begin
-      application.add_group_override(name, colocate_with) if colocate_with
-      cart_create_reply = application.add_dependency(name)
-    rescue Exception => e
-      return render_exception(e, "EMBED_CARTRIDGE")
+      application = Application.find_by(domain: domain, name: id)
+      @application_name = application.name
+      @application_uuid = application._id.to_s
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "EMBED_CARTRIDGE")
     end
 
-    application = get_application(id)
-
-    application.embedded.each do |key, value|
-      if key == name
-        if $requested_api_version == 1.0
-          cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
-        else
-          cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
-        end
-        messages = []
-        log_msg = "Added #{name} to application #{id}"
-        messages.push(Message.new(:info, log_msg))
-        messages.push(Message.new(:info, cart_create_reply.resultIO.string, 0, :result))
-        messages.push(Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo))
-        return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", log_msg, nil, nil, messages)
-
+    unless colocate_with.nil? or colocate_with.empty?
+      begin
+        colocate_component_instance = application.component_instances.find_by(cartridge_name: colocate_with)
+        colocate_component_instance = colocate_component_instance.first if colocate_component_instance.class == Array
+      rescue Mongoid::Errors::DocumentNotFound
+        return render_error(:bad_request, "Invalid colocation specified. No component matches #{colocate_with}", 109, "EMBED_CARTRIDGE", "cartridge")      
       end
-    end if application.embedded
-    render_error(:internal_server_error, "Cartridge #{name} not embedded within application #{id}", nil, "EMBED_CARTRIDGE")
+    end
+    
+    begin
+      group_overrides = []
+      # Todo: REST API assumes cartridge only has one component
+      cart = CartridgeCache.find_cartridge(name)
+      prof = cart.profile_for_feature(name)
+      comp = prof.components.first
+      comp_spec = {"cart" => cart.name, "comp" => comp.name}
+      
+      unless colocate_component_instance.nil?
+        group_overrides << {"components" => [colocate_component_instance.to_hash, comp_spec]}
+      end
+      if !scales_to.nil? or !scales_from.nil? or !additional_storage.nil?
+        group_override = {"components" => [comp_spec]}
+        group_override["min_gears"] = scales_from unless scales_from.nil?
+        group_override["max_gears"] = scales_to unless scales_to.nil?
+        group_override["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
+        group_overrides << group_override
+      end
+      
+      application.add_features([name], group_overrides)
+      
+      
+      component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
+      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
+      return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", nil, nil, nil, nil)
+    rescue OpenShift::UserException => e
+      return render_error(:bad_request, "Invalid cartridge. #{e.message}", 109, "EMBED_CARTRIDGE", "cartridge")
+    end
   end
 
-  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
+  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
   def destroy
     domain_id = params[:domain_id]
     id = params[:application_id]
     cartridge = params[:id]
 
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
-                               "REMOVE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
-
-    @domain_name = domain.namespace
-    application = get_application(id)
-    return render_format_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
-                               101, "REMOVE_CARTRIDGE") unless application
-    
-    @application_name = application.name
-    @application_uuid = application.uuid
-    return render_format_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
-                               129, "REMOVE_CARTRIDGE") if !application.embedded or !application.embedded.has_key?(cartridge)
-
     begin
-      Rails.logger.debug "Removing #{cartridge} from application #{id}"
-      application.remove_dependency(cartridge)
-    rescue Exception => e
-      return render_format_exception(e, "REMOVE_CARTRIDGE")
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      @domain_name = domain.namespace
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "REMOVE_CARTRIDGE")
     end
+    
+    begin
+      application = Application.find_by(domain: domain, name: id)
+      @application_name = application.name
+      @application_uuid = application._id.to_s
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "REMOVE_CARTRIDGE")
+    end
+    
+    begin
+      comp = application.component_instances.find_by(cartridge_name: cartridge)
+      feature = application.get_feature(comp.cartridge_name, comp.component_name)
+      if CartridgeCache.find_cartridge(cartridge).categories.include?("web_framework")
+        raise OpenShift::UserException.new("Invalid cartridge #{id}")
+      end
       
-    application = get_application(id)
-    if $requested_api_version == 1.0
-      app = RestApplication10.new(application, get_url, nolinks)
-    else
-      app = RestApplication12.new(application, get_url, nolinks)
+      application.remove_features([feature])
+      
+      if $requested_api_version >= 1.2
+        app = RestApplication12.new(application, get_url, nolinks)
+      else
+        app = RestApplication10.new(application, get_url, nolinks)
+      end
+      
+      render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
+    rescue OpenShift::UserException => e
+      return render_error(:bad_request, "Application is currently busy performing another operation. Please try again in a minute.", 129, "REMOVE_CARTRIDGE")
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}", 129, "REMOVE_CARTRIDGE")
     end
-    render_format_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
   end
 
-  # UPDATE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
-  def update
+  def update_scale
     domain_id = params[:domain_id]
-    app_id = params[:application_id]
-    cartridge_name = params[:id]
-    additional_storage = params[:additional_gear_storage]
-    scales_from = params[:scales_from]
-    scales_to = params[:scales_to]
+    application_id = params[:application_id]
+    id = params[:id]
+    scales_from = Integer(params[:scales_from]) rescue nil
+    scales_to = Integer(params[:scales_to]) rescue nil
+    additional_storage = Integer(params[:additional_storage]) rescue nil
     
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
-                        "UPDATE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
-
-    @domain_name = domain.namespace
-    application = get_application(app_id)
-    return render_format_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
-                        101, "UPDATE_CARTRIDGE") unless application
-    #used for user action log
-    @application_name = application.name
-    @application_uuid = application.uuid
-    return render_format_error(:bad_request, "Cartridge #{cartridge_name} for application #{app_id} not found",
-                               129, "UPDATE_CARTRIDGE") if ((!application.embedded or !application.embedded.has_key?(cartridge_name)) and application.framework!=cartridge_name)              
+    begin
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      @domain_name = domain.namespace
+      @application_uuid = app._id.to_s
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "PATCH_APP_CARTRIDGE")
+    end
     
-    storage_map = {}
-    application.comp_instance_map.values.each do |cinst|
-      if cinst.parent_cart_name==cartridge_name
-        group_name = cinst.group_instance_name
-        storage_map[group_name] = [] unless storage_map.has_key?(group_name)
-        storage_map[group_name] << cinst
+    begin
+      application = Application.find_by(domain: domain, name: application_id)
+      @application_name = application.name
+ 
+      if !application.scalable and (scales_from != 1 or scales_to != 1)
+        return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
       end
-    end
-    return render_format_error(:not_found, "Cartridge '#{cartridge_name}' for application '#{app_id}' not found",
-                        129, "UPDATE_CARTRIDGE") unless storage_map.keys.length>0
-                
-    #only update attributes that are specified                  
-    if additional_storage and additional_storage!=0
-      max_storage = @cloud_user.capabilities['max_storage_per_gear']
-      return render_format_error(:forbidden, "User is not allowed to change storage quota", 164,
-                                 "UPDATE_CARTRIDGE") unless max_storage
-      num_storage = nil
-      begin 
-        num_storage = Integer(additional_storage)
-      rescue => e
-        return render_format_error(:unprocessable_entity, "Invalid storage value provided.", 165, "UPDATE_CARTRIDGE", "additional_gear_storage")
-      end
-      begin
-        # first check against max_storage limit
-        storage_map.each do |group_name, component_instance_list|
-          ginst = application.group_instance_map[group_name]
-          current_sum = 0
-          component_instance_list.each { |cinst| current_sum += cinst.addtl_fs_gb }
-          current_sum = ginst.addtl_fs_gb-current_sum
-          current_sum += ginst.get_cached_min_storage_in_gb
-          current_sum += num_storage
-          return render_format_error(:forbidden, "Total additional storage for all cartridges on gear should be less than max_storage_per_gear (new_storage: #{current_sum}, max: #{max_storage}).", 166, "UPDATE_CARTRIDGE", "additional_gear_storage") if current_sum>max_storage
-        end
-        # now actually change the quota
-        storage_map.each do |group_name, component_instance_list|
-          each_component_share = (Float(num_storage))/component_instance_list.length
-          ginst = application.group_instance_map[group_name]
-          component_instance_list.each { |cinst| cinst.set_additional_quota(application, each_component_share) }
-        end
-        application.save
-      rescue Exception => e
-        return render_format_exception(e, "UPDATE_CARTRIDGE")
-      end             
-    end
+      
+      component_instance = application.component_instances.find_by(cartridge_name: id)
 
-    if scales_from or scales_to
-      begin
-        application.set_user_min_max(storage_map, scales_from, scales_to)
-      rescue OpenShift::UserException=>e
-        return render_format_error(:unprocessable_entity, e.message, 168,
-                         "UPDATE_CARTRIDGE") 
-      rescue Exception=>e
-        return render_format_error(:forbidden, e.message, 164,
-                         "UPDATE_CARTRIDGE") 
-      end
+      application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
+
+      component_instance = application.component_instances.find_by(cartridge_name: id)
+      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
+      return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "PATCH_APP_CARTRIDGE")
     end
-    cart_type = cartridge_name==application.framework ? "standalone" : "embedded"
-    if $requested_api_version == 1.0
-      cartridge = RestCartridge10.new(cart_type, cartridge_name, application, get_url, nil, nolinks)
-    else
-      cartridge = RestCartridge11.new(cart_type, cartridge_name, application, get_url, nil, nolinks)
-    end
-    render_format_success(:ok, "cartridge", cartridge, "UPDATE_CARTRIDGE", "Updated #{cartridge_name} from application #{app_id}", true)
+    
+    return render_success(:ok, "cartridge", [], "PATCH_APP_CARTRIDGE", "")  
   end
+
 end

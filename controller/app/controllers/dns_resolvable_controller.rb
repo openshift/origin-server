@@ -10,18 +10,22 @@ class DnsResolvableController < BaseController
     domain_id = params[:domain_id]
     id = params[:application_id]
     
-    domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain #{domain_id} not found", 127,
-                        "DNS_RESOLVABLE") if !domain || !domain.hasAccess?(@cloud_user)
+    begin
+      domain = Domain.find_by(owner: @cloud_user, namespace: id)
+      @domain_name = domain.namespace
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Domain #{domain_id} not found", 127, "DNS_RESOLVABLE")
+    end
 
-    @domain_name = domain.namespace
-    application = Application.find(@cloud_user,id)
-    return render_error(:not_found, "Application '#{id}' not found", 101,
-                        "DNS_RESOLVABLE") unless application
+    begin
+      application = Application.find_by(domain: domain, name: id)
+      @application_name = application.name
+      @application_uuid = application.uuid
+    rescue Mongoid::Errors::DocumentNotFound      
+      return render_error(:not_found, "Application '#{id}' not found", 101, "DNS_RESOLVABLE")
+    end
                         
-    @application_name = application.name
-    @application_uuid = application.uuid
-    name = "#{application.name}-#{application.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
+    name = "#{application.name}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
     nameservers = NameServerCache.get_name_servers             
     
     dns = Dnsruby::Resolver.new(:nameserver => nameservers[rand(nameservers.length)])

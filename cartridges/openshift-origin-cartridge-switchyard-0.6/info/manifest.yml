@@ -3,9 +3,9 @@ Display-Name: SwitchYard 0.6
 Description: "SwitchYard is a lightweight service delivery framework providing full lifecycle support for developing, deploying, and managing service-oriented applications."
 Version: 1.0.0
 License: ASL 2.0
-Vendor: 
 Categories:
   - cartridge
+  - embedded
 Cart-Data:
   - Key: "module_path"
     Type: cart_data
@@ -15,19 +15,6 @@ Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Provides:
   - "switchyard"
-Requires:
-Conflicts:
-Native-Requires:
-Architecture: noarch
-Reservations:
-  - MEM >= 10MB
-Components:
-  default:
-    Service-Dependencies:
-    Publishes:
-    Subscribes:
-Publishes:
-Subscribes:
 Scaling:
   Min: 1
   Max: -1

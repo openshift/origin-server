@@ -93,7 +93,7 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
-            district_uuid = district.uuid
+            district_uuid = district._id.to_s
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
           elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
             raise OpenShift::NodeException.new("No district nodes available.", 140)
@@ -215,7 +215,7 @@ module OpenShift
       #
       def get_quota(gear)
         args = Hash.new
-        args['--uuid'] = gear.uuid
+        args['--uuid'] = gear._id.to_s
         reply = execute_direct(@@C_CONTROLLER, 'get-quota', args, false)
 
         output = nil
@@ -258,7 +258,7 @@ module OpenShift
       #
       def set_quota(gear, storage_in_gb, inodes)
         args = Hash.new
-        args['--uuid']   = gear.uuid
+        args['--uuid']   = gear._id.to_s
         # quota command acts on 1K blocks
         args['--blocks'] = Integer(storage_in_gb * 1024 * 1024)
         args['--inodes'] = inodes unless inodes.nil?
@@ -302,12 +302,12 @@ module OpenShift
         reserved_uid = nil
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
+            reserved_uid = District::reserve_uid(district_uuid)
             raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
           end
         end
@@ -333,12 +333,14 @@ module OpenShift
       def unreserve_uid(uid, district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            #cleanup
+            #OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            District::unreserve_uid(district_uuid, uid)
           end
         end
       end
@@ -359,12 +361,14 @@ module OpenShift
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            #cleanup
+            #OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            District::inc_externally_reserved_uids_size(district_uuid)
           end
         end
       end
@@ -395,17 +399,17 @@ module OpenShift
         result = nil
         (1..10).each do |i|
           args = Hash.new
-          args['--with-app-uuid'] = app.uuid
+          args['--with-app-uuid'] = app._id.to_s
           args['--with-app-name'] = app.name
-          args['--with-container-uuid'] = gear.uuid
+          args['--with-container-uuid'] = gear._id.to_s
           args['--with-container-name'] = gear.name
           args['--with-quota-blocks'] = quota_blocks if quota_blocks
           args['--with-quota-files'] = quota_files if quota_files
           args['--with-namespace'] = app.domain.namespace
           args['--with-uid'] = gear.uid if gear.uid
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
-          result = parse_result(mcoll_reply)
-          if result.exitcode == 129 && has_uid_or_gid?(app.gear.uid) # Code to indicate uid already taken
+          result = parse_result(mcoll_reply, app, gear)
+          if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
             destroy(app, gear, true)
             inc_externally_reserved_uids_size
             gear.uid = reserve_uid
@@ -436,14 +440,14 @@ module OpenShift
       #
       def destroy(app, gear, keep_uid=false, uid=nil, skip_hooks=false)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
+        args['--with-app-uuid'] = app._id.to_s
         args['--with-app-name'] = app.name
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-container-name'] = gear.name
         args['--with-namespace'] = app.domain.namespace
         args['--skip-hooks'] = true if skip_hooks
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
-        result_io = parse_result(result)
+        result_io = parse_result(result, app, gear)
 
         uid = gear.uid unless uid
         
@@ -532,13 +536,13 @@ module OpenShift
       #
       def add_authorized_ssh_key(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -560,12 +564,12 @@ module OpenShift
       #
       def remove_authorized_ssh_key(app, gear, ssh_key, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
 
@@ -589,12 +593,12 @@ module OpenShift
       #
       def add_env_var(app, gear, key, value)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         args['--with-value'] = value
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -614,11 +618,11 @@ module OpenShift
       #      
       def remove_env_var(app, gear, key)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         result = execute_direct(@@C_CONTROLLER, 'env-var-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -640,12 +644,12 @@ module OpenShift
       #
       def add_broker_auth_key(app, gear, iv, token)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-iv'] = iv
         args['--with-token'] = token
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -665,10 +669,10 @@ module OpenShift
       #    
       def remove_broker_auth_key(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
 
@@ -689,10 +693,10 @@ module OpenShift
       #
       def show_state(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         result = execute_direct(@@C_CONTROLLER, 'app-state-show', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
       
       # 
@@ -744,7 +748,7 @@ module OpenShift
           #no-op
         end
         
-        return result_io, cart_data
+        return result_io#, cart_data
       end
       
       #
@@ -956,7 +960,7 @@ module OpenShift
       #
       def execute_connector(app, gear, cart, connector_name, input_args)
         args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args['--gear-uuid'] = gear._id.to_s
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
@@ -1214,6 +1218,18 @@ module OpenShift
       # * executes 'expose-port' action.
       # * method on Gear or Cart?
       #            
+      def get_expose_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'expose-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
+      def get_conceal_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'conceal-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
+      def get_show_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'show-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'")
+      end
+      
       def expose_port(app, gear, cart)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -1337,8 +1353,8 @@ module OpenShift
       #
       #
       def update_namespace(app, gear, cart, new_ns, old_ns)
-        mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
-        parse_result(mcoll_reply)
+        mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear._id.to_s}")
+        parse_result(mcoll_reply, app , gear)
       end
 
       #
@@ -1358,8 +1374,8 @@ module OpenShift
       # 
       def get_env_var_add_job(app, gear, key, value)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         args['--with-value'] = value
         job = RemoteJob.new('openshift-origin-node', 'env-var-add', args)
@@ -1383,8 +1399,8 @@ module OpenShift
       # 
       def get_env_var_remove_job(app, gear, key)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-key'] = key
         job = RemoteJob.new('openshift-origin-node', 'env-var-remove', args)
         job
@@ -1408,8 +1424,8 @@ module OpenShift
       # 
       def get_add_authorized_ssh_key_job(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
@@ -1434,8 +1450,8 @@ module OpenShift
       #       
       def get_remove_authorized_ssh_key_job(app, gear, ssh_key, comment=nil)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-remove', args)
@@ -1459,8 +1475,8 @@ module OpenShift
       #       
       def get_broker_auth_key_add_job(app, gear, iv, token)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         args['--with-iv'] = iv
         args['--with-token'] = token
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
@@ -1482,8 +1498,8 @@ module OpenShift
       #         
       def get_broker_auth_key_remove_job(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-remove', args)
         job
       end
@@ -1506,7 +1522,7 @@ module OpenShift
       #         
       def get_execute_connector_job(app, gear, cart, connector_name, input_args)
         args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args['--gear-uuid'] = gear._id.to_s
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
@@ -1529,8 +1545,8 @@ module OpenShift
       #         
       def get_show_state_job(app, gear)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         job = RemoteJob.new('openshift-origin-node', 'app-state-show', args)
         job
       end
@@ -1551,7 +1567,7 @@ module OpenShift
       # * uses RemoteJob
       #         
       def get_status_job(app, gear, cart)
-        args = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
+        args = "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'"
         job = RemoteJob.new(cart, 'status', args)
         job
       end
@@ -1570,7 +1586,7 @@ module OpenShift
       #         
       def get_show_gear_quota_job(gear)
         args = Hash.new
-        args['--uuid'] = gear.uuid
+        args['--uuid'] = gear._id.to_s
         job = RemoteJob.new('openshift-origin-node', 'get-quota', args)
         job
       end
@@ -1589,7 +1605,7 @@ module OpenShift
       #               
       def get_update_gear_quota_job(gear, storage_in_gb, inodes)
         args = Hash.new
-        args['--uuid']   = gear.uuid
+        args['--uuid']   = gear._id.to_s
         # quota command acts on 1K blocks
         args['--blocks'] = Integer(storage_in_gb * 1024 * 1024)
         args['--inodes'] = inodes unless inodes.to_s.empty?
@@ -1617,14 +1633,14 @@ module OpenShift
       # 
       def move_gear_post(app, gear, destination_container, state_map, keep_uid)
         reply = ResultIO.new
+        gi = gear.group_instance
+        gear_components = gi.all_component_instances
+        start_order, stop_order = app.calculate_component_orders
         source_container = gear.container
-        gi = app.group_instance_map[gear.group_instance_name]
-        app.start_order.each do |ci_name|
-          next if not gi.component_instances.include? ci_name
-          cinst = app.comp_instance_map[ci_name]
-          cart = cinst.parent_cart_name
-          next if cart==app.name
-          idle, leave_stopped = state_map[ci_name]
+        start_order.each do |cinst|
+          next if not gear_components.include? cinst
+          cart = cinst.cartridge_name
+          idle, leave_stopped = state_map[cart]
           unless leave_stopped
             log_debug "DEBUG: Starting cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
             reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "start", nil, false)
@@ -1903,7 +1919,7 @@ module OpenShift
 
         move_gear_destroy_old(app, gear, keep_uid, orig_uid, source_container, destination_container)
 
-        log_debug "Successfully moved '#{app.name}' with gear uuid '#{gear.uuid}' from '#{source_container.id}' to '#{destination_container.id}'"
+        log_debug "Successfully moved '#{app.name}' with gear uuid '#{gear._id.to_s}' from '#{source_container.id}' to '#{destination_container.id}'"
         reply
       end
 
@@ -1933,7 +1949,7 @@ module OpenShift
         begin
           reply.append source_container.destroy(app, gear, keep_uid, orig_uid, true)
         rescue Exception => e
-          log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear.uuid}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
+          log_debug "DEBUG: The application '#{app.name}' with gear uuid '#{gear._id.to_s}' is now moved to '#{destination_container.id}' but not completely deconfigured from '#{source_container.id}'"
           raise
         end
         reply
@@ -2028,7 +2044,7 @@ module OpenShift
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear._id.to_s}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear._id.to_s}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -2263,7 +2279,7 @@ module OpenShift
       # * that is: Why use an instance var at all?
       #
       def framework_carts
-        @framework_carts ||= CartridgeCache.cartridge_names('standalone')
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework')
       end
 
       #
@@ -2508,23 +2524,25 @@ module OpenShift
       # * uses find_app
       # * uses sanitize_result
       #
-      def parse_result(mcoll_reply, app=nil, command=nil)
+      def parse_result(mcoll_reply, app=nil, gear=nil, command=nil)
+        result = ResultIO.new
+        
         mcoll_result = mcoll_reply[0]
         output = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
           output = mcoll_result.results[:data][:output]
-          exitcode = mcoll_result.results[:data][:exitcode]
+          result.exitcode = mcoll_result.results[:data][:exitcode]
         else
-          server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
+          server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app._id.to_s, app.name) : nil
           if server_identity && @id != server_identity
             raise OpenShift::InvalidNodeException.new("Node execution failure (invalid  node).  If the problem persists please contact Red Hat support.", 143, nil, server_identity)
           else
             raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         end
-        
-        result = MCollectiveApplicationContainerProxy.sanitize_result(output, exitcode)
-        #result.exitcode = exitcode
+
+        gear_id = gear.nil? ? nil : gear._id.to_s
+        result.parse_output(output, gear_id)
 
         # raise an exception in case of non-zero exit code from the node
         if result.exitcode != 0
@@ -2535,7 +2553,6 @@ module OpenShift
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, result)
           end
         end
-
         result
       end
       
@@ -2661,31 +2678,29 @@ module OpenShift
       def run_cartridge_command(framework, app, gear, command, arg=nil, allow_move=true)
         resultIO = nil
 
-        arguments = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
+        arguments = "'#{gear.name}' '#{app.domain.namespace}' '#{gear._id.to_s}'"
         arguments += " '#{arg}'" if arg
 
         result = execute_direct(framework, command, arguments)
 
         begin
-          begin
-            resultIO = parse_result(result, app, command)
-          rescue OpenShift::InvalidNodeException => e
-            if command != 'configure' && allow_move
-              @id = e.server_identity
-              Rails.logger.debug "DEBUG: Changing server identity of '#{gear.name}' from '#{gear.server_identity}' to '#{@id}'"
-              dns_service = OpenShift::DnsService.instance
-              dns_service.modify_application(gear.name, app.domain.namespace, get_public_hostname)
-              dns_service.publish
-              gear.server_identity = @id
-              app.save
-              #retry
-              result = execute_direct(framework, command, arguments)
-              resultIO = parse_result(result, app, command)
-            else
-              raise
-            end
+          resultIO = parse_result(result, app, gear, command)
+        rescue OpenShift::InvalidNodeException => e
+          if command != 'configure' && allow_move
+            @id = e.server_identity
+            Rails.logger.debug "DEBUG: Changing server identity of '#{gear.name}' from '#{gear.server_identity}' to '#{@id}'"
+            dns_service = OpenShift::DnsService.instance
+            dns_service.modify_application(gear.name, app.domain.namespace, get_public_hostname)
+            dns_service.publish
+            gear.server_identity = @id
+            app.save
+            #retry
+            result = execute_direct(framework, command, arguments)
+            resultIO = parse_result(result, app, gear, command)
+          else
+            raise
           end
-        rescue OpenShift::NodeException => e
+	rescue OpenShift::NodeException => e
           if command == 'deconfigure'
             if framework.start_with?('embedded/')
               if has_embedded_app?(app.uuid, framework[9..-1])
@@ -2706,7 +2721,7 @@ module OpenShift
             raise
           end
         end
-
+        
         resultIO
       end
       
@@ -3231,26 +3246,6 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
-=begin
-        handle.each { |id, job_list|
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          rpc_client = rpcclient('openshift', :options => options)
-          begin
-            mc_args = { id => job_list }
-            mcoll_reply = rpc_client.custom_request('execute_parallel', mc_args, id, {'identity' => id})
-            rpc_client.disconnect
-            if mcoll_reply and mcoll_reply.length > 0
-              mcoll_reply = mcoll_reply[0]
-              output = mcoll_reply.results[:data][:output]
-              exitcode = mcoll_reply.results[:data][:exitcode]
-              Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, status: #{exitcode}")
-              handle[id] = output if exitcode == 0
-            end
-          ensure
-            rpc_client.disconnect
-          end
-        }
-=end
         if handle && !handle.empty?
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options
@@ -3263,10 +3258,13 @@ module OpenShift
                 exitcode = mcoll_reply.results[:data][:exitcode]
                 sender = mcoll_reply.results[:sender]
                 Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
-                output.each do |o|
-                  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout], exitcode) if o.kind_of?(Hash) and o.include?(:result_stdout)
-                  o[:result_stdout] = r.resultIO.string.chomp if r and (r.resultIO.string.chomp.length != 0)
-                end if output.kind_of?(Array)
+
+                #TODO: Why?
+                #output.each do |o|
+                #  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout], exitcode) if o.kind_of?(Hash) and o.include?(:result_stdout)
+                #  o[:result_stdout] = r.resultIO.string.chomp if r and (r.resultIO.string.chomp.length != 0)
+                #end if output.kind_of?(Array)
+                
                 handle[sender] = output if exitcode == 0
               end
             }

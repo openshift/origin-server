@@ -43,19 +43,10 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
-    
 Provides:
   - "nodejs"
   - "nodejs (version) = 0.6.10"
   - "nodejs (version) = 0.6"
-Requires:
-Conflicts:
-Native-Requires:
-  - nodejs >= 0.6
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
 Scaling:
   Min: 1
   Max: -1
