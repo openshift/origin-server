@@ -174,12 +174,12 @@ module OpenShift
     end
 
     def db(connection_opts=nil)
-      options = {:read => :secondary, :connect_timeout => 60}
-      options.merge!(connection_opts) if connection_opts
       if @replica_set
+        options = {:read => :secondary, :connect_timeout => 60}
+        options.merge!(connection_opts) if connection_opts
         con = Mongo::ReplSetConnection.new(*@host_port << options)
       else
-        con = Mongo::Connection.new(@host_port[0], @host_port[1], options)
+        con = Mongo::Connection.new(@host_port[0], @host_port[1])
       end
       user_db = con.db(@db)
       user_db.authenticate(@user, @password)
