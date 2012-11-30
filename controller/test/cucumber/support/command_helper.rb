@@ -324,7 +324,7 @@ module CommandHelper
   def rhc_ctl_destroy(app, use_hosts=true)
     rhc_do('rhc_ctl_destroy') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app destroy -l #{app.login} -p #{app.password} #{app.name} --confirm -d").should == 0
+        run("#{$rhc_script} app delete -l #{app.login} -p #{app.password} #{app.name} --confirm -d").should == 0
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
