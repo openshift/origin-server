@@ -51,7 +51,15 @@ source "/var/lib/openshift/${uuid}/.env/OPENSHIFT_HOMEDIR"
 # Turn user application back on.
 framework_carts=$(get_installed_framework_carts)
 primary_framework_cart=${framework_carts[0]}
-rm "${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
+
+stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
+if [ -f "$stop_lock_file" ]
+then
+    rm "$stop_lock_file"
+else
+    # Do not restore non-idled application. Browser may cause 20+ retries when restoring application.
+    exit 0
+fi
 
 # code copied from node/lib/util_ext
 runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
