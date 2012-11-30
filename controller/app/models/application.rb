@@ -61,7 +61,6 @@ class Application < OpenShift::Cartridge
     self.ngears = 0
     
     if template.nil?
-      Rails.logger.debug "framework: #{framework}"
       if self.scalable
         descriptor_hash = YAML.load(template_scalable_app(app_name, framework))
         from_descriptor(descriptor_hash)
