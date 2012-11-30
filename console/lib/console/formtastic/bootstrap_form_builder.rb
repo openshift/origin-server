@@ -308,11 +308,7 @@ module Console
 
         label_options = options_for_label(options)
         label_options[:for] ||= html_options[:id]
-        if label_options[:class].nil?
-          label_options[:class] = 'checkbox'
-        else
-          label_options[:class] << ' checkbox'
-        end
+        (label_options[:class] ||= []) << 'checkbox'
 
         input_html << localized_string(method, label_options[:label], :label) || humanized_attribute_name(method)
         label_options.delete :label
