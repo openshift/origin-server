@@ -1232,7 +1232,7 @@ module OpenShift
                                    :value => district_uuid,
                                    :operator => "=="})
           additional_filters.push({:fact => "district_active",
-                                   :value => true.to_s,
+                                   :value => true,
                                    :operator => "=="})
         else
           #TODO how do you filter on a fact not being set
