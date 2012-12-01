@@ -194,6 +194,33 @@ module OpenShift
       end
     end
 
+    # Adds an alias to the gear
+    def add_alias(alias_name)
+      $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
+
+      outbuf = []
+      cmd = "oo-add-alias --with-container-uuid #{@uuid} --with-container-name #{@app.name} --with-namespace #{@app.account.domain} --with-alias-name #{alias_name}"
+      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
+      if exit_code != 0
+        $logger.error(outbuf)
+        raise Exception.new(outbuf)
+      end
+    end
+
+    # Removes an alias from the gear
+    # Adds an alias to the gear
+    def remove_alias(alias_name)
+      $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
+
+      outbuf = []
+      cmd = "oo-remove-alias --with-container-uuid #{@uuid} --with-container-name #{@app.name} --with-namespace #{@app.account.domain} --with-alias-name #{alias_name}"
+      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
+      if exit_code != 0
+        $logger.error(outbuf)
+        raise Exception.new(outbuf)
+      end
+    end
+
     # Creates a new TestCartridge and associates it with this gear.
     #
     # NOTE: The cartridge is instantiated, but no hooks (such as 

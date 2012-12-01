@@ -291,6 +291,52 @@ module MCollective
         end
       end
 
+      def oo_add_alias(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace = args['--with-namespace']
+        alias_name = args['--with-alias-name']
+
+        output = ""
+        begin
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          out, err, rc = frontend.add_alias(alias_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          output << out
+          output << err
+          return rc, output
+        end
+      end
+
+      def oo_remove_alias(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace = args['--with-namespace']
+        alias_name = args['--with-alias-name']
+
+        output = ""
+        begin
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          out, err, rc = frontend.remove_alias(alias_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          output << out
+          output << err
+          return rc, output
+        end
+      end
+
       def oo_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
@@ -336,6 +382,10 @@ module MCollective
           rc, output = oo_set_quota(cmd, args)
         when "force-stop"
           rc, output = oo_force_stop(cmd, args)
+        when "add-alias"
+          rc, output = oo_add_alias(cmd, args)
+        when "remove-alias"
+          rc, output = oo_remove_alias(cmd, args)
         else
           return nil, nil
         end

@@ -68,6 +68,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0750,-,apache) %{_sbindir}/oo-restorer-wrapper.sh
 %attr(0750,-,-) %{_sbindir}/oo-setup-node
 %attr(0755,-,-) %{_sbindir}/rhc-list-ports
+%attr(0755,-,-) %{_sbindir}/oo-httpd-singular
 
 %doc LICENSE
 %doc README-Idler.md
@@ -85,6 +86,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-restorer-wrapper.sh.8.gz
 %{_mandir}/man8/oo-setup-node.8.gz
 %{_mandir}/man8/rhc-list-ports.8.gz
+%{_mandir}/man8/oo-httpd-singular.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf

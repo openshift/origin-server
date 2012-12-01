@@ -194,7 +194,7 @@ class Gear < OpenShift::Model
   
   def add_alias(server_alias)
     if app.gear.uuid == self.uuid
-      get_proxy.add_alias(app, self, app.framework, server_alias)
+      get_proxy.add_alias(app, self, server_alias)
     else
       ResultIO.new
     end
@@ -202,7 +202,7 @@ class Gear < OpenShift::Model
   
   def remove_alias(server_alias)
     if app.gear.uuid == self.uuid
-      get_proxy.remove_alias(app, self, app.framework, server_alias)
+      get_proxy.remove_alias(app, self, server_alias)
     else
       ResultIO.new
     end

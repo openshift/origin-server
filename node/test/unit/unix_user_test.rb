@@ -59,8 +59,6 @@ class TestUnixUserModel < Test::Unit::TestCase
     assert_directory?("/tmp/homedir/.tmp")
     assert_directory?("/tmp/homedir/.env")
     assert_directory?("/tmp/homedir/.sandbox")
-    assert_directory?("/tmp/.httpd.d")
-    assert_directory?("/tmp/.httpd.d/#{@gear_uuid}_#{@namespace}_#{@app_name}")
   end
 
 # This tests cannot be run because expected polyinstantiation of /tmp causes system /tmp to be chmod 760.

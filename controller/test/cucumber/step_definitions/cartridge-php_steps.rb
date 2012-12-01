@@ -6,16 +6,6 @@ include Test::Unit::Assertions
 
 # NOTE: Assumes the test context is the basic steps provided
 # by runtime_steps.rb
-When /^I (add-alias|remove-alias) the php application$/ do |action|
-  server_alias = "#{@app.name}-#{@account.name}.#{$alias_domain}"
-
-  # todo: this is pretty ugly
-  exit_status = @cart.run_hook action, 0, [ server_alias ]
-  exit_status.should == 0
-end
-
-# NOTE: Assumes the test context is the basic steps provided
-# by runtime_steps.rb
 Then /^the php application will( not)? be aliased$/ do | negate |
   good_status = negate ? 1 : 0
 
@@ -23,7 +13,7 @@ Then /^the php application will( not)? be aliased$/ do | negate |
   OpenShift::timeout(20) do
     begin
       sleep 1
-      command = "/usr/bin/curl -L -H 'Host: #{@app.name}-#{@account.name}.#{$alias_domain}' -s http://localhost/health_check.php | /bin/grep -q -e '^1$'"
+      command = "/usr/bin/curl -L -H 'Host: #{@app.name}.#{$alias_domain}' -s http://localhost/health_check.php | /bin/grep -q -e '^1$'"
       exit_status = runcon command, $selinux_user, $selinux_role, $selinux_type
     end while exit_status != good_status
   end
