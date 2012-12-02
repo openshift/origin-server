@@ -16,6 +16,7 @@
 
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/frontend_httpd.rb'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fcntl'
@@ -195,14 +196,7 @@ module OpenShift
           end
         end
 
-        basedir = @config.get("GEAR_BASE_DIR")
-        path = File.join(basedir, ".httpd.d", "#{uuid}_*")
-        FileUtils.rm_rf(Dir.glob(path))
-
-# Lock inside httpd_singular causing gear destroys to fail. BZ874712
-#        cartdir = @config.get("CARTRIDGE_BASE_PATH")
-#        out, err, rc = shellCmd("#{cartdir}/abstract/info/bin/httpd_singular graceful")
-#        Syslog.alert("ERROR: failure from httpd_singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+        OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).destroy
 
         dirs = list_home_dir(@homedir)
         out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
@@ -526,12 +520,7 @@ module OpenShift
       }
       FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
 
-      token = "#{@uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, ".httpd.d", token)
-
-      # path can only exist as a turd from failed app destroy
-      FileUtils.rm_rf(path) if File.exist?(path)
-      FileUtils.mkdir_p(path)
+      OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
       # Fix SELinux context
       set_selinux_context(homedir)
