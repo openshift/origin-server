@@ -31,6 +31,7 @@ Requires:       policycoreutils-python
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:       ruby193-mcollective-common
 Requires:       ruby193-ruby-qpid-qmf
+Requires:       openshift-origin-msg-common
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 %endif
