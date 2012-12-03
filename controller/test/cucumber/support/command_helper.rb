@@ -183,7 +183,7 @@ module CommandHelper
         run("test -f ~/.ssh/known_hosts && awk 1 ~/.ssh/known_hosts > ~/.ssh/known_hosts- && mv -f ~/.ssh/known_hosts- ~/.ssh/known_hosts")
         run("ssh-keyscan '#{app.name}-#{app.namespace}.#{$domain}' >> ~/.ssh/known_hosts")
         run("chmod 644 ~/.ssh/known_hosts")
-        cmd << " --no-dns"
+#        cmd << " --no-dns"
       end
 
       output_buffer = []
