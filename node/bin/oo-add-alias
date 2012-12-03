@@ -26,7 +26,8 @@ def usage
 
 #{$0} --with-container-uuid UUID \\
                --with-container-name NAME \\
-               --with-namespace NAMESPACE
+               --with-namespace NAMESPACE \\
+               --with-alias-name ALIAS
 
 == List of arguments
   -a|--with-alias-name      alias       Alias to add to the gear

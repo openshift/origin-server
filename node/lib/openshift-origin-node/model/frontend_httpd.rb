@@ -21,11 +21,58 @@ require 'syslog'
 
 module OpenShift
   
-  class FrontendHttpServerException < StandardError; end
-  class FrontendHttpServerNameException < FrontendHttpServerException; end
-  class FrontendHttpServerPathException < FrontendHttpServerException; end
-  class FrontendHttpServerAliasException < FrontendHttpServerException; end
-  
+  class FrontendHttpServerException < StandardError
+    attr_reader :container_uuid, :container_name
+    attr_reader :namespace
+
+    def initialize(msg=nil, container_uuid=nil, container_name=nil, namespace=nil)
+      @container_uuid = container_uuid
+      @container_name = container_name
+      @namespace = namespace
+      super(msg)
+    end
+
+    def to_s
+      m = super
+      m+= ": #{@container_name}" if not @container_name.nil?
+      m+= ": #{@namespace}" if not @namespace.nil?
+      m
+    end
+
+  end
+
+  class FrontendHttpServerNameException < FrontendHttpServerException
+    attr_reader :server_name
+
+    def initialize(msg=nil, container_uuid=nil, container_name=nil, namespace=nil, server_name=nil)
+      @server_name = server_name
+      super(msg, container_uuid, container_name, namespace)
+    end
+
+    def to_s
+      m = super
+      m+= ": #{@server_name}" if not @server_name.nil?
+      m
+    end
+
+  end
+
+  class FrontendHttpServerAliasException < FrontendHttpServerException
+    attr_reader :alias_name
+
+    def initialize(msg=nil, container_uuid=nil, container_name=nil, namespace=nil, alias_name=nil)
+      @alias_name = alias_name
+      super(msg, container_uuid, container_name, namespace)
+    end
+
+    def to_s
+      m = super
+      m+= ": #{@alias_name}" if not @alias_name.nil?
+      m
+    end
+
+  end
+
   # == Frontend Http Server
   #
   # Represents the front-end HTTP server on the system.
@@ -129,7 +176,8 @@ module OpenShift
       # Aliases must be globally unique across all gears (approx 5 seconds for 20000 gears)
       existing = Dir.glob(File.join(@config.get("GEAR_BASE_DIR"), ".httpd.d", "*/server_alias-#{dname}.conf"))
       if not existing.empty?
-        raise FrontendHttpServerAliasException.new("Server alias already exists: #{dname}")
+        raise FrontendHttpServerAliasException.new("Already exists", @container_uuid, \
+                                                   @container_name, @namespace, dname )
       end
 
       File.open(path, "w") do |f|
@@ -169,7 +217,8 @@ module OpenShift
       dname = name.downcase
 
       if not dname.index(/[^0-9a-z\-_.]/).nil?
-        raise FrontendHttpServerNameException.new("Server alias contains invalid characters: #{dname}")
+        raise FrontendHttpServerNameException.new("Invalid characters", @container_uuid, \
+                                                   @container_name, @namespace, dname )
       end
       return dname
     end
