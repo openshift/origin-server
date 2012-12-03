@@ -48,29 +48,10 @@ MYSQL_IP=`find_open_ip $uid $uuid $MYSQL_PORT`
 # Fix permissions
 #
 observe_setup_app_home
-old_uuid=$(stat -c %U $MYSQL_DIR/etc)
-if [ ! "$old_uuid" == "$uuid" ]; then
-    pushd "$MYSQL_DIR" > /dev/null
-    chown -cR --from=$old_uuid.$old_uuid $uuid.$uuid * > /dev/null
-    popd > /dev/null
-    chown root.$uuid $MYSQL_DIR/.env
-fi
-
-#
-# Source database connection variables
-#
-if [ -d $MYSQL_DIR/.env ]; then
-    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_PORT
-    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_HOST
-    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_PASSWORD
-    . $MYSQL_DIR/.env/OPENSHIFT_MYSQL_DB_USERNAME
-    rm -rf $MYSQL_DIR/.env
-else
-    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
-    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
-    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
-    . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
-fi
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
 
 #
 # Setup Environment Variables

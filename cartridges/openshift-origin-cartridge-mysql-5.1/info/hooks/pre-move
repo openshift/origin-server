@@ -34,15 +34,6 @@ source ${CART_INFO_DIR}/lib/util
 
 MYSQL_DIR="$APP_HOME/$cartridge_type/"
 
-#
-# Create copy of variables for cartridge moves
-#
-mkdir -p $MYSQL_DIR/.env
-cp $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST $MYSQL_DIR/.env
-cp $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT $MYSQL_DIR/.env
-cp $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD $MYSQL_DIR/.env
-cp $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME $MYSQL_DIR/.env
-
 . $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
 IP=$OPENSHIFT_MYSQL_DB_HOST
 
