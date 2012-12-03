@@ -18,8 +18,7 @@ Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        %{name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:       rubygems
 Requires:       rubygem-open4
 Requires:       rubygem-json
@@ -39,28 +38,23 @@ mcollective communication plugin
 %prep
 %setup -q
 
-%clean
-rm -rf %{buildroot}
-
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{mco_root}agent
 mkdir -p %{buildroot}%{mco_root}validator
 mkdir -p %{buildroot}%{vendor_ruby}facter
 mkdir -p %{buildroot}/etc/cron.minutely
 mkdir -p %{buildroot}/usr/libexec/mcollective
 
-cp src/openshift.rb %{buildroot}%{mco_root}agent/
-cp src/openshift.ddl %{buildroot}%{mco_root}agent/
-cp src/any_validator.rb %{buildroot}%{mco_root}validator/
-cp facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
-cp facts/openshift-facts %{buildroot}/etc/cron.minutely/
-cp facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
+cp -p src/openshift.rb %{buildroot}%{mco_root}agent/
+cp -p src/openshift.ddl %{buildroot}%{mco_root}agent/
+cp -p src/any_validator.rb %{buildroot}%{mco_root}validator/
+cp -p facts/openshift_facts.rb %{buildroot}%{vendor_ruby}facter/
+cp -p facts/openshift-facts %{buildroot}/etc/cron.minutely/
+cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 %files
-%defattr(-,root,root,-)
 %{mco_root}agent/openshift.rb
 %{mco_root}agent/openshift.ddl
 %{mco_root}validator/any_validator.rb
