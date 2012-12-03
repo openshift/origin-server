@@ -7,7 +7,7 @@
 
 Summary:   Common dependencies of the msg components for OpenShift server and node
 Name:      openshift-origin-msg-common
-Version: 1.0.0
+Version: 1.0.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -40,5 +40,8 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %{mco_root}validator/*
 
 %changelog
+* Mon Dec 03 2012 Dan McPherson <dmcphers@redhat.com> 1.0.1-1
+- new package built with tito
+
 * Mon Dec 3 2012 Dan McPherson <dmcphers@redhat.com> 1.0.0-1
 - Initial commit
