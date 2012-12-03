@@ -97,7 +97,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
       end
       yield f
     end
-    File.stubs(:open).returns(open_mock)
+    File.stubs(:open).returns(open_mock).once
 
     frontend.add_alias("foo.example.com")
   end
@@ -109,13 +109,10 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
     Dir.stubs(:glob).returns([File.join(@path, "server_alias-foo.example.com.conf")])
 
     open_mock = Proc.new do |fn|
-      f = mock('File') do
-        expects(:write).with("ServerAlias foo.example.com").returns(nil).once
-        stubs(:flush).returns(nil)
-      end
+      f = mock('File')
       yield f
     end
-    File.stubs(:open).returns(open_mock)
+    File.stubs(:open).returns(open_mock).never
 
     assert_raise OpenShift::FrontendHttpServerAliasException do
       frontend.add_alias("foo.example.com")
