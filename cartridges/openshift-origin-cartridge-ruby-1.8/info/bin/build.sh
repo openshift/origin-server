@@ -43,10 +43,14 @@ then
           popd > /dev/null
           export GIT_DIR=$SAVED_GIT_DIR
       fi
-      echo "Precompiling with 'bundle exec rake assets:precompile'"
-      pushd ${OPENSHIFT_REPO_DIR} > /dev/null
-      bundle exec rake assets:precompile 2>/dev/null
-      popd > /dev/null
+
+      if [ -f ${OPENSHIFT_REPO_DIR}/Rakefile ]
+      then
+          echo "Precompiling with 'bundle exec rake assets:precompile'"
+          pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+          bundle exec rake assets:precompile 2>/dev/null
+          popd > /dev/null
+      fi
   fi
 
 fi
