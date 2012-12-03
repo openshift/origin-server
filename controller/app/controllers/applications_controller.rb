@@ -115,7 +115,7 @@ class ApplicationsController < BaseController
     
     begin
       domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
-      @domain = domain.namespace
+      @domain_name = domain.namespace
       log_action(@request_id, @cloud_user._id.to_s, @cloud_user.login, "DELETE_APPLICATION", true, "Found domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "DELETE_APPLICATION")

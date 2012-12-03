@@ -86,16 +86,15 @@ class AppEventsController < BaseController
           end
           
           render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION", "Application event '#{event}' successful", true, nil, [message])
-       when 'tidy'
-         r = application.tidy
-         msg = "Application #{id} called tidy"
-         msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
-       when 'reload'
-         r = application.reload_config
-         msg = "Application #{id} called reload"
-         msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
-	  return
-       else
+        when 'tidy'
+          r = application.tidy
+          msg = "Application #{id} called tidy"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+        when 'reload'
+          r = application.reload_config
+          msg = "Application #{id} called reload"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+        else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "APPLICATION_EVENT", "event")
         end

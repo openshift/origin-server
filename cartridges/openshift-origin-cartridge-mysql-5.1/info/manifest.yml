@@ -27,7 +27,8 @@ Cart-Data:
     Description: "MySQL DB connection URL"
 Suggests:
   - phpmyadmin-3.4
-Provides: 
+Provides:
+  - mysql-5.1 
   - mysql
   - mysql-singleton-master
 Conflicts:

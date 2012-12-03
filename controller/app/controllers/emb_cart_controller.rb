@@ -203,5 +203,4 @@ class EmbCartController < BaseController
     
     return render_success(:ok, "cartridge", [], "PATCH_APP_CARTRIDGE", "")  
   end
-
 end

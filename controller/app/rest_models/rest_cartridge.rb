@@ -5,7 +5,6 @@ class RestCartridge < OpenShift::Model
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
     :status_messages
                    
-
   def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
     self.status_messages = status_messages

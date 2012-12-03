@@ -94,6 +94,12 @@ class RestApplication12 < OpenShift::Model
         "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                       
+          Param.new("event", "string", "event", "tidy")                                                                                                                                                                                                                            
+        ]),                                                                                                                                                                                                                                                                        
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                             
+          Param.new("event", "string", "event", "reload")                                                                                                                                                                                                                          
+        ]),
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),

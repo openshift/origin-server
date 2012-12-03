@@ -29,7 +29,7 @@ class LegacyBrokerController < BaseController
   def user_info_post
     unless @cloud_user.nil?
       user_info = {}
-      user_info[:rhc_domain] = Rails.configuration.ss[:domain_suffix]
+      user_info[:rhc_domain] = Rails.configuration.openshift[:domain_suffix]
       user_info["rhlogin"] = @cloud_user.login
       user_info["uuid"] = @cloud_user._id.to_s      
       user_info["namespace"] = @cloud_user.domains.first.namespace if @cloud_user.domains.count > 0
@@ -209,7 +209,7 @@ class LegacyBrokerController < BaseController
     @reply.data = {
       :rhlogin    => @cloud_user.login,
       :uuid       => @cloud_user._id.to_s,
-      :rhc_domain => Rails.configuration.ss[:domain_suffix]
+      :rhc_domain => Rails.configuration.openshift[:domain_suffix]
     }.to_json
       
     render :json => @reply

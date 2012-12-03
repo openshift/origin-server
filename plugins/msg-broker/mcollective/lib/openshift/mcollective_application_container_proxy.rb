@@ -1045,8 +1045,8 @@ module OpenShift
       #
       def force_stop(app, gear, cart)
         args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args['--with-app-uuid'] = app._id.to_s
+        args['--with-container-uuid'] = gear._id.to_s
         result = execute_direct(@@C_CONTROLLER, 'force-stop', args)
         parse_result(result)
       end
@@ -1299,7 +1299,7 @@ module OpenShift
       #
       def add_alias(app, gear, server_alias)
         args = Hash.new
-        args['--with-container-uuid']=gear.uuid
+        args['--with-container-uuid']=gear._id.to_s
         args['--with-container-name']=gear.name
         args['--with-namespace']=app.domain.namespace
         args['--with-alias-name']=server_alias
@@ -1325,7 +1325,7 @@ module OpenShift
       #
       def remove_alias(app, gear, server_alias)
         args = Hash.new
-        args['--with-container-uuid']=gear.uuid
+        args['--with-container-uuid']=gear._id.to_s
         args['--with-container-name']=gear.name
         args['--with-namespace']=app.domain.namespace
         args['--with-alias-name']=server_alias
@@ -2051,7 +2051,7 @@ module OpenShift
 
         if keep_uid
           log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{app.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear._id.to_s}_***' --include '#{app.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear._id.to_s}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
           if $?.exitstatus != 0
             raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
           end

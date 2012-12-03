@@ -560,23 +560,26 @@ class Application
     component_instances = get_components_for_feature(feature)
     component_instances.each do |component_instance|
       GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
-        r.append gear.status(comp_inst)
+        r.append gear.status(component_instance)
       end
     end
     result_io
   end
 
-  def component_status(component_name, cartridge_name)
-    if cartridge_name.nil?
-      component_instance = self.component_instances.find(component_name: component_name)
-    else
-      component_instance = self.component_instances.find(component_name: component_name, cartridge_name: cartridge_name)
-    end
-
+  def component_status(component_instance)
+    #if cartridge_name.nil?
+    #  component_instance = self.component_instances.find(component_name: component_name)
+    #else
+    #  component_instance = self.component_instances.find(component_name: component_name, cartridge_name: cartridge_name)
+    #end
+    result_io = ResultIO.new
+    status_messages = []
     GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
-      r.append gear.status(comp_inst)
+      gear_output = gear.status(component_instance)
+      status_messages += [{"gear_id" => gear._id.to_s, "message" => gear_output.resultIO.string}] 
+      r.append gear_output
     end
-    result_io
+    status_messages
   end
 
 
@@ -810,7 +813,7 @@ class Application
           when :remove_features
             #need rollback
             features = self.requires - op_group.args["features"]
-            group_overrides = self.group_overrides + (op_group.args["group_overrides"] || [])
+            group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :update_component_limits

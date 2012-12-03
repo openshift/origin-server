@@ -83,6 +83,10 @@ class Gear
     end
   end
   
+  def status(component_instance)
+    @container.status(app, self, component_instance.cartridge_name)
+  end
+  
   # Installs the specified component on the gear.
   #
   # == Parameters:
