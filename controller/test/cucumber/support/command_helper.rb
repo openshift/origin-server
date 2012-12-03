@@ -165,9 +165,11 @@ module CommandHelper
 
   def rhc_tidy(app)
     rhc_do('rhc_tidy') do
-      run("#{$rhc_script} app tidy -l #{app.login} -a #{app.name} -p #{app.password} -d").should == 0
+      time = Benchmark.realtime do
+        run("#{$rhc_script} app tidy -l #{app.login} -a #{app.name} -p #{app.password} -d").should == 0
+      end
+      log_event "#{time} TIDY_APP #{app.name} #{app.login}"
     end
-    log_event "#{time} TIDY_APP #{app.name} #{app.login}"
   end
 
   def rhc_create_app(app, use_hosts=true, misc_opts='')
