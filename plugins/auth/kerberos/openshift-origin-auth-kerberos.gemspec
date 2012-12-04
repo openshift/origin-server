@@ -9,13 +9,13 @@ spec_file = "rubygem-openshift-origin-auth-kerberos.spec"
 
 Gem::Specification.new do |s|
   s.name        = "openshift-origin-auth-kerberos"
-  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Jason DeTiberus"]
   s.email       = ["jdetiber@redhat.com"]
-  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.files       = Dir[lib_dir] + Dir[bin_dir] + Dir[conf_dir] + Dir[config_dir]
   s.test_files  = Dir[test_dir]
