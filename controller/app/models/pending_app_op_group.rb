@@ -116,7 +116,8 @@ class PendingAppOpGroup
   end
   
   def execute(result_io=nil)
-    result_io = ResultIO.new if result_io.nil?
+    result_io = ResultIO.new if result_io.nil?    
+    
     begin
       while(pending_ops.where(:state.ne => :completed).count > 0) do
         handle = RemoteJob.create_parallel_job
@@ -165,6 +166,7 @@ class PendingAppOpGroup
             result_io.append gear.remove_component(component_instance)          
           when :create_gear
             result_io.append gear.create_gear
+            raise OpenShift::NodeException.new("Unable to create gear", result_io.exitcode, result_io) if result_io.exitcode != 0
             self.inc(:num_gears_created, 1)
           when :register_dns          
             gear.register_dns
@@ -226,6 +228,7 @@ class PendingAppOpGroup
             op.set(:state, :completed)
           end
         end
+        raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) if result_io.exitcode != 0
       
         if parallel_job_ops.length > 0
           RemoteJob.execute_parallel_jobs(handle)

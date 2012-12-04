@@ -676,6 +676,7 @@ class Application
   end
 
   def execute_connections
+    Rails.logger.debug "Running publishers"
     handle = RemoteJob.create_parallel_job
     #publishers
     sub_jobs = []
@@ -693,6 +694,7 @@ class Application
       end
     end
     pub_out = {}
+    Rails.logger.debug handle.instance
     RemoteJob.execute_parallel_jobs(handle)
     RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
       if status==0
@@ -701,6 +703,7 @@ class Application
       end
     end
 
+    Rails.logger.debug "Running subscribers"
     #subscribers
     handle = RemoteJob.create_parallel_job
     self.connections.each do |conn|
@@ -723,6 +726,7 @@ class Application
       end
     end
     RemoteJob.execute_parallel_jobs(handle)
+    Rails.logger.debug "Connections done"
   end
 
   #private
@@ -894,6 +898,11 @@ class Application
             op_group.pending_ops.push(*ops)
           end
         end
+        
+        Rails.logger.debug "-----------------------------------"
+        Rails.logger.debug op_group.inspect
+        op_group.pending_ops.each{ |p| Rails.logger.debug p.inspect}
+        Rails.logger.debug "-----------------------------------"
     
         if op_group.op_type != :delete_app
           op_group.execute(result_io)
@@ -968,6 +977,15 @@ class Application
     connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
     current_group_instance = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instance, new_group_instances)
+    
+    Rails.logger.debug ""
+    Rails.logger.debug "-----------------------------------"
+    Rails.logger.debug "features: #{features}, group_overrides: #{group_overrides.inspect}"
+    Rails.logger.debug "final group instances: #{new_group_instances.inspect}"
+    Rails.logger.debug "changes: #{changes.inspect}, moves: #{moves}"
+    Rails.logger.debug "-----------------------------------"
+    Rails.logger.debug ""
+    
     calculate_ops(changes, moves, connections, cleaned_group_overrides,init_git_url)
   end
 

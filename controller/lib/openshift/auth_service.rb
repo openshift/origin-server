@@ -37,10 +37,9 @@ module OpenShift
       cipher.iv = iv = cipher.random_iv
       token = {:app_name => app.name,
                @token_login_key => app.domain.owner.login,
-               :creation_time => app.creation_time}
+               :creation_time => app.created_at}
       encrypted_token = cipher.update(token.to_json)
       encrypted_token << cipher.final
-
       public_key = OpenSSL::PKey::RSA.new(File.read(@pubkeyfile), @privkeypass)
       encrypted_iv = public_key.public_encrypt(iv)
 
@@ -81,7 +80,7 @@ module OpenShift
       raise OpenShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
 
-      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
+      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time != app.created_at
       return {:username => username, :auth_method => :broker_auth}
     end
 
