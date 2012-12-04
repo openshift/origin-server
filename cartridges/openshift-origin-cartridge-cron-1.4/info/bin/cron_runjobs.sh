@@ -54,30 +54,40 @@ if [ -d "$SCRIPTS_DIR" ]; then
    executor="run-parts"
    [ -n "$MAX_RUN_TIME" ]  &&  executor="timeout $MAX_RUN_TIME run-parts"
 
-   if [ -f "$CART_INSTANCE_DIR/log/cron.$freq.log" ]; then
-      mv -f "$CART_INSTANCE_DIR/log/cron.$freq.log" "$CART_INSTANCE_DIR/log/cron.$freq.log.1"
-   fi
-
-   separator=$(seq -s_ 75 | tr -d '[:digit:]')
-   {
-      echo $separator
-      echo "`date`: START $freq cron run"
-      echo $separator
-
-      #  Use run-parts - gives us jobs.{deny,allow} and whitelists.
-      $executor "$SCRIPTS_DIR"
+   (
+      flock -e -n 9
       status=$?
-      if [ 124 -eq $status ]; then
-         wmsg="Warning: $freq cron run terminated as it exceeded max run time"
-         log_message "$wmsg [$MAX_RUN_TIME] for openshift user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
-         echo "$wmsg"
+
+      if [ 0 -ne $status ]; then 
+         log_message ":SKIPPED: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
+         exit 1
       fi
 
-      echo $separator
-      echo "`date`: END $freq cron run - status=$status"
-      echo $separator
-   } >> $CART_INSTANCE_DIR/log/cron.$freq.log 2>&1
+      if [ -f "$CART_INSTANCE_DIR/log/cron.$freq.log" ]; then
+         mv -f "$CART_INSTANCE_DIR/log/cron.$freq.log" "$CART_INSTANCE_DIR/log/cron.$freq.log.1"
+      fi
 
+      separator=$(seq -s_ 75 | tr -d '[:digit:]')
+      {
+         echo $separator
+         echo "`date`: START $freq cron run"
+         echo $separator 
+
+         #  Use run-parts - gives us jobs.{deny,allow} and whitelists.
+         $executor "$SCRIPTS_DIR"
+         status=$?
+         if [ 124 -eq $status ]; then
+            wmsg="Warning: $freq cron run terminated as it exceeded max run time"
+            log_message "$wmsg [$MAX_RUN_TIME] for openshift user '$OPENSHIFT_GEAR_UUID'" > /dev/null 2>&1
+            echo "$wmsg"
+         fi
+
+         echo $separator
+         echo "`date`: END $freq cron run - status=$status"
+         echo $separator
+      } >> $CART_INSTANCE_DIR/log/cron.$freq.log 2>&1
+
+   ) 9>~/app-root/runtime/.cron.$freq.lock
 fi
 
 log_message ":END: $freq cron run for openshift user '$OPENSHIFT_GEAR_UUID'"
