@@ -91,6 +91,20 @@ module CommandHelper
     $perfmon_logger.info "#{Thread.current} #{str}"
   end
 
+  def rhc_sshkey_upload(app, name ='default', key=File.join(ENV["HOME"], '.ssh', 'id_rsa.pub'))
+    rhc_do('rhc_sshkey_upload') do
+      cmd = "#{$rhc_script} sshkey add -l #{app.login} -p #{app.password} #{name} #{key} --confirm"
+      exit_code = 0
+
+      time = Benchmark.realtime do
+        exit_code = run(cmd)
+      end
+
+      log_event "#{time} SSHKEY_ADD #{name} #{key}"
+      return exit_code == 0
+    end
+  end
+
   def rhc_create_domain(app)
     rhc_do('rhc_create_domain') do
 
@@ -173,6 +187,8 @@ module CommandHelper
   end
 
   def rhc_create_app(app, use_hosts=true, misc_opts='')
+    rhc_sshkey_upload app
+
     rhc_do('rhc_create_app') do
       cmd = "#{$rhc_script} app create -l #{app.login} -a #{app.name} -r #{app.repo} -t #{app.type} -p #{app.password} #{misc_opts} -d"
 
