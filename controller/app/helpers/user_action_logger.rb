@@ -24,8 +24,7 @@ module UserActionLogger
       time = time_obj.strftime("%H:%M:%S")
       
       message = "#{result} DATE=#{date} TIME=#{time} ACTION=#{action} REQ_ID=#{request_id} USER_ID=#{user_id} LOGIN=#{login}"
-      message += " DOMAIN=#{@domain}" if args.key?("DOMAIN")
-      message += " APP=#{@app}" if args.key?("APP")
+      args.each {|k,v| message += " #{k}=#{v}"}
       
       action_logger.info("#{message} #{description}")
     end

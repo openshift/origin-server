@@ -17,6 +17,12 @@ class BaseController < ActionController::Base
 
   include UserActionLogger
   
+  # Initialize domain/app variables to be used for logging in user_action.log
+  # The values will be set in the controllers handling the requests
+  @domain_name = nil
+  @application_name = nil
+  @application_uuid = nil
+
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
     unless nolinks
@@ -64,11 +70,6 @@ class BaseController < ActionController::Base
     password = nil
     @request_id = gen_req_uuid
     
-    # Initialize domain/app variables to be used for logging in user_action.log
-    # The values will be set in the controllers handling the requests
-    @domain = nil
-    @app = nil
-
     if request.headers['User-Agent'] == "OpenShift"
       if params['broker_auth_key'] && params['broker_auth_iv']
         login = params['broker_auth_key']
@@ -234,10 +235,11 @@ class BaseController < ActionController::Base
     end
   end
 
-  def get_extra_args
+  def get_extra_log_args
     args = {}
-    args["APP"] = @app if @app
-    args["DOMAIN"] = @domain if @domain
+    args["APP"] = @application_name if @application_name
+    args["DOMAIN"] = @domain_name if @domain_name
+    args["APP_UUID"] = @application_uuid if @application_uuid
     
     return args
   end
@@ -286,7 +288,7 @@ class BaseController < ActionController::Base
         logger_msg = msg.join(', ')
       end
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, logger_msg, get_extra_args) if log_tag
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, logger_msg, get_extra_log_args) if log_tag
     render_response(reply, format)
   end
 
@@ -333,7 +335,7 @@ class BaseController < ActionController::Base
         logger_msg = msg.join(', ')
       end
     end
-    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg, get_extra_args) if log_tag
+    log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, logger_msg, get_extra_log_args) if log_tag
     render_response(reply, format)
   end
 

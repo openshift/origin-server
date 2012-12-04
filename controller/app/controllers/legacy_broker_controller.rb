@@ -6,6 +6,12 @@ class LegacyBrokerController < ApplicationController
   include LegacyBrokerHelper
   include UserActionLogger
   
+  # Initialize domain/app variables to be used for logging in user_action.log
+  # The values will be set in the controllers handling the requests
+  @domain_name = nil
+  @application_name = nil
+  @application_uuid = nil
+
   def user_info_post
     if @cloud_user
       user_info = @cloud_user.as_json
@@ -39,11 +45,11 @@ class LegacyBrokerController < ApplicationController
         end
       end
       
-      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_USER_INFO")
+      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_USER_INFO", true, "", get_extra_log_args)
       @reply.data = {:user_info => user_info, :app_info => app_info}.to_json
       render :json => @reply
     else
-      log_action(@request_id, "nil", @login, "LEGACY_USER_INFO", true, "User not found")
+      log_action(@request_id, "nil", @login, "LEGACY_USER_INFO", true, "User not found", get_extra_log_args)
       # Return a 404 to denote the user doesn't exist
       @reply.resultIO << "User does not exist"
       @reply.exitcode = 99
@@ -91,7 +97,7 @@ class LegacyBrokerController < ApplicationController
       else
         raise OpenShift::UserKeyException.new("Invalid action #{@req.action}", 111)
       end
-      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_SSH_KEY", true, "Successfully completed action: #{@req.action}")
+      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_SSH_KEY", true, "Successfully completed action: #{@req.action}", get_extra_log_args)
       render :json => @reply
     else
       raise OpenShift::UserException.new("Invalid user", 99)
@@ -103,7 +109,7 @@ class LegacyBrokerController < ApplicationController
     domain = @cloud_user.domains.first if !domain && @req.alter
     
     if (!domain or not domain.hasFullAccess?(@cloud_user)) && (@req.alter || @req.delete)
-      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.")
+      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.", get_extra_log_args)
       @reply.resultIO << "Cannot alter or remove namespace #{@req.namespace}. Namespace does not exist.\n"
       @reply.exitcode = 106
       render :json => @reply, :status => :bad_request
@@ -119,10 +125,10 @@ class LegacyBrokerController < ApplicationController
         if domain.namespace != @req.namespace
           domain.namespace = @req.namespace     
           @reply.append domain.save
-          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Updated namespace for domain #{domain.uuid} to #{@req.namespace}")
+          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Updated namespace for domain #{domain.uuid} to #{@req.namespace}", get_extra_log_args)
         end
       rescue Exception => e
-       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", false, "Failed to updated namespace for domain #{domain.uuid} to #{@req.namespace}")
+       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", false, "Failed to updated namespace for domain #{domain.uuid} to #{@req.namespace}", get_extra_log_args)
        Rails.logger.error "Failed to update domain #{domain.uuid} from #{domain.namespace} to #{@req.namespace} #{e.message}"
        Rails.logger.error e.backtrace
        raise
@@ -131,11 +137,11 @@ class LegacyBrokerController < ApplicationController
       if @req.ssh
         @cloud_user.update_ssh_key(@req.ssh, @req.key_type, @req.key_name)
         @cloud_user.save
-        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Updated SSH key '#{@req.key_name}' for domain #{domain.namespace}")
+        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_ALTER_DOMAIN", true, "Updated SSH key '#{@req.key_name}' for domain #{domain.namespace}", get_extra_log_args)
       end
     elsif @req.delete
        if not domain.hasFullAccess?(@cloud_user)
-         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Domain #{domain.namespace} is not associated with user")
+         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Domain #{domain.namespace} is not associated with user", get_extra_log_args)
          @reply.resultIO << "Cannot remove namespace #{@req.namespace}. This namespace is not associated with login: #{@cloud_user.login}\n"
          @reply.exitcode = 106
          render :json => @reply, :status => :bad_request
@@ -144,7 +150,7 @@ class LegacyBrokerController < ApplicationController
        if not @cloud_user.applications.empty?
          @cloud_user.applications.each do |app|
            if app.domain.uuid == domain.uuid
-             log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Domain #{domain.namespace} contains applications")
+             log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Domain #{domain.namespace} contains applications", get_extra_log_args)
              @reply.resultIO << "Cannot remove namespace #{@req.namespace}. Remove existing app(s) first: "
              @reply.resultIO << @cloud_user.applications.map{|a| a.name}.join("\n")
              @reply.exitcode = 106 
@@ -154,7 +160,7 @@ class LegacyBrokerController < ApplicationController
          end
        end
        @reply.append domain.delete
-       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Deleted domain #{@req.namespace}")
+       log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_DELETE_DOMAIN", true, "Deleted domain #{@req.namespace}", get_extra_log_args)
        render :json => @reply
        return
     else
@@ -163,7 +169,7 @@ class LegacyBrokerController < ApplicationController
 
       key = Key.new(Key::DEFAULT_SSH_KEY_NAME, @req.key_type, @req.ssh)
       if key.invalid?
-         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Failed to create domain #{@req.namespace}: #{key.errors.first[1][:message]}")
+         log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Failed to create domain #{@req.namespace}: #{key.errors.first[1][:message]}", get_extra_log_args)
          @reply.resultIO << key.errors.first[1][:message]
          @reply.exitcode = key.errors.first[1][:exit_code]
          render :json => @reply, :status => :bad_request 
@@ -172,7 +178,7 @@ class LegacyBrokerController < ApplicationController
       @cloud_user.add_ssh_key(Key::DEFAULT_SSH_KEY_NAME, @req.ssh, @req.key_type)
       domain = Domain.new(@req.namespace, @cloud_user)
       @reply.append domain.save
-      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Created domain #{@req.namespace}")
+      log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_DOMAIN", true, "Created domain #{@req.namespace}", get_extra_log_args)
     end
 
     @reply.append @cloud_user.save
@@ -188,7 +194,7 @@ class LegacyBrokerController < ApplicationController
   def cart_list_post
     cart_type = @req.cart_type                                                                                                                                                                                                                                    
     unless cart_type
-      log_action('nil', 'nil', 'nil', "LEGACY_CART_LIST", true, "Cartridge type not specified")
+      log_action('nil', 'nil', 'nil', "LEGACY_CART_LIST", true, "Cartridge type not specified", get_extra_log_args)
       @reply.resultIO << "Invalid cartridge types: #{cart_type} specified"
       @reply.exitcode = 109
       render :json => @reply, :status => :bad_request
@@ -218,8 +224,9 @@ class LegacyBrokerController < ApplicationController
       end
       raise OpenShift::UserException.new("The supplied application name '#{app.name}' is not allowed", 105) if OpenShift::ApplicationContainerProxy.blacklisted? app.name
       if app.valid?
-        @domain = domain.namespace
-        @app = app.name
+        @domain_name = domain.namespace
+        @application_name = app.name
+        @application_uuid = app.uuid
         begin
           app.user_agent = request.headers["User-Agent"]
           Rails.logger.debug "Creating application #{app.name}"
@@ -246,7 +253,7 @@ class LegacyBrokerController < ApplicationController
             raise
           end
         rescue Exception => e
-          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", false, "Failed to create application #{app.name}: #{e.message}")
+          log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", false, "Failed to create application #{app.name}: #{e.message}", get_extra_log_args)
           @reply.append app.destroy(true)
           if app.persisted?
             app.delete
@@ -254,10 +261,10 @@ class LegacyBrokerController < ApplicationController
           @reply.resultIO = StringIO.new(e.message)
           raise
         end
-        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", true, "Created application #{app.name}")
+        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", true, "Created application #{app.name}", get_extra_log_args)
         @reply.resultIO << "Successfully created application: #{app.name}" if @reply.resultIO.length == 0
       else
-        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", true, "Invalid application: #{app.errors.first[1][:message]}")
+        log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CREATE_APP", true, "Invalid application: #{app.errors.first[1][:message]}", get_extra_log_args)
         @reply.resultIO << app.errors.first[1][:message]
         @reply.exitcode = app.errors.first[1][:exit_code]
         render :json => @reply, :status => :bad_request 
@@ -313,7 +320,7 @@ class LegacyBrokerController < ApplicationController
       raise OpenShift::UserException.new("Invalid action #{@req.action}", 111)
     end
     @reply.resultIO << 'Success' if @reply.resultIO.length == 0
-    log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CARTRIDGE_POST", true, "Processed event #{@req.action} for application #{app.name}")
+    log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_CARTRIDGE_POST", true, "Processed event #{@req.action} for application #{app.name}", get_extra_log_args)
     
     render :json => @reply
   end
@@ -352,7 +359,7 @@ class LegacyBrokerController < ApplicationController
       raise OpenShift::UserException.new("Invalid action #{@req.action}", 111)           
     end
     
-    log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_EMBED_CARTRIDGE_POST", true, "Processed event #{@req.action} for cartridge #{@req.cartridge} of application #{app.name}")
+    log_action(@request_id, @cloud_user.uuid, @login, "LEGACY_EMBED_CARTRIDGE_POST", true, "Processed event #{@req.action} for cartridge #{@req.cartridge} of application #{app.name}", get_extra_log_args)
     @reply.resultIO << 'Success' if @reply.resultIO.length == 0
     render :json => @reply
   end
@@ -381,8 +388,9 @@ class LegacyBrokerController < ApplicationController
     raise OpenShift::UserException.new("An application named '#{@req.app_name}' does not exist", 101) if app.nil?
     app.user_agent = request.headers["User-Agent"]
 
-    @app = app.name
-    @domain = app.domain.namespace unless app.domain.nil? 
+    @application_name = app.name
+    @application_uuid = app.uuid
+    @domain_name = app.domain.namespace unless app.domain.nil? 
 
     return app
   end
@@ -392,7 +400,7 @@ class LegacyBrokerController < ApplicationController
     begin
       @req = LegacyRequest.new.from_json(params['json_data'])
       if @req.invalid?
-        log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Validation error: #{@req.errors.first[1][:message]}")
+        log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Validation error: #{@req.errors.first[1][:message]}", get_extra_log_args)
         @reply.resultIO << @req.errors.first[1][:message]
         @reply.exitcode = @req.errors.first[1][:exit_code]
         render :json => @reply, :status => :bad_request 
@@ -424,13 +432,13 @@ class LegacyBrokerController < ApplicationController
         @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
       end
       unless @login
-        log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials")
+        log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials", get_extra_log_args)
         @reply.resultIO << "Invalid user credentials"
         @reply.exitcode = 97
         render :json => @reply, :status => :unauthorized
       end
     rescue OpenShift::AccessDeniedException
-      log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials")
+      log_action('nil','nil', 'nil', "LEGACY_BROKER", true, "Authentication failed: Invalid user credentials", get_extra_log_args)
       @reply.resultIO << "Invalid user credentials"
       @reply.exitcode = 97
       render :json => @reply, :status => :unauthorized
@@ -442,26 +450,26 @@ class LegacyBrokerController < ApplicationController
     
     case e
     when OpenShift::AuthServiceException
-      log_action(@request_id, 'nil', 'nil', "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      log_action(@request_id, 'nil', 'nil', "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}", get_extra_log_args)
       Rails.logger.error e.backtrace[0..5].join("\n")
       @reply.append e.resultIO if e.resultIO
       @reply.resultIO << "An error occurred while contacting the authentication service. If the problem persists please contact Red Hat support." if @reply.resultIO.length == 0
     when OpenShift::UserException
-      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", true, "#{e.class.name} for #{request.path}: #{e.message}")
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", true, "#{e.class.name} for #{request.path}: #{e.message}", get_extra_log_args)
       @reply.resultIO << e.message
       status = :bad_request
     when OpenShift::DNSException
-      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}", get_extra_log_args)
       @reply.resultIO << e.message
       status = :service_unavailable
     when OpenShift::OOException
-      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}", get_extra_log_args)
       Rails.logger.error e.backtrace[0..5].join("\n")
       Rails.logger.error e.resultIO
       @reply.resultIO << e.message if @reply.resultIO.length == 0
       @reply.append e.resultIO if e.resultIO
     else
-      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}")
+      log_action(@request_id.nil? ? 'nil' : @request_id, @cloud_user.nil? ? 'nil' : @cloud_user.uuid, @login.nil? ? 'nil' : @login, "LEGACY_BROKER", false, "#{e.class.name} for #{request.path}: #{e.message}", get_extra_log_args)
       Rails.logger.error e.backtrace
       @reply.debugIO << e.message
       @reply.debugIO << e.backtrace[0..5].join("\n")
@@ -475,7 +483,7 @@ class LegacyBrokerController < ApplicationController
   def get_domain(cloud_user, id)
     cloud_user.domains.each do |domain|
       if domain.namespace == id
-        @domain = domain.namespace
+        @domain_name = domain.namespace
         return domain
       end
     end
@@ -487,6 +495,15 @@ class LegacyBrokerController < ApplicationController
     File.open("/proc/sys/kernel/random/uuid", "r") do |file|
       file.gets.strip.gsub("-","")
     end
+  end
+  
+  def get_extra_log_args
+    args = {}
+    args["APP"] = @application_name if @application_name
+    args["DOMAIN"] = @domain_name if @domain_name
+    args["APP_UUID"] = @application_uuid if @application_uuid
+    
+    return args
   end
 
 end
