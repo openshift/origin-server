@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,18 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Security - Fix the full path to restorecon it was causing errors in the logs
+  (tkramer@redhat.com)
+- more mco 2.2 changes (dmcphers@redhat.com)
+- repacking for mco 2.2 (dmcphers@redhat.com)
+- Refactor tidy into the node library (ironcladlou@gmail.com)
+- Merge pull request #1002 from tdawson/tdawson/fed-update/msg-node-
+  mcollective-1.1.4 (openshift+bot@redhat.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+- Removed spec clutter for building on rhel5 (tdawson@redhat.com)
+- mco value passing cleanup (dmcphers@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - add any validator for mco 2.2 (dmcphers@redhat.com)
 - Various mcollective changes getting ready for 2.2 (dmcphers@redhat.com)
