@@ -415,11 +415,11 @@ module OpenShift
       end
  
       def tidy(app, gear, cart)
-        if framework_carts.include?(cart)        
-          run_cartridge_command(cart, app, gear, "tidy") 
-        else
-          ResultIO.new
-        end
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        result = execute_direct(@@C_CONTROLLER, 'tidy', args)
+        parse_result(result)
       end
       
       def threaddump(app, gear, cart)

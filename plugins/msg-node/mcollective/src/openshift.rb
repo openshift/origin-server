@@ -337,6 +337,26 @@ module MCollective
         end
       end
 
+      def oo_tidy(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+
+        container_uuid = args['--with-container-uuid']
+        app_uuid = args['--with-app-uuid']
+
+        begin
+          # is it time for an options hash? lack of named params makes this very messy
+          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
+            nil, nil, nil, nil, nil, logger = Log.instance)
+          container.tidy
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
       def oo_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
@@ -386,6 +406,8 @@ module MCollective
           rc, output = oo_add_alias(cmd, args)
         when "remove-alias"
           rc, output = oo_remove_alias(cmd, args)
+        when "tidy"
+          rc, output = oo_tidy(cmd, args)
         else
           return nil, nil
         end

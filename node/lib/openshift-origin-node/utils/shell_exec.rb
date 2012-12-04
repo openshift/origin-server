@@ -19,10 +19,12 @@ require 'open4'
 
 module OpenShift::Utils
   class ShellExecutionException < Exception
-    attr_accessor :rc
-    def initialize(msg, rc=-1)
+    attr_accessor :rc, :stdout, :stderr
+    def initialize(msg, rc=-1, stdout = nil, stderr = nil)
       super msg
       self.rc = rc 
+      self.stdout = stdout
+      self.stderr = stderr
     end
   end
 end
@@ -65,21 +67,49 @@ module OpenShift::Utils::ShellExec
           pstree[l_ppid] << pstree[l_pid]
         end
         Process.kill("KILL", *(pstree[pid].flatten))
-        raise OpenShift::Utils::ShellExecutionException.new("command timed out")
+        raise OpenShift::Utils::ShellExecutionException.new(
+          "Shell command '#{cmd}'' timed out (timeout is #{timeout})", -1. out, err)
       ensure
         stdout.close
         stderr.close  
         rc = Process::waitpid2(pid)[1].exitstatus
       end
     rescue Exception => e
-      raise OpenShift::Utils::ShellExecutionException.new(e.message
+      raise OpenShift::Utils::ShellExecutionException.new(e.message, rc, out, err
                                                     ) unless ignore_err
     end
 
     if !ignore_err and rc != expected_rc 
       raise OpenShift::Utils::ShellExecutionException.new(
-        "Shell command '#{cmd}' returned an error. rc=#{rc}", rc)
+        "Shell command '#{cmd}' returned an error. rc=#{rc}", rc, out, err)
     end
     return [out, err, rc]
+  end
+
+  def self.run_as(uid, gid, cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)
+    mcs_level, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/bin/oo-get-mcs-level #{uid}", pwd, true, 0, timeout)
+    raise OpenShift::Utils::ShellExecutionException.new(
+      "Shell command '#{cmd}' returned an error. rc=#{rc}. output=#{err}", rc, mcs_level, err) if 0 != rc
+
+    command = "/usr/bin/runcon -r system_r -t openshift_t -l #{mcs_level.chomp} #{cmd}"
+    pid = fork {
+      Process::GID.change_privilege(gid.to_i)
+      Process::UID.change_privilege(uid.to_i)
+      out, err, rc = OpenShift::Utils::ShellExec.shellCmd(command, pwd, true, 0, timeout)
+      exit $?.exitstatus
+    }
+
+    if pid
+      Process.wait(pid)
+      rc = $?.exitstatus
+      if !ignore_err and rc != expected_rc
+        raise OpenShift::Utils::ShellExecutionException.new(
+          "Shell command '#{command}' returned an error. rc=#{rc}", rc)
+      end
+      return rc
+    else
+      raise OpenShift::Utils::ShellExecutionException.new(
+        "Shell command '#{command}' fork failed in run_as().")
+    end
   end
 end

@@ -398,17 +398,6 @@ module OpenShift
       File.exists?(broker_auth_dir) ? false : true
     end
 
-    def run_as(&block)
-      old_gid = Process::GID.eid
-      old_uid = Process::UID.eid
-      fork{
-        Process::GID.change_privilege(@gid.to_i)
-        Process::UID.change_privilege(@uid.to_i)
-        yield block
-      }
-      Process.wait
-    end
-
     #private
 
     # Private: Create and populate the users home dir.
