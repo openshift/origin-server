@@ -26,7 +26,6 @@ Requires:       rubygem-openshift-origin-node
 Requires:       mcollective
 Requires:       facter
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:       %{?scl:%scl_prefix}mcollective-common
 Requires:       %{?scl:%scl_prefix}facter
 %endif
 Requires:       openshift-origin-msg-common
