@@ -14,13 +14,13 @@ class EmbCartEventsController < BaseController
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "CARTRIDGE_EVENT") if !domain || !domain.hasAccess?(@cloud_user)
 
-    @domain = domain.namespace
+    @domain_name = domain.namespace
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "CARTRIDGE_EVENT") unless application
     
-    @app = application.name
-    
+    @application_name = application.name
+    @application_uuid = application.uuid
     return render_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}",
                         129, "CARTRIDGE_EVENT") if !application.embedded or !application.embedded.has_key?(cartridge)
 
