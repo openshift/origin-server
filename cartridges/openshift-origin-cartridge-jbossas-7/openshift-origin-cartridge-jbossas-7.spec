@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.2.2
+Version: 1.2.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -151,6 +151,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Refactor tidy into the node library (ironcladlou@gmail.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - BZ881365 (bdecoste@gmail.com)
 - Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
