@@ -22,6 +22,15 @@ class Lock
   #
   # == Returns:
   # True if the lock was succesful.
+  
+  def self.create_lock(user)
+    lock = Lock.find_or_create_by( :user_id => user._id )
+  end
+  
+  def self.delete_lock(user)
+    lock = Lock.delete( :user_id => user._id )
+  end
+  
   def self.lock_user(user, app)
     begin
       timenow = Time.now.to_i
@@ -64,7 +73,8 @@ class Lock
       user_id = application.domain.owner_id
       lock = Lock.where( { :user_id => user_id, :app_ids.nin => [application._id] } ).find_and_modify( {"$push"=> {app_ids: application._id}}, new:true)
       return (not lock.nil?)
-    rescue Moped::Errors::OperationFailure
+    rescue Moped::Errors::OperationFailure => ex
+      Rails.logger.error "Failed to obtain lock for application #{application.name}: #{ex.message}"
       return false
     end      
   end
@@ -82,7 +92,8 @@ class Lock
       user_id = application.domain.owner_id
       lock = Lock.where( { user_id: user_id, locked: false, :app_ids.in => [application._id]} ).find_and_modify( {"$pop"=> {app_ids: application._id}}, new:false)
       return (not lock.nil?)
-    rescue Moped::Errors::OperationFailure
+    rescue Moped::Errors::OperationFailure => ex
+      Rails.logger.error "Failed to unlock application #{application.name}: #{ex.message}"
       return false
     end
   end

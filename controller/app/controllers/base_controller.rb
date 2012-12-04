@@ -135,6 +135,7 @@ class BaseController < ActionController::Base
           Rails.logger.debug "Adding user #{subuser_name} as sub user of #{@parent_user.login} ...inside base_controller"
           @cloud_user = CloudUser.new(login: subuser_name, parent_user_id: @parent_user._id)
           @cloud_user.with(safe: true).save
+          Lock.create_lock(@cloud_user)
         end
       else
         begin
@@ -143,6 +144,7 @@ class BaseController < ActionController::Base
           Rails.logger.debug "Adding user #{@login}...inside base_controller"
           @cloud_user = CloudUser.new(login: @login)
           @cloud_user.with(safe: true).save
+          Lock.create_lock(@cloud_user)
         end
       end
       
