@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.2.2
+Version: 1.2.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -92,6 +92,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
 - [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)
