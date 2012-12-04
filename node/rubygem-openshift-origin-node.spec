@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,12 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Merge pull request #1005 from ironcladlou/US2770 (openshift+bot@redhat.com)
+- Refactor tidy into the node library (ironcladlou@gmail.com)
+- Bug Fixes. (rmillner@redhat.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Move force-stop into the the node library (ironcladlou@gmail.com)
 - exit code and usage cleanup (dmcphers@redhat.com)
