@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,13 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- more mco 2.2 changes (dmcphers@redhat.com)
+- repacking for mco 2.2 (dmcphers@redhat.com)
+- Refactor tidy into the node library (ironcladlou@gmail.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+- mco value passing cleanup (dmcphers@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Various mcollective changes getting ready for 2.2 (dmcphers@redhat.com)
 - Move force-stop into the the node library (ironcladlou@gmail.com)
