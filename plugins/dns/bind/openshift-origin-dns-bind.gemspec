@@ -10,13 +10,13 @@ spec_file = "rubygem-openshift-origin-dns-bind.spec"
 
 Gem::Specification.new do |s|
   s.name        = "openshift-origin-dns-bind"
-  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = `rpmspec -q --qf "%{version}\n" #{spec_file}`.split[0]
+  s.license     = `rpmspec -q --qf "%{license}\n" #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.homepage    = `rpmspec -q --qf "%{url}\n" #{spec_file}`.split[0]
+  s.summary     = `rpmspec -q --qf "%{description}\n" #{spec_file}`.split[0]
+  s.description = `rpmspec -q --qf "%{description}\n" #{spec_file}`.split[0]
 
   s.rubyforge_project = "openshift-origin-dns-bind"
 
