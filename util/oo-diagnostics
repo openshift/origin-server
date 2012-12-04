@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/bin/env ruby
 # May need to "ruby oo-diagnostics" to use proper ruby.
 # Run with "-h" for usage.
 #
@@ -504,7 +504,7 @@ class OODiag
     #
     # create a tmp file with all of the unique error log statements after the most recent openshift-broker start
     #
-    tmpfile = "/tmp/osediag-log-#{$$}"
+    tmpfile = "/tmp/oodiag-log-#{$$}"
     system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' /var/www/openshift/broker/httpd/logs/error_log | sort -u > #{tmpfile}]
     #
     # info about Passenger prespawn errors
@@ -592,6 +592,26 @@ class OODiag
       Uninstall as necessary with 'gem uninstall <gemname> -v <version>'.
         \n#{multiples.join("\n")}
     NOOO
+  end
+
+  def test_node_mco_log
+    skip_test unless @is_node
+    #
+    # create a tmp file with all of the unique log statements after most recent mcollective start
+    tmpfile = "/tmp/oodiag-mco-#{$$}"
+    system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
+    #
+    # Look for the mco timeout warning
+    out = `grep 'WARN.*created at [0-9]* is [0-9]* seconds old, TTL is' #{tmpfile}`
+    do_fail <<-"TIMEOUT" unless out.empty?
+      Node mcollective log indicates time is too far out of sync with broker:
+      #{out.split("\n").first}
+      This typically causes the node to ignore broker queries and commands.
+      Please ensure that all node and broker hosts are synced to the same time source.
+    TIMEOUT
+    #
+    # clean up temp file
+    system "rm #{tmpfile}"
   end
 
 end #class OODiag
