@@ -1,49 +1,20 @@
 #!/bin/bash
 
-# Tidy up an application
-
-# Exit on any errors
-set -e
-
-function print_help {
-    echo "Usage: $0 app-name namespace uuid"
-    echo "Stop a running application and disable it"
-
-    echo "$0 $@" | logger -p local0.notice -t openshift_origin_force_stop
-    exit 1
-}
-
-while getopts 'd' OPTION
+# Import Environment Variables
+for f in ~/.env/*
 do
-    case $OPTION in
-        d) set -x
-        ;;
-        ?) print_help
-        ;;
-    esac
+    . $f
 done
-
-[ $# -eq 3 ] || print_help
 
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cartridge_type=$(get_cartridge_name_from_path)
-
-setup_basic_hook "$1" $2 $3
-
-check_app_dir_exists
-
-#
-# Tidy up
-#
-client_message "Stopping app..."
-stop_app
-run_as_user "${CARTRIDGE_BASE_PATH}/abstract/info/bin/tidy.sh $application $namespace $uuid"
-
-if [ -f $CART_INFO_DIR/bin/tidy.sh ]
-then
-  run_as_user "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/bin/tidy.sh $application $namespace $uuid"
-fi
-start_app
-client_message "Starting app..."
+# Clean up logs in a generic fashion
+for logdir in `awk 'BEGIN {
+                           for (a in ENVIRON)
+                           if (a ~ /LOG_DIR$/)
+                           print ENVIRON[a] }'`
+do
+    client_message "Emptying log dir: ${logdir}"
+    rm -rf ${logdir}* ${logdir}.[^.]*
+done

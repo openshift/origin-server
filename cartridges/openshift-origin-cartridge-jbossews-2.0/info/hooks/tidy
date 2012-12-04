@@ -14,6 +14,17 @@ CART_NS=$(get_cartridge_namespace_from_path)
 CART_DIR=$(get_env_var_dynamic "OPENSHIFT_${CART_NS}_CART_DIR")
 JBOSS_DIR=${CART_DIR}/${CART_NAME}
 
+# Clean up logs
+for logdir in `awk 'BEGIN {
+                           for (a in ENVIRON)
+                           if (a ~ /LOG_DIR$/)
+                           print ENVIRON[a] }'`
+do
+    client_message "Emptying log dir: ${logdir}"
+    rm -rf ${logdir}* ${logdir}.[^.]*
+done
+
+
 standalone_tmp=${JBOSS_DIR}/standalone/tmp/
 if [ -d $standalone_tmp ]
 then
