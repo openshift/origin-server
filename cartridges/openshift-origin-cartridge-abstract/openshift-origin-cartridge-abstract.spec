@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.2.2
+Version: 1.2.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -84,6 +84,10 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Refactor tidy into the node library (ironcladlou@gmail.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Fix state transitions during build cycle (ironcladlou@gmail.com)
 - Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
