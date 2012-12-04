@@ -25,13 +25,11 @@ Requires:       mcollective
 Requires:       mcollective-client
 Requires:       qpid-cpp-server
 Requires:       qpid-cpp-client
-Requires:       ruby-qpid-qmf
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
-%if 0%{?fedora}%{?rhel} <= 6
-Requires:       ruby193-mcollective-common
-Requires:       ruby193-ruby-qpid-qmf
 Requires:       openshift-origin-msg-common
+Requires:       %{?scl:%scl_prefix}ruby-qpid-qmf
+%if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
 %endif

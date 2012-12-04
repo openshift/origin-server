@@ -160,10 +160,10 @@ module OpenShift
     def show_port(app, gear, cart)
     end
 
-    def add_alias(app, gear, cart, server_alias)
+    def add_alias(app, gear, server_alias)
     end
 
-    def remove_alias(app, gear, cart, server_alias)
+    def remove_alias(app, gear, server_alias)
     end
 
     def update_namespace(app, cart, new_ns, old_ns)

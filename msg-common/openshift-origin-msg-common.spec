@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 %if 0%{?fedora}
     %global mco_root /usr/libexec/mcollective/mcollective/
 %endif
@@ -5,14 +10,15 @@
     %global mco_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/
 %endif
 
-Summary:   Common dependencies of the msg components for OpenShift server and node
-Name:      openshift-origin-msg-common
-Version: 1.0.1
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
+Summary:        Common dependencies of the msg components for OpenShift server and node
+Name:           openshift-origin-msg-common
+Version:        1.0.1
+Release:        1%{?dist}
+Group:          Network/Daemons
+License:        ASL 2.0
+URL:            http://openshift.redhat.com
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
+Requires:       %{?scl:%scl_prefix}mcollective-common
 
 BuildArch: noarch
 
