@@ -4,7 +4,7 @@ development:
       database: openshift_broker_dev
       hosts:
         - localhost:27017
-      user: openshift
+      username: openshift
       password: mooo
       options:
         ssl: false
@@ -14,7 +14,7 @@ production:
       database: openshift_broker_dev
       hosts:
         - localhost:27017
-      user: openshift
+      username: openshift
       password: mooo
       options:
         ssl: false
@@ -24,7 +24,7 @@ test:
       database: openshift_broker_test
       hosts:
         - localhost:27017
-      user: openshift
+      username: openshift
       password: mooo
       options:
         ssl: false

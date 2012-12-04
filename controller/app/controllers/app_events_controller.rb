@@ -77,15 +77,12 @@ class AppEventsController < BaseController
           msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
           #TODO: We need to reconsider how we are reporting messages to the client
           message = Message.new(:result, msg, 0)
-          application = Application.find(@cloud_user, id)
-          
           if $requested_api_version >= 1.2
             app = RestApplication12.new(application, get_url, nolinks)
           else
             app = RestApplication10.new(application, get_url, nolinks)
           end
-          
-          render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION", "Application event '#{event}' successful", true, nil, [message])
+          return render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION", "Application event '#{event}' successful", true, nil, [message])
         when 'tidy'
           r = application.tidy
           msg = "Application #{id} called tidy"

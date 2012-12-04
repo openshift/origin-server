@@ -152,7 +152,7 @@ class BaseController < ActionController::Base
     rescue OpenShift::UserException => e
       render_format_exception(e)
     rescue OpenShift::AccessDeniedException
-      log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_args)
+      log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_log_args)
       request_http_basic_authentication
     end
   end
@@ -280,12 +280,12 @@ class BaseController < ActionController::Base
       if log_tag
         log_msg = []
         messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, log_msg.join(', '), get_extra_args)
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, log_msg.join(', '), get_extra_log_args)
       end
     else
       msg_type = :error unless msg_type
       reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, msg, get_extra_args) if log_tag
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, msg, get_extra_log_args) if log_tag
     end
     respond_with reply, :status => reply.status
   end
@@ -351,12 +351,12 @@ class BaseController < ActionController::Base
       if log_tag
         log_msg = []
         messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '), get_extra_args)
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '), get_extra_log_args)
       end
     else
       msg_type = :info unless msg_type
       reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg, get_extra_args) if log_tag
+      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg, get_extra_log_args) if log_tag
     end
     respond_with reply, :status => reply.status
   end

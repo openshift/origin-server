@@ -529,6 +529,16 @@ class Application
       result_io
     end
   end
+  
+  def threaddump
+    result_io = ResultIO.new
+    component_instances.each do |component_instance|
+      GroupInstance.run_on_gears(component_instance.group_instance.gears, result_io, false) do |gear, r|
+        r.append gear.threaddump(component_instance.cartridge_name)
+      end
+    end
+    result_io
+  end
 
   def reload_component_config(component_name, cartridge_name)
     Application.run_in_application_lock(self) do
@@ -918,7 +928,7 @@ class Application
         Lock.unlock_application(application)
       end
     else
-      false
+      raise "Unable to perform action. Another operation is already running."
     end
   end
 

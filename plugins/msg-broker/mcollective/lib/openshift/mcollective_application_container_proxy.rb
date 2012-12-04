@@ -2644,6 +2644,7 @@ module OpenShift
       # * uses rpc_exec
       #
       def has_uid_or_gid?(uid)
+        return false if uid.nil?
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_s) do |response|
             output = response[:body][:data][:output]
