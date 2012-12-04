@@ -144,7 +144,7 @@ module CommandHelper
       app.file = "#{$temp}/#{new_namespace}.json"
       FileUtils.mv old_file, app.file
       time = Benchmark.realtime do 
-        run("#{$rhc_script} domain update -n #{new_namespace} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} domain update #{old_namespace} #{new_namespace} -l #{app.login} -p #{app.password} -d").should == 0
       end
       log_event "#{time} UPDATE_DOMAIN #{new_namespace} #{app.login}"
       app.persist
