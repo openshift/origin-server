@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version:        0.2
+Version:        0.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -118,6 +118,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Tue Dec 04 2012 Ram Ranganathan <ramr@redhat.com> 0.3-1
+- Add empty readme file. (ramr@redhat.com)
+
 * Tue Dec 04 2012 Ram Ranganathan <ramr@redhat.com> 0.2-1
 - Rename to todo list. (ramr@redhat.com)
 
