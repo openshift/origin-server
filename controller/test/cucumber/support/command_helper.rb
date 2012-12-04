@@ -273,7 +273,7 @@ module CommandHelper
       end
       log_event "#{time} STOP_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 0
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --state | grep '#{app.get_stop_string}'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -304,7 +304,7 @@ module CommandHelper
       end
       log_event "#{time} START_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --state | grep '#{app.get_stop_string}'").should == 1
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -317,7 +317,7 @@ module CommandHelper
       end
       log_event "#{time} RESTART_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --state | grep '#{app.get_stop_string}'").should == 1
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -330,7 +330,7 @@ module CommandHelper
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --status | grep 'does not exist'").should == 0
+        run("#{$rhc_script} app show -l #{app.login} -p #{app.password} #{app.name} --state | grep 'does not exist'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
       run("sed -i '/#{app.name}-#{app.namespace}.#{$domain}/d' /etc/hosts") if use_hosts
