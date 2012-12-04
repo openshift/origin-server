@@ -52,28 +52,10 @@ POSTGRESQL_IP=`find_open_ip $uid $uuid $POSTGRESQL_PORT`
 # Fix permissions
 #
 observe_setup_app_home
-old_uuid=$(stat -c %U $CART_INSTANCE_DIR/etc)
-if [ ! "$old_uuid" == "$uuid" ]; then
-    pushd "$CART_INSTANCE_DIR" > /dev/null
-    chown -cR --from=$old_uuid.$old_uuid $uuid.$uuid * > /dev/null
-    popd > /dev/null
-fi
-
-#
-# Source database connection variables
-#
-if [ -d $CART_INSTANCE_DIR/.env ]; then
-    . $CART_INSTANCE_DIR/.env/OPENSHIFT_POSTGRESQL_DB_PORT
-    . $CART_INSTANCE_DIR/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-    . $CART_INSTANCE_DIR/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
-    . $CART_INSTANCE_DIR/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
-    rm -rf $CART_INSTANCE_DIR/.env
-else
-    . $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
-    . $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
-    . $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
-    . $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
-fi
+. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PORT
+. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_HOST
+. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_USERNAME
 
 #
 # Setup Environment Variables
