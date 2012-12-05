@@ -121,7 +121,7 @@ module OpenShift
                   #{@uuid}}
           out,err,rc = shellCmd(cmd)
           raise UserCreationException.new(
-                  "ERROR: unable to create user account #{@uuid}, #{cmd}"
+                  "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
 
           FileUtils.chown("root", @uuid, @homedir)
@@ -199,9 +199,11 @@ module OpenShift
         OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).destroy
 
         dirs = list_home_dir(@homedir)
-        out,err,rc = shellCmd("userdel -f \"#{@uuid}\"")
+        cmd = "userdel -f \"#{@uuid}\""
+        out,err,rc = shellCmd(cmd)
         raise UserDeletionException.new(
-              "ERROR: unable to destroy user account(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+              "ERROR: unable to destroy user account(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+              ) unless rc == 0
 
         # 1. Don't believe everything you read on the userdel man page...
         # 2. If there are any active processes left pam_namespace is not going
@@ -209,9 +211,11 @@ module OpenShift
         FileUtils.rm_rf(@homedir)
         if File.exists?(@homedir)
           # Ops likes the verbose verbage
-          Syslog.alert "1st attempt to remove \'#{@homedir}\' from filesystem failed."
-          Syslog.alert "Dir(before)   #{@uuid}/#{@uid} => #{dirs}"
-          Syslog.alert "Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}"
+          Syslog.alert %Q{
+1st attempt to remove \'#{@homedir}\' from filesystem failed.
+Dir(before)   #{@uuid}/#{@uid} => #{dirs}
+Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
+          }
         end
 
         # release resources (cgroups thaw), this causes Zombies to get killed
@@ -579,6 +583,9 @@ module OpenShift
       cmd = %{openshift-port-proxy-cfg setproxy}
       proxy_port_range.each { |i| cmd << " #{i} delete" }
       out, err, rc = shellCmd(cmd)
+      Syslog.warning(
+            "WARNING: openshift-port-proxy-cfg failed(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+            ) unless 0 == rc
 
       notify_observers(:after_initialize_openshift_port_proxy)
       return rc == 0
@@ -612,14 +619,14 @@ module OpenShift
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd(%{/usr/bin/pgrep -u #{id}})
         break unless 0 == rc
 
-        Syslog.alert "ERROR: attempt #{i}/10 existing killed process pids #{id}: rc: #{rc} out: #{out} err: #{err}"
+        Syslog.alert "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
         sleep 0.5
       end
 
       # looks backwards but 0 implies processes still existed
       if 0 == rc
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
-        Syslog.alert "ERROR: existing killed processes #{id}: rc: #{rc} out: #{out} err: #{err}"
+        Syslog.alert "ERROR: failed to kill all processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
       end
     end
 
@@ -714,8 +721,18 @@ module OpenShift
     # @param [Integer] The user ID
     def set_selinux_context(path)
       mcs_label=get_mcs_label(@uid)
-      shellCmd("restorecon -R #{path}")
-      shellCmd("chcon -R -l #{mcs_label} #{path}/*")
+
+      cmd = "restorecon -R #{path}"
+      out, err, rc = shellCmd(cmd)
+      Syslog.err(
+                "ERROR: unable to restorecon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+                ) unless 0 == rc
+      cmd = "chcon -R -l #{mcs_label} #{path}/*"
+
+      out, err, rc = shellCmd(cmd)
+      Syslog.err(
+                "ERROR: unable to chcon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+                ) unless 0 == rc
     end
   end
 end
