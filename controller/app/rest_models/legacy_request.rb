@@ -99,7 +99,7 @@ class LegacyRequest < OpenShift::Model
   end
 
   validates_each :server_alias, :allow_nil =>true do |record, attribute, val|
-    if !(val =~ /\A[\w\-\.]+\z/) or (val =~ /#{Rails.configuration.ss[:domain_suffix]}$/)
+    if !(val =~ /\A[\w\-\.]+\z/) or (val =~ /#{Rails.configuration.openshift[:domain_suffix]}$/)
       record.errors.add attribute, {:message => "Invalid ServerAlias specified: #{val}", :exit_code => 105}
     end
   end
