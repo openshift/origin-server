@@ -858,62 +858,6 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     gear_states
   end
 
-  def add_authorized_ssh_key(ssh_key, key_type=nil, comment=nil)
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.add_authorized_ssh_key(ssh_key, key_type, comment)
-    end
-    raise f[0][:exception] if(f.length > 0)    
-    reply
-  end
-  
-  def remove_authorized_ssh_key(ssh_key, comment=nil)
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.remove_authorized_ssh_key(ssh_key, comment)
-    end
-    raise f[0][:exception] if(f.length > 0)    
-    reply
-  end
-  
-  def add_env_var(key, value)
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.add_env_var(key, value)
-    end
-    raise f[0][:exception] if(f.length > 0)  
-    reply
-  end
-  
-  def remove_env_var(key)
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.remove_env_var(key)
-    end
-    raise f[0][:exception] if(f.length > 0)    
-    reply
-  end
-  
-  def add_broker_key
-    iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
-    
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.add_broker_auth_key(iv,token)
-    end
-    raise f[0][:exception] if(f.length > 0)    
-    reply
-  end
-  
-  def remove_broker_key
-    reply = ResultIO.new
-    s,f = run_on_gears(nil,reply,false) do |gear,r|
-      r.append gear.remove_broker_auth_key
-    end
-    raise f[0][:exception] if(f.length > 0)    
-    reply
-  end
-  
   def add_node_settings(gears=nil)
     reply = ResultIO.new
     
