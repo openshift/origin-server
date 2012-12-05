@@ -8,13 +8,13 @@ spec_file = "rubygem-openshift-origin-node.spec"
 
 Gem::Specification.new do |s|
   s.name        = "openshift-origin-node"
-  s.version     = `rpm -q --qf "%{version}\n" --specfile #{spec_file}`.split[0]
-  s.license     = `rpm -q --qf "%{license}\n" --specfile #{spec_file}`.split[0]
+  s.version     = `rpm -q --define 'rhel 7' --qf "%{version}\n" --specfile #{spec_file}`.split[0]
+  s.license     = `rpm -q --define 'rhel 7' --qf "%{license}\n" --specfile #{spec_file}`.split[0]
   s.authors     = ["Krishna Raman"]
   s.email       = ["kraman@gmail.com"]
-  s.homepage    = `rpm -q --qf "%{url}\n" --specfile #{spec_file}`.split[0]
-  s.summary     = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
-  s.description = `rpm -q --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.homepage    = `rpm -q --define 'rhel 7' --qf "%{url}\n" --specfile #{spec_file}`.split[0]
+  s.summary     = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
+  s.description = `rpm -q --define 'rhel 7' --qf "%{description}\n" --specfile #{spec_file}`.split[0]
 
   s.rubyforge_project = "openshift-origin-node"
   s.files       = Dir[lib_dir] + Dir[bin_dir] + Dir[conf_dir] + Dir[test_dir] + Dir[misc_dir]

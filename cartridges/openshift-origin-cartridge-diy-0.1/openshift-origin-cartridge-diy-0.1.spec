@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.2.2
+Version: 1.2.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -74,7 +74,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc COPYRIGHT LICENSE
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
-%attr(0750,-,-) %{cartridgedir}/info/hooks/
+%attr(0755,-,-) %{cartridgedir}/info/hooks
+%attr(0750,-,-) %{cartridgedir}/info/hooks/*
+%attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
 %attr(0750,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
@@ -87,6 +89,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
 - [cartridges-new] Re-implement scripts (part 1) (jhonce@redhat.com)

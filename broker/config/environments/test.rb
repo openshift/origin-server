@@ -32,15 +32,15 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
-  
+
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
-  
+
   config.datastore = {
     :replica_set => true,
     :host_port => ["localhost", 27017],
-  
+
     :user => "openshift",
     :password => "mooo",
     :db => "openshift_broker_dev",
@@ -48,28 +48,29 @@ Broker::Application.configure do
                      :district => "district",
                      :application_template => "template"}
   }
-  
+
   config.usage_tracking = {
     :datastore_enabled => false,
     :syslog_enabled => false
   }
-  
+
   config.analytics = {
     :enabled => false
   }
-  
+
   config.user_action_logging = {
     :logging_enabled => true,
     :log_filepath => "/var/log/openshift/user_action.log"
   }
-  
+
   config.openshift = {
     :domain_suffix => "example.com",
     :default_max_gears => 3,
     :default_gear_size => "small",
+    :default_gear_capabilities => ["small"],
     :gear_sizes => ["small","medium"]
   }
-  
+
   config.auth = {
     :salt => "foobarbaz",
     :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",

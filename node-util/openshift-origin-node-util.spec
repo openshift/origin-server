@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,10 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+- Fix for Bug 881920 (jhonce@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Remove unused phpmoadmin cartridge (jhonce@redhat.com)
 - use /bin/env for cron (dmcphers@redhat.com)

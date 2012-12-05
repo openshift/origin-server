@@ -32,11 +32,11 @@ Broker::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
-  
+
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
-  
+
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))
   replica_sets = conf.get_bool("MONGO_REPLICA_SETS", "true")
   hp = conf.get("MONGO_HOST_PORT", "localhost:27017")
@@ -52,7 +52,7 @@ Broker::Application.configure do
     #   [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     #
     # where each host is a string and each port is an integer.
-  
+
     host_port = hp.split.map do |x|
       (h,p) = x.split(":")
       [h, p.to_i]
@@ -70,12 +70,12 @@ Broker::Application.configure do
     (h,p) = hp.split(":")
     host_port = [h, p.to_i]
   end
-  
+
   config.datastore = {
     :replica_set => replica_sets,
     # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
     :host_port => host_port,
-  
+
     :user => conf.get("MONGO_USER", "openshift"),
     :password => conf.get("MONGO_PASSWORD", "mooo"),
     :db => conf.get("MONGO_DB", "openshift_broker_dev"),
@@ -83,29 +83,30 @@ Broker::Application.configure do
                      :district => "district",
                      :application_template => "template"}
   }
-  
+
   config.usage_tracking = {
     :datastore_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_DATASTORE", "false"),
     :syslog_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_SYSLOG", "false")
   }
-  
+
   config.analytics = {
     :enabled => conf.get_bool("ENABLE_ANALYTICS", "false"), # global flag for whether any analytics should be enabled
   }
-  
+
   config.user_action_logging = {
     :logging_enabled => conf.get_bool("ENABLE_USER_ACTION_LOG", "true"),
     :log_filepath => conf.get("USER_ACTION_LOG_FILE", "/var/log/openshift/user_action.log")
   }
-  
+
   config.openshift = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
     :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small,medium").split(","),
+    :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
     :community_quickstarts_url => conf.get('COMMUNITY_QUICKSTARTS_URL'),
   }
-  
+
   config.auth = {
     :salt => conf.get("AUTH_SALT", ""),
     :privkeyfile => conf.get("AUTH_PRIVKEYFILE", "/var/www/openshift/broker/config/server_priv.pem"),

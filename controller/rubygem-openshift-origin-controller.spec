@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Merge pull request #995 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
+- more mco 2.2 changes (dmcphers@redhat.com)
+- more changes for US3078 (abhgupta@redhat.com)
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+- Merge pull request #1001 from pmorie/sooth_ops (openshift+bot@redhat.com)
+- Remove 'framework' message from Application constructor (pmorie@gmail.com)
+- fixing mongo connection issues for build (dmcphers@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - changes for US3078 (abhgupta@redhat.com)
 - Remove unused phpmoadmin cartridge (jhonce@redhat.com)

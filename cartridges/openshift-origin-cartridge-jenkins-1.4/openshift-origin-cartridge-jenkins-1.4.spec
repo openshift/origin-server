@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.2.2
+Version: 1.2.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -70,7 +70,9 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%attr(0750,-,-) %{cartridgedir}/info/hooks/
+%attr(0755,-,-) %{cartridgedir}/info/hooks
+%attr(0750,-,-) %{cartridgedir}/info/hooks/*
+%attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0750,-,-) %{cartridgedir}/info/lib/
@@ -86,6 +88,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- Move add/remove alias to the node API. (rmillner@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - Merge pull request #985 from ironcladlou/US2770 (openshift+bot@redhat.com)
 - Merge pull request #983 from jwhonce/dev/rm_post-install
