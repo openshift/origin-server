@@ -258,7 +258,7 @@ function _requestHandler(proxy_server, req, res) {
       res.write(chunk);
 
       /*  Increment outbound bytes.  */
-      metrics.bytes_out += chunk.length();
+      metrics.bytes_out += chunk.length;
     });
 
     /*  Set the appropriate headers on the reponse & send the headers.  */
@@ -305,7 +305,7 @@ function _requestHandler(proxy_server, req, res) {
     preq.write(chunk);
 
     /*  Increment inbound bytes.  */
-    metrics.bytes_in += chunk.length();
+    metrics.bytes_in += chunk.length;
   });
 
 

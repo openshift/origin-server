@@ -28,7 +28,9 @@ var _default_limits = { connections: 5, bandwidth: 100 };
 function _load_routes(f) {
   if (f) {
     try {
+      require.cache[f]  &&  delete require.cache[f];
       return require(f);
+
     } catch(err) {
       Logger.error("Failed to load routes from file '" + f + ' - ' + err);
     }
@@ -125,6 +127,7 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
   this.routes[n] = { 'endpoints': endpts, 'limits': limits };
 
   // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts); 
+  // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits)); 
 
   return zroute;
 

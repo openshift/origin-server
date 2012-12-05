@@ -69,10 +69,10 @@ function _getAuthUser(req) {
  *  @return  {Logger}  Access Logger instance.
  *  @api     public
  */
-exports.get = function() {
+var getAccessLogger = exports.get = function() {
   return Logger.get(_access_logger);
 
-};  /*  End of function  getAccessLogger.  */
+};  /*  End of function  get/getAccessLogger.  */
 
 
 /**
@@ -87,16 +87,20 @@ exports.get = function() {
  *  @api     public
  */
 exports.log = function(req, res, metrics) {
-  var remote_host    = req.connection.RemoteAddress  ||   
-                       req.socket.RemoteAddress;
-  var vhost          = req.headers.host  ||  '-';
+  var remote_host    = req.connection.remoteAddress  ||
+                       req.socket.remoteAddress      ||  '-';
+  var vhost          = req.headers.host.split(':')[0]  ||  '-';
   var remote_login   = '-';
-  var auth_user      = _getAuthUser(req);
+  var auth_user      = _getAuthUser(req)  ||  '-';
   var tzoffset       = _getTimeZoneOffset();
   var protocol       = 'http';
   var nbytes         = metrics.bytes_out;
   var req_time_ms    = metrics.end - metrics.start;
-  var response_ka    =  res.headers['connection']  ||  '';
+  var response_ka    = '';
+  if (res.headers  &&  res.headers['connection']) {
+     response_ka = res.headers['connection'];
+  }
+
   var keepalive_flag = '-';  /*  X = aborted , += keep-alive, -= closed  */
   var referer        = req.headers['referer']  ||  '-';
   var user_agent     = req.headers['user-agent']  ||  '-';
@@ -108,8 +112,8 @@ exports.log = function(req, res, metrics) {
     keepalive = '+';
   }
    
-  var req_info = util.format('%s %s %s/%s', req.method, req.url, protocol,
-                             req.httpVersion);
+  var req_info = util.format('%s %s %s/%s', req.method, req.url,
+                             protocol.toUpperCase(), req.httpVersion);
   var ap_times = util.format('%s %s', dateutils.strftime('%d/%b/%Y:%T'),
                              tzoffset);
 
@@ -128,7 +132,11 @@ exports.log = function(req, res, metrics) {
                          res.statusCode, metrics.bytes_out, referer,
                          user_agent,
                          req_time_ms, keepalive_flag);
-  return getAccessLogger.log(zmsg);
+  /**
+   *  TODO:  This is still work to be done. 
+   *  console.log(zmsg);
+   *  return getAccessLogger().info(zmsg);
+   */
 
 
 }  /*  End of function  logAccess.  */
