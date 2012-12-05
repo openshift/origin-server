@@ -8,8 +8,6 @@ Bugs/TODOs:
 2. access logger
 3. idler use node-proxy access logs
 3.1  idling/restoring app change routes.json endpoint to $vhost:80
-4. Add config for max connections + change setMaxListeners to use appropriate
-   config value -- default is 0.
 5. haproxy - set max connections to -1 - since # of gears is dynamic (up/down).
 6. migration - will need route*json files for:
     a.  aliases

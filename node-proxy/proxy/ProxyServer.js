@@ -7,18 +7,20 @@ var https         = require('https');
 var WebSocket     = require('ws');
 var child_process = require('child_process');
 
-var ProxyRoutes = require('./ProxyRoutes.js');
-var constants   = require('../utils/constants.js');
-var httputils   = require('../utils/http-utils.js');
-var statuscodes = require('../utils/status-codes.js');
-var errorpages  = require('../utils/error-pages.js');
-var Logger      = require('../logger/Logger.js');
+var ProxyRoutes   = require('./ProxyRoutes.js');
+var constants     = require('../utils/constants.js');
+var httputils     = require('../utils/http-utils.js');
+var statuscodes   = require('../utils/status-codes.js');
+var errorpages    = require('../utils/error-pages.js');
+var Logger        = require('../logger/Logger.js');
+var access_logger = require('../logger/access-logger.js');
 
 /*!  {{{  section:  'Private-Variables'                                  */
 
 /*  Default timeouts.  */
-var DEFAULT_IO_TIMEOUT         = 300;   /*  5 minutes (300 secs).  */
-var DEFAULT_WEBSOCKETS_TIMEOUT = 3600;  /*  1 hour (3600 secs).    */
+var DEFAULT_IO_TIMEOUT         = 300;   /*  5 minutes (300 seconds).  */
+var DEFAULT_KEEP_ALIVE_TIMEOUT = 60;    /*  1 minute (60 seconds).    */
+var DEFAULT_WEBSOCKETS_TIMEOUT = 3600;  /*  1 hour (3600 seconds).    */
 
 /*!
  *  }}}  //  End of section  Private-Variables.
@@ -57,19 +59,29 @@ function _load_config(f) {
  *
  *  Examples:
  *    var preq = http.request(proxy_req, function(pres) {
- *      _setProxyResponseHeaders(pres, 'app1-ramr.rhcloud.com');
+ *      _setProxyResponseHeaders(pres, 'app1-ramr.rhcloud.com', 60);
  *    });
  *
  *  @param  {http.ClientResponse}  Response from the proxied request.
+ *  @param  {String}               Virtual host name
+ *  @param  {Integer}              Connection Keep-Alive timeout
  *  @api    private
  */
-function _setProxyResponseHeaders(proxy_res, vhost) {
+function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
   var about_me = constants.NODE_PROXY_WEB_PROXY_NAME + '/' +
                  constants.NODE_PROXY_PRODUCT_VER;
   var zroute   = '1.1 ' + vhost + ' (' + about_me + ')';
 
-  /*  We only set the Via: header to indicate it went via us.  */
+  /*  Set the Via: header to indicate it went via us.  */
   httputils.addHeader(proxy_res.headers, 'Via', zroute);
+
+  /*  Set the Keep-Alive timeout if Connection is being kept alive.  */
+  var conn_header = proxy_res.headers['Connection']  ||  '';
+  if ('keep-alive' === conn_header.toLowerCase() ) {
+    var ka = utils.format('timeout=%d, max=%d', keep_alive_timeout,
+                          keep_alive_timeout + DEFAULT_KEEP_ALIVE_TIMEOUT);
+    proxy_res.headers['Keep-Alive'] = ka;
+  }
 
 }  /*  End of function  _setProxyResponseHeaders.  */
 
@@ -78,9 +90,11 @@ function _setProxyResponseHeaders(proxy_res, vhost) {
  *  Set the request headers on the proxied request. 
  *
  *  Examples:
- *    var preq = http.request(proxy_req, function(pres) {
- *      _setProxyResponseHeaders(pres, 'app1-ramr.rhcloud.com');
- *    });
+ *    var proxy_req = { host: ep_host, port: ep_port,
+ *                      method: req.method, path: request_uri,
+ *                      headers: req.headers
+ *                    };
+ *    _setProxyRequestHeaders(proxy_req, req);
  *
  *  @param  {http.ClientRequest}  The request we send to the endpoint.
  *  @param  {http.ServerRequest}  The request we received. 
@@ -125,6 +139,21 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
  *  @api    private
  */
 function _requestHandler(proxy_server, req, res) {
+  /*  Technically when we got the request - set the start timestamp.  */
+  var metrics = {
+    'start'    : Date.now(),
+    'end'      : 0,
+    'bytes_in' : 0,
+    'bytes_out': 0,
+    'error'    : ''
+  };
+
+  function log_metrics(err) {
+    metrics.end   = Date.now();
+    metrics.error = err  ||  '';
+    access_logger.log(req, res, metrics);
+  };
+
   /*  Request start event.  */
   proxy_server.emit('request.start', req);
 
@@ -136,6 +165,13 @@ function _requestHandler(proxy_server, req, res) {
 
   /*  Set timeout on the incoming request/socket.  */
   req.socket.setTimeout(io_timeout * 1000);  /*  Timeout is in ms.  */
+
+  /*  Get the keepalive timeout.  */
+  var keep_alive_timeout = DEFAULT_KEEP_ALIVE_TIMEOUT;  /*  60 seconds.  */
+  if (proxy_server.config.timeouts  &&
+      proxy_server.config.timeouts['keep-alive']) {
+    keep_alive_timeout = proxy_server.config.timeouts['keep-alive'];
+  }
 
 
   var reqhost = '';
@@ -170,6 +206,10 @@ function _requestHandler(proxy_server, req, res) {
     res.statusCode = statuscodes.HTTP_TEMPORARY_REDIRECT;
     res.setHeader('Location', proxy_server.config.routes.redirect404);
     res.end('');
+
+    /*  Log metrics.  */
+    log_metrics('request.route.error');
+
     return;
   }
 
@@ -196,16 +236,18 @@ function _requestHandler(proxy_server, req, res) {
       /*  Proxy response error event.  */
       proxy_server.emit('proxy-response.error', req, res, preq, pres);
 
-      /*  Finish the response to the originating request.  */
+      /*  Finish the response to the originating request and log metrics.  */
       res.end();
+      log_metrics('proxy-response.error');
     });
 
     pres.addListener('end', function() {
       /*  Proxy response end event.  */
       proxy_server.emit('proxy-response.end', req, res, preq, pres);
 
-      /*  Finish the response to the originating request.  */
+      /*  Finish the response to the originating request and log metrics.  */
       res.end();
+      log_metrics();
     });
 
     pres.addListener('data', function(chunk) {
@@ -214,10 +256,13 @@ function _requestHandler(proxy_server, req, res) {
 
       /*  Proxy response to the request originator.  */
       res.write(chunk);
+
+      /*  Increment outbound bytes.  */
+      metrics.bytes_out += chunk.length();
     });
 
     /*  Set the appropriate headers on the reponse & send the headers.  */
-    _setProxyResponseHeaders(pres, reqhost);
+    _setProxyResponseHeaders(pres, reqhost, keep_alive_timeout);
     res.writeHead(pres.statusCode, pres.headers);
   });
 
@@ -226,21 +271,22 @@ function _requestHandler(proxy_server, req, res) {
     socket.setTimeout(io_timeout * 1000);  /*  Timeout is in ms.  */
     socket.on('timeout', function() {
       preq.abort();
+      log_metrics('request.socket.timeout');
     });
   });
 
-// preq.setTimeout(io_timeout * 1000);  /*  Timeout is in milliseconds.  */
 
   /*  Handle the incoming request error/end/data events.  */
   req.addListener('error', function() {
     /*  Request error event.  */
     proxy_server.emit('request.error', req, res, preq);
 
-    /*  Finish the proxied request and return a 503.  */
+    /*  Finish the proxied request, return a 503 and log metrics.  */
     preq.abort();
     res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
     res.write(errorpages.service_unavailable_page(reqhost, reqport) );
     res.end();
+    log_metrics('request.error');
   });
 
   req.addListener('end', function() {
@@ -257,6 +303,9 @@ function _requestHandler(proxy_server, req, res) {
 
     /*  Proxy data to outgoing request to the backend content server.  */
     preq.write(chunk);
+
+    /*  Increment inbound bytes.  */
+    metrics.bytes_in += chunk.length();
   });
 
 
@@ -264,11 +313,11 @@ function _requestHandler(proxy_server, req, res) {
   preq.addListener('error', function() {
     proxy_server.emit('proxy-request.error', req, res, preq);
 
-    /*  Finish the incoming request and return a 503.  */
-    // RR: req.end();
+    /*  Finish the incoming request, return a 503 and log metrics.  */
     res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
     res.write(errorpages.service_unavailable_page(reqhost, reqport) );
     res.end('');
+    log_metrics('proxy-request.error');
   });
 
 };  /*  End of function  requestHandler.  */
@@ -639,9 +688,13 @@ ProxyServer.prototype.initServer = function() {
   for (var s in this.config.servers) {
     /*  Create a new server for handling the specific protocol.  */
     Logger.info('Creating protocol server for ' + s);
-    var proto = this.config.servers[s].protocol;
-    var opts  = this.config.servers[s].ssl;
-    var srvr = httputils.createProtocolServer(proto, opts);
+    var maxconn = this.config.servers[s].max_connections;
+    var proto   = this.config.servers[s].protocol;
+    var opts    = this.config.servers[s].ssl;
+    var srvr    = httputils.createProtocolServer(proto, opts);
+
+    /*  Max number of listeners per event.  */
+    srvr.setMaxListeners(maxconn);
 
     /*  Handle protocol server connection events.  */
     srvr.on('connection', function(conn) {
@@ -653,8 +706,6 @@ ProxyServer.prototype.initServer = function() {
     srvr.on('request', function(req, res) {
       self.debug()  &&  Logger.debug('server %s proto=%s - new request %s',
                                      s, proto, req.url);
-      /* TODO: Add max connections support via config.  */
-      srvr.setMaxListeners(0);
       _requestHandler(self, req, res);
     });
 

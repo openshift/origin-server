@@ -2,7 +2,7 @@ var path = require('path');
 var fs   = require('fs');
 var util = require('util');
 
-/*  load in util and log constants.  */
+/*  load in date utils and log constants.  */
 var logconstants = require('./log-constants.js');
 var dateutils    = require('../utils/date-utils.js');
 

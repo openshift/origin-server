@@ -3,7 +3,7 @@
 
 /*  Product name, version and info.   */
 exports.NODE_PROXY_PRODUCT_NAME    = "openshift-origin-node-proxy";
-exports.NODE_PROXY_PRODUCT_VER     = "0.1";
+exports.NODE_PROXY_PRODUCT_VER     = "0.4";
 exports.NODE_PROXY_PRODUCT_INFO    = this.NODE_PROXY_PRODUCT_NAME + "/" +
                                      this.NODE_PROXY_PRODUCT_VER;
 

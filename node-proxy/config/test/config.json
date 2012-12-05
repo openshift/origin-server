@@ -26,16 +26,18 @@
     },
 
     "servers":  {
-      "description": "Dictionary of all the 'servers' we run",
-      "ports"      : "List of ports/single port a specific server binds to",
-      "protocol"   : "Protocol a specific server supports",
-      "routes"     : {
+      "description"    : "Dictionary of all the 'servers' we run",
+      "max_connections": [ "Max number of simultaneous connections per server.",
+                           "Use 0 for unlimited connections." ],
+      "ports"          : "List of ports/single port a specific server binds to",
+      "protocol"       : "Protocol a specific server supports",
+      "routes"         : {
         "description": "Routes configuration",
         "files":       "One or more JSON files containing the routes",
         "cmd":         [ "External command to run to get a list of files ",
                          "containing the routes" ]
       },
-      "ssl"        : {
+      "ssl"            : {
         "description": "SSL server configuration",
         "certificate": "Certificate file - used for security negotiations",
         "private_key": "Private key associated with the Certificate"
@@ -88,14 +90,16 @@
 
   "servers": {
     "nonsecure_http_proxy": {
-      "ports"   : [ 8000 ],
-      "protocol": "http"
+      "max_connections": 4096,
+      "ports"          : [ 8000 ],
+      "protocol"       : "http"
     },
 
     "secure_http_proxy": {
-      "ports"   : [ 8443 ],
-      "protocol": "http",
-      "ssl"     : {
+      "max_connections": 4096,
+      "ports"          : [ 8443 ],
+      "protocol"       : "https",
+      "ssl"            : {
         "certificate": "/tmp/localhost.crt",
         "private_key": "/tmp/localhost.key"
       }
