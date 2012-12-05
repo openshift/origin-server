@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.3
+Version: 1.2.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- create :default_gear_capabilities conf key for setting default gear
+  capabilities a user has at creation (lmeyer@redhat.com)
+- Merge pull request #1012 from brenton/dead_code1 (openshift+bot@redhat.com)
+- Merge pull request #1014 from rajatchopra/master (openshift+bot@redhat.com)
+- fix bug#883553 - additional_storage param is now additional_gear_storage
+  (rchopra@redhat.com)
+- Removing some dead code (bleanhar@redhat.com)
+- updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Merge pull request #995 from abhgupta/abhgupta-dev (openshift+bot@redhat.com)
 - more mco 2.2 changes (dmcphers@redhat.com)
