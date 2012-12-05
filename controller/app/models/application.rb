@@ -1080,10 +1080,11 @@ class Application
   def calculate_gear_destroy_ops(ginst_id, gear_ids)
     pending_ops = []
     gear_ids.each do |gear_id|
-      destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
-      unreserve_uid_op  = PendingAppOp.new(op_type: :unreserve_uid, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
-      delete_gear_op    = PendingAppOp.new(op_type: :delete_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
-      ops = [destroy_gear_op, unreserve_uid_op, delete_gear_op]
+      destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
+      deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
+      unreserve_uid_op  = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
+      delete_gear_op    = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
+      ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op]
       pending_ops.push *ops
     end
     pending_ops
