@@ -85,8 +85,8 @@ class Application
     notify_observers(:validate_application)
   end
 
-  def self.create_app(application_name, features, domain, default_gear_size, scalable, result_io, group_overrides=[], init_git_url=nil)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, init_git_url: init_git_url)
+  def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], usage_records: [], pending_op_groups: [], init_git_url: init_git_url)
     features << "web_proxy" if scalable
     if app.valid?
       begin
@@ -100,11 +100,12 @@ class Application
       app.delete
       raise OpenShift::ApplicationValidationException.new(app)
     end
+    app
   end
   
   
   def self.from_template(domain, hash, git_url)
-    app = Application.new(domain: domain, name: hash["Name"], default_gear_size: "small")
+    app = Application.new(domain: domain, name: hash["Name"], default_gear_size: "small", scalable: false, app_ssh_keys: [], usage_records: [], pending_op_groups: [])
     app.component_start_order = hash["Start-Order"] if hash.has_key?("Start-Order")
     app.component_stop_order = hash["Stop-Order"] if hash.has_key?("Stop-Order")
     begin    
@@ -694,7 +695,6 @@ class Application
       end
     end
     pub_out = {}
-    Rails.logger.debug handle.instance
     RemoteJob.execute_parallel_jobs(handle)
     RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
       if status==0
@@ -702,7 +702,6 @@ class Application
         pub_out[tag].push("'#{gear_id}'='#{output}'")
       end
     end
-
     Rails.logger.debug "Running subscribers"
     #subscribers
     handle = RemoteJob.create_parallel_job

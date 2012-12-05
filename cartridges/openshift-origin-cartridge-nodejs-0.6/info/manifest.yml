@@ -44,6 +44,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - nodejs-0.6
   - "nodejs"
   - "nodejs (version) = 0.6.10"
   - "nodejs (version) = 0.6"
@@ -73,5 +74,9 @@ Subscribes:
   set-mongo-connection-info:
     Type: "NET_TCP:db:mongodb"
     Required : false
+Group-Overrides:
+  - components:
+    - nodejs-0.6
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

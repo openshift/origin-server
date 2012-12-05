@@ -44,6 +44,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - jbosseap-6.0
   - "jbosseap"
   - "jbosseap(version) = 6.0.0"
   - "jbosseap(version) >= 6.0"
@@ -54,7 +55,7 @@ Provides:
   - jboss-eap6.0.0-standalone
 Group-Overrides:
   - components:
-    - jbosseap-server
+    - jbosseap-6.0
     - web_proxy
 Publishes:
   get-internal-uri:

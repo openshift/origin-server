@@ -44,10 +44,10 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - "jbossews-1.0"	
   - "jbossews"
   - "jbossews(version) = 1.0.2"
   - "jbossews(version) >= 1.0"
-  - "jboss-ews1.0"
   - "jboss-ews1.0.0"
 Publishes:
   get-internal-uri:
@@ -65,5 +65,9 @@ Subscribes:
     Required: false
   set-jdbc-info:
     Type: "NET_TCP:jdbc"
+Group-Overrides:
+  - components:
+    - "jboss-ews1.0"
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

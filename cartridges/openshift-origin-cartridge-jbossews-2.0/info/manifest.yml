@@ -44,6 +44,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - jbossews-2.0
   - "jbossews"
   - "jbossews(version) = 2.0.0"
   - "jbossews(version) >= 2.0"
@@ -65,5 +66,9 @@ Subscribes:
     Required: false
   set-jdbc-info:
     Type: "NET_TCP:jdbc"
+Group-Overrides:
+  - components:
+    - "jbossews-2.0"
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

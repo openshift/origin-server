@@ -42,7 +42,9 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - perl-5.10
   - "mod_perl"
+  - perl
 Publishes:
   get-proxy-url:
     Type: "STRING:proxy-path"
@@ -71,5 +73,9 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
+Group-Overrides:
+  - components:
+    - perl-5.10
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

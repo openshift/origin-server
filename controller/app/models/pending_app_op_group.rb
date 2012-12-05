@@ -238,7 +238,7 @@ class PendingAppOpGroup
               application.component_instances.find(component_instance_id).process_properties(ResultIO.new(status, output, gear_id))
             end
           end
-          parallel_job_ops.each{ |op| op.state = :completed }
+          parallel_job_ops.each{ |op| op.set(:state, :completed) }
           self.application.save
         end
       end

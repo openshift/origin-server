@@ -58,5 +58,9 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
+Group-Overrides:
+  - components:
+    - ruby-1.9
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080
