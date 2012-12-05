@@ -69,7 +69,10 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-httpd/info/bin/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/
 %dir %attr(0755,root,root) %{_libexecdir}/openshift/cartridges/abstract/info/
-%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks
+%attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/*
+# tidy is now a cartridge hook and should be accessible to gear users
+%attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/hooks/tidy
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/bin/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/lib/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/connection-hooks/

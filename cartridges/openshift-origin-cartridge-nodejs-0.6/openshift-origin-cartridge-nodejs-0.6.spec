@@ -92,7 +92,9 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%attr(0750,-,-) %{cartridgedir}/info/hooks/
+%attr(0755,-,-) %{cartridgedir}/info/hooks
+%attr(0750,-,-) %{cartridgedir}/info/hooks/*
+%attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
 %attr(0755,-,-) %{cartridgedir}/info/bin/

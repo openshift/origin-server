@@ -74,7 +74,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc COPYRIGHT LICENSE
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
-%attr(0750,-,-) %{cartridgedir}/info/hooks/
+%attr(0755,-,-) %{cartridgedir}/info/hooks
+%attr(0750,-,-) %{cartridgedir}/info/hooks/*
+%attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
 %attr(0750,-,-) %{cartridgedir}/info/connection-hooks/
 %attr(0750,-,-) %{cartridgedir}/info/data/
 %attr(0750,-,-) %{cartridgedir}/info/build/
