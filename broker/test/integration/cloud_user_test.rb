@@ -6,7 +6,7 @@ class CloudUserTest < ActiveSupport::TestCase
   
   test "create" do
     login = "user_" + gen_uuid
-    orig_cu = CloudUser.new(login, "1234", nil, "default")
+    orig_cu = CloudUser.new(login: login)
     orig_cu.save
     cu = CloudUser.find(login)
     assert_equal_users(orig_cu, cu)
@@ -14,7 +14,7 @@ class CloudUserTest < ActiveSupport::TestCase
   
   test "find by uuid" do
     login = "user_" + gen_uuid
-    orig_cu = CloudUser.new(login, "1234", nil, "default")
+    orig_cu = CloudUser.new(login: login)
     orig_cu.save
     cu = CloudUser.find_by_uuid("CloudUser", orig_cu.uuid)
     assert_equal_users(orig_cu, cu)

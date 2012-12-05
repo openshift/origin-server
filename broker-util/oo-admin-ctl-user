@@ -138,7 +138,7 @@ def add_sub_account(user, subaccount_login)
     end
     
     print "Adding subaccount for #{subaccount_login} under #{user.login}... "
-    child_user = CloudUser.new(subaccount_login, nil, nil, nil, nil, user.login)
+    child_user = CloudUser.new(login: login, parent_user_id: user.login)
     result = child_user.save
     puts "Done."
 

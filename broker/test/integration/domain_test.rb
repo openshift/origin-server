@@ -10,7 +10,7 @@ class DomainTest < ActiveSupport::TestCase
 
   test "create" do
     login = "user_" + gen_uuid
-    cu = CloudUser.new(login, "1234", nil, "default")
+    cu = CloudUser.new(login: login)
     cu.save
     ns = "namespace_" + gen_uuid
     orig_d = Domain.new(ns, cu)
