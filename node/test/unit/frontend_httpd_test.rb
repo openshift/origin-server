@@ -87,6 +87,18 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
     assert_equal File.join(@path, "server_alias-foo.example.com.conf"), frontend.server_alias_path("foo.example.com")
   end
 
+  def test_server_alias_search
+    frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
+
+    srch_path = File.join(@path, "server_alias-foo.example.com.conf")
+    Dir.stubs(:glob).returns([srch_path])
+
+    existing = frontend.server_alias_search("foo.example.com")
+    assert_equal existing.length, 1
+    assert_equal existing[0], srch_path
+  end
+
+
   def test_add_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
@@ -127,8 +139,8 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
     frontend.stubs(:shellCmd).returns("", "", 0).twice
 
-    File.stubs(:exist?).with(File.join(@path, "server_alias-foo.example.com.conf")).returns(true).once
     File.stubs(:exist?).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
+    Dir.stubs(:glob).returns([File.join(@path, "server_alias-foo.example.com.conf")])
     FileUtils.stubs(:rm_f).with(File.join(@path, "server_alias-foo.example.com.conf")).returns(true).once
     FileUtils.stubs(:rm_f).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
 
