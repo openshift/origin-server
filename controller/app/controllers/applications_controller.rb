@@ -59,9 +59,19 @@ class ApplicationsController < BaseController
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127,"ADD_APPLICATION")
     end
     
+    return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
+                        105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
+                        
     if Application.where(domain: domain, name: app_name).count > 0
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "ADD_APPLICATION", "name")
     end
+    
+    Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
+    return render_error(:unprocessable_entity, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}",
+                        104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
+                  
+    return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
+                            109, "ADD_APPLICATION", "cartridge") if features.nil?
 
     # TODO
     #return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{cartridges.to_sentence} is a web cartridge. Please include one of the following cartridges: #{carts.to_sentence}.",
@@ -71,6 +81,22 @@ class ApplicationsController < BaseController
 
     begin
       if template_id.nil?
+        framework_carts = CartridgeCache.cartridge_names("web_framework")
+        return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})",
+                            109, "ADD_APPLICATION", "cartridge") if features.nil?
+        framework_cartridges = []
+        other_cartridges = []
+        features.each do |cart|
+          framework_cartridges.push(cart) unless not framework_carts.include?(cart)
+          other_cartridges.push(cart) unless framework_carts.include?(cart)
+        end
+        if framework_cartridges.empty?
+          return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
+                            109, "ADD_APPLICATION", "cartridge")
+        elsif framework_cartridges.length > 1
+          return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
+                            109, "ADD_APPLICATION", "cartridge")
+        end
         application = Application.create_app(app_name, features, domain, default_gear_size, scalable, ResultIO.new, [], init_git_url)
       else
         begin
