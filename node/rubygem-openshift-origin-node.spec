@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.2.3
+Version: 1.2.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Fix for Bug 883605 (jhonce@redhat.com)
+- updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Merge pull request #1005 from ironcladlou/US2770 (openshift+bot@redhat.com)
 - Refactor tidy into the node library (ironcladlou@gmail.com)
