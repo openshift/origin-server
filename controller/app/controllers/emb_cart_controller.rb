@@ -197,7 +197,7 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     app_id = params[:application_id]
     cartridge_name = params[:id]
-    additional_storage = params[:additional_storage]
+    additional_storage = params[:additional_gear_storage]
     scales_from = params[:scales_from]
     scales_to = params[:scales_to]
     
@@ -224,7 +224,7 @@ class EmbCartController < BaseController
                         163, "UPDATE_CARTRIDGE") unless storage_map.keys.length>0
                 
     #only update attributes that are specified                  
-    if additional_storage
+    if additional_storage and additional_storage!=0
       max_storage = @cloud_user.capabilities['max_storage_per_gear']
       return render_format_error(:forbidden, "User is not allowed to change storage quota", 164,
                                  "UPDATE_CARTRIDGE") unless max_storage
@@ -232,7 +232,7 @@ class EmbCartController < BaseController
       begin 
         num_storage = Integer(additional_storage)
       rescue => e
-        return render_format_error(:unprocessable_entity, "Invalid storage value provided.", 165, "UPDATE_CARTRIDGE", "additional_storage")
+        return render_format_error(:unprocessable_entity, "Invalid storage value provided.", 165, "UPDATE_CARTRIDGE", "additional_gear_storage")
       end
       begin
         storage_map.each do |group_name, component_instance_list|
