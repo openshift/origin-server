@@ -202,15 +202,8 @@ class Gear
   end
   
   def set_addtl_fs_gb(filesystem_gb, remote_job_handle)
-    return if filesystem_gb == 0
+    return if self.group_instance.addtl_fs_gb == filesystem_gb
     RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, filesystem_gb,""))
-  end
-
-  def track_destroy_usage
-    self.app.track_usage(self, UsageRecord::EVENTS[:end])
-    if self.group_instance.addtl_fs_gb && self.group_instance.addtl_fs_gb > 0
-      self.app.track_usage(self, UsageRecord::EVENTS[:end], UsageRecord::USAGE_TYPES[:addtl_fs_gb])
-    end
   end
 
   def update_namespace(args, handle)

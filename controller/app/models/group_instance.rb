@@ -9,8 +9,8 @@
 #   @return [Integer] User set minimum number of gears.
 # @!attribute [rw] user_max
 #   @return [Integer] User set maximum number of gears.
-# @!attribute [r] gear_profile
-#   @return [String] Gear profile of all gears under this {GroupInstance}
+# @!attribute [r] :gear_size
+#   @return [String] Gear size of all gears under this {GroupInstance}
 # @!attribute [r] gears
 #   @return [Array[Gear]] List of gears that are part of this {GroupInstance}
 # @!attribute [r] app_dns

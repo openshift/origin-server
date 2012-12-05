@@ -31,9 +31,7 @@ end
 # @!attribute [r] group_instances
 #   @return [Array[GroupInstance]] Array of gear groups in the application
 # @!attribute [r] app_ssh_keys
-#   @return [Array[ApplicationSshKey]] Array of auto-generated SSH keys used by components of the application to connect to other gears.
-# @!attribute [r] usage_records
-#   @return [Array[UsageRecord]] Array of usage records used to storage gear and filesystem usage for the application.
+#   @return [Array[ApplicationSshKey]] Array of auto-generated SSH keys used by components of the application to connect to other gears
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -59,8 +57,7 @@ class Application
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
-  embeds_many :usage_records, class_name: UsageRecord.name
-  
+    
   attr_accessor :user_agent
 
   validates :name,
@@ -86,7 +83,7 @@ class Application
   end
 
   def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], usage_records: [], pending_op_groups: [], init_git_url: init_git_url)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     features << "web_proxy" if scalable
     if app.valid?
       begin
@@ -105,7 +102,7 @@ class Application
   
   
   def self.from_template(domain, hash, git_url)
-    app = Application.new(domain: domain, name: hash["Name"], default_gear_size: "small", scalable: false, app_ssh_keys: [], usage_records: [], pending_op_groups: [])
+    app = Application.new(domain: domain, name: hash["Name"], default_gear_size: "small", scalable: false, app_ssh_keys: [], pending_op_groups: [])
     app.component_start_order = hash["Start-Order"] if hash.has_key?("Start-Order")
     app.component_stop_order = hash["Stop-Order"] if hash.has_key?("Stop-Order")
     begin    
@@ -132,7 +129,6 @@ class Application
   def initialize(attrs = nil, options = nil)
     super
     self.app_ssh_keys = []
-    self.usage_records = []
     self.pending_op_groups = []
     self.save
   end
@@ -1051,20 +1047,28 @@ class Application
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == singleton_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
-      create_gear_op  = PendingAppOp.new(op_type: :init_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
+      create_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
       create_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
+      track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
+          "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
       reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
       init_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
       fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
         args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
-        prereq: [init_gear_op._id.to_s],
+        prereq: [create_gear_op._id.to_s],
         saved_values: {"additional_filesystem_gb" => 0})
-      pending_ops.push(create_gear_op)
-      pending_ops.push(reserve_uid_op)
       pending_ops.push(init_gear_op)
+      pending_ops.push(create_gear_op)
+      pending_ops.push(track_usage_op)      
+      pending_ops.push(reserve_uid_op)
       pending_ops.push(register_dns_op)
       pending_ops.push(fs_op)
+      if additional_filesystem_gb != 0
+        track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
+          "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
+        pending_ops.push(track_usage_fs_op)
+      end
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
 
@@ -1076,15 +1080,23 @@ class Application
     pending_ops
   end
 
-  def calculate_gear_destroy_ops(ginst_id, gear_ids)
+  def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
     pending_ops = []
     gear_ids.each do |gear_id|
       destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
       deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
       unreserve_uid_op  = PendingAppOp.new(op_type: :unreserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [deregister_dns_op._id.to_s])
       delete_gear_op    = PendingAppOp.new(op_type: :delete_gear,    args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [unreserve_uid_op._id.to_s])
-      ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op]
+      track_usage_op    = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end], 
+          "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage]}, prereq: [delete_gear_op._id.to_s])
+      
+      ops = [destroy_gear_op, deregister_dns_op, unreserve_uid_op, delete_gear_op, track_usage_op]
       pending_ops.push *ops
+      if additional_filesystem_gb != 0
+        track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end],
+          "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [delete_gear_op._id.to_s])
+        pending_ops.push(track_usage_fs_op)
+      end
     end
     pending_ops
   end
@@ -1270,7 +1282,7 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          ops=calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s})
+          ops=calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
           pending_ops.push(*ops)
           op_ids = ops.map{|op| op._id.to_s}
           destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: op_ids)
@@ -1299,18 +1311,28 @@ class Application
 
           #add/remove fs space from existing gears
           if group_instance.addtl_fs_gb != change[:to_scale][:additional_filesystem_gb]
+            usage_ops = []
+            group_instance.gears.each do |gear|
+              track_usage_old_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s,
+                "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => group_instance.addtl_fs_gb}, prereq: op_ids)
+              usage_ops.push(track_usage_old_fs_op._id.to_s)
+              pending_ops.push(track_usage_old_fs_op)
+            end
+            
             op = PendingAppOp.new(op_type: :set_additional_filesystem_gb, 
               args: {"group_instance_id"=> group_instance._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
-              prereq: op_ids, 
+              prereq: usage_ops, 
               saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb})
             pending_ops.push op
             group_instance.gears.each do |gear|
-              pending_ops.push(
-                PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+              fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
                   args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
                   saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb}, 
                   prereq: [op._id.to_s])
-                )
+              track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s,
+                  "event" => UsageRecord::EVENTS[:begin], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
+              pending_ops.push(fs_op)
+              pending_ops.push(track_usage_fs_op)
             end
           end
 
@@ -1329,9 +1351,9 @@ class Application
           if scale_change < 0
             remove_gears += -scale_change
             ginst = self.group_instances.find(change[:from])
-            gears = group_instance.gears[-scale_change..-1]
+            gears = ginst.gears[-scale_change..-1]
             remove_ids = gears.map{|g| g._id.to_s}
-            ops = calculate_gear_destroy_ops(group_instance._id.to_s, remove_ids)
+            ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids, ginst.addtl_fs_gb)
             pending_ops.push(*ops)
           end
         end
@@ -1838,42 +1860,6 @@ class Application
     raise OpenShift::UserException.new("No cartridge found that provides #{feature}") if cart.nil?
     prof = cart.profile_for_feature(feature)
     prof.components.map{ |comp| self.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name) }
-  end
-
-  def track_usage(gear, event, usage_type=UsageRecord::USAGE_TYPES[:gear_usage])
-    if Rails.configuration.usage_tracking[:datastore_enabled]
-      now = Time.now.utc
-      uuid = OpenShift::Model.gen_uuid
-      self.usage_records = [] unless usage_records
-      usage_record = UsageRecord.new(event, user, now, uuid, usage_type)
-      case usage_type
-      when UsageRecord::USAGE_TYPES[:gear_usage]
-        usage_record.gear_uuid = gear._id
-        usage_record.gear_size = gear.group_instance.gear_profile
-      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-        usage_record.gear_uuid = gear._id
-        usage_record.addtl_fs_gb = gear.group_instance.addtl_fs_gb
-      end
-      self.usage_records << usage_record
-
-      self.class.notify_observers(:track_usage, {:gear_uuid => gear._id, :login => gear.app.domain.owner.login, :event => event, :time => now, :uuid => uuid, :usage_type => usage_type, :gear_size => gear.group_instance.gear_profile, :addtl_fs_gb => gear.group_instance.addtl_fs_gb})
-    end
-    if Rails.configuration.usage_tracking[:syslog_enabled]
-      usage_string = "User: #{user.login}  Event: #{event}"
-      case usage_type
-      when UsageRecord::USAGE_TYPES[:gear_usage]
-        usage_string += "   Gear: #{gear._id}   Gear Size: #{gear.group_instance.gear_profile}"
-      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-        usage_string += "   Gear: #{gear._id}   Addtl File System GB: #{gear.group_instance.addtl_fs_gb}"
-      end
-      begin
-        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
-      rescue Exception => e
-        # Can't fail because of a secondary logging error
-        Rails.logger.error e.message
-        Rails.logger.error e.backtrace
-      end
-    end
   end
 
   def gen_non_scalable_app_overrides(features)

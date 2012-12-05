@@ -4,35 +4,14 @@ class Usage
   store_in collection: "usage"
 
   field :login, type: String
-  field :gear_id, type: String
+  field :gear_id, type: Moped::BSON::ObjectId
   field :begin_time, type: Time
   field :end_time, type: Time
   field :usage_type, type: String
   field :gear_size, type: String
   field :addtl_fs_gb, type: Integer
 
-  def self.track_usage(data)
-    gear_uuid = data[:gear_uuid]
-    login = data[:login]
-    event = data[:event]
-    time = data[:time]
-    uuid = data[:uuid]
-    usage_type = data[:usage_type]
-    gear_size = data[:gear_size]
-    addtl_fs_gb = data[:addtl_fs_gb]
-    usage = nil
-    if event == UsageRecord::EVENTS[:begin]
-      usage = Usage.new(login, gear_uuid, time, nil, uuid, usage_type)
-      usage.gear_size = gear_size if gear_size
-      usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
-    elsif event == UsageRecord::EVENTS[:end]
-      usage = Usage.find_latest_by_gear(gear_uuid, usage_type)
-      if usage
-        usage.end_time = time
-      end
-    end
-    usage.save! if usage
-  end
+  validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   
   def self.find_all
     get_list(self.each)

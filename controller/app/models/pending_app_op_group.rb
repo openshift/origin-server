@@ -79,7 +79,9 @@ class PendingAppOpGroup
           result_io.append gear.remove_component(component_instance)
         when :create_gear
           result_io.append gear.destroy_gear
-          self.inc(:num_gears_rolled_back, 1)          
+          self.inc(:num_gears_rolled_back, 1)
+        when :track_usage
+          UsageRecord.untrack_usage(op.args["login"], op.args["gear_ref"], op.args["event"], op.args["usage_type"]) 
         when :register_dns          
           gear.deregister_dns
         when :set_group_overrides
@@ -92,7 +94,7 @@ class PendingAppOpGroup
         when :set_additional_filesystem_gb
           group_instance.set(:addtl_fs_gb, op.saved_values["additional_filesystem_gb"])
         when :set_gear_additional_filesystem_gb
-          gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)          
+          gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
           use_parallel_job = true
         when :add_alias
           result_io.append gear.remove_alias("abstract", op.args["fqdn"])
@@ -168,6 +170,8 @@ class PendingAppOpGroup
             result_io.append gear.create_gear
             raise OpenShift::NodeException.new("Unable to create gear", result_io.exitcode, result_io) if result_io.exitcode != 0
             self.inc(:num_gears_created, 1)
+          when :track_usage
+            UsageRecord.track_usage(op.args["login"], op.args["gear_ref"], op.args["event"], op.args["usage_type"], op.args["gear_size"], op.args["additional_filesystem_gb"])
           when :register_dns          
             gear.register_dns
           when :deregister_dns          
@@ -217,7 +221,7 @@ class PendingAppOpGroup
             self.application.aliases.push(op.args["fqdn"])
             self.application.save
           when :remove_alias
-            result_io.append gear.remove_alias(op.args["fqdn"])            
+            result_io.append gear.remove_alias(op.args["fqdn"])
             self.application.aliases.delete(op.args["fqdn"])
             self.application.save
           end
