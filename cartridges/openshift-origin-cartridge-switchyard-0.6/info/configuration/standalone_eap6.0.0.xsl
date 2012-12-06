@@ -47,7 +47,7 @@
 <xsl:template match="node()[name(.)='extensions']">
     <xsl:copy >
         <xsl:apply-templates select="@*|node()"/>
-        <extension xmlns="urn:jboss:domain:1.1" module="org.switchyard"/>
+        <extension xmlns="urn:jboss:domain:1.3" module="org.switchyard"/>
     </xsl:copy>
 </xsl:template>
 
