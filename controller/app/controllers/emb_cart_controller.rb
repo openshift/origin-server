@@ -235,6 +235,12 @@ class EmbCartController < BaseController
         return render_format_error(:unprocessable_entity, "Invalid storage value provided.", 165, "UPDATE_CARTRIDGE", "additional_gear_storage")
       end
       begin
+        # first check against max_storage limit
+        storage_map.each do |group_name, component_instance_list|
+          ginst = app.group_instance_map[group_name]
+          return render_format_error(:forbidden, "Total additional storage for all cartridges on gear should be less than max_storage_per_gear (current: #{ginst.addtl_fs_gb}, max: #{max_storage}).", 166, "UPDATE_CARTRIDGE", "additional_gear_storage") if ginst.addtl_fs_gb + num_storage > max_storage
+        end
+        # now actually change the quota
         storage_map.each do |group_name, component_instance_list|
           each_component_share = (Float(num_storage))/component_instance_list.length
           ginst = app.group_instance_map[group_name]
