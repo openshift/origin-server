@@ -44,3 +44,16 @@ cat <<EOF > "${OPENSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/0000
   ProxyPassReverse / http://$IP:8080/
 EOF
 
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json"
+{
+  "${application}-${namespace}.${CLOUD_DOMAIN}": {
+    "endpoints": [ "$IP:8080" ],
+    "limits"   :  {
+      "connections": -1,
+      "bandwidth"  : 100
+    }
+  }
+}
+EOF
+
+service openshift-node-web-proxy reload
