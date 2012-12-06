@@ -1,4 +1,4 @@
-#!/usr/bin/env oo-ruby
+#!/usr/bin/env ruby
 
 require 'etc'
 
