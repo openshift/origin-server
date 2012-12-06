@@ -1,5 +1,5 @@
 class ResultIO
-  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :cart_properties
+  attr_accessor :debugIO, :resultIO, :messageIO, :errorIO, :appInfoIO, :exitcode, :data, :cart_commands, :cart_properties, :hasUserActionableError
   
   def initialize
     @debugIO = StringIO.new
@@ -11,6 +11,7 @@ class ResultIO
     @exitcode = 0
     @cart_commands = []
     @cart_properties = {}
+    @hasUserActionableError = false
   end
   
   def append(resultIO)
@@ -23,6 +24,7 @@ class ResultIO
     self.cart_properties = resultIO.cart_properties.merge(self.cart_properties)
     self.exitcode = resultIO.exitcode
     self.data += resultIO.data
+    self.hasUserActionableError = self.hasUserActionableError && resultIO.hasUserActionableError
     self
   end
   
@@ -35,7 +37,8 @@ class ResultIO
           "--CART COMMANDS--\n#{@cart_commands.join("\n")}\n" +
           "--CART PROPERTIES--\n#{@cart_properties.inspect}\n" +
           "--DATA--\n#{@data}\n" +
-          "--EXIT CODE--\n#{@exitcode}\n"          
+          "--EXIT CODE--\n#{@exitcode}\n" +          
+          "--USER ACTIONABLE--\n#{@hasUserActionableError}\n"
   end
   
   def to_json(*args)
