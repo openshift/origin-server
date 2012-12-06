@@ -1,7 +1,7 @@
 @runtime_extended
 @runtime_extended2
 @not-origin
-Feature: Cartridge Lifecycle JBossEAP Verification Tests
+Feature: Cartridge Lifecycle JBossEWS1.0 Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools
     And an accepted node
