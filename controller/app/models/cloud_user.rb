@@ -61,7 +61,7 @@ class CloudUser
     self.capabilities["max_gears"]
   end
   
-  # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propogated to the
+  # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propagated to the
   # domains/application that the user has access to.
   def add_ssh_key(key)
     domains = self.domains
@@ -76,14 +76,14 @@ class CloudUser
     self
   end
   
-  # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propogated to the
+  # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propagated to the
   # domains/application that the user has access to.
   def update_ssh_key(key)
     remove_ssh_key(key.name)
     add_ssh_key(key)
   end
   
-  # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propogated to the
+  # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propagated to the
   # domains/application that the user has access to.
   def remove_ssh_key(name)
     key = self.ssh_keys.find_by(name: name)
