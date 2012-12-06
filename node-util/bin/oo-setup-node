@@ -332,7 +332,7 @@ insert_if_not_exist("/etc/sysctl.conf", "kernel.sem = 250  32000 32  4096", "ker
 
 $log.info "Updating system wide OpenShift CLI configuration to use local broker"
 File.open("/etc/openshift/express.conf", "w") do |f|
-  f.write("libra_server=broker.example.com\n")
+  f.write("libra_server=broker.#{node_domain}\n")
 end
 
 $log.info "Updating root user's OpenShift configuration to use 'admin' user"
@@ -342,16 +342,16 @@ File.open("/root/.openshift/express.conf", "w") do |f|
 end
 
 
-["httpd", "sshd", "mcollective", "openshift-port-proxy", "crond"].each do |service|
+["httpd", "sshd", "mcollective", "openshift-port-proxy", "crond", ].each do |service|
   run "/sbin/chkconfig #{service} on"
 end
 
 if use_systemd
   run "/bin/systemctl enable openshift-gears.service"
-  run "/bin/systemctl start openshift-gears.service"
+  run "/bin/systemctl enable openshift-node-web-proxy.service"
 else
   run "/sbin/chkconfig openshift-gears on"
-  run "/sbin/service openshift-gears start"
+  run "/sbin/chkconfig openshift-node-web-proxy on"
 end
 
 $log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."

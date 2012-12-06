@@ -107,7 +107,12 @@ fi
 rm -rf $RPM_BUILD_ROOT
 
 %files
+%if %{with_systemd}
+%attr(0644,-,-) %{_unitdir}/openshift-node-web-proxy.service
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-node-web-proxy
+%else
 %attr(0755,-,-) %{_initddir}/openshift-node-web-proxy
+%endif
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
 %ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
