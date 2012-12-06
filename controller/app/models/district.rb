@@ -22,14 +22,18 @@ class District
     dist = District.new(name: name, gear_size: profile)
   end
 
+  def self.find_by_name(name)
+    return District.where(name: name)
+  end
+  
   def initialize(attrs = nil, options = nil)
     super
     self.server_identities = []
-    self.available_capacity = Rails.configuration.gearchanger[:districts][:max_capacity]
+    self.available_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.available_uids = []
-    self.available_uids.fill(0, Rails.configuration.gearchanger[:districts][:max_capacity]) {|i| i+Rails.configuration.gearchanger[:districts][:first_uid]}
-    self.max_uid = Rails.configuration.gearchanger[:districts][:max_capacity] + Rails.configuration.gearchanger[:districts][:first_uid] - 1
-    self.max_capacity = Rails.configuration.gearchanger[:districts][:max_capacity]
+    self.available_uids.fill(0, Rails.configuration.msg_broker[:districts][:max_capacity]) {|i| i+Rails.configuration.msg_broker[:districts][:first_uid]}
+    self.max_uid = Rails.configuration.msg_broker[:districts][:max_capacity] + Rails.configuration.msg_broker[:districts][:first_uid] - 1
+    self.max_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.externally_reserved_uids_size = 0
     self.active_server_identities_size = 0
     save
