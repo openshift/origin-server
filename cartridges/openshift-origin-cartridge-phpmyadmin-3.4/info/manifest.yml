@@ -11,6 +11,7 @@ Cart-Data:
     Type: cart_data
     Description: "phpMyAdmin connection URL"
 Provides:
+  - phpmyadmin-3.4
   - "phpmyadmin"
 Publishes:
   get-serve-info:

@@ -41,6 +41,7 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
+  - php-5.3
   - "php"
   - "php(version) = 5.3.2"
 Publishes:

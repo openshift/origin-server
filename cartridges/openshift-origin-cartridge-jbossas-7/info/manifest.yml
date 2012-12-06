@@ -43,7 +43,8 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - "jboss-as7"
+  - "jbossas-7"
+  - "jboss-as7"  
   - "jboss"
   - "jboss(version) = 7.1.0"
   - "jboss(version) >= 7.1"
