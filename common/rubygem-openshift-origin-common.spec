@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.2.2-1
 - fix require for fedora (dmcphers@redhat.com)
 - add util package for oo-ruby (dmcphers@redhat.com)

@@ -12,19 +12,20 @@
     support with Jenkins.
 
 %section
-  %form.form-search{:id => 'form-search-create-apps', :method => 'get'}
+  %form.form-search.form-search-block{:id => 'form-search-create-apps', :method => 'get'}
     %input.search-query{:type => 'text', :name => 'search', :placeholder => 'Search by keyword or tag'}
-    - if @browse_tags.present?
-      %span.dropdown
-        %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
-          Browse by tag...
-          %span.caret
-        %ul.dropdown-menu#tag-filter
-          - @browse_tags.each do |(name, tag)|
-            - if name
-              %li= link_to name, application_types_path(:tag => tag)
-            - else
-              %hr
+    %button.search{:type => 'submit', :name => 'submit_button'}
+  - if @browse_tags.present?
+    %span.dropdown
+      %a.btn.dropdown-toggle{:href => '#', :data => {:toggle => 'dropdown'}}
+        Browse by tag...
+        %span.caret
+      %ul.dropdown-menu#tag-filter
+        - @browse_tags.each do |(name, tag)|
+          - if name
+            %li= link_to name, application_types_path(:tag => tag)
+          - else
+            %hr
 
 - if @featured_types.present?
   %section

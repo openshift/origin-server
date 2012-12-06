@@ -49,8 +49,6 @@
         %h3 
           #{@application_type.display_name} #{@application_type.source.to_s.humanize}
 
-          %small.pull-right.label-tags= application_type_tags(@application_type.tags)
-
       .controls
         - if @application_type.persisted?
           - if @application_type.description.html_safe?
@@ -62,6 +60,8 @@
             %p.help-block= link_to @application_type.website, @application_type.website
           - if @application_type.learn_more_url
             %p.help-block= link_to "Learn more", @application_type.learn_more_url
+
+          %p.help-block.label-tags= application_type_tags(@application_type.tags)
 
         - else
           %p.help-block 

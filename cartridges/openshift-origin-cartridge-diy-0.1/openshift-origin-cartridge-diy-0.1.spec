@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.2.3
+Version: 1.2.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Make tidy hook accessible to gear users (ironcladlou@gmail.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Move add/remove alias to the node API. (rmillner@redhat.com)
 

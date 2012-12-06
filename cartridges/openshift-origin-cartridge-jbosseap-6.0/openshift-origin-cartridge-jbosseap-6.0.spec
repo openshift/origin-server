@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version: 1.2.3
+Version: 1.2.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -163,6 +163,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Make tidy hook accessible to gear users (ironcladlou@gmail.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Refactor tidy into the node library (ironcladlou@gmail.com)
 - Move add/remove alias to the node API. (rmillner@redhat.com)

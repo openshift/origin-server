@@ -36,6 +36,18 @@ cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/000
   DefaultType None
 EOF
 
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json"
+{
+  "${application}-${namespace}.${CLOUD_DOMAIN}": {
+    "endpoints": [ "$IP:8080" ],
+    "limits"   :  {
+      "connections": 5,
+      "bandwidth"  : 100
+    }
+  }
+}
+EOF
+
 cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf"
 <VirtualHost *:80>
   RequestHeader append X-Forwarded-Proto "http"
@@ -51,3 +63,5 @@ $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
   Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
 </VirtualHost>
 EOF
+
+service openshift-node-web-proxy reload

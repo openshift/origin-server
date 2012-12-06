@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
-Version: 1.2.3
+Version: 1.2.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -128,6 +128,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Make tidy hook accessible to gear users (ironcladlou@gmail.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Refactor tidy into the node library (ironcladlou@gmail.com)
 - Fix for Bug 862919 (jhonce@redhat.com)
