@@ -8,6 +8,7 @@ class ResultIO
     @errorIO = StringIO.new
     @appInfoIO = StringIO.new
     @data = ""
+    @hasUserActionableError = false
     
     @exitcode = exitcode || 0
     @cart_commands = []
@@ -94,6 +95,7 @@ class ResultIO
             self.debugIO << line['CLIENT_DEBUG: '.length..-1]
           else
             self.errorIO << line['CLIENT_ERROR: '.length..-1]
+            self.hasUserActionableError = true
           end
         elsif line =~ /^CART_DATA: /
           key,value = line['CART_DATA: '.length..-1].chomp.split('=')

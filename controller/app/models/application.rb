@@ -1206,13 +1206,13 @@ class Application
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
       if component_instance.is_singleton?
-        ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
+        ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
       else
         group_instance.gears.each do |gear|
-          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec}))
+          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear_id, "comp_spec" => comp_spec}))
         end
       end
-      ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance_id, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
+      ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
     end
     ops
   end

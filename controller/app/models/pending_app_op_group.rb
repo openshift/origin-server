@@ -232,7 +232,13 @@ class PendingAppOpGroup
             op.set(:state, :completed)
           end
         end
-        raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) if result_io.exitcode != 0
+        if result_io.exitcode != 0
+          if result_io.hasUserActionableError
+            raise OpenShift::UserException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
+          else
+            raise OpenShift::NodeException.new("Unable to #{op.op_type.to_s.gsub("_"," ")}", result_io.exitcode, result_io) 
+          end
+        end
       
         if parallel_job_ops.length > 0
           RemoteJob.execute_parallel_jobs(handle)
