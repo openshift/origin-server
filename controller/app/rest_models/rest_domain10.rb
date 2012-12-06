@@ -16,7 +16,6 @@ class RestDomain10 < OpenShift::Model
         "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
           [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
           [OptionalParam.new("cartridge", "string", "framework-type, e.g: php-5.3", carts),
-          OptionalParam.new("template", "string", "UUID of the application template"),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0])
         ]),

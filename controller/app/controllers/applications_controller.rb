@@ -46,7 +46,6 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     app_name = params[:name]
     features = Array(params[:cartridges] || params[:cartridge])
-    template_id = params[:template]
     scalable = params[:scale]
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
@@ -80,35 +79,23 @@ class ApplicationsController < BaseController
     #            109, "ADD_APPLICATION", "cartridge")
 
     begin
-      if template_id.nil?
-        framework_carts = CartridgeCache.cartridge_names("web_framework")
-        return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})",
-                            109, "ADD_APPLICATION", "cartridge") if features.nil?
-        framework_cartridges = []
-        other_cartridges = []
-        features.each do |cart|
-          framework_cartridges.push(cart) unless not framework_carts.include?(cart)
-          other_cartridges.push(cart) unless framework_carts.include?(cart)
-        end
-        if framework_cartridges.empty?
-          return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
-                            109, "ADD_APPLICATION", "cartridge")
-        elsif framework_cartridges.length > 1
-          return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
-                            109, "ADD_APPLICATION", "cartridge")
-        end
-        application = Application.create_app(app_name, features, domain, default_gear_size, scalable, ResultIO.new, [], init_git_url)
-      else
-        begin
-          template = ApplicationTemplate.find(template_id)
-        rescue Mongoid::Errors::DocumentNotFound
-          return render_error(:not_found, "Template with ID '#{template_id}' not found", 125, "ADD_APPLICATION", "template")
-        end
-
-        descriptor_hash = YAML.load(template.descriptor_yaml)
-        descriptor_hash["Name"] = app_name
-        application = Application.from_template(domain, descriptor_hash, template.git_url)
+      framework_carts = CartridgeCache.cartridge_names("web_framework")
+      return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})", 109, "ADD_APPLICATION", "cartridge") if features.nil?
+      framework_cartridges = []
+      other_cartridges = []
+      features.each do |cart|
+        framework_cartridges.push(cart) unless not framework_carts.include?(cart)
+        other_cartridges.push(cart) unless framework_carts.include?(cart)
       end
+      if framework_cartridges.empty?
+        return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
+                          109, "ADD_APPLICATION", "cartridge")
+      elsif framework_cartridges.length > 1
+        return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
+                          109, "ADD_APPLICATION", "cartridge")
+      end
+      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, ResultIO.new, [], init_git_url)
+      
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue OpenShift::UnfulfilledRequirementException => e

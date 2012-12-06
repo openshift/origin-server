@@ -99,21 +99,6 @@ class Application
     end
     app
   end
-  
-  
-  def self.from_template(domain, hash, git_url)
-    app = Application.new(domain: domain, name: hash["Name"], default_gear_size: "small", scalable: false, app_ssh_keys: [], pending_op_groups: [])
-    app.component_start_order = hash["Start-Order"] if hash.has_key?("Start-Order")
-    app.component_stop_order = hash["Stop-Order"] if hash.has_key?("Stop-Order")
-    begin    
-      app.save
-      app.add_features(hash["Requires"], hash["Group-Overrides"], git_url)
-    rescue
-      app.delete
-      raise 
-    end
-    app
-  end
 
   # Initializes the application
   #
