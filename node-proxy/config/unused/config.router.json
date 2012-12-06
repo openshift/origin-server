@@ -1,0 +1,66 @@
+{
+  "help": {
+    "servers"    : "Dictionary of all the 'servers' we run",
+
+    "ports"      : {
+      "default": "List of ports a specific server binds to",
+      "string" : "Single port a specific server binds to",
+
+      "<dict>" : {
+        "type": "Datasource type - command or file",
+        "file": "Data file to watch for changes",
+        "cmd" : "Command to execute to get the port data"
+      }
+    },
+
+    "protocols"  : "List of protocols a specific server supports",
+    "certificate": "Certificate file - used for security negotiations",
+    "private_key": "Private key associated with the Certificate",
+    "routes"     : "JSON file containing the routing table/mapping",
+    "loggers"    : "TBD: RR - add help",
+    "timeouts"   : {
+      "description": "Timeout settings in seconds",
+      "connect"    : "Connection timeout to backend servers.",
+      "check"      : [ "Backend server check interval. Controls how often ",
+                       "we check routing to a previously assumed down ", 
+                       "backend server."
+                    ],
+      "io"         : "Client IO - really timeouts reading from clients",
+      "keep-alive" : "Keep-Alive idle (no traffic) timeout",
+      "websockets" : "WebSocket idle (no traffic) timeout"
+    }
+
+  },
+
+  "activity": {
+    "activity.log": {
+      "file"    : "/var/log/node-ws-proxy/activity.log",
+
+      "rollover": {
+        "frequency"      : "daily",
+        "suffix"         : "%F",
+        "max-retention"  : 7
+      }
+    },
+
+
+  "timeouts": {
+    "description": [ "Timeout values are all specified in seconds" ],
+    "connect"    : 10,
+    "check"      : 30,
+    "io"         : 30,
+  },
+
+  "servers": {
+    "router": {
+      "ports": {
+        "type": "cmd",
+        "file": "/etc/openshift/node-proxy-routes.conf",
+        "cmd" : "print_json_keys /etc/openshift/node-proxy-routes.conf"
+      },
+
+      "routes": "/etc/openshift/node-proxy/routes.json"
+    }
+  }
+}
+

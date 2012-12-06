@@ -1,0 +1,78 @@
+var ws = require('websocket');
+var fs = require('fs');
+
+function Metrics(tag) {
+  this.tag = tag;
+  this.start = Date.now();
+  this.elapsed = 0;
+  this.iterations = 0; 
+  this.tick = function() {
+    var rt = Date.now() - this.start;
+    this.elapsed += rt;
+    this.iterations += 1;
+    var niters = (this.iterations > 0) ? this.iterations : 1;
+    var avg_rt = this.elapsed/niters;
+    console.log(niters + ": Roundtrip time = " + rt +
+                " ms [current avg = " + avg_rt + "]"); 
+  };
+  this.report = function() {
+    var niters = (this.iterations > 0) ? this.iterations : 1;
+    var avg_rt = this.elapsed/niters;
+    console.log("Totals: Elapsed roundtrip time = " + this.elapsed + " ms"); 
+    console.log("Totals:     Number of Messages = " + this.iterations);
+    console.log("Avg: Average roundtrip time = " + avg_rt + " ms"); 
+    console.log("End: ----- " + this.tag + " Metrics -----");
+  };
+};
+
+function WebSocketClient(secure) {
+  this.port = secure ? 8443 : 8080;
+  this.proto = secure ? "wss" : "ws"; 
+  this.client = new ws.client();
+  this.client.connect(proto + "://localhost:" + port);
+
+  this.client.on("connectFailed", function(err) {
+    console.error("Connect failed to localhost:" + port + " - " + err);
+  });
+
+  this.metrics = new Metrics(secure ? "secure websockets" : "websockets");
+
+  this.send = function() { console.log ("not connected"); }
+  this.client.on("connect", function(conn) { 
+    conn.on("error", function(err) {
+      console.log("Connection failure - " + err.toString() );
+    });
+
+    conn.on("message", function(msg) {
+      metrics.tick();
+    });
+
+    this.send = function(msg_size) {
+      require('crypto').randomBytes(msg_size, function(ex, buf) {
+        conn.sendBytes(buf.toString("hex") );
+      });
+    };
+  });
+
+  this.report = function() {
+    this.metrics.report();
+  };
+
+
+  return this;
+};
+
+
+var ntimes  = process.argv[1] ? process.argv[1] : 10;
+var msgsize = process.argv[2] ? process.argv[2] : 40;
+
+var clients = [ WebSocketClient(undefined), WebSocketClient(true) ];
+
+for (cidx in clients) {
+  var client = clients[cidx];
+  for (var i = 0; i < ntimes; i++) {
+    client.send(msgsize);
+  }
+  client.report();
+}
+

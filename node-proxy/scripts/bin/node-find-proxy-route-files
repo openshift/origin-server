@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source /etc/openshift/node.conf
+exec find $GEAR_BASE_DIR/.httpd.d -name 'route*.json' 2> /dev/null
+

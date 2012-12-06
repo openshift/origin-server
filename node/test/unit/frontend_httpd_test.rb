@@ -36,6 +36,8 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
     @gear_base_dir = "/tmp/frontend_httpd_test"
 
+    @cloud_domain = "example.com"
+
     @path = File.join(@gear_base_dir, ".httpd.d", @token)
 
     syslog_mock = mock('Syslog') do
@@ -47,6 +49,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
     config_mock = mock('OpenShift::Config')
     config_mock.stubs(:get).with("GEAR_BASE_DIR").returns(@gear_base_dir)
+    config_mock.stubs(:get).with("CLOUD_DOMAIN").returns(@cloud_domain)
     OpenShift::Config.stubs(:new).returns(config_mock)
   end
 
@@ -62,7 +65,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
   def test_destroy
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
-    frontend.stubs(:shellCmd).returns("", "", 0).once
+    frontend.stubs(:shellCmd).returns("", "", 0).twice
     FileUtils.stubs(:rm_rf).returns(nil).once
     frontend.destroy
   end
@@ -87,7 +90,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
   def test_add_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    frontend.stubs(:shellCmd).returns("", "", 0).once
+    frontend.stubs(:shellCmd).returns("", "", 0).times(3)
     Dir.stubs(:glob).returns([])
     
     open_mock = Proc.new do |fn|
@@ -122,10 +125,12 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
   def test_remove_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    frontend.stubs(:shellCmd).returns("", "", 0).once
+    frontend.stubs(:shellCmd).returns("", "", 0).twice
 
     File.stubs(:exist?).with(File.join(@path, "server_alias-foo.example.com.conf")).returns(true).once
+    File.stubs(:exist?).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
     FileUtils.stubs(:rm_f).with(File.join(@path, "server_alias-foo.example.com.conf")).returns(true).once
+    FileUtils.stubs(:rm_f).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
 
     frontend.remove_alias("foo.example.com")
   end

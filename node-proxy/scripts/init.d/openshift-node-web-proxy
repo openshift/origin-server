@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# openshift-port-proxy
+#
+# chkconfig:   345 85 15
+# description: OpenShift proxy
+# processname: node-supervisor
+# config:      /etc/openshift/port-proxy.cfg
+# pidfile:     /var/run/node-web-proxy.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+nodesysmodulespath="/usr/lib/node_modules"
+cfgfile="/etc/openshift/web-proxy-config.json"
+nodeserver="/usr/lib/node_modules/openshift-node-web-proxy/bin/web-proxy.js"
+cmd="node-supervisor -w $nodeserver -- $nodeserver --config $cfgfile"
+prog="web-proxy"
+lockfile="/var/lock/subsys/node-web-proxy"
+pidfile="/var/run/openshift-node-web-proxy-supervisor.pid"
+childpidfile="/var/run/openshift-node-web-proxy.pid"
+logfile="/var/log/node-web-proxy/supervisor.log"
+
+start() {
+    echo -n $"Starting node-web-proxy: "
+    export NODE_PATH="$nodesysmodulespath"
+    nohup $cmd &> $logfile &
+    echo $! > $pidfile
+    retval=$?
+    [ $retval -eq 0 ] && touch $lockfile && echo_success
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping node-web-proxy: "
+    killproc -p $pidfile $prog 
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    echo -n $"Reloading node-web-proxy: "
+    childpid=$(<$childpidfile)
+    kill -HUP $childpid
+    retval=$?
+    echo
+    return $retval
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    reload)
+        reload
+        ;;
+    status)
+        status -p $pidfile $prog
+        ;;
+    condrestart|try-restart)
+  	if [ -f $lockfile ] 
+        then
+            restart
+        fi
+	;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|reload}"
+        exit 2
+esac
