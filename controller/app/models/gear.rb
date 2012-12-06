@@ -43,6 +43,17 @@ class Gear
     }
   end
   
+  def self.gear_sizes_display_string
+    # Ex: (small(default)|jumbo|exlarge|large|medium|micro)
+    out = '('
+    Rails.configuration.openshift[:gear_sizes].each_with_index do |gear_size, index|
+      out += gear_size
+      out += '(default)' if gear_size == Rails.configuration.openshift[:default_gear_size] 
+      out += '|' unless index == (Rails.configuration.openshift[:gear_sizes].length - 1) 
+    end
+    out += ')'
+  end
+
   def reserve_uid
     @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size)
     self.set :server_identity, @container.id
