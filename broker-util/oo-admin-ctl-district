@@ -146,9 +146,7 @@ begin
     reply.resultIO << "Success!"
   when "create"
     puts "node_profile not specified.  Using default: small" unless node_profile
-    district = District.new
-    district.construct(name, node_profile)
-    district.save
+    district = District::create_district(name, node_profile)
     uuid = district.uuid
     reply.resultIO << "Successfully created district: #{district.uuid}" if reply.resultIO.string.empty?
   when "destroy"
