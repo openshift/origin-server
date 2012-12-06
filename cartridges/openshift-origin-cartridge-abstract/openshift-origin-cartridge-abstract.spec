@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.2.4
+Version: 1.2.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- Merge pull request #1023 from ramr/dev/websockets (openshift+bot@redhat.com)
+- Node web sockets and http(s) proxy support with spec file and package.
+  (ramr@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Make tidy hook accessible to gear users (ironcladlou@gmail.com)
 
