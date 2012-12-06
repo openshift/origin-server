@@ -36,7 +36,7 @@ if File.exists?(file_path)
     last_access_time = file.read
     d1 = DateTime.strptime(last_access_time, "%d/%b/%Y:%H:%M:%S %Z")
     d2 = DateTime.now
-    hours,minutes,seconds,frac = Date.day_fraction_to_time(d2 - d1)
+    hours = ((d2 - d1) * 24).to_i
     if hours >= IDLE_FOR
       exit 0
     else
