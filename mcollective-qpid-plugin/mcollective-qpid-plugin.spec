@@ -1,6 +1,6 @@
-Summary:        Plugin to enable m-collective communication over amqp 1.0 enabled broker
+Summary:        m-collective communication plugin for amqp enabled qpid broker
 Name:           mcollective-qpid-plugin
-Version: 1.1.1
+Version:        1.1.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -12,29 +12,25 @@ Requires:       ruby-qpid-qmf
 BuildArch:      noarch
 
 %description
-m-collective communication plugin for amqp 1.0 enabled qpid broker
+Plugin to enable m-collective communication over amqp 1.0 enabled broker
 
 %prep
 %setup -q
-
-%clean
-rm -rf %{buildroot}
 
 %build
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/connector/
-mkdir -p %{buildroot}/usr/share/doc/mcollective-qpid-plugin
 cp src/qpid.rb %{buildroot}/usr/libexec/mcollective/mcollective/connector/
-cp COPYRIGHT README.md LICENSE %{buildroot}/usr/share/doc/mcollective-qpid-plugin/
+
+%clean
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
+%doc COPYRIGHT LICENSE README.md
 /usr/libexec/mcollective/mcollective/connector/qpid.rb
-/usr/share/doc/mcollective-qpid-plugin/COPYRIGHT
-/usr/share/doc/mcollective-qpid-plugin/README.md
-/usr/share/doc/mcollective-qpid-plugin/LICENSE
 
 %changelog
 * Thu Nov 08 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
