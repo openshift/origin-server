@@ -1,12 +1,12 @@
-#!/bin/env ruby
-# May need to "ruby oo-diagnostics" to use proper ruby.
-# Run with "-h" for usage.
+#!/usr/bin/env ruby
+# Run with "-h" for usage, "-v" to see details while running.
 #
-# This diagnostic script checks for various commonly-encountered problems
-# on OpenShift hosts. It is intended to evolve quickly in response to
-# actual problems experienced. It does not perform any function or send
-# results anywhere; it just outputs diagnostic information which may be
-# of some use in troubleshooting.
+# Run this script as root on any kind of OpenShift host to diagnose common problems.
+# It is intended to evolve quickly in response to actual problems experienced.
+# It does not perform any function or send results anywhere; it just outputs
+# diagnostic information which may be of some use in troubleshooting.
+#
+# Online admins may need to adjust PATH to use proper ruby and gem for broker tests.
 
 #--
 # Copyright 2012 Red Hat, Inc.
@@ -60,6 +60,9 @@ class OODiag
         send m
       rescue SkipTest
         verbose "skipping #{m}"
+      rescue AbortTests
+        eputs "Aborting tests according to #{m}"
+        break
       rescue StandardError => e
         do_fail "error running #{m}: #{e.inspect}"
       end
@@ -94,9 +97,9 @@ class OODiag
   end
 
   class SkipTest < StandardError; end
-  def skip_test
-    raise SkipTest
-  end
+  def skip_test; raise SkipTest; end
+  class AbortTests < StandardError; end
+  def abort_tests; raise AbortTests; end
 
   # when you need two string arrays to be the same length
   def pad_arrays!(a, b)
@@ -125,7 +128,7 @@ class OODiag
 
   def require_rpm_minimum_version(rpm, need_version="0", need_release="0")
     unless rpm_hash = @rpms[rpm]
-      do_fail "rpm #{rpm} is not installed"
+      do_fail "required rpm #{rpm} is not installed"
       return
     end
     if is_rpm_minimum_version?(rpm_hash, need_version, need_release)
@@ -138,8 +141,7 @@ class OODiag
   def run_script(script)
     verbose "running #{script}"
     output = `#{script} 2>&1`
-    rc = $?.exitstatus
-    if rc == 0
+    if $?.success?
       verbose "#{script} ran without error:\n--BEGIN OUTPUT--\n#{output}\n--END #{script} OUTPUT--"
     else
       do_fail "#{script} had errors:\n--BEGIN OUTPUT--\n#{output}\n--END #{script} OUTPUT--"
@@ -203,15 +205,29 @@ class OODiag
   end
 
   def load_broker_rails_env
+    begin
       require "/var/www/openshift/broker/config/environment"
       # Disable analytics for admin scripts
       Rails.configuration.analytics[:enabled] = false
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+    rescue Exception => e
+      do_fail <<-"FAIL"
+        Broker application failed to load. This is most likely a gem
+        dependency problem. Update rubygem RPMs and restart openshift-broker
+        to regenerate the broker Gemfile.lock - this may fix the problem.
+        Another possibility is that you are running this script with a
+        different ruby than what is required for the broker app (1.8 vs 1.9).
+        ***
+        THIS PROBLEM NEEDS TO BE RESOLVED FOR THE BROKER TO WORK.
+        DISABLING BROKER TESTS.
+        ***
+        The error was: #{e.inspect}
+      FAIL
+      @is_broker = false
+    end
   end
 
-######## TESTS #############
-
-  OPENSHIFT_RPMS = %w[ activemq activemq-client facter firebird
+  ENTERPRISE_RPMS = %w[ activemq activemq-client facter firebird
     firebird-classic firebird-debuginfo firebird-devel firebird-doc
     firebird-filesystem firebird-libfbclient firebird-libfbembed
     firebird-superserver freetds freetds-debuginfo freetds-devel freetds-doc geos
@@ -342,10 +358,44 @@ class OODiag
 
   LOCALHOST = %w[127.0.0.1 ::1]
 
-  def test_openshift_rpms
+######## TESTS #############
+
+  def test_dns_resolution
+    verbose "checking that DNS resolution works at all"
+    # IPSocket.getaddress goes through /etc/hosts;
+    # "host" uses DNS which is what we want.
+    server = nil
+    File.open('/etc/resolv.conf').each_line do |line|
+      next unless line =~ /^\s*nameserver\s+(\S+)/
+      server = $1
+      break
+    end
+    if server.nil?
+      do_fail <<-"FAIL"
+        Your /etc/resolv.conf does not define any nameservers.
+        Not much is going to work without DNS resolution.
+      FAIL
+      abort_tests
+    end
+    # have the server resolve itself
+    host = `host -W 1 #{server} #{server} >/dev/null 2>&1`
+    unless $?.success?
+      do_fail <<-"FAIL"
+        DNS resolution isn't working for #{server}.
+        * Does /etc/resolv.conf have your correct nameserver?
+        * Is your nameserver running?
+        * Is the firewall on your nameserver open (udp:53)?
+        * Can you connect to your nameserver?
+        Not much is going to work without DNS resolution.
+      FAIL
+      abort_tests
+    end
+  end
+
+  def test_enterprise_rpms
     skip_test unless @project_is[:enterprise]
     verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
-    OPENSHIFT_RPMS.each do |rpm|
+    ENTERPRISE_RPMS.each do |rpm|
       if @rpms.has_key?(rpm)
         @rpms[rpm][:release].include?('el6op') or
           do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{@rpms[rpm][:version]}-#{@rpms[rpm][:release]} does not have 'el6op' in it"
@@ -436,7 +486,7 @@ class OODiag
     end
   end
 
-  def test_nodes_cartridges
+  def test_nodes_cartridges_from_broker
     skip_test unless @is_broker
     verbose "checking that all node hosts have cartridges installed"
     carts_for = Hash.new
@@ -462,15 +512,38 @@ class OODiag
       do_fail "no cartridges are installed; please install cartridges on your node hosts"
       return
     end
+    any_missing = false
     carts_for.each do |node,carts|
       missing = all_carts - carts
       missing.empty? or do_fail "node #{node} cartridge list is missing #{missing.join ','}"
+      any_missing ||= !missing.empty?
     end
     #
-    #TODO: check against broker's probably-cached list of carts
-    # but - make sure this script does not create a cache with root ownership.
+    # check against broker's probably-cached list of carts
     #
-    # do_fail "The broker's list of cartridges does not match what is available on the node hosts. Either node hosts do not all have the same cartridges installed or the broker has cached an old list."
+    unless any_missing # would likely get false positive
+      verbose "checking that broker's cache is not stale"
+      begin
+        require 'json'
+        require 'rest-client'
+        api_carts = JSON.parse(RestClient.get('http://localhost:8080/broker/rest/cartridges.json'))
+        api_carts = api_carts["data"].map {|cart| cart["name"]}
+        verbose "API reports carts: #{api_carts.join '|'}"
+        # remove abstract_carts which don't show in the API
+        all_carts.reject! {|cart| cart.start_with? "abstract"}
+        do_warn <<-"MISMATCH" unless api_carts.sort == all_carts.sort
+          The broker's list of cartridges does not match what is available on
+          the node hosts. The broker probably has cached an old list.
+          Broker is missing: #{(all_carts - api_carts).join ", "}
+          Broker has extra: #{(api_carts - all_carts).join ", "}
+          Clear the cache by executing:
+            # cd /var/www/openshift/broker
+            # bundle exec rake tmp:clear
+        MISMATCH
+      rescue StandardError => e
+        do_fail "Couldn't retrieve cartridge list from broker: #{e}"
+      end
+    end
   end
 
   def test_broker_accept_scripts
@@ -608,10 +681,34 @@ class OODiag
       #{out.split("\n").first}
       This typically causes the node to ignore broker queries and commands.
       Please ensure that all node and broker hosts are synced to the same time source.
+      Restart mcollective if this script is reporting an old log message.
     TIMEOUT
     #
     # clean up temp file
     system "rm #{tmpfile}"
+  end
+
+  def test_pam_openshift
+    skip_test unless @is_node
+    do_fail <<-"SSHD" unless `grep '^\s*[^#].*pam_selinux' /etc/pam.d/sshd`.empty?
+      References to pam_selinux in /etc/pam.d/sshd should all be changed
+      to pam_openshift. User access to gears via ssh or git is likely to
+      fail; please refer to the Deployment Guide for proper settings.
+    SSHD
+    %w[runuser runuser-l sshd su system-auth-ac].each do |file|
+      last_line = ""
+      File.open("/etc/pam.d/#{file}", "r").each_line do |line|
+        # keep last non-empty non-commented line
+        last_line = line if line =~ /\S/ && line =~ /^\s*[^#]/
+      end
+      do_fail <<-"PAM" unless last_line =~ /pam_namespace.so\s+no_unmount_on_close/
+        /etc/pam.d/#{file} should end with:
+           session required pam_namespace.so no_unmount_on_close
+        Without this, OpenShift gears as well as other processes
+        may see very mysterious failures. Please refer to the
+        Deployment Guide for proper settings.
+      PAM
+    end
   end
 
 end #class OODiag
