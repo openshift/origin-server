@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.2.4
+Version: 1.2.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -114,6 +114,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- BZ 884865: Add PECL ImageMagick. (rmillner@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Make tidy hook accessible to gear users (ironcladlou@gmail.com)
 
