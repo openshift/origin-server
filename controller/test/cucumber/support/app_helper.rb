@@ -24,6 +24,9 @@ module AppHelper
     # mysql connection information
     attr_accessor :mysql_hostname, :mysql_user, :mysql_password, :mysql_database
 
+    # jenkins connection information
+    attr_accessor :jenkins_url, :jenkins_job_url, :jenkins_user, :jenkins_password, :jenkins_build
+
     # Create the data structure for a test application
     def initialize(namespace, login, type, name, password, owner)
       @name, @namespace, @login, @type, @password, @owner = name, namespace, login, type, password, owner
@@ -63,6 +66,22 @@ module AppHelper
       app.mysql_hostname = json['mysql_hostname']
       app.uid = json['uid']
       return app
+    end
+
+    def update_jenkins_info
+      @jenkins_user = `source /var/lib/openshift/#{@uid}/.env/JENKINS_USERNAME;echo $JENKINS_USERNAME`.chomp!
+      @jenkins_password = `source /var/lib/openshift/#{@uid}/.env/JENKINS_PASSWORD;echo $JENKINS_PASSWORD`.chomp!
+      @jenkins_url = `source /var/lib/openshift/#{@uid}/.env/JENKINS_URL;echo $JENKINS_URL`.chomp!
+
+      @jenkins_job_url = "#{@jenkins_url}job/#{@name}-build/"
+      @jenkins_build = "curl -ksS -X GET #{@jenkins_job_url}api/json --user '#{@jenkins_user}:#{@jenkins_password}'"
+
+      $logger.debug %Q{
+jenkins_url = #{@jenkins_url}
+jenkins_user = #{@jenkins_user}
+jenkins_password = #{@jenkins_password}
+jenkins_build = #{@jenkins_build}
+}
     end
 
     def update_uid(std_output)
@@ -137,13 +156,9 @@ module AppHelper
     end
     
     def curl_head(url, host=nil)
-      response_code = nil
-      if host
-        response_code = `curl -w %{http_code} --output /dev/null --insecure -s --head -H 'Host: #{host}' --max-time 30 #{url}`
-      else
-        response_code = `curl -w %{http_code} --output /dev/null --insecure -s --head --max-time 30 #{url}`
-      end
-      response_code 
+      auth = "--user #{@jenkins_user}:#{@jenkins_password}" if @jenkins_user
+      host = "-H 'Host: #{host}'" if host
+      `curl -w %{http_code} --output /dev/null --insecure -s --head --max-time 30 #{auth} #{host} #{url}`
     end
 
     def is_inaccessible?(max_retries=60)
