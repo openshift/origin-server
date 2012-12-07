@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.4
+Version: 1.2.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -123,6 +123,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- Merge pull request #1032 from smarterclayton/quickstart_issues_in_prod
+  (dmcphers@redhat.com)
+- Fix OpenShift Origin bugzilla URL, ensure that quickstarts are a bit more
+  resilient to missing data, and ensure value field of search is propagated
+  (ccoleman@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Merge pull request #1025 from
   smarterclayton/bug_883253_search_button_for_forms (openshift+bot@redhat.com)
