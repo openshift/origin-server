@@ -2,7 +2,7 @@ class ApplicationsController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
   include LegacyBrokerHelper
-  
+  include CartridgeHelper
   # GET /domains/[domain id]/applications
   def index
     domain_id = params[:domain_id]
@@ -14,6 +14,8 @@ class ApplicationsController < BaseController
     @domain_name = domain.namespace
     applications = Application.find_all(@cloud_user)
     apps = Array.new
+    include_cartridges = (params[:include] == "cartridges")
+    
     applications.each do |application|
       if application.domain.uuid = domain.uuid
         if $requested_api_version == 1.0
@@ -22,6 +24,9 @@ class ApplicationsController < BaseController
           app = RestApplication12.new(application, get_url, nolinks)
         else
           app = RestApplication.new(application, get_url, nolinks)
+        end
+        if include_cartridges
+          app.cartridges = get_cartridges(application)
         end
         apps.push(app)
       end
@@ -51,6 +56,10 @@ class ApplicationsController < BaseController
       app = RestApplication12.new(application, get_url, nolinks)
     else
       app = RestApplication.new(application, get_url, nolinks)
+    end
+    include_cartridges = (params[:include] == "cartridges")
+    if include_cartridges
+      app.cartridges = get_cartridges(application)
     end
     render_success(:ok, "application", app, "SHOW_APPLICATION", "Application '#{id}' found")
   end
@@ -171,6 +180,10 @@ class ApplicationsController < BaseController
     cart_reply.each do |reply|
       messages.push(Message.new(:info, reply.resultIO.string, 0, :result))
     end unless cart_reply.empty?
+    include_cartridges = (params[:include] == "cartridges")
+    if include_cartridges
+      app.cartridges = get_cartridges(application)
+    end
     render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages) 
   end
   

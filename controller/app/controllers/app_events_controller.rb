@@ -1,7 +1,6 @@
 class AppEventsController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
-  include LegacyBrokerHelper
 
   # POST /domains/[domain_id]/applications/[application_id]/events
   def create
