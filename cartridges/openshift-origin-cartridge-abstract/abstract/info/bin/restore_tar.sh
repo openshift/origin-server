@@ -13,7 +13,7 @@ done
 # including all data dirs and excluding the cartridge ones.
 includes=( "./*/*/data" )
 
-transforms=( --transform="s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|" )
+transforms=( --transform="s|${OPENSHIFT_GEAR_NAME}/data|app-root/data|" --transform="s|git/.*\.git|git/${OPENSHIFT_GEAR_NAME}.git|" )
 
 excludes=()
 carts=( $(source /etc/openshift/node.conf; ls $CARTRIDGE_BASE_PATH ; ls $CARTRIDGE_BASE_PATH/embedded) )
@@ -25,7 +25,7 @@ done
 if [ "$include_git" = "INCLUDE_GIT" ]
 then
   echo "Restoring ~/git/${OPENSHIFT_GEAR_NAME}.git and ~/app-root/data" 1>&2
-  excludes=( "${excludes[@]}" --exclude="./*/git/${OPENSHIFT_GEAR_NAME}.git/hooks" )
+  excludes=( "${excludes[@]}" --exclude="./*/git/*.git/hooks" )
   includes=( "${includes[@]}" "./*/git" )
 else
   echo "Restoring ~/app-root/data" 1>&2

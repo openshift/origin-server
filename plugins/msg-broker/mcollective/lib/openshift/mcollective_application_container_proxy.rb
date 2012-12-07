@@ -886,9 +886,10 @@ module OpenShift
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
+
         if keep_uid
           log_debug "DEBUG: Moving system components for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
-          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{app.name}-#{app.domain.namespace}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+          log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aAX -e 'ssh -o StrictHostKeyChecking=no' --include '.httpd.d/' --include '.httpd.d/#{gear.uuid}_***' --include '#{app.name}-#{app.domain.namespace}' --include '.last_access/' --include '.last_access/#{gear.uuid}' --exclude '*' /var/lib/openshift/ root@#{destination_container.get_ip_address}:/var/lib/openshift/"; exit_code=$?; ssh-agent -k; exit $exit_code`
           if $?.exitstatus != 0
             raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
           end
@@ -1103,8 +1104,8 @@ module OpenShift
           end
         end
         
-        result = MCollectiveApplicationContainerProxy.sanitize_result(output)
-        result.exitcode = exitcode
+        result = MCollectiveApplicationContainerProxy.sanitize_result(output, exitcode)
+        #result.exitcode = exitcode
         result
       end
       
@@ -1191,7 +1192,11 @@ module OpenShift
         if resultIO.exitcode != 0
           resultIO.debugIO << "Cartridge return code: " + resultIO.exitcode.to_s
           begin
-            raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
+            if resultIO.hasUserActionableError
+              raise OpenShift::UserException.new(resultIO.errorIO.string, resultIO.exitcode)
+            else
+              raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, resultIO)
+            end
           rescue OpenShift::NodeException => e
             if command == 'deconfigure'
               if framework.start_with?('embedded/')
@@ -1475,20 +1480,24 @@ module OpenShift
         active_gears_map
       end
 
-      def self.sanitize_result(output)
+      def self.sanitize_result(output, exitcode=0)
         result = ResultIO.new
+        result.exitcode = exitcode
  
         if output && !output.empty?
           output.each_line do |line|
-            if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
+            if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
               if line =~ /^CLIENT_MESSAGE: /
                 result.messageIO << line['CLIENT_MESSAGE: '.length..-1]
               elsif line =~ /^CLIENT_RESULT: /
                 result.resultIO << line['CLIENT_RESULT: '.length..-1]
               elsif line =~ /^CLIENT_DEBUG: /
                 result.debugIO << line['CLIENT_DEBUG: '.length..-1]
+              elsif line =~ /^CLIENT_INTERNAL_ERROR: /
+                result.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
               else
                 result.errorIO << line['CLIENT_ERROR: '.length..-1]
+                result.hasUserActionableError = true
               end
             elsif line =~ /^CART_DATA: /
               result.data << line['CART_DATA: '.length..-1]
@@ -1582,7 +1591,7 @@ module OpenShift
                 sender = mcoll_reply.results[:sender]
                 Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
                 output.each do |o|
-                  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout]) if o.kind_of?(Hash) and o.include?(:result_stdout)
+                  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout], exitcode) if o.kind_of?(Hash) and o.include?(:result_stdout)
                   o[:result_stdout] = r.resultIO.string.chomp if r and (r.resultIO.string.chomp.length != 0)
                 end if output.kind_of?(Array)
                 handle[sender] = output if exitcode == 0

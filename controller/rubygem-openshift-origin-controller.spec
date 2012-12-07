@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.5
+Version: 1.2.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,14 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
+- Merge pull request #1035 from abhgupta/abhgupta-dev
+  (openshift+bot@redhat.com)
+- fix for bugs 883554 and 883752 (abhgupta@redhat.com)
+
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- add debugging to help with issues found in field (dmcphers@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - fix for bug#883007 (rchopra@redhat.com)
 - fix for bug#883740 - additional storage is reset on scale up/down
