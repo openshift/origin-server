@@ -20,7 +20,7 @@ class SshKey
   
   validates :name, 
     presence: {message: "Key name is required and cannot be blank."},
-    format:   {with: /\A[A-Za-z0-9]+\z/, message: "Invalid key name. Name must only contain alphanumeric characters."},
+    format:   {with: /\A[A-Za-z0-9\.\-]+\z/, message: "Invalid key name. Name must only contain alphanumeric characters."},
     length:   {maximum: KEY_NAME_MAX_LENGTH, minimum: KEY_NAME_MIN_LENGTH, message: "Must be a minimum of #{KEY_NAME_MIN_LENGTH} and maximum of #{KEY_NAME_MAX_LENGTH} characters."}
   
   validates :type, 

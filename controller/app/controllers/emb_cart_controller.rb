@@ -166,18 +166,17 @@ class EmbCartController < BaseController
     end
   end
 
-  def update_scale
+  def update
     domain_id = params[:domain_id]
     application_id = params[:application_id]
     id = params[:id]
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
-    additional_storage = Integer(params[:additional_storage]) rescue nil
+    additional_storage = Integer(params[:additional_gear_storage]) rescue nil
     
     begin
       domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
       @domain_name = domain.namespace
-      @application_uuid = app._id.to_s
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "PATCH_APP_CARTRIDGE")
     end
@@ -185,6 +184,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, name: application_id)
       @application_name = application.name
+      @application_uuid = application._id.to_s
  
       if !application.scalable and (scales_from != 1 or scales_to != 1)
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
