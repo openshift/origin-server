@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.4
+Version: 1.2.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,11 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- fix for bug#883007 (rchopra@redhat.com)
+- fix for bug#883740 - additional storage is reset on scale up/down
+  (rchopra@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - create :default_gear_capabilities conf key for setting default gear
   capabilities a user has at creation (lmeyer@redhat.com)

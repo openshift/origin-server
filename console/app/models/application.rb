@@ -47,7 +47,7 @@ class Application < RestApi::Base
   end
 
   def cartridge_names
-    persisted? ? cartridges.map(&:name) : attributes[:cartridges]
+    persisted? ? cartridges.map(&:name) : Array(attributes[:cartridges])
   end
   alias_method :cartridge_names=, :cartridges=
 

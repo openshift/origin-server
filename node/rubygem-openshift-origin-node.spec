@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.2.4
+Version: 1.2.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,13 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- bug 884409 (dmcphers@redhat.com)
+- Merge pull request #1023 from ramr/dev/websockets (openshift+bot@redhat.com)
+- Fix frontend httpd tests. (ramr@redhat.com)
+- Node web sockets and http(s) proxy support with spec file and package.
+  (ramr@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Fix for Bug 883605 (jhonce@redhat.com)
 - updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)

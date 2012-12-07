@@ -18,7 +18,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_template :index
     assert groups = assigns(:type_groups)
     assert groups.length > 1, groups.length.to_s
-    assert_equal "Java", groups.first[0]
+    assert groups.any?{ |g| g[0] == 'Java' }
     assert groups.first[1].present?
   end
 

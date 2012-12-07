@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.3
+Version: 1.2.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -123,6 +123,11 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Merge pull request #1025 from
+  smarterclayton/bug_883253_search_button_for_forms (openshift+bot@redhat.com)
+- Bug 883253, Bug 882904 (ccoleman@redhat.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Updated base on review feedback (nhr@redhat.com)
 - Corrected boolean inputs to work w/ bootstrap styles (hripps@redhat.com)

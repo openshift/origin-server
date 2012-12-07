@@ -66,6 +66,8 @@ module OpenShift
         json_token = cipher.update(encrypted_token)
         json_token << cipher.final
       rescue => e
+        $stderr.puts e.message
+        $stderr.puts e.backtrace
         Rails.logger.debug "Broker key authentication failed. #{e.backtrace.inspect}"
         raise OpenShift::AccessDeniedException.new
       end
