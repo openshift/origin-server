@@ -35,6 +35,7 @@ Requires: php-mcrypt
 Requires: php-soap
 Requires: php-bcmath
 Requires: php-process
+Requires: php-pecl-imagick
 Obsoletes: cartridge-php-5.3
 
 %description
