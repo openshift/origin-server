@@ -609,7 +609,7 @@ module OpenShift
           unless keep_uid
             unless app.aliases.nil?
               app.aliases.each do |server_alias|
-                reply.append destination_container.send(:run_cartridge_command, app.framework, app, app.gear, "add-alias", server_alias, false)
+                reply.append destination_container.add_alias(app, app.gear, server_alias)
               end
             end
           end
