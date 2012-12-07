@@ -129,11 +129,7 @@ module OpenShift
       path = File.join(basedir, ".httpd.d", "#{container_uuid}_*")
       FileUtils.rm_rf(Dir.glob(path))
 
-      reload_node_web_proxy
-
-      async_opt="-b" if async
-      out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful")
-      Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+      reload_all(async)
     end
 
     # Public: Connect a path element to a back-end URI for this namespace.
@@ -177,8 +173,8 @@ module OpenShift
       dname = clean_server_name(name)
       path = server_alias_path(dname)
 
-      # Aliases must be globally unique across all gears (approx 5 seconds for 20000 gears)
-      existing = Dir.glob(File.join(@config.get("GEAR_BASE_DIR"), ".httpd.d", "*/server_alias-#{dname}.conf"))
+      # Aliases must be globally unique across all gears.
+      existing = server_alias_search(dname, true)
       if not existing.empty?
         raise FrontendHttpServerAliasException.new("Already exists", @container_uuid, \
                                                    @container_name, @namespace, dname )
@@ -190,12 +186,8 @@ module OpenShift
       end
 
       create_routes_alias(dname)
-      reload_node_web_proxy
 
-      out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular graceful")
-      Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
-
-      return out, err, rc
+      reload_all
     end
 
     # Public: Removes an alias from this namespace
@@ -208,28 +200,45 @@ module OpenShift
     # Returns nil on Success or raises on Failure
     def remove_alias(name)
       dname = clean_server_name(name)
-      path = server_alias_path(dname)
       routes_file_path = server_routes_alias_path(dname)
 
-      FileUtils.rm_f(path) if File.exist?(path)
       FileUtils.rm_f(routes_file_path) if File.exist?(routes_file_path)
 
-      reload_node_web_proxy
+      server_alias_search(dname, false).each do |path|
+        FileUtils.rm_f(path)
+      end
 
-      out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular graceful")
-      Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
-
-      return out, err, rc
+      reload_all
     end
 
-    # Private: Return a cleaned version of the server name
+    # Private: Validate the server name
+    #
+    # The name is validated against DNS host name requirements from
+    # RFC 1123 and RFC 952.  Additionally, OpenShift does not allow
+    # names/aliases to be an IP address.
     def clean_server_name(name)
       dname = name.downcase
 
-      if not dname.index(/[^0-9a-z\-_.]/).nil?
+      if not dname.index(/[^0-9a-z\-.]/).nil?
         raise FrontendHttpServerNameException.new("Invalid characters", @container_uuid, \
                                                    @container_name, @namespace, dname )
       end
+
+      if dname.length > 255
+        raise FrontendHttpServerNameException.new("Too long", @container_uuid, \
+                                                  @container_name, @namespace, dname )
+      end
+
+      if dname.length == 0
+        raise FrontendHttpServerNameException.new("Name was blank", @container_uuid, \
+                                                  @container_name, @namespace, dname )
+      end
+
+      if dname =~ /^\d+\.\d+\.\d+\.\d+$/
+        raise FrontendHttpServerNameException.new("IP addresses are not allowed", @container_uuid, \
+                                                  @container_name, @namespace, dname )
+      end
+
       return dname
     end
 
@@ -262,17 +271,76 @@ module OpenShift
     def create_routes_alias(alias_name)
       route_file = default_routes_path
       alias_file = File.join(File.dirname(route_file), "routes_alias-#{alias_name}.json")
-      cmd = "sed 's/#{@container_name}-#{@namespace}\.#{@cloud_domain}/#{alias_name}/g' #{route_file} > #{alias_file}"
 
-      out, err, rc = shellCmd(cmd)
-      Syslog.alert("ERROR: Failure trying to create routes alias json file(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+      begin
+        File.open(route_file, 'r') do |fin|
+          File.open(alias_file, 'w') do |fout|
+            fout.write(fin.read.gsub("#{@container_name}-#{@namespace}.#{@cloud_domain}", "#{alias_name}"))
+          end
+        end
+      rescue => e
+        Syslog.alert("ERROR: Failure trying to create routes alias json file: #{@uuid} Exception: #{e.inspect}")
+      end
+    end
+
+    # Reload both Apache and the proxy server and combine output/return
+    def reload_all(async=false)
+      output = ''
+      errout = ''
+      retc = 0
+
+      out, err, rc = reload_node_web_proxy
+      output << out
+      errout << err
+      retc = rc if rc != 0
+
+      out, err, rc = reload_httpd(async)
+      output << out
+      errout << err
+      retc = rc if rc != 0
+
+      return output, errout, retc
+    end
+
+    # Reload the Apache configuration
+    def reload_httpd(async=false)
+      async_opt="-b" if async
+      out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful")
+      Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+      return out, err, rc
     end
 
     # Reload the configuration of the node web proxy server
     def reload_node_web_proxy
       out, err, rc = shellCmd("service openshift-node-web-proxy reload")
       Syslog.alert("ERROR: failure from openshift-node-web-proxy(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
+      return out, err, rc
     end
+
+    # Private: Search for matching alias files
+    # Previously, case sensitive matches were used
+    # checking for a duplicate and there are mixed
+    # case aliases in use.
+    def server_alias_search(name, all_gears=false)
+      dname = clean_server_name(name)
+      resp = []
+
+      basedir = @config.get("GEAR_BASE_DIR")
+      if all_gears
+        token = "*"
+      else
+        token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      end
+      srch = File.join(basedir, ".httpd.d", token, "server_alias-*.conf")
+      Dir.glob(srch).each do |fn|
+        cmpname = fn.sub(/^.*\/server_alias-(.*)\.conf$/, '\\1')
+        if cmpname.casecmp(dname) == 0
+          resp << fn
+        end
+      end
+      resp
+    end
+
   end
 
 end

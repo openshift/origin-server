@@ -303,6 +303,10 @@ module MCollective
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
           out, err, rc = frontend.add_alias(alias_name)
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -326,6 +330,10 @@ module MCollective
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
           out, err, rc = frontend.remove_alias(alias_name)
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
