@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.2.4
+Version: 1.2.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,10 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- Move last_access file with gear (pmorie@gmail.com)
+- Use correct alias method during gear post-move (ironcladlou@gmail.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Fix incorrect filter in finding district (rpenta@redhat.com)
 - updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
