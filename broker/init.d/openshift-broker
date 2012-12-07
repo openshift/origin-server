@@ -62,6 +62,14 @@ start() {
 # errant children.
 stop() {
 	echo -n $"Stopping $prog: "
+	if [ -e ${pidfile} ]; then
+	  killproc -p ${pidfile} -d 10 $httpd
+	else
+	  # BZ876937
+	  echo -n "(already stopped)"
+	  success
+	fi
+
 	killproc -p ${pidfile} -d 10 $httpd
 	RETVAL=$?
 	echo
