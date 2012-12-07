@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.2.3
+Version: 1.2.4
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- fix for bugs 883554 and 883752 (abhgupta@redhat.com)
+
 * Tue Dec 04 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - remove logic that attempts to move cart from one gear to another
   (rchopra@redhat.com)
