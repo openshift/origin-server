@@ -124,6 +124,6 @@ class Quickstart < RestApi::Base
 
   private
     def tags_from(s)
-      (s.is_a?(Array) ? s : ((s || '').split(','))).map(&:strip).map(&:to_sym)
+      (s.is_a?(Array) ? s : ((s || '').split(','))).map(&:strip).map(&:downcase).map(&:to_sym)
     end
 end
