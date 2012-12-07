@@ -19,6 +19,7 @@ module UserActionLogger
 
     if not action_logger.nil?
       result = success ? "SUCCESS" : "FAILURE"
+      description = description.nil? ? "" : description.strip
       time_obj = Time.new
       date = time_obj.strftime("%Y-%m-%d")
       time = time_obj.strftime("%H:%M:%S")

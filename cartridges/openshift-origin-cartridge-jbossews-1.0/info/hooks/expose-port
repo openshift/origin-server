@@ -35,7 +35,7 @@ import_env_vars
 proxy_port=$(find_next_proxy_port $uuid "$OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT")
 ret=$?
 if [ $ret -ne 0 ]; then
-  client_error "$proxy_port"
+  client_internal_error "$proxy_port"
   exit $ret
 fi
 
