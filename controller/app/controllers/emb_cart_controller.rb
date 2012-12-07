@@ -2,6 +2,7 @@ class EmbCartController < BaseController
   respond_to :xml, :json
   before_filter :authenticate, :check_version
   include LegacyBrokerHelper
+  include CartridgeHelper
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges
   def index
@@ -13,24 +14,17 @@ class EmbCartController < BaseController
                         "LIST_APP_CARTRIDGES") if !domain || !domain.hasAccess?(@cloud_user)
 
     @domain_name = domain.namespace
+
     Rails.logger.debug "Getting cartridges for application #{id} under domain #{domain_id}"
     application = get_application(id)
     return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'",
                         101, "LIST_APP_CARTRIDGES") unless application
-
+    #used for user action log
     @application_name = application.name
     @application_uuid = application.uuid
-    cartridges = Array.new
-    cartridges.push(RestCartridge11.new("standalone", application.framework, application, get_url, nil, nolinks)) if $requested_api_version != 1.0
+    
+    cartridges = get_cartridges(application)
 
-    application.embedded.each_key do |key|
-      if $requested_api_version == 1.0
-        cartridge = RestCartridge10.new("embedded", key, application, get_url, nil, nolinks)
-      else
-        cartridge = RestCartridge11.new("embedded", key, application, get_url, nil, nolinks)
-      end
-      cartridges.push(cartridge)
-    end if application.embedded
     render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES",
                    "Listing cartridges for application #{id} under domain #{domain_id}")
   end
@@ -46,7 +40,7 @@ class EmbCartController < BaseController
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain #{domain_id} not found", 127,
                         "SHOW_APP_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
-
+    #used for user action log
     @domain_name = domain.namespace
     Rails.logger.debug "Getting cartridge #{id} for application #{application_id} under domain #{domain_id}"
     application = get_application(application_id)
@@ -202,16 +196,19 @@ class EmbCartController < BaseController
     scales_to = params[:scales_to]
     
     domain = Domain.get(@cloud_user, domain_id)
-    return render_error(:not_found, "Domain #{domain_id} not found", 127,
+    return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                         "UPDATE_CARTRIDGE") if !domain || !domain.hasAccess?(@cloud_user)
 
     @domain_name = domain.namespace
     app = get_application(app_id)
-    return render_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
+    return render_format_error(:not_found, "Application '#{app_id}' not found for domain '#{domain_id}'",
                         101, "UPDATE_CARTRIDGE") unless app
-                        
-    @application_name = app.name
-    @application_uuid = app.uuid
+    #used for user action log
+    @application_name = application.name
+    @application_uuid = application.uuid
+    return render_format_error(:bad_request, "Cartridge #{cartridge_name} for application #{app_id} not found",
+                               129, "UPDATE_CARTRIDGE") if ((!app.embedded or !app.embedded.has_key?(cartridge_name)) and app.framework!=cartridge_name)              
+    
     storage_map = {}
     app.comp_instance_map.values.each do |cinst|
       if cinst.parent_cart_name==cartridge_name
@@ -220,8 +217,8 @@ class EmbCartController < BaseController
         storage_map[group_name] << cinst
       end
     end
-    return render_error(:not_found, "Cartridge '#{cartridge_name}' for application '#{app_id}' not found",
-                        163, "UPDATE_CARTRIDGE") unless storage_map.keys.length>0
+    return render_format_error(:not_found, "Cartridge '#{cartridge_name}' for application '#{app_id}' not found",
+                        129, "UPDATE_CARTRIDGE") unless storage_map.keys.length>0
                 
     #only update attributes that are specified                  
     if additional_storage and additional_storage!=0
