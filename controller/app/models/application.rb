@@ -1122,12 +1122,22 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     self.domain.namespace = new_ns
     self.save
   end
-  
-  def add_alias(server_alias)
-    if !(server_alias =~ /\A[\w\-\.]+\z/) or (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/)
-      raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105) 
+
+  def add_alias(t_server_alias)
+    # Server aliases validate as DNS host names in accordance with RFC
+    # 1123 and RFC 952.  Additionally, OpenShift does not allow an
+    # Alias to be an IP address or a host in the service domain.
+    # Since DNS is case insensitive, all names are downcased for
+    # indexing/compares.
+    server_alias = t_server_alias.downcase
+    if !(server_alias =~ /\A[0-9a-zA-Z\-\.]+\z/) or
+        (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
+        (server_alias.length > 255 ) or
+        (server_alias.length == 0 ) or
+        (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/)
+      raise OpenShift::UserException.new("Invalid Server Alias '#{t_server_alias}' specified", 105)
     end
-    
+
     self.aliases = [] unless self.aliases
     raise OpenShift::UserException.new("Alias '#{server_alias}' already exists for '#{@name}'", 255) if self.aliases.include? server_alias
     reply = ResultIO.new
@@ -1146,7 +1156,8 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     reply
   end
   
-  def remove_alias(server_alias)
+  def remove_alias(t_server_alias)
+    server_alias = t_server_alias.downcase
     self.aliases = [] unless self.aliases
     reply = ResultIO.new
     begin
