@@ -550,6 +550,10 @@ function client_error {
     echo "CLIENT_ERROR: $1"
 }
 
+function client_internal_error {
+    echo "CLIENT_INTERNAL_ERROR: $1"
+}
+
 function client_debug {
     echo "CLIENT_DEBUG: $1"
 }
