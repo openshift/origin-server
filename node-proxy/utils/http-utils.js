@@ -58,6 +58,35 @@ exports.addHeader = function(headers, n, v) {
 }  /*  End of function  addHeader.  */
 
 
+/**
+ *  Returns the user name associated with/in an Authorization header.
+ *
+ *  Examples:
+ *    httputils.getAuthUserName(req.headers);
+ *
+ *  @param   {Dict}    Headers
+ *  @return  {String}  Associated user name for an HTTP request with
+ *                     an 'Authorization' header.
+ *  @api     public
+ */
+exports.getAuthUserName = function(headers) {
+  var auth = '  ';
+
+  try {
+    headers  &&  (auth = headers['Authorization']);
+
+    var parts = auth.split(' ');
+    var zbuf = new Buffer(parts[1], 'base64');
+    return zbuf.toString().split(':')[0];
+
+  } catch(err) {
+  }
+
+  return undefined;
+
+}  /*  End of function  getAuthUserName.  */
+
+
 /*!
  *  }}}  //  End of section  Module-Exports.
  *  ---------------------------------------------------------------------

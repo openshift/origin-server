@@ -18,8 +18,8 @@
 require 'fileutils'
 
 class LastAccessUpdater
-  def initialize(app_root_dir, access_log_file)
-    @log_file = access_log_file
+  def initialize(app_root_dir, access_log_files)
+    @log_files = access_log_files
     @all_apps_info = Hash.new
     @app_root_dir = app_root_dir
     @last_access_data = Hash.new
@@ -85,7 +85,8 @@ class LastAccessUpdater
     # Ruby and we desperately need speed here.
     ignore_cond = [@hosts_ignore.map { |a| "$2 != \"#{a}\"" },
                    @addrs_ignore.map { |a| "$1 != \"#{a}\"" }].flatten.join(' && ')
-    output = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{@log_file}]
+    zlog_files = [ @log_files ].flatten.join(' ')
+    output = %x[/bin/awk '{ if ( #{ignore_cond} ) h[$2]=$5" "$6 } END{ for ( i in h ) { printf("%s=%s\\n",i,h[i]) } }' #{zlog_files}]
     output.each_line { |line|
       parts = line.split("=")
       timestamp = parts[1].delete("[").delete("]").strip
@@ -142,11 +143,13 @@ end
 
 single_instance do
   source_file("/etc/openshift/node.conf")
-  ENV["GEAR_BASE_DIR"]     ||= "/var/lib/openshift"
-  ENV["APACHE_ACCESS_LOG"] ||= "/var/log/httpd/access_log"
-  ENV["LAST_ACCESS_DIR"]   ||= "/var/lib/openshift/.last_access"
+  ENV["GEAR_BASE_DIR"]             ||= "/var/lib/openshift"
+  ENV["APACHE_ACCESS_LOG"]         ||= "/var/log/httpd/access_log"
+  ENV["NODE_WEB_PROXY_ACCESS_LOG"] ||= "/var/log/node-web-proxy/access.log"
+  ENV["LAST_ACCESS_DIR"]           ||= "/var/lib/openshift/.last_access"
 
-  l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], ENV["APACHE_ACCESS_LOG"])
+  logfiles = [ENV["APACHE_ACCESS_LOG"], ENV["NODE_WEB_PROXY_ACCESS_LOG"] ]
+  l = LastAccessUpdater.new(ENV["GEAR_BASE_DIR"], logfiles)
   l.load_addrs_ignore
   l.load_apps_data
   l.parse_log
