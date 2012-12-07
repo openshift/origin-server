@@ -1130,7 +1130,7 @@ Configure-Order: [\"proxy/#{framework}\", \"proxy/haproxy-1.4\"]
     # Since DNS is case insensitive, all names are downcased for
     # indexing/compares.
     server_alias = t_server_alias.downcase
-    if !(server_alias =~ /\A[\w\-\.]+\z/) or
+    if !(server_alias =~ /\A[0-9a-zA-Z\-\.]+\z/) or
         (server_alias =~ /#{Rails.configuration.openshift[:domain_suffix]}$/) or
         (server_alias.length > 255 ) or
         (server_alias.length == 0 ) or
