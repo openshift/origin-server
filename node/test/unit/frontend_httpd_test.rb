@@ -40,6 +40,8 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
     @path = File.join(@gear_base_dir, ".httpd.d", @token)
 
+    @test_alias = "foo.example.com"
+
     syslog_mock = mock('Syslog') do
       stubs(:opened?).returns(true)
       stubs(:open).returns(nil)
@@ -56,7 +58,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
   def test_create
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
-    frontend.stubs(:shellCmd).returns("", "", 0).never
+    frontend.stubs(:shellCmd).returns(["", "", 0]).never
     File.stubs(:exist?).returns(false)
     FileUtils.stubs(:rm_rf).returns(nil)
     FileUtils.stubs(:mkdir_p).with(@path).returns(nil).once
@@ -65,7 +67,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
 
   def test_destroy
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
-    frontend.stubs(:shellCmd).returns("", "", 0).twice
+    frontend.stubs(:shellCmd).returns(["", "", 0]).twice
     FileUtils.stubs(:rm_rf).returns(nil).once
     frontend.destroy
   end
@@ -74,8 +76,8 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
   def test_clean_server_name
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     
-    assert_equal "foo.example.com", frontend.clean_server_name("foo.example.com")
-    assert_equal "FOO.EXAMPLE.COM".downcase, frontend.clean_server_name("FOO.EXAMPLE.COM")
+    assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}")
+    assert_equal "#{@test_alias}", frontend.clean_server_name("#{@test_alias}".upcase)
     assert_raise OpenShift::FrontendHttpServerNameException do
       frontend.clean_server_name("../../../../../../../etc/passwd")
     end
@@ -84,16 +86,16 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
   def test_server_alias_path
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    assert_equal File.join(@path, "server_alias-foo.example.com.conf"), frontend.server_alias_path("foo.example.com")
+    assert_equal File.join(@path, "server_alias-#{@test_alias}.conf"), frontend.server_alias_path("#{@test_alias}")
   end
 
   def test_server_alias_search
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    srch_path = File.join(@path, "server_alias-foo.example.com.conf")
+    srch_path = File.join(@path, "server_alias-#{@test_alias}.conf")
     Dir.stubs(:glob).returns([srch_path])
 
-    existing = frontend.server_alias_search("foo.example.com")
+    existing = frontend.server_alias_search("#{@test_alias}")
     assert_equal existing.length, 1
     assert_equal existing[0], srch_path
   end
@@ -102,49 +104,40 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
   def test_add_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    frontend.stubs(:shellCmd).returns("", "", 0).times(3)
+    frontend.stubs(:shellCmd).returns(["", "", 0]).twice
     Dir.stubs(:glob).returns([])
     
-    open_mock = Proc.new do |fn|
-      f = mock('File') do
-        expects(:write).with("ServerAlias foo.example.com").returns(nil).once
-        stubs(:flush).returns(nil)
-      end
-      yield f
-    end
-    File.stubs(:open).returns(open_mock).once
+    File.stubs(:open).with(File.join(@path, "server_alias-#{@test_alias}.conf"), 'w').returns(mock('File')).once
 
-    frontend.add_alias("foo.example.com")
+    File.stubs(:open).with(File.join(@path, "routes.json"),'r').returns(mock('File')).once
+
+    frontend.add_alias("#{@test_alias}")
   end
 
   def test_add_duplicate_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    frontend.stubs(:shellCmd).returns("", "", 0).never
-    Dir.stubs(:glob).returns([File.join(@path, "server_alias-foo.example.com.conf")])
+    frontend.stubs(:shellCmd).returns(["", "", 0]).never
+    Dir.stubs(:glob).returns([File.join(@path, "server_alias-#{@test_alias}.conf")])
 
-    open_mock = Proc.new do |fn|
-      f = mock('File')
-      yield f
-    end
-    File.stubs(:open).returns(open_mock).never
+    File.stubs(:open).returns(mock('File')).never
 
     assert_raise OpenShift::FrontendHttpServerAliasException do
-      frontend.add_alias("foo.example.com")
+      frontend.add_alias("#{@test_alias}")
     end
   end
 
   def test_remove_alias
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
 
-    frontend.stubs(:shellCmd).returns("", "", 0).twice
+    frontend.stubs(:shellCmd).returns(["", "", 0]).twice
 
-    File.stubs(:exist?).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
-    Dir.stubs(:glob).returns([File.join(@path, "server_alias-foo.example.com.conf")])
-    FileUtils.stubs(:rm_f).with(File.join(@path, "server_alias-foo.example.com.conf")).returns(true).once
-    FileUtils.stubs(:rm_f).with(File.join(@path, "routes_alias-foo.example.com.json")).returns(true).once
+    File.stubs(:exist?).with(File.join(@path, "routes_alias-#{@test_alias}.json")).returns(true).once
+    Dir.stubs(:glob).returns([File.join(@path, "server_alias-#{@test_alias}.conf")])
+    FileUtils.stubs(:rm_f).with(File.join(@path, "server_alias-#{@test_alias}.conf")).returns(true).once
+    FileUtils.stubs(:rm_f).with(File.join(@path, "routes_alias-#{@test_alias}.json")).returns(true).once
 
-    frontend.remove_alias("foo.example.com")
+    frontend.remove_alias("#{@test_alias}")
   end
 
 end
