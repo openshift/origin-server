@@ -1,0 +1,32 @@
+NAME
+  oo-accept-systems
+  
+SYNOPSIS
+  oo-accept-systems [-hv] [-w wait_seconds]
+
+DESCRIPTION
+  Verify OpenShift node hosts have valid settings for use by the broker.
+  This is most commonly run with no options on the broker host.
+  
+OPTIONS
+  -h  
+    Display a simple usage page.
+  -v  
+    Enable verbose output during the run of the script.
+  -w wait_seconds  
+    Specify seconds to wait for all nodes to respond to queries. Default: 5
+  
+EXAMPLE
+
+  $ oo-accept-systems -w 1
+  
+HINTS
+  This command should return with the text 'PASS' and return code 0; otherwise
+  the reasons for failure are output and return code is the number of errors.
+  
+SEE ALSO
+  oo-admin-ctl-district(8), oo-admin-move(8), oo-admin-chk(8),
+  oo-accept-broker(8), oo-admin-ctl-app(8), oo-admin-ctl-template(8),
+  oo-admin-ctl-domain(8), oo-admin-ctl-user(8), oo-register-dns(8)
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
