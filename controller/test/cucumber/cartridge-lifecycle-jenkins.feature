@@ -32,6 +32,7 @@ Feature: Cartridge Lifecycle Jenkins Verification Tests
 
   Scenario Outline: Application Destroying
     Given an existing <type> application
+    And the application should be accessible
     When the application is destroyed
     Then the application should not be accessible
 
