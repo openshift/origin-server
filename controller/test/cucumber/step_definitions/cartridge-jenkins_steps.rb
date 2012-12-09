@@ -20,22 +20,9 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
       raise "Failed to create domain: #{@app}"
     end
 
-    output = `awk <#{$temp}/cucumber.log '/^Job URL: / {print $3} /^Jenkins /,/^Note: / {if ($0 ~ /^ *User: /) print $2; if ($0 ~ /^ *Password: /) print $2;}'`.split("\n")
-    jenkins_user = output[-3]
-    jenkins_user.should_not be_nil
+    @app.update_jenkins_info
 
-    jenkins_password = output[-2]
-    jenkins_password.should_not be_nil
-
-    jenkins_url = output[-1]
-    jenkins_url.should_not be_nil
-
-    $logger.debug "jenkins_url = #{jenkins_url}\njenkins_user = #{jenkins_user}\njenkins_password = #{jenkins_password}"
-
-    @jenkins_build = "curl -ksS -X GET #{jenkins_url}api/json --user '#{jenkins_user}:#{jenkins_password}'"
-    $logger.debug "@jenkins_build = #{@jenkins_build}"
-
-    response = `#{@jenkins_build}`
+    response = `#{@app.jenkins_build}`
     $logger.debug "@jenkins_build response = [#{response}]"
 
     job = JSON.parse(response)
@@ -86,7 +73,7 @@ Then /^the application will be updated$/ do
     OpenShift::timeout(300) do
       begin
         sleep 1
-        response = `#{@jenkins_build}`
+        response = `#{@app.jenkins_build}`
         $logger.debug "@jenkins_build response = #{response}"
 
         job = JSON.parse(response)

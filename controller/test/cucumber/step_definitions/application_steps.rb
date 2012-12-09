@@ -19,6 +19,7 @@ Given /^an existing (.+) application( without an embedded cartridge)?$/ do |type
   TestApp.find_on_fs.each do |app|
     if app.type == type and app.embed.empty?
       @app = app
+      @app.update_jenkins_info if type.start_with?("jenkins")
       break
     end
   end
@@ -43,6 +44,7 @@ When /^(\d+) (.+) applications are created$/ do |app_count, type|
     register_user(app.login, app.password) if $registration_required
     if rhc_create_domain(app)
       rhc_create_app(app)
+      app.update_jenkins_info if type.start_with?("jenkins")
     end
     raise "Could not create domain: #{app.create_domain_code}"  unless app.create_domain_code == 0
     raise "Could not create application #{app.create_app_code}" unless app.create_app_code == 0
