@@ -25,8 +25,11 @@ then
         if pear list "$f" > /dev/null
         then
             pear upgrade "$f"
-        else
+        elif ! ( php -c "${OPENSHIFT_PHP_DIR}"/conf -m | grep -q \^`basename "$f"`\$ )
+        then
             pear install --alldeps "$f"
+        else
+            echo "Extension already installed in the system: $f"
         fi
     done
 fi
