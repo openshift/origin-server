@@ -1,7 +1,7 @@
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, 
   :git_url, :app_url, :ssh_url, :gear_profile, :scalable, :health_check_path, :building_with, :building_app, 
-  :build_job_url, :initial_git_url
+  :build_job_url, :initial_git_url, :cartridges
   include LegacyBrokerHelper
 
   def initialize(app, url, nolinks=false)
