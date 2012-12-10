@@ -72,7 +72,6 @@ ORIG_DB_HOST=$OPENSHIFT_POSTGRESQL_DB_HOST
 if [ "$ORIG_DB_HOST" != "$POSTGRESQL_IP" ]
 then
     sed -i "s,$ORIG_DB_HOST,$POSTGRESQL_IP," $CART_INSTANCE_DIR/data/postgresql.conf
-    sed -i "s,$old_uuid,$uuid," $CART_INSTANCE_DIR/data/postgresql.conf
     echo "$POSTGRESQL_IP:$OPENSHIFT_POSTGRESQL_DB_PORT:*:$OPENSHIFT_POSTGRESQL_DB_USERNAME:$OPENSHIFT_POSTGRESQL_DB_PASSWORD" > $APP_HOME/.pgpass
     set_app_info "Connection URL: postgresql://$POSTGRESQL_IP:$OPENSHIFT_POSTGRESQL_DB_PORT/"
 fi

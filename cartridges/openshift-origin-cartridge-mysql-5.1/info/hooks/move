@@ -68,7 +68,6 @@ ORIG_DB_HOST=$OPENSHIFT_MYSQL_DB_HOST
 if [ "$ORIG_DB_HOST" != "$MYSQL_IP" ]
 then
     sed -i "s,$ORIG_DB_HOST,$MYSQL_IP," $MYSQL_DIR/etc/my.cnf
-    sed -i "s,$old_uuid,$uuid," $MYSQL_DIR/etc/my.cnf
 
     start_database
 
