@@ -55,17 +55,19 @@ class AppEventsController < BaseController
           applications = Application.find_all(@cloud_user)
           applications.each do |app|
             app.aliases.each do |a|
-              if a == server_alias
+              if a.casecmp(server_alias) == 0
                 return render_error(:unprocessable_entity, "Alias already in use.", 140,
                    "APPLICATION_EVENT", "event")
               end 
             end unless app.aliases.nil?
           end
-          application.add_alias(server_alias)
+          r = application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
-          application.remove_alias(server_alias)
+          r = application.remove_alias(server_alias)
           msg = "Application #{id} has removed alias"
+          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"
           application.scaleup
           msg = "Application #{id} has scaled up"

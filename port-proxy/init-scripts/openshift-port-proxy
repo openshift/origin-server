@@ -41,7 +41,13 @@ start() {
 
 stop() {
     echo -n $"Stopping openshift-port-proxy: "
-    killproc -p $pidfile $prog 
+    if [ -e ${pidfile} ]; then
+      killproc -p $pidfile $prog
+    else
+      # BZ876939
+      echo -n "(already stopped)"
+      success
+    fi
     retval=$?
     echo
     [ $retval -eq 0 ] && rm -f $lockfile
