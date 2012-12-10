@@ -106,6 +106,32 @@
 }
 
 
+// Block button
+// -------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: $baseLineHeight / 2;
+  @include box-sizing(border-box);
+}
+
+// Vertical spacing
+.btn-block + a {
+  display: block;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}
+
 // Alternate buttons
 // --------------------------------------------------
 
