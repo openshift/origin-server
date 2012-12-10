@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.7
+Version: 1.2.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.8-1
+- Merge pull request #1042 from lnader/master (openshift+bot@redhat.com)
+- Fix for Bug 885177 (jhonce@redhat.com)
+- bug fix (lnader@redhat.com)
+- US3025: Retrieve cartridge info with app (lnader@redhat.com)
+- Needed a narrower test, \w catches characters invalid in DNS.
+  (rmillner@redhat.com)
+- Proper host name validation. (rmillner@redhat.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
 - Merge pull request #1035 from abhgupta/abhgupta-dev
   (openshift+bot@redhat.com)
