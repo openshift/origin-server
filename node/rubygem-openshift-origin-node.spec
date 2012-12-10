@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.2.5
+Version: 1.2.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,17 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Merge pull request #1007 from sosiouxme/US3036-origin
+  (openshift+bot@redhat.com)
+- Adding oo-accept-systems script for verifying all node hosts from the broker.
+  - also verifies cartridge consistency and checks for stale cartridge cache.
+  oo-accept-node sanity checks public_ip and public_hostname. Minor edits to
+  make node.conf easier to understand. (lmeyer@redhat.com)
+- Fix tests.  The file mock was not working. (rmillner@redhat.com)
+- Post rebase code cleanup. (rmillner@redhat.com)
+- Proper host name validation. (rmillner@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - bug 884409 (dmcphers@redhat.com)
 - Merge pull request #1023 from ramr/dev/websockets (openshift+bot@redhat.com)
