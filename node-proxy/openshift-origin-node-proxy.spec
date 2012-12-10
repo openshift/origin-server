@@ -64,6 +64,9 @@ install -m 755 scripts/bin/node-find-proxy-route-files %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
 install -D -m 640 config/web-proxy-config.json  %{buildroot}%{_sysconfdir}/openshift
 
+mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
+install -D -m 644 config/logrotate.d/openshift-node-web-proxy %{buildroot}%{_sysconfdir}/logrotate.d
+
 mkdir -p %{buildroot}%{webproxymoduledir}/logger
 install -D -m 644 logger/* %{buildroot}%{webproxymoduledir}/logger
 
@@ -110,6 +113,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_initddir}/openshift-node-web-proxy
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
+%attr(0644,-,-) %{_sysconfdir}/logrotate.d/openshift-node-web-proxy
 %ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
 %dir %attr(0644,-,-) %{webproxymoduledir}
 %{webproxymoduledir}

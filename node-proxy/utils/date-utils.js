@@ -90,7 +90,35 @@ exports.getDayOfYear = function(d) {
 
 
 /**
- *  Format date and time ala strftime.
+ *  Returns the timezone offset from UTC in [+-]hhmm format.
+ *
+ *  Examples:
+ *    DateUtils.getTimeZoneOffset();  //  => '-0500'
+ *
+ *  @param   {String|Date}  String or Date object (defaults to current time).
+ *  @return  {String}       TimeZone Offset from UTC in [+-]hhmm format.
+ *  @api     public
+ */
+exports.getTimeZoneOffset = function(d) {
+  /*  Convert defaults/Date to a Date form.  */
+  d  ||  (d = Date.now());
+  var zdate   = (d instanceof Date)? d : new Date(d);
+  var zoffset = Math.abs(zdate.getTimezoneOffset() );
+  var zsign   = "";
+
+  zsign = (zoffset > 0)? "-" : ((zoffset < 0)? "+" : "");
+
+  var offset_in_hrs = Math.abs(zoffset/60);
+  var num_hrs       = parseInt(offset_in_hrs);
+  var num_mins      = parseInt((offset_in_hrs - num_hrs) * 60);
+
+  return zsign + ('0' + num_hrs).slice(-2) + ('0' + num_mins).slice(-2);
+
+};  /*  End of function  getTimeZoneOffset.  */
+
+
+/**
+ *  Returns a formatted date and time string ala strftime.
  *
  *  Examples:
  *    DateUtils.strftime('%a', new Date() );
@@ -100,9 +128,10 @@ exports.getDayOfYear = function(d) {
  *  @return  {String}  Formatted date and time as per the format string.
  *  @api     public
  */
-exports.strftime = function(fmt, d) {
+exports.strftime = function(fmt, zd) {
   /*  Use current date and time if not passed.  */
-  d  ||  (d = new Date());
+  zd  ||  (zd = new Date());
+  var d  = (zd instanceof Date)? zd : new Date(zd);
 
   var self = this;
   return fmt.replace(/%([aAbBcCdDeFGghHIjklmMnpPrRsStTuUVwWxXyYzZ\+%]|E[cCxXyY]|O[deHImMSuUVwWy])/g, function(m) {
@@ -145,7 +174,7 @@ exports.strftime = function(fmt, d) {
       case '%X': return d.toLocaleTimeString();
       case '%y': return (d.getYear() % 100);
       case '%Y': return d.getFullYear();
-      case '%z': return d.getTimezoneOffset();
+      case '%z': return self.getTimeZoneOffset(d);
       case '%Z': return d.toString().slice(-5).slice(1,4);
       case '%+': return self.strftime('%a %b %d %H:%M:%S %Z %Y', d);
       case '%%': return self.strftime('%', d);
@@ -193,6 +222,23 @@ exports.strftime = function(fmt, d) {
   });
 
 };  /*  End of function  strftime.  */
+
+
+/**
+ *  Returns a NCSA common log file like formatted date and time string.
+ *
+ *  Examples:
+ *    DateUtils.getCommonLogFileFormatDate(new Date() );
+ *    //  => '06/Dec/2012:19:26:21 -0500'
+ *    //  Equivalent of DateUtils.strftime('%d/%b/%Y:%H:%M:%S %z', new Date() );
+ *
+ *  @return  {String}  TimeZone Offset from UTC in [+-]hhmm format.
+ *  @api     public
+ */
+exports.getCommonLogFileFormatDate = function(d) {
+  return this.strftime('%d/%b/%Y:%H:%M:%S %z', d);
+
+};  /*  End of function  getCommonLogFileFormatDate.  */
 
 
 

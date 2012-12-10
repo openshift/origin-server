@@ -14,6 +14,7 @@ var statuscodes   = require('../utils/status-codes.js');
 var errorpages    = require('../utils/error-pages.js');
 var Logger        = require('../logger/Logger.js');
 var access_logger = require('../logger/access-logger.js');
+var ws_logger     = require('../logger/websockets-logger.js');
 
 /*!  {{{  section:  'Private-Variables'                                  */
 
@@ -345,6 +346,27 @@ function _requestHandler(proxy_server, req, res) {
  *  @api    private
  */
 function _websocketHandler(proxy_server, ws) {
+  /*  Technically when we got the request - set the start timestamp.  */
+  var ws_metrics = {
+    'remote_addr'  : '',
+    'host_name'    : '',
+    'request_info' : '',
+    'start'        : Date.now(),
+    'end'          : 0,
+    'messages_in'  : 0,
+    'messages_out' : 0,
+    'bytes_in'     : 0,
+    'bytes_out'    : 0,
+    'status_code'  : statuscodes.WS_NORMAL_CLOSURE,
+    'error'        : ''
+  };
+
+  function log_websocket_metrics(err) {
+    ws_metrics.end   = Date.now();
+    ws_metrics.error = err  ||  '';
+    ws_logger.log(ws, ws_metrics);
+  };
+
   /*  Websocket start event.  */
   proxy_server.emit('websocket.start', ws);
 
@@ -371,6 +393,13 @@ function _websocketHandler(proxy_server, ws) {
   /*  Get the original request URI.  */
   var upg_requri = upgrade_req.url ? upgrade_req.url : '/';
 
+  /*  Set the ws_metrics remote address, vhost and request info.  */
+  ws_metrics.remote_addr  = upgrade_req.connection.remoteAddress  ||
+                            upgrade_req.socket.remoteAddress;
+  ws_metrics.host_name    = upg_reqhost;
+  ws_metrics.request_info = util.format('%s %s HTTP/%s', upgrade_req.method,
+                                        upg_requri, upgrade_req.httpVersion);
+
   /*  Get the routes to the destination (try with request URI first).  */
   var routes = proxy_server.getRoute(upg_reqhost + upg_requri);
   if (routes.length < 1) {
@@ -382,6 +411,9 @@ function _websocketHandler(proxy_server, ws) {
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
     /*  Websocket routing error event.  */
     proxy_server.emit('websocket.route.error', ws);
+
+    /*  Log websocket metrics.  */
+    log_websocket_metrics('websocket.route.error');
 
     /*  Send an unexpected condition error - no route.  */
     return ws.close(statuscodes.WS_UNEXPECTED_CONDITION,
@@ -403,8 +435,11 @@ function _websocketHandler(proxy_server, ws) {
     proxy_server.emit('websocket.proxy.error', ws, proxy_ws);
 
     /*  Finish the websocket request w/ an unexpected condition status.  */
-    ws.close(errorpages.WS_UNEXPECTED_CONDITION);
+    ws.close(statuscodes.WS_UNEXPECTED_CONDITION);
     proxy_ws.terminate();
+
+    /*  Log websocket metrics.  */
+    log_websocket_metrics('websocket.proxy.error');
   });
 
   proxy_ws.on('open', function() {
@@ -417,7 +452,10 @@ function _websocketHandler(proxy_server, ws) {
     proxy_server.emit('websocket.proxy.close', ws, proxy_ws);
 
     /*  Finish the websocket request normally.  */
-    ws.close(errorpages.WS_NORMAL_CLOSURE);
+    ws.close(statuscodes.WS_NORMAL_CLOSURE);
+
+    /*  Log websocket metrics.  */
+    log_websocket_metrics();
   });
 
   proxy_ws.on('message', function(data, flags) {
@@ -426,6 +464,10 @@ function _websocketHandler(proxy_server, ws) {
 
     /*  Proxy message back to the websocket request originator.  */
     ws.send(data, flags);
+
+    /*  Increment number of outbound messages + bytes.  */
+    ws_metrics.messages_out += 1;
+    ws_metrics.bytes_out    += data.length;
   });
 
   /*  Handle the incoming websocket error/close/message events.  */
@@ -436,6 +478,9 @@ function _websocketHandler(proxy_server, ws) {
     /*  Finish the websocket request w/ an unexpected condition status.  */
     proxy_ws.close(errorpages.WS_UNEXPECTED_CONDITION);
     ws.terminate();
+
+    /*  Log websocket metrics.  */
+    log_websocket_metrics('websocket.error');
   });
 
   ws.on('close', function() {
@@ -452,6 +497,10 @@ function _websocketHandler(proxy_server, ws) {
 
     /*  Proxy data to outgoing websocket to the backend content server.  */
     proxy_ws.send(data, flags);
+
+    /*  Increment number of inbound messages + bytes.  */
+    ws_metrics.messages_in += 1;
+    ws_metrics.bytes_in    += data.length;
   });
 
 };  /*  End of function  websocketHandler.  */
@@ -524,6 +573,7 @@ function _asyncLoadRouteFiles(routes, callback) {
 function ProxyServer(f) {
   this.proto_servers  = { };
   this.ws_servers     = { };
+  this.loggers        = { };
   this.routes         = new ProxyRoutes.ProxyRoutes();
   this.initialized    = false;
   this._debug         = false;
@@ -675,6 +725,12 @@ ProxyServer.prototype.loadRoutes = function() {
  */
 ProxyServer.prototype.initServer = function() {
   Logger.info('Initializing ProxyServer ... ');
+
+  /*  Setup loggers.  */
+  for (var l in this.config.loggers) {
+    this.loggers[l] = new Logger.Logger(l, this.config.loggers[l]);
+  }
+
 
   /*  Stop the server and set up the routing table.  */
   this.stop();

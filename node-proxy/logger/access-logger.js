@@ -4,6 +4,7 @@ var util = require('util');
 
 /*  load in Logger and date utils.  */
 var Logger    = require('./Logger.js');
+var httputils = require('../utils/http-utils.js');
 var dateutils = require('../utils/date-utils.js');
 
 
@@ -13,46 +14,6 @@ var _access_logger = 'access.log';
 
 /*!
  *  }}}  //  End of section  Private-Variables.
- *  ---------------------------------------------------------------------
- */
-
-
-/*!  {{{  section: 'Internal-Functions'                                 */
-
-function _getTimeZoneOffset() {
-  var now     = new Date(Date.now() );
-  var zoffset = Math.abs(now.getTimezoneOffset() );
-  var zsign   = "";
-
-  zsign = (zoffset > 0)? "-" : ((zoffset < 0)? "+" : "");
-
-  var offset_in_hrs = Math.abs(zoffset/60);
-  var num_hrs       = parseInt(offset_in_hrs);
-  var num_mins      = parseInt((offset_in_hrs - num_hrs) * 60);
-
-  return zsign + ('0' + num_hrs).slice(-2) + ('0' + num_mins).slice(-2);
-
-}  /*  End of function  _getTimeZoneOffset.  */
-
-
-function _getAuthUser(req) {
-  var auth = '  ';
-  req  &&  req.headers  &&  (auth = req.headers['Authorization']);
-
-  try {
-    var parts = auth.split(' ');
-    var zbuf = new Buffer(parts[1], 'base64');
-    return  zbuf.toString().split(':')[0];
-  } catch(err) {
-  }
-
-  return undefined;
-
-}  /*  End of function  _getAuthUser.  */
-
-
-/*!
- *  }}}  //  End of section  Internal-Functions.
  *  ---------------------------------------------------------------------
  */
 
@@ -91,20 +52,21 @@ exports.log = function(req, res, metrics) {
                        req.socket.remoteAddress      ||  '-';
   var vhost          = req.headers.host.split(':')[0]  ||  '-';
   var remote_login   = '-';
-  var auth_user      = _getAuthUser(req)  ||  '-';
-  var tzoffset       = _getTimeZoneOffset();
+  var auth_user      = httputils.getAuthUserName(req.headers)  ||  '-';
+  var tzoffset       = dateutils.getTimeZoneOffset();
+  var referer        = req.headers['referer']  ||  '-';
+  var user_agent     = req.headers['user-agent']  ||  '-';
   var protocol       = 'http';
   var nbytes         = metrics.bytes_out;
   var req_time_ms    = metrics.end - metrics.start;
+
   var response_ka    = '';
   if (res.headers  &&  res.headers['connection']) {
      response_ka = res.headers['connection'];
   }
 
-  var keepalive_flag = '-';  /*  X = aborted , += keep-alive, -= closed  */
-  var referer        = req.headers['referer']  ||  '-';
-  var user_agent     = req.headers['user-agent']  ||  '-';
 
+  var keepalive_flag = '-';  /*  X = aborted , += keep-alive, -= closed  */
   if (metrics.error) { 
     keepalive_flag = 'X';
   }
@@ -118,26 +80,22 @@ exports.log = function(req, res, metrics) {
                              tzoffset);
 
   /**
-   *  Log an apache style access log message.
+   *  Log a NCSA/apache style access log message.
    *  Example:
-   *    209.132.181.86 nodescale-rr64.dev.rhcloud.com - -                  \
+   *    209.132.181.15 nodescale-rr64.dev.rhcloud.com - -                  \
    *    [04/Dec/2012:18:47:03 -0500] "GET /favicon.ico HTTP/1.1"           \
    *    404 41 "-"                                                         \
    *    " Lynx/2.8.6rel.5 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.0.0-fips"  \
    *    (42ms) +
    */
-  var zmsg = util.format('%s %s %s %s [%s] "%s" %d %d "%s" "%s" (%dms) %s',
+  var zmsg = util.format('%s %s %s %s [%s] "%s" %d %d "%s" "%s" (%dms) %s\n',
                          remote_host, vhost, remote_login, auth_user,
                          ap_times, req_info,
                          res.statusCode, metrics.bytes_out, referer,
                          user_agent,
                          req_time_ms, keepalive_flag);
-  /**
-   *  TODO:  This is still work to be done. 
-   *  console.log(zmsg);
-   *  return getAccessLogger().info(zmsg);
-   */
 
+  return getAccessLogger().logMessage(zmsg, "INFO");
 
 }  /*  End of function  logAccess.  */
 
