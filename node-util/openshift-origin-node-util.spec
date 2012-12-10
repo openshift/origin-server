@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.2.5
+Version: 1.2.6
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,12 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Adding oo-accept-systems script for verifying all node hosts from the broker.
+  - also verifies cartridge consistency and checks for stale cartridge cache.
+  oo-accept-node sanity checks public_ip and public_hostname. Minor edits to
+  make node.conf easier to understand. (lmeyer@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Calculate date duration in a 1.9 compatible way (ironcladlou@gmail.com)
 
