@@ -81,7 +81,7 @@
 
 <xsl:template match="node()[name(.)='datasources']">
     <xsl:copy>
-        <datasource jndi-name="java:jboss/datasources/jbpmDS" pool-name="jbpmDS" enabled="true" use-java-context="true">
+        <datasource xmlns="urn:jboss:domain:datasources:1.0" jndi-name="java:jboss/datasources/jbpmDS" pool-name="jbpmDS" enabled="true" use-java-context="true">
             <connection-url>jdbc:h2:mem:jbpm;DB_CLOSE_DELAY=-1</connection-url>
             <driver>h2</driver>
             <security>
@@ -115,7 +115,7 @@
 <xsl:template match="node()[name(.)='security-domains']">
     <xsl:copy>
         <xsl:apply-templates select="@*|node()"/>
-        <security-domain name="bpel-console" cache-type="default">
+        <security-domain xmlns="urn:jboss:domain:security:1.1" name="bpel-console" cache-type="default">
             <authentication>
                 <login-module code="UsersRoles" flag="required"/>
             </authentication>
