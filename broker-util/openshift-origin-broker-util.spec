@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.2.3
+Version: 1.2.4
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Merge pull request #1007 from sosiouxme/US3036-origin
+  (openshift+bot@redhat.com)
+- Adding oo-accept-systems script for verifying all node hosts from the broker.
+  - also verifies cartridge consistency and checks for stale cartridge cache.
+  oo-accept-node sanity checks public_ip and public_hostname. Minor edits to
+  make node.conf easier to understand. (lmeyer@redhat.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Removing references to complete-origin-setup from the man pages
   (bleanhar@redhat.com)
