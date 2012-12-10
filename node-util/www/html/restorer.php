@@ -8,6 +8,8 @@ if (preg_match('/[0-9a-fA-F]{32}/', $uuid)) {
     $proto = "http" . ( isset($_SERVER['HTTPS']) ? 's' : '' ) . '://';
     $url=str_replace("/$uuid", "", $_SERVER["PATH_INFO"]);
     header("Location: $proto$host$url");
+    // Prevent the same connection from being reused - causes a redirect loop.
+    header("Connection: close");
 } else {
     // someone is trying to attack
     error_log("Invalid uuid $uuid given to restorer.php");

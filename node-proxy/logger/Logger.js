@@ -12,6 +12,7 @@ var dateutils    = require('../utils/date-utils.js');
 var _zloggers    = { };  /*  Dictionary of loggers.  */
 var _log_methods = (Object.keys(logconstants.LOG_LEVEL_SYNONYMS) +
                     ',' + logconstants.LOG_LEVELS).split(',');
+var MSECS_PER_HOUR = 60 * 60 * 1000;
 
 
 /*!
@@ -92,6 +93,7 @@ function _mapLogLevel(lvl) {
  */
 function _computeExpiry(ts, freq) {
   var freq_days_map = {
+    'off' : -1,
     'daily': 1,   '1day': 1,
     '2days': 2,  '3days': 3, '4days': 4, '5days': 5,
     '6days': 6,
@@ -105,6 +107,48 @@ function _computeExpiry(ts, freq) {
   return(expiry - ts);
 
 }  /*  End of function  _computeExpiry.  */
+
+
+/**
+ *  Checks if the log file was renamed and if so reopens the log
+ *  asynchronously in the background.
+ *
+ *  Examples:
+ *    var errlog = Logger.get('error.log');
+ *    //  Check for log renames every 30 minutes.
+ *    var zto = setTimeout(_logFileRenameCheck, 30*60*1000, errlog);
+ *
+ *  @param  {Logger}  The logger instance to operate on.
+ *  @api    private
+ */
+function _logFileRenameCheck(zlog) {
+  /*  Ensure we have all the bits we need.  */
+  if (!zlog._stream  ||  !zlog._stream.fd  ||  !zlog.logfile) {
+    return;
+  }
+
+  /*  Check if the path exists -- if not we got renamed.  */
+  if (!path.existsSync(zlog.logfile) ) {
+    zlog.close();
+    zlog.open();
+    return;
+  }
+
+
+  /*  Run a slower check to stat both the fd + file and compare inode #. */
+  fs.fstat(zlog._stream.fd, function(ferr, fstats) {
+    if (!ferr) {
+      fs.lstat(zlog.logfile, function(lerr, lstats) {
+        if (!lerr  &&  (lstats.ino !== fstats.ino) ) {
+          /*  Inode changed - reopen log file.  */
+          zlog.close();
+          zlog.open();
+        }
+      });
+    }
+  });
+
+}  /*  End of function _logFileRenameCheck.  */
 
 
 /*!
@@ -241,14 +285,23 @@ Logger.prototype.open = function() {
 
   var logdir = path.dirname(this.logfile);
   if (path.existsSync(logdir) ) {
-    this._stream = fs.createWriteStream(this.logfile, {'flags': 'wt'});
+    this._stream = fs.createWriteStream(this.logfile, {'flags': 'a'});
+    var self = this;
     this._stream.once('open', function(fd) {
-      this._open_ts = Date.now();
-      this._stream.write('# Log opened @ ' + Date(this._open_ts) + '\n');
+      self._open_ts = Date.now();
+      self._stream.write('# Log opened @ ' + Date(self._open_ts) + '\n');
 
       /*  Compute rollover time and set a timeout to do the rollover.  */
-      var expiry = _computeExpiry(this._open_ts, this.rollover.frequency);
-      this._timeoutId = setTimeout(this.rollover, expiry);
+      var expiry = _computeExpiry(self._open_ts, self.rollover.frequency);
+      if (expiry <= 0) {
+         /*  No expiry - need to check every hour for log file renames.  */
+         self._timeoutId = setTimeout(_logFileRenameCheck, MSECS_PER_HOUR,
+                                      self);
+      }
+      else {
+        self._timeoutId = setTimeout(self.rollover, expiry);
+      }
+
     });
   }
   else {
@@ -376,14 +429,14 @@ Logger.prototype.setFormat = function(fmt) {
 
 
 /**
- *  Logs a message at the specified logging level.
+ *  Logs a message (raw log) at the specified logging level.
  *
  *  Examples:
  *    var mylog = Logger.get('mylog.log');
- *    mylog.logMessage('Epic failure!', 'ERR');
+ *    mylog.logMessage('Raw error message - Epic failure!', 'ERR');
  *
- *  @param  {String}  message to be logged.
- *  @param  {String}  logging level.
+ *  @param  {String}   the message to be logged.
+ *  @param  {String}   logging level.
  *  @api    public
  */
 Logger.prototype.logMessage = function(msg, lvl) {
@@ -394,16 +447,12 @@ Logger.prototype.logMessage = function(msg, lvl) {
      return;
   }
   
-  var ts = Date.now();
-
-  /*  TODO: To do - use this._format to generate the log message.  */
-  var zmsg = ts + ':' + lvl + ':[' + Date(ts) + '] - ' + msg;
   if (this._stream) {
     /*  TODO: handle kernel buffering and drain events.  */
-    return this._stream.write(zmsg);
+    return this._stream.write(msg);
   }
 
-  return console.log(zmsg);
+  return console.log(msg);
 
 };  /*  End of function  logMessage.  */
 
@@ -448,8 +497,20 @@ _log_methods.forEach(function(m) {
    *  @api    public
    */
   Logger.prototype[m.toLowerCase() ] = function() {
-    return this.logMessage(util.format.apply(null, arguments),
-                           m.toUpperCase() );
+    var ts     = Date.now();
+    var fmt_ts = dateutils.getCommonLogFileFormatDate(ts);
+    var lvl    =  m.toUpperCase();
+
+    /**
+     *  TODO: To do - use this._format to generate the log message.
+     *  As of now, we are using a format as:
+     *    %{date-ts}:%{level}:[%{date-in-'%d/%b/%Y:%H:%M:%S %z'-fmt}] - %{msg}
+     *  E.g.
+     *  354843117509:INFO:[06/Dec/2012:20:18:37 -0500] - f(x) = pow(b,x)
+     */
+    var zmsg = util.format('%d:%s:[%s] - %s', ts, lvl, fmt_ts,
+                           util.format.apply(null, arguments) );
+    return this.logMessage(zmsg, lvl);
 
   };  /*  End of function Logger[m].  */
 

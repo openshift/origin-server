@@ -7,8 +7,8 @@
         "description"   : "Log rollover configuration",
         "max-size-bytes": "Max size of file in bytes (TODO)",
         "frequency"     : [ "How often log files are rotated. One of: ",
-                            "daily, 1day, 2days, 3days, 4days, 5days, ",
-                            "7days,weekly" ],
+                            "off, daily, 1day, 2days, 3days, 4days, 5days, ",
+                            "7days, weekly" ],
         "suffix"        : "Rolled over log file suffix",
         "max-retention" : "How many rolled over copies to retain"
       }
@@ -63,7 +63,7 @@
     "access.log": {
       "file"    : "/var/log/node-web-proxy/access.log",
       "rollover": {
-        "frequency"     : "daily",
+        "frequency"     : "off",
         "suffix"        : "%F",
         "max-retention" : 7
       }
@@ -73,11 +73,21 @@
       "file"    : "/var/log/node-web-proxy/error.log",
       "rollover": {
         "max-size-bytes" : "TODO-add-support",
-        "frequency"      : "daily",
+        "frequency"      : "off",
         "suffix"         : "%F",
         "max-retention"  : 7
       }
+    },
+
+    "websockets.log": {
+      "file"    : "/var/log/node-web-proxy/websockets.log",
+      "rollover": {
+        "frequency"     : "off",
+        "suffix"        : "%F",
+        "max-retention" : 7
+      }
     }
+
   },
 
   "pidfile": "/var/run/openshift-node-web-proxy.pid",
