@@ -695,7 +695,7 @@ legend + .control-group {
 
 .control-group-important {
   font-size: floor($baseFontSize + 1);
-  input, textarea, select, .uneditable-input, .add-on, .add-on-first, .add-on-last, .add-on-middle {
+  input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], textarea, select, .uneditable-input, .add-on, .add-on-first, .add-on-last, .add-on-middle {
     font-size: floor($baseFontSize + 1);
     padding: 8px 10px;
   }
@@ -707,3 +707,4 @@ legend + .control-group {
     height: 36px;
   }
 }
+
