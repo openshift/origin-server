@@ -38,7 +38,7 @@ class Usage
   end
   
   def self.find_latest_by_gear(gear_id, usage_type)
-    where(:gear_id => gear_id, :usage_type => usage_type).sort(:begin_time.desc).first
+    where(:gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
   end
 
   def self.find_user_summary(login)
