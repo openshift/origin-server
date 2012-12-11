@@ -807,7 +807,23 @@ ProxyServer.prototype.start = function() {
 
   var self = this;
 
+  var nlisteners = 0;
+
+  /*  Count the number of listeners we have.  */
+  for (var pname in this.proto_servers) {
+    nlisteners += this.config.servers[pname].ports.length;
+  }
+
+
+  var switchUser = function() {
+    if ((0 === process.getuid())  &&  (0 ===  process.getgid()) ) {
+      process.setgid(self.config.runas.group);
+      process.setuid(self.config.runas.user);
+    }
+  };
+
   /*  Start all the protocol handling servers - listen on ports.  */
+  var lcnt = 0;
   for (var pname in this.proto_servers) {
     Logger.info('Starting protocol handler for ' + pname + ' ...');
 
@@ -817,6 +833,8 @@ ProxyServer.prototype.start = function() {
           /*  Listen succeeded - write pid file.  */
           Logger.info(pname + ' listening on port ' + port);
           fs.writeFileSync(self.config.pidfile, process.pid);
+          lcnt += 1;
+          (lcnt == nlisteners)  &&  switchUser();
         });
 
       } catch(err) {
