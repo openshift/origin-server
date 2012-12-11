@@ -19,6 +19,7 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
+  alias_method :mongoid_save, :save
   
   DEFAULT_SSH_KEY_NAME = "default"
 
@@ -56,11 +57,32 @@ class CloudUser
     @auth_method
   end
   
-  # Convinience method to get the max_gears capability
+  # Convenience method to get the max_gears capability
   def max_gears
     self.capabilities["max_gears"]
   end
-  
+
+  def save
+    res = false
+    notify_observers(:before_cloud_user_create)
+    begin
+      begin
+        res = mongoid_save
+        notify_observers(:cloud_user_create_success)
+      rescue Exception => e
+        Rails.logger.debug e
+        begin
+          notify_observers(:cloud_user_create_error)
+        ensure
+          raise
+        end
+      end
+    ensure
+      notify_observers(:after_cloud_user_create)
+    end
+    res
+  end
+
   # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propagated to the
   # domains/application that the user has access to.
   def add_ssh_key(key)
@@ -72,8 +94,8 @@ class CloudUser
       self.run_jobs
     else
       self.ssh_keys.push key
+      self.save
     end
-    self
   end
   
   # Used to update an ssh-key on the user. Use this instead of ssh_keys= so that the key update can be propagated to the
@@ -95,8 +117,8 @@ class CloudUser
       self.run_jobs      
     else
       key.delete
+      self.ssh_keys.delete_if {|ssh_key| ssh_key.name == name}
     end
-    self
   end
   
   def domains
