@@ -23,7 +23,7 @@ module MCollective
       end
 
       def cleanpwd(arg)
-        arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]')
+        arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
       end
 
       def oo_app_create(cmd, args)
