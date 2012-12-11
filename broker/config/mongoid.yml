@@ -6,8 +6,9 @@ development:
         - localhost:27017
       username: openshift
       password: mooo
-      options:
-        ssl: false
+  options:
+    raise_not_found_error: false
+    ssl: false
 production:
   sessions:
     default:
@@ -16,8 +17,9 @@ production:
         - localhost:27017
       username: openshift
       password: mooo
-      options:
-        ssl: false
+  options:
+    raise_not_found_error: false
+    ssl: false
 test:
   sessions:
     default:
@@ -26,5 +28,6 @@ test:
         - localhost:27017
       username: openshift
       password: mooo
-      options:
-        ssl: false
+  options:
+    raise_not_found_error: false
+    ssl: false
