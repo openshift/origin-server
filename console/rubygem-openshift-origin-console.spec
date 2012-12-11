@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.5
+Version: 1.2.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,22 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
+- Reverted oauth mixin (ffranz@redhat.com)
+- Added helpers for outage jsonp (ffranz@redhat.com)
+- changes associated with revamped simple template (sgoodwin@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Updating our Twitter clients to use the REST API 1.1 (ffranz@redhat.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Merge pull request #1032 from smarterclayton/quickstart_issues_in_prod
   (dmcphers@redhat.com)
