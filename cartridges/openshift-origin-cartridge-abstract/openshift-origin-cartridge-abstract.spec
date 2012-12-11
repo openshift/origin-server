@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.2.7
+Version: 1.2.8
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.8-1
+- Merge pull request #1029 from bdecoste/master (openshift+bot@redhat.com)
+- removed ews2.0 and sy xslt (bdecoste@gmail.com)
+- ews2 and bugs (bdecoste@gmail.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
 - Merge pull request #1035 from abhgupta/abhgupta-dev
   (openshift+bot@redhat.com)
