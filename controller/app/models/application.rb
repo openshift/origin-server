@@ -377,6 +377,7 @@ class Application
   # scale_by::
   #   Number of gears to add (+ve) or remove (-ve)
   def scale_by(group_instance_id, scale_by)
+    raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by})
       result_io = ResultIO.new
