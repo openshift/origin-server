@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.2.4
+Version: 1.2.5
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- remove logic where uuid of a gear could change for a cartridge move - fix
+  bug#884589 (rchopra@redhat.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - fix for bugs 883554 and 883752 (abhgupta@redhat.com)
 
