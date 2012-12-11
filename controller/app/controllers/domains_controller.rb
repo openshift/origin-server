@@ -38,7 +38,7 @@ class DomainsController < BaseController
     end
 
     if Domain.where(owner: @cloud_user).count > 0
-      return render_error(:conflict, "There is already a namespace assocaited with this user", 103, "ADD_DOMAIN", "id")
+      return render_error(:conflict, "There is already a namespace associated with this user", 103, "ADD_DOMAIN", "id")
     end
 
     domain = Domain.new(namespace: namespace, owner: @cloud_user, users: [@cloud_user._id])
