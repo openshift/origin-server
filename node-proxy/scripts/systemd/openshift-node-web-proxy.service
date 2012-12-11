@@ -3,8 +3,10 @@ Description=OpenShift Node Web Routing Proxy
 After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
-ExecStart=/usr/sbin/openshift-node-web-proxy
-ExecReload=/bin/kill -USR2 $MAINPID
+EnvironmentFile=/etc/sysconfig/openshift-node-web-proxy
+ExecStart=/usr/bin/node $PROXYSERVER --config $PROXYCONFIG
+ExecReload=/usr/bin/kill -HUP $MAINPID
+Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target

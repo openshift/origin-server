@@ -103,6 +103,14 @@ mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{brokerdir}
 %endif
 rm %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-*
 
+%if 0%{?rhel}%{?fedora} <= 6
+rm %{buildroot}%{brokerdir}/httpd/broker.conf
+mv %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf %{buildroot}%{brokerdir}/httpd/broker.conf
+%endif
+%if 0%{?fedora} >= 17
+rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
+%endif
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -164,7 +172,7 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/fixfiles -R rubygem-passenger restore
 /sbin/fixfiles -R mod_passenger restore
 /sbin/restorecon -R -v /var/run
-/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
+#/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
 /sbin/restorecon -v '%{_localstatedir}/log/openshift/user_action.log'
 

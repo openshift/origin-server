@@ -19,6 +19,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:       %{?scl:%scl_prefix}rubygem(rails)
 Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(rdiscount)
@@ -36,15 +37,8 @@ Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:       %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:       %{?scl:%scl_prefix}rubygem(webmock)
 
-
-%if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
-%endif
-
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
 BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
 BuildRequires:  %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(compass-rails)
@@ -59,6 +53,11 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
+%endif
+BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires:  %{?scl:%scl_prefix}ruby 
+BuildRequires:  %{?scl:%scl_prefix}rubygems
+
 
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
@@ -80,6 +79,7 @@ OpenShift Origin Management Console ri documentation
 set -e
 mkdir -p .%{gem_dir}
 
+%if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
 bundle install --local
 
@@ -91,6 +91,7 @@ echo > log/production.log
 popd
 
 rm -f Gemfile.lock
+%endif
 
 # Create the gem as gem install only works on a gem file
 gem build %{gem_name}.gemspec
