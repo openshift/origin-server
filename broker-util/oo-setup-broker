@@ -259,7 +259,7 @@ logfile = /var/log/mcollective-client.log
 securityprovider = psk
 plugin.psk = unset
 connector = qpid
-plugin.qpid.host=broker.example.com
+plugin.qpid.host=broker.#{node_domain}
 plugin.qpid.secure=false
 plugin.qpid.timeout=5
 
@@ -285,7 +285,7 @@ direct_addressing = n
 securityprovider = psk
 plugin.psk = unset
 connector = qpid
-plugin.qpid.host=broker.example.com
+plugin.qpid.host=broker.#{node_domain}
 plugin.qpid.secure=false
 plugin.qpid.timeout=5
 
@@ -397,9 +397,12 @@ run "service named restart"
 run "/usr/sbin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" 
 run "service named stop"
 
+$log.info "Updating broker hostname in apache"
+find_and_replace( "/etc/httpd/conf.d/000000_openshift_origin_broker_proxy.conf", /  ServerName.*$/, "  ServerName broker.#{node_domain}" )
+
 $log.info "Updating system wide OpenShift CLI configuration to use local broker"
 File.open("/etc/openshift/express.conf", "w") do |f|
-  f.write("libra_server=broker.example.com\n")
+  f.write("libra_server=broker.#{node_domain}\n")
 end
 
 $log.info "Updating root user's OpenShift configuration to use 'admin' user"
@@ -417,11 +420,29 @@ chown apache:apache Gemfile.lock
 popd
 EOF
 
+$log.info "Updating console configuration"
+find_and_replace("/etc/openshift/console.conf", /DOMAIN_SUFFIX=.*/, "DOMAIN_SUFFIX=#{node_domain}")
+find_and_replace("/etc/openshift/console.conf", /CONSOLE_SECURITY=.*/, "CONSOLE_SECURITY=basic")
+$log.info "Installing console gem dependencies (This might take a while)"
+run <<-EOF
+pushd /var/www/openshift/console/
+rm -f Gemfile.lock
+bundle install
+chown apache:apache Gemfile.lock
+rm -f tmp/cache/*
+popd
+EOF
+
+$log.info "Fixing console SELinux and file permission"
+run "chown -R apache:apache /var/www/openshift/console"
+run "chcon -R system_u:object_r:httpd_log_t:s0 /var/www/openshift/console/log"
+run "chcon -R system_u:object_r:httpd_tmp_t:s0 /var/www/openshift/console/tmp"
+
 $log.info "Updating sshd configuration to enable OpenShift git push"
 insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
  
 $log.info "Enabling OpenShift services"
-["httpd","sshd","qpidd","mcollective","openshift-broker","mongod"].each do |service|
+["httpd","sshd","qpidd","mcollective","openshift-broker","openshift-console","mongod"].each do |service|
   run "/sbin/chkconfig #{service} on" 
 end
 
