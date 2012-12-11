@@ -1,4 +1,4 @@
-class RestDomain13 < OpenShift::Model
+class RestDomain < OpenShift::Model
   attr_accessor :id, :suffix, :links
   
   def initialize(domain, url, nolinks=false)

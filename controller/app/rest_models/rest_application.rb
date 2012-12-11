@@ -1,6 +1,6 @@
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :initial_git_url, :cartridges
+      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges
 
   def initialize(app, url, nolinks=false)
     self.embedded = {}
@@ -19,7 +19,6 @@ class RestApplication < OpenShift::Model
     self.aliases = app.aliases
     self.gear_count = app.num_gears
     self.domain_id = app.domain.namespace
-    self.initial_git_url = app.init_git_url
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
@@ -95,6 +94,12 @@ class RestApplication < OpenShift::Model
         "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                       
+          Param.new("event", "string", "event", "tidy")                                                                                                                                                                                                                            
+        ]),                                                                                                                                                                                                                                                                        
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                             
+          Param.new("event", "string", "event", "reload")                                                                                                                                                                                                                          
+        ]),
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
@@ -108,7 +113,8 @@ class RestApplication < OpenShift::Model
             OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
           ]
         ),
-        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"))
+        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable"))
       }
     end
   end

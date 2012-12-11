@@ -1,10 +1,11 @@
 class RestCartridge10 < OpenShift::Model
-  attr_accessor :type, :name, :links, :properties
+  attr_accessor :type, :name, :links, :properties, :status_messages
 
-  def initialize(cart, app, cinst, url, nolinks=false)
+  def initialize(cart, app, cinst, url, status_messages, nolinks=false)
     self.name = cart.name
     self.type = "standalone"
     self.type = "embedded" if cart.categories.include? "embedded"
+    self.status_messages = status_messages
 
     self.properties = {}
     if app

@@ -42,10 +42,10 @@ class EmbCartEventsController < BaseController
       return render_exception(e, "CARTRIDGE_EVENT")
     end
    
-    if $requested_api_version >= 1.2
-      app = RestApplication12.new(application, get_url, nolinks)
-    else
+    if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
+    else
+      app = RestApplication.new(application, get_url, nolinks)
     end
     render_success(:ok, "application", app, "CARTRIDGE_EVENT", "Added #{event} on #{cartridge} for application #{id}", true) 
   end

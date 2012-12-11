@@ -36,8 +36,7 @@ class BaseController < ActionController::Base
         "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
           Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
         ]),
-        "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
-        "LIST_ESTIMATES" => Link.new("List available estimates", "GET" , URI::join(get_url, "estimates"))
+        "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges"))
       }
       
       base_url = Rails.application.config.openshift[:community_quickstarts_url]

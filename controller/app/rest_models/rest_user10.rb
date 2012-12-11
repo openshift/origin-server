@@ -18,7 +18,7 @@ class RestUser10 < OpenShift::Model
         "LIST_KEYS" => Link.new("Get SSH keys", "GET", URI::join(url, "user/keys")),
         "ADD_KEY" => Link.new("Add new SSH key", "POST", URI::join(url, "user/keys"), [
           Param.new("name", "string", "Name of the key"),
-          Param.new("type", "string", "Type of Key", ["ssh-rsa", "ssh-dss"]),
+          Param.new("type", "string", "Type of Key", SshKey.get_valid_ssh_key_types()),
           Param.new("content", "string", "The key portion of an rsa key (excluding ssh-rsa and comment)"),
         ]),
       }

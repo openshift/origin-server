@@ -15,10 +15,10 @@ class CartridgesController < BaseController
     end
 
     cartridges.map! do |c|
-      if $requested_api_version >= 1.1
-        RestCartridge11.new(c, nil, nil, nil, nil, nil, get_url, nil, nolinks)
+      if $requested_api_version == 1.0
+        RestCartridge10.new(c, nil, nil, get_url, nil, nolinks)
       else
-        RestCartridge10.new(c, nil, nil, get_url, nolinks)
+        RestCartridge.new(c, nil, nil, nil, nil, nil, get_url, nil, nolinks)
       end
     end
     render_success(:ok, "cartridges", cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges")

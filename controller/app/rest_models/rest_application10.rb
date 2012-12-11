@@ -96,20 +96,21 @@ class RestApplication10 < OpenShift::Model
         "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                       
+          Param.new("event", "string", "event", "tidy")                                                                                                                                                                                                                            
+        ]), 
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                             
+          Param.new("event", "string", "event", "reload")                                                                                                                                                                                                                          
+        ]),
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")
         ]),
         "DELETE" => Link.new("Delete application", "DELETE", URI::join(url, "domains/#{@domain_id}/applications/#{@name}")),
         "ADD_CARTRIDGE" => Link.new("Add embedded cartridge", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"),[
-            Param.new("name", "string", "framework-type, e.g.: mongodb-2.0", carts)
-          ],[
-            OptionalParam.new("colocate_with", "string", "The component to colocate with", app.component_instances.map{|c| c.cartridge_name}),
-            OptionalParam.new("scales_from", "integer", "Minumimum number of gears to run the component on."),
-            OptionalParam.new("scales_to", "integer", "Maximum number of gears to run the component on."),
-            OptionalParam.new("additional_storage", "integer", "Additional GB of space to request on all gears running this component."),
-          ]
-        ),
-        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges"))
+          Param.new("cartridge", "string", "framework-type, e.g.: mongodb-2.2", carts)
+        ]),
+        "LIST_CARTRIDGES" => Link.new("List embedded cartridges", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/cartridges")),
+        "DNS_RESOLVABLE" => Link.new("Resolve DNS", "GET", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/dns_resolvable"))
       }
     end
   end

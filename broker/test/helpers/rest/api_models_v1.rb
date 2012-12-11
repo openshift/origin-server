@@ -16,10 +16,10 @@ class Param_V1 < BaseObj
        (self.type != obj.type) ||
        ((self.valid_options.length > 0) && (self.valid_options.size > obj.valid_options.size)) ||
        ((self.invalid_options.length > 0) && (self.invalid_options.size > obj.invalid_options.size))
-      raise_ex("Link Param '#{self.name}' inconsistent")
+      raise_ex("Link Param '#{self.name}' inconsistent in #{obj.inspect}")
     end
     self.valid_options.each do |opt|
-      raise_ex("Link Param option '#{opt}' NOT found") unless obj.valid_options.include?(opt)
+      raise_ex("Link Param option '#{opt}' NOT found in #{obj.inspect}") unless obj.valid_options.include?(opt)
     end if self.valid_options.length > 0
   end
 end
@@ -144,9 +144,7 @@ class BaseApi_V1 < BaseObj_V1
          "ADD_DOMAIN" => Link_V1.new("POST", "domains", [
            Param_V1.new("id", "string")
           ]),
-         "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges"),
-         "LIST_TEMPLATES" => Link_V1.new("GET", "application_templates"),
-         "LIST_ESTIMATES" => Link_V1.new("GET", "estimates")
+         "LIST_CARTRIDGES" => Link_V1.new("GET", "cartridges")
     } unless $nolinks
   end
 end
@@ -216,17 +214,6 @@ class RestCartridge_V1 < BaseObj_V1
   end
 end
 
-class RestEstimates_V1 < BaseObj_V1
-  attr_accessor :links
-
-  def initialize
-    self.links = {
-      "GET_ESTIMATE" => Link_V1.new("GET", "estimates/application",
-        [ Param_V1.new("descriptor", "string") ])
-    } unless $nolinks
-  end
-end
-
 class RestApplicationEstimate_V1 < BaseObj_V1
   attr_accessor :components
 
@@ -258,7 +245,6 @@ class RestDomain_V1 < BaseObj_V1
       "ADD_APPLICATION" => Link_V1.new("POST", "domains/#{id}/applications",
         [Param_V1.new("name", "string")],
         [OptionalParam_V1.new("cartridge", "string"),
-         OptionalParam_V1.new("template", "string"),
          OptionalParam_V1.new("scale", "boolean", [true, false], false),
          OptionalParam_V1.new("gear_profile", "string", ["small"], "small")]),
       "UPDATE" => Link_V1.new("PUT", "domains/#{id}",

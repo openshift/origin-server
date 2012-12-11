@@ -152,10 +152,10 @@ class EmbCartController < BaseController
       
       application.remove_features([feature])
       
-      if $requested_api_version >= 1.2
-        app = RestApplication12.new(application, get_url, nolinks)
-      else
+      if $requested_api_version == 1.0
         app = RestApplication10.new(application, get_url, nolinks)
+      else
+        app = RestApplication.new(application, get_url, nolinks)
       end
       
       render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)

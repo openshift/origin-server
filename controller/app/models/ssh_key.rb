@@ -34,4 +34,8 @@ class SshKey
   def self.validation_map
     {name: 117, type: 116, content: 108}
   end
+  
+  def self.get_valid_ssh_key_types()
+    return VALID_SSH_KEY_TYPES
+  end
 end
