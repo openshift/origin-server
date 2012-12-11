@@ -24,7 +24,17 @@ class ResultIO
     self.cart_properties = resultIO.cart_properties.merge(self.cart_properties)
     self.exitcode = resultIO.exitcode
     self.data += resultIO.data
-    self.hasUserActionableError = self.hasUserActionableError && resultIO.hasUserActionableError
+
+    if resultIO.exitcode != 0
+      if resultIO.hasUserActionableError
+        unless (!self.hasUserActionableError) && self.exitcode != 0
+          self.hasUserActionableError = true
+        end
+      else
+        self.hasUserActionableError = false
+      end
+    end
+
     self
   end
   
