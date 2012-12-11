@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.2.4
+Version: 1.2.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,11 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- Merge pull request #1052 from rmillner/BZ877321 (openshift+bot@redhat.com)
+- Add username to filter list. (rmillner@redhat.com)
+- Hide the password in mcollective logs. (rmillner@redhat.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Proper host name validation. (rmillner@redhat.com)
 
