@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.2.6
+Version: 1.2.7
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,20 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
+- Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
+- Merge pull request #1044 from ramr/master (openshift+bot@redhat.com)
+- Fix bugz - log to access.log + websockets.log + log file rollover. And update
+  idler's last access script to use the new node-web-proxy access.log file.
+  (ramr@redhat.com)
+- Close the connection on a 302/temporary redirect - bugz where the clients
+  loop. (ramr@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Adding oo-accept-systems script for verifying all node hosts from the broker.
   - also verifies cartridge consistency and checks for stale cartridge cache.
