@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -80,8 +80,8 @@ mkdir -p %{buildroot}%{webproxymoduledir}/bin
 install -D -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
 
 mkdir -p %{buildroot}%{_var}/log/node-web-proxy
-if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor.log ]; then
-   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor.log
+if [ ! -f %{buildroot}%{_var}/log/node-web-proxy/supervisor_log ]; then
+   /bin/touch %{buildroot}%{_var}/log/node-web-proxy/supervisor_log
 fi
 
 
@@ -110,18 +110,37 @@ fi
 rm -rf $RPM_BUILD_ROOT
 
 %files
+%if %{with_systemd}
+%attr(0644,-,-) %{_unitdir}/openshift-node-web-proxy.service
+%attr(0644,-,-) %{_sysconfdir}/sysconfig/openshift-node-web-proxy
+%else
 %attr(0755,-,-) %{_initddir}/openshift-node-web-proxy
+%endif
 %attr(0755,-,-) %{_bindir}/node-find-proxy-route-files
 %attr(0640,-,-) %{_sysconfdir}/openshift/web-proxy-config.json
 %attr(0644,-,-) %{_sysconfdir}/logrotate.d/openshift-node-web-proxy
-%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor.log
-%dir %attr(0644,-,-) %{webproxymoduledir}
+%ghost %attr(0660,root,root) %{_var}/log/node-web-proxy/supervisor_log
+%dir %attr(0700,apache,apache) %{_var}/log/node-web-proxy
+%dir %attr(0755,-,-) %{webproxymoduledir}
 %{webproxymoduledir}
 
 %doc LICENSE
 %doc README
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
+- Merge pull request #1050 from ramr/master (openshift+bot@redhat.com)
+- Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
+- Fix for bugz 885784 - run proxy as apache instead of root. (ramr@redhat.com)
+- Fix bugz - log to access.log + websockets.log + log file rollover. And update
+  idler's last access script to use the new node-web-proxy access.log file.
+  (ramr@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 0.3.1-1
 - fix node-proxy versioning (admiller@redhat.com)
 

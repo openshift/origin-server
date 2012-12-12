@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.5
+Version: 1.2.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -19,6 +19,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
+%if 0%{?fedora}%{?rhel} <= 6
 Requires:       %{?scl:%scl_prefix}rubygem(rails)
 Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
 Requires:       %{?scl:%scl_prefix}rubygem(rdiscount)
@@ -36,15 +37,8 @@ Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
 Requires:       %{?scl:%scl_prefix}rubygem(uglifier)
 Requires:       %{?scl:%scl_prefix}rubygem(webmock)
 
-
-%if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
-%endif
-
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
 BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
 BuildRequires:  %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(compass-rails)
@@ -59,6 +53,11 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(formtastic)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
+%endif
+BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires:  %{?scl:%scl_prefix}ruby 
+BuildRequires:  %{?scl:%scl_prefix}rubygems
+
 
 BuildArch:      noarch
 Provides:       rubygem(%{gem_name}) = %version
@@ -80,6 +79,7 @@ OpenShift Origin Management Console ri documentation
 set -e
 mkdir -p .%{gem_dir}
 
+%if 0%{?fedora}%{?rhel} <= 6
 rm -f Gemfile.lock
 bundle install --local
 
@@ -91,6 +91,7 @@ echo > log/production.log
 popd
 
 rm -f Gemfile.lock
+%endif
 
 # Create the gem as gem install only works on a gem file
 gem build %{gem_name}.gemspec
@@ -123,6 +124,22 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
+- Reverted oauth mixin (ffranz@redhat.com)
+- Added helpers for outage jsonp (ffranz@redhat.com)
+- changes associated with revamped simple template (sgoodwin@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Updating our Twitter clients to use the REST API 1.1 (ffranz@redhat.com)
+
 * Fri Dec 07 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Merge pull request #1032 from smarterclayton/quickstart_issues_in_prod
   (dmcphers@redhat.com)

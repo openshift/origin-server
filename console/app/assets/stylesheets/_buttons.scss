@@ -73,6 +73,9 @@
   @include box-shadow(none);
 }
 
+input[type="submit"].btn {
+  margin-right: 12px;
+}
 
 
 // Button Sizes
@@ -80,7 +83,7 @@
 
 // Large
 .btn-large {
-  padding: 9px 14px;
+  padding: 7px 18px;
   font-size: $baseFontSize + 2px;
   line-height: normal;
 }

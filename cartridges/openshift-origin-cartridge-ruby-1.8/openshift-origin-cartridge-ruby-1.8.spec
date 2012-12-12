@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
-Version: 1.2.4
+Version: 1.2.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -128,6 +128,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
+- BZ855264 - Can't 'rhc app tail' ruby app error_log file when the server's
+  timezone is not EST. (calfonso@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Make tidy hook accessible to gear users (ironcladlou@gmail.com)
 

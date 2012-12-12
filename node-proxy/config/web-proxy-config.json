@@ -91,6 +91,10 @@
   },
 
   "pidfile": "/var/run/openshift-node-web-proxy.pid",
+  "runas": {
+    "user":  "apache",
+    "group":  "apache"
+  },
 
   "routes": {
     "cmd"        : "/usr/bin/node-find-proxy-route-files",

@@ -72,7 +72,9 @@ echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://$OPENSHIFT_MONGODB_DB_USERNAME:
 #
 # Fix config file
 #
-sed -i "s,$ORIG_DB_HOST,$MONGODB_IP," $MONGODB_DIR/etc/mongodb.conf
-sed -i "s,$old_uuid,$uuid," $MONGODB_DIR/etc/mongodb.conf
+if [ "$ORIG_DB_HOST" != "$MONGODB_IP" ]
+then
+    sed -i "s,$ORIG_DB_HOST,$MONGODB_IP," $MONGODB_DIR/etc/mongodb.conf
+    set_app_info "Connection URL: mongodb://$MONGODB_IP:$MONGODB_PORT/"
+fi
 
-set_app_info "Connection URL: mongodb://$MONGODB_IP:$MONGODB_PORT/"

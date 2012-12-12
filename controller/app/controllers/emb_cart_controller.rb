@@ -235,7 +235,12 @@ class EmbCartController < BaseController
         # first check against max_storage limit
         storage_map.each do |group_name, component_instance_list|
           ginst = application.group_instance_map[group_name]
-          return render_format_error(:forbidden, "Total additional storage for all cartridges on gear should be less than max_storage_per_gear (current: #{ginst.addtl_fs_gb}, max: #{max_storage}).", 166, "UPDATE_CARTRIDGE", "additional_gear_storage") if ginst.addtl_fs_gb + num_storage > max_storage
+          current_sum = 0
+          component_instance_list.each { |cinst| current_sum += cinst.addtl_fs_gb }
+          current_sum = ginst.addtl_fs_gb-current_sum
+          current_sum += ginst.get_cached_min_storage_in_gb
+          current_sum += num_storage
+          return render_format_error(:forbidden, "Total additional storage for all cartridges on gear should be less than max_storage_per_gear (new_storage: #{current_sum}, max: #{max_storage}).", 166, "UPDATE_CARTRIDGE", "additional_gear_storage") if current_sum>max_storage
         end
         # now actually change the quota
         storage_map.each do |group_name, component_instance_list|

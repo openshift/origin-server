@@ -30,13 +30,15 @@ Requires:  %{?scl:%scl_prefix}rubygem-passenger
 Requires:  %{?scl:%scl_prefix}rubygem-passenger-native
 Requires:  %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:  %{?scl:%scl_prefix}mod_passenger
+%if 0%{?rhel}
 Requires:  %{?scl:%scl_prefix}rubygem-minitest
 Requires:  %{?scl:%scl_prefix}rubygem-therubyracer
-%if 0%{?rhel}
 Requires: openshift-origin-util-scl
 %endif
 %if 0%{?fedora}
 Requires: openshift-origin-util
+Requires: v8-devel
+Requires: gcc-c++
 %endif
 BuildArch: noarch
 
@@ -67,6 +69,10 @@ mkdir -p %{buildroot}%{consoledir}/httpd/conf
 mkdir -p %{buildroot}%{consoledir}/httpd/conf.d
 mkdir -p %{buildroot}%{consoledir}/log
 mkdir -p %{buildroot}%{consoledir}/tmp
+mkdir -p %{buildroot}%{consoledir}/tmp/cache
+mkdir -p %{buildroot}%{consoledir}/tmp/pids
+mkdir -p %{buildroot}%{consoledir}/tmp/sessions
+mkdir -p %{buildroot}%{consoledir}/tmp/sockets
 mkdir -p %{buildroot}%{consoledir}/run
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
@@ -87,6 +93,14 @@ mv %{buildroot}%{consoledir}/.openshift/api.yml %{buildroot}%{openshiftconfigdir
 ln -sf /usr/lib64/httpd/modules %{buildroot}%{consoledir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{consoledir}/httpd/conf/magic
 
+%if 0%{?fedora}
+rm %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf
+%endif
+%if 0%{?rhel}
+rm %{buildroot}%{consoledir}/httpd/console.conf
+mv %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf %{buildroot}%{consoledir}/httpd/conf/console.conf
+%endif
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -103,11 +117,21 @@ fi
 
 %files
 %defattr(0640,apache,apache,0750)
-%attr(0750,apache,apache) %{consoledir}/script
+%{openshiftconfigdir}
+%attr(0644,-,-) %ghost %{consoledir}/log/production.log
+%attr(0644,-,-) %ghost %{consoledir}/log/development.log
+%attr(0750,-,-) %{consoledir}/script
+%attr(0750,-,-) %{consoledir}/tmp
+%attr(0750,-,-) %{consoledir}/tmp/cache
+%attr(0750,-,-) %{consoledir}/tmp/pids
+%attr(0750,-,-) %{consoledir}/tmp/sessions
+%attr(0750,-,-) %{consoledir}/tmp/sockets
+%dir %attr(0750,-,-) %{consoledir}/httpd/conf.d
 %{consoledir}
 %{htmldir}/console
-%{openshiftconfigdir}
-%{_sysconfdir}/openshift/console.conf
+%config(noreplace) %{consoledir}/config/environments/production.rb
+%config(noreplace) %{consoledir}/config/environments/development.rb
+%config(noreplace) %{_sysconfdir}/openshift/console.conf
 
 %defattr(0640,root,root,0750)
 %if %{with_systemd}
@@ -149,7 +173,7 @@ chcon -R -t httpd_var_run_t %{consoledir}/httpd/run
 /sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
-/sbin/restorecon -rv %{gemdir}/passenger*
+#/sbin/restorecon -rv %{gemdir}/passenger*
 %changelog
 * Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Bug 871705 - renaming a sample conf file for consistency

@@ -29,6 +29,7 @@ logfile="/var/log/node-web-proxy/supervisor_log"
 
 start() {
     echo -n $"Starting node-web-proxy: "
+    chown apache.apache /var/log/node-web-proxy/*.log
     export NODE_PATH="$nodesysmodulespath"
     nohup $cmd &> $logfile &
     echo $! > $pidfile
@@ -62,7 +63,11 @@ reload() {
 
 case "$1" in
     start)
-        start
+        if ! test -f $pidfile  ||  ! status -p $pidfile $prog; then
+           start
+        else
+           echo "$prog already running. supervisor pid = `cat $pidfile`"
+        fi
         ;;
     stop)
         stop

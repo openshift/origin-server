@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.2.1
+Version: 1.2.3
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
@@ -37,7 +37,6 @@ Provides embedded switchyard support for JBoss cartridges
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
-mkdir -p %{buildroot}%{cartridgedir}/info/configuration/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
@@ -70,6 +69,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
+- added deconfigure xsl (bdecoste@gmail.com)
+- removed ews2.0 and sy xslt (bdecoste@gmail.com)
+- ews2 and bugs (bdecoste@gmail.com)
+- BZ883948 (bdecoste@gmail.com)
+
+* Thu Dec 6 2012 William DeCoste <wdecoste@redhat.com> 1.2.2-1
+- configuration dir now contains files
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
