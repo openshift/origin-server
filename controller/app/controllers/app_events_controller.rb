@@ -57,7 +57,7 @@ class AppEventsController < BaseController
           msg = "Application #{id} called show port"
           msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "add-alias"
-          application.add_alias(server_alias)
+          r = application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
           msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
