@@ -30,12 +30,14 @@ oo-register-dns: Register node's DNS name with Bind
 
 oo-register-dns --with-node-hostname node1 \\
                 --with-node-ip 192.168.0.1 \\
-                --domain example.com                
+                --domain example.com \\
+                --dns-server broker.example.com
 
 == List of arguments
   -h|--with-node-hostname   host        Hostname for the node (required)
   -n|--with-node-ip         ip          IP of the node (required)
   -d|--domain               domain      Domain name for this node (optional, default: example.com)  
+  -s|--dns-server           server      IP address or hostname of DNS server to update (optional, default: 127.0.0.1)  
   -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
   -h|--help                             Print this message
 
@@ -47,6 +49,7 @@ opts = GetoptLong.new(
     ["--with-node-hostname",  "-h", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-node-ip",        "-n", GetoptLong::REQUIRED_ARGUMENT],
     ["--domain",              "-d", GetoptLong::OPTIONAL_ARGUMENT],    
+    ["--dns-server",          "-s", GetoptLong::OPTIONAL_ARGUMENT],
     ["--key-file",            "-k", GetoptLong::OPTIONAL_ARGUMENT],        
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
@@ -61,6 +64,7 @@ end
 ip = args["--with-node-ip"]
 node_hostname = args["--with-node-hostname"]
 node_domain = args["--domain"] || "example.com"
+server = args["--dns-server"] || "127.0.0.1"
 key = args["--key-file"] || "/var/named/#{node_domain}.key"
 
 if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostname.empty?)
@@ -68,7 +72,7 @@ if args["--help"] || (ip.nil? || ip.empty? || node_hostname.nil? || node_hostnam
 end
 
 command =<<-EOF
-server 127.0.0.1
+server #{server}
 update delete #{node_hostname}.#{node_domain} A
 update add #{node_hostname}.#{node_domain} 180 A #{ip}
 send
