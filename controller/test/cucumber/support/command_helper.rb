@@ -269,7 +269,7 @@ module CommandHelper
     rhc_do('rhc_embed_remove') do
       # puts app.name
       time = Benchmark.realtime do 
-        run("#{$rhc_script} cartridge remove -l #{app.login} -a #{app.name} -p #{app.password} -c #{type} -d").should == 0
+        run("#{$rhc_script} cartridge remove -l #{app.login} -a #{app.name} -p #{app.password} -c #{type} --confirm -d").should == 0
       end
       log_event "#{time} REMOVE_EMBED_CART #{app.name} #{type} #{app.login}"
       app.mysql_hostname = nil
