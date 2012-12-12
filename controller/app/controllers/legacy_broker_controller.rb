@@ -423,13 +423,8 @@ class LegacyBrokerController < BaseController
         rescue Mongoid::Errors::DocumentNotFound
           Rails.logger.debug "Adding user #{@login}...inside legacy_controller"
           @cloud_user = CloudUser.new(login: @login)
-          begin
-            @cloud_user.save
-          rescue Exception => e
-            cu = CloudUser.find_by(login: @login)
-            raise unless cu && (@cloud_user.parent_user_id == cu.parent_user_id)
-            @cloud_user = cu
-          end
+          @cloud_user.with(safe: true).save
+          Lock.create_lock(@cloud_user)
         end
         @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
       end
