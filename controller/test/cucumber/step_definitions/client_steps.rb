@@ -8,7 +8,5 @@ Given /^the libra client tools$/ do
   File.exists?($client_config).should be_true
   File.exists?($ctl_app_script).should be_true
 
-  File.exists?($rhc_app_script).should be_true
-  File.exists?($rhc_domain_script).should be_true
-  File.exists?($rhc_sshkey_script).should be_true
+  File.exists?($rhc_script).should be_true
 end
