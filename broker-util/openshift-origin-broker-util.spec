@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.2.5
+Version: 1.2.6
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
+- Merge pull request #1057 from brenton/BZ876644-origin (dmcphers@redhat.com)
+- BZ876644 - oo-register-dns is hardcoded to add entries to a BIND server at
+  127.0.0.1 (bleanhar@redhat.com)
+
 * Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
 - Switched console port from 3128 to 8118 due to selinux changes in F17-18
