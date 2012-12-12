@@ -83,8 +83,8 @@ input[type="submit"].btn {
 
 // Large
 .btn-large {
-  padding: 7px 18px;
-  font-size: $baseFontSize + 2px;
+  padding: 8px 18px;
+  font-size: $baseFontSize + .5px;
   line-height: normal;
 }
 .btn-large [class^="icon-"] {
@@ -108,6 +108,32 @@ input[type="submit"].btn {
   line-height: $baseLineHeight - 4px;
 }
 
+
+// Block button
+// -------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: $baseLineHeight / 2;
+  @include box-sizing(border-box);
+}
+
+// Vertical spacing
+.btn-block + a {
+  display: block;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}
 
 // Alternate buttons
 // --------------------------------------------------
