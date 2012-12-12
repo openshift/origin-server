@@ -2725,11 +2725,7 @@ module OpenShift
             raise
           end
         end
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> b838e57... porting bug fix for 883607 to model refactor branch
         resultIO
       end
       
