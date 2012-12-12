@@ -1,11 +1,14 @@
 module RestModelHelper
-  def get_rest_application(application)
+  def get_rest_application(application, include_cartridges)
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
     elsif $requested_api_version < 1.3
       app = RestApplication12.new(application, get_url, nolinks)
     else
       app = RestApplication.new(application, get_url, nolinks)
+    end
+    if include_cartridges
+      app.cartridges = get_cartridges(application)
     end
     app
   end

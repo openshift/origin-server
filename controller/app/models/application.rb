@@ -879,7 +879,7 @@ class Application
           op_group.execute(result_io)
           unreserve_gears(op_group.num_gears_removed)
           op_group.delete
-          self.reload            
+          self.reload       
         end
       end
       true

@@ -93,7 +93,12 @@ class CloudUser
       self.reload
       self.run_jobs
     else
-      self.ssh_keys.push key
+      #TODO shouldn't << always work???
+      if self.ssh_keys.exists?
+        self.ssh_keys << key
+      else
+        self.ssh_keys = [key]
+      end
     end
   end
   
