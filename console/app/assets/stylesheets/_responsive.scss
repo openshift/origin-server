@@ -144,7 +144,26 @@
   .carousel-caption {
     position: static;
   }
-
+  
+  // Block button for phone
+  .btn-block-phone {
+    display: block;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    margin-bottom: $baseLineHeight / 2;
+    @include box-sizing(border-box);
+  }
+  
+  // Specificity overrides
+  input[type="submit"],
+  input[type="reset"],
+  input[type="button"] {
+    &.btn-block-phone {
+      width: 100%;
+      margin-bottom: $baseLineHeight / 2;
+    }
+  }
 }
 
 

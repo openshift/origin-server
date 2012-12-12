@@ -57,3 +57,20 @@
   *zoom: 1;
 }
 
+
+// Block-level 
+// -----------
+@mixin block-level() {
+  display: block;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  @include box-sizing(border-box);
+} 
+.block-level {
+  @include block-level();
+}
+// Vertically space out multiple blocks
+.block-level + .block-level {
+  margin-top: 8px;
+}
