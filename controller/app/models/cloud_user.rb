@@ -94,7 +94,6 @@ class CloudUser
       self.run_jobs
     else
       self.ssh_keys.push key
-      self.save
     end
   end
   
