@@ -8,7 +8,7 @@ class CloudUserTest < ActiveSupport::TestCase
     login = "user_" + gen_uuid
     orig_cu = CloudUser.new(login: login)
     orig_cu.save
-    cu = CloudUser.find(login)
+    cu = CloudUser.find_by(login: login)
     assert_equal_users(orig_cu, cu)
   end
   
@@ -16,13 +16,13 @@ class CloudUserTest < ActiveSupport::TestCase
     login = "user_" + gen_uuid
     orig_cu = CloudUser.new(login: login)
     orig_cu.save
-    cu = CloudUser.find_by_uuid("CloudUser", orig_cu.uuid)
+    cu = CloudUser.find(orig_cu._id)
     assert_equal_users(orig_cu, cu)
   end
   
   def assert_equal_users(user1, user2)
     assert_equal(user1.login, user2.login)
-    assert_equal(user1.uuid, user2.uuid)
+    assert_equal(user1._id, user2._id)
   end
 
 end
