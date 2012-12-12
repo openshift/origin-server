@@ -40,15 +40,6 @@ AUTH_PLUGINS="mongo"
 NAME_PLUGINS="bind"
 MESG_PLUGINS="mcollective"
 
-AUTH_MODULE_PATTERN="rubygem-openshift-origin-auth-%NAME%"
-NAME_MODULE_PATTERN="rubygem-openshift-origin-dns-%NAME%"
-MESG_MODULE_PATTERN="rubygem-openshift-origin-msg-broker-%NAME%"
-
-DEFAULT_DATA_SERVICE="mongo"
-DEFAULT_AUTH_SERVICE="mongo"
-DEFAULT_NAME_SERVICE="bind"
-DEFAULT_MESG_SERVICE="mcollective"
-
 DEFAULT_PACKAGES="
   ruby
   rubygems
@@ -305,7 +296,7 @@ function service_enabled() {
 
   if [ $? != 0 ]
   then
-      fail "service $1 not enabled"
+      fail "service $1 not enabled;"
   fi
 }
 
@@ -361,9 +352,9 @@ function check_selinux_modules() {
     if [ -n "$MODSPEC" ]
     then
       MODVERS=$(echo $MODSPEC | awk '{print $2;}')
-      verbose "selinux module $MODNAME is version $MODVERS"
+      verbose "SELinux module $MODNAME is version $MODVERS"
     else
-      fail "module $MODNAME is not loaded"
+      fail "SELinux module $MODNAME is not loaded"
     fi
   done
 }
@@ -407,7 +398,7 @@ function check_selinux_booleans() {
   then
     verbose SELinux boolean httpd_unified is enabled
   else
-    fail SELinux boolean httpd_unified is disabled
+    fail "SELinux boolean httpd_unified is disabled -- run setsebool -P httpd_unified=on"
   fi
 
 
@@ -418,7 +409,7 @@ function check_selinux_booleans() {
   then
     verbose SELinux boolean allow_ypbind is enabled
   else
-    notice SELinux boolean allow_ypbind is disabled
+    notice "SELinux boolean allow_ypbind is disabled -- run setsebool -P allow_ypbind=on"
   fi
   
 }
@@ -435,7 +426,7 @@ function check_datastore() {
     case $DATA_PLUGIN in
         'OpenShift::DataStore')
 
-	    fail abstract datastore class: $DATA_PLUGIN
+	    fail "configured datastore class is the abstract one: $DATA_PLUGIN"
 	    ;;
 	'OpenShift::MongoDataStore')
 	    verbose "datastore plugin: $DATA_PLUGIN"
@@ -486,9 +477,10 @@ function check_datastore_mongo() {
     verbose "Datastore User: ${APP_VALUES[DS_USER]}"
     if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
-	fail "Datastore Password is still the default"
+	fail "Datastore Password has been left configured as the default 'mooo'
+	-- please reconfigure and ensure the DB user's password matches."
     else
-        verbose "Datastore Password has been reset"
+        verbose "Datastore Password has been set to non-default"
     fi
     verbose "Datastore DB Name: ${APP_VALUES[DS_NAME]}"
 
@@ -505,7 +497,8 @@ function check_datastore_mongo() {
         then
             verbose "LOCAL: mongod auth is enabled"
         else
-	    fail "LOCAL: mongod auth is not enabled in /etc/mongodb.conf"
+	    fail "LOCAL: mongod auth is not enabled in /etc/mongodb.conf;
+	    -- please add a line with 'auth = true' and restart mongod."
         fi
 
         # check service enabled
@@ -549,9 +542,10 @@ function check_auth_mongo() {
     verbose "Auth User: ${APP_VALUES[DS_USER]}"
     if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
-	fail "Datastore Password is still the default"
+	fail "Datastore Password has been left configured as the default 'mooo'
+	-- please reconfigure and ensure the DB user's password matches."
     else
-        verbose "Datastore Password has been reset"
+        verbose "Datastore Password has been set to non-default"
     fi
     verbose "Auth DB Name: ${APP_VALUES[DS_NAME]}"
 
@@ -651,7 +645,7 @@ function check_authentication() {
     case $AUTH_PLUGIN in
         'OpenShift::AuthService')
 
-	    fail abstract auth class: $AUTH_PLUGIN
+	    fail "configured auth class is the abstract one: $AUTH_PLUGIN"
 	    ;;
 	'OpenShift::MongoAuthService')
 	    verbose "auth plugin: $AUTH_PLUGIN"
@@ -701,7 +695,8 @@ EOF
 
     if [ $? != 0 ]
     then
-	fail "error ${4}ing $5 record name $6 to server $1: $7"
+	fail "error ${4}ing $5 record name $6 to server $1: $7
+	-- is the nameserver running, reachable, and key auth working?"
     fi
 
 }
@@ -756,7 +751,7 @@ function check_dynamic_dns() {
     NAME_PLUGIN=${APP_VALUES[oo_dns_provider]}
     case $NAME_PLUGIN in
         'OpenShift::DnsService')
-	    fail abstract dns class: $NAME_PLUGIN
+	    fail "configured dns class is the abstract one: $NAME_PLUGIN"
 	    ;;
 
 	'OpenShift::BindPlugin')
@@ -783,7 +778,7 @@ function check_messaging() {
     MSG_PLUGIN=${APP_VALUES[proxy_provider]}
     case $MSG_PLUGIN in
         'OpenShift::ApplicationContainerProxy')
-	    fail abstract messaging class: $MSG_PLUGIN
+	    fail "configured messaging class is the abstract one: $MSG_PLUGIN"
 	    ;;
 
 	'OpenShift::MCollectiveApplicationContainerProxy')
@@ -806,6 +801,7 @@ function print_help() {
 
   -h) help (print this message)
   -v) verbose - notify when each check begins
+  -d) debug output - displays commands executed
 "
     exit 0
 }
@@ -828,51 +824,10 @@ do
 	    VERBOSE="true"
 	    ;;
 
-
-	# storage
-	S)
-	    DATA_SERVICE=$OPTION
-	    ;;
-
-	# auth
-	A)
-	    AUTH_SERVICE=$OPTION
-	    ;;
-
-	# DNS
-	D)
-	    NAME_SERVICE=$OPTION
-	    ;;
-
-	# Interface
-        I)
-	    INTERFACE=$OPTION
-	    ;;
-
-	# IP Address
-        a)
-	    IP_ADDRESS=$OPTION
-	    ;;
-
         ?) print_help
         ;;
     esac
 done
-
-# Set defaults if not provided
-DATA_SERVICE=${DATA_SERVICE:=${DEFAULT_DATA_SERVICE}}
-AUTH_SERVICE=${AUTH_SERVICE:=${DEFAULT_AUTH_SERVICE}}
-NAME_SERVICE=${NAME_SERVICE:=${DEFAULT_NAME_SERVICE}}
-# INTERFACE=${INTERFACE:=$(guess_interface)}
-# IP_ADDRESS=${IP_ADDRESS:=$(guess_ip_address)}
-
-verbose SERVICES: DATA: $DATA_SERVICE, Auth: $AUTH_SERVICE, Name $NAME_SERVICE
-
-AUTH_MODULE=`echo $AUTH_MODULE_PATTERN | sed -e "s/%NAME%/$AUTH_SERVICE/"`
-NAME_MODULE=`echo $NAME_MODULE_PATTERN | sed -e "s/%NAME%/$NAME_SERVICE/"`
-
-verbose AUTH_MODULE: $AUTH_MODULE
-verbose NAME_MODULE: $NAME_MODULE
 
 # =============================================================================
 #

@@ -16,12 +16,6 @@ OPTIONS
     Enable verbose output during the run of the script
   -d  
     Enable debugging mode (very verbose)
-  -a auth_service  
-    Authentication service used by the broker, default is mongo.
-  -s storage_service  
-    Storage service used by the broker, default is mongo.
-  -d dns_service  
-    DNS Service used by the broker, default is bind.
 
 EXAMPLE
 
