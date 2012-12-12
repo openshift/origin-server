@@ -62,12 +62,12 @@ class CloudUser
     self.capabilities["max_gears"]
   end
 
-  def save
+  def save(options = {})
     res = false
     notify_observers(:before_cloud_user_create)
     begin
       begin
-        res = mongoid_save
+        res = mongoid_save(options)
         notify_observers(:cloud_user_create_success)
       rescue Exception => e
         Rails.logger.debug e
