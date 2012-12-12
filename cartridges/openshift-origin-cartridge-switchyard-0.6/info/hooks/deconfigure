@@ -53,12 +53,17 @@ then
 	java  -jar ${CARTRIDGE_BASE_PATH}/embedded/switchyard-0.6/info/configuration/saxon9he.jar \
 		${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml \
 		${CARTRIDGE_BASE_PATH}/embedded/switchyard-0.6/info/configuration/undo_standalone_eap6.0.0.xsl > ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml.new
-else
+		mv ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml.new ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml
+fi
+
+if [ -f "$APP_HOME/.env/OPENSHIFT_JBOSSAS_CLUSTER" ]
+then
     java  -jar ${CARTRIDGE_BASE_PATH}/embedded/switchyard-0.6/info/configuration/saxon9he.jar \
 		${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml \
 		${CARTRIDGE_BASE_PATH}/embedded/switchyard-0.6/info/configuration/undo_standalone_as7.1.0.xsl > ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml.new
+		mv ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml.new ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml
 fi
-mv ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml.new ${APP_HOME}/app-root/runtime/repo/.openshift/config/standalone.xml
+
 
 client_result ""
 client_result "SwitchYard 0.6 removed."
