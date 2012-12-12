@@ -575,16 +575,6 @@ class Application
     status_messages
   end
 
-
-
-  def add_alias(t_server_alias)
-
-
-    self.aliases = [] unless self.aliases
-    raise OpenShift::UserException.new("Alias '#{server_alias}' already exists for '#{@name}'", 255) if self.aliases.include? server_alias
-    reply = ResultIO.new
-
-
   # Register a DNS alias for the application.
   #
   # == Parameters:
