@@ -49,9 +49,7 @@ $snapshot_script = "/usr/bin/rhc-snapshot"
 #
 # New RHC Client scripts
 #
-$rhc_app_script = "/usr/bin/rhc-app"
-$rhc_domain_script = "/usr/bin/rhc-domain"
-$rhc_sshkey_script = "/usr/bin/rhc-sshkey"
+$rhc_script = '/usr/bin/rhc'
 
 # RSA Key constants
 $test_pub_key = File.expand_path("~/.ssh/id_rsa.pub")

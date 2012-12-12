@@ -131,11 +131,11 @@ When /^I create a new namespace$/ do
     'namespace' => namespace
   }
   register_user(login, "xyz123") if $registration_required
-  ec = run("#{$rhc_domain_script} create -n #{namespace} -l #{login} -p #{@account['password']} -d")
+  ec = run("#{$rhc_script} domain create #{namespace} -l #{login} -p #{@account['password']} -d")
 end
 
 When /^I delete the namespace$/ do
-  ec = run("#{$rhc_domain_script} destroy -n #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
+  ec = run("#{$rhc_script} domain destroy #{@account['namespace']} -l #{@account['login']} -p #{@account['password']} -d")
   ec.should be == 0
 end
 
