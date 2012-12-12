@@ -31,6 +31,17 @@ class ResultIO
     self.messageIO << resultIO.messageIO.string
     self.errorIO << resultIO.errorIO.string
     self.appInfoIO << resultIO.appInfoIO.string
+    
+    if resultIO.exitcode != 0
+      if resultIO.hasUserActionableError
+        unless (!self.hasUserActionableError) && self.exitcode != 0
+          self.hasUserActionableError = true
+        end
+      else
+        self.hasUserActionableError = false
+      end
+    end
+    
     self.cart_commands += resultIO.cart_commands
 
     self.data += resultIO.data
@@ -86,13 +97,15 @@ class ResultIO
   def parse_output(output, gear_id)
     if output && !output.empty?
       output.each_line do |line|
-        if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR): /
+        if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
           if line =~ /^CLIENT_MESSAGE: /
             self.messageIO << line['CLIENT_MESSAGE: '.length..-1]
           elsif line =~ /^CLIENT_RESULT: /
             self.resultIO << line['CLIENT_RESULT: '.length..-1]
           elsif line =~ /^CLIENT_DEBUG: /
             self.debugIO << line['CLIENT_DEBUG: '.length..-1]
+          elsif line =~ /^CLIENT_INTERNAL_ERROR: /
+            result.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
           else
             self.errorIO << line['CLIENT_ERROR: '.length..-1]
             self.hasUserActionableError = true
