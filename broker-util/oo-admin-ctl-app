@@ -66,7 +66,7 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 
-user = CloudUser.find(login)
+user = CloudUser.find_by(login: login)
 unless user
   puts "User #{login} not found."
   exit 1
@@ -120,7 +120,7 @@ when "force-destroy"
     reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
   rescue Exception=>e
     reply = ResultIO.new
-    user = CloudUser.find(login)
+    user = CloudUser.find_by(login: login)
     app = Application.find(user,app_name)
     current_consumed_gears = user.consumed_gears
     gear_count = app.gears.length
@@ -132,7 +132,7 @@ when "force-destroy"
       end
     }
     app.delete
-    user = CloudUser.find(login)
+    user = CloudUser.find_by(login: login)
     new_consumed_gears = user.consumed_gears
     if new_consumed_gears!=(current_consumed_gears-gear_count)
       puts "WARNING: Please check and fix the user's consumed_gear count vs the actual gears consumed, as they may be out of sync."

@@ -69,7 +69,7 @@ when "create"
     print "Please provide login, ssh key and namespace to create the user\n"
     exit -1
   end
-  user = CloudUser.find(login)
+  user = CloudUser.find_by(login: login)
   if user
     print "User #{login} already exists. Please use the 'update' command to alter ssh keys or namespace.\n"
     exit -1
@@ -84,7 +84,7 @@ when "create"
   domain.save
   reply.resultIO << "Successfully created domain.\n"  
 when "update"
-  user = CloudUser.find(login)
+  user = CloudUser.find_by(login: login)
   unless user
     print "User with login: #{login} not found\n"
     exit 1
@@ -109,7 +109,7 @@ when "update"
 
   reply.resultIO << "Successfully updated user.\n"
 when "delete"
-  user = CloudUser.find(login)
+  user = CloudUser.find_by(login: login)
   unless user
     print "User with login: #{login} not found\n"
     exit 1
@@ -125,7 +125,7 @@ when "delete"
   reply.append user.delete
   reply.resultIO << "Successfully deleted user.\n"  
 else
-  user = CloudUser.find(login)
+  user = CloudUser.find_by(login: login)
   unless user
     print "User with login: #{login} not found\n"
     exit 1

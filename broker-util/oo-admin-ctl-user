@@ -74,10 +74,9 @@ def set_max_gears(user, maxgears)
 
     print "Setting max_gears to #{maxgears}... "
     user.max_gears=maxgears
-    result = user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if user.save
+        puts "Done."
+    else
         puts "An error occurred saving the user."
         exit 6
     end
@@ -91,14 +90,8 @@ def set_consumed_gears(user, consumedgears)
 
     print "Setting consumed_gears to #{consumedgears}... "
     ds = OpenShift::MongoDataStore.instance
-    result = ds.update(ds.user_collection, { "_id" => user.login }, { "$set" => {'consumed_gears' => consumedgears} })
+    ds.update(ds.user_collection, { "_id" => user.login }, { "$set" => {'consumed_gears' => consumedgears} })
     puts "Done."
-
-    # TODO: figure out what a correct return code is
-    #if result != 0
-    #    puts "An error occurred saving the user."
-    #    exit 6
-    #end
 end
 
 def allow_sub_accounts(user, allow)
@@ -110,10 +103,9 @@ def allow_sub_accounts(user, allow)
 
     print "Setting subaccounts capability to #{allow} for user #{user.login}... "
     user.capabilities['subaccounts'] = allow
-    result = user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if user.save
+        puts "Done."
+    else
         puts "An error occurred modifying the user capabilities."
         exit 6
     end
@@ -125,7 +117,7 @@ def add_sub_account(user, subaccount_login)
         return
     end
 
-    child_user = CloudUser::find(subaccount_login)
+    child_user = CloudUser::find_by(login: subaccount_login)
     if not child_user.nil?
         if child_user.parent_user_login == user.login
             puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
@@ -139,10 +131,9 @@ def add_sub_account(user, subaccount_login)
     
     print "Adding subaccount for #{subaccount_login} under #{user.login}... "
     child_user = CloudUser.new(login: login, parent_user_id: user.login)
-    result = child_user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if child_user.save
+        puts "Done."
+    else
         puts "An error occurred adding the sub account #{subaccount_login}."
         exit 6
     end
@@ -154,7 +145,7 @@ def remove_sub_account(user, subaccount_login)
         return
     end
 
-    child_user = CloudUser::find(subaccount_login)
+    child_user = CloudUser::find_by(login: subaccount_login)
     if child_user.nil?
         puts "Error: Sub Account User '#{subaccount_login}' not found"
         exit 5
@@ -188,10 +179,9 @@ def add_gear_size(user, gear_size)
     user.capabilities_will_change!
     gear_sizes.push(gear_size)
     user.capabilities['gear_sizes'] = gear_sizes
-    result = user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if user.save
+        puts "Done."
+    else
         puts "An error occurred adding the gear size #{gear_size} to user #{user.login}."
         exit 6
     end
@@ -210,10 +200,9 @@ def remove_gear_size(user, gear_size)
     user.capabilities_will_change!
     gear_sizes.delete(gear_size)
     user.capabilities['gear_sizes'] = gear_sizes
-    result = user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if user.save
+        puts "Done."
+    else
         puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
         exit 6
     end
@@ -234,10 +223,9 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
     else
       user.capabilities['inherit_on_subaccounts'].delete(capability)
     end
-    result = user.save
-    puts "Done."
-
-    if result.exitcode != 0
+    if user.save
+        puts "Done."
+    else
         puts "An error occurred modifying the user capabilities."
         exit 6
     end
@@ -300,7 +288,7 @@ Rails.configuration.analytics[:enabled] = false
 puts
 puts
 
-user = CloudUser::find(login)
+user = CloudUser::find_by(login: login)
 
 if user.nil?
     puts "Error: User '#{login}' not found"
@@ -354,7 +342,7 @@ end
 
 if changed_user
     # reload user with new settings
-    user = CloudUser::find(login)
+    user = CloudUser::find_by(login: login)
     puts
     puts
 end
