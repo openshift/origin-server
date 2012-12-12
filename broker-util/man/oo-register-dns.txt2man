@@ -13,12 +13,16 @@ OPTIONS
     Hostname for the node for the DNS entry. (required)
 
   -n or --with-node-ip ipaddr  
-    IP Address of the node to be paired with the hostname for the DNS entry. 
+    IP address of the node to be paired with the hostname for the DNS entry.
     (required)
 
   -d or --domain domain_name  
     Domain name of the hostname for the DNS entry. 
     (optional, default: example.com)
+
+  -s or --dns-server server
+    IP address or hostname of the DNS server to update.
+    (optional, default: 127.0.0.1)
 
   -k or --key-file keyfile  
     Bind keyfile to make the DNS entry in. 
