@@ -5,8 +5,9 @@ SYNOPSIS
   oo-admin-chk [-hv] 
 
 DESCRIPTION
-  This utility check that the broker setup is valid and functional. It is 
-  meant to be run on a broker without any options.
+  This utility checks that the application records stored in the MongoDB
+  datastore match the applications deployed on the node hosts.
+  It can be run without options on a broker as a check script.
 
 OPTIONS
   -h  
@@ -19,8 +20,9 @@ EXAMPLE
   $ oo-admin-chk
   
 HINTS
-  This command should return with the text 'Success' and return code 0 unless
-  verbose output is requested.
+  If there are no discrepancies, this command should exit with return
+  code 0 and emit the text 'Success' (unless verbose output is requested).
+  Otherwise the discrepancies are listed.
  
 SEE ALSO
   oo-admin-ctl-district(8), oo-setup-broker(8), oo-admin-move(8),
