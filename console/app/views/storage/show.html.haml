@@ -1,7 +1,7 @@
-- breadcrumb_for_application @application, 'Increase Your Storage'
-- content_for :page_title, 'Increase Your Storage'
+- breadcrumb_for_application @application, 'Modify Your Storage'
+- content_for :page_title, 'Modify Your Storage'
 
-%h1 Increase Your Storage
+%h1 Modify Your Storage
 
 %section#storage-gear-groups
   %section
@@ -9,6 +9,9 @@
       Gear storage space is used for code, logs, cache, config files, and databases.
       %strong Gear storage is only accessible to the gear it's associated with, and isn't able to be shared between gears.
       User files should be kept in shared storage.
+
+    %p
+      If you are decreasing your storage, make sure to check your usage to ensure you will still have sufficient disk space.
 
   %section
     %h3 Check Your Usage
@@ -45,8 +48,8 @@
 
           = f.inputs :inline => true, :without_errors => true do
             .input-prepend
-              %span.add-on Additional Storage Per Gear
-              = f.input :additional_gear_storage, additional_storage_options(@user).merge({:input_html => {:style => 'width: auto', :title => 'Maximum gears'}})
+              %span.add-on Total Storage Per Gear
+              = f.input :total_storage, additional_storage_options(cartridge.base_gear_storage,@user.max_storage_per_gear).merge({:input_html => {:style => 'width: auto', :title => 'Maximum gears'}})
 
             = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
             = f.loading

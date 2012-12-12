@@ -25,7 +25,7 @@ class StorageController < ConsoleController
 
     @cartridge = @cartridges.find{ |c| c.name == params[:id] } or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
 
-    @cartridge.additional_gear_storage = params[:cartridge][:additional_gear_storage]
+    @cartridge.additional_gear_storage = Integer(params[:cartridge][:total_storage]) - @cartridge.base_gear_storage
 
     if @cartridge.save
       redirect_to application_storage_path, :flash => {:success => "Updated storage for cartridge '#{@cartridge.display_name}'"}
