@@ -103,7 +103,16 @@ jenkins_build = #{@jenkins_build}
     end
 
     def persist
-      File.open(@file, "w") {|f| f.puts self.to_json}
+      # Because the system I/O is high during testing, this doesn't always
+      # succeed right away.
+      5.times do
+        begin
+          File.open(@file, "w") {|f| f.puts self.to_json}
+          break
+        rescue Errno::ENOENT
+          $logger.debug("Retrying file write for #{@file}")
+        end
+      end
     end
 
     def reserved?
