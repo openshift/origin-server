@@ -103,8 +103,8 @@ function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
  */
 function _setProxyRequestHeaders(proxy_req, orig_req) {
   /*  Set X-Forwarded-For HTTP extension header.  */
-  var xff = orig_req.connection.RemoteAddress  || 
-            orig_req.socket.RemoteAddress;
+  var xff = orig_req.connection.remoteAddress  ||
+            orig_req.socket.remoteAddress;
   httputils.addHeader(proxy_req.headers, 'X-Forwarded-For', xff);
 
   /*  Set X-Forwarded-Proto HTTP extension header.  */
