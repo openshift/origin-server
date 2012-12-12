@@ -59,8 +59,8 @@
 
 // Large
 .btn-large {
-  padding: 9px 14px;
-  font-size: $baseFontSize + 2px;
+  padding: 8px 18px;
+  font-size: $baseFontSize + .5px;
   line-height: normal;
 }
 .btn-large [class^="icon-"] {
@@ -69,7 +69,7 @@
 
 // Small
 .btn-small {
-  padding: 5px 9px;
+  padding: 5px 10px;
   font-size: $baseFontSize - 2px;
   line-height: $baseLineHeight - 2px;
 }
@@ -84,6 +84,32 @@
   line-height: $baseLineHeight - 4px;
 }
 
+
+// Block button
+// -------------------------
+
+.btn-block {
+  display: block;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: $baseLineHeight / 2;
+  @include box-sizing(border-box);
+}
+
+// Vertical spacing
+.btn-block + a {
+  display: block;
+}
+
+// Specificity overrides
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+  &.btn-block {
+    width: 100%;
+  }
+}
 
 // Alternate buttons
 // --------------------------------------------------
