@@ -33,7 +33,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 end
 
 When /^I push an update to the diy application$/ do
-    output = `awk <#{$temp}/cucumber.log '/^ *Git URL:.*diy.git.$/ {print $3}'`.split("\n")
+    output = `awk <#{$temp}/cucumber.log '/^ *Git URL.*diy.git.$/ {print $NF}'`.split("\n")
     @diy_git_url = output[-1]
     $logger.debug "git url: #{@diy_git_url}"
     assert_not_nil @diy_git_url, "Failed to find Git URL for diy application"
