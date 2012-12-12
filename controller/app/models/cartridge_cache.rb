@@ -23,9 +23,10 @@ class CartridgeCache
     get_cached("all_cartridges", :expires_in => 1.day) {OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges}
   end
 
-  FRAMEWORK_CART_NAMES = ["python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
+  FRAMEWORK_CART_NAMES = [#RHEL6 cartridges
+                          "python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
                           "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0", "jbossews-1.0",
-                          "perl-5.10", "nodejs-0.6", "zend-5.6"
+                          "perl-5.10", "nodejs-0.6", "zend-5.6",
                          ]
   def self.cartridge_names(cart_type=nil)
     cart_names = cartridges.map{|c| c.name}

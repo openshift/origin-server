@@ -218,7 +218,7 @@ function get_installed_framework_carts {
 
 # Get list of installed databases
 function get_installed_databases {
-    (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.2,mysql-5.1,postgresql-8.4} 2>/dev/null)
+    (cd $OPENSHIFT_HOMEDIR; ls -d {mongodb-2.2,mysql-5.1,postgresql-8.4,postgres-9.1} 2>/dev/null)
 }
 
 function get_local_databases {

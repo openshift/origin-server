@@ -89,6 +89,17 @@ def restart_mongo
   start_mongo
 end
 
+def enable_se_booleans(bool_list)
+  bool_list.delete_if{ |bool| `getsebool #{bool}`.match(/--> on/) }
+  semanage_commands = bool_list.map { |bool| "boolean -m --on #{bool}" }.join("\n")
+
+run <<-EOOF
+/usr/sbin/semanage -i - <<_EOF
+#{semanage_commands}
+_EOF
+EOOF
+end
+
 def usage
   puts <<USAGE
 == Synopsis
@@ -241,6 +252,9 @@ else
 fi
 EOF
 
+$log.info "...opening qpid port for other nodes"
+run "/usr/sbin/lokkit -p 5672:tcp"
+
 if not File.exist?("/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf")
   FileUtils.mv "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example", "/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf"
 end
@@ -355,11 +369,7 @@ find_and_replace("/etc/mongodb.conf", /^auth = .*$/, "auth = true")
 
 $log.info "Configuring BIND DNS server"
 $log.info "...installing DNS server related SELinux policies (This might take a while)"
-run <<-EOOF
-/usr/sbin/semanage -i - <<_EOF
-boolean -m --on named_write_master_zones
-_EOF
-EOOF
+enable_se_booleans(["named_write_master_zones"])
 
 unless File.exist?('/etc/rndc.key')
   $log.info  "...generating rndc.key file"
@@ -396,6 +406,10 @@ $log.info "...register broker with local dns server"
 run "service named restart"
 run "/usr/sbin/oo-register-dns -h broker -n #{ext_address.strip} --domain #{node_domain}" 
 run "service named stop"
+
+$log.info "...open named port"
+run "/usr/sbin/lokkit -p 53:tcp"
+run "/usr/sbin/lokkit -p 53:udp"
 
 $log.info "Updating broker hostname in apache"
 find_and_replace( "/etc/httpd/conf.d/000000_openshift_origin_broker_proxy.conf", /  ServerName.*$/, "  ServerName broker.#{node_domain}" )
@@ -435,8 +449,9 @@ EOF
 
 $log.info "Fixing console SELinux and file permission"
 run "chown -R apache:apache /var/www/openshift/console"
-run "chcon -R system_u:object_r:httpd_log_t:s0 /var/www/openshift/console/log"
-run "chcon -R system_u:object_r:httpd_tmp_t:s0 /var/www/openshift/console/tmp"
+
+$log.info "Enabling console SELinux booleans"
+enable_se_booleans(["httpd_can_network_connect", "httpd_can_network_relay", "httpd_read_user_content", "httpd_enable_homedirs", "httpd_execmem"])
 
 $log.info "Updating sshd configuration to enable OpenShift git push"
 insert_if_not_exist("/etc/ssh/sshd_config", "AcceptEnv GIT_SSH", "\nAcceptEnv GIT_SSH\n")
