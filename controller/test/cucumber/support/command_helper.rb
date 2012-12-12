@@ -249,9 +249,9 @@ module CommandHelper
 
         # Assign the hostname ourselves, in host:port format
         app.mysql_hostname = "#{host_val}:#{port_val}"
-        app.mysql_user = /^ +Root User: (.*)$/.match(result)[1]
-        app.mysql_password = /^ +Root Password: (.*)$/.match(result)[1]
-        app.mysql_database = /^ +Database Name: (.*)$/.match(result)[1]
+        app.mysql_user = /Username\s*=\s*(\S+)/.match(result)[1]
+        app.mysql_password = /Password\s*=\s*(\S+)/.match(result)[1]
+        app.mysql_database = /Database Name\s*=\s*(\S+)/.match(result)[1]
 
         app.mysql_hostname.should_not be_nil
         app.mysql_user.should_not be_nil
