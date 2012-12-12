@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.2.3
+Version: 1.2.4
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
@@ -69,6 +69,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
+- BZ886431 (bdecoste@gmail.com)
+
 * Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.3-1
 - added deconfigure xsl (bdecoste@gmail.com)
 - removed ews2.0 and sy xslt (bdecoste@gmail.com)
