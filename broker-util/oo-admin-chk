@@ -39,23 +39,19 @@ USAGE
   exit 255
 end
 
-opts = GetoptLong.new(
-    ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
-    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
-)
-
 args = {}
 begin
+  opts = GetoptLong.new(
+    ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+  )
   opts.each{ |k,v| args[k]=v }
 rescue GetoptLong::Error => e
   usage
 end
 
-if args["--help"]
-  usage
-end
-
 verbose = args["--verbose"]
+usage if args["--help"]
 
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
@@ -120,12 +116,12 @@ OpenShift::DataStore.instance.user_collection.find(query, options) do |mcursor|
     end
   
     if hash['consumed_gears'] != gear_count
-      msg = "FAIL - user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
+      msg = "ERROR: user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
       puts msg if verbose
       summary << msg
       no_error = false
     else
-      puts "OK - user #{hash['login']} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
+      puts "OK: user #{hash['login']} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
     end
   end
 end
