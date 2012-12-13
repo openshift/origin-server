@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.2.4
+Version: 1.3.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

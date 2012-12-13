@@ -12,7 +12,7 @@
 
 Summary:        Common dependencies of the msg components for OpenShift server and node
 Name:           openshift-origin-msg-common
-Version:        1.0.3
+Version: 1.1.0
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0

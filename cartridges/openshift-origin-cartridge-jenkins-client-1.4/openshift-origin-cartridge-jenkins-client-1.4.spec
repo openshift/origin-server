@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
 Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 1.2.2
+Version: 1.3.0
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons

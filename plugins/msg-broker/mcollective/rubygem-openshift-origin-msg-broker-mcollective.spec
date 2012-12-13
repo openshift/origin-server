@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.2.7
+Version: 1.3.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0

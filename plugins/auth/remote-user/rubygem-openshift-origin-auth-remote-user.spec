@@ -11,7 +11,7 @@
 
 Summary:        OpenShift plugin for remote-user authentication
 Name:           rubygem-%{gem_name}
-Version: 1.2.3
+Version: 1.3.0
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
