@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version:        0.3.2
+Version: 0.4.1
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -128,6 +128,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 0.4.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 0.3.3-1
+- Fix for bugz 886668 - openshift-node-web-proxy sets incorrect header.
+  (ramr@redhat.com)
+
 * Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 0.3.2-1
 - Merge pull request #1050 from ramr/master (openshift+bot@redhat.com)
 - Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)

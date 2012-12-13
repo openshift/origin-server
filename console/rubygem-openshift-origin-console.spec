@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.6
+Version: 1.3.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,18 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
+- Merge pull request #1061 from fotioslindiakos/BZ886146 (dmcphers@redhat.com)
+- Moved async_aware into the models (fotios@redhat.com)
+- Addition of block classes for buttons. Addresses Bug 883334
+  (sgoodwin@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into dev
+  (sgoodwin@redhat.com)
+- "new block level class and btn-block class" (sgoodwin@redhat.com)
+
 * Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Merge pull request #1045 from kraman/f17_fixes (openshift+bot@redhat.com)
 - Reverted oauth mixin (ffranz@redhat.com)

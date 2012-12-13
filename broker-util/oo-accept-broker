@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Author: Mark Lamourine <markllama@gmail.com>
 # Copyright 2012
@@ -40,15 +40,6 @@ AUTH_PLUGINS="mongo"
 NAME_PLUGINS="bind"
 MESG_PLUGINS="mcollective"
 
-AUTH_MODULE_PATTERN="rubygem-openshift-origin-auth-%NAME%"
-NAME_MODULE_PATTERN="rubygem-openshift-origin-dns-%NAME%"
-MESG_MODULE_PATTERN="rubygem-openshift-origin-msg-broker-%NAME%"
-
-DEFAULT_DATA_SERVICE="mongo"
-DEFAULT_AUTH_SERVICE="mongo"
-DEFAULT_NAME_SERVICE="bind"
-DEFAULT_MESG_SERVICE="mcollective"
-
 DEFAULT_PACKAGES="
   ruby
   rubygems
@@ -79,6 +70,15 @@ else
 fi
 
 BROKER_REST_API_BASE="https://localhost/broker/rest/"
+
+# we will fill APP_VALUES with output from ruby commands corresponding to the map
+declare -A APP_VALUES
+declare -A APP_VALUE_MAP=(
+		["oo_ds_provider"]="OpenShift::DataStore.instance_variable_get('@oo_ds_provider')"
+		["oo_auth_provider"]="OpenShift::AuthService.instance_variable_get('@oo_auth_provider')"
+		["oo_dns_provider"]="OpenShift::DnsService.instance_variable_get('@oo_dns_provider')"
+		["proxy_provider"]="OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
+	)
 
 # ============================================================================
 #
@@ -149,12 +149,59 @@ EOF`
 }
 
 #
-# Get a single value from the Rails application.
+# Get a set of values from the Rails application.
 # Yes, this is inefficient, but the point is to not depend on the system
 # you're examining (Ruby/Rails) to confirm itself.
 #
-function get_application_value() {
-  # $1 = RUBY_VARNAME
+
+function load_application_values() {
+	# Build ruby program statements from APP_VALUE_MAP and
+	# read the output values into the APP_VALUES hash.
+	# This is all predicated on each value landing on one line;
+	# if there are any multiline values, we're in trouble.
+	# Also if there are any errors this won't work. Which is why we
+	# can't get all the values in one go - some exist conditionally.
+
+	ruby_program=""
+	declare -a keys=( ${!APP_VALUE_MAP[@]} )
+	for key in ${keys[@]}
+	do
+		ruby_program+="
+			puts ${APP_VALUE_MAP[$key]}"
+	done
+
+	# run those statements after initializing the Rails env
+	OLD_IFS=$IFS; IFS=$'\n' # read into array one line per element
+	declare -a new_app_values=( `run_ruby_rails_command "$ruby_program"` )
+	IFS=$OLD_IFS # back to normal
+	if [ $? -ne 0 ]
+	then
+		fail "Error while running ruby code.
+#####
+$ruby_program
+#####
+${new_app_values[@]}
+#####"
+	elif (( ${#new_app_values[@]} != ${#keys[@]} ))
+	then
+		fail "wrong number of values returned from ruby code
+keys: ${#keys[@]}; values: ${#new_app_values[@]}
+#####
+$ruby_program
+#####
+${new_app_values[@]}
+#####"
+	fi
+
+	# now read the array of output ruby values into the values hash
+	for (( i=0 ; $i < ${#keys[@]} ; i++ ))
+	do
+		APP_VALUES["${keys[$i]}"]=${new_app_values[$i]}
+	done
+}
+
+function run_ruby_rails_command() {
+  # $1 = ruby statements to run after initialization
   if [ -z "$OSO_BROKER_ROOT" ]
   then
       fail OSO_BROKER_ROOT is unset.  Cannot load app configuration
@@ -180,12 +227,15 @@ function get_application_value() {
           exit 1
         end
 	Broker::Application.initialize!
-        puts $1
+        $1
 EOF
+      return $?
   else
       fail ruby is not installed or not executable
+      exit $STATUS
   fi
 }
+
 
 # ============================================================================
 #
@@ -246,7 +296,7 @@ function service_enabled() {
 
   if [ $? != 0 ]
   then
-      fail "service $1 not enabled"
+      fail "service $1 not enabled;"
   fi
 }
 
@@ -302,9 +352,9 @@ function check_selinux_modules() {
     if [ -n "$MODSPEC" ]
     then
       MODVERS=$(echo $MODSPEC | awk '{print $2;}')
-      verbose "selinux module $MODNAME is version $MODVERS"
+      verbose "SELinux module $MODNAME is version $MODVERS"
     else
-      fail "module $MODNAME is not loaded"
+      fail "SELinux module $MODNAME is not loaded"
     fi
   done
 }
@@ -348,7 +398,7 @@ function check_selinux_booleans() {
   then
     verbose SELinux boolean httpd_unified is enabled
   else
-    fail SELinux boolean httpd_unified is disabled
+    fail "SELinux boolean httpd_unified is disabled -- run setsebool -P httpd_unified=on"
   fi
 
 
@@ -359,7 +409,7 @@ function check_selinux_booleans() {
   then
     verbose SELinux boolean allow_ypbind is enabled
   else
-    notice SELinux boolean allow_ypbind is disabled
+    notice "SELinux boolean allow_ypbind is disabled -- run setsebool -P allow_ypbind=on"
   fi
   
 }
@@ -370,24 +420,19 @@ function check_selinux_booleans() {
 #
 # ============================================================================
 
-function find_datastore_plugin() {
-    # OpenShift::DataStore.instance_variable_get('@oo_ds_provider')
-    get_application_value "OpenShift::DataStore.instance_variable_get('@oo_ds_provider')"
-}
-
 function check_datastore() {
     verbose checking datastore
-    DATA_PLUGIN=`find_datastore_plugin`
+    DATA_PLUGIN=${APP_VALUES["oo_ds_provider"]}
     case $DATA_PLUGIN in
         'OpenShift::DataStore')
 
-	    fail abstract datastore class: $DATA_PLUGIN
+	    fail "configured datastore class is the abstract one: $DATA_PLUGIN"
 	    ;;
 	'OpenShift::MongoDataStore')
 	    verbose "datastore plugin: $DATA_PLUGIN"
 	    check_datastore_mongo
             ;;
-	
+
 	*)
 	    fail unknown datastore class: $DATA_PLUGIN
 	;;
@@ -419,24 +464,28 @@ function check_datastore_mongo() {
     verbose checking mongo datastore configuration
 
     # get the service hostname, port, username, password
-    DS_HOST=`get_application_value "Rails.application.config.datastore[:host_port][0]"`
-    DS_PORT=`get_application_value "Rails.application.config.datastore[:host_port][1]"`
-    DS_USER=`get_application_value "Rails.application.config.datastore[:user]"`
-    DS_PASS=`get_application_value "Rails.application.config.datastore[:password]"`
-    DS_NAME=`get_application_value "Rails.application.config.datastore[:db]"`
-    verbose "Datastore Host: $DS_HOST"
-    verbose "Datastore Port: $DS_PORT"
-    verbose "Datastore User: $DS_USER"
-    if [ "$DS_PASS" == "mooo" ]
+	APP_VALUE_MAP=(
+		["DS_HOST"]="Rails.application.config.datastore[:host_port][0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port][1]"
+		["DS_USER"]="Rails.application.config.datastore[:user]"
+		["DS_PASS"]="Rails.application.config.datastore[:password]"
+		["DS_NAME"]="Rails.application.config.datastore[:db]"
+		)
+	load_application_values
+    verbose "Datastore Host: ${APP_VALUES[DS_HOST]}"
+    verbose "Datastore Port: ${APP_VALUES[DS_PORT]}"
+    verbose "Datastore User: ${APP_VALUES[DS_USER]}"
+    if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
-	fail "Datastore Password is still the default"
+	fail "Datastore Password has been left configured as the default 'mooo'
+	-- please reconfigure and ensure the DB user's password matches."
     else
-        verbose "Datastore Password has been reset"
+        verbose "Datastore Password has been set to non-default"
     fi
-    verbose "Datastore DB Name: $DS_NAME"
+    verbose "Datastore DB Name: ${APP_VALUES[DS_NAME]}"
 
     # Only check local values if DS_HOST is localhost
-    if [ "$DS_HOST" = "localhost" ]
+    if [ "${APP_VALUES[DS_HOST]}" == "localhost" ]
     then
 	verbose "Datastore configuration is on localhost"
 
@@ -448,7 +497,8 @@ function check_datastore_mongo() {
         then
             verbose "LOCAL: mongod auth is enabled"
         else
-	    fail "LOCAL: mongod auth is not enabled in /etc/mongodb.conf"
+	    fail "LOCAL: mongod auth is not enabled in /etc/mongodb.conf;
+	    -- please add a line with 'auth = true' and restart mongod."
         fi
 
         # check service enabled
@@ -472,32 +522,35 @@ function check_datastore_mongo() {
     fi
 
     # check OpenShift Origin user (username/password)
-    check_mongo_login $DS_HOST:$DS_PORT $DS_NAME $DS_USER $DS_PASS
+    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]}
 }
 
 function check_auth_mongo() {
     verbose checking mongo auth configuration
 
-    
     # get the service hostname, port, username, password
-    DS_HOST=`get_application_value "Rails.application.config.auth[:mongo_host_port][0]"`
-    DS_PORT=`get_application_value "Rails.application.config.auth[:mongo_host_port][1]"`
-    DS_USER=`get_application_value "Rails.application.config.auth[:mongo_user]"`
-    DS_PASS=`get_application_value "Rails.application.config.auth[:mongo_password]"`
-    DS_NAME=`get_application_value "Rails.application.config.auth[:mongo_db]"`
-    verbose "Auth Host: $DS_HOST"
-    verbose "Auth Port: $DS_PORT"
-    verbose "Auth User: $DS_USER"
-    if [ "$DS_PASS" == "mooo" ]
+	APP_VALUE_MAP=(
+		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port][0]"
+		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port][1]"
+		["DS_USER"]="Rails.application.config.auth[:mongo_user]"
+		["DS_PASS"]="Rails.application.config.auth[:mongo_password]"
+		["DS_NAME"]="Rails.application.config.auth[:mongo_db]"
+		)
+	load_application_values
+    verbose "Auth Host: ${APP_VALUES[DS_HOST]}"
+    verbose "Auth Port: ${APP_VALUES[DS_PORT]}"
+    verbose "Auth User: ${APP_VALUES[DS_USER]}"
+    if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
-	fail "Datastore Password is still the default"
+	fail "Datastore Password has been left configured as the default 'mooo'
+	-- please reconfigure and ensure the DB user's password matches."
     else
-        verbose "Datastore Password has been reset"
+        verbose "Datastore Password has been set to non-default"
     fi
-    verbose "Auth DB Name: $DS_NAME"
+    verbose "Auth DB Name: ${APP_VALUES[DS_NAME]}"
 
     # Only check local values if DS_HOST is localhost
-    if [ "$DS_HOST" = "localhost" ]
+    if [ "${APP_VALUES[DS_HOST]}" = "localhost" ]
     then
 	verbose "Auth configuration is on localhost"
 
@@ -533,7 +586,7 @@ function check_auth_mongo() {
     fi
 
     # check OpenShift Origin user (username/password)
-    check_mongo_login $DS_HOST:$DS_PORT $DS_NAME $DS_USER $DS_PASS
+    check_mongo_login "${APP_VALUES[DS_HOST]}:${APP_VALUES[DS_PORT]}" ${APP_VALUES[DS_NAME]} ${APP_VALUES[DS_USER]} ${APP_VALUES[DS_PASS]}
 }
 
 function get_http_response_code() {
@@ -552,8 +605,11 @@ assert_rest_api_returns() {
 function check_auth_remote_user() {
     verbose checking remote-user auth configuration
 
-    RU_TRUSTED_HEADER=`get_application_value "Rails.application.config.auth[:trusted_header]"`
-    verbose "Auth trusted header: $RU_TRUSTED_HEADER"
+	APP_VALUE_MAP=(
+		["RU_TRUSTED_HEADER"]="Rails.application.config.auth[:trusted_header]"
+		)
+	load_application_values
+    verbose "Auth trusted header: ${APP_VALUES[RU_TRUSTED_HEADER]}"
 
     if grep -q 'BrowserMatchNoCase\s\+\^OpenShift\s\+passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf \
        && grep -q 'Allow\s\+from\s\+env=passthrough' ${OSO_HTTPD_CONF_DIR}/*.conf
@@ -582,26 +638,20 @@ function check_auth_remote_user() {
 #
 # ============================================================================
 
-function find_authentication_plugin() {
-    # OpenShift::AuthService.instance_variable_get('@oo_auth_provider')
-    get_application_value "OpenShift::AuthService.instance_variable_get('@oo_auth_provider')"
-
-}
-
 function check_authentication() {
     verbose checking cloud user authentication
-    AUTH_PLUGIN=`find_authentication_plugin`
+    AUTH_PLUGIN=${APP_VALUES[oo_auth_provider]}
     verbose auth plugin = $AUTH_PLUGIN
     case $AUTH_PLUGIN in
         'OpenShift::AuthService')
 
-	    fail abstract auth class: $AUTH_PLUGIN
+	    fail "configured auth class is the abstract one: $AUTH_PLUGIN"
 	    ;;
 	'OpenShift::MongoAuthService')
 	    verbose "auth plugin: $AUTH_PLUGIN"
 	    check_auth_mongo
             ;;
-	
+
 	'OpenShift::RemoteUserAuthService')
 	    verbose "auth plugin: $AUTH_PLUGIN"
 	    check_auth_remote_user
@@ -619,11 +669,6 @@ function check_authentication() {
 # Dynamic DNS Updates
 #
 # ============================================================================
-
-function find_dynamic_dns_plugin() {
-    # OpenShift::DnsService.instance_variable_get('@oo_dns_provider')
-    get_application_value "OpenShift::DnsService.instance_variable_get('@oo_dns_provider')"
-}
 
 function dns_bind_update_record() {
     # $1 = server
@@ -650,7 +695,8 @@ EOF
 
     if [ $? != 0 ]
     then
-	fail "error ${4}ing $5 record name $6 to server $1: $7"
+	fail "error ${4}ing $5 record name $6 to server $1: $7
+	-- is the nameserver running, reachable, and key auth working?"
     fi
 
 }
@@ -658,46 +704,43 @@ EOF
 function check_dns_bind() {
     verbose checking bind dns plugin configuration
 
-    # host
-    # port
-    # keyname
-    # keyvalue
-    # zone
-    # domain_suffix
+	APP_VALUE_MAP=(
+		["DNS_SERVER"]="Rails.application.config.dns[:server]"
+		["DNS_PORT"]="Rails.application.config.dns[:port].to_s"
+		["DNS_KEYNAME"]="Rails.application.config.dns[:keyname]"
+		["DNS_KEYVAL"]="Rails.application.config.dns[:keyvalue]"
+		["DNS_ZONE"]="Rails.application.config.dns[:zone]"
+		["DNS_SUFFIX"]="Rails.application.config.openshift[:domain_suffix]"
+		)
+	load_application_values
 
-    DNS_SERVER=`get_application_value "Rails.application.config.dns[:server]"`
-    DNS_PORT=`get_application_value "Rails.application.config.dns[:port].to_s"`
-    DNS_KEYNAME=`get_application_value "Rails.application.config.dns[:keyname]"`
-    DNS_KEYVAL=`get_application_value "Rails.application.config.dns[:keyvalue]"`
-    DNS_ZONE=`get_application_value "Rails.application.config.dns[:zone]"`
-    DNS_SUFFIX=`get_application_value "Rails.application.config.openshift[:domain_suffix]"`
-    verbose "DNS Server: $DNS_SERVER"
-    verbose "DNS Port: $DNS_PORT"
-    verbose "DNS Key Name: $DNS_KEYNAME"
+    verbose "DNS Server: ${APP_VALUES[DNS_SERVER]}"
+    verbose "DNS Port: ${APP_VALUES[DNS_PORT]}"
+    verbose "DNS Key Name: ${APP_VALUES[DNS_KEYNAME]}"
     verbose "DNS Key Value: *****"
-    verbose "DNS Zone: $DNS_ZONE"
-    verbose "DNS Domain Suffix: $DNS_SUFFIX"
-    
+    verbose "DNS Zone: ${APP_VALUES[DNS_ZONE]}"
+    verbose "DNS Domain Suffix: ${APP_VALUES[DNS_SUFFIX]}"
+
     # check that zone suffix ends exactly with dns_zone (zone contains suffix)
 
     # try to add a dummy TXT record to the zone
-    dns_bind_update_record $DNS_SERVER $DNS_KEYNAME $DNS_KEYVAL add txt testrecord.$DNS_SUFFIX this_is_a_test
+    dns_bind_update_record ${APP_VALUES[DNS_SERVER]} ${APP_VALUES[DNS_KEYNAME]} ${APP_VALUES[DNS_KEYVAL]} add txt testrecord.${APP_VALUES[DNS_SUFFIX]} this_is_a_test
 
     # verify that the record is there
-    if host -t txt testrecord.$DNS_SUFFIX $DNS_SERVER >/dev/null
+    if host -t txt testrecord.${APP_VALUES[DNS_SUFFIX]} ${APP_VALUES[DNS_SERVER]} >/dev/null
     then
 	verbose "txt record successfully added"
     else
-        fail "txt record testrecord.$DNS_SUFFIX does not resolve on server $DNS_SERVER"
+        fail "txt record testrecord.${APP_VALUES[DNS_SUFFIX]} does not resolve on server ${APP_VALUES[DNS_SERVER]}"
     fi
 
     # remove it.
-    dns_bind_update_record $DNS_SERVER $DNS_KEYNAME $DNS_KEYVAL delete txt testrecord.$DNS_SUFFIX
+    dns_bind_update_record ${APP_VALUES[DNS_SERVER]} ${APP_VALUES[DNS_KEYNAME]} ${APP_VALUES[DNS_KEYVAL]} delete txt testrecord.${APP_VALUES[DNS_SUFFIX]}
 
     # verify that the record is removed
-    if host -t txt testrecord.$DNS_SUFFIX $DNS_SERVER >/dev/null
+    if host -t txt testrecord.${APP_VALUES[DNS_SUFFIX]} ${APP_VALUES[DNS_SERVER]} >/dev/null
     then
-        fail "txt record testrecord.$DNS_SUFFIX still resolves on server $DNS_SERVER"
+        fail "txt record testrecord.${APP_VALUES[DNS_SUFFIX]} still resolves on server ${APP_VALUES[DNS_SERVER]}"
     else
 	verbose "txt record successfully deleted"
     fi
@@ -705,13 +748,12 @@ function check_dns_bind() {
 
 function check_dynamic_dns() {
     verbose checking dynamic dns plugin
-    NAME_PLUGIN=`find_dynamic_dns_plugin`
+    NAME_PLUGIN=${APP_VALUES[oo_dns_provider]}
     case $NAME_PLUGIN in
         'OpenShift::DnsService')
-	    fail abstract dns class: $NAME_PLUGIN
+	    fail "configured dns class is the abstract one: $NAME_PLUGIN"
 	    ;;
 
-	    
 	'OpenShift::BindPlugin')
 	    verbose dynamic dns plugin = $NAME_PLUGIN
 	    check_dns_bind
@@ -729,20 +771,16 @@ function check_dynamic_dns() {
 # Broker -> Node messaging
 #
 # ============================================================================
-function find_messaging_plugin() {
-    get_application_value "OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
-}
 
 function check_messaging() {
     verbose checking messaging configuration
 
-    MSG_PLUGIN=`find_messaging_plugin`
+    MSG_PLUGIN=${APP_VALUES[proxy_provider]}
     case $MSG_PLUGIN in
         'OpenShift::ApplicationContainerProxy')
-	    fail abstract messaging class: $MSG_PLUGIN
+	    fail "configured messaging class is the abstract one: $MSG_PLUGIN"
 	    ;;
 
-	    
 	'OpenShift::MCollectiveApplicationContainerProxy')
 	    verbose messaging plugin = $MSG_PLUGIN
 	    ;;
@@ -763,6 +801,7 @@ function print_help() {
 
   -h) help (print this message)
   -v) verbose - notify when each check begins
+  -d) debug output - displays commands executed
 "
     exit 0
 }
@@ -785,51 +824,10 @@ do
 	    VERBOSE="true"
 	    ;;
 
-
-	# storage
-	S)
-	    DATA_SERVICE=$OPTION
-	    ;;
-
-	# auth
-	A)
-	    AUTH_SERVICE=$OPTION
-	    ;;
-
-	# DNS
-	D)
-	    NAME_SERVICE=$OPTION
-	    ;;
-
-	# Interface
-        I)
-	    INTERFACE=$OPTION
-	    ;;
-
-	# IP Address
-        a)
-	    IP_ADDRESS=$OPTION
-	    ;;
-
         ?) print_help
         ;;
     esac
 done
-
-# Set defaults if not provided
-DATA_SERVICE=${DATA_SERVICE:=${DEFAULT_DATA_SERVICE}}
-AUTH_SERVICE=${AUTH_SERVICE:=${DEFAULT_AUTH_SERVICE}}
-NAME_SERVICE=${NAME_SERVICE:=${DEFAULT_NAME_SERVICE}}
-# INTERFACE=${INTERFACE:=$(guess_interface)}
-# IP_ADDRESS=${IP_ADDRESS:=$(guess_ip_address)}
-
-verbose SERVICES: DATA: $DATA_SERVICE, Auth: $AUTH_SERVICE, Name $NAME_SERVICE
-
-AUTH_MODULE=`echo $AUTH_MODULE_PATTERN | sed -e "s/%NAME%/$AUTH_SERVICE/"`
-NAME_MODULE=`echo $NAME_MODULE_PATTERN | sed -e "s/%NAME%/$NAME_SERVICE/"`
-
-verbose AUTH_MODULE: $AUTH_MODULE
-verbose NAME_MODULE: $NAME_MODULE
 
 # =============================================================================
 #
@@ -845,6 +843,7 @@ probe_version
 
 check_packages $PACKAGES
 check_ruby_requirements $OSO_RUBY_LIBS
+load_application_values
 #check_selinux_modules
 #check_selinux_booleans
 #check_kernel_settings
@@ -855,6 +854,7 @@ check_datastore
 check_authentication
 check_dynamic_dns
 check_messaging
+exit
 
 if [ "$STATUS" -eq 0 ]
 then

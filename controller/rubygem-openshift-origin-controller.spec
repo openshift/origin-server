@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.2.9
+Version: 1.3.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,30 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.10-1
+- Merge pull request #986 from BanzaiMan/dev/hasari/us2975
+  (dmcphers@redhat.com)
+- 'rhc cartridge add' output format is different (asari.ruby@gmail.com)
+- The pertinent line changed the output format. (asari.ruby@gmail.com)
+- Remove cartridge from the command line. (asari.ruby@gmail.com)
+- Fixed cucmber errors by increasing retry attempts and timeout margins
+  (nhr@redhat.com)
+- Fix 'rhc domain update' command usage. (asari.ruby@gmail.com)
+- Upload ssh key before creating app. (asari.ruby@gmail.com)
+- --state, not --status. (asari.ruby@gmail.com)
+- 'rhc app create' does not clone repo if dns option is not set.
+  (asari.ruby@gmail.com)
+- Log timing correctly. (asari.ruby@gmail.com)
+- Oops. '$' was missing. (asari.ruby@gmail.com)
+- One more deprecated command that slipped through. (asari.ruby@gmail.com)
+- Tweak flags further to avoid warnings. (asari.ruby@gmail.com)
+- Properly invoke 'rhc domain destroy'. (asari.ruby@gmail.com)
+- First pass at US2795. (asari.ruby@gmail.com)
+- fix for resultio append (abhgupta@redhat.com)
+
 * Tue Dec 11 2012 Adam Miller <admiller@redhat.com> 1.2.9-1
 - fixfor bug#883007 (rchopra@redhat.com)
 - Merge pull request #1029 from bdecoste/master (openshift+bot@redhat.com)
