@@ -1301,15 +1301,6 @@ class Application
               saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb})
             pending_ops.push op
             group_instance.gears.each do |gear|
-              this_components_gear = true
-              change[:all_comps].each { |comp|
-                is_singleton = CartridgeCache.find_cartridge(comp["cart"]).get_component(comp["comp"]).is_singleton?
-                if is_singleton and not gear.is_singleton?
-                  this_components_gear = false
-                  break
-                end
-              }
-              next if not this_components_gear
               fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
                   args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
                   saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb}, 
@@ -1424,8 +1415,7 @@ class Application
       unless from_comp_insts.empty? and to_comp_insts.empty?
         added = to_comp_insts - from_comp_insts
         removed = from_comp_insts - to_comp_insts
-        all_comps = (to_comp_insts + from_comp_insts).uniq
-        changes << {from: from_id, to: to_id, added: added, removed: removed, all_comps: all_comps, from_scale: from_scale, to_scale: to_scale}
+        changes << {from: from_id, to: to_id, added: added, removed: removed, from_scale: from_scale, to_scale: to_scale}
       end
       (0..axis_size-1).each {|i| cost_matrix[i,best_to] = 1000}
     end
