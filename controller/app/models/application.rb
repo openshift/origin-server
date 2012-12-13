@@ -1,4 +1,5 @@
 require 'matrix'
+
 class Matrix
   def []=(i, j, x)
     @rows[i][j] = x
@@ -901,14 +902,24 @@ class Application
   end
   
   def self.run_in_application_lock(application, &block)
-    if(Lock.lock_application(application))
-      begin
-        yield block
-      ensure
-        Lock.unlock_application(application)
+    timeout = 10
+    begin
+      if(Lock.lock_application(application))
+        begin
+          yield block
+        ensure
+          Lock.unlock_application(application)
+        end
+      else
+        raise "Unable to perform action. Another operation is already running."
       end
-    else
-      raise "Unable to perform action. Another operation is already running."
+    rescue => e
+      if timeout > 0
+        timeout -= 1
+        sleep 1
+      else
+        raise e
+      end
     end
   end
 
