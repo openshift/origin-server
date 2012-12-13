@@ -28,7 +28,7 @@ class ApplicationType
   alias_method :scalable?, :scalable
   attr_accessor :source
 
-  attr_accessible :initial_git_url, :cartridges, :initial_git_branch
+  attr_accessible :initial_git_url, :cartridges, :initial_git_branch, :scalable
   alias_attribute :categories, :tags
 
   def initialize(attributes={}, persisted=false)
@@ -169,6 +169,7 @@ class ApplicationType
 
     def custom(attrs={})
       attrs = {} if attrs.nil? || attrs.is_a?(String)
+      attrs[:scalable] = true unless attrs.has_key?(:scalable)
       new(:id => 'custom', :display_name => 'From Scratch').assign_attributes(attrs)
     end
 
