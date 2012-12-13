@@ -84,6 +84,15 @@ echo "export OPENSHIFT_MYSQL_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_
 echo "export OPENSHIFT_MYSQL_DB_URL='mysql://admin:$password@$MYSQL_IP:$MYSQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
 echo "export OPENSHIFT_MYSQL_DB_LOG_DIR='${MYSQL_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_LOG_DIR
 
+#
+# Hard restart the application to pick up the new Environment Variables of this cartridge
+# Note: Graceful restart wouldn't pick them up
+#
+if ! only_cart_on_gear $cartridge_type; then
+    stop_app
+    start_app
+fi
+
 ## Setup user
 dbname=${OPENSHIFT_APP_NAME:-$application}
 echo "drop database test;
