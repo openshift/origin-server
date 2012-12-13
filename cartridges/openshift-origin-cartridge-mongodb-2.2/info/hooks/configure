@@ -84,6 +84,14 @@ echo "export OPENSHIFT_MONGODB_DB_PORT='$MONGODB_PORT'" > $APP_HOME/.env/OPENSHI
 echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$MONGODB_IP:$MONGODB_PORT/'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
 echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$MONGODB_DIR/log'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_LOG_DIR
 
+#
+# Hard restart the application to pick up the new Environment Variables of this cartridge
+# Note: Graceful restart wouldn't pick them up
+#
+if ! only_cart_on_gear $cartridge_type; then
+    (stop_app; start_app) &
+fi
+
 ## Setup user
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 DB_NAME=${OPENSHIFT_APP_NAME:-$application}
@@ -139,4 +147,3 @@ cart_props "database_name=$DB_NAME"
 
 set_app_info "Connection URL: mongodb://$mongodb_ip:$mongodb_port/"
 enable_cgroups
- 
