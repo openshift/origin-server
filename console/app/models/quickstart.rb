@@ -42,6 +42,15 @@ class Quickstart < RestApi::Base
   end
 
   def scalable
+    # This is a short-term fix for BZ877849
+    # The drupal quickstart nodes need to be augmented with a flag to
+    # indicate whether or not they can be scaled.
+    ['wordpress','drupal','spring','capedwarf','javaee'].each do |name|
+      if self.name.match(/#{name}/i)
+        Rails.logger.debug("Reporting #{self.name} quickstart as non-scalable")
+        return false
+      end
+    end
     true
   end
   alias_method :scalable?, :scalable
