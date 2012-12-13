@@ -123,7 +123,13 @@ echo "export OPENSHIFT_POSTGRESQL_DB_SOCKET='${CART_INSTANCE_DIR}/socket/postgre
 echo "export OPENSHIFT_POSTGRESQL_DB_URL='postgresql://admin:$password@$POSTGRESQL_IP:$POSTGRESQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_URL
 echo "export OPENSHIFT_POSTGRESQL_DB_LOG_DIR='${CART_INSTANCE_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_POSTGRESQL_DB_LOG_DIR
 
-
+#
+# Hard restart the application to pick up the new Environment Variables of this cartridge
+# Note: Graceful restart wouldn't pick them up
+#
+if ! only_cart_on_gear $cartridge_type; then
+    (stop_app; start_app) &
+fi
 
 psql_ip="$POSTGRESQL_IP"
 psql_port="$POSTGRESQL_PORT"
