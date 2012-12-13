@@ -10,8 +10,7 @@ Before do
 end
 
 After do |scenario|
-  domains = ["api#{@random}", "apiX#{@random}", "apiY#{@random}", "app-api#{@random}"]
-  remove_dns_entries(domains)
+  #domains = ["api#{@random}", "apiX#{@random}", "apiY#{@random}", "app-api#{@random}"]
   @random = nil
   (@undo_config || []).each do |(main, secondary, value)|
     Rails.configuration[main.to_sym][secondary.to_sym] = value

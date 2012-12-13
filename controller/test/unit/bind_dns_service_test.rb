@@ -49,62 +49,6 @@ class BindDnsServiceTest < ActiveSupport::TestCase
                                       :port => @config[:port])
   end
 
-  # 
-  test "namespace is registered?" do
-    # verify that the namespace is not registered
-    client = BindDnsService.new @config
-    assert(client.server, "127.0.0.1")
-    assert(client.namespace_available?('missing'), 'namespace reported in use when available')
-    assert(!client.namespace_available?('testns1'), 'namespace reported available when in use')
-  end
-
-  test "register a namespace" do
-    client = BindDnsService.new @config
-    
-    testns = "testns2"
-    #assert(client.server, "127.0.0.1")
-    #assert(client.namespace_available?(namespace))
-
-    client.register_namespace(testns)
-
-    fqdn = "#{testns}.#{@config[:domain_suffix]}"
-
-    result = nil
-    assert_nothing_raised do
-      # request
-      result = @resolver.query(fqdn, Dnsruby::Types::TXT)
-    end
-
-    # check for success: result is Dnsruby::Message
-    assert_instance_of(Dnsruby::Message, result)
-
-    # result.answer.count = 1
-    assert_equal(1, result.answer.count, "expected 1 result, got #{result.answer.count}")
-    
-    # result.answer[0].name.to_s = fqdn
-    assert_equal(fqdn, result.answer[0].name.to_s, "expected FQDN #{fqdn}")
-
-  end
-
-  test "deregister a namespace" do
-    client = BindDnsService.new @config
-    
-    testns = "testns1"
-    fqdn = "#{testns}.#{@config[:domain_suffix]}"
-
-    #assert(client.server, "127.0.0.1")
-    #assert(client.namespace_available?(namespace))
-
-    client.deregister_namespace(testns)
-    
-    result = nil
-    assert_raise Dnsruby::NXDomain do
-      # request
-      result = @resolver.query(fqdn, Dnsruby::Types::TXT)
-    end
-    
-  end
-
   test "register an application" do
     client = BindDnsService.new @config
     

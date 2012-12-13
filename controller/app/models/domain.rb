@@ -32,6 +32,9 @@ class Domain
   has_many :applications, class_name: Application.name, dependent: :restrict
   embeds_many :pending_ops, class_name: PendingDomainOps.name
   
+  index({:namespace => 1}, {:unique => true})
+  create_indexes
+  
   validates :namespace,
     presence: {message: "Namespace is required and cannot be blank."},
     format:   {with: /\A[A-Za-z0-9_]+\z/, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},

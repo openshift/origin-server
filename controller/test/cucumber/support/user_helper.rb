@@ -15,10 +15,9 @@ module UserHelper
       chars = ("1".."9").to_a
       namespace = "unit" + Array.new(8, '').collect{chars[rand(chars.size)]}.join
       login = "cucumber-test+#{namespace}@example.com"
-      #has_txt = !OpenShift::DnsService.instance.namespace_available?(namespace)
-      has_txt = namespace_available?(namespace)
 
-      unless has_txt or reserved_usernames.index(login)
+      #TODO Should we check for unique ns here?
+      unless reserved_usernames.index(login)
         result[:login] = login
         result[:namespace] = namespace
         break

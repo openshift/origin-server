@@ -13,16 +13,6 @@ module OpenShift
     def initialize
     end
 
-    def namespace_available?(namespace)
-      return true
-    end
-
-    def register_namespace(namespace)
-    end
-
-    def deregister_namespace(namespace)
-    end
-
     def register_application(app_name, namespace, public_hostname)
     end
 
