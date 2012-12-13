@@ -53,9 +53,7 @@ class AppEventsController < BaseController
           #deprecated, no-op
           msg = "Application #{id} has concealed port"
         when "show-port"
-          r = application.show_port
-          msg = "Application #{id} called show port"
-          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          raise UserException.new("This event (#{event}) is no longer supported.")
         when "add-alias"
           r = application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
