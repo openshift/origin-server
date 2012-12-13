@@ -1,6 +1,6 @@
 Summary:       Script to configure HAProxy to do port forwarding for OpenShift
 Name:          openshift-origin-port-proxy
-Version: 1.1.3
+Version: 1.2.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -90,6 +90,9 @@ fi
 %config(noreplace) %{_sysconfdir}/openshift/port-proxy.cfg
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
 - BZ876939 - Return "FAILED" if trying to stop openshift-port-proxy which is
   already stopped (bleanhar@redhat.com)

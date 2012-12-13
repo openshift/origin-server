@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker and node
 Name:           openshift-origin-util-scl
-Version: 1.0.4
+Version: 1.1.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -32,6 +32,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Thu Nov 29 2012 Adam Miller <admiller@redhat.com> 1.0.4-1
 - use /bin/env for cron (dmcphers@redhat.com)
 - Working around scl enable limitations with parameter passing

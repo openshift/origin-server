@@ -1,6 +1,6 @@
 Summary:        m-collective communication plugin for amqp enabled qpid broker
 Name:           mcollective-qpid-plugin
-Version:        1.1.2
+Version: 1.2.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -33,6 +33,9 @@ rm -rf %{buildroot}
 /usr/libexec/mcollective/mcollective/connector/qpid.rb
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.1.2-1
 - spec file cleanup (tdawson@redhat.com)
 
