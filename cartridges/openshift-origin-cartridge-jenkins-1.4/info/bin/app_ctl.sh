@@ -38,7 +38,7 @@ isrunning() {
 start_jenkins() {
     src_user_hook pre_start_${cartridge_type}
     set_app_state started
-    /usr/lib/jvm/jre-1.6.0/bin/java \
+    /etc/alternatives/jre/bin/java \
         -Dcom.sun.akuma.Daemon=daemonized \
         -Djava.awt.headless=true \
         -DJENKINS_HOME=$OPENSHIFT_DATA_DIR/ \
