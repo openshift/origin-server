@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.3.0
+Version: 1.3.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -94,6 +94,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Thu Dec 06 2012 Adam Miller <admiller@redhat.com> 1.2.5-1
 - Merge pull request #1023 from ramr/dev/websockets (openshift+bot@redhat.com)
 - Set connection limits (no limits) for haproxy/scaled apps. (ramr@redhat.com)
