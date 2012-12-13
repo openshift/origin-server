@@ -24,7 +24,9 @@ class CloudUser
   DEFAULT_SSH_KEY_NAME = "default"
 
   field :login, type: String
-  field :capabilities, type: Hash, default: {"subaccounts" => false, "gear_sizes" => ["small"], "max_gears" => 3}
+  field :capabilities, type: Hash, default: {"subaccounts" => false, 
+                                             "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]], 
+                                             "max_gears" => Rails.application.config.openshift[:default_max_gears]}
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
   field :pending_plan_id, type: String
@@ -59,7 +61,7 @@ class CloudUser
   
   # Convenience method to get the max_gears capability
   def max_gears
-    self.capabilities["max_gears"]
+    get_capabilities["max_gears"]
   end
 
   def save(options = {})
@@ -130,17 +132,32 @@ class CloudUser
   end
   
   # Return user capabilities. Subaccount user may inherit capabilities from its parent.
-  def capabilities
-    user_capabilities = self.attributes["capabilities"]
-    if self.parent_user_id && CloudUser.where(_id: self.parent_user_id).exists?
-      parent_user = CloudUser.find_by(_id: self.parent_user_id)
-      parent_user.capabilities['inherit_on_subaccounts'].each do |cap|
-        user_capabilities[cap] = parent_user.capabilities[cap] if parent_user.capabilities[cap]
-      end if parent_user && parent_user.capabilities.has_key?('inherit_on_subaccounts')
+  def get_capabilities
+    user_capabilities = self.capabilities.dup
+    if self.parent_user_id
+      begin
+        parent_user = CloudUser.find_by(_id: self.parent_user_id)
+        parent_capabilities = parent_user.get_capabilities
+        parent_capabilities['inherit_on_subaccounts'].each do |cap|
+          user_capabilities[cap] = parent_capabilities[cap] if parent_capabilities[cap]
+        end if parent_capabilities.has_key?('inherit_on_subaccounts')
+      rescue Mongoid::Errors::DocumentNotFound
+        #do nothing
+      end
     end
     user_capabilities
   end
-  
+
+  # Set user capabilities.
+  def set_capabilities(user_capabilities={})
+    if user_capabilities.nil? || user_capabilities.empty?
+      self.capabilities = {"subaccounts" => false, 
+                           "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]], 
+                           "max_gears" => Rails.application.config.openshift[:default_max_gears]}
+    else
+      self.capabilities = user_capabilities
+    end
+  end
   
   # Runs all jobs in :init phase and stops at the first failure.
   #

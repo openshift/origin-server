@@ -117,7 +117,8 @@ class BaseController < ActionController::Base
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end
 
-        if @parent_user.capabilities.nil? || !@parent_user.capabilities["subaccounts"] == true
+        parent_capabilities = @parent_user.get_capabilities
+        if parent_capabilities.nil? || !parent_capabilities["subaccounts"] == true
           Rails.logger.debug "#{@parent_user.login} tried to impersonate user but does not have require capability."
           raise OpenShift::AccessDeniedException.new "Insufficient privileges to access user #{subuser_name}"
         end        

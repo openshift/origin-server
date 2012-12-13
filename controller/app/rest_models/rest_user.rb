@@ -15,7 +15,7 @@ class RestUser < OpenShift::Model
     
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
-    self.capabilities = cloud_user.capabilities
+    self.capabilities = cloud_user.get_capabilities
     self.max_gears = capabilities["max_gears"]
     capabilities.delete("max_gears")
     self.plan_id = cloud_user.plan_id

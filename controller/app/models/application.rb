@@ -1466,8 +1466,9 @@ class Application
         sleep 1
       end
       owner.reload
-      if owner.consumed_gears + num_gears_added > owner.capabilities["max_gears"]
-        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner.capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
+      owner_capabilities = owner.get_capabilities
+      if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"]
+        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
       end
       owner.consumed_gears += num_gears_added
       op_group.pending_ops.push ops

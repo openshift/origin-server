@@ -51,7 +51,7 @@ class LegacyBrokerController < BaseController
       
       user_info["max_gears"] = @cloud_user.max_gears
       user_info["consumed_gears"] = @cloud_user.consumed_gears
-      user_info["capabilities"] = @cloud_user.capabilities
+      user_info["capabilities"] = @cloud_user.get_capabilities
       
       # this is to support old version of client tools
       app_info = {}

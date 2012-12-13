@@ -96,13 +96,15 @@ end
 
 def allow_sub_accounts(user, allow)
     user.capabilities_will_change!
-    if user.capabilities['subaccounts'] == allow
+    user_capabilities = user.get_capabilities
+    if user_capabilities['subaccounts'] == allow
         puts "User already has allowsubaccounts set to #{allow}"
         return
     end
 
     print "Setting subaccounts capability to #{allow} for user #{user.login}... "
-    user.capabilities['subaccounts'] = allow
+    user_capabilities['subaccounts'] = allow
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -112,7 +114,8 @@ def allow_sub_accounts(user, allow)
 end
 
 def add_sub_account(user, subaccount_login)
-    unless user.capabilities['subaccounts']
+    user_capabilities = user.get_capabilities
+    unless user_capabilities['subaccounts']
         puts "User #{user.login} does not have the capability to manage sub accounts"
         return
     end
@@ -140,7 +143,8 @@ def add_sub_account(user, subaccount_login)
 end
 
 def remove_sub_account(user, subaccount_login)
-    unless user.capabilities['subaccounts']
+    user_capabilities = user.get_capabilities
+    unless user_capabilities['subaccounts']
         puts "User #{user.login} does not have the capability to manage sub accounts"
         return
     end
@@ -167,9 +171,10 @@ def remove_sub_account(user, subaccount_login)
 end
 
 def add_gear_size(user, gear_size)
+    user_capabilities = user.get_capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
     gear_sizes = []
-    gear_sizes = user.capabilities['gear_sizes'] if user.capabilities.has_key?('gear_sizes')
+    gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
     
     if gear_sizes.include?(gear_size)
         puts "User #{user.login} already has gear size #{gear_size} in its capabilities."
@@ -178,7 +183,8 @@ def add_gear_size(user, gear_size)
     
     user.capabilities_will_change!
     gear_sizes.push(gear_size)
-    user.capabilities['gear_sizes'] = gear_sizes
+    user_capabilities['gear_sizes'] = gear_sizes
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -190,7 +196,8 @@ end
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
     gear_sizes = []
-    gear_sizes = user.capabilities['gear_sizes'] if user.capabilities.has_key?('gear_sizes')
+    user_capabilities = user.get_capabilities
+    gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
     
     unless gear_sizes.include?(gear_size)
         puts "User #{user.login} does not have gear size #{gear_size} in its capabilities."
@@ -199,7 +206,8 @@ def remove_gear_size(user, gear_size)
     
     user.capabilities_will_change!
     gear_sizes.delete(gear_size)
-    user.capabilities['gear_sizes'] = gear_sizes
+    user_capabilities['gear_sizes'] = gear_sizes
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -209,9 +217,10 @@ def remove_gear_size(user, gear_size)
 end
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
-    user.capabilities['inherit_on_subaccounts'] = [] unless user.capabilities.has_key?('inherit_on_subaccounts')
+    user_capabilities = user.get_capabilities
+    user_capabilities['inherit_on_subaccounts'] = [] unless user_capabilities.has_key?('inherit_on_subaccounts')
  
-    if user.capabilities['inherit_on_subaccounts'].include?(capability) == allow
+    if user_capabilities['inherit_on_subaccounts'].include?(capability) == allow
         puts "User already has #{cap_name} inheritance set to #{allow}"
         return
     end
@@ -219,10 +228,12 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
     user.capabilities_will_change!
     print "Setting #{cap_name} inheritance to #{allow} for user #{user.login}... "
     if allow
-      user.capabilities['inherit_on_subaccounts'].push(capability)
+      user_capabilities['inherit_on_subaccounts'].push(capability)
     else
-      user.capabilities['inherit_on_subaccounts'].delete(capability)
+      user_capabilities['inherit_on_subaccounts'].delete(capability)
     end
+    
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -347,13 +358,15 @@ if changed_user
     puts
 end
 
+user_capabilities = user.get_capabilities
+
 # print out the user's current settings
 puts "User #{user.login}:"
 puts "      consumed gears: #{user.consumed_gears}"
 puts "           max gears: #{user.max_gears}"
-puts "          gear sizes: #{user.capabilities['gear_sizes'].join(', ')}" if user.capabilities.has_key?('gear_sizes')
-puts "sub accounts allowed: #{user.capabilities['subaccounts']}" if user.capabilities.has_key?('subaccounts')
-puts "  inherit gear sizes: #{user.capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user.capabilities.has_key?('inherit_on_subaccounts')
+puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
+puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
+puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
 puts 
 if args["--listsubaccounts"] and (not subaccount_list.nil?) and (not subaccount_list.empty?)
     puts "Sub Accounts: #{subaccount_list.length}"
