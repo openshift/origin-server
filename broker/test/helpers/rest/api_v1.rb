@@ -36,8 +36,6 @@ class RestApi_V1 < RestApi
         # no-op
       when 'domain'
         obj = RestDomain_V1.to_obj(data)
-        puts "#{obj.inspect}"
-        puts "#{response.inspect}"
         self.response.compare(obj)
       when 'domains'
         data.each do |dom_hash|
