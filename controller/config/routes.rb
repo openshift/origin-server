@@ -20,7 +20,6 @@ Rails.application.routes.draw do
     resources :domains, :constraints => { :id => /[A-Za-z0-9]+/ } do
       resources :applications, :constraints => { :id => /[\w]+/ } do
         resource :descriptor, :only => [:show]
-        resource :gears, :only => [:show]
         resources :gear_groups, :constraints => { :id => /[A-Za-z0-9]+/ }, :only => [:index, :show]
         resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => /([\w\-]+(-)([\d]+(\.[\d]+)*)+)/ } do
             resources :events, :controller => :emb_cart_events, :only => [:create]
