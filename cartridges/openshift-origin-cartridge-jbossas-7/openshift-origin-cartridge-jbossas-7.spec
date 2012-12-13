@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.3.1
+Version:   1.3.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -19,8 +19,17 @@ BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
 Requires: openshift-origin-cartridge-abstract-jboss
 Requires: rubygem(openshift-origin-node)
+
+%if 0%{?rhel}
 Requires: jboss-as7 >= %{jbossver}
 Requires: jboss-as7-modules >= %{jbossver}
+%endif
+
+%if 0%{?fedora} < 17
+Requires: jboss-as7 >= %{jbossver}
+Requires: jboss-as7-modules >= %{jbossver}
+%endif
+
 Requires: lsof
 Requires: java-1.7.0-openjdk
 Requires: java-1.7.0-openjdk-devel
@@ -111,17 +120,29 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartr
 %if 0%{?rhel}
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
+alternatives --remove jbossas-7.0 /opt/jboss-as-%{oldjbossver}
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
+alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 %endif
 
-%if 0%{?fedora}
+%if 0%{?fedora} 
 alternatives --remove maven-3.0 /usr/share/java/apache-maven-3.0.3
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 102
 alternatives --set maven-3.0 /usr/share/maven
 %endif
 
+%if 0%{?fedora} < 17
 alternatives --remove jbossas-7.0 /opt/jboss-as-%{oldjbossver}
 alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
 alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
+%endif
+
+%if 0%{?fedora} >= 17
+alternatives --remove jbossas-7.0 /usr/share/jboss-as
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jboss-as 102
+alternatives --set jbossas-7 /usr/share/jboss-as
+%endif
+
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss as 7.* upstream.
@@ -153,6 +174,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Dec 13 2012 William DeCoste <wdecoste@redhat.com> 1.3.2-1
+- Fedora 17
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
