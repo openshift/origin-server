@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.3.0
+Version: 1.3.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -110,6 +110,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Wed Dec 05 2012 Adam Miller <admiller@redhat.com> 1.2.4-1
 - Make tidy hook accessible to gear users (ironcladlou@gmail.com)
 
