@@ -131,7 +131,7 @@ class CloudUser
   
   # Return user capabilities. Subaccount user may inherit capabilities from its parent.
   def capabilities
-    user_capabilities = self.attributes["capabilities"]
+    user_capabilities = self.attributes["capabilities"].dup
     if self.parent_user_id && CloudUser.where(_id: self.parent_user_id).exists?
       parent_user = CloudUser.find_by(_id: self.parent_user_id)
       parent_user.capabilities['inherit_on_subaccounts'].each do |cap|
