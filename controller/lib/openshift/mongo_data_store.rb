@@ -39,8 +39,6 @@ module OpenShift
         get_app(user_id, id)
       when "Domain"
         get_domain(user_id, id)
-      when "ApplicationTemplate"
-        find_application_template(id)
       end
     end
     
@@ -53,12 +51,6 @@ module OpenShift
         get_apps(user_id, &block)
       when "Domain"
         get_domains(user_id, &block)
-      when "ApplicationTemplate"
-        if opts.nil? || opts.empty?
-          find_all_application_templates(&block)
-        else
-          find_application_template_by_tag(opts[:tag], &block)
-        end
       end
     end
 
@@ -100,8 +92,6 @@ module OpenShift
         get_user_by_app_uuid(uuid)
       when "Domain"
         get_user_by_domain_uuid(uuid)
-      when "ApplicationTemplate"
-        find_application_template(uuid)
       end
     end
     
@@ -141,8 +131,6 @@ module OpenShift
         add_app(user_id, id, obj_attrs)
       when "Domain"
         add_domain(user_id, id, obj_attrs)
-      when "ApplicationTemplate"
-        save_application_template(id, obj_attrs)
       end
     end
     
@@ -155,8 +143,6 @@ module OpenShift
         delete_app(user_id, id)
       when "Domain"
         delete_domain(user_id, id)
-      when "ApplicationTemplate"
-        delete_application_template(id)
       when "UsageRecord"
         delete_usage_record(user_id, id)
       end
@@ -348,51 +334,6 @@ module OpenShift
     end
 
     private
-    
-    def find_application_template_by_tag(tag)
-      arr = application_template_collection.find( {"tags" => tag} )
-      return nil if arr.nil?
-      templates = []
-      arr.each do |hash|
-        hash.delete("_id")
-        templates.push(hash)
-      end
-      templates
-    end
-    
-    def find_application_template(id)
-      hash = application_template_collection.find_one( {"_id" => id} )        
-      return nil if hash.nil?
-      hash.delete("_id")
-      hash
-    end
-    
-    def find_all_application_templates()
-      arr = application_template_collection.find()
-      return nil if arr.nil?
-      templates = []
-      arr.each do |hash|
-        hash.delete("_id")
-        templates.push(hash)
-      end
-      templates
-    end
-    
-    def save_application_template(uuid, attrs)
-      Rails.logger.debug "MongoDataStore.save_application_template(#{uuid}, #{attrs.pretty_inspect})\n\n"
-      attrs["_id"] = uuid
-      application_template_collection.update({ "_id" => uuid }, attrs, { :upsert => true })
-      attrs.delete("_id")
-    end
-    
-    def delete_application_template(uuid)
-      Rails.logger.debug "MongoDataStore.delete_application_template(#{uuid})\n\n"
-      application_template_collection.remove({ "_id" => uuid })
-    end
-    
-    def application_template_collection
-      db.collection(@collections[:application_template])
-    end
 
     def get_user(user_id)
       hash = find_one( user_collection, "_id" => user_id )

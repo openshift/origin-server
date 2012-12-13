@@ -43,22 +43,6 @@ Given /^I accept "([^\"]*)"$/ do |type|
   @headers = {:accept => type.to_s.downcase}
 end
 
-Given /^an application template UUID$/ do
-  path = sub_random('/application_templates')
-  url = @base_url + path.to_s
-  @request = RestClient::Request.new(:method => :get, :url => url, :headers => @headers)
-  begin
-    @response = @request.execute()
-  rescue => e
-    @response = e.response
-  end
-  
-  # Get a normalized list of templates
-  application_templates = unpacked_data(@response.body)
-
-  @uuid = application_templates[0]['uuid']
-end
-
 Given /^a quickstart UUID$/ do
   path = sub_random('/quickstarts')
   url = @base_url + path.to_s
@@ -287,16 +271,12 @@ end
 
 Then /^the response should be a list of "([^\"]*)"$/ do |list_type|
   items = unpacked_data(@response.body)
-  if items.length < 1 && list_type != 'application templates' 
+  if items.length < 1
     raise("I got an empty list of #{list_type}")
   end
   if list_type == 'cartridges'
     items.each do |cartridge|
       check_cartridge(cartridge)
-    end
-  elsif list_type == 'application templates'
-    items.each do |application_template|
-      check_application_template(application_template)
     end
   elsif list_type == 'quickstarts'
     items.each do |item|
@@ -311,8 +291,6 @@ Then /^the response should be a "([^\"]*)"$/ do |item_type|
   item = unpacked_data(@response.body)[0]
   if item_type == 'cartridge'
     check_cartridge(item)
-  elsif item_type == 'application template'
-    check_application_template(item)
   elsif item_type == 'quickstart'
     check_quickstart(item)
   else
@@ -323,12 +301,6 @@ end
 def check_cartridge(cartridge)
   unless cartridge.has_key?("name") && cartridge['name'].match(/\S+/)
     raise("I found a cartridge without a name")
-  end
-end
-
-def check_application_template(application_template)
-  unless application_template.has_key?("uuid") && application_template['uuid'].match(/\S+/)
-    raise("I found an application without a UUID")
   end
 end
 

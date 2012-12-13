@@ -222,17 +222,6 @@ class RestApplicationEstimate_V1 < BaseObj_V1
   end
 end
 
-class RestApplicationTemplate_V1 < BaseObj_V1
-  attr_accessor :uuid, :display_name, :descriptor_yaml, :git_url, :tags, :gear_cost, :metadata
-  attr_accessor :links
-
-  def initialize
-    self.uuid, self.display_name, self.descriptor_yaml = nil, nil, nil
-    self.git_url, self.tags, self.gear_cost, self.metadata = nil, nil, nil, nil
-    self.links = nil
-  end
-end
-
 class RestDomain_V1 < BaseObj_V1
   attr_accessor :id, :suffix, :links
 
