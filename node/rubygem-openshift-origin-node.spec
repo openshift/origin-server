@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.0
+Version: 1.3.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,9 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
+- bump_minor_versions for sprint 22 (admiller@redhat.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Merge pull request #1007 from sosiouxme/US3036-origin
   (openshift+bot@redhat.com)
