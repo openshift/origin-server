@@ -15,7 +15,19 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
+
+%if 0%{?rhel}
 BuildRequires: java-devel >= 1:1.6.0
+%endif
+
+%if 0%{?fedora} < 17
+BuildRequires: java-devel >= 1:1.6.0
+%endif
+
+%if 0%{?fedora} >= 17
+BuildRequires: java-devel >= 1:1.7.0
+%endif
+
 BuildRequires: jpackage-utils
 Requires: openshift-origin-cartridge-abstract-jboss
 Requires: rubygem(openshift-origin-node)
