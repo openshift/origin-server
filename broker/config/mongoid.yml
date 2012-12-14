@@ -4,7 +4,7 @@ development:
       database: openshift_broker_dev
       hosts:
         - localhost:27017
-      username: openshift
+      user: openshift
       password: mooo
   options:
     ssl: false
@@ -12,10 +12,10 @@ development:
 production:
   sessions:
     default:
-      database: openshift_broker_dev
+      database: openshift_broker
       hosts:
         - localhost:27017
-      username: openshift
+      user: openshift
       password: mooo
   options:
     ssl: false
@@ -23,10 +23,10 @@ production:
 test:
   sessions:
     default:
-      database: openshift_broker_dev
+      database: openshift_broker_test
       hosts:
         - localhost:27017
-      username: openshift
+      user: openshift
       password: mooo
   options:
     ssl: false
