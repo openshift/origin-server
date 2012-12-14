@@ -17,8 +17,7 @@ Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        https://mirror.openshift.com/pub/origin-server/source/rubygem-%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -129,11 +128,7 @@ cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc LICENSE COPYRIGHT
 %doc %{gem_docdir}
 %{gem_instdir}
@@ -143,8 +138,7 @@ rm -rf %{buildroot}
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 %config(noreplace) /etc/openshift
-%config(noreplace) /etc/openshift/node.conf
-%attr(0750,-,-) /etc/httpd/conf.d/openshift
+/etc/httpd/conf.d/openshift
 
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %attr(0755,-,-) %{appdir}
