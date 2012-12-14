@@ -2329,7 +2329,7 @@ module OpenShift
           reply.append run_cartridge_command('embedded/' + component, app, gear, 'configure')
         rescue Exception => e
           begin
-            Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.user.login}'"
+            Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.domain.owner.login}'"
             reply.debugIO << "Failed to embed '#{component} in '#{app.name}'"
             reply.append run_cartridge_command('embedded/' + component, app, gear, 'deconfigure')
           ensure
