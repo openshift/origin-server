@@ -16,6 +16,12 @@
 
     "pidfile": "PID file location - write server pid to this file", 
 
+    "runas": {
+      "description": "Dictionary for configuration of user/group to run as",
+      "user"       : "User name/id the proxy server should be run as",
+      "group"      : "Group name/id the proxy server should be run as"
+    },
+
     "routes": {
       "description": "Dictionary for configuration of routes",
       "files"      : [ "List of files/single file that contains the ",

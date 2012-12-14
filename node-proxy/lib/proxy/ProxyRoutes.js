@@ -8,7 +8,7 @@ var _default_limits = { connections: 5, bandwidth: 100 };
 
 /*!
  *  }}}  //  End of section  Private-Variables.
- *  --------------------------------------------------------------------- 
+ *  ---------------------------------------------------------------------
  */
 
 
@@ -75,7 +75,7 @@ function ProxyRoutes() {
 /*!  {{{  section:  'External-API-Functions'                             */
 
 /**
- *  Clears all the routes. 
+ *  Clears all the routes.
  *
  *  Examples:
  *    var rj   = '/var/lib/openshift/.httpd.d/$uuid_$ns_$app/route.json';
@@ -116,7 +116,7 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
   if (!n) {
     return { };
   }
-  
+
   limits  ||  (limits = _default_limits);
   endpts  ||  (endpts = [ ]);
   if (('string' === typeof endpts)  ||  ('number' === typeof endpts)) {
@@ -126,7 +126,7 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
   var zroute = this.routes[n];
   this.routes[n] = { 'endpoints': endpts, 'limits': limits };
 
-  // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts); 
+  // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts);
   // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits)); 
 
   return zroute;
