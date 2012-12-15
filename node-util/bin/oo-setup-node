@@ -58,7 +58,16 @@ def run(cmd)
   return status.to_i
 end
 
+def enable_se_booleans(bool_list)
+  bool_list.delete_if{ |bool| `getsebool #{bool}`.match(/--> on/) }
+  semanage_commands = bool_list.map { |bool| "boolean -m --on #{bool}" }.join("\n")
 
+run <<-EOOF
+/usr/sbin/semanage -i - <<_EOF
+#{semanage_commands}
+_EOF
+EOOF
+end
 
 def usage
   puts <<USAGE
@@ -212,7 +221,7 @@ else
     f.write "PREFIX=#{ext_prefix}\n"
     f.write "GATEWAY=#{ext_gw}\n"
 end
-  f.write "DNS1=127.0.0.1\n"
+  f.write "DNS1=#{broker_ip}\n"
   dns_address.each_index do |idx|
     f.write "DNS#{idx+2}=#{dns_address[idx]}\n"
   end
@@ -246,23 +255,77 @@ end
 run "/sbin/chkconfig network on"
 
 $log.info "Setting node SELinux booleans\n"
-run("/usr/sbin/setsebool -P httpd_run_stickshift 1 &>/dev/null || :")
-run("/usr/sbin/setsebool -P httpd_run_openshift 1 &>/dev/null || :")
-run("/usr/sbin/setsebool -P httpd_verify_dns 1 &>/dev/null || :")
-run("/usr/sbin/setsebool -P allow_polyinstantiation 1 &>/dev/null || :")
+enable_se_booleans(["httpd_run_stickshift", "httpd_verify_dns", "allow_polyinstantiation"])
+
+$log.info "Updating node configuration"
+find_and_replace("/etc/openshift/node.conf", /^PUBLIC_IP=.*$/, "PUBLIC_IP=#{ext_address}")
+find_and_replace("/etc/openshift/node.conf", /^CLOUD_DOMAIN=.*$/, "CLOUD_DOMAIN=#{node_domain}")
+find_and_replace("/etc/openshift/node.conf", /^PUBLIC_HOSTNAME=.*$/, "PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}")
+find_and_replace("/etc/openshift/node.conf", /^(# )?EXTERNAL_ETH_DEV=.*$/, "EXTERNAL_ETH_DEV=#{ext_eth_device}")
+find_and_replace("/etc/openshift/node.conf", /^(# )?INTERNAL_ETH_DEV=.*$/, "INTERNAL_ETH_DEV=#{int_eth_device}")
+find_and_replace("/etc/openshift/node.conf", /^BROKER_HOST=.*$/, "BROKER_HOST=\"#{broker_ip}\"")
+
 
 $log.info "Opening required ports\n"
 run "/usr/sbin/lokkit --service=ssh"
 run "/usr/sbin/lokkit --service=http"
 run "/usr/sbin/lokkit --service=https"
+run "/usr/sbin/lokkit -p 8000:tcp"
+run "/usr/sbin/lokkit -p 8443:tcp"
 
 $log.info "Setting up m-collective to use qpid"
-find_and_replace("/etc/mcollective/client.cfg", /^plugin\.qpid\.host=.*$/, "plugin.qpid.host=#{broker_ip}")
-find_and_replace("/etc/mcollective/server.cfg", /^plugin\.qpid\.host=.*$/, "plugin.qpid.host=#{broker_ip}")
+$log.info "...configuring mcollective client to use qpid"
+File.open("/etc/mcollective/client.cfg","w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+loglevel = debug
+logfile = /var/log/mcollective-client.log
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.#{node_domain}
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
+
+$log.info "...configuring mcollective server to use qpid"
+File.open("/etc/mcollective/server.cfg", "w") do |f|
+  f.write <<-EOF
+topicprefix = /topic/
+main_collective = mcollective
+collectives = mcollective
+libdir = /usr/libexec/mcollective
+logfile = /var/log/mcollective.log
+loglevel = debug
+daemonize = 1 
+direct_addressing = n
+
+# Plugins
+securityprovider = psk
+plugin.psk = unset
+connector = qpid
+plugin.qpid.host=broker.#{node_domain}
+plugin.qpid.secure=false
+plugin.qpid.timeout=5
+
+# Facts
+factsource = yaml
+plugin.yaml = /etc/mcollective/facts.yaml
+EOF
+end
 
 $log.info "Generating mcollective facts"
 run "/etc/cron.minutely/openshift-facts"
-run "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml"
 
 oo_device=%x[/bin/df -P /var/lib/openshift | tail -1].split[0]
 oo_mount=%x[/bin/df -P /var/lib/openshift | tail -1 | tr -s ' '].split[5]
@@ -303,14 +366,6 @@ run "/sbin/chkconfig cgred on"
   run "/sbin/chkconfig --add openshift-cgroups"
   run "/sbin/chkconfig openshift-cgroups on"
 #end
-
-$log.info "Updating node configuration"
-find_and_replace("/etc/openshift/node.conf", /^PUBLIC_IP=.*$/, "PUBLIC_IP=#{ext_address}")
-find_and_replace("/etc/openshift/node.conf", /^CLOUD_DOMAIN=.*$/, "CLOUD_DOMAIN=#{node_domain}")
-find_and_replace("/etc/openshift/node.conf", /^PUBLIC_HOSTNAME=.*$/, "PUBLIC_HOSTNAME=#{node_hostname}.#{node_domain}")
-find_and_replace("/etc/openshift/node.conf", /^(# )?EXTERNAL_ETH_DEV=.*$/, "EXTERNAL_ETH_DEV=#{ext_eth_device}")
-find_and_replace("/etc/openshift/node.conf", /^(# )?INTERNAL_ETH_DEV=.*$/, "INTERNAL_ETH_DEV=#{int_eth_device}")
-find_and_replace("/etc/openshift/node.conf", /^BROKER_HOST=.*$/, "BROKER_HOST=\"#{broker_ip}\"")
 
 $log.info "Restore SELinux default security contexts."
 run "/sbin/restorecon /var/lib/openshift || :"

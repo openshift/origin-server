@@ -1,2 +1,2 @@
 #!/bin/bash
-oo-exec-ruby "/usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml" &> /dev/null
+oo-exec-ruby /usr/libexec/mcollective/update_yaml.rb /etc/mcollective/facts.yaml &> /dev/null
