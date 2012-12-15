@@ -17,7 +17,7 @@ BuildRequires: git
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
 Requires: php >= 5.3.2
-Requires: php < 5.4.0
+Requires: php
 Requires: mod_bw
 Requires: rubygem-builder
 Requires: php-devel

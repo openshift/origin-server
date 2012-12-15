@@ -156,24 +156,9 @@ fi
 /sbin/service openshift-console condrestart || :
 %endif
 
-#selinux updated
-semanage -i - <<_EOF
-boolean -m --on httpd_can_network_connect
-boolean -m --on httpd_can_network_relay
-boolean -m --on httpd_read_user_content
-boolean -m --on httpd_enable_homedirs
-boolean -m --on httpd_execmem
-fcontext -a -t httpd_var_run_t '%{consoledir}/httpd/run(/.*)?'
-fcontext -a -t httpd_log_t '%{consoledir}/httpd/logs(/.*)?'
-_EOF
-
-chcon -R -t httpd_log_t %{consoledir}/httpd/logs
-chcon -R -t httpd_tmp_t %{consoledir}/httpd/run
-chcon -R -t httpd_var_run_t %{consoledir}/httpd/run
 /sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
-#/sbin/restorecon -rv %{gemdir}/passenger*
 %changelog
 * Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Bug 871705 - renaming a sample conf file for consistency

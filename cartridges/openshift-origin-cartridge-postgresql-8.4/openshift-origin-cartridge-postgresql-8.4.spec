@@ -17,7 +17,7 @@ BuildArch: noarch
 BuildRequires: git
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
-Requires: postgresql
+Requires: postgresql < 9
 Requires: postgresql-server
 Requires: postgresql-libs
 Requires: postgresql-devel
