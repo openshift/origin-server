@@ -23,7 +23,7 @@ class District
   end
 
   def self.find_by_name(name)
-    return District.where(name: name)
+    return District.where(name: name)[0]
   end
   
   def initialize(attrs = nil, options = nil)
