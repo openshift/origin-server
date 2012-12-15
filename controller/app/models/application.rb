@@ -1002,21 +1002,19 @@ class Application
   end
 
   def calculate_scale_by(ginst_id, scale_by)
-    current_group_instances = self.group_instances.map { |gi| gi.to_hash }
     changes = []
+    current_group_instances = group_instances_with_scale
     current_group_instances.each do |ginst|
-      if ginst[:_id].to_s == ginst_id
-        min = ginst[:scale][:min] > ginst[:scale][:user_min] ? ginst[:scale][:min] : ginst[:scale][:user_min]
-        max = ginst[:scale][:max]
-        max = ginst[:scale][:user_max] if (ginst[:scale][:user_max] != ginst[:scale][:max]) && ginst[:scale][:max] == -1
-        final_scale = ginst[:scale][:current] + scale_by
-        final_scale = min if final_scale < min
-        final_scale = max if ((final_scale > max) && (max != -1))
+      if ginst._id.to_s == ginst_id.to_s
+        final_scale = ginst.gears.length + scale_by
+        final_scale = ginst.min if final_scale < ginst.min
+        final_scale = ginst.max if ((final_scale > ginst.max) && (ginst.max != -1))
 
         changes << {
-          :from=>ginst_id, :to=>ginst_id,
-          :added=>[], :removed=>[], :from_scale=>ginst[:scale],
-          :to_scale=>{:min=>ginst[:scale][:min], :max=>ginst[:scale][:max], :current=>final_scale}
+          :from=>ginst_id.to_s, :to=>ginst_id.to_s,
+          :added=>[], :removed=>[], 
+          :from_scale=>{:min=>ginst.min, :max=>ginst.max, :current=>ginst.gears.length},
+          :to_scale=>{:min=>ginst.min, :max=>ginst.max, :current=>final_scale}
         }
       end
     end
@@ -1262,6 +1260,7 @@ class Application
     moves.each do |move|
       #ops.push(PendingAppOps.new(op_type: :move_component, args: move, flag_req_change: true))
     end
+
 
     changes.each do |change|
       unless change[:from].nil?
