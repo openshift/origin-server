@@ -885,6 +885,9 @@ class Application
       end
       true
     rescue Exception => e_orig
+      Rails.logger.error e_orig.message
+      Rails.logger.debug e_orig.backtrace.inspect
+
       #rollback
       begin
         op_group.execute_rollback(result_io)
