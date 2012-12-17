@@ -58,11 +58,11 @@ require "/var/www/openshift/broker/config/environment"
 Rails.configuration.analytics[:enabled] = false
 Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 
-def datastore_has_gear?(gear_uuid, login=nil)
+def datastore_has_gear?(gear_uuid, app_uuid=nil)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    query = { "apps.group_instances.gears.uuid" => gear_uuid }
-    query['_id'] = login if login
+    query = { "group_instances.gears._id" => gear_uuid }
+    query['_id'] = app_uuid if app_uuid
     hash = OpenShift::DataStore.instance.user_collection.find_one(query, {:fields => []})
     return !hash.nil?
   else
@@ -78,62 +78,94 @@ summary = []
 datastore_hash = {}
 puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
-query = {"$or" => [{"apps.group_instances.gears.0" => {"$exists" => true}}, {"consumed_gears" => {"$ne" => 0}}]}
-options = {:fields => ["apps.name",
-                       "apps.creation_time",
-                       "apps.group_instances.gears.uuid",
-                       "apps.group_instances.gears.uid",
-                       "apps.group_instances.gears.server_identity",
-                       "apps.group_instances.name",
-                       "consumed_gears",
-                       "login"],
-           :timeout => false}
+query = {"group_instances.gears.0" => {"$exists" => true}}
+selection = {"name" => 1,
+                       "created_at" => 1,
+                       "domain_id" => 1,
+                       "group_instances.gears._id" => 1,
+                       "group_instances.gears.uid" => 1,
+                       "group_instances.gears.server_identity" => 1,
+                       "group_instances._id" => 1 }
 ret = []
-OpenShift::DataStore.instance.user_collection.find(query, options) do |mcursor|
-  mcursor.each do |hash|
+
+$moped_session = Mongoid::Sessions.default
+
+def get_records(db, query, selection)
+  # 'by' - tweak to a larger number for faster results, smaller number if a timeout insults
+  by = 10000
+  skip_first = 0
+  while ( (results = $moped_session[db].find(query).select(selection).limit(by).skip(skip_first)) && results.any? )
+    results.each { |result| 
+      yield result 
+    }
+    skip_first += by
+  end
+end
+
+user_hash = {}
+get_records(:cloud_users, {}, {"consumed_gears" => 1, "login" => 1}) do |user|
+  user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
+                            "domains" => {},
+                            "login" => user["login"] } 
+end
+
+
+domain_hash = {}
+get_records(:domains, {}, { "owner_id" => 1 }) { |domain|
+  owner_id = domain["owner_id"]
+  domain_hash[domain["_id"]] = owner_id
+  user_hash[owner_id]["domains"][domain["_id"]] = 0
+} 
+
+get_records(:applications, query, selection) do |app|
     gear_count = 0
-    
-    if hash['apps']
-      hash['apps'].each { |app|
-        creation_time = Time.parse(app['creation_time'])
-        if app['group_instances']
-          app['group_instances'].each { |gi|
-            if gi['gears']
-              gi['gears'].each { |gear|
-                gear_count += 1
-                datastore_hash[gear['uuid']] = [hash['login'], creation_time, gear['uid'], gear['server_identity']]
-              }
-            else
-              puts "ERROR: Group instance '#{gi['name']}' for application: '#{app['name']}' for user '#{hash['login']}' doesn't have any gears"
-              no_error = false
-            end
+    creation_time = app['created_at']
+    domain_id = app['domain_id']
+    owner_id = domain_hash[domain_id]
+    login = user_hash[owner_id]["login"]
+    if app['group_instances']
+      app['group_instances'].each { |gi|
+        if gi['gears']
+          gi['gears'].each { |gear|
+            gear_count += 1
+            datastore_hash[gear['_id'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"] ]
           }
         else
-          puts "ERROR: Application: '#{app['name']}' for user '#{hash['login']}' doesn't have any group instances"
+          puts "ERROR: Group instance '#{gi['_id']}' for application: '#{app['name']}/#{app['_id']}' doesn't have any gears"
           no_error = false
         end
       }
-    end
-  
-    if hash['consumed_gears'] != gear_count
-      msg = "ERROR: user #{hash['login']} has a mismatch in consumed gears (#{hash['consumed_gears']}) and actual gears (#{gear_count})!"
-      puts msg if verbose
-      summary << msg
-      no_error = false
+      user_hash[owner_id]["domains"][domain_id] += gear_count
     else
-      puts "OK: user #{hash['login']} has consumed_gears equal to actual gears (#{gear_count})!" if verbose
+      puts "ERROR: Application: '#{app['name']}/#{app['_id']}' doesn't have any group instances"
+      no_error = false
     end
-  end
 end
+
 total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
 puts "Total gears found in mongo: #{datastore_hash.length}"
+
+user_hash.each do |owner_id, owner_hash|
+  total_gears = 0
+  owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
+ 
+  if owner_hash['consumed_gears'] != total_gears
+    msg = "FAIL - user #{owner_hash['login']} has a mismatch in consumed gears (#{owner_hash['consumed_gears']}) and actual gears (#{total_gears})!"
+    puts msg if verbose
+    summary << msg
+    no_error = false
+  else
+    puts "OK - user #{owner_hash['login']} has consumed_gears equal to actual gears (#{total_gears})!" if verbose
+  end
+end
 
 get_all_gears_start_time = (Time.now.to_f * 1000).to_i
 node_hash, sender_hash = OpenShift::ApplicationContainerProxy.get_all_gears
 total_time = (Time.now.to_f * 1000).to_i - get_all_gears_start_time
 puts "Time to get all gears from nodes: #{total_time.to_f/1000}s"
 puts "Total gears found on the nodes: #{node_hash.length}"
+puts "Total nodes that responded : #{sender_hash.length}"
 
 # now check
 puts "Checking application gears on corresponding nodes:" if verbose
@@ -141,11 +173,12 @@ datastore_hash.each { |gear_uuid, gear_info|
   login = gear_info[0]
   creation_time = gear_info[1]
   server_identity = gear_info[3]
-  print "#{gear_uuid}...\t" if verbose
+  app_uuid = gear_info[4]
+  print "#{gear_uuid} : #{gear_uuid.class}...\t" if verbose
   if (Time.now - creation_time) > 600
     if not node_hash.has_key? gear_uuid
       if sender_hash.has_key? server_identity
-        if datastore_has_gear?(gear_uuid, login)
+        if datastore_has_gear?(gear_uuid, app_uuid)
           no_error = false
           puts "FAIL" if verbose
           summary << "Gear #{gear_uuid} does not exist on any node"
