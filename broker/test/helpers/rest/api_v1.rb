@@ -196,10 +196,10 @@ app_add_cart_post_v1.response = RestCartridge_V1.new('embedded', embed_cart, app
 app_add_cart_post_v1.response_type = "cartridge"
 app_add_cart_post_v1.response_status = "created"
 
-app_expose_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_expose_port_post_v1.request['event'] = 'expose-port'
-app_expose_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_expose_port_post_v1.response_type = "application"
+#app_expose_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_expose_port_post_v1.request['event'] = 'expose-port'
+#app_expose_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_expose_port_post_v1.response_type = "application"
 
 #app_show_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
 #app_show_port_post_v1.request['event'] = 'show-port'
@@ -212,10 +212,10 @@ app_expose_port_post_v1.response_type = "application"
 app_gear_groups_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gear_groups")
 app_gear_groups_get_v1.response_type = 'gear_groups'
 
-app_conceal_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_conceal_port_post_v1.request['event'] = 'conceal-port'
-app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_conceal_port_post_v1.response_type = "application"
+#app_conceal_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_conceal_port_post_v1.request['event'] = 'conceal-port'
+#app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_conceal_port_post_v1.response_type = "application"
 
 app_cart_list_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges")
 app_cart_list_get_v1.response_type = "cartridges"
@@ -280,11 +280,11 @@ REST_CALLS_V1 = [
                   app_scale_up_post_v1, 
                   app_scale_down_post_v1,
                   app_add_cart_post_v1, 
-                  app_expose_port_post_v1, 
+                  #app_expose_port_post_v1, 
                   #app_show_port_post_v1,
                   #app_gear_get_v1, 
                   app_gear_groups_get_v1,
-                  app_conceal_port_post_v1,
+                  #app_conceal_port_post_v1,
                   app_cart_list_get_v1, 
                   app_cart_get_v1,
                   app_cart_start_post_v1, 

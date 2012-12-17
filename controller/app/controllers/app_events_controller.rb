@@ -46,13 +46,7 @@ class AppEventsController < BaseController
         when "restart"
           application.restart
           msg = "Application #{id} has restarted"
-        when "expose-port"
-          #deprecated, no-op
-          msg = "Application #{id} has exposed port"
-        when "conceal-port"
-          #deprecated, no-op
-          msg = "Application #{id} has concealed port"
-        when "show-port"
+        when "show-port", "expose-port", "conceal-port"
           raise UserException.new("This event (#{event}) is no longer supported.")
         when "add-alias"
           r = application.add_alias(server_alias)

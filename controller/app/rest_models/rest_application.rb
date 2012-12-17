@@ -71,12 +71,6 @@ class RestApplication < OpenShift::Model
         "FORCE_STOP" => Link.new("Force stop application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "force-stop")
         ]),
-        "EXPOSE_PORT" => Link.new("Expose port", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
-          Param.new("event", "string", "event", "expose-port")
-        ]),
-        "CONCEAL_PORT" => Link.new("Conceal port", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
-          Param.new("event", "string", "event", "conceal-port")
-        ]),
         "ADD_ALIAS" => Link.new("Add application alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "add-alias"),
           Param.new("alias", "string", "The server alias for the application")
