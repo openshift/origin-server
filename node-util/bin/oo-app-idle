@@ -26,6 +26,11 @@
 
 require 'date'
 
+if ARGV[0].nil? or ARGV[1].nil?
+  $stderr.write("Usage: #{$0} [UUID] [DAYS]\n")
+  exit(1)
+end
+
 OPENSHIFT_GEAR_UUID = ARGV[0]
 IDLE_FOR = ARGV[1].to_i * 24
 LAST_ACCESS_DIR = '/var/lib/openshift/.last_access'
