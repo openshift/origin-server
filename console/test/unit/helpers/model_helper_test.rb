@@ -58,4 +58,19 @@ class Console::ModelHelperTest < ActionView::TestCase
       },
       scale_to_options(stub(:supported_scales_from => 1, :supported_scales_to => -1), 6, 5))
   end
+
+  Tagged = Struct.new(:tags)
+
+  def test_in_groups_by_tag
+    t1 = Tagged.new([:ruby, :php])
+    t2 = Tagged.new([:ruby])
+
+    groups, others = in_groups_by_tag([t1], [:ruby])
+    assert_equal [t1], others
+    assert groups.empty?
+
+    groups, others = in_groups_by_tag([t1, t2], [:ruby])
+    assert_equal [[:ruby, [t1, t2]]], groups
+    assert others.empty?
+  end
 end
