@@ -224,7 +224,7 @@ class Gear
 
     dns = OpenShift::DnsService.instance
     begin
-      dns.deregister_application(self.name, old_ns, public_hostname)
+      dns.deregister_application(self.name, old_ns)
       dns.register_application(self.name, new_ns, public_hostname)
       dns.publish
     ensure

@@ -58,7 +58,7 @@ class Domain
   def update_namespace(new_namespace)
     old_ns = namespace
     set(:namespace, new_namespace)
-    pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {old_ns: old_ns, new_ns: new_namespace}, parent_op: nil, on_apps: applications, on_complete_method: :complete_namespace_update, state: "init")
+    pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_complete_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
     pending_op
@@ -73,7 +73,7 @@ class Domain
   # == Returns:
   #   The domain operation which tracks the second step of the update.  
   def complete_namespace_update(op)
-    pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {old_ns: old_ns, new_ns: new_namespace}, parent_op: nil, on_apps: op.on_apps, state: "init")
+    pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: op.on_apps, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
     pending_op
@@ -206,7 +206,7 @@ class Domain
           op.on_apps.each { |app| app.complete_update_namespace(op.arguments[:old_ns], op.arguments["new_ns"], op) }
         end
         begin
-          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(state: :queued)
+          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(:state, :queued)
         rescue Mongoid::Errors::DocumentNotFound
           #ignore. Op state is completed
         end
