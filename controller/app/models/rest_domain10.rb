@@ -1,12 +1,12 @@
 class RestDomain10 < OpenShift::Model
   attr_accessor :id, :suffix, :links
   include LegacyBrokerHelper
-  
+
   def initialize(domain, url, nolinks=false)
     self.id = domain.namespace
-    self.suffix = Rails.application.config.openshift[:domain_suffix] 
-    
-    unless nolinks      
+    self.suffix = Rails.application.config.openshift[:domain_suffix]
+
+    unless nolinks
       valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
 
@@ -17,8 +17,8 @@ class RestDomain10 < OpenShift::Model
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),
         "LIST_APPLICATIONS" => Link.new("List applications", "GET", URI::join(url, "domains/#{id}/applications")),
-        "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"), 
-          [Param.new("name", "string", "Name of the application",nil,blacklisted_words)], 
+        "ADD_APPLICATION" => Link.new("Create new application", "POST", URI::join(url, "domains/#{id}/applications"),
+          [Param.new("name", "string", "Name of the application",nil,blacklisted_words)],
           [OptionalParam.new("cartridge", "string", "framework-type, e.g: php-5.3", carts),
           OptionalParam.new("template", "string", "UUID of the application template"),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
@@ -33,10 +33,10 @@ class RestDomain10 < OpenShift::Model
       }
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "domain"
     super(options)
   end
-  
+
 end

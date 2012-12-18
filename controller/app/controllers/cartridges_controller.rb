@@ -2,15 +2,15 @@ class CartridgesController < BaseController
   respond_to :xml, :json
   before_filter :check_version
   include LegacyBrokerHelper
-  
+
   def show
     index
   end
-  
+
   # GET /cartridges
   def index
     type = params[:id]
-    
+
     cartridges = Array.new
     if type.nil? or type == "standalone"
       cart_type = "standalone"
@@ -27,7 +27,7 @@ class CartridgesController < BaseController
         cartridges.push(cartridge)
       end
     end
-    
+
     if type.nil? or type == "embedded"
       cart_type = "embedded"
       cache_key = "cart_list_#{cart_type}"
@@ -43,6 +43,6 @@ class CartridgesController < BaseController
         cartridges.push(cartridge)
       end
     end
-    render_success(:ok, "cartridges", cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges") 
+    render_success(:ok, "cartridges", cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges")
   end
 end

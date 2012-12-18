@@ -15,7 +15,7 @@ class ApplicationsController < BaseController
     applications = Application.find_all(@cloud_user)
     apps = Array.new
     include_cartridges = (params[:include] == "cartridges")
-    
+
     applications.each do |application|
       if application.domain.uuid = domain.uuid
         if $requested_api_version == 1.0
@@ -33,12 +33,12 @@ class ApplicationsController < BaseController
     end if applications
     render_success(:ok, "applications", apps, "LIST_APPLICATIONS", "Found #{apps.length} applications for domain '#{domain_id}'")
   end
-  
+
   # GET /domains/[domain_id]/applications/<id>
   def show
     domain_id = params[:domain_id]
     id = params[:id]
-    
+
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "SHOW_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
@@ -63,7 +63,7 @@ class ApplicationsController < BaseController
     end
     render_success(:ok, "application", app, "SHOW_APPLICATION", "Application '#{id}' found")
   end
-  
+
   # POST /domains/[domain_id]/applications
   def create
     domain_id = params[:domain_id]
@@ -74,23 +74,23 @@ class ApplicationsController < BaseController
     template_id = params[:template]
     node_profile = params[:gear_profile]
     node_profile.downcase! if node_profile
-    
+
     domain = Domain.get(@cloud_user, domain_id)
     return render_error(:not_found, "Domain '#{domain_id}' not found", 127,
                         "ADD_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
-    
+
     @domain_name = domain.namespace
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
 
     application = get_application(app_name)
-    return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 
+    return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists",
                         100, "ADD_APPLICATION", "name") if application
 
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     return render_error(:unprocessable_entity, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-    
+
     application = nil
     if template_id
       template = ApplicationTemplate.find(template_id)
@@ -103,7 +103,7 @@ class ApplicationsController < BaseController
       Rails.logger.debug "Selected cartridges: #{cartridges.inspect}"
       carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
       if !cartridges
-        
+
         return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
                             109, "ADD_APPLICATION", "cartridge")
       else
@@ -128,12 +128,12 @@ class ApplicationsController < BaseController
 
     app_configure_reply = nil
 
-    Rails.logger.debug "Validating application"  
+    Rails.logger.debug "Validating application"
     if not application.valid?
       messages = get_error_messages(application)
       return render_error(:unprocessable_entity, nil, nil, "ADD_APPLICATION", nil, nil, messages)
     end
- 
+
     @application_name = application.name
     begin
       application.user_agent = request.headers['User-Agent']
@@ -160,7 +160,7 @@ class ApplicationsController < BaseController
       if application.persisted?
         application.delete
       end
-      return render_exception(e, "ADD_APPLICATION") 
+      return render_exception(e, "ADD_APPLICATION")
     end
 
     if $requested_api_version == 1.0
@@ -184,23 +184,23 @@ class ApplicationsController < BaseController
     if include_cartridges
       app.cartridges = get_cartridges(application)
     end
-    render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages) 
+    render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages)
   end
-  
+
   # DELELTE domains/[domain_id]/applications/[id]
   def destroy
     domain_id = params[:domain_id]
     id = params[:id]
-    
+
     domain = Domain.get(@cloud_user, domain_id)
     return render_format_error(:not_found, "Domain #{domain_id} not found", 127,
                                "DELETE_APPLICATION") if !domain || !domain.hasAccess?(@cloud_user)
-    
+
     @domain_name = domain.namespace
     application = get_application(id)
     return render_format_error(:not_found, "Application #{id} not found.", 101,
                                "DELETE_APPLICATION") if !application or application.domain.uuid != domain.uuid
-    
+
     @application_name = application.name
     @application_uuid = application.uuid
     begin
@@ -209,6 +209,6 @@ class ApplicationsController < BaseController
     rescue Exception => e
       return render_format_exception(e, "DELETE_APPLICATION")
     end
-    render_format_success(:no_content, nil, nil, "DELETE_APPLICATION", "Application #{id} is deleted.", true) 
+    render_format_success(:no_content, nil, nil, "DELETE_APPLICATION", "Application #{id} is deleted.", true)
   end
 end
