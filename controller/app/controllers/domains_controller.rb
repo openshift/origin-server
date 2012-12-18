@@ -73,11 +73,15 @@ class DomainsController < BaseController
       return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 106, "UPDATE_DOMAIN", "id")
     end
 
+    # set the new namespace for validation 
     domain.namespace = new_namespace
     if not domain.valid?
       messages = get_error_messages(domain, {"namespace" => "id"})
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_DOMAIN", nil, nil, messages)
     end
+    
+    #reset the old namespace for use in update_namespace
+    domain.namespace = id
     
     @domain_name = domain.namespace
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
