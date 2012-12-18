@@ -33,7 +33,7 @@ class KeysController < BaseController
     
     Rails.logger.debug "Creating key name:#{name} type:#{type} for user #{@login}"
 
-    key = SshKey.new(name: name, type: type, content: content)
+    key = UserSshKey.new(name: name, type: type, content: content)
     if key.invalid?
       messages = get_error_messages(key)
       return render_error(:unprocessable_entity, nil, nil, "ADD_KEY", nil, nil, messages)
@@ -64,7 +64,7 @@ class KeysController < BaseController
     type = params[:type]
     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@login}"
-    key = SshKey.new(name: id, type: type, content: content)
+    key = UserSshKey.new(name: id, type: type, content: content)
     if key.invalid?
       messages = get_error_messages(key)
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_KEY", nil, nil, messages)
