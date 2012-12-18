@@ -19,7 +19,7 @@ class EmbCartController < BaseController
       application = Application.find_by(domain: domain, name: id)
       @application_name = application.name
       @application_uuid = application._id.to_s
-      cartridges = get_application_rest_cartridges(application)
+      cartridges = get_application_rest_cartridges(application) if application
       
       render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES", "Listing cartridges for application #{id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
@@ -82,7 +82,16 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "EMBED_CARTRIDGE")
     end
-
+    
+    begin
+      component_instance = application.component_instances.find_by(cartridge_name: name)
+      if !component_instance.nil?
+        return render_error(:unprocessable_entity, "Cartridge/Component/Feature #{name} already embedded in the application", 136, "EMBED_CARTRIDGE", "name")
+      end
+    rescue
+      #ignore
+    end
+    
     unless colocate_with.nil? or colocate_with.empty?
       begin
         colocate_component_instance = application.component_instances.find_by(cartridge_name: colocate_with)
@@ -190,6 +199,13 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
       end
       
+      if scales_from < 1
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from")
+      end
+      
+      if scales_to < -1
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to")
+      end
       component_instance = application.component_instances.find_by(cartridge_name: id)
 
       application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
