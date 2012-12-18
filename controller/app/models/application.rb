@@ -101,6 +101,11 @@ class Application
     app
   end
 
+  def self.find(user, app_name)
+    user.domains.each { |d| d.applications.each { |a| return a if a.name==app_name } }
+    return nil 
+  end
+
   def self.find_by_gear_uuid(gear_uuid)
     obj_id = Moped::BSON::ObjectId(gear_uuid)
     app = Application.where("group_instances.gears._id" => obj_id)

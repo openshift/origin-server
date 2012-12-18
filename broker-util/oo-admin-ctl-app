@@ -97,48 +97,14 @@ when "start"
 when "stop"
   reply.append app.stop  
 when "force-stop"
-  reply.append app.force_stop  
+  reply.append app.stop(nil, true)
 when "restart"
   reply.append app.restart  
 when "status"
-  reply.append app.status  
-when "force-destroy"
-  unless bypass
-    puts <<-WARNING
-  !!!! WARNING !!!! WARNING !!!! WARNING !!!!
-  You are about to destroy the #{app_name} application.
-
-  This is NOT reversible, all remote data for this application will be forcefully removed.
-  WARNING
-
-    print "Do you want to forcefully destroy this application (y/n): "
-    check_user_response
-  end
-  
-  begin
-    reply.append app.cleanup_and_delete
-    reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
-  rescue Exception=>e
-    reply = ResultIO.new
-    user = CloudUser.find_by(login: login)
-    app = Application.find(user,app_name)
-    current_consumed_gears = user.consumed_gears
-    gear_count = app.gears.length
-    app.gears.each { |g|
-      begin
-        g.destroy
-      rescue Exception=>e
-        puts "WARNING: Check gear #{g.uuid} on node '#{g.server_identity}', because destroy did not succeed cleanly. The gear may exist on node, but not in database."
-      end
-    }
-    app.delete
-    user = CloudUser.find_by(login: login)
-    new_consumed_gears = user.consumed_gears
-    if new_consumed_gears!=(current_consumed_gears-gear_count)
-      puts "WARNING: Please check and fix the user's consumed_gear count vs the actual gears consumed, as they may be out of sync."
-    end
-  end
-when "destroy"
+  app.requires.each { |feature|
+    reply.append app.status(feature)
+  }
+when "force-destroy","destroy"
   unless bypass
     puts <<-WARNING
   !!!! WARNING !!!! WARNING !!!! WARNING !!!!
@@ -151,14 +117,14 @@ when "destroy"
     check_user_response
   end
   
-  reply.append app.cleanup_and_delete
+  app.destroy_app
   reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
 when "remove-cartridge"
   unless cartridge
     puts "Cartridge is required to remove-dependency"
     exit 1
   end
-  reply.append app.remove_dependency(cartridge)
+  application.remove_features([cartridge])
 when "remove-gear"
   unless gear_uuid
     puts "Gear uuid is required to remove-gear"

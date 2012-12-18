@@ -67,13 +67,13 @@ class String
 end
 
 def set_max_gears(user, maxgears)
-    if user.max_gears == maxgears
+    if user.capabilities["max_gears"] == maxgears
         puts "User already has max_gears set to #{user.max_gears}"
         return
     end
 
     print "Setting max_gears to #{maxgears}... "
-    user.max_gears=maxgears
+    user.capabilities["max_gears"]=maxgears
     if user.save
         puts "Done."
     else
@@ -83,19 +83,23 @@ def set_max_gears(user, maxgears)
 end
 
 def set_consumed_gears(user, consumedgears)
+    old_value = user.consumed_gears
     if user.consumed_gears == consumedgears
         puts "User already has consumed_gears set to #{user.consumed_gears}"
         return
     end
 
     print "Setting consumed_gears to #{consumedgears}... "
-    ds = OpenShift::MongoDataStore.instance
-    ds.update(ds.user_collection, { "_id" => user.login }, { "$set" => {'consumed_gears' => consumedgears} })
+    result = CloudUser.where(login: user.login, consumed_gears: old_value).find_and_modify({ "$set" => { "consumed_gears" => consumedgears } } )
+    if result.nil?
+      puts "User's consumed_gear count changed between read and write, try again."
+      return
+    end
     puts "Done."
 end
 
 def allow_sub_accounts(user, allow)
-    user.capabilities_will_change!
+    # user.capabilities_will_change!
     user_capabilities = user.get_capabilities
     if user_capabilities['subaccounts'] == allow
         puts "User already has allowsubaccounts set to #{allow}"
@@ -181,10 +185,7 @@ def add_gear_size(user, gear_size)
         return
     end
     
-    user.capabilities_will_change!
-    gear_sizes.push(gear_size)
-    user_capabilities['gear_sizes'] = gear_sizes
-    user.set_capabilities(user_capabilities)
+    user.capabilities["gear_sizes"] << gear_size
     if user.save
         puts "Done."
     else
@@ -195,25 +196,14 @@ end
 
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
-    gear_sizes = []
-    user_capabilities = user.get_capabilities
-    gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
     
-    unless gear_sizes.include?(gear_size)
+    unless user.capabilities["gear_sizes"].include?(gear_size)
         puts "User #{user.login} does not have gear size #{gear_size} in its capabilities."
         return
     end
     
-    user.capabilities_will_change!
-    gear_sizes.delete(gear_size)
-    user_capabilities['gear_sizes'] = gear_sizes
-    user.set_capabilities(user_capabilities)
-    if user.save
-        puts "Done."
-    else
-        puts "An error occurred removing the gear size #{gear_size} from user #{user.login}."
-        exit 6
-    end
+    user.capabilities["gear_sizes"].remove(gear_size)
+    user.save
 end
 
 def inherit_on_subaccounts(user, allow, capability, cap_name)
@@ -225,7 +215,7 @@ def inherit_on_subaccounts(user, allow, capability, cap_name)
         return
     end
 
-    user.capabilities_will_change!
+    # user.capabilities_will_change!
     print "Setting #{cap_name} inheritance to #{allow} for user #{user.login}... "
     if allow
       user_capabilities['inherit_on_subaccounts'].push(capability)
@@ -363,7 +353,7 @@ user_capabilities = user.get_capabilities
 # print out the user's current settings
 puts "User #{user.login}:"
 puts "      consumed gears: #{user.consumed_gears}"
-puts "           max gears: #{user.max_gears}"
+puts "           max gears: #{user.capabilities['max_gears']}"
 puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
 puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
 puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
