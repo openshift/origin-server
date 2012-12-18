@@ -96,7 +96,7 @@ module Console::ModelHelper
           [tag, types]
         end
       end
-    end.compact!
+    end.compact
     [groups, other]
   end
 
