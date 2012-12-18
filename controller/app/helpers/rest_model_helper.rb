@@ -6,7 +6,7 @@ module RestModelHelper
       app = RestApplication.new(application, get_url, nolinks)
     end
     if include_cartridges
-      app.cartridges = get_cartridges(application)
+      app.cartridges = get_application_rest_cartridges(application)
     end
     app
   end

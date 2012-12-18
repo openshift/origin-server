@@ -1,6 +1,6 @@
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
-      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges
+      :gear_profile, :scalable, :health_check_path, :building_with, :building_app, :build_job_url, :cartridges, :initial_git_url, 
 
   def initialize(app, url, nolinks=false)
     self.embedded = {}
@@ -31,6 +31,7 @@ class RestApplication < OpenShift::Model
     self.building_with = nil
     self.building_app = nil
     self.build_job_url = nil
+    self.initial_git_url = app.init_git_url
 
     app.component_instances.each do |component_instance|
       cart = CartridgeCache::find_cartridge(component_instance.cartridge_name)

@@ -51,6 +51,7 @@ class ApplicationsController < BaseController
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
     
+    Rails.logger.debug "Creating app #{app_name} with features #{features.inspect}"
     begin
       domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
       @domain_name = domain.namespace
@@ -72,12 +73,6 @@ class ApplicationsController < BaseController
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
                             109, "ADD_APPLICATION", "cartridge") if features.nil?
 
-    # TODO
-    #return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{cartridges.to_sentence} is a web cartridge. Please include one of the following cartridges: #{carts.to_sentence}.",
-    #		109, "ADD_APPLICATION", "cartridge")
-    #return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{carts.to_sentence}.",
-    #            109, "ADD_APPLICATION", "cartridge")
-
     begin
       framework_carts = CartridgeCache.cartridge_names("web_framework")
       return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{framework_carts.join(', ')})", 109, "ADD_APPLICATION", "cartridge") if features.nil?
@@ -95,7 +90,7 @@ class ApplicationsController < BaseController
                           109, "ADD_APPLICATION", "cartridge")
       end
       application = Application.create_app(app_name, features, domain, default_gear_size, scalable, ResultIO.new, [], init_git_url)
-      
+
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue OpenShift::UnfulfilledRequirementException => e
