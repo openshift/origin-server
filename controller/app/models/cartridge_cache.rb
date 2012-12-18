@@ -20,7 +20,17 @@ class CartridgeCache
   end
 
   def self.cartridges
-    get_cached("all_cartridges", :expires_in => 1.day) {OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges}
+    get_cached("all_cartridges", :expires_in => 21600.seconds) do
+      OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges
+    end
+  rescue OpenShift::NodeException => e
+    Rails.logger.error <<-"ERROR"
+    In #{__FILE__} cartridges method:
+      Error while querying cartridge list. This may be because no node hosts responded.
+      Please ensure you have installed node hosts and they are responding to "mco ping".
+      Exception was: #{e.inspect}
+    ERROR
+    return [ ]
   end
 
   FRAMEWORK_CART_NAMES = [#RHEL6 cartridges

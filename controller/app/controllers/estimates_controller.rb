@@ -7,7 +7,7 @@ class EstimatesController < BaseController
     render_success(:ok, "estimates", RestEstimates.new(get_url, nolinks), "LIST_ESTIMATES")
   end
 
-  # GET /estimates/<id>  
+  # GET /estimates/<id>
   def show
     obj = params[:id]
     descriptor = params[:descriptor]
@@ -23,10 +23,10 @@ class EstimatesController < BaseController
       descriptor_hash = YAML.load(descriptor)
       #log_action(@request_id, @cloud_user.uuid, @cloud_user.login, "SHOW_ESTIMATE", false, "Invalid application descriptor") unless descriptor_hash
       raise OpenShift::EstimatesException.new("Invalid application descriptor.") unless descriptor_hash
-    
+
       # Find app framework
       framework = nil
-      descriptor_hash['Requires'].each do |cart| 
+      descriptor_hash['Requires'].each do |cart|
         if standalone_carts.include?(cart)
           framework = cart
           break
@@ -43,7 +43,7 @@ class EstimatesController < BaseController
       app = Application.new(nil, app_name, nil, nil, framework, template)
       app.elaborate_descriptor
 
-      # Generate output  
+      # Generate output
       groups = []
       app.group_instance_map.values.uniq.each do |ginst|
         components = []
