@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.3.1
+Version: 1.3.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,18 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Merge pull request #1080 from sosiouxme/accept-scripts
+  (openshift+bot@redhat.com)
+- work around mongo replica sets; changes to man page (lmeyer@redhat.com)
+- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
+  outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
+  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
+  Setup mcollective to use broker IPs - Updates abstract cartridges to set
+  proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
+  fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
+- fix man page titles (lmeyer@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 - Merge pull request #1066 from sosiouxme/accept-scripts
