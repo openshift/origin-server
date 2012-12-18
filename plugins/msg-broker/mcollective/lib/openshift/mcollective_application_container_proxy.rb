@@ -1749,6 +1749,12 @@ module OpenShift
       # * uses rsync_destination_container
       # * uses move_gear_destroy_old
       # 
+      def move_gear_secure(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+        Application.run_in_application_lock(app) do
+          move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+        end
+      end
+
       def move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
         reply = ResultIO.new
         state_map = {}

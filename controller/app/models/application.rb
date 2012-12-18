@@ -561,6 +561,16 @@ class Application
     raise "noimpl"
   end
 
+  def remove_gear(gear_uuid)
+    raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable or gear_uuid.nil?
+    Application.run_in_application_lock(self) do
+      self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_gear, args: {"gear_id" => gear_uuid})
+      result_io = ResultIO.new
+      self.run_jobs(result_io)
+      result_io
+    end
+  end
+
   def status(feature=nil)
     result_io = ResultIO.new
     component_instances = get_components_for_feature(feature)
@@ -840,6 +850,9 @@ class Application
           when :delete_app
             self.pending_op_groups.clear
             self.delete
+          when :remove_gear
+            ops = calculate_remove_gear_ops(op_group.args)
+            op_group.pending_ops.push(*ops)
           when :scale_by
             #need rollback
             ops, add_gear_count, rm_gear_count = calculate_scale_by(op_group.args["group_instance_id"], op_group.args["scale_by"])
@@ -936,6 +949,16 @@ class Application
         raise e
       end
     end
+  end
+
+  def calculate_remove_gear_ops(args, prereqs={})
+    gear_id = args["gear_id"]
+    group_instance = self.group_instances.find { |gi| gi.gears.find { |g| g._id.to_s==gear_id.to_s } }
+    return [] if group_instance.nil?
+    ops=calculate_gear_destroy_ops(group_instance._id.to_s, [gear_uuid], group_instance.addtl_fs_gb)
+    last_op = ops.last
+    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: last_op)
+    ops
   end
 
   def calculate_complete_update_ns_ops(args, prereqs={})

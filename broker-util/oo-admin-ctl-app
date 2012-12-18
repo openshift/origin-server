@@ -130,50 +130,7 @@ when "remove-gear"
     puts "Gear uuid is required to remove-gear"
     exit 1
   end
-  result_io = ResultIO.new
-  comp_name = "web"
-  prof = app.profile_name_map[app.default_profile]
-  cinst = ComponentInstance::find_component_in_cart(prof, app, comp_name, app.get_name_prefix)
-  if cinst.nil?
-    puts "ERROR: Cannot find #{comp_name} in app #{app.name}." 
-    exit 1
-  end
-  ginst = app.group_instance_map[cinst.group_instance_name]
-  if ginst.nil?
-    puts "ERROR: Cannot find group #{cinst.group_instance_name} for #{comp_name} in app #{app.name}." 
-    exit 1
-  end
-  # remove any gear out of this ginst
-  if ginst.gears.length <= ginst.min
-    puts "ERROR: Cannot scale below minimum gear requirements" 
-    exit 1
-  end
-
-  gear = ginst.gears.find { |g| g.uuid == gear_uuid }
-
-  if gear.nil?
-    puts "ERROR: Gear '#{gear_uuid}' is not one of the scaled gears of the app #{app.name}. Possible ones are #{ginst.gears.map{ |g| g.uuid }.inspect }. Please provide a valid gear with --gear_uuid option."
-    exit 1
-  end
-
-  dns = OpenShift::DnsService.instance
-  begin
-    dns.deregister_application(gear.name, app.domain.namespace)
-    dns.publish
-  ensure
-    dns.close
-  end
-
-  begin
-    result_io.append ginst.remove_gear(gear)
-  rescue Exception => e
-    # pass, this might be a broken gear
-  end
-
-  # inform anyone who needs to know that this gear is no more
-  app.configure_dependencies
-  app.execute_connections
-  reply.append result_io
+  app.remove_gear(gear_uuid)
 else
   puts "Command must be one of: #{CTL_APP_COMMANDS}"
   usage
