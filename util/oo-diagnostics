@@ -242,6 +242,7 @@ class OODiag
     openshift-origin-cartridge-diy-0.1 openshift-origin-cartridge-haproxy-1.4
     openshift-origin-cartridge-jbosseap-6.0
     openshift-origin-cartridge-jbossews-1.0
+    openshift-origin-cartridge-jbossews-2.0
     openshift-origin-cartridge-jenkins-1.4
     openshift-origin-cartridge-jenkins-client-1.4
     openshift-origin-cartridge-mysql-5.1 openshift-origin-cartridge-perl-5.10
