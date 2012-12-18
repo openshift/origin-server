@@ -51,8 +51,11 @@ class RestApiKeyTest < ActiveSupport::TestCase
     key = Key.new :as => @user
     assert !key.save(:validate => false) # don't check client validations
     assert !key.errors.empty?
-    assert_equal ['Key name is required and cannot be blank.'], key.errors[:name]
-    assert_equal ['Key content is required and cannot be blank.'], key.errors[:content]
+    assert !key.errors[:name].nil?
+    assert !key.errors[:content].nil?
+    assert !key.errors[:type].nil?
+    assert key.errors[:name].include? 'Key name is required and cannot be blank.' 
+    assert key.errors[:content].include? 'Key content is required and cannot be blank.'
     assert key.errors[:type].first =~ /Your SSH public key appears to be invalid/
   end
 
