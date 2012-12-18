@@ -203,9 +203,7 @@ class LegacyBrokerController < ApplicationController
     end
 
     cache_key = "cart_list_#{cart_type}"
-    carts = get_cached(cache_key, :expires_in => 21600.seconds) {
-      Application.get_available_cartridges(cart_type)
-    }
+    carts = Application.get_available_cartridges(cart_type)
     log_action('nil', 'nil', 'nil', "LEGACY_CART_LIST")
     @reply.data = { :carts => carts }.to_json
     render :json => @reply

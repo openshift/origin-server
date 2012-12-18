@@ -106,8 +106,7 @@ class EmbCartController < BaseController
       #container = OpenShift::ApplicationContainerProxy.find_available(application.server_identity)
       container = OpenShift::ApplicationContainerProxy.find_available(nil)
       if not check_cartridge_type(name, container, "embedded")
-        carts = get_cached("cart_list_embedded", :expires_in => 21600.seconds) {
-                           Application.get_available_cartridges("embedded")}
+        carts = Application.get_available_cartridges("embedded")
         return render_error(:bad_request, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
                             109, "EMBED_CARTRIDGE", "cartridge")
       end

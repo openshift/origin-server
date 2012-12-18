@@ -10,9 +10,7 @@ class RestDomain10 < OpenShift::Model
       valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.user)
       blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
 
-      carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) do
-        Application.get_available_cartridges("standalone")
-      end
+      carts = Application.get_available_cartridges("standalone")
 
       self.links = {
         "GET" => Link.new("Get domain", "GET", URI::join(url, "domains/#{id}")),

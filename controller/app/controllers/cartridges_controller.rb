@@ -15,9 +15,7 @@ class CartridgesController < BaseController
     if type.nil? or type == "standalone"
       cart_type = "standalone"
       cache_key = "cart_list_#{cart_type}"
-      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-        Application.get_available_cartridges(cart_type)
-      end
+      carts = Application.get_available_cartridges(cart_type)
       carts.each do |cart|
         if $requested_api_version >= 1.1
           cartridge = RestCartridge11.new(cart_type, cart, nil, get_url, nil, nolinks)
@@ -31,9 +29,7 @@ class CartridgesController < BaseController
     if type.nil? or type == "embedded"
       cart_type = "embedded"
       cache_key = "cart_list_#{cart_type}"
-      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-        Application.get_available_cartridges(cart_type)
-      end
+      carts = Application.get_available_cartridges(cart_type)
       carts.each do |cart|
 	    if $requested_api_version >= 1.1
           cartridge = RestCartridge11.new(cart_type, cart, nil, get_url, nil, nolinks)

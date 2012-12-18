@@ -101,7 +101,7 @@ class ApplicationsController < BaseController
       framework_cartridges = []
       other_cartridges = []
       Rails.logger.debug "Selected cartridges: #{cartridges.inspect}"
-      carts = get_cached("cart_list_standalone", :expires_in => 21600.seconds) {Application.get_available_cartridges("standalone")}
+      carts = Application.get_available_cartridges("standalone")
       if !cartridges
 
         return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",

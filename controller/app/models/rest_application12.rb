@@ -45,9 +45,7 @@ class RestApplication12 < OpenShift::Model
       if app.scalable
         carts = Application::SCALABLE_EMBEDDED_CARTS
       else
-        carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-          Application.get_available_cartridges("embedded")
-        end
+        carts = Application.get_available_cartridges("embedded")
       end
       # Update carts list
       # - remove already embedded carts
