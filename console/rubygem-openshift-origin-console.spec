@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.2.8
+Version: 1.2.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,10 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.2.9-1
+- A nil error is displayed when quickstarts are shown with type length == 1
+  (ccoleman@redhat.com)
+
 * Thu Dec 13 2012 Adam Miller <admiller@redhat.com> 1.2.8-1
 - Added a specific fix for quickstarts and two related improvements to the app
   config page (hripps@redhat.com)
