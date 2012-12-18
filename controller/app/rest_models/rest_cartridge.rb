@@ -32,7 +32,12 @@ class RestCartridge < OpenShift::Model
 
     unless comp.nil?
       self.supported_scales_from = comp.scaling.min
-      self.supported_scales_to = comp.scaling.max
+      
+      if app && !app.scalable && comp.scaling.max == -1
+        self.supported_scales_to = 1
+      else
+        self.supported_scales_to = comp.scaling.max
+      end
     end
     
     self.properties = []
