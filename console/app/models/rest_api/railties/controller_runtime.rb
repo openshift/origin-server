@@ -8,14 +8,14 @@ module RestApi
       attr_internal :ra_runtime
 
       def process_action(action, *args)
-        RestApi::LogSubscriber.reset_runtime
+        RestApi::HTTPSubscriber.reset_runtime
         super
       end
 
       def cleanup_view_runtime
-        rt_before_render = RestApi::LogSubscriber.reset_runtime
+        rt_before_render = RestApi::HTTPSubscriber.reset_runtime
         runtime = super
-        rt_after_render = RestApi::LogSubscriber.reset_runtime
+        rt_after_render = RestApi::HTTPSubscriber.reset_runtime
         self.ra_runtime = rt_before_render + rt_after_render
         runtime - rt_after_render
       end
