@@ -51,7 +51,6 @@ class ApplicationsController < BaseController
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
     
-    Rails.logger.debug "Creating app #{app_name} with features #{features.inspect}"
     begin
       domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
       @domain_name = domain.namespace
@@ -61,6 +60,11 @@ class ApplicationsController < BaseController
     
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
+                        
+    valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.owner)
+    return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are #{valid_sizes.join(",")}",
+                        134, "ADD_APPLICATION", "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
+      
                         
     if Application.where(domain: domain, name: app_name).count > 0
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "ADD_APPLICATION", "name")
