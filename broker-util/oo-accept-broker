@@ -465,8 +465,8 @@ function check_datastore_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.datastore[:host_port][0]"
-		["DS_PORT"]="Rails.application.config.datastore[:host_port][1]"
+		["DS_HOST"]="Rails.application.config.datastore[:host_port].flatten[0]"
+		["DS_PORT"]="Rails.application.config.datastore[:host_port].flatten[1]"
 		["DS_USER"]="Rails.application.config.datastore[:user]"
 		["DS_PASS"]="Rails.application.config.datastore[:password]"
 		["DS_NAME"]="Rails.application.config.datastore[:db]"
@@ -530,8 +530,8 @@ function check_auth_mongo() {
 
     # get the service hostname, port, username, password
 	APP_VALUE_MAP=(
-		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port][0]"
-		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port][1]"
+		["DS_HOST"]="Rails.application.config.auth[:mongo_host_port].flatten[0]"
+		["DS_PORT"]="Rails.application.config.auth[:mongo_host_port].flatten[1]"
 		["DS_USER"]="Rails.application.config.auth[:mongo_user]"
 		["DS_PASS"]="Rails.application.config.auth[:mongo_password]"
 		["DS_NAME"]="Rails.application.config.auth[:mongo_db]"
@@ -797,17 +797,17 @@ function check_messaging() {
 # ==========================================================================
 
 function print_help() {
-    echo "usage: $0 [-h] [-v]
+    echo "usage: $0 [-h] [-v] [-d]
 
-  -h) help (print this message)
-  -v) verbose - notify when each check begins
-  -d) debug output - displays commands executed
+  -h) Display this simple usage message and exit.
+  -v) Enable verbose (INFO) output during the run of the script
+  -d) Enable debugging mode (display every command executed)
 "
     exit 0
 }
 
 
-OPT_FORMAT="dhvS:A:D:I:a:"
+OPT_FORMAT="dhv"
 
 while getopts $OPT_FORMAT OPTION
 do

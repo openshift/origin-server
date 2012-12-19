@@ -2,28 +2,27 @@ NAME
   oo-accept-broker 
   
 SYNOPSIS
-  oo-accept-broker [-hdv] [-a auth_service] [-s storage_service] 
-  [-d dns_service]
+  oo-accept-broker [-h] [-v] [-d] 
 
 DESCRIPTION
-  Verify an OpenShift broker is in in an known valid state, or "accepted" good
-  state. This is most commonly run with no options on the broker.
+  Verify an OpenShift broker is in a known valid state, or "accepted" good
+  state. This is most often run with no options on the broker.
   
 OPTIONS
   -h  
-    Display a simple help dialog.
+    Display a simple usage message and exit.
   -v  
-    Enable verbose output during the run of the script
+    Enable verbose (INFO) output during the run of the script
   -d  
-    Enable debugging mode (very verbose)
+    Enable debugging mode (display every command executed)
 
 EXAMPLE
 
   $ oo-accept-broker
   
 HINTS
-  This command should return with the text 'PASS' and return code 0, otherwise
-  the reasons for failure will be output.
+  This command should finish with output 'PASS' and return code 0; otherwise
+  the reasons for failure will be printed.
  
 SEE ALSO
   oo-admin-ctl-district(8), oo-setup-broker(8), oo-admin-move(8),
