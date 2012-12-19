@@ -6,6 +6,7 @@ License: ASL 2.0
 Vendor: 
 Categories:
   - cartridge
+  - embedded
 Cart-Data:
   - Key: "module_path"
     Type: cart_data

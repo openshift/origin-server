@@ -9,6 +9,7 @@ Categories:
   - cartridge
   - database
   - nosql
+  - embedded
 Website: http://www.10gen.com
 Help-Topics:
   - "Building with MongoDB" : https://openshift.redhat.com/community/developers/mongodb
