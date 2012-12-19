@@ -61,7 +61,8 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert !domain.errors[:name].nil?
+    assert domain.errors[:name].include? 'Namespace is required and cannot be blank.' 
     assert_template :new
   end
 
@@ -147,7 +148,8 @@ class DomainsControllerTest < ActionController::TestCase
     assert domain = assigns(:domain)
     assert !domain.errors.empty?
     assert domain.errors[:name].present?, domain.errors.inspect
-    assert_equal 1, domain.errors[:name].length
+    assert !domain.errors[:name].nil?
+    assert domain.errors[:name].include? 'Namespace is required and cannot be blank.'
     assert_template :edit
   end
 
