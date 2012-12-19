@@ -35,6 +35,7 @@ class ActiveSupport::TestCase
   def self.uses_http_mock(sym=:always)
     require 'active_resource/persistent_http_mock'
     self.module_eval do
+      setup{ RestApi.stubs(:application_domain_suffix).returns('test.rhcloud.com') }
       setup{ ActiveResource::HttpMock.enabled = true } unless sym == :sometimes
       teardown do
         ActiveResource::HttpMock.reset!
