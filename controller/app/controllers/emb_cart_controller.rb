@@ -86,7 +86,7 @@ class EmbCartController < BaseController
     begin
       component_instance = application.component_instances.find_by(cartridge_name: name)
       if !component_instance.nil?
-        return render_error(:unprocessable_entity, "Cartridge/Component/Feature #{name} already embedded in the application", 136, "EMBED_CARTRIDGE", "name")
+        return render_error(:unprocessable_entity, "Cartridge/Component/Feature #{name} already embedded in the application", 136, "EMBED_CARTRIDGE")
       end
     rescue
       #ignore
