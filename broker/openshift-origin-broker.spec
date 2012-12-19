@@ -118,7 +118,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(0640,apache,apache,0750)
 %attr(0644,-,-) %ghost %{brokerdir}/log/production.log
 %attr(0644,-,-) %ghost %{brokerdir}/log/development.log
-%attr(0640,-,-) %{_localstatedir}/log/openshift/user_action.log
+%attr(0640,-,-) %ghost %{_localstatedir}/log/openshift/user_action.log
 %attr(0750,-,-) %{brokerdir}/script
 %attr(0750,-,-) %{brokerdir}/tmp
 %attr(0750,-,-) %{brokerdir}/tmp/cache
@@ -152,6 +152,18 @@ rm -rf $RPM_BUILD_ROOT
 systemctl --system daemon-reload
 # if under sysv, hopefully we don't need to reload anything
 %endif
+
+# We are forced to create these log files if they don't exist because we have
+# command line tools that will load the Rails environment and create the logs
+# as root.  We need the files labeled %ghost because we don't want these log
+# files overwritten on RPM upgrade.
+for l in %{_localstatedir}/log/openshift/user_action.log %{brokerdir}/log/{development,production}.log; do
+  if [ ! -f $l ]; then
+    touch $l
+    chown apache:apache $l
+    chmod 644 $l
+  fi
+done
 
 #selinux updated
 semanage -i - <<_EOF
