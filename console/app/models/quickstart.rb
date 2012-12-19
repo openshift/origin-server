@@ -41,14 +41,13 @@ class Quickstart < RestApi::Base
     entity_decoded(attributes[:cartridges])
   end
 
-  # This is a short-term fix for BZ877849
-  # The drupal quickstart nodes need to be augmented with a flag to
-  # indicate whether or not they can be scaled.
-  NON_SCALABLE = Regexp.new(['wordpress','drupal','spring','capedwarf','javaee'].join('|'),true)
+  # Quickstarts whose descriptions include the phrase 'non-scalable' or 'not scalable' or the like
+  # will be flagged as such.
+  NON_SCALABLE = Regexp.new('non[-\s]scalable|not[-\s]scalable',true)
   def scalable
-    retval = !self.name.match(NON_SCALABLE)
+    @scalable ||= !self.summary.match(NON_SCALABLE)
   ensure
-    Rails.logger.debug("Handling #{self.name} quickstart as non-scalable") unless retval
+    Rails.logger.debug("Handling #{self.name} quickstart as non-scalable") unless @scalable
   end
   alias_method :scalable?, :scalable
 
