@@ -43,7 +43,7 @@ class Quickstart < RestApi::Base
 
   # Quickstarts whose descriptions include the phrase 'non-scalable' or 'not scalable' or the like
   # will be flagged as such.
-  NON_SCALABLE = Regexp.new('non[-\s]scalable|not[-\s]scalable',true)
+  NON_SCALABLE = Regexp.new('(?i:no[nt][-\s]scalable)')
   def scalable
     @scalable ||= !self.summary.match(NON_SCALABLE)
   ensure

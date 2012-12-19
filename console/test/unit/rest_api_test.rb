@@ -1417,11 +1417,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
-  def a_quickstart
+  def a_quickstart(summary_message='')
+    summary = "An awesome blog hosting platform with a rich ecosystem" << summary_message
     quickstart = {data:[
       {quickstart:{
         body:"<p>An awesome blog hosting platform with a rich ecosystem<\/p>",
-        summary:"An awesome blog hosting platform with a rich ecosystem",
+        summary: summary,
         id:"12069",
         href:"\/community\/content\/wordpress-34",
         name:"Wordpress 3.4",
@@ -1435,17 +1436,11 @@ class RestApiTest < ActiveSupport::TestCase
     ]}
   end
 
-  def non_scalable_quickstart
-    quickstart = a_quickstart
-    quickstart[:data][0][:quickstart][:summary] << " Note: non-scalable"
-    quickstart
-  end
-
-  def mock_quickstart(scalable=true)
+  def mock_quickstart(summary_message='')
     Quickstart.reset!
     RestApi.reset!
 
-    quickstart = scalable ? a_quickstart : non_scalable_quickstart
+    quickstart = a_quickstart(summary_message)
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
@@ -1540,7 +1535,19 @@ class RestApiTest < ActiveSupport::TestCase
   end
 
   def test_non_scalable_quickstarts
-    mock_quickstart(false)
+    mock_quickstart(" Note: non-scalable")
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
+
+    mock_quickstart(" NOT SCALABLE")
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
+
+    mock_quickstart(" non SCALABLE")
 
     assert_equal 1, Quickstart.promoted.length
     assert q = Quickstart.promoted.first
