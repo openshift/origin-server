@@ -1435,11 +1435,17 @@ class RestApiTest < ActiveSupport::TestCase
     ]}
   end
 
-  def mock_quickstart
+  def non_scalable_quickstart
+    quickstart = a_quickstart
+    quickstart[:data][0][:quickstart][:summary] << " Note: non-scalable"
+    quickstart
+  end
+
+  def mock_quickstart(scalable=true)
     Quickstart.reset!
     RestApi.reset!
 
-    quickstart = a_quickstart
+    quickstart = scalable ? a_quickstart : non_scalable_quickstart
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
@@ -1525,11 +1531,20 @@ class RestApiTest < ActiveSupport::TestCase
     assert q = Quickstart.promoted.first
     assert_equal "Wordpress 3.4", q.name
     assert_equal "12069", q.id
+    assert q.scalable?
     assert q.website
     assert_equal 'php-5.3, mysql-5.1', q.cartridges_spec
     assert q.initial_git_url
     assert q.tags.include?(:blog)
     assert q.updated > 1.year.ago
+  end
+
+  def test_non_scalable_quickstarts
+    mock_quickstart(false)
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
   end
 
   def test_quickstart_disabled
