@@ -3,7 +3,7 @@ module OpenShift
     attr_accessor :name, :version, :architecture, :display_name, :description, :vendor, :license,
                   :provides_feature, :requires_feature, :conflicts_feature, :requires, :default_profile,
                   :path, :profile_name_map, :license_url, :categories, :website, :suggests_feature,
-                  :help_topics, :cart_data_def
+                  :help_topics, :cart_data_def, :type
     exclude_attributes :profile_name_map
     include_attributes :profiles
     
@@ -60,7 +60,13 @@ module OpenShift
       end
       nil
     end
-                  
+    
+  FRAMEWORK_CART_NAMES = [#RHEL6 cartridges
+                          "python-2.6", "jenkins-1.4", "ruby-1.8", "ruby-1.9",
+                          "diy-0.1", "php-5.3", "jbossas-7", "jbosseap-6.0", "jbossews-1.0",
+                          "perl-5.10", "nodejs-0.6", "zend-5.6",
+                         ]
+    
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"
@@ -84,6 +90,14 @@ module OpenShift
       self.requires_feature = [self.requires_feature] if self.requires_feature.class == String
       self.conflicts_feature = [self.conflicts_feature] if self.conflicts_feature.class == String
       self.requires = [self.requires] if self.requires.class == String
+
+      if spec_hash["Cart-Type"]
+        self.type = spec_hash["Cart-Type"]
+      elsif FRAMEWORK_CART_NAMES.include? self.name
+        self.type = 'standalone'
+      else
+        self.type = 'embedded'
+      end
 
       if spec_hash.has_key?("Profiles")
         spec_hash["Profiles"].each do |pname, p|
@@ -109,6 +123,7 @@ module OpenShift
       h = {
         "Name" => self.name,
         "Display-Name" => self.display_name,
+        "Cart-Type" => self.type,
       }
       
       h["Architecture"] = self.architecture if self.architecture != "noarch"
