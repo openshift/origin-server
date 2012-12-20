@@ -100,14 +100,14 @@ end
 url = "http://#{app.name}-#{app.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
 
 puts "URL: #{url}"
-puts "Login: #{app.user.login}"
-puts "App UUID: #{app.uuid}"
-puts "Gear UUID: #{gear.uuid}"
+puts "Login: #{app.domain.owner.login}"
+puts "App UUID: #{app._id}"
+puts "Gear UUID: #{gear._id}"
 
 destination_container = nil
 destination_container = OpenShift::ApplicationContainerProxy.instance(target_server_identity) if target_server_identity
 
-reply = app.container.move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+reply = gear.get_proxy.move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
 
 puts "################# ADDITIONAL DEBUG OUTPUT #################\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
 puts "################# ADDITIONAL ERROR OUTPUT #################\n#{reply.errorIO.string}\n" unless reply.errorIO.string.empty?
