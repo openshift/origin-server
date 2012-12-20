@@ -118,7 +118,7 @@ when "delete"
     print "User still has domains. Delete them first\n"
     exit 1
   end
-  unless user.applications.empty?
+  unless user.domains.map { |dom| dom.applications }.flatten.empty?
     print "User still has applications. Delete them first\n"
     exit 1
   end
@@ -141,8 +141,10 @@ else
     reply.resultIO << "\t#{name}:\n#{key}\n\n"
   end unless user.ssh_keys.nil?
   reply.resultIO << "Applications:\n"
-  user.applications.each do |app|
-    reply.resultIO << app.as_json.to_yaml
+  user.domains.each do |dom|
+    dom.applications.each do |app|
+      reply.resultIO << app.as_json.to_yaml
+    end
   end
 end
 
