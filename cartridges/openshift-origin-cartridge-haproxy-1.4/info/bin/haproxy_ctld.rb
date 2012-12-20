@@ -331,6 +331,9 @@ begin
     )
     opt = {}
     opts.each do |o, a|
+        if (o == "--help") or (o == "-h")
+            p_usage
+        end
         opt[o[2..-1]] = a.to_s
     end
 rescue Exception => e
