@@ -1,6 +1,6 @@
 @runtime_extended
 @runtime_extended3
-@not-origin
+@rhel-only
 @not-enterprise
 Feature: Cartridge Lifecycle NodeJS Verification Tests
   Scenario Outline: Application Creation

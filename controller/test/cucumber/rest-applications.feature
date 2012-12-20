@@ -179,6 +179,7 @@ Feature: applications
      | JSON | 
      | XML | 
   
+  @rhel-only
   Scenario Outline: Threaddump application
     Given a new user
     And I accept "<format>"

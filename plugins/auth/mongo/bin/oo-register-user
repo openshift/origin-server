@@ -2,6 +2,7 @@
 require 'rubygems'
 require 'getoptlong'
 require 'active_resource'
+require 'parseconfig'
 
 def p_usage
   puts <<USAGE
@@ -66,9 +67,16 @@ module ActiveResource
   end
 end
 
+if File.exists?("/etc/openshift/node.conf")
+  config = ParseConfig.new("/etc/openshift/node.conf")
+  $hostname = config.get_value("PUBLIC_HOSTNAME")
+else
+  $hostname = "localhost"
+end
+
 $options = opt
 class Account < ActiveResource::Base
-  self.site="https://localhost/broker/rest"
+  self.site="https://#{$hostname}/broker/rest"
   self.user = $options['login']
   self.password = $options['password']
   self.format = :OpenshiftJson
@@ -77,9 +85,14 @@ class Account < ActiveResource::Base
     error_data = JSON.parse(@remote_errors.response.body)
     error_data["messages"]
   end
+
+  def to_json(options={})
+    {"username" => username, "password" => password}.to_json(options)
+  end
 end
 
 acc = Account.new(:username => opt['username'], :password => opt['userpass'])
+
 if acc.save
   print "User created succesfully\n"
 else

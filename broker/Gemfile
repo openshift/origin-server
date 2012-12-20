@@ -14,6 +14,7 @@ gem 'minitest'
 gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
+gem 'minitest', '3.2.0'
 
 # Load plugin gems.
 Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}

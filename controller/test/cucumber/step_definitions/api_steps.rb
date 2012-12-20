@@ -3,10 +3,18 @@ require 'rest_client'
 require 'nokogiri'
 #require '/var/www/openshift/broker/config/environment'
 require 'logger'
+require 'parseconfig'
+
+if File.exists?("/etc/openshift/node.conf")
+  config = ParseConfig.new("/etc/openshift/node.conf")
+  $hostname = config.get_value("PUBLIC_HOSTNAME")
+else
+  $hostname = "localhost"
+end
 
 @random = nil
 Before do
-  @base_url = "https://localhost/broker/rest"
+  @base_url = "https://#{$hostname}/broker/rest"
 end
 
 After do |scenario|

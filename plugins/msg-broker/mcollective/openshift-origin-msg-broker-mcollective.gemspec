@@ -33,5 +33,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency('mocha')
 
   #required because mcollective had a dependency
-  s.add_dependency('stomp')
+  s.add_dependency('stomp','1.2.2')
 end

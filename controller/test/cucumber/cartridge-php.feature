@@ -1,6 +1,5 @@
 @runtime
 @runtime2
-@not-origin
 Feature: PHP Application
 
   Scenario: Test Alias Hooks

@@ -10,17 +10,21 @@ Feature: Explicit idle/restore checks
     Then a <proc_name> process will not be running
     And the active capacity has been reduced
 
-  Scenarios:
-    | type         | proc_name |
-    | jbossas-7    | java      |
-    | jbosseap-6.0 | java      |
-    | jbossews-1.0 | java      |
-    | nodejs-0.6   | node      |
-    | perl-5.10    | httpd     |
-    | php-5.3      | httpd     |
-    | python-2.6   | httpd     |
-    | ruby-1.8     | httpd     |
-    | ruby-1.9     | httpd     |
+    Scenarios:
+      | type         | proc_name |
+      | nodejs-0.6   | node      |
+      | perl-5.10    | httpd     |
+      | php-5.3      | httpd     |
+      | python-2.6   | httpd     |
+      | ruby-1.9     | httpd     |
+
+    @rhel-only
+    Scenarios:
+      | type         | proc_name |
+      | jbossas-7    | java      |
+      | jbosseap-6.0 | java      |
+      | jbossews-1.0 | java      |
+      | ruby-1.8     | httpd     |
 
   Scenario Outline: Restore one application
     Given a new <type> type application
@@ -36,17 +40,21 @@ Feature: Explicit idle/restore checks
     Then a <proc_name> process will be running
     And the active capacity has been increased
 
-  Scenarios:
-    | type         | proc_name |
-    | jbossas-7    | java      |
-    | jbosseap-6.0 | java      |
-    | jbossews-1.0 | java      |
-    | nodejs-0.6   | node      |
-    | perl-5.10    | httpd     |
-    | php-5.3      | httpd     |
-    | python-2.6   | httpd     |
-    | ruby-1.8     | httpd     |
-    | ruby-1.9     | httpd     |
+    Scenarios:
+      | type         | proc_name |
+      | nodejs-0.6   | node      |
+      | perl-5.10    | httpd     |
+      | php-5.3      | httpd     |
+      | python-2.6   | httpd     |
+      | ruby-1.9     | httpd     |
+
+    @rhel-only
+    Scenarios:
+      | type         | proc_name |
+      | jbossas-7    | java      |
+      | jbosseap-6.0 | java      |
+      | jbossews-1.0 | java      |
+      | ruby-1.8     | httpd     |
 
   Scenario Outline: Auto-restore one application
     Given a new <type> type application
@@ -62,14 +70,18 @@ Feature: Explicit idle/restore checks
     Then a <proc_name> process will be running
     And the active capacity has been increased
 
-  Scenarios:
-    | type         | proc_name |
-    | jbossas-7    | java      |
-    | jbosseap-6.0 | java      |
-    | jbossews-1.0 | java      |
-    | nodejs-0.6   | node      |
-    | perl-5.10    | httpd     |
-    | php-5.3      | httpd     |
-    | python-2.6   | httpd     |
-    | ruby-1.8     | httpd     |
-    | ruby-1.9     | httpd     |
+    Scenarios:
+      | type         | proc_name |
+      | nodejs-0.6   | node      |
+      | perl-5.10    | httpd     |
+      | php-5.3      | httpd     |
+      | python-2.6   | httpd     |
+      | ruby-1.9     | httpd     |
+
+    @rhel-only
+    Scenarios:
+      | type         | proc_name |
+      | jbossas-7    | java      |
+      | jbosseap-6.0 | java      |
+      | jbossews-1.0 | java      |
+      | ruby-1.8     | httpd     |
