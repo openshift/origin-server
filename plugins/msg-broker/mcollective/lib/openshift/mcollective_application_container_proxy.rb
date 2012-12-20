@@ -1651,15 +1651,13 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
-        if app.scalable and not gear.host_singletons
+        begin
           dns = OpenShift::DnsService.instance
-          begin
-            public_hostname = destination_container.get_public_hostname
-            dns.modify_application(gear.name, app.domain.namespace, public_hostname)
-            dns.publish
-          ensure
-            dns.close
-          end
+          public_hostname = destination_container.get_public_hostname
+          dns.modify_application(gear.name, app.domain.namespace, public_hostname)
+          dns.publish
+        ensure
+          dns.close
         end
 
         if (not app.scalable) or (app.scalable and gear.host_singletons)
@@ -1670,7 +1668,6 @@ module OpenShift
               end
             end
           end
-          app.recreate_dns
         end
 
         reply
@@ -1794,7 +1791,7 @@ module OpenShift
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
             start_order,stop_order = app.calculate_component_orders
-            gi_comps = gear.group_instances.all_component_instances.to_a
+            gi_comps = gear.group_instance.all_component_instances.to_a
             start_order.each do |cinst|
               next if not gi_comps.include? cinst
               cart = cinst.cartridge_name
@@ -1842,7 +1839,7 @@ module OpenShift
             app.execute_connections
             if app.scalable
               # execute connections restart the haproxy service, so stop it explicitly if needed
-              stop_order.each do |ci_name|
+              stop_order.each do |cinst|
                 next if not gi_comps.include? cinst
                 cart = cinst.cartridge_name
                 idle, leave_stopped = state_map[cart]
@@ -2064,17 +2061,17 @@ module OpenShift
       # * just a shortcut?
       #
       def get_app_status(app)
-        web_framework = {}
+        web_framework = nil
         app.requires.each do |feature|
           cart = CartridgeCache.find_cartridge(feature)
           next unless cart.categories.include? "web_framework"
-          prof = cart.profile_for_feature(feature)
-          comp = prof.components.first
-          web_framework = {"cart"=>cart.name, "comp"=>comp.name}
+          web_framework = cart.name
           break
         end
 
-        get_cart_status(app, app.gear, web_framework["cart"])
+        component_instances = app.get_components_for_feature(web_framework)
+        gear = component_instances.first.group_instance.gears.first 
+        get_cart_status(app, gear, web_framework)
       end
 
       # 
