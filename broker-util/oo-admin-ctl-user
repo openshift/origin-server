@@ -67,13 +67,15 @@ class String
 end
 
 def set_max_gears(user, maxgears)
-    if user.capabilities["max_gears"] == maxgears
+    user_capabilities = user.get_capabilities
+    if user_capabilities["max_gears"] == maxgears
         puts "User already has max_gears set to #{user.max_gears}"
         return
     end
 
     print "Setting max_gears to #{maxgears}... "
-    user.capabilities["max_gears"]=maxgears
+    user_capabilities["max_gears"]=maxgears
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -185,7 +187,9 @@ def add_gear_size(user, gear_size)
         return
     end
     
-    user.capabilities["gear_sizes"] << gear_size
+    user_capabilities = user.get_capabilities
+    user_capabilities["gear_sizes"] << gear_size
+    user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
     else
@@ -197,12 +201,14 @@ end
 def remove_gear_size(user, gear_size)
     print "Removing gear size #{gear_size} for user #{user.login}... "
     
-    unless user.capabilities["gear_sizes"].include?(gear_size)
+    user_capabilities = user.get_capabilities
+    unless user_capabilities["gear_sizes"].include?(gear_size)
         puts "User #{user.login} does not have gear size #{gear_size} in its capabilities."
         return
     end
     
-    user.capabilities["gear_sizes"].remove(gear_size)
+    user_capabilities["gear_sizes"].delete(gear_size)
+    user.set_capabilities(user_capabilities)
     user.save
 end
 
@@ -353,7 +359,7 @@ user_capabilities = user.get_capabilities
 # print out the user's current settings
 puts "User #{user.login}:"
 puts "      consumed gears: #{user.consumed_gears}"
-puts "           max gears: #{user.capabilities['max_gears']}"
+puts "           max gears: #{user_capabilities['max_gears']}"
 puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
 puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
 puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')
