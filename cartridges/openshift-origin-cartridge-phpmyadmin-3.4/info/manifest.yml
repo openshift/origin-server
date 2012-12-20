@@ -13,6 +13,8 @@ Cart-Data:
 Provides:
   - phpmyadmin-3.4
   - "phpmyadmin"
+Requires:
+  - "mysql"
 Publishes:
   get-serve-info:
     Type: "NET_TCP:db-config:url"
