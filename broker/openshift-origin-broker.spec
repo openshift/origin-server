@@ -160,9 +160,9 @@ systemctl --system daemon-reload
 for l in %{_localstatedir}/log/openshift/user_action.log %{brokerdir}/log/{development,production}.log; do
   if [ ! -f $l ]; then
     touch $l
-    chown apache:apache $l
-    chmod 640 $l
   fi
+  chown apache:apache $l
+  chmod 640 $l
 done
 
 #selinux updated
