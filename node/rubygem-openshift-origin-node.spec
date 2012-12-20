@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.2.6
+Version: 1.2.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -172,6 +172,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Dec 20 2012 Adam Miller <admiller@redhat.com> 1.2.7-1
+- BZ 888410: The reader sequence can block if there is too much stderr
+  (rmillner@redhat.com)
+
 * Mon Dec 10 2012 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Merge pull request #1007 from sosiouxme/US3036-origin
   (openshift+bot@redhat.com)
