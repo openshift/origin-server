@@ -1,5 +1,4 @@
 @runtime
-@not-origin
 Feature: Cartridge Runtime Extended Checks (Ruby)
 
   @runtime_extended2
@@ -14,9 +13,13 @@ Feature: Cartridge Runtime Extended Checks (Ruby)
     When I destroy the application
     Then a <proc_name> process will not be running
 
-  Scenarios: Code push scenarios
-    | type         | proc_name        | hot_deploy_status | pid_changed   |
-    | ruby-1.8     | PassengerWatchd  | is not enabled    | should be     |
-    | ruby-1.9     | PassengerWatchd  | is not enabled    | should be     |
-    | ruby-1.8     | PassengerWatchd  | is enabled        | should not be |
-    | ruby-1.9     | PassengerWatchd  | is enabled        | should not be |
+    @rhel-only
+    Scenarios: Code push scenarios
+      | type         | proc_name        | hot_deploy_status | pid_changed   |
+      | ruby-1.8     | PassengerWatchd  | is not enabled    | should be     |
+      | ruby-1.8     | PassengerWatchd  | is enabled        | should not be |
+
+    Scenarios: Code push scenarios - origin
+      | type         | proc_name        | hot_deploy_status | pid_changed   |
+      | ruby-1.9     | PassengerWatchd  | is not enabled    | should be     |
+      | ruby-1.9     | PassengerWatchd  | is enabled        | should not be |

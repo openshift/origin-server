@@ -14,8 +14,7 @@ BuildArch: noarch
 
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
-Requires: phpMyAdmin >= 3.4
-Requires: phpMyAdmin < 3.5
+Requires: phpMyAdmin
 Requires: httpd < 2.4
 Obsoletes: cartridge-phpmyadmin-3.4
 

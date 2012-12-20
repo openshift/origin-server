@@ -5,8 +5,14 @@ require 'fileutils'
 
 
 Then /^the postgresql configuration file will( not)? exist$/ do |negate|
-  pgsql_cart = @gear.carts['postgresql-8.4']
-
+  pgsql_cart = nil
+  @gear.carts.each do |k,v|
+    if k.start_with?'postgresql-'
+      pgsql_cart = v
+      break
+    end
+  end
+  
   pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.name}"
   pgsql_config_file = "#{pgsql_user_root}/data/postgresql.conf"
 
@@ -19,7 +25,13 @@ end
 
 
 Then /^the postgresql database will( not)? +exist$/ do |negate|
-  pgsql_cart = @gear.carts['postgresql-8.4']
+  pgsql_cart = nil
+  @gear.carts.each do |k,v|
+    if k.start_with?'postgresql-'
+      pgsql_cart = v
+      break
+    end
+  end
 
   pgsql_user_root = "#{$home_root}/#{@gear.uuid}/#{pgsql_cart.name}"
   pgsql_data_dir = "#{pgsql_user_root}/data"
@@ -43,8 +55,14 @@ end
 
 
 Then /^the postgresql admin user will have access$/ do
-  pgsql_cart = @gear.carts['postgresql-8.4']
-
+  pgsql_cart = nil
+  @gear.carts.each do |k,v|
+    if k.start_with?'postgresql-'
+      pgsql_cart = v
+      break
+    end
+  end
+  
   begin
     # FIXME: For now use psql -- we should try programatically later.
     dbconn = PGconn.connect(pgsql_cart.db.ip, 5432, '', '', 'postgres',

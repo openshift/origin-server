@@ -1,5 +1,6 @@
 # step descriptions for MySQL cartridge behavior.
 
+require 'rubygems'
 require 'mysql'
 require 'fileutils'
 

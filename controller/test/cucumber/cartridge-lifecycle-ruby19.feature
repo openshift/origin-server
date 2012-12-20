@@ -1,6 +1,5 @@
 @runtime
 @runtime1
-@not-origin
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario: Application Creation
     Given the libra client tools

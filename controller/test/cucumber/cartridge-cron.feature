@@ -2,9 +2,9 @@
 @runtime1
 Feature: cron Embedded Cartridge
 
-  Scenario: Add Remove cron to one application
+  Scenario Outline: Add Remove cron to one application
     # Change back the perl-5.10 when refactor is done
-    Given a new php-5.3 type application
+    Given a new <php_version> type application
     And I embed a cron-1.4 cartridge into the application
     And cron is running
 
@@ -30,3 +30,13 @@ Feature: cron Embedded Cartridge
     And the embedded cron-1.4 cartridge subdirectory named log will not exist
     And the embedded cron-1.4 cartridge control script will not exist
     And the embedded cron-1.4 cartridge subdirectory named run will not exist
+
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | php_version |
+      | php-5.3     |
+
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | php_version |
+      | php-5.4     |

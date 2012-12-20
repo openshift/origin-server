@@ -2,8 +2,8 @@
 @runtime4
 Feature: MySQL Application Sub-Cartridge
   
-  Scenario: Create Delete one application with a MySQL database
-    Given a new php-5.3 type application
+  Scenario Outline: Create Delete one application with a MySQL database
+    Given a new <php_version> type application
     
     When I embed a mysql-5.1 cartridge into the application
     Then a mysqld process will be running
@@ -28,3 +28,13 @@ Feature: MySQL Application Sub-Cartridge
     And the mysql database will not exist
     And the mysql configuration file will not exist
     And the embedded mysql-5.1 cartridge directory will not exist
+    
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | php_version |
+      | php-5.3     |
+
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | php_version |
+      | php-5.4     |

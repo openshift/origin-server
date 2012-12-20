@@ -2,18 +2,14 @@
 Feature: Cartridge Runtime Standard Checks (Ruby)
 
   @runtime1
-  Scenario Outline: Ruby cartridge checks on ruby-1.8
-    Given a new <type> application, verify it using httpd
+  Scenario Outline: Ruby cartridge checks
+    Given a new <ruby_version> application, verify it using httpd
+
+    @rhel-only
+    Scenarios:
+      | ruby_version |
+      | ruby-1.8     |
 
     Scenarios:
-      | type     |
-      | ruby-1.8 |
-
-  @runtime1
-  @not-origin
-  Scenario Outline: Ruby cartridge checks on ruby-1.9
-    Given a new <type> application, verify it using httpd
-
-    Scenarios:
-      | type     |
-      | ruby-1.9 |
+      | ruby_version |
+      | ruby-1.9     |      

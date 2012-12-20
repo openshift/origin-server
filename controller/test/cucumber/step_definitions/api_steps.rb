@@ -3,10 +3,24 @@ require 'rest_client'
 require 'nokogiri'
 #require '/var/www/openshift/broker/config/environment'
 require 'logger'
+require 'parseconfig'
+require 'rspec'
+
+$hostname = "localhost"
+begin
+  if File.exists?("/etc/openshift/node.conf")
+    config = ParseConfig.new("/etc/openshift/node.conf")
+    val = config.get_value("PUBLIC_HOSTNAME").gsub!(/[ \t]*#[^\n]*/,"")
+    val = val[1..-2] if val.start_with? "\""
+    $hostname = val
+  end
+rescue
+  puts "Unable to determine hostname. Defaulting to localhost\n"
+end
 
 @random = nil
 Before do
-  @base_url = "https://localhost/broker/rest"
+  @base_url = "https://#{$hostname}/broker/rest"
 end
 
 After do |scenario|
@@ -267,7 +281,7 @@ Then /^the response descriptor should have "([^\"]*)" as dependencies$/ do |deps
   end
   #desc = YAML.load(desc_yaml.text.to_s)
   deps.split(",").each do |dep|
-    desc["Requires"].should include(dep)
+    desc["Requires"].include?(dep).should
   end
 end
 
