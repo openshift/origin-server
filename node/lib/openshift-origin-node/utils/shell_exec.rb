@@ -58,7 +58,7 @@ module OpenShift::Utils::ShellExec
       begin
         stdin.close
         out = err = ""
-        fds = [ stdout. stderr ]
+        fds = [ stdout, stderr ]
         buffs = { stdout.fileno => out, stderr.fileno => err }
         Timeout::timeout(timeout) do
           while not fds.empty?
