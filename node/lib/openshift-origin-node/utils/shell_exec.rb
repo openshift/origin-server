@@ -15,6 +15,7 @@
 #++
 
 require 'rubygems'
+require 'timeout'
 require 'open4'
 
 module OpenShift::Utils
@@ -56,9 +57,21 @@ module OpenShift::Utils::ShellExec
       pid, stdin, stdout, stderr = Open4.popen4ext(true, m_cmd)
       begin
         stdin.close
+        out = err = ""
+        fds = [ stdout, stderr ]
+        buffs = { stdout.fileno => out, stderr.fileno => err }
         Timeout::timeout(timeout) do
-          out = stdout.read
-          err = stderr.read
+          while not fds.empty?
+            rs, ws, es = IO.select(fds, nil, nil)
+            rs.each do |f|
+              begin
+                buffs[f.fileno] << f.read_nonblock(4096)
+              rescue IO::WaitReadable, IO::WaitWritable # Wait in next select
+              rescue EOFError
+                fds.delete_if { |item| item.fileno == f.fileno }
+              end
+            end
+          end
         end
       rescue Timeout::Error
         pstree = Hash.new{|a,b| a[b]=[b]}

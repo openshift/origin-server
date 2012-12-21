@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.3.1
+Version: 1.3.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,15 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
+- BZ 886379: Print out a warning message if no args. (rmillner@redhat.com)
+- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
+  outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
+  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
+  Setup mcollective to use broker IPs - Updates abstract cartridges to set
+  proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
+  fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 

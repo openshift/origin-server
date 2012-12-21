@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.3.1
+Version: 1.3.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,14 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
+- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
+  outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
+  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
+  Setup mcollective to use broker IPs - Updates abstract cartridges to set
+  proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
+  fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
