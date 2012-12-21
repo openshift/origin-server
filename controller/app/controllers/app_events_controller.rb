@@ -51,11 +51,11 @@ class AppEventsController < BaseController
         when "add-alias"
           r = application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
-          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
           r = application.remove_alias(server_alias)
           msg = "Application #{id} has removed alias"
-          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"
           web_framework_component_instance = application.component_instances.select{ |c| CartridgeCache.find_cartridge(c.cartridge_name).categories.include?("web_framework") }.first
           application.scale_by(web_framework_component_instance.group_instance_id, 1)
@@ -66,7 +66,11 @@ class AppEventsController < BaseController
           msg = "Application #{id} has scaled down"
         when "thread-dump"
           r = application.threaddump
-          msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
+          if r.nil?
+            msg = ""
+          else
+            msg = !r.errorIO.string.empty? ? r.errorIO.string.chomp : r.resultIO.string.chomp
+          end
           #TODO: We need to reconsider how we are reporting messages to the client
           message = Message.new(:result, msg, 0)
           if $requested_api_version == 1.0
@@ -78,11 +82,11 @@ class AppEventsController < BaseController
         when 'tidy'
           r = application.tidy
           msg = "Application #{id} called tidy"
-          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when 'reload'
           r = application.reload_config
           msg = "Application #{id} called reload"
-          msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
+          # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         else
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "APPLICATION_EVENT", "event")
