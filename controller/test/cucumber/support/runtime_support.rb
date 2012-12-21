@@ -186,7 +186,7 @@ module OpenShift
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
 
       outbuf = []
-      cmd = "oo-app-destroy -a #{@app.uuid} -c #{@uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}"
+      cmd = "oo-app-destroy -a #{@app.uuid} -c #{@uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name} --skip-hooks"
       exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
       if exit_code != 0
         $logger.error(outbuf)
