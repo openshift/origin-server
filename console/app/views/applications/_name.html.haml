@@ -1,27 +1,27 @@
-.input-prepend-append
-  %span.add-on-first http://
+.input-prepend.input-append
+  %span.add-on http://
 
   = form.text_field :name, 
     :value => "#{application.name}", 
     :autofocus => true, 
-    :maxlength => 32, 
+    :size => nil, 
     :placeholder => 'Application name', 
-    :class => "application_name #{'error' if application.errors.include? :name}"
+    :class => "application_name span3 #{'error' if application.errors.include? :name}"
 
   -# If the user has a domain, use it, otherwise prompt them for that field
   - if @domain and @domain.persisted?
 
-    %span.add-on-last> -#{@domain.name}.#{RestApi.application_domain_suffix}
+    %span.add-on> -#{@domain.name}.#{RestApi.application_domain_suffix}
 
   - else
 
-    %span.add-on-middle> &ndash;
+    %span.add-on.middle> &ndash;
     = form.text_field :domain_name, 
       :value => "#{application.domain_name}", 
       :placeholder => 'Namespace', 
-      :maxlength => 16, 
-      :class => "domain_name #{'error' if application.errors.include? :domain_name}"
-    %span.add-on-last>= ".#{RestApi.application_domain_suffix}"
+      :size => nil, 
+      :class => "domain_name span3 #{'error' if application.errors.include? :domain_name}"
+    %span.add-on>= ".#{RestApi.application_domain_suffix}"
 
 - unless @domain and @domain.persisted?
   %p.help-block

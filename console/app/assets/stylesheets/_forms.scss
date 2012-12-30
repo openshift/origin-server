@@ -54,7 +54,7 @@ textarea {
 // Identify controls by their labels
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
   color: $grayDark;
 }
 
@@ -387,11 +387,8 @@ textarea:focus:required:valid {
 // ------------
 
 .form-actions {
-  padding: ($baseLineHeight - 1) 20px $baseLineHeight;
-  margin-top: $baseLineHeight;
-  margin-bottom: $baseLineHeight;
-  background-color: #f5f5f5;
-  border-top: 1px solid #ddd;
+  margin-bottom: 0;
+  padding: 15px 0 10px;
   @include clearfix(); // Adding clearfix to allow for .pull-right button containers
 }
 
@@ -471,7 +468,7 @@ textarea:focus:required:valid {
   }
   .add-on,
   .btn {
-    vertical-align: top;
+    vertical-align: bottom;
     @include border-radius(0);
   }
   .active {
@@ -510,6 +507,7 @@ textarea:focus:required:valid {
   select,
   .uneditable-input {
     @include border-radius(0);
+    border-right: 0;
   }
   .add-on:first-child,
   .btn:first-child {
@@ -635,7 +633,7 @@ input.search-query {
 
 // Margin to space out fieldsets
 .control-group {
-  margin-bottom: $baseLineHeight / 2;
+  margin-bottom: $baseLineHeight / 1.5;
 }
 
 // Legend collapses margin, so next element is responsible for spacing
@@ -698,6 +696,9 @@ legend + .control-group {
   input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], textarea, select, .uneditable-input, .add-on, .add-on-first, .add-on-last, .add-on-middle {
     font-size: floor($baseFontSize + 1);
     padding: 8px 10px;
+  }
+  label.control-label, label {
+    font-size: floor($baseFontSize + 1);
   }
   .add-on.middle {
     padding-left: 0;
