@@ -63,7 +63,9 @@ class ApplicationTemplate < RestApi::Base
   end
 
   def scalable
-    false
+    @scalable ||= tags.include?(:not_scalable) ? false : true
+  ensure
+    Rails.logger.debug("Handling #{self.name} app template as non-scalable") unless @scalable
   end
   alias_method :scalable?, :scalable
 
