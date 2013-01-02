@@ -10,7 +10,7 @@
   = f.hidden_field :type, :value => @cartridge_type.type
   = f.hidden_field :name, :value => @cartridge_type.name
   = f.semantic_errors :name, :cartridge
-  %div
+  %p
     Do you want to add the
     %strong
       #{@cartridge_type.display_name}

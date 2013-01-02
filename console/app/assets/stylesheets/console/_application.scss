@@ -179,7 +179,7 @@
     border-top-color: white;
   }
   .dropdown-toggle {
-    @include box_shadow;
+    @include box-shadow;
   }
   &.open .dropdown-menu { 
     border-radius: 0; 
@@ -187,8 +187,23 @@
 }
 
 @media (max-width: 479px) {
-    #new_application .controls input {
-        width: 95px;
+
+  #new_application .controls {
+    .add-on, .add-on {
+      clear: left;
+      display: block;
+      padding: 8px 0;
+      width: 100% !important;
     }
+    .add-on.middle {display: none;}
+    .input-prepend, .input-append,
+    .input-prepend input, .input-append input,
+    .input-prepend input, .input-append input {
+      display: block;
+      text-align: center;
+      width: 100%;
+      vertical-align: bottom;
+    }
+  }  
 }
 

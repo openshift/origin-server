@@ -1417,11 +1417,12 @@ class RestApiTest < ActiveSupport::TestCase
     assert group1.send(:move_features, group2) # nothing is moved, but group1 is still empty and should be purged
   end
 
-  def a_quickstart
+  def a_quickstart(summary_message='')
+    summary = "An awesome blog hosting platform with a rich ecosystem" << summary_message
     quickstart = {data:[
       {quickstart:{
         body:"<p>An awesome blog hosting platform with a rich ecosystem<\/p>",
-        summary:"An awesome blog hosting platform with a rich ecosystem",
+        summary: summary,
         id:"12069",
         href:"\/community\/content\/wordpress-34",
         name:"Wordpress 3.4",
@@ -1435,11 +1436,11 @@ class RestApiTest < ActiveSupport::TestCase
     ]}
   end
 
-  def mock_quickstart
+  def mock_quickstart(summary_message='')
     Quickstart.reset!
     RestApi.reset!
 
-    quickstart = a_quickstart
+    quickstart = a_quickstart(summary_message)
 
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
@@ -1525,11 +1526,32 @@ class RestApiTest < ActiveSupport::TestCase
     assert q = Quickstart.promoted.first
     assert_equal "Wordpress 3.4", q.name
     assert_equal "12069", q.id
+    assert q.scalable?
     assert q.website
     assert_equal 'php-5.3, mysql-5.1', q.cartridges_spec
     assert q.initial_git_url
     assert q.tags.include?(:blog)
     assert q.updated > 1.year.ago
+  end
+
+  def test_non_scalable_quickstarts
+    mock_quickstart(" Note: non-scalable")
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
+
+    mock_quickstart(" NOT SCALABLE")
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
+
+    mock_quickstart(" non SCALABLE")
+
+    assert_equal 1, Quickstart.promoted.length
+    assert q = Quickstart.promoted.first
+    assert_equal false, q.scalable?
   end
 
   def test_quickstart_disabled
