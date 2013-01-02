@@ -798,6 +798,8 @@ $cartridgeBorderWidth: 10px;
   white-space: nowrap;
 }
 
+.ie9 .table-fixed, .ie8 .table-fixed, .ie7 .table-fixed { table-layout: fixed } // allow td text-overflow
+
 
 
 /* client side validation */
