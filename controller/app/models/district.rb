@@ -40,8 +40,9 @@ class District
   end
 
   def self.find_available(gear_size=nil)
-    valid_districts = District.where(:available_capacity.gte => 0, :gear_size => gear_size, :active_server_identities_size.gte => 0).find_all
-    valid_districts.sort { |x,y| x.available_capacity<y.available_capacity }.first
+    gear_size = gear_size ? gear_size : 'small'
+    valid_district = District.where(:available_capacity.gte => 0, :gear_size => gear_size, :active_server_identities_size.gte => 0).sort(:available_capacity.desc).first
+    valid_district
   end
   
   def self.find_all()
@@ -84,7 +85,7 @@ class District
           raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be found")
         end
       else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} already belongs to another district: #{found._id}")
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} already belongs to another district")
       end
     else
       raise OpenShift::UserException.new("server_identity is required")
