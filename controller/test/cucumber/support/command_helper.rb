@@ -5,6 +5,10 @@ require 'open4'
 require 'benchmark'
 
 module CommandHelper
+  def getenv(uuid, var)
+    run_stdout("source /var/lib/openshift/#{uuid}/.env/#{var};echo $#{var}").chomp!
+  end
+
   def run_stdout(cmd)
     $logger.info("Running: #{cmd}")
 
@@ -233,7 +237,7 @@ module CommandHelper
       time = Benchmark.realtime do 
         result = run_stdout("#{$rhc_script} cartridge add -l #{app.login} -a #{app.name} -p #{app.password} -c #{type} -d")
       end
-      $logger.info { "Embed #{type} into #{app.inspect}: OUTPUT\n#{result}" }
+      $logger.info { "Embed #{type} into #{app.inspect}: OUTPUT\n<<#{result}>>\n" }
       log_event "#{time} ADD_EMBED_CART #{app.name} #{type} #{app.login}"
       if type.start_with?('mysql-')
         # Recent versions of rhc now return a connection URL in this format:
@@ -244,14 +248,10 @@ module CommandHelper
         # directory to get the actual values to attach to the app.
 
         # Source the env var values from the gear directory
-        host_val = `source /var/lib/openshift/#{app.uid}/.env/OPENSHIFT_MYSQL_DB_HOST;echo $OPENSHIFT_MYSQL_DB_HOST`.chomp!
-        port_val = `source /var/lib/openshift/#{app.uid}/.env/OPENSHIFT_MYSQL_DB_PORT;echo $OPENSHIFT_MYSQL_DB_PORT`.chomp!
-
-        # Assign the hostname ourselves, in host:port format
-        app.mysql_hostname = "#{host_val}:#{port_val}"
-        app.mysql_user = /Username\s*=\s*(\S+)/.match(result)[1]
-        app.mysql_password = /Password\s*=\s*(\S+)/.match(result)[1]
-        app.mysql_database = /Database Name\s*=\s*(\S+)/.match(result)[1]
+        app.mysql_hostname = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_HOST')
+        app.mysql_user     = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_USERNAME')
+        app.mysql_password = getenv(app.uid, 'OPENSHIFT_MYSQL_DB_PASSWORD')
+        app.mysql_database = getenv(app.uid, 'OPENSHIFT_APP_NAME')
 
         app.mysql_hostname.should_not be_nil
         app.mysql_user.should_not be_nil

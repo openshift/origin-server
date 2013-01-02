@@ -36,6 +36,7 @@ Requires: php-soap
 Requires: php-bcmath
 Requires: php-process
 Requires: php-pecl-imagick
+Requires: php-pecl-xdebug
 Obsoletes: cartridge-php-5.3
 
 %description
