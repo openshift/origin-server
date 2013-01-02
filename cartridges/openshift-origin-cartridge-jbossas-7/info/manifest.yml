@@ -54,7 +54,7 @@ Provides:
   - jboss-as7.1-standalone
 Group-Overrides:
   - components:
-    - jbossas-server
+    - "jbossas-7"
     - web_proxy
 Publishes:
   get-internal-uri:
