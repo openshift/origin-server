@@ -31,12 +31,14 @@ Provides the common dependencies of the msg components for OpenShift server and 
 %install
 mkdir -p %{buildroot}%{mco_root}agent
 mkdir -p %{buildroot}%{mco_root}validator
-cp agent/* %{buildroot}%{mco_root}agent/
-cp validator/* %{buildroot}%{mco_root}validator/
+cp -p agent/* %{buildroot}%{mco_root}agent/
+cp -p validator/* %{buildroot}%{mco_root}validator/
+chmod 644 %{buildroot}%{mco_root}agent/*
+chmod 644 %{buildroot}%{mco_root}validator/*
 
 %files
-%attr(0644,-,-) %{mco_root}agent/*
-%attr(0644,-,-) %{mco_root}validator/*
+%{mco_root}agent/*
+%{mco_root}validator/*
 
 %changelog
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
