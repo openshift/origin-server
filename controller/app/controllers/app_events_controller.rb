@@ -47,7 +47,7 @@ class AppEventsController < BaseController
           application.restart
           msg = "Application #{id} has restarted"
         when "show-port", "expose-port", "conceal-port"
-          raise UserException.new("This event (#{event}) is no longer supported.")
+          render_error(:gone, "This event (#{event}) is no longer supported.", 112, "APPLICATION_EVENT")
         when "add-alias"
           r = application.add_alias(server_alias)
           msg = "Application #{id} has added alias"
