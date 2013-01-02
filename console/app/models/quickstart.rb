@@ -42,9 +42,7 @@ class Quickstart < RestApi::Base
   end
 
   def scalable
-    @scalable ||= tags.include?(:not_scalable) ? false : true
-  ensure
-    Rails.logger.debug("Handling #{self.name} quickstart as non-scalable") unless @scalable
+    (not tags.include?(:not_scalable) rescue true)
   end
   alias_method :scalable?, :scalable
 

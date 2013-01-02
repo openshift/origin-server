@@ -999,16 +999,6 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal false, non_scalable_type.scalable?
   end
 
-  def test_application_template_scalable_check
-    ApplicationTemplate.any_instance.stubs(:descriptor).returns({})
-    assert scalable_app_template = ApplicationTemplate.new
-    scalable_app_template.stubs(:tags).returns([])
-    assert_equal true, scalable_app_template.scalable?
-    assert non_scalable_app_template = ApplicationTemplate.new
-    non_scalable_app_template.stubs(:tags).returns([:not_scalable])
-    assert_equal false, non_scalable_app_template.scalable?
-  end
-
   def test_cartridge_type_find
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
@@ -1214,9 +1204,6 @@ class RestApiTest < ActiveSupport::TestCase
         {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]},
         {:name => 'blacklist', :type => 'standalone', :tags => [:framework, :blacklist]},
       ].to_json
-
-      mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
-      ].to_json
     end
 
     # For this test, stub the scalability logic; we test it separately
@@ -1234,54 +1221,6 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
-  end
-
-  def test_application_templates
-    mock_quickstart_disabled
-    ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
-      ].to_json
-
-      mock.get '/broker/rest/application_templates.json', anonymous_json_header, [
-        { 
-          :name => 'blacklist',
-          :tags => [:framework, :blacklist],
-          :metadata => {},
-          :descriptor_yaml => ''
-        },
-        {
-          :name => 'rails',
-          :tags => [:framework, :ruby, :rails, :in_development],
-          :descriptor_yaml => YAML.dump({
-            'Name' => "rails"
-          }),
-          :metadata => {
-            :attributes => {
-            }.to_json
-          },
-          :display_name => "Ruby on Rails",
-          :uuid => '1234'
-        }
-      ].to_json
-    end
-
-    types = ApplicationType.find :all
-    assert_equal 1, types.length
-
-    assert_equal 'Ruby on Rails', types[0].display_name
-
-    types.each do |type|
-      assert a = ApplicationType.find(type.id)
-      assert_equal type.id, a.id
-      assert_equal type.description, a.description
-      assert_equal type.categories, a.categories
-    end
-
-    assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
-
-    # template is in_development and excluded
-    Rails.env.expects(:production?).returns(true)
-    assert ApplicationType.find(:all).empty?
   end
 
   def test_application_job_url

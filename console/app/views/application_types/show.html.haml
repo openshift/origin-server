@@ -180,16 +180,6 @@
           - else
             %span.text-warning= scale_reason
 
-    .control-group
-      .controls
-        - if @application_type.template
-          %p.text-warning
-            After creation, check the repository README for any manual configuration 
-            required to secure this application.
-
-          %p
-            %em Note: It may take up to a minute to deploy your application
-
   = f.buttons do
     = link_to "Back", application_types_path, :class => 'btn'
     = f.commit_button :button_html => { :disabled => @disabled } 

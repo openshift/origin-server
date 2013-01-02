@@ -22,14 +22,6 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert groups.first[1].present?
   end
 
-  test "should be able to find templates" do
-    with_unique_user
-    types = ApplicationType.all
-    (templates,) = types.partition{|t| t.template?}
-    omit("No templates have been registered on this server") if templates.empty?
-    assert_not_equal 0, templates.length, "There should be templates to test against"
-  end
-
   test "should be able to find quickstarts" do
     with_unique_user
     types = ApplicationType.all
@@ -62,7 +54,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert assigns(:application)
     assert assigns(:domain)
     assert css_select('input#application_domain_name').present?
-    if t.tags.include?(:template) or t.id == 'diy-0.1'
+    if t.tags.include?(:not_scalable) or t.id == 'diy-0.1'
       # Sanity-check known non-scalable types
       assert_equal false, t.scalable?
     elsif t.id == 'php-5.3'
@@ -83,15 +75,6 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     with_unique_user
     type = ApplicationType.all.select(&:quickstart?).sample(1).first
     omit("No quickstarts registered on this server") if type.nil?
-
-    get :show, :id => type.id
-    assert_standard_show_type(type)
-  end
-
-  test "should show type page for application template" do
-    with_unique_user
-    type = ApplicationType.all.select(&:template?).sample(1).first
-    omit("No templates registered on this server") if type.nil?
 
     get :show, :id => type.id
     assert_standard_show_type(type)
