@@ -313,6 +313,15 @@ class Application
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
   def add_features(features, group_overrides=[], init_git_url=nil)
+    # Validate that the features support scalable if necessary
+    if self.scalable
+      features.each do |feature_name|
+        cart = CartridgeCache.find_cartridge(feature_name)
+        unless cart.categories.include?("cartridge") || cart.categories.include?("ci_builder") || cart.categories.include?("plugin")
+          raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
+        end
+      end
+    end
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url})
       result_io = ResultIO.new
@@ -816,7 +825,7 @@ class Application
           when :add_features
             #need rollback
             features = self.requires + op_group.args["features"]
-            group_overrides = self.group_overrides + (op_group.args["group_overrides"] || [])
+            group_overrides = (self.group_overrides || []) + (op_group.args["group_overrides"] || [])
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides, op_group.args["init_git_url"])
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :remove_features

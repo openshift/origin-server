@@ -4,7 +4,6 @@ Description: "SwitchYard is a lightweight service delivery framework providing f
 Version: 1.0.0
 License: ASL 2.0
 Categories:
-  - cartridge
   - embedded
 Cart-Data:
   - Key: "module_path"

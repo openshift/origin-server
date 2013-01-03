@@ -124,9 +124,8 @@ class EmbCartController < BaseController
         group_override["additional_filesystem_gb"] = additional_storage unless additional_storage.nil?
         group_overrides << group_override
       end
-      
+
       application.add_features([name], group_overrides)
-      
       
       component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
