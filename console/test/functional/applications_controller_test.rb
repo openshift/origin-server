@@ -6,19 +6,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     # in applications_controller_sanity_test
   end
 
-  test 'template create and destroy' do
-    with_unique_domain
-    type = ApplicationType.all.select(&:template?).sample(1).first
-    omit("No templates are installed on this server") if type.nil?
-    post(:create, {:application => get_post_form(type.id)})
-
-    assert app = assigns(:application)
-    assert app.errors.empty?, app.errors.inspect
-    assert app.persisted?, app.inspect
-
-    app.destroy
-  end
-
   test 'should redirect new to types' do
     with_configured_user
     get :new
@@ -269,20 +256,6 @@ class ApplicationsControllerTest < ActionController::TestCase
     get :show, :id => 'idontexist'
     assert_response :success
     assert_select 'h1', /Application 'idontexist' does not exist/
-  end
-
-  test 'should combine messages correctly for template creation' do
-    with_unique_domain
-    template = ApplicationType.all.select(&:template?).select{ |t| t.template.credentials_message }.sample(1).first
-    omit("No templates installed on this system") if template.nil?
-    saved = states('saved').starts_as('no')
-    Application.any_instance.expects(:save).returns(true).then(saved.is('yes'))
-    Application.any_instance.expects(:persisted?).at_least_once.returns(false).when(saved.is('no'))
-    Application.any_instance.expects(:persisted?).at_least_once.returns(true).when(saved.is('yes'))
-    Application.any_instance.expects(:remote_results).at_least_once.returns(['message'])
-    post(:create, {:application => get_post_form(template.id)})
-
-    assert_equal ['message', template.template.credentials_message], flash[:info_pre]
   end
 
   test 'invalid destroy should render page' do
