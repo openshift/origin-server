@@ -317,7 +317,7 @@ class Application
     if self.scalable
       features.each do |feature_name|
         cart = CartridgeCache.find_cartridge(feature_name)
-        unless cart.categories.include?("cartridge") || cart.categories.include?("ci_builder") || cart.categories.include?("plugin")
+        unless feature_name == 'web_proxy' || cart.categories.include?("cartridge") || cart.categories.include?("ci_builder") || cart.categories.include?("plugin")
           raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
         end
       end
