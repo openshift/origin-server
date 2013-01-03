@@ -45,11 +45,16 @@ class EmbCartController < BaseController
       application = Application.find_by(domain: domain, name: application_id)
       @application_name = application.name
       @application_uuid = application._id.to_s
+    rescue Mongoid::Errors::DocumentNotFound
+      return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
+    end
+    
+    begin
       component_instance = application.component_instances.find_by(cartridge_name: id)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides, status_messages)
       return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
-      return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
+      return render_error(:not_found, "Cartridge '#{id}' not found for application '#{application_id}'", 129, "SHOW_APP_CARTRIDGE")
     end
   end
 
