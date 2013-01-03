@@ -149,11 +149,7 @@ class ApplicationsController < ConsoleController
     if @application.save
       messages = @application.remote_results
 
-      if t = @application_type.template
-        messages << t.credentials_message if t.credentials
-      end
-
-      redirect_to get_started_application_path(@application, :wizard => true, :template => (@application_type.template.present? || nil)), :flash => {:info_pre => messages}
+      redirect_to get_started_application_path(@application, :wizard => true), :flash => {:info_pre => messages}
     else
       logger.debug @application.errors.inspect
 
@@ -177,7 +173,6 @@ class ApplicationsController < ConsoleController
     @application = @domain.find_application params[:id]
 
     @wizard = !params[:wizard].nil?
-    @template = !params[:template].nil?
     sshkey_uploaded?
   end
 end

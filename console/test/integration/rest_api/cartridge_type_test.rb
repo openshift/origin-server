@@ -67,20 +67,6 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     log_types(types)
 
     assert types[0].id.starts_with?('cart!jbosseap'), types[0].id
-
-    type = types.find(&:template?)
-    omit("No templates defined on this server") if type.nil?
-
-    template = type.template
-    assert template.name
-    assert template.description
-    assert template.version
-    assert template.website
-    assert template.git_url
-    assert template.git_project_url
-    assert_equal type.id, "template!#{template.name}"
-    assert template.git_project_url
-    assert_same template.tags, template.tags
   end
 
   test 'sort cartridges' do
@@ -119,17 +105,6 @@ class RestApiCartridgeTypeTest < ActiveSupport::TestCase
     found, missing = ApplicationType.matching_cartridges('php-')
     assert_equal ['php-5.3'], found['php-'].map(&:name), found.inspect
     assert missing.empty?
-  end
-
-  # Currently /application_templates/<string>.json can return an array
-  # if the value is not a properly formatted ID.  This is questionable,
-  # and this test is only to protect us in the case that we have code
-  # depending on that behavior.  If this behavior is moved to a new
-  # route then we can remove this.
-  test 'application template names returned by server' do
-    template = ApplicationTemplate.first(:from => :wordpress)
-    omit("No templates defined on this server") unless template
-    assert_equal 'WordPress', template.display_name
   end
 
   test 'match cartridges' do
