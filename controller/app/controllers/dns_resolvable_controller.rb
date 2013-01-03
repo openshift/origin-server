@@ -11,7 +11,7 @@ class DnsResolvableController < BaseController
     id = params[:application_id]
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: id)
+      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "DNS_RESOLVABLE")
@@ -20,7 +20,7 @@ class DnsResolvableController < BaseController
     begin
       application = Application.find_by(domain: domain, name: id)
       @application_name = application.name
-      @application_uuid = application.uuid
+      @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound      
       return render_error(:not_found, "Application '#{id}' not found", 101, "DNS_RESOLVABLE")
     end
