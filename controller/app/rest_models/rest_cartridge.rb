@@ -69,9 +69,14 @@ class RestCartridge < OpenShift::Model
     if app and !nolinks
       domain_id = app.domain.namespace
       app_id = app.name
-      if self.type == "embedded" and not app_id.nil? and not domain_id.nil?
+      if not app_id.nil? and not domain_id.nil?
         self.links = {
             "GET" => Link.new("Get cartridge", "GET", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}")),
+            "UPDATE" => Link.new("Update cartridge configuration", "PUT", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}"), nil, [
+              OptionalParam.new("additional_gear_storage", "integer", "Additional filesystem storage in gigabytes on each gear having cartridge #{name}"),
+              OptionalParam.new("scales_from", "integer", "Minimum number of gears having cartridge #{name}"),
+              OptionalParam.new("scales_to", "integer", "Maximum number of gears having cartridge #{name}")
+            ]),
             "START" => Link.new("Start embedded cartridge", "POST", URI::join(url, "domains/#{domain_id}/applications/#{app_id}/cartridges/#{name}/events"), [
               Param.new("event", "string", "event", "start")
             ]),

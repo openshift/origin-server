@@ -204,12 +204,12 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
       end
       
-      if scales_from < 1
-        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from")
+      if scales_from and scales_from < 1
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
       end
       
-      if scales_to < -1
-        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to")
+      if scales_to and scales_to < -1
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
       component_instance = application.component_instances.find_by(cartridge_name: id)
 
