@@ -58,7 +58,7 @@ class Domain
   def update_namespace(new_namespace)
     old_ns = namespace
     set(:namespace, new_namespace)
-    pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_complete_method: :complete_namespace_update, state: "init")
+    pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_completion_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
     pending_op
