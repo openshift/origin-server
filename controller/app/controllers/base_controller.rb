@@ -209,13 +209,15 @@ class BaseController < ActionController::Base
   end
 
   def get_bool(param_value)
+    return false unless param_value
     if param_value.is_a? TrueClass or param_value.is_a? FalseClass
       return param_value
     elsif param_value.is_a? String and param_value.upcase == "TRUE"
       return true
-    else
+    elsif param_value.is_a? String and param_value.upcase == "FALSE"
       return false
     end
+    raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
   end
 
   def get_cloud_user_info(cloud_user)
