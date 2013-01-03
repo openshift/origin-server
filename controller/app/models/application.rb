@@ -158,6 +158,7 @@ class Application
       op_group = PendingAppOpGroup.new(op_type: :complete_update_namespace, args: {"old_namespace" => old_namespace, "new_namespace" => new_namespace}, parent_op: parent_op)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
+      self.save
       result_io
     end
   end
@@ -977,16 +978,20 @@ class Application
   def calculate_complete_update_ns_ops(args, prereqs={})
     ops = []
     last_op = nil
+    last_op_id = nil
     old_ns = args["old_namespace"]
     new_ns = args["new_namespace"]
     self.group_instances.each do |group_instance|
       args["group_instance_id"] = group_instance._id.to_s
       group_instance.all_component_instances.each do |component_instance|
         args["comp_spec"] = {"comp" => component_instance.component_name, "cart" => component_instance.cartridge_name}
-        last_op = PendingAppOp.new(op_type: :complete_update_namespace, args: args.dup, prereq: last_op)
+        last_op_id = last_op._id.to_s if last_op
+        last_op = PendingAppOp.new(op_type: :complete_update_namespace, args: args.dup, prereq: [last_op_id])
+        ops.push last_op
       end
     end
-    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: last_op)
+    last_op_id = last_op._id.to_s if last_op
+    ops.push PendingAppOp.new(op_type: :execute_connections, prereq: [last_op_id])
     # self.domain.namespace = new_ns
     ops
   end
