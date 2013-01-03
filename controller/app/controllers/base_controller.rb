@@ -253,7 +253,7 @@ class BaseController < ActionController::Base
     return messages
   end
   
-  # Renders a REST response for an unsuccesful request.
+  # Renders a REST response for an unsuccessful request.
   #
   # == Parameters:
   #  status::
