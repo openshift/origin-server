@@ -1,12 +1,19 @@
 #!/usr/bin/env ruby
-# Run with "-h" for usage, "-v" to see details while running.
+# Run with "-h" for usage, "-v" to see INFO-level output while running.
 #
 # Run this script as root on any kind of OpenShift host to diagnose common problems.
 # It is intended to evolve quickly in response to actual problems experienced.
 # It does not perform any function or send results anywhere; it just outputs
 # diagnostic information which may be of some use in troubleshooting.
 #
-# Online admins may need to adjust PATH to use proper ruby and gem for broker tests.
+# INFO output is strictly informational.
+# WARN output means something is not right but may not impair functionality.
+# FAIL output means a serious problem probably impairing functionality.
+#
+# OpenShift Online admins may need to adjust PATH to use proper ruby and gem for broker tests.
+#
+# Please report false positives/negatives or other problems with this script
+# via https://bugzilla.redhat.com/
 
 #--
 # Copyright 2012 Red Hat, Inc.
@@ -53,7 +60,10 @@ class OODiag
 
   def run_tests
     tests = @options[:tests]
-    tests.nil? || tests.empty? and tests = self.class.instance_methods.select {|m| m.to_s.start_with? "test_"}
+    if tests.nil? || tests.empty?
+      tests = self.class.instance_methods.select {|m| m.to_s.start_with? "prereq_"}
+      tests += self.class.instance_methods.select {|m| m.to_s.start_with? "test_"}
+    end
     tests.each do |m|
       begin
         verbose "running: #{m}"
@@ -73,6 +83,8 @@ class OODiag
   ######## UTILITIES ########
 
   def called_from; caller[1][/`([^']*)'/, 1]; end
+  def eputs(msg); $stderr.write "\e[#{31}m#{msg}\e[0m\n"; end
+  def wputs(msg); $stderr.write "\e[#{33}m#{msg}\e[0m\n"; end
 
   def verbose(msg)
     @options[:verbose] and $stdout.write("INFO: #{msg}\n")
@@ -83,17 +95,9 @@ class OODiag
     @errors += 1
   end
 
-  def eputs(msg)
-    $stderr.write "\e[#{31}m#{msg}\e[0m\n"
-  end
-
   def do_warn(msg)
     wputs("WARN: #{called_from}\n" + msg)
     @warns += 1
-  end
-
-  def wputs(msg)
-    $stderr.write "\e[#{33}m#{msg}\e[0m\n"
   end
 
   class SkipTest < StandardError; end
@@ -360,8 +364,12 @@ class OODiag
   LOCALHOST = %w[127.0.0.1 ::1]
 
 ######## TESTS #############
+  #
+  # Methods beginning with prereq_ or test_ will be run automatically.
+  # prereq_ methods run before test_ methods in order to enable aborting testing
+  # if there are serious problems.
 
-  def test_dns_resolution
+  def prereq_dns_resolution
     verbose "checking that DNS resolution works at all"
     # IPSocket.getaddress goes through /etc/hosts;
     # "host" uses DNS which is what we want.
@@ -398,8 +406,15 @@ class OODiag
     verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
     ENTERPRISE_RPMS.each do |rpm|
       if @rpms.has_key?(rpm)
-        @rpms[rpm][:release].include?('el6op') or
-          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{@rpms[rpm][:version]}-#{@rpms[rpm][:release]} does not have 'el6op' in it"
+        rel = @rpms[rpm][:release]
+        ver = @rpms[rpm][:version]
+        unless rel.include?('el6op') ||
+               # waive two errata RPMs that didn't get the right distro tag
+               rpm == 'openshift-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
+               rpm == 'openshift-origin-broker' && "#{ver}-#{rel}" == '1.0.2-1.el6'
+          # this RPM doesn't seem to have come from the proper channel
+          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{@rpms[rpm][:version]}-#{release} does not have 'el6op' in it"
+        end
       end
     end
   end
@@ -547,12 +562,176 @@ class OODiag
     end
   end
 
+  def test_node_profiles_districts_from_broker
+    skip_test unless @is_broker
+
+    conf = "/etc/openshift/broker.conf"
+    conf_profiles = Rails.configuration.openshift[:gear_sizes]
+    default_profile = Rails.configuration.openshift[:default_gear_size]
+    default_allowed = Rails.configuration.openshift[:default_gear_capabilities]
+    #
+    # get the gear profile from every node
+    #
+    # a_ for the records according to actual nodes that respond
+    verbose "checking node profiles via MCollective"
+    a_profile_for = Hash.new
+    a_nodes_with_profile = Hash.new {|h,k| h[k] = []}
+    OpenShift::MCollectiveApplicationContainerProxy.rpc_get_fact("node_profile") do |node,profile|
+      if profile.empty?
+        do_fail <<-FAIL
+          Host #{node} does not have a profile defined.
+          This is a serious problem and will prevent it from hosting gears.
+          * Is the facter running on the host and updating /etc/mcollective/facts.yaml?
+          * What profile is specified in the host's /etc/openshift/resource_limits.conf?
+        FAIL
+      else
+        verbose "profile for #{node}: #{profile}"
+        a_profile_for[node] = profile
+        a_nodes_with_profile[profile] << node
+      end
+    end
+
+    # check that gear profiles from broker.conf match actual available node profiles;
+    # also, validate the broker.conf settings make sense
+    if conf_profiles.empty?
+      do_fail "No gear sizes configured; please fix VALID_GEAR_SIZES in #{conf}"
+    else
+      do_fail <<-MISSING unless conf_profiles.include? default_profile
+        Default gear profile is not included in valid gear sizes
+          "#{default_profile}" is not in #{conf_profiles.join ", "}
+        Attempts to create apps without specifying gear size will fail.
+        Please fix the settings in #{conf}
+      MISSING
+      if default_allowed # early versions didn't define this, skip if not defined
+        missing_profiles = default_allowed - conf_profiles
+        do_fail <<-MISSING unless missing_profiles.empty?
+          The following gear profile(s) are available to users by default
+          (DEFAULT_GEAR_CAPABILITIES), but not valid (VALID_GEAR_SIZES):
+            #{missing_profiles.join ", "}
+          Attempts to create apps using these gears will fail.
+          Please fix the settings in #{conf}
+        MISSING
+      end
+      if a_profile_for.empty?
+        do_fail <<-NONE
+          No node hosts found. Please install some,
+          or ensure the existing ones respond to 'mco ping'.
+          OpenShift cannot host gears without at least one node host responding.
+        NONE
+        skip_test
+      end
+      missing_profiles = conf_profiles - a_nodes_with_profile.keys
+      do_fail <<-MISSING unless missing_profiles.empty?
+        The following gear profile(s) are configured but not provided by node hosts:
+          #{missing_profiles.join ", "}
+        Attempts to create apps using these gear profiles will fail.
+        Please fix the settings in #{conf} or add node hosts accordingly.
+      MISSING
+      missing_profiles = a_nodes_with_profile.keys - conf_profiles
+      do_warn <<-MISSING unless missing_profiles.empty?
+        The following gear profile(s):
+          #{missing_profiles.join ", "}
+        are available on at least one node host, but not configured for the broker.
+        Please fix the VALID_GEAR_SIZES setting in #{conf}
+        or remove / reconfigure the relevant node host(s).
+      MISSING
+    end
+
+    #
+    # get database's list of districts and the nodes within
+    #
+    districts = District.find_all
+    if districts.length == 0
+      do_warn <<-NONE
+        No districts are defined. Districts should be used in any production installation.
+        Please consult the Administration Guide.
+      NONE
+      skip_test
+    end
+
+    verbose "checking that node profiles and districts are consistent"
+
+    # d_ for the records according to districts
+    d_profile_for = Hash.new
+    d_district_for = Hash.new
+    d_profile_active = Hash.new
+    d_nodes_with_profile = Hash.new {|h,k| h[k] = []}
+    districts.each do |district|
+      profile = district.node_profile
+      verbose "district '#{district.name}' has profile '#{profile}'"
+      if district.server_identities.empty?
+        do_warn "There are no node hosts in district '#{district.name}'"
+      end
+      district.server_identities.each do |node,v|
+        d_profile_for[node] = profile
+        d_district_for[node] = district.name
+        d_profile_active[profile] = true if v["active"]
+        d_nodes_with_profile[profile] << node
+        verbose "  host #{node} is #{v['active']? 'active' : 'inactive'} in district '#{district.name}'"
+      end
+    end
+
+    # check that gear profiles from broker.conf are matched by district profiles
+    unless conf_profiles.empty?
+      do_fail <<-MISSING unless d_profile_active[default_profile]
+        Default gear profile '#{default_profile}' has no active node hosts supplying it in any district.
+        Attempts to create apps without specifying gear size may fail.
+        Please fix the settings in #{conf}
+        or add active node hosts to a district with profile '#{default_profile}'
+        using oo-admin-ctl-district.
+      MISSING
+      missing_profiles = conf_profiles - d_profile_active.keys
+      do_fail <<-MISSING unless missing_profiles.empty?
+        The following gear profile(s) are configured:
+          #{missing_profiles.join ", "}
+        but not provided by any active district hosts.
+        Attempts to create apps using these gears may fail.
+        Please fix the settings in #{conf}
+        or add districts / node hosts with oo-admin-ctl-district.
+      MISSING
+      missing_profiles = d_profile_active.keys - conf_profiles
+      do_warn <<-MISSING unless missing_profiles.empty?
+        The following gear profile(s) are available from at least one active district host:
+          #{missing_profiles.join ", "}
+        but not configured in broker.conf, so not usable."
+        Please fix the VALID_GEAR_SIZES setting in #{conf}
+      MISSING
+    end
+
+    # check for consistency between district definitions and actual nodes
+    a_profile_for.each do |node,profile|
+      # check that all nodes are in a district
+      if !d_profile_for[node]
+        do_warn <<-NODIST 
+          Node host #{node} with profile '#{profile}' is not a member of any district.
+          Please add it to a district with oo-admin-ctl-district.
+        NODIST
+      # check that nodes have same profiles in district definition as in actual node hosts
+      elsif d_profile_for[node] != profile
+        do_fail <<-WRONG
+          Node host #{node} has profile '#{profile}'
+          but is in district '#{d_district_for[node]}' with profile '#{d_profile_for[node]}'
+          Did you change the node profile after adding it to a district?
+        WRONG
+      end
+    end
+    d_profile_for.each do |node,profile|
+      # check that no nodes from districts are missing
+      do_fail <<-MISSING if !a_profile_for[node]
+        Node host #{node} is a member of district '#{district_for[node]}' but cannot be found.
+        If the host exists, it is not responding via MCollective.
+        If it should not be in the district, please remove it with oo-admin-ctl-district.
+      MISSING
+    end
+  end
+
   def test_broker_accept_scripts
-    skip_test unless @is_broker 
+    skip_test unless @is_broker
     if @project_is[:online]
       run_script(@rpms['rhc-devenv'] ? "rhc-accept-devenv" : "rhc-accept-broker")
     elsif @rpms["openshift-origin-broker-util"]
       run_script("oo-accept-broker")
+      run_script("oo-accept-systems") if File.exists? '/usr/sbin/oo-accept-systems'
     else
       do_warn "openshift-origin-broker-util is not installed; you really should install it"
     end
