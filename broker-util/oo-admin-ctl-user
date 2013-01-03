@@ -126,12 +126,18 @@ def add_sub_account(user, subaccount_login)
         return
     end
 
-    child_user = CloudUser::find_by(login: subaccount_login)
+    begin
+        child_user = CloudUser::find_by(login: subaccount_login)
+    rescue Mongoid::Errors::DocumentNotFound
+        child_user = nil
+    end
+    
     if not child_user.nil?
-        if child_user.parent_user_login == user.login
+        if child_user.parent_user_id == user._id
             puts "Error: Subaccount for '#{subaccount_login}' already exists under #{user.login}"
-        elsif not child_user.parent_user_login.nil?
-            puts "Error: Subaccount for '#{subaccount_login}' already exists under #{child_user.parent_user_login}"
+        elsif not child_user.parent_user_id.nil?
+            parent_user = CloudUser.find_by(_id: child_user.parent_user_id)
+            puts "Error: Subaccount for '#{subaccount_login}' already exists under #{parent_user.login}"
         else
             puts "Error: User '#{subaccount_login}' already exists"
         end
@@ -139,7 +145,7 @@ def add_sub_account(user, subaccount_login)
     end
     
     print "Adding subaccount for #{subaccount_login} under #{user.login}... "
-    child_user = CloudUser.new(login: login, parent_user_id: user.login)
+    child_user = CloudUser.new(login: subaccount_login, parent_user_id: user._id)
     if child_user.save
         puts "Done."
     else
@@ -155,13 +161,14 @@ def remove_sub_account(user, subaccount_login)
         return
     end
 
-    child_user = CloudUser::find_by(login: subaccount_login)
-    if child_user.nil?
+	begin
+        child_user = CloudUser::find_by(login: subaccount_login)
+    rescue Mongoid::Errors::DocumentNotFound
         puts "Error: Sub Account User '#{subaccount_login}' not found"
         exit 5
     end
     
-    if child_user.parent_user_login.nil? || (child_user.parent_user_login != user.login)
+    if child_user.parent_user_id.nil? || (child_user.parent_user_id != user._id)
         puts "Error: User '#{subaccount_login}' is not a sub account of #{user.login}"
         exit 5
     end
@@ -295,9 +302,9 @@ Rails.configuration.analytics[:enabled] = false
 puts
 puts
 
-user = CloudUser::find_by(login: login)
-
-if user.nil?
+begin
+    user = CloudUser::find_by(login: login)
+rescue Mongoid::Errors::DocumentNotFound
     puts "Error: User '#{login}' not found"
     exit 5
 end
@@ -344,7 +351,7 @@ unless inheritgearsizes.nil?
 end
 
 if args["--listsubaccounts"]
-    subaccount_list = CloudUser::find_subaccounts_by_parent_login(login)
+    subaccount_list = CloudUser.where(parent_user_id: user._id) 
 end
 
 if changed_user
