@@ -41,13 +41,8 @@ class Quickstart < RestApi::Base
     entity_decoded(attributes[:cartridges])
   end
 
-  # Quickstarts whose descriptions include the phrase 'non-scalable' or 'not scalable' or the like
-  # will be flagged as such.
-  NON_SCALABLE = Regexp.new('(?i:no[nt][-\s]scalable)')
   def scalable
-    @scalable ||= self.summary.nil? ? true : !self.summary.match(NON_SCALABLE)
-  ensure
-    Rails.logger.debug("Handling #{self.name} quickstart as non-scalable") unless @scalable
+    (not tags.include?(:not_scalable) rescue true)
   end
   alias_method :scalable?, :scalable
 

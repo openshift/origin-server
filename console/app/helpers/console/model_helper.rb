@@ -66,12 +66,12 @@ module Console::ModelHelper
   end
 
   def can_scale_application_type(type, capabilities)
-    type.scalable? and capabilities.gears_free >= 2 and !type.template?
+    type.scalable? and capabilities.gears_free >= 2
   end
 
   def cannot_scale_title(type, capabilities)
     unless can_scale_application_type(type, capabilities)
-      if type.scalable? and !@application_type.template
+      if type.scalable?
         "You need at least two free gears to create a scaling application; you are currently using #{capabilities.consumed_gears} out of #{capabilities.max_gears}."
       else
         "This application shares resources and can't be scaled."
