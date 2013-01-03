@@ -780,9 +780,10 @@ class Application
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs})
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } , "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
+    
     pending_op_groups.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
-      "add_keys_attrs" => domain_keys_to_add.map{|k| k.attributes.dup},
-      "remove_keys_attrs" => domain_keys_to_rm.map{|k| k.attributes.dup},
+      "add_keys_attrs" => domain_keys_to_add,
+      "remove_keys_attrs" => domain_keys_to_rm,
       "add_env_vars" => env_vars_to_add,
       "remove_env_vars" => env_vars_to_rm,
     })) if ((domain_keys_to_add.length + domain_keys_to_rm.length + env_vars_to_add.length + env_vars_to_rm.length) > 0)

@@ -47,7 +47,7 @@ class RestApplication10 < OpenShift::Model
       domain_app.component_instances.each do |component_instance|
         cart = CartridgeCache::find_cartridge(component_instance.cartridge_name)
         if cart.categories.include?("ci")
-          self.building_app = user_app.name
+          self.building_app = domain_app.name
           break
         end
       end

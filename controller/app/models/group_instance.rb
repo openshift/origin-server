@@ -70,11 +70,11 @@ class GroupInstance
     tag = ""
     
     RemoteJob.run_parallel_on_gears(gears, handle) do |exec_handle, gear|
-      add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_add_authorized_ssh_key_job(ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?
-      remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_remove_authorized_ssh_key_job(ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?
+      add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_add_authorized_ssh_key_job(gear.app, gear, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?
+      remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_remove_authorized_ssh_key_job(gear.app, gear, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?
 
-      add_envs.each     {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_add(env["key"],env["value"]))} unless add_envs.nil?
-      remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.env_var_job_remove(env["key"]))} unless remove_envs.nil?
+      add_envs.each     {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_env_var_add_job(gear.app, gear, env["key"],env["value"]))} unless add_envs.nil?
+      remove_envs.each  {|env|      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_env_var_remove_job(gear.app, gear, env["key"]))} unless remove_envs.nil?
     end
     result_io = ResultIO.new
     RemoteJob.get_parallel_run_results(handle) do |tag, gear, output, status|
