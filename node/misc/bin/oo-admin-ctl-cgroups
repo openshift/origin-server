@@ -126,12 +126,12 @@ function set_blkio() {
 # List the openshift guest users
 #
 openshift_users() {
-    getent passwd | grep "${GEAR_GECOS}" | cut -d: -f1
+    getent passwd | grep ":${GEAR_GECOS}:" | cut -d: -f1
 }
 
 valid_user() {
     # check if the user name exists and is tagged as a openshift guest user
-    getent passwd | grep ":${GEAR_GECOS}:" | cut -d: -f1 | grep -e "^$1\$" >/dev/null 2>&1
+    openshift_users | grep -e "^$1\$" >/dev/null 2>&1
 }
 
 #
