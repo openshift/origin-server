@@ -57,7 +57,7 @@ class PendingAppOpGroup
         gear = group_instance.gears.find(op.args["gear_id"]) unless group_instance.nil? or op.args["gear_id"].nil? or op.op_type == :destroy_gear
         if op.args.has_key?("comp_spec")
           comp_name = op.args["comp_spec"]["comp"]
-          cart_name = op.args["comp_spec"]["cart"]          
+          cart_name = op.args["comp_spec"]["cart"]
           if op.op_type != :del_component
             component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
           end
@@ -69,8 +69,6 @@ class PendingAppOpGroup
         when :init_gear
           gear.delete
           application.save
-        when :destroy_group_instance
-          group_instance.delete
         when :reserve_uid
           gear.unreserve_uid
         when :new_component

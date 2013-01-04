@@ -184,10 +184,10 @@ app_scale_up_post_v1.request['event'] = 'scale-up'
 app_scale_up_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
 app_scale_up_post_v1.response_type = "application"
 
-app_scale_down_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_scale_down_post_v1.request['event'] = 'scale-down'
-app_scale_down_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_scale_down_post_v1.response_type = "application"
+#app_scale_down_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_scale_down_post_v1.request['event'] = 'scale-down'
+#app_scale_down_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_scale_down_post_v1.response_type = "application"
 
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
 embed_cart = 'mysql-5.1'
@@ -244,9 +244,9 @@ app_cart_stop_post_v1.request['event'] = 'stop'
 app_cart_stop_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
 app_cart_stop_post_v1.response_type = "application"
 
-app_cart_delete_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}", "DELETE")
-app_cart_delete_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_cart_delete_v1.response_type = "application"
+#app_cart_delete_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}", "DELETE")
+#app_cart_delete_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_cart_delete_v1.response_type = "application"
 
 app_delete_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}", "DELETE")
 
@@ -278,7 +278,7 @@ REST_CALLS_V1 = [
                   app_add_alias_post_v1, 
                   app_remove_alias_post_v1, 
                   app_scale_up_post_v1, 
-                  app_scale_down_post_v1,
+                  #app_scale_down_post_v1,
                   app_add_cart_post_v1, 
                   #app_expose_port_post_v1, 
                   #app_show_port_post_v1,
@@ -291,7 +291,7 @@ REST_CALLS_V1 = [
                   app_cart_restart_post_v1, 
                   app_cart_reload_post_v1, 
                   app_cart_stop_post_v1, 
-                  app_cart_delete_v1, 
+                  #app_cart_delete_v1, 
                   app_delete_v1,
                   keys_delete_v1,
                   domain_delete_v1
