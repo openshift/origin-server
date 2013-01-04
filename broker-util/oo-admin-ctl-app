@@ -124,7 +124,7 @@ when "remove-cartridge"
     puts "Cartridge is required to remove-dependency"
     exit 1
   end
-  application.remove_features([cartridge])
+  app.remove_features([cartridge])
 when "remove-gear"
   unless gear_uuid
     puts "Gear uuid is required to remove-gear"
