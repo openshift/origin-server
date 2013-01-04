@@ -9,14 +9,14 @@ class EmbCartController < BaseController
     id = params[:application_id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_APP_CARTRIDGES")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
       cartridges = get_application_rest_cartridges(application) if application
@@ -35,14 +35,14 @@ class EmbCartController < BaseController
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_APP_CARTRIDGE")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: application_id)
+      application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound
@@ -74,14 +74,14 @@ class EmbCartController < BaseController
     additional_storage = Integer(params[:additional_storage]) rescue nil
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "EMBED_CARTRIDGE")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound
@@ -142,14 +142,14 @@ class EmbCartController < BaseController
     cartridge = params[:id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "REMOVE_CARTRIDGE")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound
@@ -188,14 +188,14 @@ class EmbCartController < BaseController
     additional_storage = Integer(params[:additional_gear_storage]) rescue nil
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "PATCH_APP_CARTRIDGE")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: application_id)
+      application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
  

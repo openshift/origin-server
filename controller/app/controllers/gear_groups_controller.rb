@@ -8,14 +8,14 @@ class GearGroupsController < BaseController
     app_id = params[:application_id]
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_GEAR_GROUPS")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: app_id)
+      application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
       
@@ -34,14 +34,14 @@ class GearGroupsController < BaseController
     gear_group_id = params[:id]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_GEAR_GROUPS")
     end
 
     begin
-      application = Application.find_by(domain: domain, name: app_id)
+      application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
       gear_states = application.get_gear_states()

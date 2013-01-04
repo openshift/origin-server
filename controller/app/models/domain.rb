@@ -25,6 +25,7 @@ class Domain
   include Mongoid::Timestamps
 
   field :namespace, type: String
+  field :canonical_namespace, type: String
   field :env_vars, type: Array, default: []
   embeds_many :system_ssh_keys, class_name: SystemSshKey.name
   belongs_to :owner, class_name: CloudUser.name

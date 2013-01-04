@@ -6,7 +6,7 @@ class ApplicationsController < BaseController
   def index
     domain_id = params[:domain_id]
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "LIST_APPLICATIONS")
@@ -23,14 +23,14 @@ class ApplicationsController < BaseController
     id = params[:id]
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127, "SHOW_APPLICATION")
     end
     
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       include_cartridges = (params[:include] == "cartridges")
       
       @application_name = application.name
@@ -52,7 +52,7 @@ class ApplicationsController < BaseController
     default_gear_size.downcase! if default_gear_size
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127,"ADD_APPLICATION")
@@ -66,7 +66,7 @@ class ApplicationsController < BaseController
                         134, "ADD_APPLICATION", "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
       
                         
-    if Application.where(domain: domain, name: app_name).count > 0
+    if Application.where(domain: domain, canonical_name: app_name.downcase).count > 0
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "ADD_APPLICATION", "name")
     end
     
@@ -126,7 +126,7 @@ class ApplicationsController < BaseController
     id = params[:id]    
     
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
       log_action(@request_id, @cloud_user._id.to_s, @cloud_user.login, "DELETE_APPLICATION", true, "Found domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
@@ -134,7 +134,7 @@ class ApplicationsController < BaseController
     end
     
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound

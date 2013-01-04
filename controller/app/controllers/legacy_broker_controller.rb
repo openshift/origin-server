@@ -139,7 +139,7 @@ class LegacyBrokerController < BaseController
   
   def domain_post
     if(@req.alter == true || @req.delete == true)
-      domain = Domain.find_by(owner: @cloud_user, namespace: @req.namespace)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: @req.namespace.downcase)
     end
     
     if domain.nil? && (@req.alter || @req.delete)
@@ -186,9 +186,10 @@ class LegacyBrokerController < BaseController
        render :json => @reply
        return
     else
+      raise OpenShift::UserException.new("Namespace is required and cannot be blank.", 106) if @req.namespace.nil? or @req.namespace.empty?
       raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is not allowed", 106) if OpenShift::ApplicationContainerProxy.blacklisted? @req.namespace
       raise OpenShift::UserException.new("Domain already exists for user. Update the domain to modify.", 158) if !@cloud_user.domains.empty?
-      raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is already in use. Please choose another", 106) if Domain.where(namespace: @req.namespace).count > 0
+      raise OpenShift::UserException.new("The supplied namespace '#{@req.namespace}' is already in use. Please choose another", 106) if Domain.where(canonical_namespace: @req.namespace.downcase).count > 0
 
       key = UserSshKey.new(name: CloudUser::DEFAULT_SSH_KEY_NAME, type: @req.key_type, content: @req.ssh)
       if key.invalid?
@@ -200,7 +201,7 @@ class LegacyBrokerController < BaseController
       end
       @cloud_user.add_ssh_key(key)
       
-      domain = Domain.new(namespace: @req.namespace, owner: @cloud_user)
+      domain = Domain.new(namespace: @req.namespace.downcase, canonical_namespace: @req.namespace, owner: @cloud_user)
       domain.with(safe: true).save
       
       log_action(@request_id, @cloud_user._id.to_s, @login, "LEGACY_CREATE_DOMAIN", true, "Created domain #{@req.namespace}", get_extra_log_args)
@@ -384,7 +385,7 @@ class LegacyBrokerController < BaseController
   def get_app_from_request(user)
     begin
       domains = user.domains
-      app = Application.find_by(:domain.in => domains, name: @req.app_name)
+      app = Application.find_by(:domain.in => domains, canonical_name: @req.app_name.downcase)
       @application_name = app.name
       @application_uuid = app._id.to_s
       @domain_name = app.domain.namespace
@@ -478,7 +479,9 @@ class LegacyBrokerController < BaseController
   end
   
   def get_domain(cloud_user, id)
-    domains = Domain.where(owner: cloud_user, namespace: id)
+    return nil if id.nil?
+    
+    domains = Domain.where(owner: cloud_user, canonical_namespace: id.downcase)
     if domains.count > 1
       @domain_name = domains.first.namespace
       return domains.first

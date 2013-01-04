@@ -19,7 +19,7 @@ class DomainsController < BaseController
     id = params[:id]
     Rails.logger.debug "Getting domain #{id}"
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       @domain_name = domain.namespace
       log_action(@request_id, @cloud_user._id, @cloud_user.login, "SHOW_DOMAIN", true, "Found domain #{id}")
       return render_success(:ok, "domain", get_rest_domain(domain), "SHOW_DOMAIN", "Found domain #{id}")
@@ -33,7 +33,10 @@ class DomainsController < BaseController
     namespace = params[:id]
     Rails.logger.debug "Creating domain with namespace #{namespace}"
 
-    if Domain.where(namespace: namespace).count > 0
+    return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
+                        103, "ADD_DOMAIN", "id") if !namespace or namespace.empty?
+
+    if Domain.where(canonical_namespace: namespace.downcase).count > 0
       return render_error(:unprocessable_entity, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "ADD_DOMAIN", "id")
     end
 
@@ -41,7 +44,7 @@ class DomainsController < BaseController
       return render_error(:conflict, "There is already a namespace associated with this user", 103, "ADD_DOMAIN", "id")
     end
 
-    domain = Domain.new(namespace: namespace, owner: @cloud_user, users: [@cloud_user._id])
+    domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: @cloud_user, users: [@cloud_user._id])
     if not domain.valid?
       Rails.logger.error "Domain is not valid"
       messages = get_error_messages(domain, {"namespace" => "id"})
@@ -63,31 +66,35 @@ class DomainsController < BaseController
     id = params[:existing_id]
     new_namespace = params[:id]
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
+      existing_namespace = domain.namespace
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{id}' not found", 127, "UPDATE_DOMAIN")
     end
     
-    if Domain.where(namespace: new_namespace).count > 0
+    if Domain.where(canonical_namespace: new_namespace.downcase).count > 0
       return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 106, "UPDATE_DOMAIN", "id")
     end
 
     # set the new namespace for validation 
     domain.namespace = new_namespace
+    domain.canonical_namespace = new_namespace.downcase
     if not domain.valid?
       messages = get_error_messages(domain, {"namespace" => "id"})
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_DOMAIN", nil, nil, messages)
     end
     
     #reset the old namespace for use in update_namespace
-    domain.namespace = id
+    domain.namespace = existing_namespace
+    domain.canonical_namespace = existing_namespace.downcase
     
     @domain_name = domain.namespace
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
 
     begin
       domain.update_namespace(new_namespace)
+      domain.canonical_namespace = new_namespace.downcase
       domain.save
     rescue Exception => e
       return render_exception(e, "UPDATE_DOMAIN") 
@@ -102,7 +109,7 @@ class DomainsController < BaseController
     force = get_bool(params[:force])
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{id} not found", 127,"DELETE_DOMAIN")
     end

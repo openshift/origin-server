@@ -41,6 +41,7 @@ class Application
   GEAR_SIZES = ["small", "medium"]
 
   field :name, type: String
+  field :canonical_name, type: String
   field :domain_requires, type: Array, default: []
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name
@@ -84,7 +85,7 @@ class Application
   end
 
   def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil)
-    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
+    app = Application.new(domain: domain, name: application_name, canonical_name: application_name.downcase, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     features << "web_proxy" if scalable
     if app.valid?
       begin

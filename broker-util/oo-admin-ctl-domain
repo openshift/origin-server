@@ -81,7 +81,7 @@ when "create"
   Lock.create_lock(user)
   reply.resultIO << "Successfully created user.\n"
 
-  domain = Domain.new(namespace, user)
+  domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
   domain.save
   reply.resultIO << "Successfully created domain.\n"  
 when "update"
@@ -98,12 +98,13 @@ when "update"
 
   d = nil
   if user.domains.empty?
-    d = Domain.new(namespace, user)
+    d = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
     d.save
   else
     d = user.domains.first
-    unless d.namespace == namespace
+    unless d.namespace == namespace.downcase
       d.namespace = namespace
+      d.canonical_namespace = namespace.downcase
       d.save
     end
   end

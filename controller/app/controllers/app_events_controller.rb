@@ -11,7 +11,7 @@ class AppEventsController < BaseController
     server_alias = params[:alias]
 
     begin
-      domain = Domain.find_by(owner: @cloud_user, namespace: domain_id)
+      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127,
@@ -19,7 +19,7 @@ class AppEventsController < BaseController
     end
 
     begin
-      application = Application.find_by(domain: domain, name: id)
+      application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application._id.to_s
     rescue Mongoid::Errors::DocumentNotFound
@@ -95,7 +95,7 @@ class AppEventsController < BaseController
       return render_exception(e, "#{event.sub('-', '_').upcase}_APPLICATION")
     end
 
-    application = Application.find_by(domain: domain, name: id)
+    application = Application.find_by(domain: domain, canonical_name: id.downcase)
     if $requested_api_version == 1.0
       app = RestApplication10.new(application, get_url, nolinks)
     else
