@@ -20,3 +20,6 @@ hot_deploy - Will prevent a JBoss container restart during build/deployment.
 
 java7 - Will run JBoss EAP with Java7 if present. If no marker is present then the 
 			baseline Java version will be used (currently Java6)
+
+disable_auto_scaling - Will prevent scalable applications from scaling up 
+                       or down according to application load.

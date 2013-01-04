@@ -9,3 +9,5 @@ force_clean_build - Will remove all previous php pears and start installing
 hot_deploy - Will prevent the apache process from being restarted during
     build/deployment
 
+disable_auto_scaling - Will prevent scalable applications from scaling up 
+                       or down according to application load.
