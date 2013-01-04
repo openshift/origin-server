@@ -32,7 +32,7 @@ function welcome {
     !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
     Shell access is quite powerful and it is possible for you to
     accidentally damage your application.  Proceed with care!
-    If worse comes to worst, destroy your application with 'rhc app destroy'
+    If worse comes to worst, destroy your application with 'rhc app delete'
     and recreate it
     !!! IMPORTANT !!! IMPORTANT !!! IMPORTANT !!!
 
