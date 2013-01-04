@@ -39,9 +39,9 @@ module RestModelHelper
     cart = CartridgeCache.find_cartridge(component_instance.cartridge_name)
     comp = cart.get_component(component_instance.component_name)
     if $requested_api_version == 1.0
-      RestCartridge10.new(cart, application, component_instance, get_url, messages, nolinks)
+      RestEmbeddedCartridge10.new(cart, application, component_instance, get_url, messages, nolinks)
     else
-      RestCartridge.new(cart, comp, application, component_instance, colocated_instances, scale, get_url, messages, nolinks)
+      RestEmbeddedCartridge.new(cart, comp, application, component_instance, colocated_instances, scale, get_url, messages, nolinks)
     end
   end
 end

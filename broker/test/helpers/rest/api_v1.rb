@@ -29,7 +29,7 @@ class RestApi_V1 < RestApi
         raise_ex("Environment response not a hash") unless data.kind_of?(Hash)
       when 'cartridges'
         data.each do |cart_hash|
-          obj = RestCartridge_V1.to_obj(cart_hash)
+          obj = RestEmbeddedCartridge_V1.to_obj(cart_hash)
           obj.valid
         end
       when 'descriptor'
@@ -54,7 +54,7 @@ class RestApi_V1 < RestApi
         obj = RestApplication_V1.to_obj(data[0])
         self.response.compare(obj)
       when 'cartridge'
-        obj = RestCartridge_V1.to_obj(data)
+        obj = RestEmbeddedCartridge_V1.to_obj(data)
         self.response.compare(obj)
       when 'gear'
         obj = RestGear_V1.to_obj(data)
@@ -192,7 +192,7 @@ app_scale_up_post_v1.response_type = "application"
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
 embed_cart = 'mysql-5.1'
 app_add_cart_post_v1.request.merge!({ 'name' => embed_cart, 'colocate_with' => nil })
-app_add_cart_post_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
+app_add_cart_post_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_add_cart_post_v1.response_type = "cartridge"
 app_add_cart_post_v1.response_status = "created"
 
@@ -221,7 +221,7 @@ app_cart_list_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_nam
 app_cart_list_get_v1.response_type = "cartridges"
 
 app_cart_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}")
-app_cart_get_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
+app_cart_get_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_cart_get_v1.response_type = "cartridge"
 
 app_cart_start_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}/events", "POST")

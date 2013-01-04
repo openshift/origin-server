@@ -178,7 +178,7 @@ class RestUser_V1 < BaseObj_V1
   end                                                                                                  
 end
 
-class RestCartridge_V1 < BaseObj_V1
+class RestEmbeddedCartridge_V1 < BaseObj_V1
   attr_accessor :type, :name, :links, :properties, :status_messages
  
   def initialize(type=nil, name=nil, app=nil)
