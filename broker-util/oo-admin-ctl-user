@@ -152,6 +152,7 @@ def add_sub_account(user, subaccount_login)
         puts "An error occurred adding the sub account #{subaccount_login}."
         exit 6
     end
+    Lock.create_lock(child_user)
 end
 
 def remove_sub_account(user, subaccount_login)
