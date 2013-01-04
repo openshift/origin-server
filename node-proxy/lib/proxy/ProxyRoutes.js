@@ -41,6 +41,39 @@ function _load_routes(f) {
 }  /*  End of function  _load_routes.  */
 
 
+/**
+ *  Converts an URI into a routing key.
+ *
+ *  Examples:
+ *    _get_routing_key('OpenShift-NameSpace.rhcloud.com/app/route');
+ *       // => 'openshift-namespace.rhcloud.com/app/route'
+ *
+ *  @param   {String}  uri for the route.
+ *  @return  {String}  a routing key - used for matching incoming requests.
+ *  @api     private
+ */
+function _get_routing_key(uri) {
+  if ('undefined' === typeof uri) {
+    return uri;
+  }
+
+  /*  Trim leading spaces and split uri on '/'.  */
+  var zuri   = uri.replace(/^\s+/g, '');
+  var zparts = zuri.split('/');
+
+  /*  Check if we need to strip of the scheme http[s]://  */
+  if (0 == zuri.indexOf('http') ) {
+    zparts = zuri.split('://')[1].split('/');
+  }
+
+  var zhost = zparts[0].toLowerCase();
+  var zuri  = zparts.splice(1).join('/');
+
+  return((zuri.length > 0)? [zhost, zuri].join('/') : zhost);
+
+}  /*  End of function  _get_routing_key.  */
+
+
 /*!
  *  }}}  //  End of section  Internal-Functions.
  *  ---------------------------------------------------------------------
@@ -123,13 +156,16 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
     endpts = [ endpts ];
   }
 
-  var zroute = this.routes[n];
-  this.routes[n] = { 'endpoints': endpts, 'limits': limits };
+  /*  Convert name to routing key.  */
+  var rkey = _get_routing_key(n);
+
+  /*  Add the route.  */
+  this.routes[rkey] = { 'endpoints': endpts, 'limits': limits };
 
   // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts);
   // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits)); 
 
-  return zroute;
+  return this.routes[rkey];
 
 };  /*  End of function  add.  */
 
@@ -209,7 +245,8 @@ ProxyRoutes.prototype.load = function(f) {
  *  @api     public
  */
 ProxyRoutes.prototype.get = function(n) {
-  return((n && this.routes[n])? this.routes[n].endpoints : [ ]);
+  var rkey = _get_routing_key(n);
+  return((rkey && this.routes[rkey])? this.routes[rkey].endpoints : [ ]);
 
 };  /*  End of function  get.  */
 

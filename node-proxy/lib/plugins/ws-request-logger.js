@@ -64,7 +64,8 @@ function _log_access(payload) {
    *    (42ms) +
    */
   var zmsg = util.format('%s %s %s %s [%s] "%s" %d %d "%s" "%s" (%dms) %s\n',
-                         remote_host, vhost, remote_login, auth_user,
+                         remote_host, vhost.toLowerCase(),
+                         remote_login, auth_user,
                          ap_times, req_info,
                          payload.response.code, payload.metrics.bytes_out,
                          referer, user_agent,
