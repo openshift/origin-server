@@ -32,9 +32,21 @@ EOF
 
 cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
-  ServerAdmin mmcgrath@redhat.com
+  ServerAdmin openshift-bofh@redhat.com
   DocumentRoot /var/www/html
   DefaultType None
+EOF
+
+cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json"
+{
+  "${application}-${namespace}.${CLOUD_DOMAIN}": {
+    "endpoints": [ "$IP:8080" ],
+    "limits"   :  {
+      "connections": 5,
+      "bandwidth"  : 100
+    }
+  }
+}
 EOF
 
 cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf"
@@ -61,3 +73,5 @@ $(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
   Header edit Location ^http:// https://
 </VirtualHost>
 EOF
+
+service openshift-node-web-proxy reload
