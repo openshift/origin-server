@@ -59,9 +59,15 @@ class CloudUser
     @auth_method
   end
   
-  # Convenience method to get the max_gears capability
+  # Convenience method to get/set the max_gears capability
   def max_gears
     get_capabilities["max_gears"]
+  end
+
+  def max_gears=(m)
+    user_capabilities = get_capabilities
+    user_capabilities["max_gears"] = m
+    set_capabilities(user_capabilities)
   end
 
   def save(options = {})
