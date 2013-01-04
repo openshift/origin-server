@@ -46,7 +46,7 @@ class ApplicationsController < BaseController
     domain_id = params[:domain_id]
     app_name = params[:name]
     features = Array(params[:cartridges] || params[:cartridge])
-    scalable = params[:scale]
+    scalable = get_bool(params[:scale])
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
