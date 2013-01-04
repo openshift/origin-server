@@ -941,27 +941,14 @@ class Application
   end
   
   def self.run_in_application_lock(application, &block)
-    timeout = 2
-    num_tries = 1
-    (1..num_tries).each do |i|
+    if(Lock.lock_application(application))
       begin
-        if(Lock.lock_application(application))
-          begin
-            yield block
-          ensure
-            Lock.unlock_application(application)
-          end
-        else
-          raise "Unable to perform action. Another operation is already running."
-        end
-      rescue Exception => e
-        if i == num_tries
-          raise
-        else
-          sleep timeout
-          timeout *= 2
-        end
+        yield block
+      ensure
+        Lock.unlock_application(application)
       end
+    else
+      raise "Unable to perform action. Another operation is already running."
     end
   end
 
