@@ -62,10 +62,7 @@ for arg in $kvargs; do
     fi
 
     if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
-        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
-        sed -i "/\s*server\s*gear-${gear_name}\s.*/d" /tmp/haproxy.cfg.$$
-        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
-        rm -f /tmp/haproxy.cfg.$$
+        sed -i "/\s*server\s*gear-${gear_name}\s.*/d" $haproxy_cfg
     fi
 
     echo "    server gear-$gear_name $ep check fall 2 rise 3 inter 2000 cookie $gear_name" >> "$haproxy_cfg"
