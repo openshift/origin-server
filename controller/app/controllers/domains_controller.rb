@@ -34,7 +34,7 @@ class DomainsController < BaseController
     Rails.logger.debug "Creating domain with namespace #{namespace}"
 
     return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
-                        103, "ADD_DOMAIN", "id") if !namespace or namespace.empty?
+                        106, "ADD_DOMAIN", "id") if !namespace or namespace.empty?
 
     if Domain.where(canonical_namespace: namespace.downcase).count > 0
       return render_error(:unprocessable_entity, "Namespace '#{namespace}' is already in use. Please choose another.", 103, "ADD_DOMAIN", "id")
@@ -65,6 +65,10 @@ class DomainsController < BaseController
   def update
     id = params[:existing_id]
     new_namespace = params[:id]
+    
+    return render_error(:unprocessable_entity, "Namespace is required and cannot be blank.",
+                        106, "UPDATE_DOMAIN", "id") if !new_namespace or new_namespace.empty?
+    
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       existing_namespace = domain.namespace
@@ -74,7 +78,7 @@ class DomainsController < BaseController
     end
     
     if Domain.where(canonical_namespace: new_namespace.downcase).count > 0
-      return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 106, "UPDATE_DOMAIN", "id")
+      return render_error(:unprocessable_entity, "Namespace '#{new_namespace}' is already in use. Please choose another.", 103, "UPDATE_DOMAIN", "id")
     end
 
     # set the new namespace for validation 

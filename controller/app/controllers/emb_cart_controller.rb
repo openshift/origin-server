@@ -110,6 +110,13 @@ class EmbCartController < BaseController
       group_overrides = []
       # Todo: REST API assumes cartridge only has one component
       cart = CartridgeCache.find_cartridge(name)
+
+      if cart.nil?
+        carts = CartridgeCache.cartridge_names("embedded")
+        return render_error(:bad_request, "Invalid cartridge. Valid values are (#{carts.join(', ')})",
+                            109, "EMBED_CARTRIDGE", "cartridge")
+      end
+
       prof = cart.profile_for_feature(name)
       comp = prof.components.first
       comp_spec = {"cart" => cart.name, "comp" => comp.name}
@@ -130,6 +137,8 @@ class EmbCartController < BaseController
       component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
       return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", nil, nil, nil, nil)
+    rescue OpenShift::GearLimitReachedException => e
+      return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104, "ADD_APPLICATION")
     rescue OpenShift::UserException => e
       return render_error(:bad_request, "Invalid cartridge. #{e.message}", 109, "EMBED_CARTRIDGE", "cartridge")
     end

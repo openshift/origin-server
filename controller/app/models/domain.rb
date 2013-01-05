@@ -38,7 +38,7 @@ class Domain
   
   validates :namespace,
     presence: {message: "Namespace is required and cannot be blank."},
-    format:   {with: /\A[A-Za-z0-9_]+\z/, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
+    format:   {with: /\A[A-Za-z0-9]+\z/, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
     length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
     blacklisted: {message: "Namespace is not allowed.  Please choose another."}
   def self.validation_map
