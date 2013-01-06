@@ -10,7 +10,7 @@ end
 # @!attribute [r] name
 #   @return [String] The name of the application
 # @!attribute [rw] domain_requires
-#   @return [Array[String]] Array of IDs of the applications that this application is dependenct on.
+#   @return [Array[String]] Array of IDs of the applications that this application is dependent on.
 #     If the parent application is destroyed, this application also needs to be destroyed.
 # @!attribute [rw] group_overrides
 #   @return [Array[Array[String]]] Array of Array of components that need to be co-located
@@ -22,9 +22,9 @@ end
 #   @return [Array[String]] Array of DNS aliases registered with this application.
 #     @see {Application#add_alias} and {Application#remove_alias}
 # @!attribute [rw] component_start_order
-#   @return [Array[String]] Normally start order computed based on order specified by each component's manufest. This attribute is used to overrides the start order.
+#   @return [Array[String]] Normally start order computed based on order specified by each component's manifest. This attribute is used to overrides the start order.
 # @!attribute [rw] component_stop_order
-#   @return [Array[String]] Normally stop order computed based on order specified by each component's manufest. This attribute is used to overrides the stop order.
+#   @return [Array[String]] Normally stop order computed based on order specified by each component's manifest. This attribute is used to overrides the stop order.
 # @!attribute [r] connections
 #   @return [Array[ConnectionInstance]] Array of connections between components of this application
 # @!attribute [r] component_instances
@@ -291,7 +291,7 @@ class Application
   #
   # == Parameters:
   # include_pending::
-  #   Include the pending changes when calulcating the list of features
+  #   Include the pending changes when calculating the list of features
   #
   # == Returns:
   #   List of features
@@ -335,6 +335,9 @@ class Application
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
   def remove_features(features, group_overrides=[])
+    features.each do |feature|
+      raise OpenShift::UserException.new("Invalid feature #{feature}") unless self.requires.include? feature
+    end
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides})
       result_io = ResultIO.new
