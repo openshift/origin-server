@@ -79,7 +79,7 @@ when "create"
   
   user = CloudUser.new(login: login)
   user.add_ssh_key(SshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
-  user.save
+  user.save!
   Lock.create_lock(user)
   reply.resultIO << "Successfully created user.\n"
 
@@ -99,7 +99,7 @@ when "update"
   
   unless ssh_key.nil?
     user.update_ssh_key(ssh_key, ssh_type, ssh_name)
-    user.save
+    user.save!
   end
 
   d = nil
