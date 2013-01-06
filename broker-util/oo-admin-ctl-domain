@@ -71,12 +71,10 @@ when "create"
   end
   user = nil
   begin
-    user = CloudUser.find_by(login: login)
-  rescue Mongoid::Errors::DocumentNotFound
-  end
-  if user
+    CloudUser.find_by(login: login)
     print "User #{login} already exists. Please use the 'update' command to alter ssh keys or namespace.\n"
     exit -1
+  rescue Mongoid::Errors::DocumentNotFound
   end
   
   user = CloudUser.new(login: login)

@@ -162,7 +162,7 @@ def remove_sub_account(user, subaccount_login)
         return
     end
 
-	begin
+	  begin
         child_user = CloudUser::find_by(login: subaccount_login)
     rescue Mongoid::Errors::DocumentNotFound
         puts "Error: Sub Account User '#{subaccount_login}' not found"
@@ -176,7 +176,7 @@ def remove_sub_account(user, subaccount_login)
     
     print "Removing subaccount for #{child_user.login} under #{user.login}... "
     begin
-      child_user.force_delete
+      child_user.delete
     rescue Exception => e
       puts "An error occurred removing the sub account for #{subaccount_login} : #{e.message}"
       exit 6
