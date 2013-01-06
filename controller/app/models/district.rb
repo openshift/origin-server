@@ -170,10 +170,10 @@ class District
     if num_uids > 0
       additions = []
       additions.fill(0, num_uids) {|i| i+max_uid+1}
-      @available_capacity += num_uids
-      @max_uid += num_uids
-      @max_capacity += num_uids
-      @available_uids += additions
+      self.available_capacity += num_uids
+      self.max_uid += num_uids
+      self.max_capacity += num_uids
+      self.available_uids += additions
       self.save
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
@@ -201,10 +201,10 @@ class District
         raise OpenShift::OOException.new("Missing uid: #{subtractions[0]} in existing available_uids.  Can not continue!")
       end
       # OpenShift::DataStore.instance.remove_district_uids(uuid, subtractions)
-      @available_capacity -= num_uids
-      @max_uid -= num_uids
-      @max_capacity -= num_uids
-      @available_uids -= subtractions
+      self.available_capacity -= num_uids
+      self.max_uid -= num_uids
+      self.max_capacity -= num_uids
+      self.available_uids -= subtractions
       self.save
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
