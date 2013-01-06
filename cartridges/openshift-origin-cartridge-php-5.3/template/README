@@ -2,9 +2,9 @@ Feel free to change or remove this file, it is informational only.
 
 Repo layout
 ===========
-php/ - Externally exposed php code goes here
+php/ - Externally exposed PHP code goes here
 libs/ - Additional libraries
-misc/ - For not-externally exposed php code
+misc/ - For PHP code that should not be accessible by end users
 deplist.txt - list of pears to install
 .openshift/action_hooks/pre_build - Script that gets run every git push before the build
 .openshift/action_hooks/build - Script that gets run every git push as part of the build process (on the CI system if available)
@@ -14,11 +14,12 @@ deplist.txt - list of pears to install
 
 Notes about layout
 ==================
-Please leave php, libs and data directories but feel free to create additional
-directories if needed.
+OpenShift will look for the php and libs directories when serving your 
+application. index.php will handle requests to the root URL of your 
+application. You can create new directories as needed.
 
-Note: Every time you push, everything in your remote repo dir gets recreated
-      please store long term items (like an sqlite database) in the OpenShift
+Note: Every time you push, everything in your remote repo dir is recreated.
+      Please store long term items (like an sqlite database) in the OpenShift
       data directory, which will persist between pushes of your repo.
       The OpenShift data directory is accessible relative to the remote repo
       directory (../data) or via an environment variable OPENSHIFT_DATA_DIR.
@@ -51,6 +52,7 @@ Example for MongoDB:
 
 To get a full list of environment variables, simply add a line in your
 .openshift/action_hooks/build script that says "export" and push.
+
 
 deplist.txt
 ===========
