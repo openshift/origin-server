@@ -53,6 +53,10 @@ class Gear
     end
     out += ')'
   end
+  
+  def self.valid_gear_size?(gear_size)
+    Rails.configuration.openshift[:gear_sizes].include?(gear_size)
+  end
 
   def reserve_uid
     @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size)
