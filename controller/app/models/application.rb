@@ -787,20 +787,22 @@ class Application
     if add_ssh_keys.length > 0
       keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_keys_attrs" => keys_attrs})
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } , "$pushAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_ssh_keys.length > 0
       keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs})
-      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } , "$pullAll" => { app_ssh_keys: keys_attrs }})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
     
-    pending_op_groups.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
-      "add_keys_attrs" => domain_keys_to_add,
-      "remove_keys_attrs" => domain_keys_to_rm,
-      "add_env_vars" => env_vars_to_add,
-      "remove_env_vars" => env_vars_to_rm,
-    })) if ((domain_keys_to_add.length + domain_keys_to_rm.length + env_vars_to_add.length + env_vars_to_rm.length) > 0)
+    domain.applications.each do |app|
+      app.pending_op_groups.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
+        "add_keys_attrs" => domain_keys_to_add,
+        "remove_keys_attrs" => domain_keys_to_rm,
+        "add_env_vars" => env_vars_to_add,
+        "remove_env_vars" => env_vars_to_rm,
+      }))
+    end if !domain_keys_to_add.empty? or !domain_keys_to_rm.empty? or !env_vars_to_add.empty? or !env_vars_to_rm.empty?
     nil
   end
 
@@ -808,10 +810,10 @@ class Application
   #
   # == Returns:
   # True on success or False if unable to acquire the lock or no pending jobs.
-  def run_jobs(result_io=nil)
+  def run_jobs(result_io=nil, include_same_domain_apps=true)
     result_io = ResultIO.new if result_io.nil?
-    self.reload
-    return true if(self.pending_op_groups.count == 0)
+    self.reload if include_same_domain_apps
+    return true if (self.pending_op_groups.count == 0)
     begin
       while self.pending_op_groups.count > 0
         op_group = self.pending_op_groups.first
@@ -910,7 +912,7 @@ class Application
             op_group.pending_ops.push(*ops)
           end
         end
-        
+
         Rails.logger.debug "-----------------------------------"
         Rails.logger.debug op_group.inspect
         op_group.pending_ops.each{ |p| Rails.logger.debug p.inspect}
@@ -920,8 +922,14 @@ class Application
           op_group.execute(result_io)
           unreserve_gears(op_group.num_gears_removed)
           op_group.delete
-          self.reload       
+          self.reload
         end
+        
+        # Process any in memory jobs for other apps in the domain.  Will pick up anything from process_jobs.
+        #TODO is there a better way/place to do this???
+        self.domain.applications.each do |app|
+          app.run_jobs(result_io, false) unless app._id == self._id
+        end if include_same_domain_apps
       end
       true
     rescue Exception => e_orig

@@ -115,7 +115,7 @@ class Domain
     end
   end
   
-  # Support operation to add additinal ssh keys for a user
+  # Support operation to add additional ssh keys for a user
   #
   # == Parameters:
   # user_id::
@@ -123,7 +123,7 @@ class Domain
   # key_attr::
   #   SSH key attributes
   # pending_parent_op::
-  #   Parent opeation which tracks the key additions
+  #   Parent operation which tracks the key additions
   #
   # == Returns:
   #  The domain operation which tracks the sshkey addition
@@ -145,7 +145,7 @@ class Domain
   # key_attr::
   #   SSH key attributes
   # pending_parent_op::
-  #   Parent opeation which tracks the key removals
+  #   Parent operation which tracks the key removals
   #
   # == Returns:
   #  The domain operation which tracks the sshkey removal
