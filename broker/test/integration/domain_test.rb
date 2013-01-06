@@ -9,7 +9,7 @@ class DomainTest < ActiveSupport::TestCase
   end
 
   test "create" do
-    ns = "ns_" + gen_uuid[0..12]
+    ns = "ns" + gen_uuid[0..12]
     orig_d = Domain.new(namespace: ns, canonical_namespace: ns.downcase)
     orig_d.save!
     d = Domain.find_by(canonical_namespace: ns.downcase)
