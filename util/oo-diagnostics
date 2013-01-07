@@ -71,8 +71,10 @@ class OODiag
       rescue SkipTest
         verbose "skipping #{m}"
       rescue AbortTests
-        eputs "Aborting tests according to #{m}"
-        break
+        unless @options[:abortok]
+          eputs "Aborting tests according to #{m}. To run all tests anyway, use the --abortok option."
+          break
+        end
       rescue StandardError => e
         do_fail "error running #{m}: #{e.inspect}"
       end
@@ -387,10 +389,14 @@ class OODiag
       abort_tests
     end
     # have the server resolve itself
-    host = `host -W 1 #{server} #{server} >/dev/null 2>&1`
+    command = "host -W 1 #{server} #{server}"
+    host = `#{command} 2>&1`
     unless $?.success?
       do_fail <<-"FAIL"
         DNS resolution isn't working for #{server}.
+        This command: #{command}
+        Returned this output:
+          #{host}
         * Does /etc/resolv.conf have your correct nameserver?
         * Is your nameserver running?
         * Is the firewall on your nameserver open (udp:53)?
@@ -413,7 +419,7 @@ class OODiag
                rpm == 'openshift-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
                rpm == 'openshift-origin-broker' && "#{ver}-#{rel}" == '1.0.2-1.el6'
           # this RPM doesn't seem to have come from the proper channel
-          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{@rpms[rpm][:version]}-#{release} does not have 'el6op' in it"
+          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{ver}-#{rel} does not have 'el6op' in it"
         end
       end
     end
@@ -891,6 +897,102 @@ class OODiag
     end
   end
 
+  def service_enabled?(svc)
+    system "chkconfig #{svc} >& /dev/null"
+    return $?.exitstatus == 0
+  end
+  def test_services_enabled
+    fail_without = []
+    warn_without = []
+    if @is_broker
+      fail_without += %w{httpd network sshd openshift-broker}
+      warn_without += %w{ntpd}
+    end
+    if @is_node
+      fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
+                        cgconfig cgred openshift-cgroups }
+      warn_without += %w{ntpd oddjobd}
+    end
+    skip_test if fail_without.empty? && warn_without.empty?
+    verbose "checking that required services are enabled"
+    missing = fail_without.uniq.select {|svc| !service_enabled? svc}
+    do_fail <<-REQ unless missing.empty?
+      The following service(s) are not started at boot time:
+        #{missing.join ", "}
+      These services are required for OpenShift functionality.
+      Please "chkconfig <service> on" for each to ensure that they start at boot,
+      and "service <service> start" for any not currently running.
+    REQ
+    missing = warn_without.uniq.select {|svc| !service_enabled? svc}
+    do_warn <<-WANT unless missing.empty?
+      The following service(s) are not started at boot time:
+        #{missing.join ", "}
+      Unless you know they are not needed, use "chkconfig <service> on" for each
+      to ensure that they start at boot and use "service <service> start" for any
+      that are not currently started.
+    WANT
+  end
+
+  def test_node_quota_bug
+    skip_test unless @is_node && @os_is[:rhel6]
+    verbose "testing for quota creation failure bug"
+    # if the gear home doesn't have its own file system, bug doesn't apply
+    return if `df -P /var/lib/openshift | grep /var/lib/openshift`.empty?
+    # if the quota file was created, we're probably set (assuming correct SELinux context)
+    return if File.exists? '/var/lib/openshift/aquota.user'
+    # if selinux policy is at least selinux-policy-3.7.19-155.el6_3.14 it's fixed
+    do_fail <<-BUG unless is_rpm_minimum_version?(%w[selinux-policy 3.7.19 155.el6_3.14])
+      There is a bug for initializing gear quotas when /var/lib/openshift has
+      its own partition. See https://bugzilla.redhat.com/show_bug.cgi?id=880369#c29
+      for a workaround (and the rest of the bug for details). There is a fix in
+      selinux-policy-3.7.19-155.el6_3.14
+    BUG
+  end
+
+  def test_vhost_servernames
+    skip_test unless @is_node || @is_broker
+    verbose "checking for vhost interference problems"
+    file_for_name = {}
+    name_for_file = {}
+    `httpd -S 2> /dev/null`.split("\n").map do |line|
+      if %r!     443\s+(?:namevhost\s+)? ([\w.-]+) \s+ \(.+/([^/]+)\.conf:   !x.match(line)
+        # e.g "*:443                     localhost     (/etc/httpd/conf.d/ssl.conf:25)"
+        # or  "port 443 namevhost        example.com   (/etc/httpd/conf.d/ssl.conf:74)"
+        file_for_name[$1] ||= $2
+        name_for_file[$2] = $1
+      end
+    end
+    if file_for_name[name_for_file["ssl"]] == "ssl"
+      # ssl.conf has the first/only vhost with its servername
+      do_warn <<-CONFLICTS
+        The VirtualHost defined in /etc/httpd/conf.d/ssl.conf has the ServerName
+        #{name_for_file["ssl"]} and will respond with a 404 to all requests at
+          https://#{name_for_file["ssl"]}/
+        Please remove it by running this command:
+          sed -i '/VirtualHost/,/VirtualHost/ d' /etc/httpd/conf.d/ssl.conf
+      CONFLICTS
+    elsif name_for_file["ssl"]
+      # well, we just don't want the ssl.conf vhost anyway.
+      do_warn <<-REMOVE
+        The VirtualHost defined by default in /etc/httpd/conf.d/ssl.conf is not needed
+        and can cause spurious warnings. Please remove it by running this command:
+
+          sed -i '/VirtualHost/,/VirtualHost/ d' /etc/httpd/conf.d/ssl.conf
+      REMOVE
+    end
+    bname = name_for_file['000000_openshift_origin_broker_proxy']
+    nname = name_for_file['000001_openshift_origin_node']
+    if bname && nname && bname != nname
+      # broker and node both installed, node may be stealing traffic
+      do_warn <<-CONFLICT
+        /etc/httpd/conf.d/000001_openshift_origin_node.conf defines a *:443 VirtualHost
+        with ServerName #{nname} which may intercept requests by that name
+        intended for the broker. Please reconfigure this vhost with the same ServerName
+        as the one in /etc/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
+      CONFLICT
+    end
+  end
+
 end #class OODiag
 
 
@@ -923,6 +1025,7 @@ if __FILE__ == $0
     opts.on('-v','--verbose', 'Print verbose statements') { |verbose| options[:verbose] = verbose }
     opts.on('-w','--wait seconds', Integer,
             'Seconds for broker to wait for node responses (default 5)') { |wait| options[:wait] = wait }
+    opts.on('-o','--abortok', 'Continue tests even when an abort is thrown by a test') { |abortok| options[:abortok] = abortok }
     opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
   }
   optparse.parse!
