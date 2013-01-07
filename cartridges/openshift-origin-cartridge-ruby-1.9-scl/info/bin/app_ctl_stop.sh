@@ -15,7 +15,7 @@ cart_instance_dir=$OPENSHIFT_HOMEDIR/${cartridge_type}
 CART_CONF_DIR=${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/etc/conf
 
 # Stop the app
-src_user_hook pre_stop_${CARTRIDGE_TYPE}
+src_user_hook pre_stop_${cartridge_type}
 app_userid=`id -u`
 httpd_pid=`cat ${cart_instance_dir}/run/httpd.pid 2> /dev/null`
 /usr/sbin/httpd -C "Include ${cart_instance_dir}/conf.d/*.conf" -f $CART_CONF_DIR/httpd_nolog.conf -k $1
@@ -44,4 +44,4 @@ do
         break
     fi
 done
-run_user_hook post_stop_${CARTRIDGE_TYPE}
+run_user_hook post_stop_${cartridge_type}
