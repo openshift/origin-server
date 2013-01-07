@@ -216,6 +216,10 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
       end
       
+      if scales_to and scales_to == 0
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
+      end
+      
       if scales_to and scales_to < -1
         return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
