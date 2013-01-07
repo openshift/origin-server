@@ -69,7 +69,15 @@ fi
 if [ -f "/etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf" ]
 then
   sed -i "s/ServerName ${application}-${old_namespace}./ServerName ${application}-${new_namespace}./" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/00000_default.conf
-  sed -i "s/${application}-${old_namespace}./${application}-${new_namespace}./" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/*.json
+  
+  # FIXME: Remove this when json routes files are created for all gear types
+  json_files=$(ls /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/*.json | wc -l)
+
+  if [ "$json_files" -gt 0 ]
+  then
+    sed -i "s/${application}-${old_namespace}./${application}-${new_namespace}./" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/*.json
+  fi
+
   sed -i "s/_${old_namespace}_${application}/_${new_namespace}_${application}/g" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf
   mv /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf /etc/httpd/conf.d/openshift/${uuid}_${new_namespace}_${application}.conf
   mv /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application} /etc/httpd/conf.d/openshift/${uuid}_${new_namespace}_${application}
