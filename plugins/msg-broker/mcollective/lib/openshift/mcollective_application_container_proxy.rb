@@ -1809,10 +1809,7 @@ module OpenShift
                   else
                     log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
                     embedded_reply = destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
-                    component_details = embedded_reply.appInfoIO.string
-                    unless component_details.empty?
-                      app.set_embedded_cart_info(cart, component_details)
-                    end
+                    cinst.process_properties(embedded_reply)
                     reply.append embedded_reply
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
                     reply.append destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
@@ -1834,7 +1831,6 @@ module OpenShift
 
             # start the gears again and change DNS entry
             reply.append move_gear_post(app, gear, destination_container, state_map, keep_uid)
-##---------------refactored till here -------
             # app.elaborate_descriptor
             app.execute_connections
             if app.scalable
