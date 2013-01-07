@@ -1551,7 +1551,7 @@ class Application
   end
 
   def process_group_overrides(component_instances, group_overrides)
-    overrides = group_overrides.dup
+    overrides = group_overrides ? group_overrides.dup : []
     cleaned_overrides = []
     
     # Resolve additional group overrides from component_instances
@@ -1562,8 +1562,8 @@ class Application
       overrides += prof.group_overrides.map{ |go| go["cart_set"] = cart.name ; go["comp_set"] = comp.name ; go }
       overrides << {"components" => [{"cart" => cart.name, "comp" => comp.name}], "min_gears"=>comp.scaling.min, "max_gears"=>comp.scaling.max, "cart_set" => cart.name, "comp_set" => comp.name}
     end
-    
-    # Resolve all components withing the group overrides
+
+    # Resolve all components within the group overrides
     # Remove deleted components from group_overrides and build cleaned_overrides array
     overrides.each do |group_override|
       cleaned_override = {}
