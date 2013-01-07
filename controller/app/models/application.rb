@@ -686,55 +686,57 @@ class Application
   end
 
   def execute_connections
-    Rails.logger.debug "Running publishers"
-    handle = RemoteJob.create_parallel_job
-    #publishers
-    sub_jobs = []
-    self.connections.each do |conn|
-      pub_inst = self.component_instances.find(conn.from_comp_inst_id)
-      pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
-      tag = conn._id.to_s
-
-      pub_ginst.gears.each_index do |idx|
-        break if (pub_inst.is_singleton? && idx > 0)
-        gear = pub_ginst.gears[idx]
-        input_args = [gear.name, self.domain.namespace, gear._id.to_s]
-        job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, input_args)
-        RemoteJob.add_parallel_job(handle, tag, gear, job)
-      end
-    end
-    pub_out = {}
-    RemoteJob.execute_parallel_jobs(handle)
-    RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
-      if status==0
-        pub_out[tag] = [] if pub_out[tag].nil?
-        pub_out[tag].push("'#{gear_id}'='#{output}'")
-      end
-    end
-    Rails.logger.debug "Running subscribers"
-    #subscribers
-    handle = RemoteJob.create_parallel_job
-    self.connections.each do |conn|
-      sub_inst = self.component_instances.find(conn.to_comp_inst_id)
-      sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
-      tag = ""
-
-      unless pub_out[conn._id.to_s].nil?
-        input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
-
-        Rails.logger.debug "Output of publisher - '#{pub_out}'"
-        sub_ginst.gears.each_index do |idx|
-          break if (sub_inst.is_singleton? && idx > 0)
-          gear = sub_ginst.gears[idx]
-
-          input_args = [gear.name, self.domain.namespace, gear._id.to_s, input_to_subscriber]
-          job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, input_args)
+    if self.scalable
+      Rails.logger.debug "Running publishers"
+      handle = RemoteJob.create_parallel_job
+      #publishers
+      sub_jobs = []
+      self.connections.each do |conn|
+        pub_inst = self.component_instances.find(conn.from_comp_inst_id)
+        pub_ginst = self.group_instances.find(pub_inst.group_instance_id)
+        tag = conn._id.to_s
+  
+        pub_ginst.gears.each_index do |idx|
+          break if (pub_inst.is_singleton? && idx > 0)
+          gear = pub_ginst.gears[idx]
+          input_args = [gear.name, self.domain.namespace, gear._id.to_s]
+          job = gear.get_execute_connector_job(pub_inst.cartridge_name, conn.from_connector_name, input_args)
           RemoteJob.add_parallel_job(handle, tag, gear, job)
         end
       end
+      pub_out = {}
+      RemoteJob.execute_parallel_jobs(handle)
+      RemoteJob.get_parallel_run_results(handle) do |tag, gear_id, output, status|
+        if status==0
+          pub_out[tag] = [] if pub_out[tag].nil?
+          pub_out[tag].push("'#{gear_id}'='#{output}'")
+        end
+      end
+      Rails.logger.debug "Running subscribers"
+      #subscribers
+      handle = RemoteJob.create_parallel_job
+      self.connections.each do |conn|
+        sub_inst = self.component_instances.find(conn.to_comp_inst_id)
+        sub_ginst = self.group_instances.find(sub_inst.group_instance_id)
+        tag = ""
+  
+        unless pub_out[conn._id.to_s].nil?
+          input_to_subscriber = Shellwords::shellescape(pub_out[conn._id.to_s].join(' '))
+  
+          Rails.logger.debug "Output of publisher - '#{pub_out}'"
+          sub_ginst.gears.each_index do |idx|
+            break if (sub_inst.is_singleton? && idx > 0)
+            gear = sub_ginst.gears[idx]
+  
+            input_args = [gear.name, self.domain.namespace, gear._id.to_s, input_to_subscriber]
+            job = gear.get_execute_connector_job(sub_inst.cartridge_name, conn.to_connector_name, input_args)
+            RemoteJob.add_parallel_job(handle, tag, gear, job)
+          end
+        end
+      end
+      RemoteJob.execute_parallel_jobs(handle)
+      Rails.logger.debug "Connections done"
     end
-    RemoteJob.execute_parallel_jobs(handle)
-    Rails.logger.debug "Connections done"
   end
 
   #private
@@ -1174,14 +1176,16 @@ class Application
       end
     end
 
-    last_op = ops.last
-    expose_prereqs = []
-    expose_prereqs << last_op._id.to_s unless last_op.nil?
+    if self.scalable
+      last_op = ops.last
+      expose_prereqs = []
+      expose_prereqs << last_op._id.to_s unless last_op.nil?
 
-    comp_specs.each do |comp_spec|
-      gear_id_prereqs.each do |gear_id, prereq_id|
-        op = PendingAppOp.new(op_type: :expose_port, args: { "group_instance_id" => group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec }, prereq: expose_prereqs + [prereq_id])
-        ops.push op
+      comp_specs.each do |comp_spec|
+        gear_id_prereqs.each do |gear_id, prereq_id|
+          op = PendingAppOp.new(op_type: :expose_port, args: { "group_instance_id" => group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec }, prereq: expose_prereqs + [prereq_id])
+          ops.push op
+        end
       end
     end
     ops

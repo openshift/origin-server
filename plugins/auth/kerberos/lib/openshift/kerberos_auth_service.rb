@@ -68,7 +68,7 @@ module OpenShift
       app_name = token['app_name']
       creation_time = token['creation_time']
 
-      user = CloudUser.find(username)
+      user = CloudUser.find(login: username)
       raise OpenShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
 
