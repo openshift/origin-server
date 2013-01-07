@@ -10,3 +10,6 @@ hot_deploy - Will run Node with Supervisor (https://npmjs.org/package/supervisor
 			 so that changes to javascript files will be reloaded without requiring
 			 a restart of Node. NOTE: Node will be restarted and started with Supervisor
 			 the first time the hot_deploy marker appears
+
+disable_auto_scaling - Will prevent scalable applications from scaling up 
+                       or down according to application load.

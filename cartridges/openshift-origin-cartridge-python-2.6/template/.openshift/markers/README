@@ -8,3 +8,6 @@ force_clean_build - Will remove the python virtualenv and force rebuild it
     
 hot_deploy - Enables the dynamic reloading of python scripts via WSGI Daemon
 			 mode. 
+
+disable_auto_scaling - Will prevent scalable applications from scaling up 
+                       or down according to application load.
