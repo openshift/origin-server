@@ -139,7 +139,7 @@ class PendingAppOpGroup
           
           case op.op_type
           when :create_group_instance
-            application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"], gear_size: op.args["gear_size"]))
+            application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"], gear_size: op.args["gear_size"] ? op.args["gear_size"] : 'small'))
           when :init_gear
             group_instance.gears.push(Gear.new(custom_id: op.args["gear_id"], group_instance: group_instance, host_singletons: op.args["host_singletons"], app_dns: op.args["app_dns"]))
             application.save
