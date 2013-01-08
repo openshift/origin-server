@@ -93,7 +93,8 @@ class ApplicationsController < BaseController
         return render_error(:unprocessable_entity, "Each application must contain only one web cartridge.  Please include a single web cartridge from this list: #{framework_carts.to_sentence}.",
                           109, "ADD_APPLICATION", "cartridge")
       end
-      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, ResultIO.new, [], init_git_url)
+      app_creation_result = ResultIO.new
+      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url)
 
       @application_name = application.name
       @application_uuid = application._id.to_s
@@ -118,7 +119,7 @@ class ApplicationsController < BaseController
     messages.push(Message.new(:info, log_msg))
     messages.push(Message.new(:info, "#{current_ip}", 0, "current_ip")) unless !current_ip or current_ip.empty?
 
-    #messages.push(Message.new(:info, app_configure_reply.resultIO.string, 0, :result)) if app_configure_reply
+    messages.push(Message.new(:info, app_creation_result.resultIO.string, 0, :result)) if app_creation_result
     render_success(:created, "application", app, "ADD_APPLICATION", log_msg, nil, nil, messages)
   end
   

@@ -90,7 +90,8 @@ class Application
     features << "web_proxy" if scalable
     if app.valid?
       begin
-        app.add_features(features, group_overrides, init_git_url)
+        add_feature_result = app.add_features(features, group_overrides, init_git_url)
+        result_io.append add_feature_result
       rescue Exception => e
         app.delete
         raise e
