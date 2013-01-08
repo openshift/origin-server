@@ -405,6 +405,11 @@ class Application
   #   Number of gears to add (+ve) or remove (-ve)
   def scale_by(group_instance_id, scale_by)
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
+    
+    ginst = group_instances_with_scale.select {|gi| gi._id == group_instance_id}.first
+    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements.") if scale_by < 0 && ginst.gears.length <= ginst.min
+    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.") if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
+    
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by})
       result_io = ResultIO.new
@@ -1396,7 +1401,7 @@ class Application
           if scale_change < 0
             remove_gears += -scale_change
             ginst = self.group_instances.find(change[:from])
-            gears = ginst.gears[-scale_change..-1]
+            gears = ginst.gears[(ginst.gears.length + scale_change)..-1]
             remove_ids = gears.map{|g| g._id.to_s}
             ops = calculate_gear_destroy_ops(ginst._id.to_s, remove_ids, ginst.addtl_fs_gb)
             pending_ops.push(*ops)
