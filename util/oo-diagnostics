@@ -993,6 +993,28 @@ class OODiag
     end
   end
 
+  def test_altered_package_owned_configs
+     mlocate = `rpm -qa | grep mlocate`
+     if mlocate.empty?
+       do_warn <<-WARN
+          The mlocate package is not installed. mlocate is not a required runtime package; however,
+          you may install mlocate to enable further diagnostics checking.
+       WARN
+     end
+     unless mlocate.empty?
+        `updatedb`
+        out = `locate --regex \\\\.rpm\\([a-z]\\)`
+        do_warn <<-"WARN" unless out.empty?
+           RPM package owned configuration files have been altered:
+           #{out}
+           Ensure any package owned configuration files which have been
+           altered are accurate. This may require a manual merge of
+           your previous alterations. Once you are comfortable with the merge,
+           remove the reported .rpm* configuration file (otherwise, you'll continue
+           to see this warning each time your run the diagnostic test.
+       WARN
+     end
+  end
 end #class OODiag
 
 
