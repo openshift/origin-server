@@ -100,8 +100,9 @@
       .controls
         %p.help-block 
           - if @application_type.initial_git_url || @advanced
-            Your application will start with a copy of the code and configuration provided in 
-            this Git repository.
+            Your application will start with an exact copy of the code and configuration provided in 
+            this Git repository. OpenShift may expect certain files to exist in certain directories,
+            which may require you to update your repository after creation.
           - else
             We'll create a Git code repository in the cloud, and populate it with a set of 
             reasonable defaults. 
