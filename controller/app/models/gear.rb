@@ -34,7 +34,12 @@ class Gear
       self.name = self._id.to_s[0..9]
     end
   end
-  
+
+  def uuid
+    @uuid = self._id.to_s if @uuid=="" or @uuid.nil?
+    return @uuid
+  end
+
   def self.base_filesystem_gb(gear_size)
     CacheHelper.get_cached(gear_size + "_quota_blocks", :expires_in => 1.day) {
       proxy = OpenShift::ApplicationContainerProxy.find_one(gear_size)

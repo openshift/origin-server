@@ -110,9 +110,10 @@ class Application
   end
 
   def self.find_by_gear_uuid(gear_uuid)
-    obj_id = Moped::BSON::ObjectId(gear_uuid)
-    app = Application.where("group_instances.gears._id" => obj_id).first
-    gear = app.group_instances.map { |gi| gi.gears.select { |g| g._id == obj_id } }.flatten[0]
+    # obj_id = Moped::BSON::ObjectId(gear_uuid)
+    obj_id = gear_uuid.to_s
+    app = Application.where("group_instances.gears.uuid" => obj_id).first
+    gear = app.group_instances.map { |gi| gi.gears.select { |g| g.uuid== obj_id } }.flatten[0]
     return [app, gear]
   end
 
@@ -132,6 +133,11 @@ class Application
     self.app_ssh_keys = []
     self.pending_op_groups = []
     self.save
+  end
+
+  def uuid
+    @uuid = self._id.to_s if @uuid=="" or @uuid.nil?
+    @uuid
   end
 
   # Adds an additional namespace to the application. This function supports the first step of the update namespace workflow.
