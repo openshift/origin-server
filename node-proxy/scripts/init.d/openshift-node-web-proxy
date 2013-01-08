@@ -35,6 +35,7 @@ start() {
     echo $! > $pidfile
     retval=$?
     [ $retval -eq 0 ] && touch $lockfile && echo_success
+    echo
     return $retval
 }
 
@@ -42,8 +43,16 @@ stop() {
     echo -n $"Stopping node-web-proxy: "
     killproc -p $pidfile $prog 
     retval=$?
+    # If pid's whacked, we need to send a HUP.
+    pids=$(ps -U root -opid,args | grep "$nodeserver" | grep -v 'grep' |   \
+                                   awk '{print $1}' | tr '\n' ' ')
+    if [ -n "$pids" ]; then
+       kill -HUP $pids
+       retval=$?
+    fi
+
+    [ $retval -eq 0 ] && rm -f $lockfile && echo_success
     echo
-    [ $retval -eq 0 ] && rm -f $lockfile
     return $retval
 }
 
@@ -57,6 +66,7 @@ reload() {
     childpid=$(<$childpidfile)
     kill -HUP $childpid
     retval=$?
+    [ $retval -eq 0 ] && echo_success
     echo
     return $retval
 }
