@@ -278,7 +278,7 @@ REST_CALLS_V1 = [
                   app_add_alias_post_v1, 
                   app_remove_alias_post_v1, 
                   app_scale_up_post_v1, 
-                  #app_scale_down_post_v1,
+                  app_scale_down_post_v1,
                   app_add_cart_post_v1, 
                   #app_expose_port_post_v1, 
                   #app_show_port_post_v1,
