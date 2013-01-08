@@ -104,10 +104,7 @@ ln -s %{cartridgedir}/../abstract-jboss/info/connection-hooks/set_jboss_remoting
 
 ln -s %{cartridgedir}/../abstract-jboss/info/data/mysql.tar %{buildroot}%{cartridgedir}/info/data/mysql.tar
 
-ln -s %{cartridgedir}/../abstract-jboss/info/hooks/conceal-port %{buildroot}%{cartridgedir}/info/hooks/conceal-port
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/deconfigure %{buildroot}%{cartridgedir}/info/hooks/deconfigure
-ln -s %{cartridgedir}/../abstract-jboss/info/hooks/expose-port %{buildroot}%{cartridgedir}/info/hooks/expose-port
-ln -s %{cartridgedir}/../abstract-jboss/info/hooks/show-port %{buildroot}%{cartridgedir}/info/hooks/show-port
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/threaddump %{buildroot}%{cartridgedir}/info/hooks/threaddump
 
 ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartridgedir}/info/hooks/configure

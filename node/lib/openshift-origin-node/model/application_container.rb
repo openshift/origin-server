@@ -17,13 +17,18 @@
 require 'rubygems'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-common'
 require 'logger'
+require 'yaml'
+require 'active_model'
 
 module OpenShift
   # == Application Container
-  class ApplicationContainer < Model
+  class ApplicationContainer
     include OpenShift::Utils::ShellExec
+    include ActiveModel::Observing
+
     attr_reader :uuid, :application_uuid, :user
 
     # Represents all possible application states.
@@ -268,6 +273,159 @@ module OpenShift
       end
     end
 
+    # Creates an endpoint for the given cart within a gear. The flow is:
+    #
+    # 1. Extract the Endpoint metadata from the cart manifest.
+    # 2. For each endpoint:
+    #   a. Compute the internal name for the endpoint (OPENSHIFT_{CART_NS}_{ENDPOINT_NAME}).
+    #   b. Attempt to create a proxy mapping for the endpoint via FrontendProxyServer.
+    #   c. Create an environment variable for the endpoint name with a value of
+    #      the mapped proxy port assigned from (b).
+    #
+    # Returns nil on success, and raises an exception if the manifest can't be parsed
+    # or if any individual endpoint creation fails for any reason.
+    def create_endpoints(cart)
+      env = load_env
+
+      # Load the manifest for the cartridge
+      begin
+        manifest = get_cart_manifest(cart)
+        endpoints = manifest["Endpoints"]
+      rescue => e
+        @logger.error(%Q{Failed to retrieve endpoints from manifest for cart #{cart} in gear #{@uuid}: #{e.message}
+          #{e.backtrace}
+          })
+        raise "Couldn't create endpoints for cart #{cart} in gear #{@uuid}"
+      end
+      
+      proxy = OpenShift::FrontendProxyServer.new(@logger)
+      cart_ip = get_cart_ip(env, cart)
+      
+      endpoints.each do |endpoint|
+        begin
+          # Yank the specific info from the endpoint Hash
+          name = endpoint.flatten[0]
+          port = endpoint.flatten[1]
+
+          # Compute the endpoint name
+          cart_ns = self.class.cart_name_to_namespace(cart)
+          endpoint_name = "OPENSHIFT_#{cart_ns}_#{name}"
+
+          # Attempt the actual proxy mapping assignment
+          proxy_port = proxy.add(@user.uid, cart_ip, port)
+
+          # Create an env var for the endpoint
+          @user.add_env_var(endpoint_name, proxy_port)
+
+          @logger.info("Created endpoint #{endpoint_name}=#{cart_ip}:#{proxy_port} for cart #{cart} on gear #{@uuid}")
+        rescue => e
+          @logger.error(%Q{Failed to create endpoint #{endpoint} for cart #{cart} in gear #{@uuid}: #{e.message}
+            #{e.backtrace}
+            })
+          raise "Couldn't create endpoint #{endpoint} for cart #{cart} in gear #{@uuid}"
+        end
+      end
+    end
+
+    # Deletes all endpoints for the given cart based on the cartridge manifest
+    # Endpoint entries and cleans up the related environment variables from
+    # the gear.
+    #
+    # Returns nil on success, and raises an exception if the manifest can't be parsed.
+    # Any failed deletes will be logged and skipped.
+    def delete_endpoints(cart)
+      env = load_env
+
+      # Load the manifest for the cartridge
+      begin
+        manifest = get_cart_manifest(cart)
+        endpoints = manifest["Endpoints"]
+      rescue => e
+        @logger.error(%Q{Failed to retrieve endpoints from manifest for cart #{cart} in gear #{@uuid}: #{e.message}
+          #{e.backtrace}
+          })
+        raise "Couldn't delete endpoints for cart #{cart} in gear #{@uuid}"
+      end
+
+      proxy = OpenShift::FrontendProxyServer.new(@logger)
+      cart_ip = get_cart_ip(env, cart)
+
+      proxy_ports = []
+      endpoint_vars = []
+
+      # Gather endpoint metadata
+      endpoints.each do |endpoint|
+        name = endpoint.flatten[0]
+        port = endpoint.flatten[1]
+
+        # Compute the endpoint name
+        cart_ns = self.class.cart_name_to_namespace(cart)
+        endpoint_name = "OPENSHIFT_#{cart_ns}_#{name}"
+
+        endpoint_vars << endpoint_name
+
+        proxy_port = proxy.find_mapped_proxy_port(@user.uid, cart_ip, port)
+
+        if proxy_port != nil
+          proxy_ports << proxy_port
+        end
+      end
+
+      begin
+        # Remove the proxy entries
+        rc = proxy.delete_all(proxy_ports, true)
+        @logger.info(%Q{Deleted #{endpoints.length} endpoints for cart #{cart} in gear #{@uuid}
+          Endpoints: #{endpoints}
+          Proxy ports: #{proxy_ports}
+          })
+      rescue => e
+        @logger.warn(%Q{Couldn't delete all endpoints for cart #{cart} in gear #{@uuid}: #{e.message}
+          Endpoints: #{endpoints}
+          Proxy ports: #{proxy_ports}
+          #{e.backtrace}
+          })
+      end
+
+      # Clean up the environment variables
+      endpoint_vars.each { |var| @user.remove_env_var(var) }
+    end
+
+    # Resolves, loads, and returns the given cartridge manifest as a YAML object.
+    #
+    # Raises an exception on error.
+    def get_cart_manifest(cart)
+      manifest_path = File.join(@config.get("CARTRIDGE_BASE_PATH"), cart, "info", "manifest.yml")
+      return YAML.load_file(manifest_path)
+    end
+
+    # Compatibility function to resolve a cartridge's IP taking into account the
+    # fact that there are two different naming conventions in use from when there
+    # was a hard distinction between database and non-database cartridges.
+    #
+    # The cart IP will be resolved by using a lookup order against the provided
+    # environment hash. The order of precedence from most to least preferred is:
+    #
+    #   1. OPENSHIFT_{CART_NS}_IP
+    #   2. OPENSHIFT_{CART_NS}_DB_HOST
+    #
+    # Returns the IP for the given cart/environment and raises an exception if
+    # no preferred key is present in the hash.
+    def get_cart_ip(env, cart_name)
+      cart_ns = self.class.cart_name_to_namespace(cart_name)
+
+      lookup_order = ["OPENSHIFT_#{cart_ns}_IP".to_sym, "OPENSHIFT_#{cart_ns}_DB_HOST".to_sym]
+
+      lookup_order.each do |lookup|
+        return env[lookup] if env.has_key?(lookup)
+      end
+      
+      raise %Q{Couldn't determine IP for cartridge #{cart_name}
+        Cart namespace: #{cart_ns}
+        Lookup order: #{lookup_order}
+        Env: #{env}
+      }
+    end
+
     # Public: Load a gears environment variables into the environment
     #
     # Examples
@@ -293,6 +451,20 @@ module OpenShift
         env[File.basename(f).intern] =  contents
       }
       env
+    end
+
+    # Converts a cartridge name to a cartridge namespace.
+    #
+    # Examples:
+    #
+    #     cart_name_to_namespace('jbossas-7')
+    #     => "JBOSSAS"
+    #     cart_name_to_namespace('jenkins-client-1.4')
+    #     => "JENKINSCLIENT"
+    #
+    # Returns the cartridge namespace as a String.
+    def self.cart_name_to_namespace(cart)
+      return `echo #{cart} | sed 's/-//g' | sed 's/[^a-zA-Z_]*$//g' | tr '[a-z]' '[A-Z]'`.chomp
     end
   end
 end

@@ -171,3 +171,5 @@ Profiles:
           - slaves
     Start-Order: [master, slaves]
 Default-Profile: basic
+Endpoints:
+  - DB_PROXY_PORT: 27017
