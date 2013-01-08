@@ -132,11 +132,17 @@ class EmbCartController < BaseController
         group_overrides << group_override
       end
 
-      application.add_features([name], group_overrides)
+      cart_create_reply = application.add_features([name], group_overrides)
       
       component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
-      return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", nil, nil, nil, nil)
+
+      messages = []
+      log_msg = "Added #{name} to application #{id}"
+      messages.push(Message.new(:info, log_msg))
+      messages.push(Message.new(:info, cart_create_reply.resultIO.string, 0, :result))
+      messages.push(Message.new(:info, cart_create_reply.appInfoIO.string, 0, :appinfo))
+      return render_success(:created, "cartridge", cartridge, "EMBED_CARTRIDGE", log_msg, nil, nil, messages)
     rescue OpenShift::GearLimitReachedException => e
       return render_error(:unprocessable_entity, "Unable to add cartridge: #{e.message}", 104, "ADD_APPLICATION")
     rescue OpenShift::UserException => e
