@@ -533,6 +533,10 @@ textarea:focus:required:valid {
   @include clearfix();
 }
 
+// Overide assigned error state styles from bootstrap
+.control-group.error .input-prepend .add-on, .control-group.error .input-append .add-on {
+  color: inherit !important;
+}
 
 
 // SEARCH FORM
