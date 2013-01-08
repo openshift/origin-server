@@ -42,6 +42,7 @@ class Application
 
   field :name, type: String
   field :canonical_name, type: String
+  field :uuid, type: String, default: ""
   field :domain_requires, type: Array, default: []
   field :group_overrides, type: Array, default: []
   embeds_many :pending_op_groups, class_name: PendingAppOpGroup.name

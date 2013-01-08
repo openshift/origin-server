@@ -12,6 +12,7 @@ class Gear
   include Mongoid::Document
   embedded_in :group_instance, class_name: GroupInstance.name
   field :server_identity, type: String
+  field :uuid, type: String, default: ""
   field :uid, type: Integer
   field :name, type: String
   field :host_singletons, type: Boolean, default: false
