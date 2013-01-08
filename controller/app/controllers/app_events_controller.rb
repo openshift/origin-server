@@ -91,6 +91,8 @@ class AppEventsController < BaseController
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "APPLICATION_EVENT", "event")
         end
+    rescue OpenShift::UserException => uex
+      return render_error(:unprocessable_entity, "#{uex.message}", nil, "#{event.sub('-', '_').upcase}_APPLICATION")
     rescue Exception => e
       return render_exception(e, "#{event.sub('-', '_').upcase}_APPLICATION")
     end

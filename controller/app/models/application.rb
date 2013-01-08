@@ -667,7 +667,8 @@ class Application
     fqdn = fqdn.downcase
     
     Application.run_in_application_lock(self) do
-      return unless aliases.include? fqdn
+      raise OpenShift::UserException.new("Alias '#{fqdn}' does not exist for '#{self.name}'") unless aliases.include? fqdn
+      
       aliases.delete(fqdn)
       op_group = PendingAppOpGroup.new(op_type: :remove_alias, args: {"fqdn" => fqdn})
       self.pending_op_groups.push op_group
