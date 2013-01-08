@@ -102,6 +102,8 @@ class ApplicationsController < BaseController
     rescue OpenShift::ApplicationValidationException => e
       messages = get_error_messages(e.app)
       return render_error(:unprocessable_entity, nil, nil, "ADD_APPLICATION", nil, nil, messages)
+    rescue OpenShift::UserException => e
+      return render_error(:unprocessable_entity, "#{e.message}", 109, "ADD_APPLICATION", "cartridge")
     end
     application.user_agent= request.headers['User-Agent']
     

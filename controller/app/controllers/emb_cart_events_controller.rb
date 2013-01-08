@@ -23,7 +23,7 @@ class EmbCartEventsController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "CARTRIDGE_EVENT")
     end
-    return render_error(:bad_request, "Cartridge #{cartridge} not embedded within application #{id}", 129, "CARTRIDGE_EVENT") if !application.requires.include?(cartridge)
+    return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{id}", 129, "CARTRIDGE_EVENT") if !application.requires.include?(cartridge)
 
     begin
       case event
