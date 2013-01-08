@@ -1333,6 +1333,10 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
+          singleton_gear = group_instance.gears.find_by(host_singletons: true)
+          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
+          pending_ops.push(*ops)
+
           ops=calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
           pending_ops.push(*ops)
           op_ids = ops.map{|op| op._id.to_s}
