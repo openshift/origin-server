@@ -258,7 +258,7 @@ class Application
 
   def add_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_env_variables" => vars}, parent_op: parent_op)
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"add_env_vars" => vars}, parent_op: parent_op)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -268,7 +268,7 @@ class Application
 
   def remove_env_variables(vars, parent_op=nil)
     Application.run_in_application_lock(self) do
-      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_variables" => vars}, parent_op: parent_op)
+      op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => vars}, parent_op: parent_op)
       self.pending_op_groups.push op_group
       result_io = ResultIO.new
       self.run_jobs(result_io)
@@ -332,12 +332,14 @@ class Application
         end
       end
     end
+    result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url})
-      result_io = ResultIO.new
       self.run_jobs(result_io)
-      result_io
     end
+    domain.reload
+    domain.run_jobs
+    result_io
   end
 
   # Adds components to the application
@@ -346,12 +348,14 @@ class Application
     features.each do |feature|
       raise OpenShift::UserException.new("Invalid feature #{feature}") unless self.requires.include? feature
     end
+    result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides})
-      result_io = ResultIO.new
       self.run_jobs(result_io)
-      result_io
     end
+    domain.reload
+    domain.run_jobs
+    result_io
   end
 
   # Destroys all gears on the application.
@@ -811,15 +815,12 @@ class Application
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs})
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
     end
-    
-    domain.applications.each do |app|
-      app.pending_op_groups.push(PendingAppOpGroup.new(op_type: :update_configuration, args: {
-        "add_keys_attrs" => domain_keys_to_add,
-        "remove_keys_attrs" => domain_keys_to_rm,
-        "add_env_vars" => env_vars_to_add,
-        "remove_env_vars" => env_vars_to_rm,
-      }))
-    end if !domain_keys_to_add.empty? or !domain_keys_to_rm.empty? or !env_vars_to_add.empty? or !env_vars_to_rm.empty?
+
+    # Have to remember to run_jobs for the other apps involved at some point
+    domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
+    domain.remove_env_variables(env_vars_to_rm) if !env_vars_to_rm.empty?
+    domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
+    domain.add_env_variables(env_vars_to_add) if !env_vars_to_add.empty?
     nil
   end
 
@@ -827,9 +828,9 @@ class Application
   #
   # == Returns:
   # True on success or False if unable to acquire the lock or no pending jobs.
-  def run_jobs(result_io=nil, include_same_domain_apps=true)
+  def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    self.reload if include_same_domain_apps
+    self.reload
     return true if (self.pending_op_groups.count == 0)
     begin
       while self.pending_op_groups.count > 0
@@ -942,11 +943,6 @@ class Application
           self.reload
         end
         
-        # Process any in memory jobs for other apps in the domain.  Will pick up anything from process_jobs.
-        #TODO is there a better way/place to do this???
-        self.domain.applications.each do |app|
-          app.run_jobs(result_io, false) unless app._id == self._id
-        end if include_same_domain_apps
       end
       true
     rescue Exception => e_orig

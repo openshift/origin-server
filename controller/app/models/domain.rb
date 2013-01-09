@@ -159,24 +159,23 @@ class Domain
     end
   end
   
-  def add_system_ssh_keys(keys)
-    keys_attrs = keys.map{ |k| k.attributes.dup }
+  def add_system_ssh_keys(keys_attrs)
     pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pushAll" => { system_ssh_keys: keys_attrs }})
+  end
+
+  def remove_system_ssh_keys(key_names)
+    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_to_remove}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
-  
-  def remove_system_ssh_keys(key_names)
-    keys_to_remove = self.system_ssh_keys.where(:name.in key_names)
-    self.pending_ops.push(PendingDomainOps.new(op_type: :remove_domain_ssh_key, arguments: {"keys_attrs" => keys_to_remove.map{|k|k.attributes.dup}}, on_apps: applications))
-  end
-  
+
   def add_env_variables(variables)
-    pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: variables, on_apps: applications, created_at: Time.new)
+    pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pushAll" => { env_vars: variables }})
   end
-  
+
   def remove_env_variables(variables)
-    pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: variables, on_apps: applications)
+    pending_op = PendingDomainOps.new(op_type: :remove_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { env_vars: variables }})
   end
 
@@ -217,10 +216,10 @@ class Domain
         end
       end
       true
-    rescue Exception => ex
-      Rails.logger.error ex
-      Rails.logger.error ex.backtrace
-      false
+    rescue Exception => e
+      Rails.logger.error e.message
+      Rails.logger.error e.backtrace
+      raise e
     end
   end
 end

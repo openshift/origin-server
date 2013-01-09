@@ -37,7 +37,7 @@ class RestApplication < OpenShift::Model
       cart = CartridgeCache::find_cartridge(component_instance.cartridge_name)
       if cart.categories.include?("ci_builder")
         self.building_with = cart.name
-        self.build_job_url = component_instance.properties["job_url"]
+        self.build_job_url = component_instance.component_properties["job_url"]
         break
       end
     end
