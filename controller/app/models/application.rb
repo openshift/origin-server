@@ -363,6 +363,7 @@ class Application
           # now we have to worry if apps have a circular dependency among them or not
           # assuming not for now or else stack overflow
           app.destroy_app
+          break
         end
       }
     }
