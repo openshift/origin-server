@@ -31,10 +31,10 @@ function is_node_module_installed() {
     if [ -n "$module_name" ]; then
         pushd "$cartridge_dir" > /dev/null
         if [ -d $m ] ; then
-            popd
+            popd > /dev/null
             return 0
         fi
-        popd
+        popd > /dev/null
     fi
 
     return 1
