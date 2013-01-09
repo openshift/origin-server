@@ -150,6 +150,7 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %attr(0755,-,-) %{appdir}
+%attr(0750,root,apache) %{appdir}/.httpd.d
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
