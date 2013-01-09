@@ -45,6 +45,11 @@ class Domain
     {namespace: 106}
   end
   
+  def initialize(attrs = nil, options = nil)
+    super
+    self.user_ids << owner._id if owner
+  end
+  
   # Change the namespace for this Domain and all applications under it. 
   # The namespace update happens in 2 steps:
   #   1. Add the new namespace to all applications
@@ -107,11 +112,12 @@ class Domain
   # == Returns:
   #  The domain operation which tracks the user removal.
   def remove_user(user)
-    self.user_ids.push user._id
-    pending_op = PendingDomainOps.new(op_type: :remove_user, arguments: {user: user._id}, parent_op: nil, on_apps: applications)
-    self.pending_ops.push pending_op
-    pending_op.on_apps.each do |app|
-      app.remove_ssh_keys(user, user.ssh_keys, pending_op)
+    if self.user_ids.delete user._id
+      pending_op = PendingDomainOps.new(op_type: :remove_user, arguments: {user: user._id}, parent_op: nil, on_apps: applications)
+      self.pending_ops.push pending_op
+      pending_op.on_apps.each do |app|
+        app.remove_ssh_keys(user, user.ssh_keys, pending_op)
+      end
     end
   end
   

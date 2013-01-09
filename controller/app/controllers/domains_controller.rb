@@ -44,7 +44,7 @@ class DomainsController < BaseController
       return render_error(:conflict, "There is already a namespace associated with this user", 103, "ADD_DOMAIN", "id")
     end
 
-    domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: @cloud_user, users: [@cloud_user._id])
+    domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: @cloud_user)
     if not domain.valid?
       Rails.logger.error "Domain is not valid"
       messages = get_error_messages(domain, {"namespace" => "id"})
