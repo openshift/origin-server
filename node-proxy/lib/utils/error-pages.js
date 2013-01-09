@@ -19,7 +19,7 @@ exports.service_unavailable_page = function(host,port) {
   var I_AM = constants.NODE_PROXY_WEB_PROXY_NAME + '/' +
              constants.NODE_PROXY_PRODUCT_VER;
   var p = [
-    '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">\n', 
+    '<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">\n',
     '<HTML>\n',
     '  <HEAD><TITLE>503 Service Temporarily Unavailable</TITLE></HEAD>\n',
     '  <BODY>\n',

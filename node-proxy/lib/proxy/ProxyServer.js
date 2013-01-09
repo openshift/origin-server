@@ -13,8 +13,6 @@ var httputils     = require('../utils/http-utils.js');
 var statuscodes   = require('../utils/status-codes.js');
 var errorpages    = require('../utils/error-pages.js');
 var Logger        = require('../logger/Logger.js');
-var access_logger = require('../logger/access-logger.js');
-var ws_logger     = require('../logger/websockets-logger.js');
 
 /*!  {{{  section:  'Private-Variables'                                  */
 
@@ -25,7 +23,7 @@ var DEFAULT_WEBSOCKETS_TIMEOUT = 3600;  /*  1 hour (3600 seconds).    */
 
 /*!
  *  }}}  //  End of section  Private-Variables.
- *  --------------------------------------------------------------------- 
+ *  ---------------------------------------------------------------------
  */
 
 
@@ -56,7 +54,7 @@ function _load_config(f) {
 
 
 /**
- *  Set the response headers on the proxied response. 
+ *  Set the response headers on the proxied response.
  *
  *  Examples:
  *    var preq = http.request(proxy_req, function(pres) {
@@ -88,7 +86,7 @@ function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
 
 
 /**
- *  Set the request headers on the proxied request. 
+ *  Set the request headers on the proxied request.
  *
  *  Examples:
  *    var proxy_req = { host: ep_host, port: ep_port,
@@ -98,7 +96,7 @@ function _setProxyResponseHeaders(proxy_res, vhost, keep_alive_timeout) {
  *    _setProxyRequestHeaders(proxy_req, req);
  *
  *  @param  {http.ClientRequest}  The request we send to the endpoint.
- *  @param  {http.ServerRequest}  The request we received. 
+ *  @param  {http.ServerRequest}  The request we received.
  *  @api    private
  */
 function _setProxyRequestHeaders(proxy_req, orig_req) {
@@ -128,7 +126,7 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
  *    var cfgfile      = '/etc/openshift/web-proxy.json';
  *    var proxy_server = new ProxyServer.ProxyServer(cfgfile);
  *    proxy_server.initServer();
- * 
+ *
  *    var zserver = httputils.createProtocolServer('http');
  *    zserver.on('request', function(req, res) {
  *      _requestHandler(proxy_server, req, res);
@@ -136,27 +134,15 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
  *
  *  @param  {ProxyServer}         Proxy server instance.
  *  @param  {http.ClientRequest}  The request we send to the endpoint.
- *  @param  {http.ServerRequest}  The request we received. 
+ *  @param  {http.ServerRequest}  The request we received.
  *  @api    private
  */
 function _requestHandler(proxy_server, req, res) {
-  /*  Technically when we got the request - set the start timestamp.  */
-  var metrics = {
-    'start'    : Date.now(),
-    'end'      : 0,
-    'bytes_in' : 0,
-    'bytes_out': 0,
-    'error'    : ''
-  };
+  var surrogate = new RequestSurrogate(req, res);
 
-  function log_metrics(err) {
-    metrics.end   = Date.now();
-    metrics.error = err  ||  '';
-    access_logger.log(req, res, metrics);
-  };
-
-  /*  Request start event.  */
-  proxy_server.emit('request.start', req);
+  /*  Emit Surrogate Request and start events.  */
+  proxy_server.emit('surrogate.request', surrogate);
+  surrogate.emit('start');
 
   /*  Get the request/socket io timeout.  */
   var io_timeout = DEFAULT_IO_TIMEOUT;   /*  300 seconds.  */
@@ -200,17 +186,13 @@ function _requestHandler(proxy_server, req, res) {
 
   /*  No route, no milk [, no cookies] ... return a temporary redirect.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
-    /*  Request routing error event.  */
-    proxy_server.emit('request.route.error', req, res);
-
     /*  Send a temporary redirect to the 404 redirect location.  */
-    res.statusCode = statuscodes.HTTP_TEMPORARY_REDIRECT;
+    res.statusCode = statuscodes.HTTP_FOUND;
     res.setHeader('Location', proxy_server.config.routes.redirect404);
     res.end('');
 
-    /*  Log metrics.  */
-    log_metrics('request.route.error');
-
+    /*  Routing error.  */
+    surrogate.emit('error', 'route.error');
     return;
   }
 
@@ -228,38 +210,30 @@ function _requestHandler(proxy_server, req, res) {
                   };
   _setProxyRequestHeaders(proxy_req, req);
 
-  var preq  = http.request(proxy_req, function(pres) {
-    /*  Proxy response start event.  */
-    proxy_server.emit('proxy-response.start', req, res, preq, pres);
+  var preq = http.request(proxy_req, function(pres) {
+    /*  Set surrogate's backend information.  */
+    surrogate.setBackendInfo(preq, pres);
+
+    /*  Response started event.  */
+    surrogate.emit('begin-response');
 
     /*  Handle the proxy response error/end/data events.  */
     pres.addListener('error', function() {
-      /*  Proxy response error event.  */
-      proxy_server.emit('proxy-response.error', req, res, preq, pres);
-
-      /*  Finish the response to the originating request and log metrics.  */
+      /*  Finish the response to the originating request and emit event.  */
       res.end();
-      log_metrics('proxy-response.error');
+      surrogate.emit('error', 'proxy.response.error');
     });
 
     pres.addListener('end', function() {
-      /*  Proxy response end event.  */
-      proxy_server.emit('proxy-response.end', req, res, preq, pres);
-
-      /*  Finish the response to the originating request and log metrics.  */
+      /*  Finish the response to the originating request and emit event.  */
       res.end();
-      log_metrics();
+      surrogate.emit('end');
     });
 
     pres.addListener('data', function(chunk) {
-      /*  Proxy response data event.  */
-      proxy_server.emit('proxy-response.data', req, res, preq, pres);
-
-      /*  Proxy response to the request originator.  */
+      /*  Emit event and proxy response to the request originator.  */
+      surrogate.emit('outbound.data', chunk);
       res.write(chunk);
-
-      /*  Increment outbound bytes.  */
-      metrics.bytes_out += chunk.length;
     });
 
     /*  Set the appropriate headers on the reponse & send the headers.  */
@@ -271,54 +245,46 @@ function _requestHandler(proxy_server, req, res) {
   preq.on('socket', function(socket) {
     socket.setTimeout(io_timeout * 1000);  /*  Timeout is in ms.  */
     socket.on('timeout', function() {
+      /*  Abort the request and emit timeout event.  */
       preq.abort();
-      log_metrics('request.socket.timeout');
+      surrogate.emit('error', 'socket.timeout');
     });
   });
 
 
   /*  Handle the incoming request error/end/data events.  */
   req.addListener('error', function() {
-    /*  Request error event.  */
-    proxy_server.emit('request.error', req, res, preq);
-
-    /*  Finish the proxied request, return a 503 and log metrics.  */
+    /*  Finish the proxied request, return a 503.  */
     preq.abort();
     res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
     res.write(errorpages.service_unavailable_page(reqhost, reqport) );
     res.end();
-    log_metrics('request.error');
+
+    /*  Emit error event.  */
+    surrogate.emit('error', 'request.error');
   });
 
   req.addListener('end', function() {
-    /*  Request normal end event.  */
-    proxy_server.emit('request.end', req, res, preq);
-
-    /*  Finish the outgoing request to the backend content server.  */
+    /*  Finish outgoing request to the backend content server & emit event.  */
     preq.end();
+    surrogate.emit('end-request');
   });
 
   req.addListener('data', function(chunk) {
-    /*  Request data event.  */
-    proxy_server.emit('request.data', req, res, preq);
-
-    /*  Proxy data to outgoing request to the backend content server.  */
+    /*  Emit event and proxy data to the backend content server.  */
+    surrogate.emit('inbound.data', chunk);
     preq.write(chunk);
-
-    /*  Increment inbound bytes.  */
-    metrics.bytes_in += chunk.length;
   });
 
 
   /*  Handle the outgoing request error event.  */
   preq.addListener('error', function() {
-    proxy_server.emit('proxy-request.error', req, res, preq);
 
-    /*  Finish the incoming request, return a 503 and log metrics.  */
+    /*  Finish the incoming request, return a 503 and emit event.  */
     res.statusCode = statuscodes.HTTP_SERVICE_UNAVAILABLE;
     res.write(errorpages.service_unavailable_page(reqhost, reqport) );
     res.end('');
-    log_metrics('proxy-request.error');
+    surrogate.emit('error', 'proxy.request.error');
   });
 
 };  /*  End of function  requestHandler.  */
@@ -334,41 +300,23 @@ function _requestHandler(proxy_server, req, res) {
  *    var cfgfile      = '/etc/openshift/web-proxy.json';
  *    var proxy_server = new ProxyServer.ProxyServer(cfgfile);
  *    proxy_server.initServer();
- * 
+ *
  *    var zserver = httputils.createProtocolServer('http');
  *    var wssrvr  = new WebSocket.Server({server: zserver});
  *    wssrvr.on('connection', function(ws) {
  *      _websocketHandler(self, ws);
- *    }); 
+ *    });
  *
  *  @param  {ProxyServer}  Proxy server instance.
  *  @param  {WebSocket}    The incoming websocket (what we received).
  *  @api    private
  */
 function _websocketHandler(proxy_server, ws) {
-  /*  Technically when we got the request - set the start timestamp.  */
-  var ws_metrics = {
-    'remote_addr'  : '',
-    'host_name'    : '',
-    'request_info' : '',
-    'start'        : Date.now(),
-    'end'          : 0,
-    'messages_in'  : 0,
-    'messages_out' : 0,
-    'bytes_in'     : 0,
-    'bytes_out'    : 0,
-    'status_code'  : statuscodes.WS_NORMAL_CLOSURE,
-    'error'        : ''
-  };
+  var surrogate = new WebSocketSurrogate(ws);
 
-  function log_websocket_metrics(err) {
-    ws_metrics.end   = Date.now();
-    ws_metrics.error = err  ||  '';
-    ws_logger.log(ws, ws_metrics);
-  };
-
-  /*  Websocket start event.  */
-  proxy_server.emit('websocket.start', ws);
+  /*  Emit Surrogate Websocket and start events.  */
+  proxy_server.emit('surrogate.websocket', surrogate);
+  surrogate.emit('start');
 
   /*  Get websockets timeout.  */
   var websockets_timeout = DEFAULT_WEBSOCKETS_TIMEOUT;  /*  3600 secs.  */
@@ -393,13 +341,6 @@ function _websocketHandler(proxy_server, ws) {
   /*  Get the original request URI.  */
   var upg_requri = upgrade_req.url ? upgrade_req.url : '/';
 
-  /*  Set the ws_metrics remote address, vhost and request info.  */
-  ws_metrics.remote_addr  = upgrade_req.connection.remoteAddress  ||
-                            upgrade_req.socket.remoteAddress;
-  ws_metrics.host_name    = upg_reqhost;
-  ws_metrics.request_info = util.format('%s %s HTTP/%s', upgrade_req.method,
-                                        upg_requri, upgrade_req.httpVersion);
-
   /*  Get the routes to the destination (try with request URI first).  */
   var routes = proxy_server.getRoute(upg_reqhost + upg_requri);
   if (routes.length < 1) {
@@ -409,15 +350,14 @@ function _websocketHandler(proxy_server, ws) {
 
   /*  No route, no milk [, no cookies] ... return unexpected condition.  */
   if (!routes  ||  (routes.length < 1)  ||  (routes[0].length < 1) ) {
-    /*  Websocket routing error event.  */
-    proxy_server.emit('websocket.route.error', ws);
-
-    /*  Log websocket metrics.  */
-    log_websocket_metrics('websocket.route.error');
-
     /*  Send an unexpected condition error - no route.  */
-    return ws.close(statuscodes.WS_UNEXPECTED_CONDITION,
-                    proxy_server.config.routes.redirect_missing);
+    ws.close(statuscodes.WS_UNEXPECTED_CONDITION,
+             proxy_server.config.routes.redirect_missing);
+
+    /*  Emit websocket routing error event.  */
+    surrogate.emit('error', 'websocket.route.error');
+
+    return;
   }
 
 
@@ -429,78 +369,60 @@ function _websocketHandler(proxy_server, ws) {
   /*  Create a proxy websocket request we need to send.  */
   var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri);
 
+  /*  Set surrogate's backend information.  */
+  surrogate.setBackendInfo(proxy_ws);
+
   /*  Handle the proxy websocket error/open/close/message events.  */
   proxy_ws.on('error', function(err) {
-    /*  Websocket proxy error event.  */
-    proxy_server.emit('websocket.proxy.error', ws, proxy_ws);
-
     /*  Finish the websocket request w/ an unexpected condition status.  */
     ws.close(statuscodes.WS_UNEXPECTED_CONDITION);
     proxy_ws.terminate();
 
-    /*  Log websocket metrics.  */
-    log_websocket_metrics('websocket.proxy.error');
+    /*  Emit proxy websocket error event.  */
+    surrogate.emit('error', 'proxy.websocket.error');
   });
 
   proxy_ws.on('open', function() {
-    /*  Websocket proxy open event.  */
-    proxy_server.emit('websocket.proxy.open', ws, proxy_ws);
+    /*  Websocket proxy started event.  */
+    surrogate.emit('start-proxy-websocket');
   });
 
   proxy_ws.on('close', function() {
-    /*  Websocket proxy close event.  */
-    proxy_server.emit('websocket.proxy.close', ws, proxy_ws);
-
-    /*  Finish the websocket request normally.  */
+    /*  Finish the websocket request normally and emit end event.  */
     ws.close(statuscodes.WS_NORMAL_CLOSURE);
-
-    /*  Log websocket metrics.  */
-    log_websocket_metrics();
+    surrogate.emit('end-proxy-websocket');
   });
 
   proxy_ws.on('message', function(data, flags) {
-    /*  Websocket proxy data/message event.  */
-    proxy_server.emit('websocket.proxy.message', ws, proxy_ws);
+    /*  Emit websocket outbound data event.  */
+    surrogate.emit('outbound.data', data, flags);
 
     /*  Proxy message back to the websocket request originator.  */
     ws.send(data, flags);
-
-    /*  Increment number of outbound messages + bytes.  */
-    ws_metrics.messages_out += 1;
-    ws_metrics.bytes_out    += data.length;
   });
 
   /*  Handle the incoming websocket error/close/message events.  */
   ws.on('error', function() {
-    /*  Websocket error event.  */
-    proxy_server.emit('websocket.error', ws, proxy_ws);
-
     /*  Finish the websocket request w/ an unexpected condition status.  */
     proxy_ws.close(errorpages.WS_UNEXPECTED_CONDITION);
     ws.terminate();
 
-    /*  Log websocket metrics.  */
-    log_websocket_metrics('websocket.error');
+    /*  Emit websocket error event.  */
+    surrogate.emit('error', 'websocket.error');
   });
 
   ws.on('close', function() {
-    /*  Websocket close event.  */
-    proxy_server.emit('websocket.end', ws, proxy_ws);
-
-    /*  Finish the websocket request normally.  */
+    /*  Finish the websocket request normally and emit normal closure event.  */
     proxy_ws.close(errorpages.WS_NORMAL_CLOSURE);
+    surrogate.emit('end');
   });
 
   ws.on('message', function(data, flags) {
-    /*  Websocket data/message event.  */
-    proxy_server.emit('websocket.message', ws, proxy_ws);
+    /*  Emit inbound data event.  */
+    surrogate.emit('inbound.data', data, flags);
 
     /*  Proxy data to outgoing websocket to the backend content server.  */
     proxy_ws.send(data, flags);
-
-    /*  Increment number of inbound messages + bytes.  */
-    ws_metrics.messages_in += 1;
-    ws_metrics.bytes_in    += data.length;
   });
 
 };  /*  End of function  websocketHandler.  */
@@ -531,7 +453,7 @@ function _asyncLoadRouteFiles(routes, callback) {
     });
 
   }
-  
+
   var fileset = [ ];
 
   /*  Routes are in a file/list of files - set the fileset.  */
@@ -547,7 +469,7 @@ function _asyncLoadRouteFiles(routes, callback) {
   /*  Invoke the callback w/ the list/set of files.  */
   return callback(fileset);
 
-};  /*  End of function  _asyncLoadRouteFiles.  */ 
+};  /*  End of function  _asyncLoadRouteFiles.  */
 
 
 /*!
@@ -558,6 +480,103 @@ function _asyncLoadRouteFiles(routes, callback) {
 
 
 /*!  {{{  section:  'External-API-Functions'                             */
+
+/**
+ *  Constructs a new RequestSurrogate instance.
+ *
+ *  Examples:
+ *    var s = new RequestSurrogate(req, res);
+ *
+ *  @param   {ServerRequest}     HTTP Server Request
+ *  @param   {ServerResponse}    HTTP Server Response
+ *  @return  {RequestSurrogate}  new RequestSurrogate instance.
+ *  @api     public
+ */
+function RequestSurrogate(req, res) {
+  this.client = {
+    'request' : req,
+    'response': res
+  };
+
+  this.backend = { };
+
+  return this;
+
+};  /*  End of function  RequestSurrogate (constructor).  */
+
+
+/**
+ *  Inherit from EventsEmitter - this needs to be done before we add
+ *  any methods to the prototype. As util.inherits clobbers and
+ *  overlays RequestSurrogate.prototoype in the call below.
+ */
+util.inherits(RequestSurrogate, events.EventEmitter);
+
+
+/**
+ *  Attach outgoing request/response to this RequestSurrogate.
+ *
+ *  Examples:
+ *    var s = new RequestSurrogate(req, res);
+ *    s.setBackendInfo(preq, pres);
+ *
+ *  @param  {ClientRequest}   HTTP Client Request
+ *  @param  {ClientResponse}  HTTP Client Response
+ *  @api    public
+ */
+RequestSurrogate.prototype.setBackendInfo = function(preq, pres) {
+  this.backend.request  = preq;
+  this.backend.response = pres;
+
+};  /*  End of function  setBackendInfo.  */
+
+
+
+/**
+ *  Constructs a new WebSocketSurrogate instance.
+ *
+ *  Examples:
+ *    var s = new WebSocketSurrogate(ws);
+ *
+ *  @param   {WebSocket}           WebSocket request.
+ *  @return  {WebSocketSurrogate}  new WebSocketSurrogate instance.
+ *  @api     public
+ */
+function WebSocketSurrogate(ws) {
+  this.backend = { };
+  this.client  = { };
+
+  this.client.websocket = ws;
+
+  return this;
+
+};  /*  End of function  WebSocketSurrogate (constructor).  */
+
+
+/**
+ *  Inherit from EventsEmitter - this needs to be done before we add
+ *  any methods to the prototype. As util.inherits clobbers and
+ *  overlays WebSocketSurrogate.prototoype in the call below.
+ */
+util.inherits(WebSocketSurrogate, events.EventEmitter);
+
+
+/**
+ *  Attach proxy websocket to this WebSocketSurrogate.
+ *
+ *  Examples:
+ *    var s = new WebSocketSurrogate(ws);
+ *    s.setBackendInfo(proxy_ws);
+ *
+ *  @param  {WebSocket}  Outbound WebSocket
+ *  @api    public
+ */
+WebSocketSurrogate.prototype.setBackendInfo = function(ws) {
+  this.backend.websocket = ws;
+
+};  /*  End of function  setBackendInfo.  */
+
+
 
 /**
  *  Constructs a new ProxyServer instance.
@@ -612,6 +631,14 @@ function ProxyServer(f) {
   return this;
 
 };  /*  End of function  ProxyServer (constructor).  */
+
+
+/**
+ *  Inherit from EventsEmitter - this needs to be done before we add
+ *  any methods to the prototype. As util.inherits clobbers and
+ *  overlays ProxyServer.prototoype in the call below.
+ */
+util.inherits(ProxyServer, events.EventEmitter);
 
 
 /**
@@ -774,7 +801,7 @@ ProxyServer.prototype.initServer = function() {
       self.debug()  &&  Logger.debug('server %s proto=%s ws request %s',
                                      s, proto, ws.upgradeReq.url);
       _websocketHandler(self, ws);
-    }); 
+    });
 
     this.proto_servers[s]  = srvr;
     this.ws_servers[s] = wssrvr;
@@ -877,21 +904,6 @@ ProxyServer.prototype.stop = function() {
 };  /*  End of function  stop.  */
 
 
-
-/*  TODO:  No events support as yet -- for now, this is just for debugging. */
-
-/*  Inherit events from EventEmitter.  */
-// util.inherits(ProxyServer, events.EventEmitter);
-ProxyServer.prototype.emit = function(event, args) {
-  if (event  &&  (0 != event.indexOf('websocket.message'))  &&
-      (0 != event.indexOf('websocket.proxy') ) ) {
-    /*  Supress websocket "noise".  */
-    this.debug()  &&  Logger.debug('Proxy server emitted EVENT = ' + event);
-  }
-
-};
-
-
 /*!
  *  }}}  //  End of section  External-API-Functions.
  *  ---------------------------------------------------------------------
@@ -901,7 +913,9 @@ ProxyServer.prototype.emit = function(event, args) {
 
 /*!  {{{  section: 'Module-Exports'                                      */
 
-exports.ProxyServer = ProxyServer;
+exports.ProxyServer        = ProxyServer;
+exports.RequestSurrogate   = RequestSurrogate;
+exports.WebSocketSurrogate = WebSocketSurrogate;
 
 /*!
  *  }}}  //  End of section  Module-Exports.

@@ -249,7 +249,7 @@ var Logger = function(name, path_or_cfg) {
   /*  And finally register this logger.  */
   _register(name, this);
 
-  return this; 
+  return this;
 
 };  /*  End of function  Logger (constructor).  */
 
@@ -323,7 +323,7 @@ Logger.prototype.open = function() {
  *
  *  @api  public
  */
-Logger.prototype.close = function() { 
+Logger.prototype.close = function() {
   if (this._buffered_logs.length > 0) {
     if (this._stream) {
       this._stream.write(this._buffered_logs);
@@ -387,7 +387,7 @@ Logger.prototype.rollover = function() {
  *
  *  @api  public
  */
-Logger.prototype.destroy = function() { 
+Logger.prototype.destroy = function() {
   this.close();
   _deregister(this.name);
   delete this;
@@ -446,7 +446,7 @@ Logger.prototype.logMessage = function(msg, lvl) {
   if (zidx > logconstants.LOG_LEVELS.indexOf(this.log_level) ) {
      return;
   }
-  
+
   if (this._stream) {
     /*  TODO: handle kernel buffering and drain events.  */
     return this._stream.write(msg);
@@ -460,7 +460,7 @@ Logger.prototype.logMessage = function(msg, lvl) {
 /**
  *  Generate functions for all the log methods.
  *  This will generate functions for the Logger prototype which can be
- *  invoked as: 
+ *  invoked as:
  *    Logger.emergency, Logger.alert, Logger.critical, Logger.error,
  *    Logger.warn, Logger.warning, Logger.notice, Logger.info,
  *    Logger.debug, Logger.trace
@@ -532,7 +532,7 @@ exports.Logger     = Logger;
 
 /**
  *  Export all the log methods mapped to the default logger functions.
- *  This will generate exported functions: 
+ *  This will generate exported functions:
  *    exports.emergency, exports.emerg, exports.alert,
  *    exports.critical, exports.crit, exports.error, exports.err,
  *    exports.warning, exports.warn, exports.notice,
