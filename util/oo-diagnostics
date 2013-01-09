@@ -1003,7 +1003,8 @@ class OODiag
      end
      unless mlocate.empty?
         `updatedb`
-        out = `locate --regex \\\\.rpm\\([a-z]\\)`
+        out = `locate --regex \\.rpmsave\$ \\.rpmnew\$`
+
         do_warn <<-"WARN" unless out.empty?
            RPM package owned configuration files have been altered:
            #{out}
