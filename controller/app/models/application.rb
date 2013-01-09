@@ -345,8 +345,9 @@ class Application
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
   def remove_features(features, group_overrides=[])
+    installed_features = self.requires
     features.each do |feature|
-      raise OpenShift::UserException.new("Invalid feature #{feature}") unless self.requires.include? feature
+      raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'") unless installed_features.include? feature
     end
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
