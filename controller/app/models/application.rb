@@ -1581,6 +1581,7 @@ class Application
     component_instances.each do |component_instance|
       cart = CartridgeCache.find_cartridge(component_instance["cart"])
       prof = cart.profile_for_feature(component_instance["comp"])
+      prof = prof[0] if prof.is_a?(Array)
       comp = prof.get_component(component_instance["comp"])
       overrides += prof.group_overrides.map{ |go| go["cart_set"] = cart.name ; go["comp_set"] = comp.name ; go }
       overrides << {"components" => [{"cart" => cart.name, "comp" => comp.name}], "min_gears"=>comp.scaling.min, "max_gears"=>comp.scaling.max, "cart_set" => cart.name, "comp_set" => comp.name}
