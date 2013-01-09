@@ -39,7 +39,7 @@ function extract_submodules {
     rm -rf ${submodule_tmp_dir}
 }
 
-pushd ${src_dir}
+pushd ${src_dir} > /dev/null
 full_src_dir=`pwd`
 
 # archive and copy the main module
@@ -49,4 +49,4 @@ git archive --format=tar HEAD | (cd ${dest_dir} && tar --warning=no-timestamp -x
 # the submoules
 [ -f ${dest_dir}/.gitmodules ] && extract_submodules
 
-popd
+popd > /dev/null
