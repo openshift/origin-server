@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,41 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Bug 892906 - Fix client tools link (ccoleman@redhat.com)
+- Merge pull request #1130 from sg00dwin/bug892694-addon
+  (dmcphers+openshiftbot@redhat.com)
+- fix for Bug 892694 - When entering an invalid domain name or app name on the
+  app creation page, the text in the public URL is unreadable  - Set color to
+  inherit (white) so it displays on error red bg (sgoodwin@redhat.com)
+- Bug 889376 - Provide more clarification of what happens when creating an app
+  based on a git repo (ccoleman@redhat.com)
+- Merge pull request #1123 from sg00dwin/signup
+  (dmcphers+openshiftbot@redhat.com)
+- Added functional coverage / removed app template logic (hripps@redhat.com)
+- Create variables for border color; .ie specific styled moved to core
+  (sgoodwin@redhat.com)
+- Modified scalability tests to check for 'not_scalable' tags
+  (hripps@redhat.com)
+- Merge pull request #1100 from sg00dwin/misc-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Switch app url form to use lates twitter prepend.append and block them >480;
+  plus multiple cleanup changes (sgoodwin@redhat.com)
+- switch to <p> for spacing (sgoodwin@redhat.com)
+- Revised quickstart scalability check to handle nil summary (nhr@redhat.com)
+- Faster regex + DRYer mocking for unit tests (nhr@redhat.com)
+- Added unit tests for quickstart scalability parsing (nhr@redhat.com)
+- Quickstart scalability now determined in summary field (nhr@redhat.com)
+- Merge pull request #1092 from smarterclayton/mock_environments_for_test
+  (openshift+bot@redhat.com)
+- Merge pull request #1083 from bdecoste/master (openshift+bot@redhat.com)
+- Mock environment call for simplicity in some states (ccoleman@redhat.com)
+- Merge pull request #1081 from smarterclayton/quickstart_nil_error
+  (openshift+bot@redhat.com)
+- re-enabed ews2 (bdecoste@gmail.com)
+- A nil error is displayed when quickstarts are shown with type length == 1
+  (ccoleman@redhat.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Added a specific fix for quickstarts and two related improvements to the app
   config page (hripps@redhat.com)
