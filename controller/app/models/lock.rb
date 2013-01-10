@@ -35,7 +35,7 @@ class Lock
     begin
       timenow = Time.now.to_i
       lock = Lock.find_or_create_by( :user_id => user._id )
-      lock = Lock.where( {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lte => timenow}], :app_ids.in => [app._id]} ).find_and_modify( {"$set" => { locked: true, timeout: (timenow+600) }}, new:true)
+      lock = Lock.where( {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lte => timenow}], :app_ids => app._id} ).find_and_modify( {"$set" => { locked: true, timeout: (timenow+600) }}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -52,7 +52,7 @@ class Lock
   # True if the unlock was succesful.
   def self.unlock_user(user, app)
     begin    
-      lock = Lock.where( { :user_id => user._id, :locked => true, :app_ids.in => [app._id]} ).find_and_modify( {"$set" => { "locked" => false}}, new:false)
+      lock = Lock.where( { :user_id => user._id, :locked => true, :app_ids => app._id} ).find_and_modify( {"$set" => { "locked" => false}}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -90,7 +90,7 @@ class Lock
   def self.unlock_application(application)
     begin    
       user_id = application.domain.owner_id
-      lock = Lock.where( { user_id: user_id, locked: false, :app_ids.in => [application._id]} ).find_and_modify( {"$pop"=> {app_ids: application._id}}, new:false)
+      lock = Lock.where( { user_id: user_id, locked: false, :app_ids => application._id} ).find_and_modify( {"$pull"=> {app_ids: application._id}}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to unlock application #{application.name}: #{ex.message}"

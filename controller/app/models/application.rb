@@ -971,7 +971,7 @@ class Application
         Lock.unlock_application(application)
       end
     else
-      raise "Unable to perform action. Another operation is already running."
+      raise OpenShift::LockUnavailableException.new("Unable to perform action. Another operation is already running.")
     end
   end
 
