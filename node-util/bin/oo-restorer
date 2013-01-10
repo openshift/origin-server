@@ -64,7 +64,8 @@ fi
 # code copied from node/lib/util_ext
 runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
 
-/usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
+# timeout take from oo-admin-ctl-gears
+/usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
 
 HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
 
