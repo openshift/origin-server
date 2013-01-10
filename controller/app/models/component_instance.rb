@@ -25,6 +25,11 @@ class ComponentInstance
     cart = CartridgeCache.find_cartridge(cartridge_name)
     cart.is_plugin?
   end
+  
+  def is_embeddable?
+    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart.is_embeddable?
+  end
 
   def group_instance
     self.application.group_instances.find(self.group_instance_id)

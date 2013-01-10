@@ -61,6 +61,10 @@ module OpenShift
       return categories.include?('cartridge')
     end
     
+    def is_embeddable?
+      return categories.include?('embedded')
+    end
+    
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"

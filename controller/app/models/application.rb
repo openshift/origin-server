@@ -1266,7 +1266,7 @@ class Application
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      if !self.scalable || component_instance.is_plugin?
+      if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         if component_instance.is_singleton?
           ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
         else

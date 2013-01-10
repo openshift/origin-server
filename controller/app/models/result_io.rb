@@ -105,7 +105,7 @@ class ResultIO
           elsif line =~ /^CLIENT_DEBUG: /
             self.debugIO << line['CLIENT_DEBUG: '.length..-1]
           elsif line =~ /^CLIENT_INTERNAL_ERROR: /
-            result.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
+            self.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
           else
             self.errorIO << line['CLIENT_ERROR: '.length..-1]
             self.hasUserActionableError = true
