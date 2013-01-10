@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.3.2
+Version: 1.3.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -88,6 +88,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Add missing routes.json configuration for jenkins apps. (ramr@redhat.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - use /etc/alternatives/jre for jenkins (bdecoste@gmail.com)
 
