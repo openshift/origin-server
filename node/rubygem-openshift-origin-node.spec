@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.1
+Version: 1.3.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -174,6 +174,16 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Merge pull request #1120 from sosiouxme/BZ876324
+  (dmcphers+openshiftbot@redhat.com)
+- BZ876324 resolve ServerName/NameVirtualHost situation for
+  node/broker/ssl.conf (lmeyer@redhat.com)
+- Update rhc command usage. Addresses BZ889018. (asari.ruby@gmail.com)
+- Typo. (rmillner@redhat.com)
+- BZ 888410: The reader sequence can block if there is too much stderr
+  (rmillner@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
