@@ -2853,7 +2853,7 @@ module OpenShift
           districts = District.find_all # candidate for caching
           rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
             districts.each do |district|
-              if district.server_identities.has_key?(server)
+              if district.server_identities_hash.has_key?(server)
                 server_infos << [server, capacity.to_f, district]
                 break
               end

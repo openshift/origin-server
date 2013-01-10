@@ -3,6 +3,7 @@ class District
   include Mongoid::Timestamps
 
   field :name, type: String
+  field :uuid, type: String, default: ""
   field :gear_size, type: String
   field :externally_reserved_uids_size, type: Integer
   field :max_capacity, type: Integer
@@ -10,7 +11,7 @@ class District
   field :available_uids, type: Array, default: []
   field :available_capacity, type: Integer
   field :active_server_identities_size, type: Integer
-  field :server_identities_array, type: Array
+  field :server_identities, type: Array
 
 #  attr_accessor :server_identities, :active_server_identities_size, :uuid, :creation_time, :available_capacity, :available_uids, :max_uid, :max_capacity, :externally_reserved_uids_size, :node_profile, :name
 
@@ -28,7 +29,8 @@ class District
   
   def initialize(attrs = nil, options = nil)
     super
-    self.server_identities_array = []
+    self.server_identities = []
+    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.available_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.available_uids = []
     self.available_uids.fill(0, Rails.configuration.msg_broker[:districts][:max_capacity]) {|i| i+Rails.configuration.msg_broker[:districts][:first_uid]}
@@ -50,19 +52,15 @@ class District
   end
 
   def delete()
-    if not server_identities_array.empty?
+    if not server_identities.empty?
       raise OpenShift::OOException.new("Couldn't destroy district '#{name}' because it still contains nodes")
     end
     super
   end
 
-  def uuid
-    return _id
-  end
-  
   def add_node(server_identity)
     if server_identity
-      found = District.in("server_identities_array.name" => [server_identity]).exists?
+      found = District.in("server_identities.name" => [server_identity]).exists?
       unless found
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         begin
@@ -71,9 +69,8 @@ class District
             container_node_profile = container.get_node_profile
             if container_node_profile == gear_size
               container.set_district("#{_id}", true)
-              # OpenShift::DataStore.instance.add_district_node(@uuid, server_identity)
               self.active_server_identities_size += 1
-              self.server_identities_array << { "name" => server_identity, "active" => true}
+              self.server_identities << { "name" => server_identity, "active" => true}
               self.save
             else
               raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
@@ -92,13 +89,9 @@ class District
     end
   end
 
-  def server_identities
-    server_identities_hash
-  end
-
   def server_identities_hash
     sih = {}
-    server_identities_array.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"]} }
+    server_identities.each { |server_identity_info| sih[server_identity_info["name"]] = { "active" => server_identity_info["active"]} }
     sih
   end
   
@@ -108,9 +101,9 @@ class District
       unless server_map[server_identity]["active"]
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         capacity = container.get_capacity
-        if capacity == 0
+        if capacity == 0 or capacity==0.0
           container.set_district('NONE', false)
-          server_identities_array.delete({ "name" => server_identity, "active" => false} )
+          server_identities.delete({ "name" => server_identity, "active" => false} )
           if not self.save
             raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{_id}")
           end
@@ -129,7 +122,7 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       if server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities_array.name" => server_identity ).find_and_modify({ "$set" => { "server_identities_array.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
+        District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
         self.reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", false)
@@ -145,7 +138,7 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities_array.name" => server_identity ).find_and_modify({ "$set" => { "server_identities_array.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
+        District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
         self.reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", true)
@@ -158,12 +151,12 @@ class District
   end
 
   def self.reserve_uid(uuid)
-    obj = District.where("_id" => uuid).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
+    obj = District.where("uuid" => uuid).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
     obj.available_uids.first
   end
 
   def self.unreserve_uid(uuid, uid)
-    District.where(:_id => uuid, :available_uids.nin => [uid]).find_and_modify({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
+    District.where(:uuid => uuid, :available_uids.nin => [uid]).find_and_modify({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
   end
   
   def add_capacity(num_uids)
@@ -200,7 +193,6 @@ class District
       if !found_first_pos
         raise OpenShift::OOException.new("Missing uid: #{subtractions[0]} in existing available_uids.  Can not continue!")
       end
-      # OpenShift::DataStore.instance.remove_district_uids(uuid, subtractions)
       self.available_capacity -= num_uids
       self.max_uid -= num_uids
       self.max_capacity -= num_uids
@@ -212,7 +204,7 @@ class District
   end
 
   def self.inc_externally_reserved_uids_size(uuid)
-    District.where("_id" => uuid).find_and_modify({ "$inc" => { "externally_reserved_uids_size" => 1} })
+    District.where("uuid" => uuid).find_and_modify({ "$inc" => { "externally_reserved_uids_size" => 1} })
   end
   
 end
