@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version: 0.4.1
+Version: 0.4.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -134,6 +134,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Case-insensitive vhost routing support. (ramr@redhat.com)
+- Plugin work, rearrange bits, add help, fix spec file. (ramr@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
