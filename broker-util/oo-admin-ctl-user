@@ -176,7 +176,7 @@ def remove_sub_account(user, subaccount_login)
     
     print "Removing subaccount for #{child_user.login} under #{user.login}... "
     begin
-      child_user.delete
+      child_user.force_delete
     rescue Exception => e
       puts "An error occurred removing the sub account for #{subaccount_login} : #{e.message}"
       exit 6

@@ -16,19 +16,13 @@ class UserController < BaseController
     return render_error(:not_found, "User '#{@login}' not found", 99, "DELETE_USER") unless @cloud_user
     return render_error(:forbidden, "User deletion not permitted. Only applicable for subaccount users.", 138, "DELETE_USER") unless @cloud_user.parent_user_id
   
-    if force
-      @cloud_user.domains.each do |domain|
-        domain.applications.each do |app|
-          app.destroy_app
-        end if domain.applications.count > 0
-        domain.delete
-      end if @cloud_user.domains.count > 0
-    elsif @cloud_user.domains.count > 0
-      return render_error(:unprocessable_entity, "User '#{@login}' has valid domains. Either delete domains and retry the operation or use 'force' option.", 139, "DELETE_USER")
-    end
-  
     begin
-      @cloud_user.delete
+      if force
+        @cloud_user.force_delete
+      else
+        return render_error(:unprocessable_entity, "User '#{@login}' has valid domains. Either delete domains and retry the operation or use 'force' option.", 139, "DELETE_USER") if @cloud_user.domains.count > 0
+        @cloud_user.delete
+      end
       render_success(:no_content, nil, nil, "DELETE_USER", "User #{@login} deleted.", true)
     rescue Exception => e
       return render_exception(e, "DELETE_USER")

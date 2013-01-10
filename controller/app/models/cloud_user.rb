@@ -165,7 +165,18 @@ class CloudUser
       self.capabilities = user_capabilities
     end
   end
-  
+
+  # Delete user and all its artifacts like domains, applications associated with the user 
+  def force_delete
+    self.domains.each do |domain|
+      domain.applications.each do |app|
+        app.destroy_app
+      end if domain.applications.count > 0
+      domain.delete
+    end if self.domains.count > 0
+    self.delete
+  end
+ 
   # Runs all jobs in :init phase and stops at the first failure.
   #
   # == Returns:
