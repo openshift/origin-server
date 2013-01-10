@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,18 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- increased jenkins test timeout (bdecoste@gmail.com)
+- Merge pull request #1134 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- updated ews2 tests (bdecoste@gmail.com)
+- Fix BZ892006: Make postgresql socket file access solvent and add tests for
+  postgres and mysql socket files. (pmorie@gmail.com)
+- added ews2 tests (bdecoste@gmail.com)
+- Refactor to use env var rather than output from hook (jhonce@redhat.com)
+- Merge pull request #1083 from bdecoste/master (openshift+bot@redhat.com)
+- re-enabed ews2 (bdecoste@gmail.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
