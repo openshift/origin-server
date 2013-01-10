@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 1.3.1
+Version: 1.3.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -202,6 +202,17 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Round 2: Update ruby19-scl cart configs to 3.0.17 passenger
+  (admiller@redhat.com)
+- Revert "Update broker and site configs to 3.0.17 passenger"
+  (admiller@redhat.com)
+- Update broker and site configs to 3.0.17 passenger (admiller@redhat.com)
+- Merge pull request #1112 from mrunalp/bugs/891431
+  (dmcphers+openshiftbot@redhat.com)
+- Fix BZ864797: Add doc for disable_auto_scaling marker (pmorie@gmail.com)
+- Fix for BZ 891431. (mpatel@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
