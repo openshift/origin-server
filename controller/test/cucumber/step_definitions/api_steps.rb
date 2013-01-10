@@ -168,7 +168,10 @@ Then /^the response should be one of "([^\"]*)"$/ do |acceptable_statuses|
   response_acceptable = false
   statuses = acceptable_statuses.split(",")
   statuses.each do | status|
-    response_acceptable = @response.code == status.to_i
+    if @response.code == status.to_i
+      response_acceptable = true 
+      break
+    end
   end
   puts "#{@response.body}"  unless response_acceptable
   response_acceptable.should == true
