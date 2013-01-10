@@ -27,17 +27,13 @@ class Gear
     
     super(attrs, options)
     self._id = custom_id unless custom_id.nil?
+    self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     #@TODO: Remove when typeless gears is completed
     if app_dns
       self.name = group_instance.application.name
     else
       self.name = self._id.to_s[0..9]
     end
-  end
-
-  def uuid
-    @uuid = self._id.to_s if @uuid=="" or @uuid.nil?
-    return @uuid
   end
 
   def self.base_filesystem_gb(gear_size)
@@ -183,7 +179,7 @@ class Gear
     }
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0
-        Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}", 143)
+        Rails.logger.error("Error getting application state from gear: '#{gear}' with status: '#{status}' and output: #{output}")
         gear_states[gear] = 'unknown'
       else
         gear_states[gear] = output
