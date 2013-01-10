@@ -16,8 +16,6 @@ Cart-Data:
     Description: "10gen-mms-agent-0.1 monitoring URL"
 Provides:
   - "10gen-mms-agent-0.1"
-Requires:
-  - "mongodb"
 Subscribes:
   set-mongo-connection-info:
     Type: "NET_TCP:db:mongodb"
