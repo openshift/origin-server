@@ -319,11 +319,12 @@ stopuser() {
 
     if [ $RETVAL -eq 0 ]
     then
-        echo -n "[ OK ]"
+        echo -n " [OK] "
     else
         GROUP_RETVAL=$(($GROUP_RETVAL+1))
-        echo -n "[ FAILED ]"
+        echo -n " [FAILED] "
     fi
+    echo
 }
 
 stopall() {
