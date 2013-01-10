@@ -2092,7 +2092,6 @@ module OpenShift
       # * uses do_with_retry
       #
       def get_cart_status(app, gear, cart_name)
-        reply = ResultIO.new
         source_container = gear.get_proxy
         leave_stopped = false
         idle = false
@@ -2101,26 +2100,20 @@ module OpenShift
         log_debug "DEBUG: Getting existing app '#{app.name}' status before moving"
         do_with_retry('status') do
           result = source_container.status(app, gear, cart_name)
-          result.cart_commands.each do |command_item|
-            case command_item[:command]
-            when "ATTR"
-              key = command_item[:args][0]
-              value = command_item[:args][1]
-              if key == 'status'
-                case value
-                when "ALREADY_STOPPED"
-                  leave_stopped = true
-                when "ALREADY_IDLED"
-                  leave_stopped = true
-                  idle = true
-                end
-              elsif key == 'quota_blocks'
-                quota_blocks = value
-              elsif key == 'quota_files'
-                quota_files = value
+          result.properties["attributes"][gear.uuid].each do |key, value|
+            if key == 'status'
+              case value
+              when "ALREADY_STOPPED"
+                leave_stopped = true
+              when "ALREADY_IDLED"
+                leave_stopped = true
+                idle = true
               end
+            elsif key == 'quota_blocks'
+              quota_blocks = value
+            elsif key == 'quota_files'
+              quota_files = value
             end
-            reply.append result
           end
         end
 
