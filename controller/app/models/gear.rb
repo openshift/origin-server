@@ -73,11 +73,15 @@ class Gear
   end
   
   def create_gear
-    @container.create(app,self)
+    result_io = @container.create(app,self)
+    app.process_commands(result_io)
+    result_io
   end
   
   def destroy_gear
-    @container.destroy(app,self)
+    result_io = @container.destroy(app,self)
+    app.process_commands(result_io)
+    result_io
   end
   
   def register_dns

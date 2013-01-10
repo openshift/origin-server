@@ -324,7 +324,7 @@ class Application
     if self.scalable
       features.each do |feature_name|
         cart = CartridgeCache.find_cartridge(feature_name)
-        unless feature_name == 'web_proxy' || cart.categories.include?("cartridge") || cart.categories.include?("ci_builder") || cart.categories.include?("plugin")
+        unless cart.is_plugin? || cart.is_service?
           raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
         end
       end
@@ -769,11 +769,13 @@ class Application
     add_ssh_keys = []
     remove_ssh_keys = []
 
+    remove_env_vars = []
+
     domain_keys_to_add = []
     domain_keys_to_rm = []
 
-    env_vars_to_add = []
-    env_vars_to_rm = []
+    domain_env_vars_to_add = []
+    domain_env_vars_to_rm = []
 
     commands.each do |command_item|
       case command_item[:command]
@@ -789,10 +791,12 @@ class Application
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
         end
+      when "APP_ENV_VAR_REMOVE"
+        remove_env_vars.push({"key" => command_item[:args][0]})
       when "ENV_VAR_ADD"
-        env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1]})
+        domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1]})
       when "ENV_VAR_REMOVE"
-        env_vars_to_rm.push({"key" => command_item[:args][0]})
+        domain_env_vars_to_rm.push({"key" => command_item[:args][0]})
       when "BROKER_KEY_ADD"
         iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
         pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token })
@@ -809,16 +813,20 @@ class Application
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pushAll" => { app_ssh_keys: keys_attrs }})
     end
     if remove_ssh_keys.length > 0
-      keys_attrs = add_ssh_keys.map{|k| k.attributes.dup}
+      keys_attrs = remove_ssh_keys.map{|k| k.attributes.dup}
       pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => keys_attrs})
       Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }, "$pullAll" => { app_ssh_keys: keys_attrs }})
+    end
+    if remove_env_vars.length > 0
+      pending_op = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_env_vars" => remove_env_vars})
+      Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash }})
     end
 
     # Have to remember to run_jobs for the other apps involved at some point
     domain.remove_system_ssh_keys(domain_keys_to_rm) if !domain_keys_to_rm.empty?
-    domain.remove_env_variables(env_vars_to_rm) if !env_vars_to_rm.empty?
+    domain.remove_env_variables(domain_env_vars_to_rm) if !domain_env_vars_to_rm.empty?
     domain.add_system_ssh_keys(domain_keys_to_add) if !domain_keys_to_add.empty?
-    domain.add_env_variables(env_vars_to_add) if !env_vars_to_add.empty?
+    domain.add_env_variables(domain_env_vars_to_add) if !domain_env_vars_to_add.empty?
     nil
   end
 
@@ -1258,11 +1266,13 @@ class Application
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
-      if component_instance.is_singleton?
-        ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
-      else
-        group_instance.gears.each do |gear|
-          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec}))
+      if !self.scalable || component_instance.is_plugin?
+        if component_instance.is_singleton?
+          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
+        else
+          group_instance.gears.each do |gear|
+            ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec}))
+          end
         end
       end
       ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: ops.map{|o| o._id.to_s}))
