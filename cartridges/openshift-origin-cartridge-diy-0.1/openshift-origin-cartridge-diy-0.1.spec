@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.3.1
+Version: 1.3.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Add missing routes.json configuration for jboss* app types + minor cleanup.
+  (ramr@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
