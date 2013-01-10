@@ -475,7 +475,7 @@ case "$1" in
     ;;
 
   *)
-    echo $"Usage: $0 {start|stop|status|restart|condrestart|startuser <username>|stopuser <username>}"
+    echo $"Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>}"
     exit 1
 esac
 
