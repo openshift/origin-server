@@ -1,5 +1,6 @@
 @runtime
 @runtime4
+@not-enterprise
 Feature: Cartridge Lifecycle PHP Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

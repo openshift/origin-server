@@ -1,5 +1,6 @@
 @runtime
 @runtime1
+@not-enterprise
 Feature: Cartridge Lifecycle Ruby Verification Tests
   Scenario Outline: Application Creation
     Given the libra client tools

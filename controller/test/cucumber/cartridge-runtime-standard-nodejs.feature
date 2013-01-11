@@ -1,5 +1,6 @@
 @runtime
 @not-origin
+@not-enterprise
 Feature: Cartridge Runtime Standard Checks (Node)
 
   @runtime1
