@@ -92,4 +92,6 @@ end
 
 Then /^I deconfigure the diy application with jenkins enabled$/ do
     rhc_ctl_destroy(@app, false)
+    @app.name='jenkins'
+    rhc_ctl_destroy(@app, false)
 end
