@@ -169,6 +169,23 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.0-1
+- Bumping specs to at least 1.1 (dmcphers@redhat.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+- specifying mocha gem version and fixing tests (abhgupta@redhat.com)
+- BZ873970, BZ873966 - disabling HTTP TRACE for the Broker, Nodes and Console
+  (bleanhar@redhat.com)
+- Merge pull request #808 from Miciah/move-env-setting-from-environment.rb-to-
+  boot.rb (openshift+bot@redhat.com)
+- Adding rewrites to / to go to /console for http and https vhosts Added
+  NamedVirtualHost for the 443 vhost to avoid conflict with ssl.conf
+  (calfonso@redhat.com)
+- Set ENV["RAILS_ENV"] in boot.rb (miciah.masters@gmail.com)
+- Removing node gem requirement from broker script (kraman@gmail.com)
+- Bug 871436 - moving the default path for AUTH_PRIVKEYFILE and AUTH_PUBKEYFILE
+  under /etc (bleanhar@redhat.com)
+- Merge pull request #786 from danmcp/master (openshift+bot@redhat.com)
 * Mon Oct 22 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.17-1
 - Merge pull request #737 from sosiouxme/master (dmcphers@redhat.com)
 - Merge pull request #734 from danmcp/master (openshift+bot@redhat.com)
