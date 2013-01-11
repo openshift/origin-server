@@ -32,6 +32,4 @@ function prepare_gear_for_standalone_mongodb() {
     $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $PROXY_IP
 
     disable_stale_detection
-
-    restart_httpd_graceful
 }

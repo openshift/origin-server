@@ -1312,6 +1312,52 @@ module OpenShift
       end
 
       #
+      # Extracts the frontend httpd server configuration from a gear.
+      #
+      # INPUTS:
+      # * app: A Application object
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * String - backup blob from the front-end server
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * executes the 'frontend-backup' action on the gear.
+      # * method on the FrontendHttpd class
+      #
+      #
+      def frontend_backup(app, gear)
+        args = Hash.new
+        args['--with-container-uuid']=gear.uuid
+        args['--with-container-name']=gear.name
+        args['--with-namespace']=app.domain.namespace
+        result = execute_direct(@@C_CONTROLLER, 'frontend-backup', args)
+        result = parse_result(result)
+        result.resultIO.string
+      end
+
+      #
+      # Transmits the frontend httpd server configuration to a gear.
+      #
+      # INPUTS:
+      # * backup: string which was previously returned by frontend_backup
+      #
+      # RETURNS:
+      # * String - "parsed result" of an MCollective reply
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * executes the 'frontend-backup' action on the gear.
+      # * method on the FrontendHttpd class
+      #
+      #
+      def frontend_restore(backup)
+        result = execute_direct(@@C_CONTROLLER, 'frontend-backup', {'--with-backup' => backup})
+        parse_result(result)
+      end
+
+      #
       # Get status on an add env var job?
       #
       # INPUTS:
@@ -1742,6 +1788,7 @@ module OpenShift
               next if cinst.is_singleton? and (not gear.host_singletons)
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
+
               if keep_uid
                 if framework_carts.include?(cart)
                   log_debug "DEBUG: Restarting httpd proxy for '#{cart}' on #{destination_container.id}"
@@ -2003,6 +2050,10 @@ module OpenShift
           if $?.exitstatus != 0
             raise OpenShift::NodeException.new("Error moving system components for app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
           end
+
+          # Transfer the front-end configuration to the new gear
+          backup = source_container.frontend_backup(app, gear)
+          reply.append destination_container.frontend_restore(backup)
         end
         reply
       end

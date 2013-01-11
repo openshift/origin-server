@@ -47,8 +47,7 @@ CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
 . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
 
 idle=false
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
-if [ -f $HTTP_DIR/0000000000000_disabled.conf ]
+if oo-frontend-check-idle --with-container-uuid "$uuid" --with-container-name "$application" --with-namespace "$namespace"
 then
   idle=true
 fi
@@ -68,5 +67,3 @@ if $idle
 then
   oo-idler -u $uuid
 fi
-
-restart_httpd_graceful

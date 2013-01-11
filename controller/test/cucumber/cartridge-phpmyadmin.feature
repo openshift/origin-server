@@ -8,7 +8,7 @@ Feature: phpMyAdmin Embedded Cartridge
     
     When I embed a mysql-5.1 cartridge into the application
     And I embed a <phpmyadmin_version> cartridge into the application
-    Then the embedded <phpmyadmin_version> cartridge http proxy file will exist
+    Then the http proxy /phpmyadmin will exist
     And 4 processes named httpd will be running
     And the embedded <phpmyadmin_version> cartridge directory will exist
     And the embedded <phpmyadmin_version> cartridge log files will exist
@@ -27,7 +27,7 @@ Feature: phpMyAdmin Embedded Cartridge
 
     When I destroy the application
     Then 0 processes named httpd will be running
-    And the embedded <phpmyadmin_version> cartridge http proxy file will not exist
+    And the http proxy /phpmyadmin will not exist
     And the embedded <phpmyadmin_version> cartridge directory will not exist
     And the embedded <phpmyadmin_version> cartridge log files will not exist
     
