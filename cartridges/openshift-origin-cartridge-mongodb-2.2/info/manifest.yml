@@ -6,7 +6,7 @@ License: ASL 2.0
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Vendor: 10gen
 Categories:
-  - cartridge
+  - service
   - database
   - nosql
   - embedded

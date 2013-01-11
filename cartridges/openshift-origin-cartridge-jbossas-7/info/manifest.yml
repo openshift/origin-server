@@ -5,6 +5,7 @@ Version: 7.1.0
 License: ASL 2.0
 Vendor:  jboss.org
 Categories:
+  - service
   - web_framework
   - java
   - jboss

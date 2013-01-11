@@ -6,7 +6,7 @@ License: ASL 2.0
 Vendor: www.nodejs.org
 Website: "http://www.nodejs.org/"
 Categories:
-  - cartridge
+  - service
   - javascript
   - nodejs
   - web_framework

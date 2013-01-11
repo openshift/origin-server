@@ -5,6 +5,7 @@ Version: 2.0.0
 License: ASL 2.0
 Vendor:  jboss.com
 Categories:
+  - service
   - java
   - jboss
   - tomcat

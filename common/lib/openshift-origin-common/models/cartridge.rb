@@ -58,9 +58,9 @@ module OpenShift
     end
     
     def is_service?
-      return categories.include?('cartridge')
+      return categories.include?('service')
     end
-    
+
     def is_embeddable?
       return categories.include?('embedded')
     end

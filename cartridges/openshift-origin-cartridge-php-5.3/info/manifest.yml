@@ -6,7 +6,7 @@ License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
 Vendor: php.net
 Categories:
-  - cartridge
+  - service
   - php
   - web_framework
 Website: http://www.php.net

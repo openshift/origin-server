@@ -4,7 +4,7 @@ Description: "Perl is a high-level, general-purpose, interpreted, dynamic progra
 Version: 1.0.0
 License: ASL 2.0
 Categories:
-  - cartridge
+  - service
   - perl
   - web_framework
 Website: "http://www.perl.org"

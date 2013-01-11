@@ -5,7 +5,7 @@ Display-Name: PostgreSQL Database 8.4
 Description: "PostgreSQL is an advanced Object-Relational database management system"
 Vendor: 
 Categories:
-  - cartridge
+  - service
   - database
   - embedded
 License: ASL 2.0

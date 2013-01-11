@@ -6,7 +6,7 @@ Description: "MySQL is a multi-user, multi-threaded SQL database server."
 Vendor: Oracle
 License: ASL 2.0
 Categories:
-  - cartridge
+  - service
   - database
   - embedded
 Website: http://www.mysql.com
