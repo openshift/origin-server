@@ -1,5 +1,6 @@
 @runtime
 @runtime1
+@not-enterprise
 Feature: MongoDB Application Sub-Cartridge
   
   Scenario: Create Delete one application with a MongoDB database
