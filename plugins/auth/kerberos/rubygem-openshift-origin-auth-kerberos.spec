@@ -92,6 +92,11 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.0-1
+- Bumping specs to at least 1.1 (dmcphers@redhat.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- Bug 871436 - moving the default path for AUTH_PRIVKEYFILE and AUTH_PUBKEYFILE
+  under /etc (bleanhar@redhat.com)
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.8.9-1
 - 
 
