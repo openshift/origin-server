@@ -94,6 +94,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.0-1
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+- Bumping specs to at least 1.1 (dmcphers@redhat.com)
 * Tue Oct 23 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.12-1
 - removing remaining cases of SS and config.ss (dmcphers@redhat.com)
 - Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
