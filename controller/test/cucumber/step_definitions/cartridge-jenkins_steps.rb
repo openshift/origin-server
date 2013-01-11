@@ -77,6 +77,8 @@ Then /^the application will be updated$/ do
         $logger.debug "@jenkins_build response = #{response}"
 
         job = JSON.parse(response)
+      rescue => e
+        $logger.warn "Unexpected exception checking update: #{e.message}\n#{e.backtrace.join("\n")}"
       end while job['color'] != 'blue'
     end
     job['color'].should be == 'blue' 
