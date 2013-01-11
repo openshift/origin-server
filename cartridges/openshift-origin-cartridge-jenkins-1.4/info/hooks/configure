@@ -186,8 +186,8 @@ client_result ""
 client_result "Note:  You can change your password at: https://${application}-${namespace}.${CLOUD_DOMAIN}/me/configure"
 client_result ""
 
-cart_props "username=system_builder"
-cart_props "password=$system_builder_password"
+cart_props "username=admin"
+cart_props "password=$admin_password"
 
 add_env_var "JENKINS_URL=https://${application}-${namespace}.${CLOUD_DOMAIN}/"
 add_env_var "JENKINS_USERNAME=system_builder"
