@@ -94,7 +94,7 @@ class ApplicationsController < BaseController
                           109, "ADD_APPLICATION", "cartridge")
       end
       app_creation_result = ResultIO.new
-      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url)
+      application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
 
       @application_name = application.name
       @application_uuid = application._id.to_s

@@ -23,6 +23,7 @@ class PendingAppOpGroup
   field :num_gears_created, type: Integer, default: 0
   field :num_gears_destroyed, type: Integer, default: 0
   field :num_gears_rolled_back, type: Integer, default: 0
+  field :user_agent, type: String, default: ""
   
   def initialize(attrs = nil, options = nil)
     parent_opid = nil
