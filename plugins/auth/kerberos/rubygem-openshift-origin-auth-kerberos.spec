@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for kerberos auth service
 Name:           rubygem-%{gem_name}
-Version:        1.1.0
+Version:        1.1.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -92,6 +92,39 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
+- updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
+- improve the description of the kerberos plugin (misc@zarb.org)
+- add instruction to generate the certificate (misc@zarb.org)
+- use a random salt, so someone doing cut and paste from the documentation
+  doesn't end with a know salt by neglect (misc@zarb.org)
+- remove uneeded object creation, as they are not used later (misc@zarb.org)
+- add config to gemspec (dmcphers@redhat.com)
+- Moving plugins to Rails 3.2.8 engine (kraman@gmail.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- Bug 871436 - moving the default path for AUTH_PRIVKEYFILE and AUTH_PUBKEYFILE
+  under /etc (bleanhar@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- Fixed broker/node setup scripts to install cgroup services. Fixed
+  mcollective-qpid plugin so it installs during origin package build. Updated
+  cgroups init script to work with both systemd and init.d Updated oo-trap-user
+  script Renamed oo-cgroups to openshift-cgroups (service and init.d) and
+  created oo-admin-ctl-cgroups Pulled in oo-get-mcs-level and abstract/util
+  from origin-selinux branch Fixed invalid file path in rubygem-openshift-
+  origin-auth-mongo spec Fixed invlaid use fo Mcollective::Config in
+  mcollective-qpid-plugin (kraman@gmail.com)
+- Centralize plug-in configuration (miciah.masters@gmail.com)
+- Removing old build scripts Moving broker/node setup utilities into util
+  packages Fix Auth service module name conflicts (kraman@gmail.com)
+- Module name and gem path fixes for auth plugins (kraman@gmail.com)
+
 * Mon Oct 08 2012 Dan McPherson <dmcphers@redhat.com> 0.8.9-1
 - 
 
