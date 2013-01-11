@@ -64,6 +64,7 @@ class PendingAppOpGroup
           end
         end
 
+        Rails.logger.debug "Rollback #{op.op_type}"
         case op.op_type
         when :create_group_instance
           group_instance.delete
@@ -137,7 +138,8 @@ class PendingAppOpGroup
               component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
             end
           end
-          
+
+          Rails.logger.debug "Execute #{op.op_type}"
           case op.op_type
           when :create_group_instance
             application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"], gear_size: op.args["gear_size"] ? op.args["gear_size"] : 'small'))
