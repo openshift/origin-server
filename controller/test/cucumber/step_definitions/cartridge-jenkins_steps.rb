@@ -77,6 +77,8 @@ Then /^the application will be updated$/ do
         $logger.debug "@jenkins_build response = #{response}"
 
         job = JSON.parse(response)
+      rescue => e
+        $logger.warn "Unexpected exception checking update: #{e.message}\n#{e.backtrace.join("\n")}"
       end while job['color'] != 'blue'
     end
     job['color'].should be == 'blue' 
@@ -89,5 +91,7 @@ Then /^the application will be updated$/ do
 end
 
 Then /^I deconfigure the diy application with jenkins enabled$/ do
+    rhc_ctl_destroy(@app, false)
+    @app.name='jenkins'
     rhc_ctl_destroy(@app, false)
 end
