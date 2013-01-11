@@ -349,6 +349,61 @@ module MCollective
         end
       end
 
+      def oo_ssl_cert_add(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace      = args['--with-namespace']
+
+        ssl_cert      = args['--with-ssl-cert']
+        ssl_cert_name = args['--with-ssl-cert-name']
+        priv_key      = args['--with-priv-key']
+        priv_key_name = args['--with-priv-key-name']
+        server_alias  = args['--with-alias-name']
+
+        output = ""
+        begin
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid,
+                                                       container_name, namespace)
+          out, err, rc = frontend.add_ssl_cert(ssl_cert, ssl_cert_name,
+                                               priv_key, priv_key_name,
+                                               server_alias)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
+      def oo_ssl_cert_remove(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+        
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace      = args['--with-namespace']
+
+        ssl_cert_name = args['--with-ssl-cert-name']
+        priv_key_name = args['--with-priv-key-name']
+        server_alias  = args['--with-alias-name']
+
+        output = ""
+        begin
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid,
+                                                       container_name, namespace)
+          out, err, rc = frontend.remove_ssl_cert(ssl_cert_name, priv_key_name,
+                                                  server_alias)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
       def oo_tidy(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
 
@@ -412,6 +467,10 @@ module MCollective
           rc, output = oo_get_quota(cmd, args)
         when "set-quota"
           rc, output = oo_set_quota(cmd, args)
+        when "ssl-cert-add"
+          rc, output = oo_ssl_cert_add(cmd, args)
+        when "ssl-cert-remove"
+          rc, output = oo_ssl_cert_remove(cmd, args)
         when "force-stop"
           rc, output = oo_force_stop(cmd, args)
         when "add-alias"
@@ -478,7 +537,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute|get-quota|set-quota)\Z/
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|ssl-cert-add|ssl-cert-remove|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute|get-quota|set-quota)\Z/
         validate :action, :shellsafe
         cartridge = request[:cartridge]
         action = request[:action]

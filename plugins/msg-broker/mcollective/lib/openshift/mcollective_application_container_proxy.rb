@@ -213,6 +213,33 @@ module OpenShift
         return result_io
       end
 
+      def add_ssl_cert(app, gear, ssl_cert, ssl_cert_name, priv_key,
+                       priv_key_name, server_alias)
+        args = Hash.new
+        args['--with-app-uuid']       = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-namespace']      = app.domain.namespace
+        args['--with-ssl-cert']       = ssl_cert
+        args['--with-ssl-cert-name']  = ssl_cert_name
+        args['--with-priv-key']       = priv_key
+        args['--with-priv-key-name']  = priv_key_name
+        args['--with-alias-name']     = server_alias
+        result = execute_direct(@@C_CONTROLLER, 'ssl-cert-add', args)
+        parse_result(result)
+      end
+
+      def remove_ssl_cert(app, gear, ssl_cert_name, priv_key_name, server_alias)
+        args = Hash.new
+        args['--with-app-uuid']       = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-namespace']      = app.domain.namespace
+        args['--with-ssl-cert-name']  = ssl_cert_name
+        args['--with-priv-key-name']  = priv_key_name
+        args['--with-alias-name']     = server_alias
+        result = execute_direct(@@C_CONTROLLER, 'ssl-cert-remove', args)
+        parse_result(result)
+      end
+
       def add_authorized_ssh_key(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
