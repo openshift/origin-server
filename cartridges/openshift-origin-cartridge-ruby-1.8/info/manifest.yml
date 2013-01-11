@@ -16,7 +16,7 @@ Cart-Data:
     Description: "Directory to store application temporary files."
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
-    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_INTERNAL_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."

@@ -7,7 +7,6 @@ class DomainsController < BaseController
     rest_domains = Array.new
     Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
     domains = Domain.where(owner: @cloud_user)
-    Rails.logger.debug domains
     domains.each do |domain|
       rest_domains.push get_rest_domain(domain)
     end
