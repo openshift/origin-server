@@ -11,7 +11,7 @@ RewriteRule . - [E=RU:%1]
 RequestHeader set X-Remote-User "%{RU}e" env=RU
 
 <Location /console>
-    AuthName "OpenShift"
+    AuthName "OpenShift Developer Console"
     AuthType Basic
     AuthBasicProvider ldap
     AuthLDAPURL "ldap://localhost:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
