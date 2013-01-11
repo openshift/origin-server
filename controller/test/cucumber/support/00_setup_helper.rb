@@ -37,18 +37,7 @@ $alias_domain = "foobar.com"
 # Submodule repo directory for testing submodule addition test case
 $submodule_repo_dir = "#{Etc.getpwuid.dir}/submodule_test_repo"
 
-#
-# Old RHC Client scripts
-#
-$create_app_script = "/usr/bin/rhc-create-app"
-$create_domain_script = "/usr/bin/rhc-create-domain"
-$ctl_app_script = "/usr/bin/rhc-ctl-app"
-$user_info_script = "/usr/bin/rhc-domain-info"
-$snapshot_script = "/usr/bin/rhc-snapshot"
-
-#
-# New RHC Client scripts
-#
+# RHC Client
 $rhc_script = '/usr/bin/rhc'
 
 # RSA Key constants
