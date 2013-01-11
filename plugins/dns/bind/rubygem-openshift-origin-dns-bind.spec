@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for BIND service
 Name:           rubygem-%{gem_name}
-Version:        1.1.0
+Version:        1.1.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -94,6 +94,23 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
+- updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
+- F18 compatibility fixes   - apache 2.4   - mongo journaling   - JDK 7   -
+  parseconfig gem update Bugfix for Bind DNS plugin (kraman@gmail.com)
+- add config to gemspec (dmcphers@redhat.com)
+- Moving plugins to Rails 3.2.8 engine (kraman@gmail.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+
 * Tue Oct 23 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.12-1
 - removing remaining cases of SS and config.ss (dmcphers@redhat.com)
 - Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
