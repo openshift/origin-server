@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   1.1.0
+Version:   1.1.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -196,6 +196,77 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
+- BZ876324 resolve ServerName/NameVirtualHost situation for
+  node/broker/ssl.conf (lmeyer@redhat.com)
+- Minor tweak to the broker log owner/mode issue (bleanhar@redhat.com)
+- BZ888671 -  oo-accept-broker or oo-accept-systems will create production.log,
+  the file's permission is wrong. (bleanhar@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+- BZ876937 - Return "FAILED" if trying to stop openshift-console which is
+  already stopped (bleanhar@redhat.com)
+- create :default_gear_capabilities conf key for setting default gear
+  capabilities a user has at creation (lmeyer@redhat.com)
+- fixing mongo connection issues for build (dmcphers@redhat.com)
+- Bug 880370 (dmcphers@redhat.com)
+- Bug 878270 - everyone read user_action.log (bleanhar@redhat.com)
+- fix elif typos (dmcphers@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- Bug 878328 - Drupal and Wordpress should be tagged 'instant_app'
+  (ccoleman@redhat.com)
+- F18 compatibility fixes   - apache 2.4   - mongo journaling   - JDK 7   -
+  parseconfig gem update Bugfix for Bind DNS plugin (kraman@gmail.com)
+- Fix tests to work with remote-user auth (miciah.masters@gmail.com)
+- add additional gem deps (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- update Gemfile version (dmcphers@redhat.com)
+- use version 0.12.0 (dmcphers@redhat.com)
+- remove mocha version (dmcphers@redhat.com)
+- fixing tests (dmcphers@redhat.com)
+- getting tests working (dmcphers@redhat.com)
+- getting specs up to 1.9 sclized (dmcphers@redhat.com)
+- Merge remote-tracking branch 'origin/master' into
+  us3046_quickstarts_and_app_types (ccoleman@redhat.com)
+- Implement all templates as the base quickstarts, and make quickstart.rb a bit
+  more flexible (ccoleman@redhat.com)
+- Support COMMUNITY_QUICKSTARTS_URL parameter for serving hardcoded quickstarts
+  vs. public quickstarts, and test that these values are returned.
+  (ccoleman@redhat.com)
+- specifying rake gem version range (abhgupta@redhat.com)
+- specifying mocha gem version and fixing tests (abhgupta@redhat.com)
+- BZ873970, BZ873966 - disabling HTTP TRACE for the Broker, Nodes and Console
+  (bleanhar@redhat.com)
+- Adding rewrites to / to go to /console for http and https vhosts Added
+  NamedVirtualHost for the 443 vhost to avoid conflict with ssl.conf
+  (calfonso@redhat.com)
+- Set ENV["RAILS_ENV"] in boot.rb (miciah.masters@gmail.com)
+- Removing node gem requirement from broker script (kraman@gmail.com)
+- Bug 871436 - moving the default path for AUTH_PRIVKEYFILE and AUTH_PUBKEYFILE
+  under /etc (bleanhar@redhat.com)
+- OpenShift Origin console package (calfonso@redhat.com)
+- BZ870385 - Remove unnecessary %%post logfile touching from the Broker
+  (bleanhar@redhat.com)
+- Removing a useless semanage command from the broker's %%postun
+  (bleanhar@redhat.com)
+- openshift-origin-broker rpmdiff errors (bleanhar@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- fixing file name typo in usage and fixing domain name in test environment
+  file (abhgupta@redhat.com)
+- Bug 868331 - corrected test (lnader@redhat.com)
+- remove various hardcoded usage of file in /tmp (mscherer@redhat.com)
+
 * Mon Oct 22 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.17-1
 - Merge pull request #737 from sosiouxme/master (dmcphers@redhat.com)
 - Merge pull request #734 from danmcp/master (openshift+bot@redhat.com)
