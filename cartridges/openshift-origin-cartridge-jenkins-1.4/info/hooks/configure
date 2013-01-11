@@ -175,8 +175,6 @@ start_app
 export CART_INFO_DIR
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-restart_httpd_graceful
-
 client_result ""
 client_result "Jenkins created successfully.  Please make note of these credentials:"
 client_result ""

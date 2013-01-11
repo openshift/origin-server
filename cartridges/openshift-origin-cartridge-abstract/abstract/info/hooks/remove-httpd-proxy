@@ -32,4 +32,8 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-rm -rf "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}"
+oo-frontend-connect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path ""

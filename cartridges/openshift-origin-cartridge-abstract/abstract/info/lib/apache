@@ -6,23 +6,6 @@ LI_CONTROLLER_LIB_APACHE=true
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-function rm_httpd_proxy {
-    uuid="$1"
-    namespace="$2"
-    application="$3"
-    rm -rf /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf \
-           /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application} || \
-           echo "Could not remove apache definition" 1>&2
-    /usr/sbin/oo-httpd-singular graceful 2> /dev/null || \
-    echo "Failed to restart master httpd, please contact support" 1>&2
-}
-
-function restart_httpd_graceful {
-    /usr/sbin/oo-httpd-singular graceful 2> /dev/null || \
-    error "Failed to restart master httpd, please contact support" 120
-}
-
-
 function pid_is_httpd() {
     ps -p "$1" 2> /dev/null | grep httpd > /dev/null
 }

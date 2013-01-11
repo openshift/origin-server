@@ -45,4 +45,3 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/haproxy-1.4/info
 #
 ${CART_INFO_DIR}/bin/deploy_httpd_proxy.sh $application $namespace $uuid $OPENSHIFT_HAPROXY_STATUS_IP
 
-restart_httpd_graceful

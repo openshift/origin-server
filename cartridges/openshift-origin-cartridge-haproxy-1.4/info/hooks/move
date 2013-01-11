@@ -73,5 +73,3 @@ if $idle
 then
   oo-idler -u $uuid
 fi
-
-restart_httpd_graceful

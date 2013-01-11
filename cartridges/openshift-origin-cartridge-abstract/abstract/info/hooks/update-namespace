@@ -66,24 +66,12 @@ then
     sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/.env/OPENSHIFT_APP_DNS
 fi
 
-if [ -f "/etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf" ]
-then
-  sed -i "s/ServerName ${application}-${old_namespace}./ServerName ${application}-${new_namespace}./" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/00000_default.conf
-  
-  # FIXME: Remove this when json routes files are created for all gear types
-  json_files=$(ls /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/*.json | wc -l)
+oo-frontend-update-namespace \
+    --with-container-uuid "$uuid" \
+    --with-namespace "$old_namespace"
+    --with-container-name "$application"
+    --with-new-namespace "$new_namespace"
 
-  if [ "$json_files" -gt 0 ]
-  then
-    sed -i "s/${application}-${old_namespace}\./${application}-${new_namespace}./" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}/*.json
-  fi
-
-  sed -i "s/_${old_namespace}_${application}/_${new_namespace}_${application}/g" /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf
-  mv /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application}.conf /etc/httpd/conf.d/openshift/${uuid}_${new_namespace}_${application}.conf
-  mv /etc/httpd/conf.d/openshift/${uuid}_${old_namespace}_${application} /etc/httpd/conf.d/openshift/${uuid}_${new_namespace}_${application}
-  restart_httpd_graceful
-  service openshift-node-web-proxy reload
-fi
 
 for cart in $(get_list_of_cartridges_on_gear); do
     CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cart/info

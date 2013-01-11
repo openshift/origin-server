@@ -21,53 +21,11 @@ namespace=`basename $2`
 uuid=$3
 IP=$4
 
-cartridge_type='community-pod-0.1'
 source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/${cartridge_type}.conf"
-  Alias /health $CART_INFO_DIR/configuration/health.html
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/zzzzz_proxy.conf"
-  ProxyPass /health !
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/00000_default.conf"
-  ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
-  ServerAdmin openshift-bofh@redhat.com
-  DocumentRoot /var/www/html
-  DefaultType None
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json"
-{
-  "${application}-${namespace}.${CLOUD_DOMAIN}": {
-    "endpoints": [ "$IP:8080" ],
-    "limits"   :  {
-      "connections": 5,
-      "bandwidth"  : 100
-    }
-  }
-}
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf"
-<VirtualHost *:80>
-  RequestHeader append X-Forwarded-Proto "http"
-
-  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
-</VirtualHost>
-
-<VirtualHost *:443>
-  RequestHeader append X-Forwarded-Proto "https"
-
-$(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
-
-  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
-</VirtualHost>
-EOF
-
-service openshift-node-web-proxy reload
+oo-frontend-connect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path "" --target "$IP:8080" --websocket \
+    --path "/health" --target "${CARTRIDGE_BASE_PATH}/community-pod-0.1/info/configuration/health.html" --file

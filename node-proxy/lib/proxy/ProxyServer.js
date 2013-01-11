@@ -105,6 +105,9 @@ function _setProxyRequestHeaders(proxy_req, orig_req) {
             orig_req.socket.remoteAddress;
   httputils.addHeader(proxy_req.headers, 'X-Forwarded-For', xff);
 
+  /*  Set X-Client-IP HTTP extension header.      */
+  httputils.addHeader(proxy_req.headers, 'X-Client-IP', xff);
+
   /*  Set X-Forwarded-Proto HTTP extension header.  */
   var proto = orig_req.connection.encrypted? 'https' : 'http';
   httputils.addHeader(proxy_req.headers, 'X-Forwarded-Proto', proto);
