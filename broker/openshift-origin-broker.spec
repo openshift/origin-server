@@ -171,6 +171,25 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.0.0-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- BZ870385 - Remove unnecessary %%post logfile touching from the Broker
+  (bleanhar@redhat.com)
+- Removing a useless semanage command from the broker's %%postun
+  (bleanhar@redhat.com)
+- openshift-origin-broker rpmdiff errors (bleanhar@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+- fixing file name typo in usage and fixing domain name in test environment
+  file (abhgupta@redhat.com)
+- Bug 868331 - corrected test (lnader@redhat.com)
+
 * Mon Oct 22 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.6.17-1
 - Merge pull request #737 from sosiouxme/master (dmcphers@redhat.com)
 - Merge pull request #734 from danmcp/master (openshift+bot@redhat.com)
