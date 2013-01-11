@@ -90,6 +90,17 @@ rm -rf %{buildroot}
 %{ruby_sitelib}/%{gemname}.rb
 
 %changelog
+* Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.0.0-1
+- bumping specs to at least 1.0.0 (dmcphers@redhat.com)
+- Moving broker config to /etc/openshift/broker.conf Rails app and all oo-*
+  scripts will load production environment unless the
+  /etc/openshift/development marker is present Added param to specify default
+  when looking up a config value in OpenShift::Config Moved all defaults into
+  plugin initializers instead of separate defaults file No longer require
+  loading 'openshift-origin-common/config' if 'openshift-origin-common' is
+  loaded openshift-origin-common selinux module is merged into F16 selinux
+  policy. Removing from broker %%postrun (kraman@gmail.com)
+
 * Tue Oct 23 2012 Brenton Leanhardt <bleanhar@redhat.com> 0.8.12-1
 - removing remaining cases of SS and config.ss (dmcphers@redhat.com)
 - Making openshift-origin-msg-broker-mcollective a Rails engine so that it can
