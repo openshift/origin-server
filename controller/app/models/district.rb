@@ -123,7 +123,7 @@ class District
     if server_map.has_key?(server_identity)
       if server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
-        self.reload
+        self.reload.with(consistency: :strong)
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", false)
       else
@@ -139,7 +139,7 @@ class District
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
-        self.reload
+        self.reload.with(consistency: :strong)
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", true)
       else

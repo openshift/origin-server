@@ -99,7 +99,7 @@ class CloudUser
     if domains.count > 0
       pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash , ssh_keys: key.serializable_hash }})
-      self.reload
+      self.reload.with(consistency: :strong)
       self.run_jobs
     else
       #TODO shouldn't << always work???
@@ -126,7 +126,7 @@ class CloudUser
     if domains.count > 0
       pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash } , "$pull" => { ssh_keys: key.serializable_hash }})
-      self.reload
+      self.reload.with(consistency: :strong)
       self.run_jobs      
     else
       key.delete
