@@ -1350,6 +1350,10 @@ class Application
             if (op.op_type == :del_component)
               op.prereq += gear_destroy_ops.map{|g| g._id.to_s}
               destroy_ginst_op.prereq << op._id.to_s
+            elsif (op.op_type==:remove_component)
+              gear_destroy_ops.each { |gd_op|
+                gd_op.prereq += [op._id.to_s]
+              }
             end
           end
         else
