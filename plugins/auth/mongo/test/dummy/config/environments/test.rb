@@ -40,12 +40,10 @@ Dummy::Application.configure do
   
   config.auth = {
     :salt => "salt_salt_salt",
-    :mongo_replica_sets => false,
-    :mongo_host_port => ["localhost", 27017],
+    :mongo_host_port => "localhost:27017",
     :mongo_user => "openshift",
     :mongo_password => "mooo",
     :mongo_db => "openshift_origin_broker_test",
-    :mongo_collection => "auth_user",
     :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
     :privkeypass => "foo",
     :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem",

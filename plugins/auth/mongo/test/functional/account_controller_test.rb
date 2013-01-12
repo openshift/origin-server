@@ -1,21 +1,15 @@
 require 'test_helper'
 
 class AccountControllerTest < ActionController::TestCase
-  #tests AccountController
-  
   def setup
-    @auth_service = OpenShift::MongoAuthService.new
-    collection_name = Rails.application.config.auth[:mongo_collection]
-    @collection = @auth_service.db.collection(collection_name)
-    @collection.remove
-    
+    @auth_service = OpenShift::MongoAuthService.new 
     @auth_service.register_user("admin","admin")
     @request.env["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64('admin:admin')
     @request.env["Accept"] = "application/json"    
   end
   
   def teardown
-    @collection.remove
+    UserAccount.delete_all
   end
   
   def test_create

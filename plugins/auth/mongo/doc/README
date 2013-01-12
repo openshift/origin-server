@@ -43,14 +43,10 @@ cat <<EOF > ${SS_BROKER_ENVDIR}/plugin-config/openshift-origin-auth-mongo.rb
       config.auth = {
         :salt => "ClWqe5zKtEW4CJEMyjzQ",
     
-        # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-        :mongo_replica_sets => false,
-        :mongo_host_port => ["localhost", 27017],
-  
+        :mongo_host_port => "localhost:27017",
         :mongo_user => "openshift",
         :mongo_password => "mooo",
         :mongo_db => "openshift_broker_dev",
-        :mongo_collection => "auth_user"
       }
     end
     EOF

@@ -13,7 +13,7 @@ module OpenShift
       elsif defined? Rails
         auth_info = Rails.application.config.auth
       else
-        raise Exception.new("Mongo DataStore service is not inilialized")
+        raise Exception.new("Mongo configuration not provided")
       end
     
       @salt         = auth_info[:salt]
