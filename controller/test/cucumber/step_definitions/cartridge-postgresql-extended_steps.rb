@@ -1,5 +1,5 @@
 When /^I select from the postgresql database using the socket file$/ do
-  cmd = ssh_command("-o LogLevel=quiet \"PGPASSWORD=\\$OPENSHIFT_POSTGRESQL_DB_PASSWORD /usr/bin/psql -U admin -h \\$OPENSHIFT_POSTGRESQL_DB_SOCKET -d #{@app.name} -c 'select 1' -t\"")
+  cmd = ssh_command("-o LogLevel=quiet \"export PGPASSWORD=\\$OPENSHIFT_POSTGRESQL_DB_PASSWORD; echo 'select 1; \\q' | /usr/bin/psql -U admin -h \\$OPENSHIFT_POSTGRESQL_DB_SOCKET -d #{@app.name} -t\"")
 
   $logger.debug "Running #{cmd}"
 
