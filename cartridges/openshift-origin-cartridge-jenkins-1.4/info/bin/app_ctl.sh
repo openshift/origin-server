@@ -46,6 +46,7 @@ start_jenkins() {
         -Dhudson.slaves.NodeProvisioner.initialDelay=100 \
         -Dhudson.slaves.NodeProvisioner.MARGIN=100 \
         -Dhudson.model.UpdateCenter.never=true \
+        -Dhudson.DNSMultiCast.disabled=true \
         -Xmx168m \
         -XX:MaxPermSize=100m \
         -jar /usr/lib/jenkins/jenkins.war \

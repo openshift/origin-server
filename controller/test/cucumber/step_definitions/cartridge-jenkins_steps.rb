@@ -14,7 +14,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 
     register_user(@app.login, @app.password) if $registration_required
     if rhc_create_domain(@app)
-      @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=240')
+      @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=300')
       @diy_app.create_app_code.should be == 0
     else
       raise "Failed to create domain: #{@app}"
