@@ -38,15 +38,11 @@ Broker::Application.configure do
   ############################################
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))
   config.datastore = {
-    :replica_set => true,
-    :host_port => [["localhost", 27017]],
+    :host_port => "localhost:27017"
 
     :user => "openshift",
     :password => "mooo",
     :db => "openshift_broker_dev",
-    :collections => {:user => "user",
-                     :district => "district",
-                     :application_template => "template"},
     :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
