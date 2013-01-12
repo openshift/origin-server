@@ -67,7 +67,6 @@ class Domain
     pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_completion_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
-    pending_op.delete
   end
 
   # Completes the second step of the namespace update. See {#update_namespace}
@@ -82,7 +81,6 @@ class Domain
     pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {"old_ns" => op.arguments["old_ns"], "new_ns" => op.arguments["new_ns"]}, parent_op: nil, on_apps: op.on_apps, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
-    pending_op.delete
   end
   
   # Adds a user to the access list for this domain.
@@ -214,12 +212,14 @@ class Domain
           }
         end
         begin
+          self.reload.with(consistency: :strong)
           self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(:state, :queued)
-          op.reload
-          op.close_op
         rescue Mongoid::Errors::DocumentNotFound
           #ignore. Op state is completed
         end
+        op.reload.with(consistency: :strong)
+        op.close_op
+        op.delete if op.completed?
       end
       true
     rescue Exception => e

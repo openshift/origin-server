@@ -181,10 +181,14 @@ class CloudUser
           op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, op.arguments, op) }
         end
         begin
-          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(state: :queued)
+          self.reload.with(consistency: :strong)
+          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(:state, :queued)
         rescue Mongoid::Errors::DocumentNotFound
           #ignore. Op state is completed
         end
+        op.reload.with(consistency: :strong)
+        op.close_op
+        op.delete if op.completed?
       end
       true
     rescue Exception => ex

@@ -44,8 +44,9 @@ class PendingDomainOps
   end
   
   def close_op
-    if completed? and not on_completion_method.nil?
-      domain.send(on_completion_method, self) 
+    if completed? 
+      parent_op.child_completed(domain) unless parent_op.nil?
+      domain.send(on_completion_method, self) unless on_completion_method.nil?
     end
   end
 
@@ -53,7 +54,6 @@ class PendingDomainOps
     completed_apps << app
     if completed?
       self.set(:state, :completed)
-      parent_op.child_completed(domain) unless parent_op.nil?
     end
   end
 end

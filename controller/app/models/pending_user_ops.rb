@@ -39,11 +39,16 @@ class PendingUserOps
     on_domain_ids.length == completed_domain_ids.length
   end
   
+  def close_op
+    if completed? 
+      cloud_user.user.send(on_completion_method, self) unless on_completion_method.nil?
+    end
+  end
+
   # Callback from {PendingDomainOps} to indicate that a domain has been processed
   def child_completed(domain)
     self.push(:completed_domain_ids, domain._id)
     if completed?
-      cloud_user.user.send(on_completion_method, self) unless on_completion_method.nil?
       self.set(:state, :completed)
     end
   end
