@@ -331,9 +331,11 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     # @return [String] comma separated list of directories
     def list_home_dir(home_dir)
       results = []
-      Dir.foreach(home_dir) do |entry|
-        #next if entry =~ /^\.{1,2}/   # Ignore ".", "..", or hidden files
-        results << entry
+      if File.exists?(home_dir)
+        Dir.foreach(home_dir) do |entry|
+          #next if entry =~ /^\.{1,2}/   # Ignore ".", "..", or hidden files
+          results << entry
+        end
       end
       results.join(', ')
     end
