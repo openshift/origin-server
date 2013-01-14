@@ -14,7 +14,7 @@ When /^I configure a hello_world diy application with jenkins enabled$/ do
 
     register_user(@app.login, @app.password) if $registration_required
     if rhc_create_domain(@app)
-      @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=120')
+      @diy_app = rhc_create_app(@app, false, '--enable-jenkins --timeout=300')
       @diy_app.create_app_code.should be == 0
     else
       raise "Failed to create domain: #{@app}"
@@ -77,6 +77,8 @@ Then /^the application will be updated$/ do
         $logger.debug "@jenkins_build response = #{response}"
 
         job = JSON.parse(response)
+      rescue => e
+        $logger.warn "Unexpected exception checking update: #{e.message}\n#{e.backtrace.join("\n")}"
       end while job['color'] != 'blue'
     end
     job['color'].should be == 'blue' 
@@ -89,5 +91,7 @@ Then /^the application will be updated$/ do
 end
 
 Then /^I deconfigure the diy application with jenkins enabled$/ do
+    rhc_ctl_destroy(@app, false)
+    @app.name='jenkins'
     rhc_ctl_destroy(@app, false)
 end

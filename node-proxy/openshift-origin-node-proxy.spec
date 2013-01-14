@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version: 0.4.1
+Version: 0.4.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -49,10 +49,6 @@ mkdir -p %{buildroot}%{_var}/run
 mkdir -p %{buildroot}%{_unitdir}
 install -D -m 644 scripts/systemd/openshift-node-web-proxy.service %{buildroot}%{_unitdir}
 install -D -m 644 scripts/systemd/openshift-node-web-proxy.env %{buildroot}%{_sysconfdir}/sysconfig/openshift-node-web-proxy
-
-# TO DO: Fix systemd script.
-mkdir -p %{buildroot}%{_sbindir}
-# install -m 755 scripts/systemd/openshift-node-web-proxy %{buildroot}%{_sbindir}
 %else
 mkdir -p %{buildroot}%{_initddir}
 install -D -m 755 scripts/init.d/openshift-node-web-proxy %{buildroot}%{_initddir}
@@ -67,14 +63,24 @@ install -D -m 640 config/web-proxy-config.json  %{buildroot}%{_sysconfdir}/opens
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 install -D -m 644 config/logrotate.d/openshift-node-web-proxy %{buildroot}%{_sysconfdir}/logrotate.d
 
-mkdir -p %{buildroot}%{webproxymoduledir}/logger
-install -D -m 644 logger/* %{buildroot}%{webproxymoduledir}/logger
+mkdir -p %{buildroot}%{webproxymoduledir}
+install -D -m 644 index.js %{buildroot}%{webproxymoduledir}
+install -D -m 644 README   %{buildroot}%{webproxymoduledir}
 
-mkdir -p %{buildroot}%{webproxymoduledir}/proxy
-install -D -m 644 proxy/*  %{buildroot}%{webproxymoduledir}/proxy
+mkdir -p %{buildroot}%{webproxymoduledir}/lib
+install -D -m 644 lib/node-proxy.js %{buildroot}%{webproxymoduledir}/lib
 
-mkdir -p %{buildroot}%{webproxymoduledir}/utils
-install -D -m 644 utils/*  %{buildroot}%{webproxymoduledir}/utils
+mkdir -p %{buildroot}%{webproxymoduledir}/lib/logger
+install -D -m 644 lib/logger/* %{buildroot}%{webproxymoduledir}/lib/logger
+
+mkdir -p %{buildroot}%{webproxymoduledir}/lib/proxy
+install -D -m 644 lib/proxy/* %{buildroot}%{webproxymoduledir}/lib/proxy
+
+mkdir -p %{buildroot}%{webproxymoduledir}/lib/utils
+install -D -m 644 lib/utils/* %{buildroot}%{webproxymoduledir}/lib/utils
+
+mkdir -p %{buildroot}%{webproxymoduledir}/lib/plugins
+install -D -m 644 lib/plugins/* %{buildroot}%{webproxymoduledir}/lib/plugins
 
 mkdir -p %{buildroot}%{webproxymoduledir}/bin
 install -D -m 644 bin/*  %{buildroot}%{webproxymoduledir}/bin
@@ -128,6 +134,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 0.4.2-1
+- Case-insensitive vhost routing support. (ramr@redhat.com)
+- Plugin work, rearrange bits, add help, fix spec file. (ramr@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 0.4.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 

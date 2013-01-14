@@ -130,7 +130,8 @@ then
     service httpd graceful
 fi
 
-/usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"
+# timeout taken from oo-admin-ctl-gears
+/usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"
 
 # Disable
 # code copied from node/lib/util_ext

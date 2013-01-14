@@ -21,7 +21,7 @@ exports.getDayOfWeek = function(d, abbrev) {
   /*  Convert defaults/Date to the day number form.  */
   d  ||  (d = new Date());
   var dn = (d instanceof Date)? d.getDay() : d;
-  var idx = (dn >= 0) ? (dn%7) : ((dn%7) + 7); 
+  var idx = (dn >= 0) ? (dn%7) : ((dn%7) + 7);
 
   return(abbrev ? days[idx].slice(0,3) : days[idx]);
 
@@ -50,7 +50,7 @@ exports.getMonthName = function(m, abbrev) {
   /*  Convert defaults/Date to the month number form.  */
   m  ||  (m = new Date());
   var mn = (m instanceof Date)? m.getMonth() : m;
-  var idx = (mn >= 0) ? (mn%12) : ((mn%12) + 12); 
+  var idx = (mn >= 0) ? (mn%12) : ((mn%12) + 12);
 
   return(abbrev ? months[idx].slice(0,3) : months[idx]);
 
@@ -206,7 +206,7 @@ exports.strftime = function(fmt, zd) {
  *        range 00 to 53, starting with the first Sunday as the first day
  *        of week 01. See also %V and %W.
  *
- *    case '%V': return 999; 
+ *    case '%V': return 999;
  *    %V  The ISO 8601 week number (see NOTES) of the current year as a
  *        decimal number, range 01 to 53, where week 1 is the first week
  *        that has at least 4 days in the new year. See also %U and %W.
@@ -214,7 +214,7 @@ exports.strftime = function(fmt, zd) {
  *    case '%W': return 99; // TODO
  *     %W  The week number of the current year as a decimal number,
  *         range 00 to 53, starting with the first Monday as the first day
- *         of week 01.  
+ *         of week 01.
  *
  */
 

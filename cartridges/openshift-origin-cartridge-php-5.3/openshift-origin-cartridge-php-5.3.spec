@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.3.2
+Version: 1.3.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -115,6 +115,11 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Make a few clarifications in the README for PHP (ccoleman@redhat.com)
+- Fix BZ864797: Add doc for disable_auto_scaling marker (pmorie@gmail.com)
+- BZ 889136: Add xdebug. (rmillner@redhat.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up

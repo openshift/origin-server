@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.3.1
+Version: 1.3.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -111,6 +111,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Merge pull request #1121 from pmorie/bugs/864797
+  (dmcphers+openshiftbot@redhat.com)
+- Fix BZ864797: Add doc for disable_auto_scaling marker (pmorie@gmail.com)
+- Add missing environment variable to Perl PassEnv (ironcladlou@gmail.com)
+- Merge pull request #1115 from rmillner/BZ891296
+  (dmcphers+openshiftbot@redhat.com)
+- BZ 891296: Install https dependencies for libwww (rmillner@redhat.com)
+- Pass through all cart env vars to Perl module (ironcladlou@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 

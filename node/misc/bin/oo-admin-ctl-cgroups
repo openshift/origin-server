@@ -319,11 +319,12 @@ stopuser() {
 
     if [ $RETVAL -eq 0 ]
     then
-        echo -n "[ OK ]"
+        echo -n " [OK] "
     else
         GROUP_RETVAL=$(($GROUP_RETVAL+1))
-        echo -n "[ FAILED ]"
+        echo -n " [FAILED] "
     fi
+    echo
 }
 
 stopall() {
@@ -475,7 +476,7 @@ case "$1" in
     ;;
 
   *)
-    echo $"Usage: $0 {start|stop|status|restart|condrestart|startuser <username>|stopuser <username>}"
+    echo $"Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>}"
     exit 1
 esac
 

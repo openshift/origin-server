@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.3.1
+Version: 1.3.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Add missing routes.json configuration for jboss* app types + minor cleanup.
+  (ramr@redhat.com)
+- Fix BZ864797: Add doc for disable_auto_scaling marker (pmorie@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 

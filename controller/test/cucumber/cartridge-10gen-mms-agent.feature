@@ -1,5 +1,6 @@
 @runtime
 @runtime1
+@not-enterprise
 Feature: 10gen-mms-agent Embedded Cartridge
 
   Scenario: Add Remove 10gen-mms-agent to one application

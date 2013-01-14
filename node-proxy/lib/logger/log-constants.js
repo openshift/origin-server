@@ -11,7 +11,7 @@ exports.LOG_LEVELS = [ 'EMERG', 'ALERT', 'CRIT', 'ERROR', 'WARNING',
 
 /*  Logging level synonyms.  */
 exports.LOG_LEVEL_SYNONYMS = {
-  'EMERGENCY':     'EMERG', 
+  'EMERGENCY':     'EMERG',
   'CRITICAL':      'CRIT',
   'ERR':           'ERROR',
   'WARN':          'WARNING',

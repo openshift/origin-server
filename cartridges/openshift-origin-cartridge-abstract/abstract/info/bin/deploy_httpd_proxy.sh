@@ -31,7 +31,7 @@ EOF
 
 cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/00000_default.conf"
   ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
-  ServerAdmin openshift-bofh@redhat.com 
+  ServerAdmin openshift-bofh@redhat.com
   DocumentRoot /var/www/html
   DefaultType None
 EOF

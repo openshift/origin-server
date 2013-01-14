@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,9 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Fix for Bug 893207 (jhonce@redhat.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - BZ 886379: Print out a warning message if no args. (rmillner@redhat.com)
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from

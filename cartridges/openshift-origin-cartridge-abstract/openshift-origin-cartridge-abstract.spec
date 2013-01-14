@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.3.2
+Version: 1.3.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,18 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Merge pull request #1128 from ramr/master (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1110 from Miciah/silence-pushd-and-popd
+  (dmcphers+openshiftbot@redhat.com)
+- Add missing routes.json configuration for jboss* app types + minor cleanup.
+  (ramr@redhat.com)
+- Fix BZ891831 (pmorie@gmail.com)
+- Consistently silence pushd and popd in hooks (miciah.masters@gmail.com)
+- Update node web proxy config when updating namespace. (mpatel@redhat.com)
+- Merge pull request #1083 from bdecoste/master (openshift+bot@redhat.com)
+- re-enabed ews2 (bdecoste@gmail.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
