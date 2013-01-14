@@ -174,17 +174,13 @@ class CloudUser
     begin
       ops = pending_ops.where(state: :init)
       ops.each do |op|
+        #set the op state to :queued
+        op.set(:state, :queued)
         case op.op_type
         when :add_ssh_key
           op.pending_domains.each { |domain| domain.add_ssh_key(self._id, op.arguments, op) }
         when :delete_ssh_key
           op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, op.arguments, op) }
-        end
-        begin
-          self.reload.with(consistency: :strong)
-          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(:state, :queued)
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore. Op state is completed
         end
         op.reload.with(consistency: :strong)
         op.close_op

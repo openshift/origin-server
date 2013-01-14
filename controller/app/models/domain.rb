@@ -169,8 +169,8 @@ class Domain
   end
 
   def remove_system_ssh_keys(key_names)
-    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_to_remove}, on_apps: applications, created_at: Time.now, state: "init")
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: keys_attrs }})
+    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => key_names}, on_apps: applications, created_at: Time.now, state: "init")
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: key_names }})
   end
 
   def add_env_variables(variables)
@@ -191,6 +191,9 @@ class Domain
     begin
       ops = pending_ops.where(state: "init")
       ops.each do |op|
+        # set the op state to :queued
+        op.set(:state, :queued)
+        
         case op.op_type
         when :add_ssh_key
           op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
@@ -199,7 +202,7 @@ class Domain
         when :add_domain_ssh_keys
           op.pending_apps.each { |app| app.add_ssh_keys(nil, op.arguments["keys_attrs"], op) }
         when :delete_domain_ssh_keys
-          op.pending_apps.each { |app| app.remove_ssh_keys(op.arguments["keys_attrs"], op) }
+          op.pending_apps.each { |app| app.remove_ssh_keys(nil, op.arguments["keys_attrs"], op) }
         when :add_env_variables
           op.pending_apps.each { |app| app.add_env_variables(op.arguments["variables"], op) }
         when :remove_env_variables
@@ -210,12 +213,6 @@ class Domain
           op.pending_apps.each { |app|
             app.complete_update_namespace(op.arguments["old_ns"], op.arguments["new_ns"], op) 
           }
-        end
-        begin
-          self.reload.with(consistency: :strong)
-          self.pending_ops.find_by(_id: op._id, :state.ne => :completed).set(:state, :queued)
-        rescue Mongoid::Errors::DocumentNotFound
-          #ignore. Op state is completed
         end
         op.reload.with(consistency: :strong)
         op.close_op

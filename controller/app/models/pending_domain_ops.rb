@@ -40,7 +40,7 @@ class PendingDomainOps
   end
   
   def completed?
-    (self.state == "completed") || ((on_apps.length - completed_apps.length)==0)
+    (self.state == :completed) || ((on_apps.length - completed_apps.length)==0)
   end
   
   def close_op
