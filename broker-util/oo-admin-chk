@@ -61,9 +61,9 @@ Rails.configuration.msg_broker[:rpc_options][:disctimeout] = 20
 def datastore_has_gear?(gear_uuid, app_uuid=nil)
   $false_positive_check_cnt += 1
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
-    query = { "group_instances.gears._id" => gear_uuid }
-    query['_id'] = app_uuid if app_uuid
-    hash = OpenShift::DataStore.instance.user_collection.find_one(query, {:fields => []})
+    query = { "group_instances.gears.uuid" => gear_uuid }
+    query['uuid'] = app_uuid if app_uuid
+    hash = $moped_session[:applications].find(query).first
     return !hash.nil?
   else
     return true
@@ -82,7 +82,7 @@ query = {"group_instances.gears.0" => {"$exists" => true}}
 selection = {"name" => 1,
                        "created_at" => 1,
                        "domain_id" => 1,
-                       "group_instances.gears._id" => 1,
+                       "group_instances.gears.uuid" => 1,
                        "group_instances.gears.uid" => 1,
                        "group_instances.gears.server_identity" => 1,
                        "group_instances._id" => 1 }
@@ -128,16 +128,16 @@ get_records(:applications, query, selection) do |app|
         if gi['gears']
           gi['gears'].each { |gear|
             gear_count += 1
-            datastore_hash[gear['_id'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["_id"] ]
+            datastore_hash[gear['uuid'].to_s] = [login, creation_time, gear['uid'], gear['server_identity'], app["uuid"] ]
           }
         else
-          puts "ERROR: Group instance '#{gi['_id']}' for application: '#{app['name']}/#{app['_id']}' doesn't have any gears"
+          puts "ERROR: Group instance '#{gi['_id']}' for application: '#{app['name']}/#{app['uuid']}' doesn't have any gears"
           no_error = false
         end
       }
       user_hash[owner_id]["domains"][domain_id] += gear_count
     else
-      puts "ERROR: Application: '#{app['name']}/#{app['_id']}' doesn't have any group instances"
+      puts "ERROR: Application: '#{app['name']}/#{app['uuid']}' doesn't have any group instances"
       no_error = false
     end
 end
