@@ -750,7 +750,6 @@ class OODiag
     else
       do_warn "openshift-origin-node-util is not installed; you really should install it"
     end
-    run_script("rhc-accept-node") if @project_is[:online]
   end
 
   def expect_log_error(pattern, tmpfile)

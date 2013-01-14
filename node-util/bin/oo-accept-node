@@ -34,6 +34,31 @@ optparse = OptionParser.new { |opts|
 }
 optparse.parse!
 
+def verbose(msg)
+    if $OPTIONS[:verbose]
+        $stdout.write("INFO: #{msg}\n")
+    end
+end
+
+###### extension points - may be affected by loading of extension ######
+
+# Return the name of the selinux policy to validate
+def selinux_policy_name
+    'openshift-origin'
+end
+
+# Return the list of packages to validate
+def ext_packages
+    []
+end
+
+###### end extension points #####
+
+begin
+  require '/usr/libexec/openshift/lib/admin-accept-node-ext'
+rescue LoadError => e
+  verbose("using default accept-node extensions")
+end
 
 $TC_CHECK=false
 $TC_DATA = %x[tc clas show dev eth0].split("\n").grep(/parent/)
@@ -49,9 +74,6 @@ $LIMITS_CONF_DIR="/etc/security/limits.d"
 DEFAULT_SEBOOL_LIST="httpd_can_network_connect:on"
 DEFAULT_PACKAGES="rubygem-openshift-origin-node openshift-origin-node-util \
     rubygem-openshift-origin-common selinux-policy selinux-policy-targeted"
-#                  cartridge-rack-1.1.
-#                  cartridge-wsgi-3.2
-#                  cartridge-php-5.3"
 DEFAULT_SERVICES="mcollective cgconfig cgred httpd openshift-port-proxy"
 DEFAULT_MINSEM=512
 
@@ -97,12 +119,6 @@ def eputs(msg)
 end
 
 ######## UTILITIES ########
-
-def verbose(msg)
-    if $OPTIONS[:verbose]
-        $stdout.write("INFO: #{msg}\n")
-    end
-end
 
 def do_fail(msg)
     eputs("FAIL: " + msg)
@@ -207,11 +223,14 @@ end
 
 def check_selinux()
     verbose("checking selinux status")
+
+    policy_name = selinux_policy_name
+
     unless %x[getenforce] =~ /Enforcing/
         do_fail("selinux is not enabled")
     else
-        verbose("checking selinux origin policy")
-        do_fail("selinux origin policy is not loaded") unless %x[/usr/bin/timeout -s9 10 /usr/sbin/semodule -l] =~ /openshift-origin/
+        verbose("checking selinux #{policy_name} policy")
+        do_fail("selinux #{policy_name} policy is not loaded") unless %x[/usr/bin/timeout -s9 10 /usr/sbin/semodule -l] =~ /#{policy_name}[\d\.\W]+$/
     end
     verbose("checking selinux booleans")
     $SEBOOL_LIST.split.each { |bool|
@@ -225,14 +244,11 @@ end
 
 def check_packages
     verbose("checking package list")
-    not_installed = %x[rpm -q #{$PACKAGES}].split("\n").grep(/not/)
+    packages = "#{$PACKAGES}  #{ext_packages.join(' ')}"
+    not_installed = %x[rpm -q #{packages}].split("\n").grep(/not/)
     not_installed.each { |pack_not_installed|
         do_fail(pack_not_installed)
     }
-    #$PACKAGES.each { |pack|
-         #do_fail("package #{pack} is not installed") if %x[rpm -q #{pack}] =~ /not/
-    #}
-
 end
 
 def check_services
