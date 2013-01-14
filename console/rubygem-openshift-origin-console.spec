@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,14 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Update UserGuide link to Working With Domains Switch namespace form to use
+  latest input_append input_prepend (sgoodwin@redhat.com)
+- Merge pull request #1139 from
+  smarterclayton/bug_893298_add_dot_to_domain_name_form
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 893298 - Add period to domain name form (ccoleman@redhat.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Bug 892906 - Fix client tools link (ccoleman@redhat.com)
 - Merge pull request #1130 from sg00dwin/bug892694-addon
