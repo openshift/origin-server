@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -174,6 +174,15 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Fix BZ875200: Add statements to rhcsh ctl_all (pmorie@gmail.com)
+- Merge pull request #1141 from pmorie/bugs/877306
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1140 from pmorie/bugs/877305
+  (dmcphers+openshiftbot@redhat.com)
+- Fix usage for oo-admin-ctl-cgroups (pmorie@gmail.com)
+- Add newline to each user for oo-admin-ctl-cgroups stopall (pmorie@gmail.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Merge pull request #1120 from sosiouxme/BZ876324
   (dmcphers+openshiftbot@redhat.com)
