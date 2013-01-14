@@ -53,9 +53,20 @@ EOF
 
 function ctl_all {
     case "$1" in
-        start)    start_app.sh               ;;
-        stop)     stop_app.sh                ;;
-        restart)  stop_app.sh; start_app.sh  ;;
+        start)  
+          echo "Starting services"  
+          start_app.sh               
+          ;;
+        stop)   
+          echo "Stopping services"  
+          stop_app.sh                
+          ;;
+        restart)
+          echo "Stopping services"    
+          stop_app.sh; 
+          echo "Starting services"  
+          start_app.sh  
+          ;;
     esac
 }
 
