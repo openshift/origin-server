@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.3.3
+Version: 1.3.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -88,6 +88,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Merge pull request #1145 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- disable jenkins DNS multicast (bdecoste@gmail.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Add missing routes.json configuration for jenkins apps. (ramr@redhat.com)
 
