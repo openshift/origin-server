@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,22 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Merge pull request #1145 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1146 from pmorie/bugs/fix-tests2
+  (dmcphers+openshiftbot@redhat.com)
+- increase jenkins creation timeout (bdecoste@gmail.com)
+- Fix failing socket file tests (pmorie@gmail.com)
+- Merge pull request #916 from Miciah/devenv-fixes-2
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1142 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- kill orphan jenkins process (bdecoste@gmail.com)
+- harden JSON parsing for jenkins test (bdecoste@gmail.com)
+- Add @not-enterprise tag to some tests (miciah.masters@gmail.com)
+- Fix tests to use newer-style rhc invocations (miciah.masters@gmail.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - increased jenkins test timeout (bdecoste@gmail.com)
 - Merge pull request #1134 from bdecoste/master
