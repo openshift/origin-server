@@ -20,7 +20,7 @@ module RestApi
       def oauth(endpoint_url, consumer_key, consumer_secret, token, token_secret)
         @oauth_endpoint_uri = URI(endpoint_url)
         @oauth_consumer_key, @oauth_consumer_secret, @oauth_token, @oauth_token_secret = consumer_key, consumer_secret, token, token_secret
-        @oauth_nonce = create_oauth_nonce
+        @oauth_nonce = generate_oauth_nonce
         headers['Content-Type'] = CONTENT_TYPE
         headers['Authorization'] = oauth_authorization_header
       end
@@ -44,10 +44,6 @@ module RestApi
           "oauth_signature=\"#{percent_encode(oauth_signature)}\""
         end
 
-        def create_oauth_nonce
-          SecureRandom.hex
-        end
-
         def oauth_signature
           signing_key = percent_encode(@oauth_consumer_secret) + '&' + percent_encode(@oauth_token_secret)
           query_string = CGI::parse(@oauth_endpoint_uri.query) rescue {}
@@ -61,12 +57,16 @@ module RestApi
           Base64.encode64(hmac).chomp.gsub(/\n/, '')
         end
 
+        def generate_oauth_nonce
+          SecureRandom.hex
+        end
+
         def timestamp
           Time.now.to_i.to_s
         end
 
         def percent_encode(string)
-          URI.escape(string, Regexp.new("[^#{URI::PATTERN::UNRESERVED}]")).gsub('*', '%2A')
+          CGI.escape string
         end
     end
   end
