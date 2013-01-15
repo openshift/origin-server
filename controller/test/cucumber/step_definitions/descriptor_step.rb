@@ -16,15 +16,8 @@ Then /^the descriptor profile exists$/ do
   @app.default_profile.nil?.should be_false
 end
 
-Then /^atleast (\d+) group exists$/ do |count|
-  len = @app.profiles[0].groups.length
-  check = (len >= Integer(count))
-  check.should be_true
-end
-
 Then /^atleast (\d+) component exists$/ do |count|
-   g = @app.profiles[0].groups[0]
-   comp = @app.profiles[0].components(g.component_refs[0].component)
+   comp = @app.profiles[0].components[0]
    check = (not comp.nil?)
    check.should be_true
 end
