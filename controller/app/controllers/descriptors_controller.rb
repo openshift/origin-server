@@ -16,7 +16,7 @@ class DescriptorsController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound      
       return render_error(:not_found, "Application '#{application_id}' not found", 101, "SHOW_DESCRIPTOR")
     end

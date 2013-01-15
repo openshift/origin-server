@@ -34,7 +34,7 @@ class ApplicationsController < BaseController
       include_cartridges = (params[:include] == "cartridges")
       
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
       render_success(:ok, "application", get_rest_application(application, include_cartridges), "SHOW_APPLICATION", "Application '#{id}' found")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
@@ -97,7 +97,7 @@ class ApplicationsController < BaseController
       application = Application.create_app(app_name, features, domain, default_gear_size, scalable, app_creation_result, [], init_git_url, request.headers['User-Agent'])
 
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue OpenShift::UnfulfilledRequirementException => e
       return render_error(:unprocessable_entity, "Unable to create application for #{e.feature}", 109, "ADD_APPLICATION", "cartridge")
     rescue OpenShift::ApplicationValidationException => e
@@ -141,7 +141,7 @@ class ApplicationsController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application #{id} not found.", 101,"DELETE_APPLICATION")
     end

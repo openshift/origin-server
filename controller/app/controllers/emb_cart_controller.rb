@@ -18,7 +18,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
       cartridges = get_application_rest_cartridges(application) if application
       
       render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES", "Listing cartridges for application #{id} under domain #{domain_id}")
@@ -44,7 +44,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
     end
@@ -83,7 +83,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "EMBED_CARTRIDGE")
     end
@@ -166,7 +166,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "REMOVE_CARTRIDGE")
     end
@@ -212,7 +212,7 @@ class EmbCartController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
  
       if !application.scalable and (scales_from != 1 or scales_to != 1)
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")

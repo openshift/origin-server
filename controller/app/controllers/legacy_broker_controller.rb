@@ -387,7 +387,7 @@ class LegacyBrokerController < BaseController
       domains = user.domains
       app = Application.find_by(:domain.in => domains, canonical_name: @req.app_name.downcase)
       @application_name = app.name
-      @application_uuid = app._id.to_s
+      @application_uuid = app.uuid
       @domain_name = app.domain.namespace
       app.user_agent = request.headers["User-Agent"]
     rescue Mongoid::Errors::DocumentNotFound

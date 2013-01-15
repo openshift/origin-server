@@ -6,8 +6,8 @@ class RestGearGroup < OpenShift::Model
     self.name         = self.uuid
     self.gear_profile = group_instance.gear_size
     self.gears        = group_instance.gears.map{ |gear| 
-      { :id => gear._id.to_s, 
-        :state => gear_states[gear._id.to_s] || 'unknown', 
+      { :id => gear.uuid, 
+        :state => gear_states[gear.uuid] || 'unknown', 
       } 
     }
     

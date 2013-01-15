@@ -17,7 +17,7 @@ class GearGroupsController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
       
       gear_states = application.get_gear_states()
       group_instances = application.group_instances_with_scale.map{ |group_inst| RestGearGroup.new(group_inst, gear_states, get_url, nolinks)}
@@ -43,7 +43,7 @@ class GearGroupsController < BaseController
     begin
       application = Application.find_by(domain: domain, canonical_name: app_id.downcase)
       @application_name = application.name
-      @application_uuid = application._id.to_s
+      @application_uuid = application.uuid
       gear_states = application.get_gear_states()
       group_instance = application.group_instances.find(gear_group_id)
 
