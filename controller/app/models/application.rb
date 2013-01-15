@@ -1298,8 +1298,8 @@ class Application
     create_ginst_changes.each do |change|
       ginst_scale = change[:to_scale][:current] || 1
       ginst_id    = change[:to]
-      gear_size = change[:to_scale][:gear_size]
-      additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb]
+      gear_size = change[:to_scale][:gear_size] || "small"
+      additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
       ginst_op = PendingAppOp.new(op_type: :create_group_instance, args: {"group_instance_id"=> ginst_id, "gear_size" => gear_size, "additional_filesystem_gb" => additional_filesystem_gb})
