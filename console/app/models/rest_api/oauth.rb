@@ -2,6 +2,7 @@ require 'uri'
 require 'cgi'
 require 'openssl'
 require 'base64'
+require 'securerandom'
 
 module RestApi
   module Oauth
@@ -44,7 +45,7 @@ module RestApi
         end
 
         def create_oauth_nonce
-          Array.new(5) { rand(256) }.pack('C*').unpack('H*').first
+          SecureRandom.hex
         end
 
         def oauth_signature
