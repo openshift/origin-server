@@ -446,8 +446,12 @@ function check_mongo_login() {
     # $USER=$3
     # $PASS=$4
     verbose checking mongo db login access
-
-    mongo $1/$2 --username $3 --password <<EOF 2>&1 >/dev/null 
+    ssl_opt=""
+    if [ ${APP_VALUES[DS_SSL]} ]
+    then
+        ssl_opt="--ssl"
+    fi
+    mongo $1/$2 --username $3 --password $ssl_opt<<EOF 2>&1 >/dev/null 
 $4
 exit
 EOF
@@ -470,11 +474,13 @@ function check_datastore_mongo() {
 		["DS_USER"]="Rails.application.config.datastore[:user]"
 		["DS_PASS"]="Rails.application.config.datastore[:password]"
 		["DS_NAME"]="Rails.application.config.datastore[:db]"
+                ["DS_SSL"]="Rails.application.config.datastore[:ssl]"
 		)
 	load_application_values
     verbose "Datastore Host: ${APP_VALUES[DS_HOST]}"
     verbose "Datastore Port: ${APP_VALUES[DS_PORT]}"
     verbose "Datastore User: ${APP_VALUES[DS_USER]}"
+    verbose "Datastore SSL: ${APP_VALUES[DS_SSL]}"
     if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
 	fail "Datastore Password has been left configured as the default 'mooo'
@@ -517,6 +523,25 @@ function check_datastore_mongo() {
         else
 	    fail "LOCAL: mongod service not running"
         fi
+
+        # check OpenShift mongo ssl configuration
+        if [ ${APP_VALUES[DS_SSL]} ]
+        then
+            if grep -e '^sslOnNormalPorts = true' /etc/mongodb.conf >/dev/null
+            then
+                verbose "LOCAL: mongodb ssl connections are enabled"
+            else
+                fail "LOCAL: OpenShift broker SSL connections to mongo is enabled;
+                -- please update /etc/mongodb.conf with sslOnNormalPorts = true"
+            fi
+        else
+            if grep -e '^sslOnNormalPorts = true' /etc/mongodb.conf >/dev/null
+            then
+                fail "LOCAL: Although the broker.conf has mongo SSL connections turned off,
+                mongodb is configured to only accept SSL connection;
+                -- please update /etc/mongodb.conf with sslOnNormalPorts = false"
+            fi
+        fi
     else
         verbose "Datastore: mongo db service is remote"
     fi
@@ -535,11 +560,13 @@ function check_auth_mongo() {
 		["DS_USER"]="Rails.application.config.auth[:mongo_user]"
 		["DS_PASS"]="Rails.application.config.auth[:mongo_password]"
 		["DS_NAME"]="Rails.application.config.auth[:mongo_db]"
+		["DS_SSL"]="Rails.application.config.auth[:mongo_ssl]"
 		)
 	load_application_values
     verbose "Auth Host: ${APP_VALUES[DS_HOST]}"
     verbose "Auth Port: ${APP_VALUES[DS_PORT]}"
     verbose "Auth User: ${APP_VALUES[DS_USER]}"
+    verbose "Auth SSL: ${APP_VALUES[DS_SSL]}"
     if [ "${APP_VALUES[DS_PASS]}" == "mooo" ]
     then
 	fail "Datastore Password has been left configured as the default 'mooo'
