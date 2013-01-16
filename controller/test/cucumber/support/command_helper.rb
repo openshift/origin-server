@@ -354,12 +354,26 @@ module CommandHelper
 
   def rhc_ctl_destroy(app, use_hosts=true)
     rhc_do('rhc_ctl_destroy') do
-      time = Benchmark.realtime do 
-        run("#{$rhc_script} app delete #{app.name} --confirm #{default_args(app)}").should == 0
+      time = Benchmark.realtime do
+        exit_code = -1
+        retries = 5
+        while retries > 0 and exit_code != 0
+          exit_code = run("#{$rhc_script} app delete #{app.name} -l #{app.login} -p #{app.password} --confirm -d")
+          sleep 30
+          retries -= 1
+        end
+        exit_code.should == 0
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep 'does not exist'").should == 0
+        exit_code = -1
+        retries = 5
+        while retries > 0 and exit_code != 0
+          exit_code = run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep 'does not exist'")
+          sleep 30
+          retries -= 1
+        end
+        exit_code.should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
       run("sed -i '/#{app.name}-#{app.namespace}.#{$domain}/d' /etc/hosts") if use_hosts
