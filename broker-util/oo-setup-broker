@@ -475,6 +475,6 @@ unless args["--skip-node"] || /not installed/.match(`rpm -q openshift-origin-nod
 
   system("/usr/sbin/oo-setup-node --with-node-hostname broker --with-broker-ip 127.0.0.1 #{cmd_args.join(' ')}")
 else
-  log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
-  log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"
+  $log.warn "NOTE: Please ensure that the clocks between broker and node are in sync."
+  $log.warn "NOTE: Please reboot this node to pick up cgroups, quota and service changes"
 end
