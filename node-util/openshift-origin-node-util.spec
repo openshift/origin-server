@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,9 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Jan 16 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Fix BZ875910: make oo-accept-node extensible (pmorie@gmail.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Fix for Bug 893207 (jhonce@redhat.com)
 
