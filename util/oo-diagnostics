@@ -371,10 +371,9 @@ class OODiag
   # prereq_ methods run before test_ methods in order to enable aborting testing
   # if there are serious problems.
 
-  def prereq_dns_resolution
-    verbose "checking that DNS resolution works at all"
-    # IPSocket.getaddress goes through /etc/hosts;
-    # "host" uses DNS which is what we want.
+
+  def prereq_dns_server_available
+    verbose "checking that the first server in /etc/resolv.conf responds"
     server = nil
     File.open('/etc/resolv.conf').each_line do |line|
       next unless line =~ /^\s*nameserver\s+(\S+)/
@@ -388,15 +387,23 @@ class OODiag
       FAIL
       abort_tests
     end
-    # have the server resolve itself
-    command = "host -W 1 #{server} #{server}"
-    host = `#{command} 2>&1`
-    unless $?.success?
+    # just looking for a nameserver response. at this point we
+    # don't much care if resolution is correct; what we want
+    # is to avoid running a bunch more tests when the nameserver
+    # is obviously broken.
+    command = "host -W 1 do-not-expect-to-resolve. #{server}"
+    # IPSocket.getaddress goes through /etc/hosts;
+    # "host" uses DNS which is what we want.
+    output = `#{command} 2>&1`
+    unless output =~ /NXDOMAIN/
       do_fail <<-"FAIL"
-        DNS resolution isn't working for #{server}.
-        This command: #{command}
-        Returned this output:
-          #{host}
+        #{server} doesn't appear to respond to DNS requests.
+        This command:
+          #{command}
+        should have returned NXDOMAIN to the request.
+        Instead, it returned:
+          #{output}
+        Please check the following to resolve this issue:
         * Does /etc/resolv.conf have your correct nameserver?
         * Is your nameserver running?
         * Is the firewall on your nameserver open (udp:53)?
