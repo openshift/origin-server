@@ -969,7 +969,18 @@ class Application
   end
   
   def self.run_in_application_lock(application, &block)
-    if(Lock.lock_application(application))
+    got_lock = false
+    num_retries = 10
+    wait = 5
+    while(num_retries > 0 and !got_lock)  
+      if(Lock.lock_application(application))
+        got_lock = true
+      else
+        num_retries -= 1
+        sleep(wait)
+      end
+    end 
+    if got_lock
       begin
         yield block
       ensure
