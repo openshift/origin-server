@@ -39,7 +39,6 @@ Requires:       %{?scl:%scl_prefix}rubygem(webmock)
 
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
 BuildRequires:  %{?scl:%scl_prefix}rubygem(rails)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(compass-rails)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(mocha)
@@ -54,6 +53,7 @@ BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
 BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
 %endif
+BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
 BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 BuildRequires:  %{?scl:%scl_prefix}ruby 
 BuildRequires:  %{?scl:%scl_prefix}rubygems
