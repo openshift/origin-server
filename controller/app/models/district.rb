@@ -38,7 +38,7 @@ class District
     self.max_capacity = Rails.configuration.msg_broker[:districts][:max_capacity]
     self.externally_reserved_uids_size = 0
     self.active_server_identities_size = 0
-    save
+    save!
   end
 
   def self.find_available(gear_size=nil)
@@ -71,7 +71,7 @@ class District
               container.set_district("#{_id}", true)
               self.active_server_identities_size += 1
               self.server_identities << { "name" => server_identity, "active" => true}
-              self.save
+              self.save!
             else
               raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
             end
@@ -151,8 +151,9 @@ class District
   end
 
   def self.reserve_uid(uuid)
-    obj = District.where("uuid" => uuid).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
-    obj.available_uids.first
+    obj = District.where(:uuid => uuid, :available_capacity.gt => 0).find_and_modify( {"$pop" => { "available_uids" => -1}, "$inc" => { "available_capacity" => -1 }})
+    return obj.available_uids.first if obj
+    return nil
   end
 
   def self.unreserve_uid(uuid, uid)
@@ -167,7 +168,7 @@ class District
       self.max_uid += num_uids
       self.max_capacity += num_uids
       self.available_uids += additions
-      self.save
+      self.save!
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
     end
@@ -197,7 +198,7 @@ class District
       self.max_uid -= num_uids
       self.max_capacity -= num_uids
       self.available_uids -= subtractions
-      self.save
+      self.save!
     else
       raise OpenShift::OOException.new("You must supply a positive number of uids to remove")
     end
