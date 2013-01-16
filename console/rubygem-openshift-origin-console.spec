@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.4
+Version: 1.3.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jan 16 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- Merge pull request #1144 from fabianofranz/dev/ffranz/twitter1.1
+  (dmcphers+openshiftbot@redhat.com)
+- Using CGI.escape to percent_encode OAuth headers (ffranz@redhat.com)
+- Now using SecureRandom.hex to generate OAuth nonce (ffranz@redhat.com)
+- Added simple OAuth client support as a mixin (ffranz@redhat.com)
+
 * Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - Update UserGuide link to Working With Domains Switch namespace form to use
   latest input_append input_prepend (sgoodwin@redhat.com)
