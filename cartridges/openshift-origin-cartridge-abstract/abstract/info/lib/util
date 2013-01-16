@@ -28,8 +28,6 @@ function post_start_app () {
 	            echo "!!!!!!!!"
 	        fi
 	
-          orig_app_state=`get_app_state`
-
 	        set_app_state building
 	
 	        # Do any cleanup before the next build
@@ -42,8 +40,6 @@ function post_start_app () {
 	
 	        # Deploy new build, run internal deploy steps, then user deploy
 	        deploy.sh
-
-          set_app_state "$orig_app_state"
 	        
 	        hot_deploy_added=false
 	        
@@ -254,11 +250,7 @@ function get_attached_databases {
 #
 # Returns 0 on success
 function start_app {
-    _state=`get_app_state`
-    _locks=$(ls ${APP_HOME:-$OPENSHIFT_HOMEDIR}/*/run/stop_lock 2>/dev/null |grep -ve 'app-root|git' |wc -l)
-    if [ "$_locks" -eq 0 ] && [ idle != "$_state" ]; then
-        set_app_state started
-    fi
+    set_app_state started
 
     for db in $(get_local_databases)
     do

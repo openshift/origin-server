@@ -53,9 +53,10 @@ framework_carts=$(get_installed_framework_carts)
 primary_framework_cart=${framework_carts[0]}
 
 stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
-if [ -f "$stop_lock_file" ]
+state=`cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state`
+if [ -f "$stop_lock_file" -o 'idled' = "$state" ]
 then
-    rm "$stop_lock_file"
+    rm -f "$stop_lock_file"
 else
     # Do not restore non-idled application. Browser may cause 20+ retries when restoring application.
     exit 0
@@ -65,7 +66,7 @@ fi
 runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
 
 # timeout take from oo-admin-ctl-gears
-/usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
+/usr/bin/timeout -s USR1 120s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
 
 HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
 
