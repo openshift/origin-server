@@ -452,7 +452,7 @@ class Application
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
         gear = group_instance.gears.find_by(app_dns: true)
-        return "#{gear._id}@#{fqdn}"
+        return "#{gear.uuid}@#{fqdn}"
       end
     end
     ""

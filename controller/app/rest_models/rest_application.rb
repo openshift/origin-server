@@ -15,7 +15,7 @@ class RestApplication < OpenShift::Model
 
     self.name = app.name
     self.creation_time = app.created_at
-    self.uuid = app._id.to_s
+    self.uuid = app.uuid
     self.aliases = app.aliases
     self.gear_count = app.num_gears
     self.domain_id = app.domain.namespace
