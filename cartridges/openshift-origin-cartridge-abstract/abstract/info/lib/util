@@ -528,6 +528,23 @@ function generate_password {
     head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9-_"|fold -w 12 | grep -v '^-' | head -n1
 }
 
+function generate_username {
+    if [ "$1" ]
+    then
+        username="$1"
+    else
+        username="admin"
+    fi
+
+    remain=$(( 12 - ${#username} ))
+    if [ "$remain" -ge 1 ]
+    then
+        rnstr=$(head -n 50 /dev/urandom|tr -dc "a-np-zA-NP-Z1-9"|fold -w $remain | head -n1)
+        username="${username}${rnstr}"
+    fi
+    echo $username
+}
+
 function error {
     echo "$1" 1>&2
     exit "$2"
