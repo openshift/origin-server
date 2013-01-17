@@ -30,6 +30,7 @@ Requires:       rubygem(openshift-origin-common)
 Requires:       python
 Requires:       libselinux-python
 Requires:       mercurial
+Requires:       httpd
 
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:       libcgroup
