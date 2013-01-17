@@ -321,15 +321,27 @@ class Application
   # Adds components to the application
   # @note {#run_jobs} must be called in order to perform the updates
   def add_features(features, group_overrides=[], init_git_url=nil)
-    # Validate that the features support scalable if necessary
-    if self.scalable
-      features.each do |feature_name|
-        cart = CartridgeCache.find_cartridge(feature_name)
-        unless cart.is_plugin? || cart.is_service?
-          raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
+    features.each do |feature_name|
+      cart = CartridgeCache.find_cartridge(feature_name)
+
+      # Validate that the features support scalable if necessary
+      if self.scalable && !(cart.is_plugin? || cart.is_service?)
+        raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
+      end
+      
+      # Validate that this feature either does not have the domain_scope category
+      # or if it does, then no other application within the domain has this feature already
+      if cart.is_domain_scoped?
+        begin
+          if Application.where(domain_id: self.domain._id, "component_instances.cartridge_name" => cart.name).count() > 0
+            raise OpenShift::UserException.new("An application with #{feature_name} already exists within the domain. You can only have a single application with #{feature_name} within a domain.")
+          end
+        rescue Mongoid::Errors::DocumentNotFound
+          #ignore
         end
       end
     end
+    
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url}, user_agent: self.user_agent)
@@ -783,7 +795,12 @@ class Application
       when "SYSTEM_SSH_KEY_ADD"
         domain_keys_to_add.push({"name" => self.name, "content" => command_item[:args][0], "type" => "ssh-rsa"})
       when "SYSTEM_SSH_KEY_REMOVE"
-        domain_keys_to_rm.push({"name" => self.name})
+        begin
+          key = self.domain.system_ssh_keys.find_by(name: self.name)
+          domain_keys_to_rm.push({"name" => key.name, "content" => key.content, "type" => key.type})
+        rescue Mongoid::Errors::DocumentNotFound
+          #ignore
+        end
       when "APP_SSH_KEY_ADD"
         add_ssh_keys << ApplicationSshKey.new(name: "application-" + command_item[:args][0], type: "ssh-rsa", content: command_item[:args][1], created_at: Time.now)
       when "APP_SSH_KEY_REMOVE"
@@ -797,7 +814,7 @@ class Application
       when "ENV_VAR_ADD"
         domain_env_vars_to_add.push({"key" => command_item[:args][0], "value" => command_item[:args][1]})
       when "ENV_VAR_REMOVE"
-        domain_env_vars_to_rm.push({"key" => command_item[:args][0]})
+        self.domain.env_vars.each {|env_var| domain_env_vars_to_rm << env_var if env_var["key"] == command_item[:args][0]}
       when "BROKER_KEY_ADD"
         iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
         pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)

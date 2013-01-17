@@ -7,6 +7,7 @@ Categories:
   - web_framework
   - instant_app
   - ci
+  - domain_scope
 Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
