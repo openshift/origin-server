@@ -33,7 +33,7 @@ class UsageRecord
       when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
         usage_record.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
       end
-      usage_record.save
+      usage_record.save!
 
       usage = nil
       if event == UsageRecord::EVENTS[:begin]
@@ -42,10 +42,14 @@ class UsageRecord
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
       elsif event == UsageRecord::EVENTS[:end]
-        usage = Usage.find_latest_by_gear(gear_id, usage_type)
-        usage.end_time = now if usage
+        usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
+        if usage
+          usage.end_time = now
+        else
+          Rails.logger.error "Can NOT find begin/continue usage record for login:#{login}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
+        end
       end
-      usage.save if usage
+      usage.save! if usage
     end
 
     if Rails.configuration.usage_tracking[:syslog_enabled]
@@ -71,13 +75,13 @@ class UsageRecord
       usage_record = where(:login => login, :gear_id => gear_id, :event => event, :usage_type => usage_type).sort(:time.desc).first
       usage_record.delete if usage_record
 
-      usage = Usage.find_latest_by_gear(gear_id, usage_type)
+      usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
       if usage
         if event == UsageRecord::EVENTS[:begin]
           usage.delete
         elsif event == UsageRecord::EVENTS[:end]
           usage.end_time = nil
-          usage.save
+          usage.save!
         end
       end
     end

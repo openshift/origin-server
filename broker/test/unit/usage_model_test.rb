@@ -61,7 +61,7 @@ class UsageModelTest < ActiveSupport::TestCase
     assert(ue.length == 1)
   end
   
-  test "find latest by gear" do
+  test "find latest by user gear" do
     ue1 = usage
     ue1.save!
     ue2 = usage
@@ -69,7 +69,7 @@ class UsageModelTest < ActiveSupport::TestCase
     ue2.begin_time = ue1.begin_time + 1
     ue2.save!
     ue2.reload
-    ue = Usage.find_latest_by_gear(ue1.gear_id, UsageRecord::USAGE_TYPES[:gear_usage])
+    ue = Usage.find_latest_by_user_gear(ue1.login, ue1.gear_id, UsageRecord::USAGE_TYPES[:gear_usage])
     assert_equal ue, ue2
   end
 
@@ -96,12 +96,12 @@ class UsageModelTest < ActiveSupport::TestCase
     assert(ue.length == 2)
   end
 
-  test "find usage by gear" do
+  test "find usage by user gear" do
     ue = usage
     ue.save!
-    ue1 = Usage.find_by_gear(ue.gear_id)
+    ue1 = Usage.find_by_user_gear(ue.login, ue.gear_id)
     assert(ue1 != nil)
-    ue1 = Usage.find_by_gear(ue.gear_id, ue.begin_time)
+    ue1 = Usage.find_by_user_gear(ue.login, ue.gear_id, ue.begin_time)
     assert(ue1 != nil)
   end
 

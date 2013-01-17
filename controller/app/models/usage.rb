@@ -29,16 +29,16 @@ class Usage
     get_list(where(:login => login).nor({:end_time.lt => begin_time}, {:begin_time.gt => end_time}))
   end
 
-  def self.find_by_gear(gear_id, begin_time=nil)
+  def self.find_by_user_gear(login, gear_id, begin_time=nil)
     unless begin_time
-      return get_list(where(:gear_id => gear_id))
+      return get_list(where(:login => login, :gear_id => gear_id))
     else
-      return get_list(where(:gear_id => gear_id, :begin_time => begin_time))
+      return get_list(where(:login => login, :gear_id => gear_id, :begin_time => begin_time))
     end
   end
   
-  def self.find_latest_by_gear(gear_id, usage_type)
-    where(:gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
+  def self.find_latest_by_user_gear(login, gear_id, usage_type)
+    where(:login => login, :gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
   end
 
   def self.find_user_summary(login)
