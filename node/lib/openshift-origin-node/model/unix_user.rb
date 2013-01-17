@@ -20,6 +20,7 @@ require 'openshift-origin-node/model/frontend_httpd.rb'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fcntl'
+require 'active_model'
 
 module OpenShift
   class UserCreationException < Exception
@@ -31,8 +32,10 @@ module OpenShift
   # == Unix User
   #
   # Represents a user account on the system.
-  class UnixUser < Model
+  class UnixUser
     include OpenShift::Utils::ShellExec
+    include ActiveModel::Observing
+    
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files,
         :container_name
@@ -560,35 +563,10 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     def initialize_openshift_port_proxy
       notify_observers(:before_initialize_openshift_port_proxy)
 
-      port_begin = (@config.get("PORT_BEGIN") || "35531").to_i
-      ports_per_user = (@config.get("PORTS_PER_USER") || "5").to_i
-
-      # Note, due to a mismatch between dev and prod this is
-      # intentionally not GEAR_MIN_UID and the range must
-      # wrap back around on itself.
-      uid_begin = (@config.get("UID_BEGIN") || "500").to_i
-
-      wrap_uid = ((65536 - port_begin)/ports_per_user)+uid_begin
-
-      if @uid >= wrap_uid
-        tuid = @uid - wrap_uid + uid_begin
-      else
-        tuid = @uid
-      end
-
-      proxy_port_begin = (tuid-uid_begin) * ports_per_user + port_begin
-
-      proxy_port_range = (proxy_port_begin ... (proxy_port_begin + ports_per_user))
-
-      cmd = %{openshift-port-proxy-cfg setproxy}
-      proxy_port_range.each { |i| cmd << " #{i} delete" }
-      out, err, rc = shellCmd(cmd)
-      Syslog.warning(
-            "WARNING: openshift-port-proxy-cfg failed(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
-            ) unless 0 == rc
+      proxy_server = FrontendProxyServer.new
+      proxy_server.delete_all_for_uid(@uid, true)
 
       notify_observers(:after_initialize_openshift_port_proxy)
-      return rc == 0
     end
 
 

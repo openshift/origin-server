@@ -35,7 +35,9 @@ source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 # Deconfigure app.
 setup_deconfigure "$1" $2 $3
 
-$CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
+source $APP_HOME/.env/OPENSHIFT_APP_UUID
+container_uuid=$3
+/usr/bin/oo-delete-endpoints --with-app-uuid $OPENSHIFT_APP_UUID --with-container-uuid $container_uuid --cart-name $cartridge_type
 
 if [ ! -d "$APP_HOME/app-root" ]
 then

@@ -36,16 +36,12 @@ source ${CART_INFO_DIR}/lib/util
 
 MONGODB_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-#
-# Teardown port proxy (ignore failures or missing hook)
-#
-( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
-
+source $APP_HOME/.env/OPENSHIFT_APP_UUID
+container_uuid=$3
+/usr/bin/oo-delete-endpoints --with-app-uuid $OPENSHIFT_APP_UUID --with-container-uuid $container_uuid --cart-name $cartridge_type
 
 # For non-embedded (dedicated) mongo gear, destroy the git repo and stop app.
 if only_cart_on_gear $cartridge_type; then
-   $CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
-
    enable_stale_detection
 
    stop_app

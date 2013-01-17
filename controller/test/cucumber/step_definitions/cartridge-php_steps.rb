@@ -20,10 +20,6 @@ Then /^the php application will( not)? be aliased$/ do | negate |
   exit_status.should == good_status
 end
 
-When /^I (expose-port|conceal-port) the php application$/ do |action|
-  @cart.run_hook action, 0
-end
-
 Then /^the php application will( not)? be exposed$/ do | negate |
   exitcode, output = @cart.run_hook_output 'show-port', 0
 

@@ -30,7 +30,9 @@ setup_deconfigure "$1" $2 $3
 
 PERLCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-$CART_INFO_DIR/hooks/conceal-port "$application" "$namespace" "$uuid"
+source $APP_HOME/.env/OPENSHIFT_APP_UUID
+container_uuid=$3
+/usr/bin/oo-delete-endpoints --with-app-uuid $OPENSHIFT_APP_UUID --with-container-uuid $container_uuid --cart-name $cartridge_type
 
 if [ ! -d "$APP_HOME/app-root" ]
 then
