@@ -105,3 +105,5 @@ Profiles:
           - mysql-slave
     Start-Order:  [master, slaves]
 Default-Profile: singleton-master
+Endpoints:
+  - DB_PROXY_PORT: 3306

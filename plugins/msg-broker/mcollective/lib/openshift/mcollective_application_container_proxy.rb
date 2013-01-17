@@ -439,15 +439,22 @@ module OpenShift
       end
       
       def expose_port(app, gear, cart)
-        run_cartridge_command(cart, app, gear, "expose-port")
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--cart-name'] = cart
+        result = execute_direct(@@C_CONTROLLER, 'expose-port', args)
+        parse_result(result)
       end
 
+      # Deprecated: remove from the REST API and then delete this.
       def conceal_port(app, gear, cart)
-        run_cartridge_command(cart, app, gear, "conceal-port")
+        ResultIO.new
       end
 
+      # Deprecated: remove from the REST API and then delete this.
       def show_port(app, gear, cart)
-        run_cartridge_command(cart, app, gear, "show-port")
+        ResultIO.new
       end
 
       def add_alias(app, gear, server_alias)

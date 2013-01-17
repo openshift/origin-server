@@ -82,3 +82,5 @@ Subscribes:
   set-mongo-connection-info:
     Type: "NET_TCP:db:mongodb"
     Required : false
+Endpoints:
+  - PROXY_PORT: 8080

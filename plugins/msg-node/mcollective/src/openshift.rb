@@ -369,6 +369,26 @@ module MCollective
         end
       end
 
+      def oo_expose_port(cmd, args)
+        Log.instance.info "COMMAND: #{cmd}"
+
+        container_uuid = args['--with-container-uuid']
+        app_uuid = args['--with-app-uuid']
+        cart_name = args['--cart-name']
+
+        begin
+          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
+            nil, nil, nil, nil, nil, logger = Log.instance)
+          container.create_endpoints(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
       def oo_connector_execute(cmd, args)
         Log.instance.info "COMMAND: #{cmd}"
         gear_uuid = args['--gear-uuid']
@@ -420,6 +440,8 @@ module MCollective
           rc, output = oo_remove_alias(cmd, args)
         when "tidy"
           rc, output = oo_tidy(cmd, args)
+        when "expose-port"
+          rc, output = oo_expose_port(cmd, args)
         else
           return nil, nil
         end
@@ -478,7 +500,7 @@ module MCollective
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|conceal-port|show-port|system-messages|connector-execute|get-quota|set-quota)\Z/
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|system-messages|connector-execute|get-quota|set-quota)\Z/
         validate :action, :shellsafe
         cartridge = request[:cartridge]
         action = request[:action]
