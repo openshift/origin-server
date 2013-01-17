@@ -65,6 +65,7 @@ class UsageModelTest < ActiveSupport::TestCase
     ue1 = usage
     ue1.save!
     ue2 = usage
+    ue2.login = ue1.login
     ue2.gear_id = ue1.gear_id
     ue2.begin_time = ue1.begin_time + 1
     ue2.save!
