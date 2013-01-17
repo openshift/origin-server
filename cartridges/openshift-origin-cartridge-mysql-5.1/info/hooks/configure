@@ -71,17 +71,18 @@ observe_setup_var_lib_dir "$MYSQL_DIR"
 start_database
 
 # Generate a password with no o's O's or 0's
+username=$(generate_username)
 password=$(generate_password)
 
 #
 # Setup Environment Variables
 #
-echo "export OPENSHIFT_MYSQL_DB_USERNAME='admin'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
+echo "export OPENSHIFT_MYSQL_DB_USERNAME='$username'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_USERNAME
 echo "export OPENSHIFT_MYSQL_DB_PASSWORD='$password'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PASSWORD
 echo "export OPENSHIFT_MYSQL_DB_HOST='$MYSQL_IP'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_HOST
 echo "export OPENSHIFT_MYSQL_DB_PORT='$MYSQL_PORT'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_PORT
 echo "export OPENSHIFT_MYSQL_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_SOCKET
-echo "export OPENSHIFT_MYSQL_DB_URL='mysql://admin:$password@$MYSQL_IP:$MYSQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
+echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$username:$password@$MYSQL_IP:$MYSQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
 echo "export OPENSHIFT_MYSQL_DB_LOG_DIR='${MYSQL_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_LOG_DIR
 
 ## Setup user
@@ -91,8 +92,8 @@ create database \`${dbname}\` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_ge
 
 echo "                                  
 delete from user;
-grant all on *.* to 'admin'@'$MYSQL_IP' identified by '$password' with grant option;
-grant all on *.* to 'admin'@'localhost' identified by '$password' with grant option;
+grant all on *.* to '$username'@'$MYSQL_IP' identified by '$password' with grant option;
+grant all on *.* to '$username'@'localhost' identified by '$password' with grant option;
 flush privileges;" | mysql -u root -S "${MYSQL_DIR}/socket/mysql.sock" mysql > /dev/null || error "Failed to setup initial root user" 187
 
 mysql_ip="$MYSQL_IP"
@@ -114,7 +115,7 @@ fi
 client_result ""
 client_result "MySQL 5.1 database added.  Please make note of these credentials:"
 client_result ""
-client_result "   Root User: admin"
+client_result "   Root User: $username"
 client_result "   Root Password: $password"
 client_result "   Database Name: ${dbname}"
 client_result ""
@@ -132,7 +133,7 @@ else
 fi
 
 cart_props "connection_url=mysql://$mysql_ip:$mysql_port/"
-cart_props "username=admin"
+cart_props "username=$username"
 cart_props "password=$password"
 cart_props "database_name=${dbname}"
 
