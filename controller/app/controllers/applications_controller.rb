@@ -149,8 +149,8 @@ class ApplicationsController < BaseController
     # create tasks to delete gear groups
     begin
       application.destroy_app
-    rescue OpenShift::LockUnavailableException => luex
-      return render_error(:conflict, luex.message, nil, "DELETE_APPLICATION")
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "DELETE_APPLICATION")
     end
     
     render_success(:no_content, nil, nil, "DELETE_APPLICATION", "Application #{id} is deleted.", true) 

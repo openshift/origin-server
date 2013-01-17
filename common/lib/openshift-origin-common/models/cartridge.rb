@@ -68,6 +68,14 @@ module OpenShift
     def is_domain_scoped?
       return categories.include?('domain_scope')
     end
+
+    def is_web_proxy?
+      return categories.include?('web_proxy')
+    end
+    
+    def is_web_framework?
+      return categories.include?('web_framework')
+    end
     
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]

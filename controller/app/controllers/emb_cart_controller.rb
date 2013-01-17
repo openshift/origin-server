@@ -173,11 +173,7 @@ class EmbCartController < BaseController
     
     begin
       comp = application.component_instances.find_by(cartridge_name: cartridge)
-      feature = application.get_feature(comp.cartridge_name, comp.component_name)
-      if CartridgeCache.find_cartridge(cartridge).categories.include?("web_framework")
-        raise OpenShift::UserException.new("Invalid cartridge #{id}")
-      end
-      
+      feature = application.get_feature(comp.cartridge_name, comp.component_name)     
       application.remove_features([feature])
       
       if $requested_api_version == 1.0
@@ -187,8 +183,10 @@ class EmbCartController < BaseController
       end
       
       render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "REMOVE_CARTRIDGE")
     rescue OpenShift::UserException => e
-      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", 129, "REMOVE_CARTRIDGE")
+      return render_error(:unprocessable_entity, e.message, e.code, "REMOVE_CARTRIDGE")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge #{cartridge} not embedded within application #{id}", 129, "REMOVE_CARTRIDGE")
     end
@@ -236,6 +234,8 @@ class EmbCartController < BaseController
       component_instance = application.component_instances.find_by(cartridge_name: id)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
       return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "PATCH_APP_CARTRIDGE")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "PATCH_APP_CARTRIDGE")
     end

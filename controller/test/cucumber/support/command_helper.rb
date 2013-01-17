@@ -357,12 +357,12 @@ module CommandHelper
       time = Benchmark.realtime do
         exit_code = -1
         retries = 5
-        while retries > 0 and exit_code != 0
+        while retries > 0 and (exit_code != 0 or exit_code != 101)
           exit_code = run("#{$rhc_script} app delete #{app.name} -l #{app.login} -p #{app.password} --confirm -d")
           sleep 30
           retries -= 1
         end
-        exit_code.should == 0
+        (exit_code == 0 or exit_code == 101).should == true
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 

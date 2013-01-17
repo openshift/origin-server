@@ -38,6 +38,8 @@ class EmbCartEventsController < BaseController
         else
           return render_error(:bad_request, "Invalid event '#{event}' for embedded cartridge #{cartridge} within application '#{id}'", 126, "CARTRIDGE_EVENT")
       end
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "CARTRIDGE_EVENT")
     rescue Exception => e
       return render_exception(e, "CARTRIDGE_EVENT")
     end

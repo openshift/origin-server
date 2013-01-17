@@ -91,6 +91,8 @@ class AppEventsController < BaseController
           return render_error(:unprocessable_entity, "Invalid application event '#{event}' specified",
                               126, "APPLICATION_EVENT", "event")
         end
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "#{event.sub('-', '_').upcase}_APPLICATION")
     rescue OpenShift::UserException => uex
       return render_error(:unprocessable_entity, "#{uex.message}", nil, "#{event.sub('-', '_').upcase}_APPLICATION")
     rescue Exception => e

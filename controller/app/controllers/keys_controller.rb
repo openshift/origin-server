@@ -51,6 +51,8 @@ class KeysController < BaseController
       @cloud_user.add_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
       render_success(:created, "key", ssh_key, "ADD_KEY", "Created SSH key #{name}", true)
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, e.message, e.code, "ADD_KEY")
     rescue Exception => e
       return render_exception(e, "ADD_KEY")
     return
@@ -85,6 +87,8 @@ class KeysController < BaseController
       @reply = RestReply.new(:ok, "key", ssh_key)
       @reply.messages.push(Message.new(:info, "Updated SSH key with name #{id} for user #{@login}"))
       respond_with @reply, :status => @reply.status
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, e.message, e.code, "UPDATE_KEY")
     rescue Exception => e
       log_action(@request_id, @cloud_user._id, @cloud_user.login, "UPDATE_KEY", false, "Failed to update SSH key #{id}: #{e.message}")
       Rails.logger.error e
@@ -106,6 +110,8 @@ class KeysController < BaseController
     begin
       @cloud_user.remove_ssh_key(id)
        render_success(:no_content, nil, nil, "DELETE_KEY", "Deleted SSH key #{id}", true)
+    rescue OpenShift::LockUnavailableException => e
+      return render_error(:service_unavailable, e.message, e.code, "DELETE_KEY")
     rescue Exception => e
       return render_exception(e, "DELETE_KEY")
     end

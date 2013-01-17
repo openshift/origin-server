@@ -352,13 +352,18 @@ class Application
     result_io
   end
 
-  # Adds components to the application
+  # Removes components from the application
+  # set force to true if deleting application
   # @note {#run_jobs} must be called in order to perform the updates
-  def remove_features(features, group_overrides=[])
+  def remove_features(features, group_overrides=[], force=false)
     installed_features = self.requires
+    
     features.each do |feature|
-      raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'") unless installed_features.include? feature
-    end
+      cart = CartridgeCache.find_cartridge(feature)
+      Rails.logger.error "Removing feature #{feature}"
+      raise OpenShift::UserException.new("'#{feature}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
+      raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
+    end if !force
     result_io = ResultIO.new
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
@@ -382,7 +387,7 @@ class Application
         end
       }
     }
-    self.remove_features(self.requires)
+    self.remove_features(self.requires, [], true)
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :delete_app, user_agent: self.user_agent)
       result_io = ResultIO.new
@@ -431,8 +436,8 @@ class Application
     raise OpenShift::UserException.new("Application #{self.name} is not scalable") if !self.scalable
     
     ginst = group_instances_with_scale.select {|gi| gi._id == group_instance_id}.first
-    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements.") if scale_by < 0 && ginst.gears.length <= ginst.min
-    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.") if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
+    raise OpenShift::UserException.new("Cannot scale below minimum gear requirements.", 168) if scale_by < 0 && ginst.gears.length <= ginst.min
+    raise OpenShift::UserException.new("Cannot scale up beyond maximum gear limit in app #{self.name}.", 168) if scale_by > 0 && ginst.gears.length >= ginst.max and ginst.max > 0
     
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :scale_by, args: {"group_instance_id" => group_instance_id, "scale_by" => scale_by}, user_agent: self.user_agent)
@@ -668,7 +673,7 @@ class Application
     end
     
     Application.run_in_application_lock(self) do
-      raise OpenShift::UserException.new("Alias #{server_alias} is already registered") if Application.where(aliases: server_alias).count > 0
+      raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where(aliases: server_alias).count > 0
       aliases.push(server_alias)
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
@@ -1004,7 +1009,7 @@ class Application
         Lock.unlock_application(application)
       end
     else
-      raise OpenShift::LockUnavailableException.new("Unable to perform action. Another operation is already running.")
+      raise OpenShift::LockUnavailableException.new("Unable to perform action. Another operation is already running.", 171)
     end
   end
 
@@ -1956,7 +1961,7 @@ class Application
 
   def get_components_for_feature(feature)
     cart = CartridgeCache.find_cartridge(feature)
-    raise OpenShift::UserException.new("No cartridge found that provides #{feature}") if cart.nil?
+    raise OpenShift::UserException.new("No cartridge found that provides #{feature}", 109) if cart.nil?
     prof = cart.profile_for_feature(feature)
     prof.components.map{ |comp| self.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name) }
   end
