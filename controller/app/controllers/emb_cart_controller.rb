@@ -105,6 +105,10 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Invalid colocation specified. No component matches #{colocate_with}", 109, "EMBED_CARTRIDGE", "cartridge")      
       end
     end
+
+    if scales_to and scales_from and scales_to != -1 and scales_from > scales_to
+      return render_error(:unprocessable_entity, "Invalid scaling values provided. 'scales_from(#{scales_from})' cannot be greater than 'scales_to(#{scales_to})'.", 109, "EMBED_CARTRIDGE", "cartridge")      
+    end
     
     begin
       group_overrides = []
