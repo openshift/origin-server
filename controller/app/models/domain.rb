@@ -33,7 +33,7 @@ class Domain
   has_many :applications, class_name: Application.name, dependent: :restrict
   embeds_many :pending_ops, class_name: PendingDomainOps.name
   
-  index({:namespace => 1}, {:unique => true})
+  index({:canonical_namespace => 1}, {:unique => true})
   create_indexes
   
   validates :namespace,

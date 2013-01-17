@@ -18,6 +18,9 @@ class Gear
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
 
+  index({:uuid => 1}, {:unique => true})
+  create_indexes
+
   # Initializes the gear
   def initialize(attrs = nil, options = nil)
     custom_id = attrs[:custom_id]
