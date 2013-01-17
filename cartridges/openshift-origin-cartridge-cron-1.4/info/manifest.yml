@@ -39,3 +39,5 @@ Profiles:
           Min: 1
           Max: 1
 Default-Profile: scheduler-service
+Endpoints:
+  - PROXY_PORT: 8080

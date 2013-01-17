@@ -101,3 +101,9 @@ Profiles:
           Min: 1
           Max: -1
 Default-Profile: standalone
+Endpints:
+  - PROXY_PORT: 8080
+  - CLUSTER_PROXY_PORT: 7600
+  - MESSAGING_PORT: 5445
+  - MESSAGING_THROUGHPUT_PORT: 5455
+  - REMOTING_PORT: 4447

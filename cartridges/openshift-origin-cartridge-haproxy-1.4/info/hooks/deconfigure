@@ -38,10 +38,9 @@ source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 
 HAPROXY_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
-#
-# Teardown port proxy (ignore failures or missing hook)
-#
-( ${CART_INFO_DIR}/hooks/conceal-port "$1" $2 $3 ) &>/dev/null || :
+source $APP_HOME/.env/OPENSHIFT_APP_UUID
+container_uuid=$3
+/usr/bin/oo-delete-endpoints --with-app-uuid $OPENSHIFT_APP_UUID --with-container-uuid $container_uuid --cart-name $cartridge_type
 
 # Remove PATH override
 OLD_PATH=$PATH

@@ -132,3 +132,5 @@ Profiles:
 #          Min: 1
 #          Max: -1
 Default-Profile: singleton-master
+Endpoints:
+  - DB_PROXY_PORT: 5432

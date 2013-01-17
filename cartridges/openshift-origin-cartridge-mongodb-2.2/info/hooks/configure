@@ -100,8 +100,12 @@ rm -f /tmp/.dbshell
 
 mongodb_ip="$MONGODB_IP"
 mongodb_port="$MONGODB_PORT"
+
+source $APP_HOME/.env/OPENSHIFT_APP_UUID
+container_uuid=$3
+
 if is_a_scalable_app; then
-   if $(dirname "$0")/expose-port "$@"; then
+   if /usr/bin/oo-create-endpoints --with-app-uuid $OPENSHIFT_APP_UUID --with-container-uuid $container_uuid --cart-name $cartridge_type; then
        source $APP_HOME/.env/OPENSHIFT_GEAR_DNS
        source $APP_HOME/.env/OPENSHIFT_MONGODB_DB_PROXY_PORT
        if [ -n "$OPENSHIFT_GEAR_DNS" ]; then
