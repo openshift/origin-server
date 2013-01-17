@@ -9,15 +9,15 @@ module Console::CommunityHelper
   end
 
   def openshift_twitter_hashtag_url
-    'http://twitter.com/#!/search/%23OpenShift'
+    'http://twitter.com/search/%23OpenShift'
   end
 
   def openshift_twitter_url
-    'http://www.twitter.com/#!/openshift'
+    'http://twitter.com/openshift'
   end
 
   def openshift_ops_twitter_url
-    'http://www.twitter.com/#!/openshift_ops'
+    'http://twitter.com/openshift_ops'
   end
 
   def open_bug_url
