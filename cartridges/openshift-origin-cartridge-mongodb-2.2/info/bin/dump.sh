@@ -33,8 +33,10 @@ function die() {
 
 function create_mongodb_snapshot() {
    #  Work in a temporary directory (create and cd to it).
-   mkdir -p /tmp/mongodump.$$
-   pushd /tmp/mongodump.$$ > /dev/null
+   umask 077
+   dumpdir = $(mktemp -d mongodumpXXXXXXXX)
+   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   pushd $dumpdir > /dev/null
 
    #  Take a "dump".
    creds="-u $OPENSHIFT_MONGODB_DB_USERNAME -p \"$OPENSHIFT_MONGODB_DB_PASSWORD\" --port $OPENSHIFT_MONGODB_DB_PORT"
@@ -43,7 +45,7 @@ function create_mongodb_snapshot() {
       if tar -zcf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz . ; then
          #  Created dump snapshot - restore previous dir and remove temp dir.
          popd > /dev/null
-         /bin/rm -rf /tmp/mongodump.$$
+         /bin/rm -rf $dumpdir
          return 0
       else
          err_details="- snapshot failed"
@@ -54,7 +56,7 @@ function create_mongodb_snapshot() {
 
    #  Failed to dump/gzip - log error and exit.
    popd > /dev/null
-   /bin/rm -rf /tmp/mongodump.$$
+   /bin/rm -rf $dumpdir
    /bin/rm -f  $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz
    die 0 "WARNING" "Could not dump MongoDB databases ${err_details}!"
 

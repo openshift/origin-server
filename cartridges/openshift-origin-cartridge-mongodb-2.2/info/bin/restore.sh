@@ -66,13 +66,15 @@ WARNING: You may have possibly encountered the mongorestore bugs related to
 
 function restore_from_mongodb_snapshot() {
    #  Work in a temporary directory (create and cd to it).
-   mkdir -p /tmp/mongodump.$$
-   pushd /tmp/mongodump.$$ > /dev/null
+   umask 077
+   dumpdir = $(mktemp -d mongodumpXXXXXXXX)
+   [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
+   pushd $dumpdir > /dev/null
 
    #  Extract dump from the snapshot.
    if ! tar -zxf $OPENSHIFT_DATA_DIR/mongodb_dump_snapshot.tar.gz ; then
       popd > /dev/null
-      /bin/rm -rf /tmp/mongodump.$$
+      /bin/rm -rf $dumpdir
       restart_mongod_with_auth
       die 0 "WARNING" "Could not restore MongoDB databases - extract failed!"
    fi
@@ -90,7 +92,7 @@ function restore_from_mongodb_snapshot() {
                      --directoryperdb --drop  1>&2; then
        print_mongo_jira_warnings
        popd > /dev/null
-       /bin/rm -rf /tmp/mongodump.$$
+       /bin/rm -rf $dumpdir
        restart_mongod_with_auth
        die 0 "WARNING" "Could not restore MongoDB databases - mongorestore failed!"
    fi
@@ -98,7 +100,7 @@ function restore_from_mongodb_snapshot() {
 
    #  Restore previous dir and clean up temporary dir.
    popd > /dev/null
-   /bin/rm -rf /tmp/mongodump.$$
+   /bin/rm -rf $dumpdir
    return 0
 
 }  #  End of function  restore_from_mongodb_snapshot.
