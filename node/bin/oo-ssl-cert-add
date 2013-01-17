@@ -1,0 +1,106 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2010 Red Hat, Inc.
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#    http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+def usage
+  puts <<USAGE
+== Synopsis
+
+#{$0}: Add a ssl certificate/private key for an alias(custom domain) to a gear.
+  This command must be run as root.
+
+== Usage
+
+#{$0} --with-container-uuid UUID \\
+               --with-ssl-cert SSL_CERT_PATH \\
+               --with-priv-key PRIV_KEY_PATH \\
+               --with-container-name NAME \\
+               --with-namespace NAMESPACE \\
+               --with-alias-name ALIAS
+
+== List of arguments
+  -s|--with-ssl-cert        ssl_cert    SSL certificate to add to the gear
+  -k|--with-priv-key        priv_key    Private key for the SSL certificate
+  -a|--with-alias-name      alias       Alias for which cert/key are added
+  -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
+    |--with-namespace       namespace   Namespace of the application (required)
+    |--with-container-name  gear_name   Name of the gear
+  -n|--dry-run                          Don't make changes, just do a dry run.
+  -q|--porcelain                        TODO: what does this do?
+  -d|--debug                            Enable debug mode
+  -h|--help                             Print this message
+
+USAGE
+  exit 255
+end
+
+require 'rubygems'
+require 'openshift-origin-node'
+opts = GetoptLong.new(
+    ["--with-ssl-cert",       "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-priv-key",       "-k", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-alias-name",     "-a", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
+    ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
+    ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
+    ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
+    ["--help",                "-?", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+if args["--help"]
+  usage
+end
+
+container_uuid = args['--with-container-uuid']
+container_name = args['--with-container-name']
+namespace      = args['--with-namespace']
+
+ssl_cert      = args['--with-ssl-cert']
+priv_key      = args['--with-priv-key']
+server_alias  = args['--with-alias-name']
+
+$dry_run = true if args['--dry-run']
+$oo_debug = true if args['--debug']
+$porcelain = args['--porcelain'] ? true : false
+
+unless container_uuid
+  usage
+end
+
+begin
+  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
+                                               namespace)
+  ssl_cert_contents = File.open(ssl_cert, 'r') { |f| f.read }
+  priv_key_contents = File.open(priv_key, 'r') { |f| f.read }
+
+  ssl_cert_name = File.basename(ssl_cert)
+  priv_key_name = File.basename(priv_key)
+
+  frontend.add_ssl_cert(ssl_cert_contents, ssl_cert_name, priv_key_contents,
+                        priv_key_name, server_alias)
+rescue Exception => e
+  $stderr.puts(e.message)
+  exit -1
+end
