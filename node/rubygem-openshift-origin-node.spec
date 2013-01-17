@@ -30,6 +30,7 @@ Requires:       rubygem(openshift-origin-common)
 Requires:       python
 Requires:       libselinux-python
 Requires:       mercurial
+Requires:       httpd
 
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:       libcgroup
@@ -153,7 +154,7 @@ rm -rf %{buildroot}
 %attr(0750,root,apache) %{appdir}/.httpd.d
 
 #%if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
+%attr(0755,-,-)	%{_initddir}/openshift-cgroups
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif
