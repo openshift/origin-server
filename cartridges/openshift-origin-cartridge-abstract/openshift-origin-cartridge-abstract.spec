@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.3.3
+Version: 1.3.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,13 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Merge pull request #1158 from rmillner/BZ837489
+  (dmcphers+openshiftbot@redhat.com)
+- BZ 837489: Scramble the username due to mysql security bug.
+  (rmillner@redhat.com)
+- Fix for Bug 895878 (jhonce@redhat.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Merge pull request #1128 from ramr/master (dmcphers+openshiftbot@redhat.com)
 - Merge pull request #1110 from Miciah/silence-pushd-and-popd
