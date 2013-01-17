@@ -116,6 +116,10 @@ class DistrictTest < ActiveSupport::TestCase
     end
   end
 
+  def teardown
+    District.delete_all
+  end
+
   def get_district_obj
     uuid = gen_uuid
     name = "dist_" + uuid
