@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.4-1
+- Merge pull request #1154 from calfonso/master
+  (dmcphers+openshiftbot@redhat.com)
+- Adding support for broker to mongodb connections over SSL
+  (calfonso@redhat.com)
+- Bug 901444 (dmcphers@redhat.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - fedora mock build fix (tdawson@redhat.com)
 
