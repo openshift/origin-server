@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.6
+Version: 1.3.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,11 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.7-1
+- Merge pull request #1149 from fotioslindiakos/captcha
+  (dmcphers+openshiftbot@redhat.com)
+- Added js_required helper (fotios@redhat.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.6-1
 - Fixes Bug 895370 (ffranz@redhat.com)
 - Merge pull request #1155 from tdawson/tdawson/fix-misc-jan16
