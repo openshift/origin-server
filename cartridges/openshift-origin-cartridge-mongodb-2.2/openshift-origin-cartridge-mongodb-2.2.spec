@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.3.2
+Version: 1.3.3
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
@@ -86,6 +86,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
+- Merge pull request #1163 from ironcladlou/endpoint-refactor
+  (dmcphers@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Use proper tmpdirs for dump and restore. (rmillner@redhat.com)
 
