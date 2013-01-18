@@ -97,7 +97,7 @@ module CommandHelper
 
   def rhc_sshkey_upload(app, name ='default', key=File.join(ENV["HOME"], '.ssh', 'id_rsa.pub'))
     rhc_do('rhc_sshkey_upload') do
-      cmd = "#{$rhc_script} sshkey add -l #{app.login} -p #{app.password} #{name} #{key} --confirm"
+      cmd = "#{$rhc_script} sshkey add #{name} #{key} --confirm #{default_args(app)}"
       exit_code = 0
 
       time = Benchmark.realtime do
@@ -114,11 +114,24 @@ module CommandHelper
 
       exit_code = 0
       time = Benchmark.realtime do 
-        exit_code = run("#{$rhc_script} domain create #{app.namespace} -l #{app.login} -p #{app.password} -d")
+        exit_code = run("#{$rhc_script} domain create #{app.namespace} #{default_args(app)}")
       end
       log_event "#{time} CREATE_DOMAIN #{app.namespace} #{app.login}"
 
       app.create_domain_code = exit_code
+      return exit_code == 0
+    end
+  end
+
+  def rhc_delete_domain(app)
+    rhc_do('rhc_delete_domain') do
+
+      exit_code = 0
+      time = Benchmark.realtime do 
+        exit_code = run("#{$rhc_script} domain delete #{app.namespace} #{default_args(app)}")
+      end
+      log_event "#{time} DELETE_DOMAIN #{app.namespace} #{app.login}"
+
       return exit_code == 0
     end
   end
@@ -148,7 +161,7 @@ module CommandHelper
       app.file = "#{$temp}/#{new_namespace}.json"
       FileUtils.mv old_file, app.file
       time = Benchmark.realtime do 
-        run("#{$rhc_script} domain update #{old_namespace} #{new_namespace} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} domain update #{old_namespace} #{new_namespace} #{default_args(app)}").should == 0
       end
       log_event "#{time} UPDATE_DOMAIN #{new_namespace} #{app.login}"
       app.persist
@@ -160,7 +173,7 @@ module CommandHelper
       app.snapshot="/tmp/#{app.name}-#{app.namespace}.tar.gz"
       FileUtils.rm_rf app.snapshot
       time = Benchmark.realtime do 
-        run("#{$rhc_script} snapshot save #{app.name} -f '#{app.snapshot}' -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} snapshot save --app #{app.name} -f '#{app.snapshot}' #{default_args(app)}").should == 0
       end
       log_event "#{time} CREATE_SNAPSHOT #{app.name} #{app.login}"
       app.persist
@@ -175,7 +188,7 @@ module CommandHelper
 
     rhc_do('rhc_restore') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} snapshot restore #{app.name} -f '#{app.snapshot}' -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} snapshot restore --app #{app.name} -f '#{app.snapshot}' #{default_args(app)}").should == 0
       end
       log_event "#{time} RESTORE_SNAPSHOT #{app.name} #{app.login}"
     end
@@ -184,7 +197,7 @@ module CommandHelper
   def rhc_tidy(app)
     rhc_do('rhc_tidy') do
       time = Benchmark.realtime do
-        run("#{$rhc_script} app tidy #{app.name} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} app tidy -a #{app.name} #{default_args(app)}").should == 0
       end
       log_event "#{time} TIDY_APP #{app.name} #{app.login}"
     end
@@ -194,7 +207,7 @@ module CommandHelper
     rhc_sshkey_upload app
 
     rhc_do('rhc_create_app') do
-      cmd = "#{$rhc_script} app create #{app.name} #{app.type} -r #{app.repo} -l #{app.login} -p #{app.password} #{misc_opts} -d"
+      cmd = "#{$rhc_script} app create #{app.name} #{app.type} -r #{app.repo} #{misc_opts} #{default_args(app)}"
 
       # Short circuit DNS to speed up the tests by adding a host entry and skipping the DNS validation
       if use_hosts
@@ -235,7 +248,7 @@ module CommandHelper
     rhc_do('rhc_embed_add') do
       result = nil
       time = Benchmark.realtime do 
-        result = run_stdout("#{$rhc_script} cartridge add #{type} -a #{app.name} -l #{app.login} -p #{app.password} -d")
+        result = run_stdout("#{$rhc_script} cartridge add -a #{app.name} -c #{type} #{default_args(app)}")
       end
       $logger.info { "Embed #{type} into #{app.inspect}: OUTPUT\n<<#{result}>>\n" }
       log_event "#{time} ADD_EMBED_CART #{app.name} #{type} #{app.login}"
@@ -269,7 +282,7 @@ module CommandHelper
     rhc_do('rhc_embed_remove') do
       # puts app.name
       time = Benchmark.realtime do 
-        run("#{$rhc_script} cartridge remove #{type} -a #{app.name} --confirm -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} cartridge remove #{type} -a #{app.name} --confirm #{default_args(app)}").should == 0
       end
       log_event "#{time} REMOVE_EMBED_CART #{app.name} #{type} #{app.login}"
       app.mysql_hostname = nil
@@ -285,11 +298,11 @@ module CommandHelper
   def rhc_ctl_stop(app)
     rhc_do('rhc_ctl_stop') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app stop #{app.name} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} app stop #{app.name} #{default_args(app)}").should == 0
       end
       log_event "#{time} STOP_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep '#{app.get_stop_string}'").should == 0
+        run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep '#{app.get_stop_string}'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -298,7 +311,7 @@ module CommandHelper
   def rhc_add_alias(app)
     rhc_do('rhc_add_alias') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} alias add #{app.name} '#{app.name}-#{app.namespace}.#{$alias_domain}' -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} alias add #{app.name} '#{app.name}-#{app.namespace}.#{$alias_domain}' #{default_args(app)}").should == 0
       end
       log_event "#{time} ADD_ALIAS #{app.name} #{app.login}"
     end
@@ -307,7 +320,7 @@ module CommandHelper
   def rhc_remove_alias(app)
     rhc_do('rhc_remove_alias') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} alias remove #{app.name} '#{app.name}-#{app.namespace}.#{$alias_domain}' -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} alias remove #{app.name} '#{app.name}-#{app.namespace}.#{$alias_domain}' #{default_args(app)}").should == 0
       end
       log_event "#{time} REMOVE_ALIAS #{app.name} #{app.login}"
     end
@@ -316,11 +329,11 @@ module CommandHelper
   def rhc_ctl_start(app)
     rhc_do('rhc_ctl_start') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app start #{app.name} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} app start #{app.name} #{default_args(app)}").should == 0
       end
       log_event "#{time} START_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep '#{app.get_stop_string}'").should == 1
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -329,11 +342,11 @@ module CommandHelper
   def rhc_ctl_restart(app)
     rhc_do('rhc_ctl_restart') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app restart #{app.name} -l #{app.login} -p #{app.password} -d").should == 0
+        run("#{$rhc_script} app restart #{app.name} #{default_args(app)}").should == 0
       end
       log_event "#{time} RESTART_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep '#{app.get_stop_string}'").should == 1
+        run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep '#{app.get_stop_string}'").should == 1
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
     end
@@ -342,11 +355,11 @@ module CommandHelper
   def rhc_ctl_destroy(app, use_hosts=true)
     rhc_do('rhc_ctl_destroy') do
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app delete #{app.name} -l #{app.login} -p #{app.password} --confirm -d").should == 0
+        run("#{$rhc_script} app delete #{app.name} --confirm #{default_args(app)}").should == 0
       end
       log_event "#{time} DESTROY_APP #{app.name} #{app.login}"
       time = Benchmark.realtime do 
-        run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep 'does not exist'").should == 0
+        run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep 'does not exist'").should == 0
       end
       log_event "#{time} STATUS_APP #{app.name} #{app.login}"
       run("sed -i '/#{app.name}-#{app.namespace}.#{$domain}/d' /etc/hosts") if use_hosts
@@ -357,6 +370,7 @@ module CommandHelper
 
   def rhc_setup
     run('mkdir -p ~/.openshift')
+    run('rm ~/.openshift/express.conf')
     run('touch ~/.openshift/express.conf')
   end
 
@@ -373,6 +387,10 @@ module CommandHelper
         i += 1
       end
     end
+  end
+
+  def default_args(app)
+    " -l #{app.login} -p #{app.password} --clean --debug --noprompt --server=localhost --insecure"
   end
 
   #
