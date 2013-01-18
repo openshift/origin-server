@@ -81,7 +81,8 @@ Broker::Application.configure do
     :db => conf.get("MONGO_DB", "openshift_broker_dev"),
     :collections => {:user => "user",
                      :district => "district",
-                     :application_template => "template"}
+                     :application_template => "template"},
+    :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
   config.usage_tracking = {

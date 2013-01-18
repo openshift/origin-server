@@ -36,7 +36,7 @@ Broker::Application.configure do
   ############################################
   # OpenShift Configuration Below this point #
   ############################################
-
+  conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))
   config.datastore = {
     :replica_set => true,
     :host_port => ["localhost", 27017],
@@ -46,7 +46,8 @@ Broker::Application.configure do
     :db => "openshift_broker_dev",
     :collections => {:user => "user",
                      :district => "district",
-                     :application_template => "template"}
+                     :application_template => "template"},
+    :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
   config.usage_tracking = {

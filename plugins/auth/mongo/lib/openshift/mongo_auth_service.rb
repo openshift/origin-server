@@ -22,13 +22,14 @@ module OpenShift
       @password     = @auth_info[:mongo_password]
       @db           = @auth_info[:mongo_db]
       @collection   = @auth_info[:mongo_collection]
+      @ssl          = @auth_info[:ssl]
     end
     
     def db
       if @replica_set
-        con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary})
+        con = Mongo::ReplSetConnection.new(*@host_port << {:read => :secondary, :ssl => @ssl})
       else
-        con = Mongo::Connection.new(@host_port[0], @host_port[1])
+        con = Mongo::Connection.new(@host_port[0], @host_port[1], :ssl => @ssl)
       end
       user_db = con.db(@db)
       user_db.authenticate(@user, @password) unless @user.nil?

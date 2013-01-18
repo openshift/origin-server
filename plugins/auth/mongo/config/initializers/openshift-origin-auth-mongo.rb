@@ -58,4 +58,5 @@ Broker::Application.configure do
   config.auth[:mongo_password] = conf.get("MONGO_PASSWORD", "mooo")
   config.auth[:mongo_db] = conf.get("MONGO_DB", "openshift_broker_dev")
   config.auth[:mongo_collection] = conf.get("MONGO_COLLECTION", "auth_user")
+  config.auth[:mongo_ssl] = conf.get_bool("MONGO_SSL", "false")
 end

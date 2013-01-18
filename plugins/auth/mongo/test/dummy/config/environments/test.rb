@@ -48,7 +48,8 @@ Dummy::Application.configure do
     :mongo_collection => "auth_user",
     :privkeyfile => File.dirname(__FILE__) + "/../server_priv.pem",
     :privkeypass => "foo",
-    :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem"
+    :pubkeyfile => File.dirname(__FILE__) + "/../server_pub.pem",
+    :ssl => "false"
   }
 
  config.user_action_logging = {
