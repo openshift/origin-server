@@ -24,7 +24,7 @@ Subscribes:
     Type: "NET_TCP:jenkins:url"
 Group-Overrides:
   - components:
-    - jenkins-client
+    - jenkins-client-1.4
     - web_proxy    
 Scaling:
   Min: 1
