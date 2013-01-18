@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.3.2
+Version: 1.3.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -150,6 +150,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - routable ws host/port (bdecoste@gmail.com)
 - Fix BZ864797: Add doc for disable_auto_scaling marker (pmorie@gmail.com)
