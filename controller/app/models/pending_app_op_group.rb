@@ -215,8 +215,10 @@ class PendingAppOpGroup
           when :set_additional_filesystem_gb
             group_instance.set(:addtl_fs_gb, op.args["additional_filesystem_gb"])
           when :set_gear_additional_filesystem_gb
-            gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
-            use_parallel_job = true
+            if not op.args["additional_filesystem_gb"].nil?
+              gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
+              use_parallel_job = true
+            end
           when :add_alias
             result_io.append gear.add_alias(op.args["fqdn"])
             self.application.aliases.push(op.args["fqdn"])
