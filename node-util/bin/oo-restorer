@@ -54,7 +54,10 @@ primary_framework_cart=${framework_carts[0]}
 
 stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
 state=`cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state`
-if [ -f "$stop_lock_file" -o 'idled' = "$state" ]
+HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
+
+idled_proxy=`grep -q ' #ProxyPass' $HTTP_DIR/*.conf 2>/dev/null ; echo $?`
+if [ -f "$stop_lock_file" -o 'idled' = "$state" -o 0 -eq "$idled_proxy" ]
 then
     rm -f "$stop_lock_file"
 else
@@ -65,10 +68,7 @@ fi
 # code copied from node/lib/util_ext
 runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/runtime/.state"
 
-# timeout take from oo-admin-ctl-gears
 /usr/bin/timeout -s USR1 120s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
-
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
 
 # Enable proxy setup
 sed -i "s/#ProxyPass/ProxyPass/g" $HTTP_DIR/*.conf

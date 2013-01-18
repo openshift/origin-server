@@ -88,3 +88,5 @@ Groups:
     Scaling:
       Min: 1
       Max: -1
+Endpoints:
+  - PROXY_PORT: 8080
