@@ -90,6 +90,13 @@ rm -rf %{buildroot}
 %{brokerdir}/httpd/conf.d/%{gem_name}-kerberos.conf.sample
 /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
+%post
+
+if [ $1 -ne 1 ] # this is an update; fix the previously configured realm.
+then
+  sed -i -e 's/AuthName.*/AuthName "OpenShift Broker API"/' /var/www/openshift/broker/httpd/conf.d/openshift-origin-auth-remote-user.conf
+fi
+
 %changelog
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Merge pull request #697 from Miciah/plugins-auth-remote-user-README-updates

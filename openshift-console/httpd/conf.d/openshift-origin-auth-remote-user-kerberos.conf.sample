@@ -9,7 +9,7 @@ RewriteRule . - [E=RU:%1]
 RequestHeader set X-Remote-User "%{RU}e" env=RU
 
 <Location /console>
-    AuthName "OpenShift"
+    AuthName "OpenShift Developer Console"
     AuthType Kerberos
     KrbMethodNegotiate On
     KrbMethodK5Passwd On

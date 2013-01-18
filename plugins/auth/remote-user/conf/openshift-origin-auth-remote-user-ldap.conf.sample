@@ -11,7 +11,7 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
 # LDAPCacheTTL 0
 
 <Location /broker>
-    AuthName "OpenShift"
+    AuthName "OpenShift broker API"
     AuthType Basic
     AuthBasicProvider ldap
     AuthLDAPURL "ldap://ldap.example.com:389/ou=People,dc=my-domain,dc=com?uid?sub?(objectClass=*)"
