@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,10 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
+- SSL support for custom domains. (mpatel@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
