@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.3.5
+Version: 1.3.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.6-1
+- Adding support for broker to mongodb connections over SSL
+  (calfonso@redhat.com)
+- Merge pull request #1163 from ironcladlou/endpoint-refactor
+  (dmcphers@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
 - Bug 895269 (dmcphers@redhat.com)
 
