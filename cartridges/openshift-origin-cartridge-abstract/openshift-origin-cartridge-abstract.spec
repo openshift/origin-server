@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.3.4
+Version: 1.3.5
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.5-1
+- Merge pull request #1163 from ironcladlou/endpoint-refactor
+  (dmcphers@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - Merge pull request #1158 from rmillner/BZ837489
   (dmcphers+openshiftbot@redhat.com)
