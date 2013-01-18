@@ -40,18 +40,18 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%attr(0755,-,-) %{_sbindir}/oo-admin-chk
-%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-app
-%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-district
-%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-domain
-%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-template
-%attr(0755,-,-) %{_sbindir}/oo-admin-ctl-user
-%attr(0755,-,-) %{_sbindir}/oo-admin-move
-%attr(0755,-,-) %{_sbindir}/oo-register-dns
-%attr(0755,-,-) %{_sbindir}/oo-setup-bind
-%attr(0755,-,-) %{_sbindir}/oo-setup-broker
-%attr(0755,-,-) %{_sbindir}/oo-accept-broker
-%attr(0755,-,-) %{_sbindir}/oo-accept-systems
+%attr(0750,-,-) %{_sbindir}/oo-admin-chk
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-district
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-template
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
+%attr(0750,-,-) %{_sbindir}/oo-admin-move
+%attr(0750,-,-) %{_sbindir}/oo-register-dns
+%attr(0750,-,-) %{_sbindir}/oo-setup-bind
+%attr(0750,-,-) %{_sbindir}/oo-setup-broker
+%attr(0750,-,-) %{_sbindir}/oo-accept-broker
+%attr(0750,-,-) %{_sbindir}/oo-accept-systems
 /usr/share/openshift/kickstarts/openshift-origin-remix.ks
 
 %doc LICENSE
