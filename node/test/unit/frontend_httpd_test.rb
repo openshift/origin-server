@@ -41,6 +41,8 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
     @path = File.join(@gear_base_dir, ".httpd.d", @token)
 
     @test_alias = "foo.example.com"
+    @alias_token = "#{@container_uuid}_#{@namespace}_#{@test_alias}"
+    @alias_conf_path = File.join(@gear_base_dir, ".httpd.d", "#{@alias_token}.conf")
 
     syslog_mock = mock('Syslog') do
       stubs(:opened?).returns(true)
@@ -136,6 +138,7 @@ class TestFrontendHttpServerModel < Test::Unit::TestCase
     Dir.stubs(:glob).returns([File.join(@path, "server_alias-#{@test_alias}.conf")])
     FileUtils.stubs(:rm_f).with(File.join(@path, "server_alias-#{@test_alias}.conf")).returns(true).once
     FileUtils.stubs(:rm_f).with(File.join(@path, "routes_alias-#{@test_alias}.json")).returns(true).once
+    FileUtils.stubs(:rm_f).with(@alias_conf_path).returns(true).once
 
     frontend.remove_alias("#{@test_alias}")
   end
