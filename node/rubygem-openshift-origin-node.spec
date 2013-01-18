@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -175,6 +175,11 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.4-1
+- Bug 901444 (dmcphers@redhat.com)
+- SSL support for custom domains. (mpatel@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Mon Jan 14 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Fix BZ875200: Add statements to rhcsh ctl_all (pmorie@gmail.com)
 - Merge pull request #1141 from pmorie/bugs/877306
