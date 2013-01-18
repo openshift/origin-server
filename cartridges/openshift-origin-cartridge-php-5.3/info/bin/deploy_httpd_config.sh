@@ -16,6 +16,7 @@ source "$APP_HOME/.env/OPENSHIFT_REPO_DIR"
 cat <<EOF > "$PHP_INSTANCE_DIR/conf.d/openshift.conf"
 ServerRoot "$PHP_INSTANCE_DIR"
 DocumentRoot "$OPENSHIFT_REPO_DIR/php"
+PHPINIDir  "$PHP_INSTANCE_DIR/conf"
 Listen $IP:8080
 User $uuid
 Group $uuid
