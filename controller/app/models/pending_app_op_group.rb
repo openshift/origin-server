@@ -37,7 +37,7 @@ class PendingAppOpGroup
   
   def eligible_rollback_ops
     self.reload.with(consistency: :strong)
-    pending_ops.where(:state => :completed).select{|op| (pending_ops.where(:prereq => op.id.to_s, :state => :completed).count == 0)}
+    pending_ops.where(:state => :completed).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state => :completed).count == 0)}
   end
   
   def eligible_ops
@@ -54,35 +54,33 @@ class PendingAppOpGroup
       
       eligible_rollback_ops.each do|op|
         use_parallel_job = false
-        group_instance = application.group_instances.find(op.args["group_instance_id"]) unless op.args["group_instance_id"].nil? or op.op_type == :destroy_group_instance
-        gear = group_instance.gears.find(op.args["gear_id"]) unless group_instance.nil? or op.args["gear_id"].nil? or op.op_type == :destroy_gear
-        if op.args.has_key?("comp_spec")
-          comp_name = op.args["comp_spec"]["comp"]
-          cart_name = op.args["comp_spec"]["cart"]
-          if op.op_type != :del_component
-            component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
-          end
-        end
-
         Rails.logger.debug "Rollback #{op.op_type}"
         case op.op_type
         when :create_group_instance
+          group_instance = get_group_instance_for_rollback(op)
           group_instance.delete
         when :init_gear
+          gear = get_gear_for_rollback(op)
           gear.delete
           application.save
         when :reserve_uid
+          gear = get_gear_for_rollback(op)
           gear.unreserve_uid
         when :new_component
+          component_instance = get_component_instance_for_rollback(op)
           application.component_instances.delete(component_instance)
         when :add_component
+          gear = get_gear_for_rollback(op)
+          component_instance = get_component_instance_for_rollback(op)
           result_io.append gear.remove_component(component_instance)
         when :create_gear
+          gear = get_gear_for_rollback(op)
           result_io.append gear.destroy_gear
           self.inc(:num_gears_rolled_back, 1)
         when :track_usage
           UsageRecord.untrack_usage(op.args["login"], op.args["gear_ref"], op.args["event"], op.args["usage_type"]) 
-        when :register_dns          
+        when :register_dns
+          gear = get_gear_for_rollback(op)
           gear.deregister_dns
         when :set_group_overrides
           application.group_overrides=op.saved_values["group_overrides"]
@@ -92,13 +90,17 @@ class PendingAppOpGroup
         when :execute_connections
           application.execute_connections
         when :set_additional_filesystem_gb
+          group_instance = get_group_instance_for_rollback(op)
           group_instance.set(:addtl_fs_gb, op.saved_values["additional_filesystem_gb"])
         when :set_gear_additional_filesystem_gb
+          gear = get_gear_for_rollback(op)
           gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
           use_parallel_job = true
         when :add_alias
+          gear = get_gear_for_rollback(op)
           result_io.append gear.remove_alias("abstract", op.args["fqdn"])
         when :remove_alias
+          gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
         end
         
@@ -131,7 +133,7 @@ class PendingAppOpGroup
           gear = group_instance.gears.find(op.args["gear_id"]) unless group_instance.nil? or op.args["gear_id"].nil? or op.op_type == :init_gear
           if op.args.has_key?("comp_spec")
             comp_name = op.args["comp_spec"]["comp"]
-            cart_name = op.args["comp_spec"]["cart"]          
+            cart_name = op.args["comp_spec"]["cart"]
             if op.op_type == :new_component
               component_instance = ComponentInstance.new(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
             else
@@ -263,5 +265,25 @@ class PendingAppOpGroup
       Rails.logger.error e_orig.backtrace.inspect
       raise e_orig
     end
+  end
+  
+  def get_group_instance_for_rollback(op)
+    application.group_instances.find(op.args["group_instance_id"]) 
+  end
+
+  def get_gear_for_rollback(op)
+    group_instance = get_group_instance_for_rollback(op)
+    group_instance.gears.find(op.args["gear_id"])
+  end
+
+  def get_component_instance_for_rollback(op)
+    component_instance = nil
+    group_instance = get_group_instance_for_rollback(op)
+    if op.args.has_key?("comp_spec")
+      comp_name = op.args["comp_spec"]["comp"]
+      cart_name = op.args["comp_spec"]["cart"]
+      component_instance = application.component_instances.find_by(cartridge_name: cart_name, component_name: comp_name, group_instance_id: group_instance._id)
+    end
+    component_instance
   end
 end

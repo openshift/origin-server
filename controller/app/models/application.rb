@@ -1321,7 +1321,7 @@ class Application
     start_order, stop_order = calculate_component_orders
 
     unless group_overrides.nil?
-      set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"current_group_overrides" => self.group_overrides})
+      set_group_override_op = PendingAppOp.new(op_type: :set_group_overrides, args: {"group_overrides"=> group_overrides}, saved_values: {"group_overrides" => self.group_overrides})
       pending_ops.push set_group_override_op
     end
 
@@ -1481,7 +1481,7 @@ class Application
     unless connections.nil?
       #needs to be set and run after all the gears are in place
       saved_connections = self.connections.map{|conn| conn.to_hash}
-      set_connections_op = PendingAppOp.new(op_type: :set_connections, args: {"connections"=> connections}, prereq: all_ops_ids, saved_values: {current_connections: saved_connections})
+      set_connections_op = PendingAppOp.new(op_type: :set_connections, args: {"connections"=> connections}, prereq: all_ops_ids, saved_values: {connections: saved_connections})
       execute_connection_op = PendingAppOp.new(op_type: :execute_connections, prereq: [set_connections_op._id.to_s])
       pending_ops.push set_connections_op
       pending_ops.push execute_connection_op
@@ -1589,7 +1589,7 @@ class Application
       owner.reload.with(consistency: :strong)
       owner_capabilities = owner.get_capabilities
       if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"]
-        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears} additional gears.")
+        raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
       end
       owner.consumed_gears += num_gears_added
       op_group.pending_ops.push ops
