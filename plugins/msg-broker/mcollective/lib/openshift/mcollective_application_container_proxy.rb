@@ -453,6 +453,23 @@ module OpenShift
         return result_io
       end
 
+      # Add an SSL certificate to a gear on the remote node and associate it with
+      # a server name.
+      # See node/bin/oo-ssl-cert-add
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssl_cert_name: String - an identifier for the certificate
+      # * priv_key: String - the private key value
+      # * priv_key_name: String - an identifier for the private key
+      # * server_alias: String - the name of the server which will offer this key
+      # 
+      # RETURNS: a parsed Mcollective result
+      #
+      # NOTES:
+      # * calls node script oo-ssl-cert-add
+      #
       def add_ssl_cert(app, gear, ssl_cert, ssl_cert_name, priv_key,
                        priv_key_name, server_alias)
         args = Hash.new
@@ -468,6 +485,21 @@ module OpenShift
         parse_result(result)
       end
 
+      # remove an SSL certificate to a gear on the remote node.
+      # See node/bin/oo-ssl-cert-remove
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssl_cert_name: String - an identifier for the certificate
+      # * priv_key_name: String - an identifier for the private key
+      # * server_alias: String - the name of the server which will offer this key
+      # 
+      # RETURNS: a parsed Mcollective result
+      #
+      # NOTES:
+      # * calls node script oo-ssl-cert-remove
+      #
       def remove_ssl_cert(app, gear, ssl_cert_name, priv_key_name, server_alias)
         args = Hash.new
         args['--with-app-uuid']       = app.uuid
