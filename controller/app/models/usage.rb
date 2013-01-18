@@ -1,3 +1,18 @@
+# Usage Summary 
+# @!attribute [r] login
+#   @return [String] Login name for the user.
+# @!attribute [r] gear_id
+#   @return [String] Gear identifier
+# @!attribute [r] usage_type
+#   @return [String] Represents type of usage, either gear or additional storage
+# @!attribute [r] begin_time
+#   @return [Time] Denotes start time of given usage_type
+# @!attribute [r] end_time
+#   @return [Time] Denotes stop time of given usage_type
+# @!attribute [r] gear_size
+#   @return [String] Gear size
+# @!attribute [rw] addtl_fs_gb
+#   @return [Integer] Additional filesystem storage in GB.
 class Usage
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -12,6 +27,16 @@ class Usage
   field :addtl_fs_gb, type: Integer
 
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
+  validates :gear_size, :presence => true, :if => :usage_type_gear?
+  validates :addtl_fs_gb, :presence => true, :if => :usage_type_fs?
+
+  def usage_type_gear?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]) ? true : false
+  end
+
+  def usage_type_fs?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
+  end
   
   def self.find_all
     get_list(self.each)

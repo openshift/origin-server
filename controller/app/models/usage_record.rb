@@ -1,3 +1,18 @@
+# Record Usage of gear and additional storage for each user
+# @!attribute [r] login
+#   @return [String] Login name for the user.
+# @!attribute [r] gear_id
+#   @return [String] Gear identifier
+# @!attribute [r] usage_type
+#   @return [String] Represents type of usage, either gear or additional storage
+# @!attribute [r] event
+#   @return [String] Denotes begin/continue/end of given usage_type
+# @!attribute [r] sync_time
+#   @return [Time] When is the last time it synced this Usage record with billing vendor
+# @!attribute [r] gear_size
+#   @return [String] Gear size
+# @!attribute [rw] addtl_fs_gb
+#   @return [Integer] Additional filesystem storage in GB.
 class UsageRecord
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -20,6 +35,16 @@ class UsageRecord
 
   validates_inclusion_of :event, in: UsageRecord::EVENTS.values
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
+  validates :gear_size, :presence => true, :if => :usage_type_gear?
+  validates :addtl_fs_gb, :presence => true, :if => :usage_type_fs?
+
+  def usage_type_gear?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]) ? true : false
+  end
+
+  def usage_type_fs?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
+  end
 
   def self.track_usage(login, gear_id, event, usage_type,
                        gear_size=nil, addtl_fs_gb=nil)
