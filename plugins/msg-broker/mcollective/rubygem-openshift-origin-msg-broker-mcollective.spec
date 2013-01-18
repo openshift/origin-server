@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,14 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
+- added add/remove ssl cert methods to ease merge (mlamouri@redhat.com)
+- adding rdoc to mcollective_application_container (mlamouri@redhat.com)
+- SSL support for custom domains. (mpatel@redhat.com)
+- Merge pull request #1163 from ironcladlou/endpoint-refactor
+  (dmcphers@redhat.com)
+- Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
+
 * Thu Jan 17 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - dont return nil resultIO (dmcphers@redhat.com)
 
