@@ -2,16 +2,56 @@ require 'mcollective'
 require 'open-uri'
 
 include MCollective::RPC
+
+#
+# The OpenShift module is a namespace for all OpenShift related objects and
+# methods.
+#
 module OpenShift
+
+    # Implements the broker-node communications This class the state
+    # of a node and a set of RPC functions to the node.  It also has a
+    # set of just plain functions which live here because they relate
+    # to broker/node communications.
+    #
     class MCollectiveApplicationContainerProxy < OpenShift::ApplicationContainerProxy
+
+      # the "cartridge" for Node operation messages to "cartridge_do"
       @@C_CONTROLLER = 'openshift-origin-node'
-      attr_accessor :id, :district
-      
+
+      # A Node ID string
+      attr_accessor :id
+
+      # A District ID string
+      attr_accessor :district
+
+      # <<constructor>>
+      #
+      # Create an app descriptor/handle for remote controls
+      #
+      # INPUTS:
+      # * id: string - a unique app identifier
+      # * district: <type> - a classifier for app placement
+      #
       def initialize(id, district=nil)
         @id = id
         @district = district
       end
       
+      # <<class method>>
+      #
+      # Determine what gear sizes are valid for a given user
+      #
+      # INPUT:
+      # * user: a reference to a user object
+      #
+      # RETURN:
+      # * list of strings: names of gear sizes
+      #
+      # NOTE:
+      # * an operation on User?
+      # * Uses only operations and attributes of user
+      #
       def self.valid_gear_sizes_impl(user)
         capability_gear_sizes = []
         capability_gear_sizes = user.capabilities['gear_sizes'] if user.capabilities.has_key?('gear_sizes')
@@ -25,6 +65,27 @@ module OpenShift
         end
       end
       
+      # <<factory method>>
+      #
+      # Find a node which fulfills app requirements.  Implements the superclass
+      # find_available() method
+      #
+      # INPUTS:
+      # * node_profile: a set of node characteristics (app requires?)
+      # * district: a node district identifier
+      #
+      # RETURNS:
+      # * an MCollectiveApplicationContainerProxy
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES:
+      # * a class method on Node?
+      # * Uses Rails.configuration.msg_broker
+      # * Uses District
+      # * Calls rpc_find_available
+      #
       def self.find_available_impl(node_profile=nil, district_uuid=nil)
         district = nil
         require_specific_district = !district_uuid.nil?
@@ -49,6 +110,19 @@ module OpenShift
         MCollectiveApplicationContainerProxy.new(current_server, district)
       end
       
+      # <<factory method>>
+      #
+      # Find a single node. Implements superclass find_one() method. 
+      # 
+      # INPUTS:
+      # * node_profile: characteristics for node filtering
+      #
+      # RETURNS:
+      # * MCollectiveApplicationContainerProxy
+      #
+      # NOTES:
+      # * Uses rpc_find_one() method
+      
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
         Rails.logger.debug "CURRENT SERVER: #{current_server}"
@@ -58,14 +132,58 @@ module OpenShift
         MCollectiveApplicationContainerProxy.new(current_server)
       end
 
+      # <<orphan>>
+      # <<class method>>
+      #
+      # Return a list of blacklisted namespaces and app names.
+      # Implements superclass get_blacklisted() method.
+      # 
+      # INPUTS:
+      # * none
+      # 
+      # RETURNS:
+      # * empty list
+      #
+      # NOTES:
+      # * Is this really a function of the broker
+      #
       def self.get_blacklisted_in_impl
         []
       end
 
+      # <<orphan>>
+      #
+      # <<class method>>
+      #
+      # INPUTS:
+      # * name: String.  A name to be checked against the blacklist
+      #
+      # RETURNS:
+      # * Boolean.  True if the name is in the blacklist
+      #
+      # NOTES:
+      # * This is really a function of the broker
+      #
       def self.blacklisted_in_impl?(name)
         false
       end
       
+
+      # <<class method>>
+      #
+      # <<query>>
+      #
+      # Query all nodes for all available cartridges
+      #
+      # INPUTS:
+      # * none
+      #
+      # RETURNS:
+      # * An array of OpenShift::Cartridge objects
+      #
+      # NOTES:
+      # * uses execute_direct and @@C_CONTROLLER
+      #
       def get_available_cartridges
         args = Hash.new
         args['--porcelain'] = true
@@ -76,9 +194,25 @@ module OpenShift
         cart_data.map! {|c| OpenShift::Cartridge.new.from_descriptor(YAML.load(c))}
       end
 
-      # Returns an array with following information
-      # [Filesystem, blocks_used, blocks_soft_limit, blocks_hard_limit, inodes_used,
-      #  inodes_soft_limit, inodes_hard_limit]
+      # <<object method>>
+      #
+      # <<attribute getter>>
+      #
+      # Request the disk quotas from a Gear on a node
+      #
+      # RETURNS:
+      # * an array with following information:
+      #
+      # [Filesystem, blocks_used, blocks_soft_limit, blocks_hard_limit, 
+      # inodes_used, inodes_soft_limit, inodes_hard_limit]
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES
+      # * Uses execute_direct
+      # * A method on the gear object
+      #
       def get_quota(gear)
         args = Hash.new
         args['--uuid'] = gear.uuid
@@ -101,7 +235,27 @@ module OpenShift
         output
       end
       
-      # Set blocks hard limit and inodes ihard limit for uuid
+      # <<object method>>
+      #
+      # <<attribute setter>>
+      #
+      # Set blocks hard limit and inodes ihard limit for uuid.
+      # Effects disk quotas on Gear on Node
+      # 
+      # INPUT:
+      # * gear: A Gear object
+      # * storage_in_gb: integer
+      # * inodes: integer
+      #
+      # RETURNS
+      # * Not sure, mcoll_result? a string?
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES:
+      # * a pair of attribute setters on a Gear object
+      #
       def set_quota(gear, storage_in_gb, inodes)
         args = Hash.new
         args['--uuid']   = gear.uuid
@@ -126,6 +280,24 @@ module OpenShift
         end
       end
 
+      # Reserve a UID within a district or service
+      #
+      # UIDs must be unique in a district to allow migration without requiring
+      # reassigning Username (Gear UUID) and Unix User UID on migrate
+      # Perhaps a query on the nodes for "next UID"?
+      #
+      # INPUTS:
+      # * district_uuid: String: District handle or identifier
+      #
+      # RAISES:
+      # * OpenShift::OOException
+      #
+      # USES:
+      # * OpenShift::DataStore
+      #
+      # NOTES:
+      # * a method on District class of the node.
+      # 
       def reserve_uid(district_uuid=nil)
         reserved_uid = nil
         if Rails.configuration.msg_broker[:districts][:enabled]
@@ -141,7 +313,23 @@ module OpenShift
         end
         reserved_uid
       end
-      
+
+      # Release a UID reservation within a District
+      #
+      # UIDs must be unique in a district to allow migration without requiring
+      # reassigning Username (Gear UUID) and Unix User UID on migrate
+      # Perhaps a query on the nodes for "next UID"?
+      #
+      # INPUTS:
+      # * uid: Integer - the UID to unreserve within the district
+      # * district_uuid: String - district handle or identifier
+      #
+      # USES:
+      # * OpenShift::DataStore
+      #
+      # NOTES:
+      # * method on the District object.
+      #
       def unreserve_uid(uid, district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
@@ -155,6 +343,19 @@ module OpenShift
         end
       end
       
+      #
+      # A District object accessor method
+      # It uses the datastore to query persistant storage
+      # 
+      # INPUTS:
+      # * district_uuid: a lookup handle for a district in the datastore
+      #
+      # RETURNS:
+      # * not quite sure.
+      #
+      # NOTES:
+      # uses OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size()
+      #
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
@@ -168,6 +369,28 @@ module OpenShift
         end
       end
       
+      #
+      # <<instance method>>
+      # 
+      # Execute the 'app-create' script on a node.
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * quota_blocks: Integer - max file space in blocks
+      # * quota_files: Integer - max files count
+      # 
+      # RETURNS:
+      # * Mcollective "result", stdout and exit code
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * should raise an exception on fail to cause revert rather than in-line
+      # * causes oo-app-create to execute on a node
+      #
+      # Constructs a shell command line to be executed by the MCollective agent
+      # on the node.
+      #      
       def create(app, gear, quota_blocks=nil, quota_files=nil)
         result = nil
         (1..10).each do |i|
@@ -194,6 +417,23 @@ module OpenShift
         result
       end
     
+      #
+      # Remove a gear from a node
+      # Optionally release a reserved UID from the District.
+      #
+      # INPUTS:
+      # * app: An Application object
+      # * gear: a Gear object
+      # * keep_uid: boolean
+      # * uid: Integer: reserved UID
+      # * skip_hooks: boolean
+      #
+      # RETURNS:
+      # * STDOUT from the remote command
+      #
+      # NOTES:
+      # * uses execute_direct
+      #
       def destroy(app, gear, keep_uid=false, uid=nil, skip_hooks=false)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -213,6 +453,23 @@ module OpenShift
         return result_io
       end
 
+      # Add an SSL certificate to a gear on the remote node and associate it with
+      # a server name.
+      # See node/bin/oo-ssl-cert-add
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssl_cert_name: String - an identifier for the certificate
+      # * priv_key: String - the private key value
+      # * priv_key_name: String - an identifier for the private key
+      # * server_alias: String - the name of the server which will offer this key
+      # 
+      # RETURNS: a parsed Mcollective result
+      #
+      # NOTES:
+      # * calls node script oo-ssl-cert-add
+      #
       def add_ssl_cert(app, gear, ssl_cert, ssl_cert_name, priv_key,
                        priv_key_name, server_alias)
         args = Hash.new
@@ -228,6 +485,21 @@ module OpenShift
         parse_result(result)
       end
 
+      # remove an SSL certificate to a gear on the remote node.
+      # See node/bin/oo-ssl-cert-remove
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssl_cert_name: String - an identifier for the certificate
+      # * priv_key_name: String - an identifier for the private key
+      # * server_alias: String - the name of the server which will offer this key
+      # 
+      # RETURNS: a parsed Mcollective result
+      #
+      # NOTES:
+      # * calls node script oo-ssl-cert-remove
+      #
       def remove_ssl_cert(app, gear, ssl_cert_name, priv_key_name, server_alias)
         args = Hash.new
         args['--with-app-uuid']       = app.uuid
@@ -240,6 +512,24 @@ module OpenShift
         parse_result(result)
       end
 
+      # 
+      # Add an ssh key to a gear on the remote node.
+      # See node/bin/oo-authorized-ssh-key-add.
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssh_key: String - an SSH RSA or DSA public key string
+      # * key_type: String, Enum [rsa|dsa]
+      # * comment: String - identify the key
+      #
+      # RETURNS:
+      # * Mcollective result string: STDOUT from a command.
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-authorized-ssh-key-add on the node
+      #
       def add_authorized_ssh_key(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -251,6 +541,23 @@ module OpenShift
         parse_result(result)
       end
 
+      #
+      # remove an ssh key from a gear on a remote node.
+      # See node/bin/oo-authorized-ssh-key-remove
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssh_key: String - an SSH RSA or DSA public key string
+      # * comment: String - identify the key
+      #
+      # RETURNS:
+      # * Mcollective result string: STDOUT from a command.
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-authorized-ssh-key-remove on the node
+      #
       def remove_authorized_ssh_key(app, gear, ssh_key, comment=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -261,6 +568,25 @@ module OpenShift
         parse_result(result)
       end
 
+
+      #
+      # Add an environment variable on gear on a remote node.
+      # Calls oo-env-var-add on the remote node
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * key: String - environment variable name
+      # * value: String - environment variable value
+      #
+      # RETURNS:
+      # * Mcollective result string: STDOUT from a command.
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-env-var-add on the node
+      # * Should be a method on Gear?
+      #
       def add_env_var(app, gear, key, value)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -270,7 +596,22 @@ module OpenShift
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
         parse_result(result)
       end
-      
+
+      #
+      # Remove an environment variable on gear on a remote node
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * key: String - environment variable name
+      #
+      # RETURNS:
+      # * Mcollective result string: STDOUT from a command.
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-env-var-remove on the node
+      #      
       def remove_env_var(app, gear, key)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -279,7 +620,24 @@ module OpenShift
         result = execute_direct(@@C_CONTROLLER, 'env-var-remove', args)
         parse_result(result)
       end
-    
+
+      #
+      # Add a broker auth key.  The broker auth key allows an application 
+      # to request scaling and other actions from the broker.
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * iv: String - SSL initialization vector
+      # * token: String - a broker auth key
+      #
+      # RETURNS:
+      # * mcollective parsed result string (stdout)
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-broker-auth-key-add
+      #
       def add_broker_auth_key(app, gear, iv, token)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -289,7 +647,22 @@ module OpenShift
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-add', args)
         parse_result(result)
       end
-    
+
+      #
+      # Remove a broker auth key. The broker auth key allows an application 
+      # to request scaling and other actions from the broker.
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * mcollective parsed result string (stdout)
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-broker-auth-key-remove
+      #    
       def remove_broker_auth_key(app, gear)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -298,6 +671,22 @@ module OpenShift
         parse_result(result)
       end
 
+
+      # 
+      # Get the operating state of a gear
+      # 
+      # INPUTS:
+      # * app: Application object
+      # * gear: Gear Object
+      # 
+      # RETURNS:
+      # * mcollective result string (stdout)
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls oo-app-state-show
+      # * Should be a method on Gear object
+      #
       def show_state(app, gear)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -306,6 +695,43 @@ module OpenShift
         parse_result(result)
       end
       
+      # 
+      # Install a cartridge in a gear.
+      # If the cart is a 'framework' cart, create the gear first.
+      #
+      # A 'framework' cart:
+      # * Runs a service which,
+      # * answers HTTP queries for content
+      # * gets a new DNS record
+      # * does not require an existing gear
+      # 
+      # An 'embedded' cart:
+      # * Requires an existing gear
+      # * depends on an existing framework cart
+      # * Interacts with the service from a framework cart
+      # * does not serve http *content* (can proxy)
+      # 
+      # INPUTS:
+      # * app: Application object
+      # * gear: a Gear object
+      # * cart: a cartridge object
+      # * template_git_url: a url of a git repo containing a cart overlay
+      #
+      # RETURNS
+      # the result of either run_cartridge_command or add_component
+      #
+      # Framework carts just return result_io
+      # Embedded carts return an array [result_io, cart_data]
+      #
+      # NOTES:
+      # * should return consistant values
+      # * cart data request should be separate method?
+      # * create Gear should be a method on Node object
+      # * should not cause node side Gear side effect
+      # * should be a method on Gear object
+      # * should not include incoherent template install 
+      # * calls *either* run_cartridge_command or add_component
+      #
       def configure_cartridge(app, gear, cart, template_git_url=nil)
         result_io = ResultIO.new
         cart_data = nil
@@ -321,6 +747,24 @@ module OpenShift
         return result_io, cart_data
       end
       
+      #
+      # Remove a Gear and the last contained cartridge from a node
+      # 
+      # INPUTS
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # 
+      # RETURNS:
+      # * result of run_cartridge_command 'deconfigure' OR remove_component
+      # * OR an empty result because the cartridge was invalid
+      #
+      # NOTES:
+      # * This is really two operations:
+      # ** remove_cartridge on Gear
+      # ** remove_gear on Node
+      # * should raise an exception for invalid gear?
+      # 
       def deconfigure_cartridge(app, gear, cart)
         if framework_carts.include? cart
           run_cartridge_command(cart, app, gear, "deconfigure")
@@ -331,42 +775,185 @@ module OpenShift
         end        
       end
       
+      # <<accessor>>
+      # Get the public hostname of a Node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the public hostname of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_public_hostname
         rpc_get_fact_direct('public_hostname')
       end
       
+      # <<accessor>>
+      # Get the "capacity" of a node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * Float: the "capacity" of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_capacity
         rpc_get_fact_direct('capacity').to_f
       end
       
+      # <<accessor>>
+      # Get the "active capacity" of a node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * Float: the "active capacity" of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_active_capacity
         rpc_get_fact_direct('active_capacity').to_f
       end
       
+      # <<accessor>>
+      # Get the district UUID (membership handle) of a node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the UUID of a node's district
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_district_uuid
         rpc_get_fact_direct('district_uuid')
       end
       
+      # <<accessor>>
+      # Get the public IP address of a Node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the public IP address of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_ip_address
         rpc_get_fact_direct('ipaddress')
       end
       
+
+      # <<accessor>>
+      # Get the public IP address of a Node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the public IP address of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #
       def get_public_ip_address
         rpc_get_fact_direct('public_ip')
       end
-      
+
+      # <<accessor>>
+      # Get the "node profile" of a Node
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the "node profile" of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #      
       def get_node_profile
         rpc_get_fact_direct('node_profile')
       end
 
+      # <<accessor>>
+      # Get the quota blocks of a Node
+      #
+      # Is this disk available or the default quota limit?
+      # It's from Facter.
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the "quota blocks" of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #      
       def get_quota_blocks
         rpc_get_fact_direct('quota_blocks')
       end
 
+      # <<accessor>>
+      # Get the quota files of a Node
+      #
+      # Is this disk available or the default quota limit?
+      # It's from Facter.
+      #
+      # INPUTS:
+      # none
+      #
+      # RETURNS:
+      # * String: the "quota files" of a node
+      #
+      # NOTES:
+      # * method on Node
+      # * calls rpc_get_fact_direct
+      #      
       def get_quota_files
         rpc_get_fact_direct('quota_files')
       end
 
+      #
+      # Run a cartridge hook script
+      #
+      # INPUTS:
+      # * app: An Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # * connector_name: String
+      # * input_args: String: CLI arguments to the connector command?
+      #
+      # RETURNS:
+      # * Array [output, exitcode] - STDOUT and the exit code of the command
+      #
+      # NOTES
+      # * method on Gear?
+      # * method on Cartridge!?
+      # * Should raise exception on no reply?
+      # * uses execute_direct
+      #
       def execute_connector(app, gear, cart, connector_name, input_args)
         args = Hash.new
         args['--gear-uuid'] = gear.uuid
@@ -383,6 +970,22 @@ module OpenShift
         [nil, nil]
       end
       
+      #
+      # Start cartridge services within a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined state
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * uses start_component
+      # * should be a method on Gear?
+      #
       def start(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "start")
@@ -392,7 +995,24 @@ module OpenShift
           ResultIO.new
         end
       end
-      
+
+      #
+      # Stop cartridge services within a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined state
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * uses stop_component
+      # * uses start_component
+      # * should be a method on Gear?
+      #      
       def stop(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "stop")
@@ -403,6 +1023,22 @@ module OpenShift
         end
       end
       
+      # 
+      # Force gear services to stop
+      # 
+      # INPUTS:
+      # * app: Application object
+      # * gear: Gear object
+      # * cart: Cartridge object
+      #
+      # RETURNS:
+      # * result string from STDOUT
+      #
+      # NOTES:
+      # * uses execute_direct
+      # * calls force-stop
+      # * method on Node?
+      #
       def force_stop(app, gear, cart)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -411,6 +1047,22 @@ module OpenShift
         parse_result(result)
       end
       
+      #
+      # Stop and restart cart services on a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # 
+      # RETURNS:
+      # * a ResultIO of undefined content
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * uses restart_component
+      # * method on Gear?
+      #
       def restart(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "restart")
@@ -421,6 +1073,24 @@ module OpenShift
         end
       end
       
+
+      #
+      # "reload" cart services on a gear.
+      # Accept config update without restarting?
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # 
+      # RETURNS:
+      # * a ResultIO of undefined content
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * uses restart_component
+      # * method on Gear?
+      #      
       def reload(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "reload")
@@ -431,6 +1101,22 @@ module OpenShift
         end
       end
  
+      #
+      # Get the status from cart services in an existing Gear
+      #
+      # INPUTS:
+      # * app: An Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * A ResultIO object of undetermined content
+      #
+      # NOTES:
+      # * method on gear or cartridge?
+      # * uses run_cartridge_command
+      # * component_status
+      #
       def status(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "status")
@@ -441,6 +1127,22 @@ module OpenShift
         end
       end
  
+      #
+      # Clean up unneeded artifacts in a gear
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * String: stdout from a command
+      #
+      # NOTES
+      # * calls the 'tidy' hook on a Gear or app?
+      # * doesn't use cart input
+      # * calls execute_direct
+      #
       def tidy(app, gear, cart)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -449,6 +1151,21 @@ module OpenShift
         parse_result(result)
       end
       
+      #
+      # dump the cartridge threads
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined content
+      #
+      # NOTES:
+      # * calls run_cartridge_command
+      # * method on Gear or Cart?
+      #
       def threaddump(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "threaddump")
@@ -456,7 +1173,23 @@ module OpenShift
           ResultIO.new
         end          
       end
-      
+
+      #
+      # "retrieve the system messages"
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined content
+      #
+      # NOTES:
+      # * calls run_cartridge_command
+      # * method on Gear or Cart?
+      # * only applies to the "framework" services
+      #      
       def system_messages(app, gear, cart)
         if framework_carts.include?(cart)
           run_cartridge_command(cart, app, gear, "system-messages")
@@ -464,7 +1197,23 @@ module OpenShift
           ResultIO.new
         end          
       end
-      
+
+      #
+      # expose a TCP port
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined content
+      #
+      # NOTES:
+      # * calls run_cartridge_command
+      # * executes 'expose-port' action.
+      # * method on Gear or Cart?
+      #            
       def expose_port(app, gear, cart)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -474,16 +1223,64 @@ module OpenShift
         parse_result(result)
       end
 
+      #
+      # hide a TCP port (?)
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined content
+      #
+      # NOTES:
+      # * calls run_cartridge_command
+      # * executes "conceal-port" action.
+      # * method on Gear or Cart?
+      #            
       # Deprecated: remove from the REST API and then delete this.
       def conceal_port(app, gear, cart)
         ResultIO.new
       end
 
+      #
+      # get information on a TCP port
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a ResultIO of undetermined content
+      #
+      # NOTES:
+      # * calls run_cartridge_command
+      # * executes "show-port" action
+      # * method on Gear or Cart?
+      #            
       # Deprecated: remove from the REST API and then delete this.
       def show_port(app, gear, cart)
         ResultIO.new
       end
-
+      
+      # 
+      # Add an application alias to a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * server_alias: String - a new FQDN for the gear
+      # 
+      # RETURNS:
+      # * String: stdout from a command
+      # 
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'add-alias' action on the node
+      # * method on Gear?
+      #
       def add_alias(app, gear, server_alias)
         args = Hash.new
         args['--with-container-uuid']=gear.uuid
@@ -494,6 +1291,22 @@ module OpenShift
         parse_result(result)
       end
       
+      # 
+      # remove an application alias to a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * server_alias: String - a new FQDN for the gear
+      # 
+      # RETURNS:
+      # * String: stdout from a command
+      # 
+      # NOTES:
+      # * calls execute_direct
+      # * executes the 'remove-alias' action on the gear.
+      # * method on Gear?
+      #
       def remove_alias(app, gear, server_alias)
         args = Hash.new
         args['--with-container-uuid']=gear.uuid
@@ -504,11 +1317,45 @@ module OpenShift
         parse_result(result)        
       end
       
+      #
+      # Change the namespace of a gear
+      # This updates the HTTP proxy for the gear?
+      #
+      # INPUTS:
+      # * app: a Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # * new_ns: String - the new namespace
+      # * old_ns: String - the old namespace
+      # 
+      # RETURNS:
+      # * String - "parsed result" of an MCollective reply
+      # 
+      # NOTES:
+      # * uses execute_direct
+      # * operation on a cartridge?
+      #
+      #
       def update_namespace(app, gear, cart, new_ns, old_ns)
         mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
         parse_result(mcoll_reply)
       end
 
+      #
+      # Get status on an add env var job?
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * key: an environment variable name
+      # * value: and environment variable value
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      # 
       def get_env_var_add_job(app, gear, key, value)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -518,7 +1365,22 @@ module OpenShift
         job = RemoteJob.new('openshift-origin-node', 'env-var-add', args)
         job
       end
-      
+
+      #
+      # Create a job to remove an environment variable
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * key: an environment variable name
+      # * value: and environment variable value
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      # 
       def get_env_var_remove_job(app, gear, key)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -528,6 +1390,22 @@ module OpenShift
         job
       end
   
+      #
+      # Create a job to add an authorized key
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssh_key: String - SSH public key string
+      # * key_type: String, Enum [dsa|rsa]
+      # * comment: String
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      # 
       def get_add_authorized_ssh_key_job(app, gear, ssh_key, key_type=nil, comment=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -538,7 +1416,22 @@ module OpenShift
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-add', args)
         job
       end
-      
+
+      #
+      # Create a job to remove an authorized key.
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * ssh_key: String - SSH public key string
+      # * comment: String
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #       
       def get_remove_authorized_ssh_key_job(app, gear, ssh_key, comment=nil)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -549,6 +1442,21 @@ module OpenShift
         job
       end
 
+      #
+      # Create a job to add a broker auth key
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * iv: ??
+      # * token: ??
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #       
       def get_broker_auth_key_add_job(app, gear, iv, token)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -558,7 +1466,20 @@ module OpenShift
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
         job
       end
-  
+
+      #
+      # Create a job to remove a broker auth key
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # 
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #         
       def get_broker_auth_key_remove_job(app, gear)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -567,6 +1488,22 @@ module OpenShift
         job
       end
 
+      #
+      # Create a job to execute a connector hook ??
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      # * connector_name: String
+      # * input_args: Array of String
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #         
       def get_execute_connector_job(app, gear, cart, connector_name, input_args)
         args = Hash.new
         args['--gear-uuid'] = gear.uuid
@@ -577,6 +1514,19 @@ module OpenShift
         job
       end
 
+      #
+      # Create a job to return the state of a gear
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #         
       def get_show_state_job(app, gear)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -585,19 +1535,58 @@ module OpenShift
         job
       end
 
+
+      #
+      # Create a job to get status of an application
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart: a Cartridge object
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #         
       def get_status_job(app, gear, cart)
         args = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
         job = RemoteJob.new(cart, 'status', args)
         job
       end
 
+      #
+      # Create a job to check the disk quota on a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #         
       def get_show_gear_quota_job(gear)
         args = Hash.new
         args['--uuid'] = gear.uuid
         job = RemoteJob.new('openshift-origin-node', 'get-quota', args)
         job
       end
-      
+
+      #
+      # Create a job to change the disk quotas on a gear
+      #
+      # INPUTS:
+      # * gear: a Gear object
+      #
+      # RETURNS:
+      # * a RemoteJob object
+      #
+      # NOTES:
+      # * uses RemoteJob
+      #               
       def get_update_gear_quota_job(gear, storage_in_gb, inodes)
         args = Hash.new
         args['--uuid']   = gear.uuid
@@ -608,6 +1597,24 @@ module OpenShift
         job
       end
       
+      # 
+      # Re-start a gear after migration
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * destination_container: an ApplicationContainerProxy object?
+      # * state_map: ??
+      # * keep_uid: Boolean
+      #
+      # RETURNS:
+      # * ResultIO
+      #
+      # NOTES:
+      # * uses OpenShift::DnsService
+      # * 
+      #
+      # 
       def move_gear_post(app, gear, destination_container, state_map, keep_uid)
         reply = ResultIO.new
         source_container = gear.container
@@ -653,6 +1660,23 @@ module OpenShift
         reply
       end
 
+      #
+      # Prepare to move a gear from one node to another
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: A Gear object
+      # * state_map: ??
+      # * keep_uid: Boolean
+      #
+      # RETURNS:
+      # * a ResultIO object
+      #
+      # NOTES:
+      # * uses ResultIO
+      # * ResultIO is *composed*
+      # * uses Container (from gear)
+      #
       def move_gear_pre(app, gear, state_map, keep_uid)
         reply = ResultIO.new
         source_container = gear.container
@@ -687,6 +1711,29 @@ module OpenShift
         reply
       end
 
+      #
+      # Move a gear from one node to another
+      # 
+      # INPUTS
+      # * app: an Application object
+      # * gear: a Gear object
+      # * destination_container: An ApplicationContainerProxy?
+      # * destination_district_uuid: String
+      # 
+      # RETURNS:
+      # * ResultIO 
+      # 
+      # RAISES:
+      # * OpenShift::UserException
+      #
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses resolve_destination
+      # * uses rsync_destination_container
+      # * uses move_gear_destroy_old
+      # 
       def move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
         reply = ResultIO.new
         state_map = {}
@@ -860,6 +1907,26 @@ module OpenShift
         reply
       end
 
+      # 
+      # Remove and destroy a old gear after migration
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * keep_uid: Boolean
+      # * orig_uid: Integer
+      # * source_container: ??
+      # * destination_container ??
+      #
+      # RETURNS:
+      # * a ResultIO object
+      # 
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses source_container.destroy
+      # 
       def move_gear_destroy_old(app, gear, keep_uid, orig_uid, source_container, destination_container)
         reply = ResultIO.new
         log_debug "DEBUG: Deconfiguring old app '#{app.name}' on #{source_container.id} after move"
@@ -872,6 +1939,24 @@ module OpenShift
         reply
       end
 
+      #
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * destination_container: ??
+      # * destination_district_uuid: String
+      # * allow_change_district: Boolean
+      #
+      # RETURNS:
+      # * Array: [destination_container, destination_district_uuid, keep_uuid]
+      # 
+      # RAISES:
+      # * OpenShift::UserException
+      #
+      # NOTES:
+      # * uses MCollectiveApplicationContainerProxy.find_available_impl
+      #
       def resolve_destination(app, gear, destination_container, destination_district_uuid, allow_change_district)
         source_container = gear.container
         source_container = gear.get_proxy if source_container.nil? 
@@ -908,6 +1993,33 @@ module OpenShift
         return [destination_container, destination_district_uuid, keep_uid]
       end
 
+      #
+      # copy the file contents of a gear on this node to a new gear on another
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * destination_container: an ApplicationContainerProxxy object
+      # * destination_district_uuid: String: a UUID handle
+      # * quota_blocks: Integer
+      # * quota_files: Integer
+      # * orig_uid: Integer
+      # * keep_uid: Boolean
+      #
+      # RETURNS:
+      # * ResultIO
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES:
+      # * uses broker configuration rsync_keyfile
+      # * uses ssh-agent
+      # * uses ssh-add
+      # * uses rsync
+      # * runs all three commands in a single backtick eval
+      # * writes the eval output to log_debug
+      #
       def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid, keep_uid)
         reply = ResultIO.new
         source_container = gear.container
@@ -931,10 +2043,38 @@ module OpenShift
         reply
       end
 
+      #
+      # get the status of an application
+      #
+      # INPUT:
+      # app: an Application object
+      # 
+      # RETURN:
+      # * Array: [idle, leave_stopped, quota_file, quota_blocks]
+      #
+      # NOTES:
+      # * calls get_cart_status
+      # * method on app or gear?
+      # * just a shortcut?
+      #
       def get_app_status(app)
         get_cart_status(app, app.gear, app.framework)
       end
 
+      # 
+      # get the status of a cartridge in a gear?
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * cart_name: String
+      #
+      # RETURNS:
+      # * Array: [idle, leave_stopped, quota_file, quota_blocks]
+      #
+      # NOTES:
+      # * uses do_with_retry
+      #
       def get_cart_status(app, gear, cart_name)
         reply = ResultIO.new
         source_container = gear.container
@@ -983,6 +2123,23 @@ module OpenShift
       # Execute an RPC call for the specified agent.
       # If a server is supplied, only execute for that server.
       #
+      # INPUTS:
+      # * agent: ??
+      # * server: String
+      # * forceRediscovery: Boolean
+      # * options: Hash
+      #
+      # RETURNS:
+      # * ResultIO
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES:
+      # * rpc_client comes from MCollective::RPC
+      # * connects, makes a request, closes connection.
+      # * THIS IS THE MEAT!
+      #
       def self.rpc_exec(agent, server=nil, forceRediscovery=false, options=rpc_options)
       
         # Setup the rpc client
@@ -1011,6 +2168,20 @@ module OpenShift
         result
       end
       
+      #
+      # Set the district of a node
+      #
+      # INPUTS:
+      # * uuid: String
+      # * active: String (?)
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES:
+      # * uses rpc_exec_direct
+      # * uses ApplicationContainerProxy @id
+      #
       def set_district(uuid, active)
         mc_args = { :uuid => uuid,
                     :active => active}
@@ -1029,6 +2200,26 @@ module OpenShift
       
       protected
       
+      #
+      # Try some action until it passes or exceeds a maximum number of tries
+      #
+      # INPUTS:
+      # * action: Block: a code block or method with no arguments
+      # * num_tries: Integer
+      #
+      # RETURNS:
+      # * unknown: the result of the action
+      #
+      # RAISES:
+      # * Exception
+      #
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses log_debug
+      # * just loops retrys
+      #
       def do_with_retry(action, num_tries=2)
         (1..num_tries).each do |i|
           begin
@@ -1044,14 +2235,66 @@ module OpenShift
         end
       end
       
+      #
+      # Initializes the list of cartridges which are "standalone" or framework
+      # 
+      # INPUTS:
+      #
+      # RETURNS:
+      # * Array of String
+      #
+      # SIDE EFFECTS:
+      # * initialize @framework_carts
+      #
+      # NOTES:
+      # * uses CartridgeCache
+      # * why not just ask the CartidgeCache?
+      # * that is: Why use an instance var at all?
+      #
       def framework_carts
         @framework_carts ||= CartridgeCache.cartridge_names('standalone')
       end
-      
+
+      #
+      # Initializes the list of cartridges which are "standalone" or framework
+      # 
+      # INPUTS:
+      #
+      # RETURNS:
+      # * Array of String
+      #
+      # SIDE EFFECTS:
+      # * initialize @embedded_carts
+      #
+      # NOTES:
+      # * Uses CartridgeCache
+      # * Why not just ask the CartridgeCache every time?
+      #      
       def embedded_carts
         @embedded_carts ||= CartridgeCache.cartridge_names('embedded')
       end
       
+      # 
+      # Add a component to an existing gear on the node
+      #
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String
+      #
+      # RETURNS:
+      # * Array [ResultIO, String]
+      #
+      # RAISES:
+      # * Exception
+      #
+      # CATCHES:
+      # * Exception
+      #
+      # NOTES:
+      # * uses run_cartridge_command
+      # * runs "configure" on a "component" which used to be called "embedded"
+      #
       def add_component(app, gear, component)
         reply = ResultIO.new
         begin
@@ -1070,42 +2313,154 @@ module OpenShift
         reply.debugIO << "Embedded app details: #{component_details}"
         [reply, component_details]
       end
-      
+
+      #
+      # Remove a component from a gear
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO? String? 
+      # 
+      # NOTES
+      # * method on gear?
+      # 
       def remove_component(app, gear, component)
         Rails.logger.debug "DEBUG: Deconfiguring embedded application '#{component}' in application '#{app.name}' on node '#{@id}'"
         return run_cartridge_command('embedded/' + component, app, gear, 'deconfigure')
       end
-      
+
+      #
+      # Start a component service
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES
+      # * method on gear?
+      #       
       def start_component(app, gear, component)
         run_cartridge_command('embedded/' + component, app, gear, "start")
       end
-      
+
+      #
+      # Stop a component service
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES
+      # * method on gear?
+      #             
       def stop_component(app, gear, component)
         run_cartridge_command('embedded/' + component, app, gear, "stop")
       end
-      
+
+      #
+      # Restart a component service
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES
+      # * method on gear?
+      #                   
       def restart_component(app, gear, component)
         run_cartridge_command('embedded/' + component, app, gear, "restart")    
       end
       
+      #
+      # Reload a component service
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES
+      # * method on gear?
+      #                   
       def reload_component(app, gear, component)
         run_cartridge_command('embedded/' + component, app, gear, "reload")    
       end
-      
+
+      #
+      # Get the status a component service
+      # 
+      # INPUTS:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * component: String: a component name
+      #
+      # RETURNS:
+      # * ResultIO?
+      # 
+      # NOTES
+      # * method on gear?
+      #                         
       def component_status(app, gear, component)
         run_cartridge_command('embedded/' + component, app, gear, "status")    
       end
-      
+
+      #
+      # Wrap the log messages so it doesn't HAVE to be rails
+      #
+      # INPUTS:
+      # * message: String
+      #
       def log_debug(message)
         Rails.logger.debug message
         puts message
       end
-      
+
+      #
+      # Wrap the log messages so it doesn't HAVE to be rails
+      #
+      # INPUTS:
+      # * message: String
+      #      
       def log_error(message)
         Rails.logger.error message
         puts message
       end
-      
+
+      # 
+      # 
+      # INPUTS:
+      # * cartridge: String, a cartridge name
+      # * action: String, and action name
+      # * args: Hash: command arguments
+      # * long_debug_output: Boolean
+      #
+      # RETURNS:
+      # * 
+      #
+      # NOTES:
+      # * calls rpc_exec_direct
+      # * "cartridge_do" is a catch-all agent message handler
+      # * the real switches are the cartridge and action arguments
+      #
       def execute_direct(cartridge, action, args, log_debug_output=true)
           mc_args = { :cartridge => cartridge,
                       :action => action,
@@ -1123,6 +2478,25 @@ module OpenShift
           result
       end
 
+      #
+      # Cull wanted information out of an MCollective::Reply object
+      # INPUTS:
+      # * mcoll_reply: MCollective::RPC::Reply
+      # * app: ??
+      # * command: String
+      #
+      # RETURNS:
+      # * Object: (Sanitized Result)
+      #
+      # RAISES:
+      # * OpenShift::InvalidNodeException
+      # * OpenShift::NodeException
+      # * OpenShift::UserException
+      #
+      # NOTES:
+      # * uses find_app
+      # * uses sanitize_result
+      #
       def parse_result(mcoll_reply, app=nil, command=nil)
         mcoll_result = mcoll_reply[0]
         output = nil
@@ -1157,6 +2531,17 @@ module OpenShift
       #
       # Returns the server identity of the specified app
       #
+      # INPUTS:
+      # * app_uuid: String
+      # * app_name: String
+      # 
+      # RETURNS:
+      # * server identity (string?)
+      #
+      # NOTES:
+      # * uses rpc_exec
+      # * loops over all nodes
+      #
       def self.find_app(app_uuid, app_name)
         server_identity = nil
         rpc_exec('openshift') do |client|
@@ -1174,6 +2559,17 @@ module OpenShift
       #
       # Returns whether this server has the specified app
       #
+      # INPUTS:
+      # * app_uuid: String
+      # * app_name: String
+      #
+      # RETURNS:
+      # * Boolean
+      #
+      # NOTES:
+      # * uses rpc_exec
+      # * loops over all nodes
+      #
       def has_app?(app_uuid, app_name)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_app(:uuid => app_uuid,
@@ -1186,6 +2582,16 @@ module OpenShift
       
       #
       # Returns whether this server has the specified embedded app
+      #
+      # INPUTS:
+      # * app_uuid: String
+      # * embedded_type: String
+      #
+      # RETURNS:
+      # * Boolean
+      # 
+      # NOTES:
+      # * uses rpc_exec
       #
       def has_embedded_app?(app_uuid, embedded_type)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
@@ -1200,6 +2606,15 @@ module OpenShift
       #
       # Returns whether this server has already reserved the specified uid as a uid or gid
       #
+      # INPUTS:
+      # * uid: Integer
+      # 
+      # RETURNS:
+      # * Boolean
+      # 
+      # NOTES:
+      # * uses rpc_exec
+      #
       def has_uid_or_gid?(uid)
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_s) do |response|
@@ -1209,6 +2624,29 @@ module OpenShift
         end
       end
       
+      #
+      # Execute a cartridge hook command in a gear
+      #
+      # INPUTS:
+      # * framework:
+      # * app: an Application object
+      # * gear: a Gear object
+      # * command: the hook command to run on the node?
+      # * arg: ??
+      # * allow_move: Boolean
+      #
+      # RETURNS:
+      # * ResultIO
+      # 
+      # RAISES:
+      # * Exception
+      #
+      # CATCHES:
+      # * OpenShift::InvalidNodeException
+      #
+      # NOTES:
+      # * uses execute_direct
+      #
       def run_cartridge_command(framework, app, gear, command, arg=nil, allow_move=true)
         resultIO = nil
 
@@ -1261,6 +2699,23 @@ module OpenShift
         resultIO
       end
       
+      #
+      # ???
+      #
+      # INPUTS:
+      # * node_profile: ???
+      # * district_uuid: String
+      # * require_specific_district: Boolean
+      # * forceRediscovery: Boolean
+      #
+      # RETURNS:
+      # * Array: [server, capacity, district] 
+      # 
+      # NOTES:
+      # * are the return values String?
+      #
+      # 
+      #
       def self.rpc_find_available(node_profile=nil, district_uuid=nil, require_specific_district=false, forceRediscovery=false)
         current_server, current_capacity = nil, nil
         additional_filters = [{:fact => "active_capacity",
@@ -1377,6 +2832,22 @@ module OpenShift
         return current_server, current_capacity, current_district
       end
       
+      #
+      # Return a single node matching a given profile
+      #
+      # INPUTS:
+      # * node_profile: Object?
+      #
+      # RETURNS:
+      # * String: server name?
+      # 
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES:
+      # * Query facters from every node and filter on server side
+      # * uses MCollective::RPC::Client
+      #
       def self.rpc_find_one(node_profile=nil)
         current_server = nil
         additional_filters = []
@@ -1405,6 +2876,17 @@ module OpenShift
         return current_server
       end
       
+      #
+      # Make a deep copy of the RPC options hash
+      #
+      # INPUTS:
+      #
+      # RETURNS:
+      # * Object
+      #
+      # NOTES:
+      # * Simple copy by Marshall load/dump
+      #
       def self.rpc_options
         # Make a deep copy of the default options
         Marshal::load(Marshal::dump(Rails.configuration.msg_broker[:rpc_options]))
@@ -1415,6 +2897,15 @@ module OpenShift
       # for both a single result and a multiple result
       # structure
       #
+      # INPUTS:
+      # * response: an MCollective::Response object
+      #
+      # RETURNS:
+      # * String: value string
+      #
+      # NOTES:
+      # * returns value from body or data
+      # 
       def self.rvalue(response)
         result = nil
     
@@ -1427,6 +2918,18 @@ module OpenShift
         result
       end
     
+      # 
+      # true if the response indicates success
+      #
+      # INPUTS:
+      # * response
+      # 
+      # RETURNS:
+      # * Boolean
+      #
+      # NOTES:
+      # * method on custom response object?
+      #
       def rsuccess(response)
         response[:body][:statuscode].to_i == 0
       end
@@ -1435,7 +2938,21 @@ module OpenShift
       # Returns the fact value from the specified server.
       # Yields to the supplied block if there is a non-nil
       # value for the fact.
+      # 
+      # INPUTS:
+      # * fact: String - a fact name
+      # * server: String - a node name
+      # * forceRedisccovery: Boolean
+      # * additional_filters: ?
+      # * custom_rpmc_opts: Hash?
       #
+      # RETURNS:
+      # * String?
+      #
+      # NOTES:
+      # * uses rpc_exec
+      # 
+
       def self.rpc_get_fact(fact, server=nil, forceRediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : rpc_options
@@ -1460,6 +2977,19 @@ module OpenShift
       # This is significantly faster then the get_facts method
       # If multiple nodes of the same name exist, it will pick just one
       #
+      # INPUTS:
+      # * fact: String
+      #
+      # RETURNS:
+      # * String
+      #
+      # RAISES:
+      # * OpenShift::NodeException
+      #
+      # NOTES
+      # * uses MCollectiveApplicationContainerProxxy.rpc_options
+      # * uses MCollective::RPC::Client
+      # 
       def rpc_get_fact_direct(fact)
           options = MCollectiveApplicationContainerProxy.rpc_options
     
@@ -1481,6 +3011,16 @@ module OpenShift
       #
       # Execute direct rpc call directly against a node
       # If more then one node exists, just pick one
+      #
+      # INPUTS:
+      # * agent: String (??)
+      # 
+      # RETURNS:
+      # * MCollective::RPC::Client
+      #
+      # NOTES
+      # * Uses MCollective::RPC::Client
+      #
       def rpc_exec_direct(agent)
           options = MCollectiveApplicationContainerProxy.rpc_options
           rpc_client = rpcclient(agent, :options => options)
@@ -1488,6 +3028,21 @@ module OpenShift
           rpc_client
       end
 
+
+      #
+      # Retrieve all gear IDs from all nodes (implementation)
+      #
+      # INPUTS:
+      # * none
+      # 
+      # RETURNS:
+      # * Hash [gear_map[], node_map[]]
+      #
+      # NOTES:
+      # * Should be class method on Node? (All nodes?)
+      # * Why doesn't this just override a method from the superclass?
+      # * uses rpc_exec
+      #
       def self.get_all_gears_impl
         gear_map = {}
         sender_map = {}
@@ -1507,6 +3062,20 @@ module OpenShift
         return [gear_map, sender_map]
       end
 
+      #
+      # Retrieve all active gears (implementation)
+      #
+      # INPUTS:
+      # * none
+      #
+      # RETURNS:
+      # * Hash: active_gears_map[nodekey]
+      #
+      # NOTES:
+      # * should be class method on Node? or Broker?
+      # * uses MCollective::RPC::Client rpc_exec
+      # * uses MCollective::RPC::Client.missing_method ??
+      #
       def self.get_all_active_gears_impl
         active_gears_map = {}
         rpc_exec('openshift') do |client|
@@ -1521,6 +3090,25 @@ module OpenShift
         active_gears_map
       end
 
+      # <<class method>>
+      #
+      # Filter return lines into output types:
+      # * messageIO[],
+      # * resultIO[],
+      # * errorIO[], 
+      # * cartProperties[]
+      # ...
+      #
+      # INPUTS:
+      # * output: MCollective::RPC::Result ?
+      #
+      # RETURNS:
+      # * ResultIO ?
+      #
+      # NOTES:
+      # * Should be a method on ???
+      # * Maybe should be result class that takes the 'output' list and self-parses?
+      #
       def self.sanitize_result(output, exitcode=0)
         result = ResultIO.new
         result.exitcode = exitcode
@@ -1598,6 +3186,23 @@ module OpenShift
         result
       end
 
+      #
+      # <<implementation>>
+      # <<class method>>
+      #
+      # Execute a set of operations on a node in parallel
+      # 
+      # INPUTS:
+      # * handle: Hash ???
+      # 
+      # RETURNS:
+      # * ???
+      #
+      # NOTES:
+      # * uses MCollectiveApplicationContainerProxy.sanitize_result
+      # * uses MCollectiveApplicationContainerProxy.rpc_options
+      # * uses MCollective::RPC::Client
+      #
       def self.execute_parallel_jobs_impl(handle)
 =begin
         handle.each { |id, job_list|
