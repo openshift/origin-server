@@ -41,11 +41,11 @@ case "$1" in
     ;;
 
   startuser)
-	/usr/bin/oo-admin-ctl-cgroups startuser $2
+	  /usr/bin/oo-admin-ctl-cgroups startuser $2
     ;;
 
   stopuser)
-	/usr/bin/oo-admin-ctl-cgroups stopuser $2
+	  /usr/bin/oo-admin-ctl-cgroups stopuser $2
     ;;
 
   *)

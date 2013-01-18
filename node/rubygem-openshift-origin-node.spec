@@ -140,6 +140,7 @@ rm -rf %{buildroot}
 %{gem_instdir}
 %{gem_cache}
 %{gem_spec}
+%attr(0750,-,-) /usr/bin/oo-admin-ctl-cgroups
 /usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
