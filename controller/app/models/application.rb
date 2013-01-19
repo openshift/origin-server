@@ -359,13 +359,31 @@ class Application
   def remove_features(features, group_overrides=[], force=false)
     installed_features = self.requires
     
+    result_io = ResultIO.new
     features.each do |feature|
       cart = CartridgeCache.find_cartridge(feature)
-      Rails.logger.error "Removing feature #{feature}"
-      raise OpenShift::UserException.new("'#{feature}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
-      raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
-    end if !force
-    result_io = ResultIO.new
+      Rails.logger.debug "Removing feature #{feature}"
+      
+      if !force
+        raise OpenShift::UserException.new("'#{feature}' cannot be removed", 137) if (cart.is_web_proxy? and self.scalable) or cart.is_web_framework?
+        raise OpenShift::UserException.new("'#{feature}' is not a feature of '#{self.name}'", 135) unless installed_features.include? feature
+      end
+      
+      if cart.is_ci_server?
+        self.domain.applications.each do |uapp|
+          next if self.name == uapp.name
+          uapp.requires.each do |feature_name|
+            ucart = CartridgeCache.find_cartridge(feature_name)
+            if ucart.is_ci_builder?
+              Application.run_in_application_lock(uapp) do
+                uapp.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => [feature_name], "group_overrides" => uapp.group_overrides}, user_agent: uapp.user_agent)
+                uapp.run_jobs(result_io)
+              end
+            end
+          end
+        end
+      end
+    end
     Application.run_in_application_lock(self) do
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
       self.run_jobs(result_io)

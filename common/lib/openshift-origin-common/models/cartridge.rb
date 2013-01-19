@@ -77,6 +77,14 @@ module OpenShift
       return categories.include?('web_framework')
     end
     
+    def is_ci_server?
+      return categories.include?('ci')
+    end
+    
+    def is_ci_builder?
+      return categories.include?('ci_builder')
+    end
+    
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"
