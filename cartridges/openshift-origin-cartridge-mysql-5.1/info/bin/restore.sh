@@ -20,12 +20,22 @@ then
     dbhost=${OPENSHIFT_MYSQL_DB_GEAR_DNS:-$OPENSHIFT_MYSQL_DB_HOST}
     OLD_IP=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_host)
     NEW_IP=$(get_db_host_as_user)
+
+    if [ -s $OPENSHIFT_DATA_DIR/mysql_db_username ]
+    then
+        OLD_USER=$(/bin/cat $OPENSHIFT_DATA_DIR/mysql_db_username)
+    else
+        OLD_USER="admin"
+    fi
     # Prep the mysql database
     (
         /bin/zcat $OPENSHIFT_DATA_DIR/mysql_dump_snapshot.gz
         echo ";"
+        echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
+        echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'localhost' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
+        echo "DROP USER '$OLD_USER'@'$OLD_IP';"
+        echo "DROP USER '$OLD_USER'@'localhost';"
         echo "UPDATE mysql.user SET Host='$NEW_IP' WHERE Host='$OLD_IP';"
-        echo "UPDATE mysql.user SET Password=PASSWORD('$OPENSHIFT_MYSQL_DB_PASSWORD') WHERE User='$OPENSHIFT_MYSQL_DB_USERNAME';"
         echo "FLUSH PRIVILEGES;"
     ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD"
     if [ ! ${PIPESTATUS[1]} -eq 0 ]
