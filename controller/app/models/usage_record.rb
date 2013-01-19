@@ -35,14 +35,14 @@ class UsageRecord
 
   validates_inclusion_of :event, in: UsageRecord::EVENTS.values
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
-  validates :gear_size, :presence => true, :if => :usage_type_gear?
-  validates :addtl_fs_gb, :presence => true, :if => :usage_type_fs?
+  validates :gear_size, :presence => true, :if => :validate_gear_size?
+  validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
 
-  def usage_type_gear?
-    (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]) ? true : false
+  def validate_gear_size?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage] && self.event != UsageRecord::EVENTS[:end]) ? true : false
   end
 
-  def usage_type_fs?
+  def validate_addtl_fs_gb?
     (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
   end
 
