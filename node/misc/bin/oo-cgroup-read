@@ -1,4 +1,6 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
+
+# BZ 901449: SELinux failure prevent using "/usr/bin/env ruby".
 
 require 'etc'
 
