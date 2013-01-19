@@ -31,6 +31,7 @@ require 'open4'
 require 'thread'
 require 'tempfile'
 require 'json'
+require 'systemu'
 
 HTTPD_SYSTEM="apachectl"
 HTTPD_CMDS=["graceful"]
@@ -50,17 +51,6 @@ def single_instance(&block)
 end
 
  
-def async_cat(infd, outbuf)
-  th = Thread.new(infd, outbuf) do
-    loop do
-      Thread.current[:buf] = infd.getc
-      break if Thread.current[:buf].nil?
-      outbuf << Thread.current[:buf]
-    end
-  end
-  return th
-end
-
 def load_reqset(reqset=[])
   reqfilter="#{REQPREFIX}.#{ARGV[0]}."
 
@@ -115,15 +105,7 @@ single_instance do
     err=""
     rc=0
     [HTTPD_PRE_CMDS, ARGV[0]].flatten.each do |cmd|
-      status = Open4.popen4ext(true, "#{HTTPD_SYSTEM} #{cmd}") do |pid, stdin, stdout, stderr|
-        stdin.close
-        thset = []
-        thset << async_cat(stdout, out)
-        thset << async_cat(stderr, err)
-        thset.each do |th|
-          th.join
-        end
-      end
+      status, out, err =  systemu "#{HTTPD_SYSTEM} #{cmd}"
       if status.exitstatus != 0
         rc = status.exitstatus
         break
