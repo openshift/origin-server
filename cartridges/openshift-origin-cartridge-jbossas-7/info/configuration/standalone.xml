@@ -312,6 +312,9 @@
                 <security-enabled>false</security-enabled>
                 <journal-file-size>102400</journal-file-size>
                 <journal-min-files>2</journal-min-files>
+                
+                <thread-pool-max-size>${messaging.thread.pool.max.size}</thread-pool-max-size>
+ 	            <scheduled-thread-pool-max-size>${messaging.scheduled.thread.pool.max.size}</scheduled-thread-pool-max-size>
 
                 <connectors>
                     <netty-connector name="netty" socket-binding="messaging"/>
