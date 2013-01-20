@@ -2797,7 +2797,7 @@ module OpenShift
         end
 
         # Do everything possible to not pick a non ha compatible node
-        server_infos.delete_if { |server_info| (server_infos.length > 1 || (district_uuid && !require_specific_district)) && non_ha_server_identities.includes?(server_info[0]) } if non_ha_server_identities
+        server_infos.delete_if { |server_info| (server_infos.length > 1 || (district_uuid && !require_specific_district)) && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
         if !server_infos.empty?
           # Pick a random node amongst the best choices available
           # If any server is < 80 then only pick from servers with < 80
@@ -2845,7 +2845,7 @@ module OpenShift
             end
           end
           unless server_infos.empty?
-            server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.includes?(server_info[0]) } if non_ha_server_identities
+            server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
             server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
             server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
             server_infos = server_infos.first(8)
