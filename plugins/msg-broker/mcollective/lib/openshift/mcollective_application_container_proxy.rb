@@ -2150,6 +2150,8 @@ module OpenShift
           servers = []
         else
           servers = known_server_identities(force_rediscovery, options)
+          # Set the timeout to be the same as the discovery timeout since we are using a possibly stale previous discovery
+          options[:timeout] = Rails.configuration.msg_broker[:rpc_options][:disctimeout]
         end
 
         # Setup the rpc client
