@@ -37,6 +37,28 @@ class Gear < OpenShift::Model
       begin
         self.app.ngears += 1
         non_ha_server_identities = self.group_instance.gears.map{|gear| gear.server_identity}
+        if app.scalable # This entire if block isn't needed after the model refactor
+          # Have to do this to pick up the web proxy gear group until the model refactor
+          self.group_instance.component_instances.each do |cname|
+            ci = self.app.comp_instance_map[cname]
+            # If you are part of the web framework group_instance then find the web proxy group instance and add its nodes to the list 
+            if ci.parent_cart_name == self.app.framework
+              self.app.group_instances.each do |gi|
+                found_proxy_gi = false
+                gi.component_instances.each do |cname|
+                  ci = self.app.comp_instance_map[cname]
+                  if ci.parent_cart_name == self.app.proxy_cartridge
+                    non_ha_server_identities |= gi.gears.map{|gear| gear.server_identity}
+                    found_proxy_gi = true
+                    break
+                  end
+                end
+                break if found_proxy_gi
+              end
+              break
+            end
+          end
+        end
         self.container = OpenShift::ApplicationContainerProxy.find_available(self.node_profile, nil, non_ha_server_identities)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
