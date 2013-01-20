@@ -2127,9 +2127,9 @@ module OpenShift
       # INPUTS:
       # * agent: ??
       # * servers: String|Array
+      # * broadcast: Indicates whether to use broadcast mode
       # * force_rediscovery: Boolean
       # * options: Hash
-      # * broadcast: Indicates whether to use broadcast mode
       #
       # RETURNS:
       # * ResultIO
@@ -2142,7 +2142,7 @@ module OpenShift
       # * connects, makes a request, closes connection.
       # * THIS IS THE MEAT!
       #
-      def self.rpc_exec(agent, servers=nil, force_rediscovery=false, options=rpc_options, broadcast=false)
+      def self.rpc_exec(agent, servers=nil, broadcast=false, force_rediscovery=false, options=rpc_options)
 
         if servers
           servers = Array(servers)
@@ -2732,7 +2732,7 @@ module OpenShift
         server_identities = Rails.cache.read('known_server_identities') unless force_rediscovery
         unless server_identities
           server_identities = []
-          rpc_get_fact('active_capacity', nil, force_rediscovery, nil, rpc_opts, true) do |server, capacity|
+          rpc_get_fact('active_capacity', nil, true, force_rediscovery, nil, rpc_opts) do |server, capacity|
             #Rails.logger.debug "Next server: #{server} active capacity: #{capacity}"
             server_identities << server
           end
@@ -2791,15 +2791,17 @@ module OpenShift
         
         rpc_opts = nil
         server_infos = []
-        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+        rpc_get_fact('active_capacity', nil, false, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
           #Rails.logger.debug "Next server: #{server} active capacity: #{capacity}"
           server_infos << [server, capacity.to_f]
         end
 
+        # Do everything possible to not pick a non ha compatible node
+        server_infos.delete_if { |server_info| (server_infos.length > 1 || (district_uuid && !require_specific_district)) && non_ha_server_identities.includes?(server_info[0]) } if non_ha_server_identities
         if !server_infos.empty?
           # Pick a random node amongst the best choices available
           # If any server is < 80 then only pick from servers with < 80
-          server_infos.delete_if { |server_info| server_infos.length > 1 && (server_info[1] >= 80 || (non_ha_server_identities && non_ha_server_identities.includes?(server_info[0]))) }
+          server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
           server_infos = server_infos.sort_by { |server_info| server_info[1] }
           max_index = [server_infos.length, 4].min - 1
           server_infos = server_infos.first(max_index + 1)
@@ -2834,7 +2836,7 @@ module OpenShift
           
           rpc_opts = nil
           districts = District.find_all # candidate for caching
-          rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+          rpc_get_fact('active_capacity', nil, false, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
             districts.each do |district|
               if district.server_identities.has_key?(server)
                 server_infos << [server, capacity.to_f, district]
@@ -2843,7 +2845,8 @@ module OpenShift
             end
           end
           unless server_infos.empty?
-            server_infos.delete_if { |server_info| server_infos.length > 1 && (server_info[1] >= 80 || (non_ha_server_identities && non_ha_server_identities.includes?(server_info[0]))) }
+            server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.includes?(server_info[0]) } if non_ha_server_identities
+            server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
             server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
             server_infos = server_infos.first(8)
           end
@@ -2981,13 +2984,13 @@ module OpenShift
       # * uses rpc_exec
       # 
 
-      def self.rpc_get_fact(fact, servers=nil, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil, broadcast=false)
+      def self.rpc_get_fact(fact, servers=nil, broadcast=false, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
-        rpc_exec('rpcutil', servers, force_rediscovery, options, broadcast) do |client|
+        rpc_exec('rpcutil', servers, broadcast, force_rediscovery, options) do |client|
           client.get_fact(:fact => fact) do |response|
             next unless Integer(response[:body][:statuscode]) == 0
     
@@ -3074,7 +3077,7 @@ module OpenShift
       def self.get_all_gears_impl
         gear_map = {}
         sender_map = {}
-        rpc_exec('openshift') do |client|
+        rpc_exec('openshift', nil, true) do |client|
           client.get_all_gears() do |response|
             if response[:body][:statuscode] == 0
               sub_gear_map = response[:body][:data][:output]
@@ -3106,7 +3109,7 @@ module OpenShift
       #
       def self.get_all_active_gears_impl
         active_gears_map = {}
-        rpc_exec('openshift') do |client|
+        rpc_exec('openshift', nil, true) do |client|
           client.get_all_active_gears() do |response|
             if response[:body][:statuscode] == 0
               active_gears = response[:body][:data][:output]
