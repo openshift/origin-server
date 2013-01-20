@@ -36,7 +36,8 @@ class Gear < OpenShift::Model
       ret = nil
       begin
         self.app.ngears += 1
-        self.container = OpenShift::ApplicationContainerProxy.find_available(self.node_profile)
+        non_ha_server_identities = self.group_instance.gears.map{|gear| gear.server_identity}
+        self.container = OpenShift::ApplicationContainerProxy.find_available(self.node_profile, nil, non_ha_server_identities)
         self.server_identity = self.container.id
         self.uid = self.container.reserve_uid
         self.group_instance.gears << self
