@@ -34,7 +34,7 @@ function die() {
 function create_mongodb_snapshot() {
    #  Work in a temporary directory (create and cd to it).
    umask 077
-   dumpdir = $(mktemp -d mongodumpXXXXXXXX)
+   dumpdir=$(mktemp -d /tmp/mongodumpXXXXXXXX)
    [ $? -eq 0 ] || die 0 "ERROR" "Failed to create working directory."
    pushd $dumpdir > /dev/null
 
