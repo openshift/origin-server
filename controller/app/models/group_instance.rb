@@ -9,8 +9,6 @@
 #   @return [Integer] User set minimum number of gears.
 # @!attribute [rw] user_max
 #   @return [Integer] User set maximum number of gears.
-# @!attribute [r] :gear_size
-#   @return [String] Gear size of all gears under this {GroupInstance}
 # @!attribute [r] gears
 #   @return [Array[Gear]] List of gears that are part of this {GroupInstance}
 # @!attribute [r] app_dns
@@ -18,8 +16,6 @@
 class GroupInstance
   include Mongoid::Document
   embedded_in :application, class_name: Application.name
-  field :gear_size, type: String, default: "small"
-  field :addtl_fs_gb, type: Integer, default: 0
   embeds_many :gears, class_name: Gear.name
   
   attr_accessor :min, :max
@@ -51,6 +47,14 @@ class GroupInstance
     application.component_instances.where(group_instance_id: self._id)
   end
   
+  def gear_size
+    get_attribute_value("gear_size") || application.default_gear_size
+  end
+
+  def addtl_fs_gb
+    get_attribute_value("additional_filesystem_gb") || 0
+  end
+
   # Adds ssh keys to all gears within the group instance.
   #
   # == Parameters:
@@ -90,7 +94,7 @@ class GroupInstance
   # @return [Hash] a simplified hash representing this {GroupInstance} object which is used by {Application#compute_diffs}  
   def to_hash
     comps = all_component_instances.map{ |c| c.to_hash }
-    {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: addtl_fs_gb, gear_size: gear_size}, _id: _id}
+    {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
   end
 
   protected
@@ -141,5 +145,24 @@ class GroupInstance
       end
     end
     [successful_runs,failed_runs]
-  end  
+  end 
+
+  private
+ 
+  def get_attribute_value(attr)
+    value = nil
+    comps = all_component_instances.map{ |c| c.to_hash }
+    comps.each do |comp|
+      found = false
+      application.group_overrides.each do |group_override|
+        if group_override["components"].include?(comp)
+          value = group_override[attr]
+          found = true
+          break
+        end
+      end if application.group_overrides
+      break if found
+    end
+    value
+  end
 end

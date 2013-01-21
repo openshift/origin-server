@@ -909,25 +909,11 @@ class Application
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :update_component_limits
-            found_override = false
-            updated_overrides = self.group_overrides.map { |group_override|
-              if group_override["components"] == [op_group.args["comp_spec"]]
-                found_override = true
-                group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
-                group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
-                group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
-                group_override
-              else
-                group_override
-              end
-            }
-            unless found_override
-              group_override = {"components" => [op_group.args["comp_spec"]]}
-              group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
-              group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
-              group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
-              updated_overrides << group_override
-            end
+            group_override = {"components" => [op_group.args["comp_spec"]]}
+            group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
+            group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
+            group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
+            updated_overrides = [group_override]
             features = self.requires
             ops, add_gear_count, rm_gear_count = update_requirements(features, updated_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
@@ -1373,7 +1359,7 @@ class Application
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
-      ginst_op = PendingAppOp.new(op_type: :create_group_instance, args: {"group_instance_id"=> ginst_id, "gear_size" => gear_size, "additional_filesystem_gb" => additional_filesystem_gb})
+      ginst_op = PendingAppOp.new(op_type: :create_group_instance, args: {"group_instance_id"=> ginst_id})
       ginst_op.prereq << set_group_override_op._id.to_s unless set_group_override_op.nil?
       pending_ops.push(ginst_op)
       gear_ids = (1..ginst_scale).map {|idx| Moped::BSON::ObjectId.new.to_s}
@@ -1431,30 +1417,24 @@ class Application
           pending_ops.push(*ops)
 
           #add/remove fs space from existing gears
-          if group_instance.addtl_fs_gb != change[:to_scale][:additional_filesystem_gb]
+          if change[:from_scale][:additional_filesystem_gb] != change[:to_scale][:additional_filesystem_gb]
             usage_prereq = nil
             usage_prereq = pending_ops.last._id.to_s if pending_ops.last
-            if group_instance.addtl_fs_gb != 0
-              usage_ops = []
+            usage_ops = []
+            if change[:from_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
                 track_usage_old_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s,
-                  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => group_instance.addtl_fs_gb}, prereq: [usage_prereq])
+                  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: [usage_prereq])
                 usage_ops.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
               end
-            
-              op = PendingAppOp.new(op_type: :set_additional_filesystem_gb, 
-                args: {"group_instance_id"=> group_instance._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
-                prereq: usage_ops, 
-                saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb})
-              pending_ops.push op
             end
             if change[:to_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
                 fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
                     args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
-                    saved_values: {"additional_filesystem_gb" => group_instance.addtl_fs_gb}, 
-                    prereq: [usage_prereq])
+                    saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, 
+                    prereq: (usage_ops.empty?? usage_prereq : usage_ops))
                 track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s,
                     "event" => UsageRecord::EVENTS[:begin], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
                 pending_ops.push(fs_op)
@@ -1468,8 +1448,8 @@ class Application
             comp_specs = self.component_instances.where(group_instance_id: group_instance._id).map{|c| c.to_hash}
             singleton_gear = group_instance.gears.find_by(host_singletons: true)
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
-            additional_filesystem_gb = group_instance.addtl_fs_gb
-            gear_size = group_instance.gear_size
+            additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || group_instance.addtl_fs_gb
+            gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
             ops = calculate_gear_create_ops(change[:from], gear_ids, singleton_gear._id.to_s, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
             pending_ops.push *ops

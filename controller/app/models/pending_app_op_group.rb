@@ -89,9 +89,6 @@ class PendingAppOpGroup
           application.set_connections(op.saved_values["connections"])
         when :execute_connections
           application.execute_connections
-        when :set_additional_filesystem_gb
-          group_instance = get_group_instance_for_rollback(op)
-          group_instance.set(:addtl_fs_gb, op.saved_values["additional_filesystem_gb"])
         when :set_gear_additional_filesystem_gb
           gear = get_gear_for_rollback(op)
           gear.set_addtl_fs_gb(op.saved_values["additional_filesystem_gb"], handle)
@@ -144,7 +141,7 @@ class PendingAppOpGroup
           Rails.logger.debug "Execute #{op.op_type}"
           case op.op_type
           when :create_group_instance
-            application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"], gear_size: op.args["gear_size"] ? op.args["gear_size"] : 'small'))
+            application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))
           when :init_gear
             group_instance.gears.push(Gear.new(custom_id: op.args["gear_id"], group_instance: group_instance, host_singletons: op.args["host_singletons"], app_dns: op.args["app_dns"]))
             application.save
@@ -214,13 +211,9 @@ class PendingAppOpGroup
             application.set_connections(op.args["connections"])
           when :execute_connections
             application.execute_connections
-          when :set_additional_filesystem_gb
-            group_instance.set(:addtl_fs_gb, op.args["additional_filesystem_gb"])
           when :set_gear_additional_filesystem_gb
-            if not op.args["additional_filesystem_gb"].nil?
-              gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
-              use_parallel_job = true
-            end
+            gear.set_addtl_fs_gb(op.args["additional_filesystem_gb"], handle)
+            use_parallel_job = true
           when :add_alias
             result_io.append gear.add_alias(op.args["fqdn"])
             self.application.aliases.push(op.args["fqdn"])
