@@ -50,10 +50,7 @@
 
       .controls
         - if @application_type.persisted?
-          - if @application_type.description.html_safe?
-            = @application_type.description
-          - else
-            %p.help-block= @application_type.description
+          = show_description(@application_type.description, :class => 'help-block')
 
           - if @application_type.website
             %p.help-block= link_to @application_type.website, @application_type.website
