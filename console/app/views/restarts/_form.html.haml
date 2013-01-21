@@ -1,0 +1,12 @@
+= semantic_form_for @application, :url => application_restart_path(@application), :method => 'put', :html => {:class => 'form'} do |f|
+  %p
+    Depending on the size of your application it may take up to several minutes to restart.
+  %p
+    Confirm restart of application
+    %strong
+      '#{@application.name}'?
+
+  = f.buttons do
+    = link_to 'Cancel', application_path(@application), :class => 'btn restart-cancel'
+    = f.commit_button 'Restart'
+    = f.loading

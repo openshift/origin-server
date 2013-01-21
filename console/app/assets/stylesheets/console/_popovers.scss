@@ -1,0 +1,73 @@
+// POPOVERS
+// ----------------------------------
+
+.popover-inner {
+  padding: 0;
+  width: 220px;
+  overflow: hidden;
+  background: $black; // has to be full background declaration for IE fallback
+  background: rgba(0,0,0,1);
+  @include border-radius(0);
+  @include box-shadow(0);
+}
+.popover-title {
+  padding: 9px 15px;
+  line-height: 1;
+  background-color: $subtleTextDarkBackground;
+  border-bottom:1px solid rgba(0,0,0,.25);
+  @include border-radius(0);
+}
+.popover-content {
+  padding: 14px;
+  background-color: $subtleTextDarkBackground;
+  border-top: 1px solid rgba(255,255,255,.35);
+  @include border-radius(0);
+  @include background-clip(padding-box);
+  p, ul, ol {
+    //margin-bottom: 0;
+    margin-bottom: $baseLineHeight / 1.5;
+  }
+
+  form {
+    margin: 0;
+  }
+}
+
+
+
+
+.popover {
+  position: absolute;
+  text-transform: none;
+  top: 0;
+  left: 0;
+  z-index: $zindexPopover;
+  display: none;
+  border: 6px solid rgba(255,255,255,.5);
+  @include border-radius(6px);
+  padding: 0;
+  &.top    { margin-top:  -10px; }
+  &.right  { margin-left:  10px; }
+  &.bottom { margin-top:   10px; }
+  &.left   { margin-left: -10px; }
+  &.top .arrow    { @include popoverArrow-top(); }
+  &.right .arrow  { @include popoverArrow-right(); }
+  &.bottom .arrow { @include popoverArrow-bottom(); }
+  &.left .arrow   { @include popoverArrow-left();  }
+  .arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* 
+.popover-restart .popover {
+  margin-left: -65px;
+}
+.popover-restart .popover.bottom .arrow {
+  left: 80%;
+}
+*/
+
+

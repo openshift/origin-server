@@ -10,6 +10,12 @@
         %li
           %h6 Gears
           %span.data #{@application.gear_count} total
+
+        %li#restart-container.popover-restart
+          = link_to image_tag('restart-icon.png', :alt => 'Restart', :title => 'Restart Application'), application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header'}
+          #restart-popover.hide
+            = render 'restarts/form'
+
       %h1.name= @application.name
       .url
         %strong @
@@ -190,4 +196,22 @@
 
   .btn-toolbar
     = link_to 'Delete this application', delete_application_path(@application), :class => 'btn btn-small'
+
+- content_for :javascripts do
+  :javascript
+    $('#restart-link').popover({
+      content: function() { return $('#restart-popover').html(); }
+    }).click(function() {
+      $('#restart-link').toggleClass('highlight');
+      $('#restart-container').activateForms();
+
+      return false;
+    });
+
+    $('#restart-container').on('click', '.restart-cancel', function() {
+      $('#restart-link').removeClass('highlight').popover('hide');
+      return false;
+    }).on('submit', 'form', function() {
+      $('#restart-container .btn').hide();
+    });
 

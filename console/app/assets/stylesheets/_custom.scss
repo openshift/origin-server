@@ -94,6 +94,7 @@ textarea:focus {
 	}
 
 
+
 // FORM FIELD FEEDBACK STATES
 // --------------------------
 
@@ -109,7 +110,6 @@ textarea:focus {
 .control-group.success {
   @include formFieldState($successBackground, $successBackground, $successBackground);
 }
-
 
 /* Print styles */
 

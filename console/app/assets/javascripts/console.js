@@ -7,4 +7,6 @@
 //= require bootstrap-transition
 //= require bootstrap-dropdown
 //= require bootstrap-tab
+//= require bootstrap-tooltip
+//= require bootstrap-popover
 //= require_tree .

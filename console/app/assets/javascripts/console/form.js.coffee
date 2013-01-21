@@ -35,17 +35,20 @@ $ ->
       $('input',tgt.removeClass('hidden')).focus()
 
   # Show/hide loading icons when form buttons are clicked
-  loading_match = '*[data-loading=true]'
-  ($ 'form '+loading_match).each ->
-    this.src = window.loader_image if window.loader_image
-    finished = ->
-      ($ loading_match).hide()
-      ($ 'input[type=submit][disabled]').removeAttr('disabled')
-    ($ window).bind 'pagehide', finished
-    ($ this).closest('form').bind 'submit', ->
-      this.finished = finished
-      if ($ '.control-group.error-client').length == 0
-        ($ loading_match, this).show()
-        ($ 'input[type=submit]', this).attr('disabled','disabled')
-        true
+  $.fn.activateForms = ->
+    loading_match = '*[data-loading=true]'
+    $(this).find('form ' + loading_match).each ->
+      this.src = window.loader_image if window.loader_image
+      finished = ->
+        ($ loading_match).hide()
+        ($ 'input[type=submit][disabled]').removeAttr('disabled')
+      ($ window).bind 'pagehide', finished
+      ($ this).closest('form').bind 'submit', ->
+        this.finished = finished
+        if ($ '.control-group.error-client').length == 0
+          ($ loading_match, this).show()
+          ($ 'input[type=submit]', this).attr('disabled','disabled')
+          true
+
+  $(document).activateForms()
 
