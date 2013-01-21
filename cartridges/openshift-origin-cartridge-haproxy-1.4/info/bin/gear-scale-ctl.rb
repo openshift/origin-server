@@ -58,7 +58,7 @@ class Gear_scale_ctl
       end
       return false
     rescue RestClient::ExceptionWithResponse => e
-      $stderr.puts "The #{action} request failed with http_code: #{e.http-code}"
+      $stderr.puts "The #{action} request failed with http_code: #{e.http_code}"
       return false
     rescue RestClient::Exception => e
       $stderr.puts "The #{action} request failed with the following exception: #{e.to_s}"
