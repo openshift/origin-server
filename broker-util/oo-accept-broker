@@ -435,7 +435,7 @@ function check_mongo_login() {
     # $PASS=$4
     verbose checking mongo db login access
     ssl_opt=""
-    if [ ${APP_VALUES[DS_SSL]} ]
+    if [ "${APP_VALUES[DS_SSL]}" == "true" ]
     then
         ssl_opt="--ssl"
     fi
@@ -513,7 +513,7 @@ function check_datastore_mongo() {
         fi
 
         # check OpenShift mongo ssl configuration
-        if [ ${APP_VALUES[DS_SSL]} ]
+        if [ "${APP_VALUES[DS_SSL]}" == "true" ]
         then
             if grep -e '^sslOnNormalPorts = true' /etc/mongodb.conf >/dev/null
             then
