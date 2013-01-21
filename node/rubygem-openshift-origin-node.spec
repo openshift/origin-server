@@ -94,9 +94,9 @@ mkdir -p %{buildroot}/etc/openshift
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
-mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/bin/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mkdir -p %{buildroot}%{_root_libexecdir}/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/bin/teardown_pam_fs_limits.sh %{buildroot}%{_root_libexecdir}/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}%{_root_libexecdir}/openshift/lib
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
@@ -117,8 +117,8 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{na
   #patch for apache 2.4
   sed -i 's/include/IncludeOptional/g' httpd/000001_openshift_origin_node.conf
 %endif
-mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
-mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+mv httpd/000001_openshift_origin_node.conf %{buildroot}%{_root_sysconfdir}/httpd/conf.d/
+mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}%{_root_sysconfdir}/httpd/conf.d/
 
 #%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
@@ -142,19 +142,19 @@ rm -rf %{buildroot}
 %{gem_cache}
 %{gem_spec}
 %attr(0750,-,-) /usr/bin/oo-admin-ctl-cgroups
-%{_sysconfdir}/openshift
-%{_bindir}/*
-%{_libexecdir}/openshift/lib/setup_pam_fs_limits.sh
-%{_libexecdir}/openshift/lib/teardown_pam_fs_limits.sh
-%config(noreplace) %{_sysconfdir}/openshift/node.conf
-%attr(0750,-,-) %{_sysconfdir}/httpd/conf.d/openshift
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000001_openshift_origin_node_servername.conf
+%{_root_sysconfdir}/openshift
+%{_root_bindir}/*
+%{_root_libexecdir}/openshift/lib/setup_pam_fs_limits.sh
+%{_root_libexecdir}/openshift/lib/teardown_pam_fs_limits.sh
+%config(noreplace) %{_root_sysconfdir}/openshift/node.conf
+%attr(0750,-,-) %{_root_sysconfdir}/httpd/conf.d/openshift
+%config(noreplace) %{_root_sysconfdir}/httpd/conf.d/000001_openshift_origin_node.conf
+%config(noreplace) %{_root_sysconfdir}/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %attr(0755,-,-) %{appdir}
 %attr(0750,root,apache) %{appdir}/.httpd.d
 
 #%if 0%{?fedora}%{?rhel} <= 6
-%attr(0755,-,-)	%{_initddir}/openshift-cgroups
+%attr(0755,-,-)	%{_root_initddir}/openshift-cgroups
 #%else
 #%attr(0750,-,-) /etc/systemd/system
 #%endif
