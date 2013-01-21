@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.3.4
+Version: 1.3.5
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- Fixing incorrect if check on APP_VALUES[DS_SSL] (calfonso@redhat.com)
+- Merge pull request #842 from Miciah/oo-accept-broker-drop-sysctl-check
+  (dmcphers+openshiftbot@redhat.com)
+- oo-accept-broker: drop sysctl checks (miciah.masters@gmail.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.4-1
 - Merge pull request #1154 from calfonso/master
   (dmcphers+openshiftbot@redhat.com)
