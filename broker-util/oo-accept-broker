@@ -360,18 +360,6 @@ function check_selinux_modules() {
 }
 
 
-function check_kernel_settings() {
-  verbose "checking kernel settings"
-
-  KERNEL_SETTINGS="kernel.sem net.ipv4.ip_local_port_range net.netfilter.nf_conntrack_max"
-
-  for KERNEL_KEY in $KERNEL_SETTINGS
-  do
-      notice current - $(sysctl $KERNEL_KEY)
-      notice config - $(grep -e "^$KERNEL_KEY " /etc/sysctl.conf)
-  done
-}
-
 function check_firewall() {
   verbose "checking firewall settings"
 
@@ -873,7 +861,6 @@ check_ruby_requirements $OSO_RUBY_LIBS
 load_application_values
 #check_selinux_modules
 #check_selinux_booleans
-#check_kernel_settings
 check_firewall
 check_services
 
