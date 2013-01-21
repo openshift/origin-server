@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.3.3
+Version: 1.3.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Fix typo in cart data type for environment variables. (ramr@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
