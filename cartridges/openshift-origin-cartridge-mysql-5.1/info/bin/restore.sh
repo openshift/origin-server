@@ -33,9 +33,15 @@ then
         echo ";"
         echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'$NEW_IP' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
         echo "GRANT ALL ON *.* TO '$OPENSHIFT_MYSQL_DB_USERNAME'@'localhost' IDENTIFIED BY '$OPENSHIFT_MYSQL_DB_PASSWORD' WITH GRANT OPTION;"
-        echo "DROP USER '$OLD_USER'@'$OLD_IP';"
-        echo "DROP USER '$OLD_USER'@'localhost';"
-        echo "UPDATE mysql.user SET Host='$NEW_IP' WHERE Host='$OLD_IP';"
+        
+        if [ "$OPENSHIFT_MYSQL_DB_USERNAME" != "$OLD_USER" ]; then
+            echo "DROP USER '$OLD_USER'@'localhost';"
+        fi
+
+        if [ "$OLD_IP" != "$NEW_IP" ]; then
+            echo "DROP USER '$OLD_USER'@'$OLD_IP';"
+        fi
+        
         echo "FLUSH PRIVILEGES;"
     ) | /usr/bin/mysql -h $dbhost -P $OPENSHIFT_MYSQL_DB_PORT -u $OPENSHIFT_MYSQL_DB_USERNAME --password="$OPENSHIFT_MYSQL_DB_PASSWORD"
     if [ ! ${PIPESTATUS[1]} -eq 0 ]
