@@ -295,7 +295,8 @@ class BaseController < ActionController::Base
   end
 
   def render_exception_internal(ex, log_tag, format)
-    Rails.logger.error ex
+    Rails.logger.error "Reference ID: #{@request_id}"
+    Rails.logger.error ex.message
     Rails.logger.error ex.backtrace
 
     error_code = ex.respond_to?('code') ? ex.code : 1
@@ -306,9 +307,12 @@ class BaseController < ActionController::Base
       status = :service_unavailable
     elsif ex.kind_of? OpenShift::NodeException
       status = :internal_server_error
-      if ex.resultIO && ex.resultIO.errorIO
+      if ex.resultIO
         error_code = ex.resultIO.exitcode
-        message = ex.resultIO.errorIO.string.strip
+        if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
+          message = ex.resultIO.errorIO.string.strip
+        end
+        message += "\nReference ID: #{@request_id}"
       end
     else
       status = :internal_server_error
