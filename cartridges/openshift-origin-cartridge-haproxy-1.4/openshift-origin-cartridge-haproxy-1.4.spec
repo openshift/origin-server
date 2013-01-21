@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.3.3
+Version: 1.3.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -94,6 +94,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Merge pull request #1169 from smarterclayton/use_nahi_httpclient_instead
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' of git://github.com/openshift/origin-server into
+  use_nahi_httpclient_instead (ccoleman@redhat.com)
+- Update the description and display name for haproxy-1.4 to reflect its true
+  purpose (ccoleman@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
