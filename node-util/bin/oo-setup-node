@@ -191,7 +191,7 @@ int_hw_address = `/sbin/ip addr show dev #{int_eth_device} | grep 'link/ether' |
 
 if dns_address.nil?
   if ext_dhcp
-    dns_address = `cat /var/lib/dhclient/dhclient-*#{ext_eth_device}.lease* | grep domain-name-servers | awk '{print $3}' | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
+    dns_address = `awk '/domain-name-servers/ {print $3}'  /var/lib/dhclient/dhclient-*#{ext_eth_device}.lease* | sort -u`.split(";\n").map{ |ips| ips.split(",") }.flatten
     dns_address.delete '127.0.0.1'
   else
     dns_address = ["8.8.8.8", "8.8.4.4"]
