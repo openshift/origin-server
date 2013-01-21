@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version:   1.0.7
+Version:   1.0.8
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,11 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.0.8-1
+- Merge pull request #1018 from tdawson/tdawson/mirrors.fix
+  (dmcphers+openshiftbot@redhat.com)
+- changed mirror1.stg and prod to mirror1.ops (tdawson@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.0.7-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
