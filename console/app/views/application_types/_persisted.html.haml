@@ -1,8 +1,5 @@
 %h3= application_type.display_name
-- if application_type.description.html_safe?
-  = application_type.description
-- else
-  %p= application_type.description
+= show_description application_type.description
 
 - if application_type.website
   %p Website: #{link_to application_type.website, application_type.website}

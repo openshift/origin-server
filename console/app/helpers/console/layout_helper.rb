@@ -143,6 +143,10 @@ module Console::LayoutHelper
     wizard_steps(CartridgeWizardStepsCreate, active, options)
   end
 
+  def show_description(description, opts={})
+    simple_format(truncate(description, {:length => opts[:length] || 550, :separator => "\n\n", :omission => ""}.reverse_merge!(opts)), opts)
+  end
+
   def wizard_steps(items, active, options={})
     content_tag(
       :ol,
