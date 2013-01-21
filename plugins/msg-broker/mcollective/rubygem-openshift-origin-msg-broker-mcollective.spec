@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,12 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- set timeout to disc timeout for direct addressing (dmcphers@redhat.com)
+- Fix include? (dmcphers@redhat.com)
+- Still need to use broadcast for get all gears methods (dmcphers@redhat.com)
+- favor different nodes within a gear group (dmcphers@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - added add/remove ssl cert methods to ease merge (mlamouri@redhat.com)
 - adding rdoc to mcollective_application_container (mlamouri@redhat.com)
