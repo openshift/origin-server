@@ -1136,6 +1136,25 @@ class Application
     calculate_ops(changes)
   end
 
+  def calculate_remove_group_instance_ops(comp_specs, group_instance)
+    pending_ops = []
+    gear_destroy_ops = calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
+    pending_ops.push(*gear_destroy_ops)
+    gear_destroy_op_ids = gear_destroy_ops.map{|op| op._id.to_s}
+
+    delete_comp_ops = []
+    comp_specs.each do |comp_spec|
+      delete_comp_ops.push(PendingAppOp.new(op_type: :del_component, args: {"group_instance_id"=> group_instance._id.to_s, "comp_spec" => comp_spec}, prereq: gear_destroy_op_ids))
+    end
+    pending_ops.push(*delete_comp_ops)
+    comp_delete_op_ids = delete_comp_ops.map{|op| op._id.to_s}
+    
+    destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: gear_destroy_op_ids + comp_delete_op_ids)
+    pending_ops.push(destroy_ginst_op)
+    
+    pending_ops
+  end
+
   def calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
     pending_ops = []
     ssh_keys = (self.app_ssh_keys + self.domain.system_ssh_keys + self.domain.owner.ssh_keys + CloudUser.find(self.domain.user_ids).map{|u| u.ssh_keys}.flatten)
@@ -1387,27 +1406,8 @@ class Application
         if change[:to].nil?
           remove_gears += change[:from_scale][:current]
 
-          gear_destroy_ops=calculate_gear_destroy_ops(group_instance._id.to_s, group_instance.gears.map{|g| g._id.to_s}, group_instance.addtl_fs_gb)
-          pending_ops.push(*gear_destroy_ops)
-          
-          op_ids = gear_destroy_ops.map{|op| op._id.to_s}
-          destroy_ginst_op  = PendingAppOp.new(op_type: :destroy_group_instance, args: {"group_instance_id"=> group_instance._id.to_s}, prereq: op_ids)
-          pending_ops.push(destroy_ginst_op)
-          
-          singleton_gear = group_instance.gears.find_by(host_singletons: true)
-          ops = calculate_remove_component_ops(change[:removed], group_instance, singleton_gear)
-          pending_ops.push(*ops)
-          
-          ops.each do |op|
-            if (op.op_type == :del_component)
-              op.prereq += gear_destroy_ops.map{|g| g._id.to_s}
-              destroy_ginst_op.prereq << op._id.to_s
-            elsif (op.op_type==:remove_component)
-              gear_destroy_ops.each { |gd_op|
-                gd_op.prereq += [op._id.to_s]
-              }
-            end
-          end
+          group_instance_remove_ops = calculate_remove_group_instance_ops(change[:removed], group_instance)
+          pending_ops.push(*group_instance_remove_ops)
         else
           scale_change = 0
           if change[:to_scale][:current].nil?
