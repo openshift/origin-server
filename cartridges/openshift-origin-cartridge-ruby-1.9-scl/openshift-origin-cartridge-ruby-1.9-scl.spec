@@ -186,6 +186,8 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
+%dir %{cartridgedir}
+%dir %{cartridgedir}/info
 %attr(0755,-,-) %{cartridgedir}/info/hooks
 %attr(0750,-,-) %{cartridgedir}/info/hooks/*
 %attr(0755,-,-) %{cartridgedir}/info/hooks/tidy
