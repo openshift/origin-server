@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.3.3
+Version: 1.3.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Fix typos in rhc instructions displayed to client (ironcladlou@gmail.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
