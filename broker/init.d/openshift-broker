@@ -75,7 +75,8 @@ stop() {
 }
 reload() {
     echo -n $"Reloading $prog: "
-    if ! LANG=$HTTPD_LANG $httpd $OPTIONS -t >&/dev/null; then
+    eval "set -- $OPTIONS"
+    if ! LANG=$HTTPD_LANG $httpd "$@" -t >&/dev/null; then
         RETVAL=6
         echo $"not reloading due to configuration syntax error"
         failure $"not reloading $httpd due to configuration syntax error"
@@ -85,6 +86,8 @@ reload() {
         RETVAL=$?
         if [ $RETVAL -eq 7 ]; then
             failure $"httpd shutdown"
+        else
+            success
         fi
     fi
     echo
