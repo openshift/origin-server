@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.7
+Version: 1.3.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.8-1
+- Merge pull request #1191 from jtharris/bugs/894229
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for Bug 894229 (jharris@redhat.com)
+- Ensure descriptions for cartridges and application types are safe and limited
+  in the UI. (ccoleman@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.7-1
 - Merge pull request #1149 from fotioslindiakos/captcha
   (dmcphers+openshiftbot@redhat.com)
