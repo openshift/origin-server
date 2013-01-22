@@ -61,12 +61,12 @@ function clone_external_git_repo {
     mkdir -p "$APP_HOME/git"
 
     (
-        set +x  # We need to emit an error message and the hooks run with "set -e"
+        # Run in a subshell so that we can emit an error message even though hooks run with "set -e"
         git clone --bare --no-hardlinks $git_url $GIT_DIR
 
         if [ $? -ne 0 ]
         then
-            client_error "Unable to clone the remote git repository: '${git_url}'.  Please verify the repository is correct and contact support."
+            client_error "Source Code repository could not be cloned: '${git_url}'.  Please verify the repository is correct and contact support."
             exit 131
         fi
     ) || exit 131
