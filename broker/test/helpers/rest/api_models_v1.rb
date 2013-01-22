@@ -162,13 +162,13 @@ class RestUser_V1 < BaseObj_V1
     self.capabilities = nil
     self.plan_id = nil
     self.usage_account_id = nil
-    self.links = {                                                                                         
-      "LIST_KEYS" => Link_V1.new("GET", "user/keys"),                     
-      "ADD_KEY" => Link_V1.new("POST", "user/keys", [                  
-        Param_V1.new("name", "string"),                                        
+    self.links = {
+      "LIST_KEYS" => Link_V1.new("GET", "user/keys"),
+      "ADD_KEY" => Link_V1.new("POST", "user/keys", [
+        Param_V1.new("name", "string"),
         Param_V1.new("type", "string", KEY_TYPES), 
-        Param_V1.new("content", "string"),      
-      ])                                                                                              
+        Param_V1.new("content", "string"), 
+      ]) 
     } unless $nolinks 
   end
 
