@@ -14,6 +14,7 @@ module RestApi
       OAUTH_VERSION = "1.0"
       CONTENT_TYPE = 'application/x-www-form-urlencoded'
       METHOD = 'GET'
+      ACCEPT = 'application/json'
 
       attr_reader :oauth_endpoint_uri, :oauth_consumer_key, :oauth_consumer_secret, :oauth_token, :oauth_token_secret, :oauth_nonce
 
@@ -23,6 +24,7 @@ module RestApi
         @oauth_nonce = generate_oauth_nonce
         @timestamp = timestamp
         headers['Content-Type'] = CONTENT_TYPE
+        headers['Accept'] = ACCEPT
         headers['Authorization'] = oauth_authorization_header
         headers
       end
