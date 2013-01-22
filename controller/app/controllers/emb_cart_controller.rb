@@ -216,7 +216,7 @@ class EmbCartController < BaseController
       @application_name = application.name
       @application_uuid = application.uuid
  
-      if !application.scalable and (scales_from != 1 or scales_to != 1)
+      if !application.scalable and ((scales_from and scales_from != 1) or (scales_to and scales_to != 1 and scales_to != -1))
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
       end
       
