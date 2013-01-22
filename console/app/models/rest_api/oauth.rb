@@ -21,17 +21,19 @@ module RestApi
         @oauth_endpoint_uri = URI(endpoint_url)
         @oauth_consumer_key, @oauth_consumer_secret, @oauth_token, @oauth_token_secret = consumer_key, consumer_secret, token, token_secret
         @oauth_nonce = generate_oauth_nonce
+        @timestamp = timestamp
         headers['Content-Type'] = CONTENT_TYPE
         headers['Authorization'] = oauth_authorization_header
+        headers
       end
 
       private
         def oauth_parameters
-          @oauth_parameters ||= {
+          {
             'oauth_consumer_key' => @oauth_consumer_key,
             'oauth_nonce' => @oauth_nonce,
             'oauth_signature_method' => SIGNATURE_METHOD,
-            'oauth_timestamp' => timestamp,
+            'oauth_timestamp' => @timestamp,
             'oauth_token' => @oauth_token,
             'oauth_version' => OAUTH_VERSION
           }
