@@ -25,12 +25,12 @@ case "$1" in
     start)
         if [ -f ${cartridge_dir}/run/stop_lock ]
         then
-            echo "Application is explicitly stopped!  Use 'rhc app cartridge start -a ${cartridge_type} -c 10gen-mms-agent-0.1' to start back up." 1>&2
+            echo "Application is explicitly stopped!  Use 'rhc app cartridge start -a ${OPENSHIFT_APP_NAME} -c ${cartridge_type}' to start back up." 1>&2
             exit 0
         fi
 
         if ps -ef | grep ${OPENSHIFT_GEAR_UUID}_agent.py | grep -qv grep > /dev/null 2>&1; then
-            echo "Application is already running!  Use 'rhc app cartridge restart -a ${cartridge_type} -c 10gen-mms-agent-0.1' to restart." 1>&2
+            echo "Application is already running!  Use 'rhc app cartridge restart -a ${OPENSHIFT_APP_NAME} -c ${cartridge_type}' to restart." 1>&2
             exit 0
         fi
         src_user_hook pre_start_10gen_mms_agent-0.1
