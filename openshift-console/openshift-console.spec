@@ -9,7 +9,7 @@
 
 Summary:   The OpenShift Enterprise Management Console
 Name:      openshift-console
-Version:   0.0.3
+Version:   0.0.4
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -160,6 +160,45 @@ fi
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Tue Jan 22 2013 Troy Dawson <tdawson@redhat.com> 0.0.4-1
+- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
+  outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
+  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
+  Setup mcollective to use broker IPs - Updates abstract cartridges to set
+  proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
+  fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
+- Marking the console configs as noreplace (bleanhar@redhat.com)
+- Switched console port from 3128 to 8118 due to selinux changes in F17-18
+  Fixed openshift-node-web-proxy systemd script Updates to oo-setup-broker
+  script:   - Fixes hardcoded example.com   - Added basic auth based console
+  setup   - added openshift-node-web-proxy setup Updated console build and spec
+  to work on F17 (kraman@gmail.com)
+- BZ876937 - Return "FAILED" if trying to stop openshift-console which is
+  already stopped (bleanhar@redhat.com)
+- BZ878754 No CSRF attack protection in console (calfonso@redhat.com)
+- add oo-ruby (dmcphers@redhat.com)
+- ldap sample config was out of date on the passthrough name
+  (calfonso@redhat.com)
+- BZ874520 - There is no domain_suffix displayed at the end of app url...
+  (calfonso@redhat.com)
+- Removing version from minitest in openshift-console gemspec
+  (calfonso@redhat.com)
+- Merge pull request #853 from calfonso/master (openshift+bot@redhat.com)
+- Merge pull request #851 from brenton/no_trace (openshift+bot@redhat.com)
+- Removing unused boiler plate index.html from console (calfonso@redhat.com)
+- BZ873970, BZ873966 - disabling HTTP TRACE for the Broker, Nodes and Console
+  (bleanhar@redhat.com)
+- BZ873940 - The rpm package openshift-console should delete the temp file
+  (calfonso@redhat.com)
+- BZ872492 - Should stop openshfit-console service when uninstall openshift-
+  console package. (calfonso@redhat.com)
+- Merge pull request #797 from calfonso/master (openshift+bot@redhat.com)
+- Adding - to spec to make tito releasers work (calfonso@redhat.com)
+- Setting the gemdir in the rpm spec (calfonso@redhat.com)
+- BZ871786 - The urls of "My Applications","Create Application","Help","My
+  Account" are not correct. *Modifying the app context path for the error pages
+  (calfonso@redhat.com)
+
 * Wed Oct 31 2012 Adam Miller <admiller@redhat.com> 0.0.3-1
 - Bug 871705 - renaming a sample conf file for consistency
   (bleanhar@redhat.com)
