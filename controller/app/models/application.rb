@@ -1418,13 +1418,13 @@ class Application
 
           #add/remove fs space from existing gears
           if change[:from_scale][:additional_filesystem_gb] != change[:to_scale][:additional_filesystem_gb]
-            usage_prereq = nil
-            usage_prereq = pending_ops.last._id.to_s if pending_ops.last
+            usage_prereq = []
+            usage_prereq = [pending_ops.last._id.to_s] if pending_ops.last
             usage_ops = []
             if change[:from_scale][:additional_filesystem_gb] != 0
               group_instance.gears.each do |gear|
                 track_usage_old_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s,
-                  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: [usage_prereq])
+                  "event" => UsageRecord::EVENTS[:end], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, prereq: usage_prereq)
                 usage_ops.push(track_usage_old_fs_op._id.to_s)
                 pending_ops.push(track_usage_old_fs_op)
               end
