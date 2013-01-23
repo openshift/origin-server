@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.3.6
+Version: 1.3.7
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.7-1
+- Merge pull request #1195 from rmillner/BZ896364
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 896364 - Minor cleanup. (rmillner@redhat.com)
+
 * Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.6-1
 - BZ 896364: Check git urls for allowed types and emit useful error messages.
   (rmillner@redhat.com)
