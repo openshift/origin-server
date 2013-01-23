@@ -144,8 +144,8 @@ class ApplicationTypesControllerTest < ActionController::TestCase
   test "should render custom initial_git_url" do
     with_unique_user
     get :show,
-      :id => 'custom', 
-      :cartridges => 'ruby-1.9', 
+      :id => 'custom',
+      :cartridges => 'ruby-1.9',
       :initial_git_url => 'http://foo.com',
       :initial_git_branch => 'bar'
     assert_response :success
@@ -231,4 +231,12 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     assert_equal @domain.id, domain.id
     assert css_select('input#application_domain_name').empty?
   end
+
+  test "should render domain name field" do
+    with_unique_user
+    get :show, :id => 'custom', :advanced => true, :domain_name => 'TestDomain'
+
+    assert_select 'input#application_domain_name', {:count=>1, :value => 'TestDomain'}
+  end
+
 end

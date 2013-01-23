@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.4
+Version: 1.3.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -175,6 +175,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- BZ 901449: An SELinux issue prevents forces this script to use system ruby
+  and not the SCL version. (rmillner@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.4-1
 - Bug 901444 (dmcphers@redhat.com)
 - SSL support for custom domains. (mpatel@redhat.com)

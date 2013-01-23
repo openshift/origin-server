@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.17.2
+Version: 1.17.3
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -60,6 +60,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.17.3-1
+- Fix typos in rhc instructions displayed to client (ironcladlou@gmail.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.17.2-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 

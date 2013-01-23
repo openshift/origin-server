@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.3.6
+Version: 1.3.7
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,18 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.7-1
+- Merge pull request #967 from mscherer/enhancement/node-
+  util/cleaner_shell_code (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1178 from ramr/master (dmcphers+openshiftbot@redhat.com)
+- Fix bugz 894170 - Server timeout with add/remove of Metrics cartridge.
+  (ramr@redhat.com)
+- Merge pull request #1171 from jwhonce/dev/bz880699
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for Bug 880699 (jhonce@redhat.com)
+- use awk instead of awk, cat and grep. Just for having more compact code
+  (misc@zarb.org)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.6-1
 - Merge pull request #1164 from jwhonce/dev/bz895878
   (dmcphers+openshiftbot@redhat.com)

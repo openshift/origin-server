@@ -34,12 +34,6 @@
       - @featured_types.each do |type|
         %div{:class => @featured_types.length > 2 ? 'span4 tile-dark' : 'span6 tile-dark'}
           = render :partial => 'application_type', :object => type, :locals => {:excluded_tags => []}
-          -#= div_for type, :class => 'tile tile-click' do
-            %h3= link_to type.display_name, application_type_path(type)
-            %p= type.description
-            - if type.website
-              %p=  link_to type.website, type.website
-            = application_type_tags(type.tags)
 
 %section
   - if @type_groups.empty?

@@ -68,7 +68,7 @@ function start_app() {
 
     _state=`get_app_state`
     if [ -f $CART_DIR/run/stop_lock -o idle = "$_state" ]; then
-        echo "Application is explicitly stopped!  Use 'rhc app start -a ${cartridge_type}' to start back up." 1>&2
+        echo "Application is explicitly stopped!  Use 'rhc app start -a ${OPENSHIFT_APP_NAME}' to start back up." 1>&2
     else
         # Check for running app
         if isrunning; then

@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.3.6
+Version: 1.3.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,26 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.8-1
+- Merge pull request #1183 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 902117 (dmcphers@redhat.com)
+
+* Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.7-1
+- Merge pull request #500 from mscherer/fix_missing_jsondata
+  (dmcphers+openshiftbot@redhat.com)
+- include webproxy group instance in non ha list (dmcphers@redhat.com)
+- favor different nodes within a gear group (dmcphers@redhat.com)
+- Merge pull request #1169 from smarterclayton/use_nahi_httpclient_instead
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'master' of git://github.com/openshift/origin-server into
+  use_nahi_httpclient_instead (ccoleman@redhat.com)
+- Use --insecure in tests Use --clean to isolate problems, purge the express
+  config Swap node_steps to use rhc_delete_domain/create_domain for sanity
+  (ccoleman@redhat.com)
+- Do not return a unclear error message if json_data is not set
+  (mscherer@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.6-1
 - Adding support for broker to mongodb connections over SSL
   (calfonso@redhat.com)
