@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.3.4
+Version: 1.3.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,10 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- Bug 902690 Cant use direct addressing mode when facts are required
+  (dmcphers@redhat.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - set timeout to disc timeout for direct addressing (dmcphers@redhat.com)
 - Fix include? (dmcphers@redhat.com)
