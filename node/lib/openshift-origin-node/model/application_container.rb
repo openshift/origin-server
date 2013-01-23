@@ -203,13 +203,13 @@ module OpenShift
       begin
         # Git pruning
         tidy_action do
-          out, err, rc = shellCmd("git prune", gear_repo_dir, false, 0)
+          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
           @logger.debug("Pruned git directory at #{gear_repo_dir}. Output:\n#{out}")
         end
 
         # Git GC
         tidy_action do
-          out, err, rc = shellCmd("git gc --aggressive", gear_repo_dir, false, 0)
+          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
           @logger.debug("Executed git gc for repo #{gear_repo_dir}. Output:\n#{out}")
         end
 
