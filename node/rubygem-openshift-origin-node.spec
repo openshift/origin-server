@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.3.5
+Version: 1.3.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -175,6 +175,9 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.6-1
+- Bug 903152: Execute git tidy ops as gear user (ironcladlou@gmail.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
 - BZ 901449: An SELinux issue prevents forces this script to use system ruby
   and not the SCL version. (rmillner@redhat.com)
