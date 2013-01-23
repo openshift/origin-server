@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
 Name: openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.3.3
+Version: 1.3.4
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -63,6 +63,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- Bug 903139 Removing user/pw from cart props since this cart doesnt control
+  them (dmcphers@redhat.com)
+
 * Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Fix typos in rhc instructions displayed to client (ironcladlou@gmail.com)
 
