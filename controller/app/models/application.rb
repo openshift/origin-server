@@ -36,6 +36,7 @@ end
 class Application
   include Mongoid::Document
   include Mongoid::Timestamps
+  include UtilHelper
   APP_NAME_MAX_LENGTH = 32
   MAX_SCALE = -1
   GEAR_SIZES = ["small", "medium"]
@@ -1617,7 +1618,7 @@ class Application
   end
 
   def process_group_overrides(component_instances, group_overrides)
-    overrides = group_overrides ? group_overrides.dup : []
+    overrides = group_overrides ? deep_copy(group_overrides) : []
     cleaned_overrides = []
     
     # Resolve additional group overrides from component_instances
@@ -1767,6 +1768,7 @@ class Application
   def elaborate(features, group_overrides = [])
     profiles = []
     added_cartridges = []
+    overrides = deep_copy(group_overrides)
 
     #calculate initial list based on user provided dependencies
     features.each do |feature|
@@ -1831,7 +1833,7 @@ class Application
               "to_connector_name" =>   sname,
               "connection_type" =>     stype}
             if stype.starts_with?("FILESYSTEM") or stype.starts_with?("SHMEM")
-              group_overrides << [{"cart"=> cinfo[:cartridge], "comp"=> cinfo[:component]}, {"cart"=> ci[:cartridge].name, "comp"=> ci[:component].name}]
+              overrides << [{"cart"=> cinfo[:cartridge], "comp"=> cinfo[:component]}, {"cart"=> ci[:cartridge].name, "comp"=> ci[:component].name}]
             end
           end
         end
@@ -1839,7 +1841,7 @@ class Application
     end
     
     comp_specs = component_instances.map{ |ci| {"comp"=> ci[:component].name, "cart"=> ci[:cartridge].name}}
-    processed_overrides, cleaned_overrides = process_group_overrides(comp_specs, group_overrides)
+    processed_overrides, cleaned_overrides = process_group_overrides(comp_specs, overrides)
     group_instances = processed_overrides.map{ |go| 
       group_instance = {}
       group_instance[:component_instances] = go["components"]

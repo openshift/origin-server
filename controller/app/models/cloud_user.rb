@@ -19,6 +19,7 @@
 class CloudUser
   include Mongoid::Document
   include Mongoid::Timestamps
+  include UtilHelper
   alias_method :mongoid_save, :save
   
   DEFAULT_SSH_KEY_NAME = "default"
@@ -140,7 +141,7 @@ class CloudUser
   
   # Return user capabilities. Subaccount user may inherit capabilities from its parent.
   def get_capabilities
-    user_capabilities = self.capabilities.dup
+    user_capabilities = deep_copy(self.capabilities)
     if self.parent_user_id
       begin
         parent_user = CloudUser.find_by(_id: self.parent_user_id)
