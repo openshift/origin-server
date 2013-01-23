@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.8
+Version: 1.3.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,15 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.9-1
+- Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
+- Bug 901949 - setting Accept header on OAuth to workaround a bug in some
+  versions of ActiveSupport (ffranz@redhat.com)
+- Merge pull request #1193 from fabianofranz/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 901342 - timestamp was being cached which was causing several 401 errors
+  when calling Twitter api (ffranz@redhat.com)
+
 * Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.8-1
 - Merge pull request #1191 from jtharris/bugs/894229
   (dmcphers+openshiftbot@redhat.com)
