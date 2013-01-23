@@ -104,7 +104,6 @@ module OpenShift
           current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district, non_ha_server_identities, true)
         end
         district = preferred_district if preferred_district
-        Rails.logger.debug "CURRENT SERVER: #{current_server}"
         raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_available_impl: current_server: #{current_server}: #{current_capacity}"
 
@@ -2127,7 +2126,6 @@ module OpenShift
       # INPUTS:
       # * agent: ??
       # * servers: String|Array
-      # * broadcast: Indicates whether to use broadcast mode
       # * force_rediscovery: Boolean
       # * options: Hash
       #
@@ -2142,16 +2140,12 @@ module OpenShift
       # * connects, makes a request, closes connection.
       # * THIS IS THE MEAT!
       #
-      def self.rpc_exec(agent, servers=nil, broadcast=false, force_rediscovery=false, options=rpc_options)
+      def self.rpc_exec(agent, servers=nil, force_rediscovery=false, options=rpc_options)
 
         if servers
           servers = Array(servers)
-        elsif broadcast
-          servers = []
         else
-          servers = known_server_identities(force_rediscovery, options)
-          # Set the timeout to be the same as the discovery timeout since we are using a possibly stale previous discovery
-          options[:timeout] = Rails.configuration.msg_broker[:rpc_options][:disctimeout]
+          servers = []
         end
 
         # Setup the rpc client
@@ -2793,7 +2787,7 @@ module OpenShift
         
         rpc_opts = nil
         server_infos = []
-        rpc_get_fact('active_capacity', nil, false, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+        rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
           #Rails.logger.debug "Next server: #{server} active capacity: #{capacity}"
           server_infos << [server, capacity.to_f]
         end
@@ -2838,7 +2832,7 @@ module OpenShift
           
           rpc_opts = nil
           districts = District.find_all # candidate for caching
-          rpc_get_fact('active_capacity', nil, false, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
+          rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
             districts.each do |district|
               if district.server_identities.has_key?(server)
                 server_infos << [server, capacity.to_f, district]
@@ -2986,13 +2980,13 @@ module OpenShift
       # * uses rpc_exec
       # 
 
-      def self.rpc_get_fact(fact, servers=nil, broadcast=false, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
+      def self.rpc_get_fact(fact, servers=nil, force_rediscovery=false, additional_filters=nil, custom_rpc_opts=nil)
         result = nil
         options = custom_rpc_opts ? custom_rpc_opts : rpc_options
         options[:filter]['fact'] = options[:filter]['fact'] + additional_filters if additional_filters
 
         Rails.logger.debug("DEBUG: rpc_get_fact: fact=#{fact}")
-        rpc_exec('rpcutil', servers, broadcast, force_rediscovery, options) do |client|
+        rpc_exec('rpcutil', servers, force_rediscovery, options) do |client|
           client.get_fact(:fact => fact) do |response|
             next unless Integer(response[:body][:statuscode]) == 0
     
