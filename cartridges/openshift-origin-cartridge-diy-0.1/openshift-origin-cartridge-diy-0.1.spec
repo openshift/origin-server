@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version: 1.4.0
+Version: 1.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -86,6 +86,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
 - Merge pull request #1189 from ironcladlou/bz/902178
   (dmcphers+openshiftbot@redhat.com)
