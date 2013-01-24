@@ -634,7 +634,7 @@ function check_auth_remote_user() {
         fail 'Auth passthrough appears not to be enabled, which will break JBossTools and node-to-broker authentication'
     fi
 
-    UNAUTHENTICATED_APIS="api application_templates cartridges"
+    UNAUTHENTICATED_APIS="api cartridges"
     AUTHENTICATED_APIS="user domains"
 
     for api in $UNAUTHENTICATED_APIS

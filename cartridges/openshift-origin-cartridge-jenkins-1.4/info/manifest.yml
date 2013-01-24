@@ -3,12 +3,11 @@ Display-Name: Jenkins Server 1.4
 Description: "Jenkins is a continuous integration (CI) build server that is deeply integrated into OpenShift. See the Jenkins info page for more."
 Version: 0.84.1
 License: ASL 2.0
-Vendor: 
 Categories:
-  - cartridge
   - web_framework
   - instant_app
   - ci
+  - domain_scope
 Website: http://www.jenkins-ci.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
@@ -18,7 +17,7 @@ Cart-Data:
     Description: "Directory to store application log files."
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
-    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_INTERNAL_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
@@ -55,25 +54,13 @@ Cart-Data:
   - Key: "password"
     Type: cart_data
     Description: "Admin user's passowrd on jenkins server"
-Suggests:
 Provides:
+  - jenkins-1.4
   - "jenkins"
   - "jenkins(version) = 1.4"
-Requires:
-Conflicts:
-Native-Requires:
-  - java
-  - jenkins
-  - jenkins-plugin-openshift
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   publish-jenkins-url:
     Type: "NET_TCP:jenkins:url"
 Scaling:
   Min: 1
   Max: 1
-

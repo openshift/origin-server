@@ -29,19 +29,8 @@ class RestApi_V1 < RestApi
         raise_ex("Environment response not a hash") unless data.kind_of?(Hash)
       when 'cartridges'
         data.each do |cart_hash|
-          obj = RestCartridge_V1.to_obj(cart_hash)
+          obj = RestEmbeddedCartridge_V1.to_obj(cart_hash)
           obj.valid
-        end
-      when 'estimates'
-        obj = RestEstimates_V1.to_obj(data)
-        self.response.compare(obj)
-      when 'application_estimates'
-        data.each do |gear_hash|
-          obj = RestApplicationEstimate_V1.to_obj(gear_hash)
-        end
-      when 'application_templates'
-        data.each do |template_hash|
-          obj = RestApplicationTemplate_V1.to_obj(template_hash)
         end
       when 'descriptor'
         # no-op
@@ -65,7 +54,7 @@ class RestApi_V1 < RestApi
         obj = RestApplication_V1.to_obj(data[0])
         self.response.compare(obj)
       when 'cartridge'
-        obj = RestCartridge_V1.to_obj(data)
+        obj = RestEmbeddedCartridge_V1.to_obj(data)
         self.response.compare(obj)
       when 'gear'
         obj = RestGear_V1.to_obj(data)
@@ -97,18 +86,6 @@ user_get_v1.response_type = "user"
 
 cartridge_list_get_v1 = RestApi_V1.new("/cartridges")
 cartridge_list_get_v1.response_type = "cartridges"
-
-estimates_list_get_v1 = RestApi_V1.new("/estimates")
-estimates_list_get_v1.response = RestEstimates_V1.new
-estimates_list_get_v1.response_type = "estimates" 
-
-estimates_app_get_v1 = RestApi_V1.new("/estimates/application")
-estimates_app_get_v1.request.merge!({ 'id' => 'application', 'descriptor' => "--- \nName: TestApp1\nRequires: \n- php-5.3\n" })
-estimates_app_get_v1.response = RestApplicationEstimate_V1.new
-estimates_app_get_v1.response_type = "application_estimates"
- 
-template_list_get_v1 = RestApi_V1.new("/application_templates")
-template_list_get_v1.response_type = "application_templates"
 
 domain_add_post_v1 = RestApi_V1.new("/domains", "POST")
 dom_id = gen_uuid[0..9]
@@ -191,7 +168,8 @@ app_force_stop_post_v1.response = RestApplication_V1.new(app_name, app_type, dom
 app_force_stop_post_v1.response_type = "application"
 
 app_add_alias_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_alias = 'myApp'
+random=rand(100000)
+app_alias = "myApp#{random}"
 app_add_alias_post_v1.request.merge!({ 'event' => 'add-alias' , 'alias' => app_alias })
 app_add_alias_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
 app_add_alias_post_v1.response_type = "application"
@@ -214,36 +192,36 @@ app_scale_down_post_v1.response_type = "application"
 app_add_cart_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges", "POST")
 embed_cart = 'mysql-5.1'
 app_add_cart_post_v1.request.merge!({ 'name' => embed_cart, 'colocate_with' => nil })
-app_add_cart_post_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
+app_add_cart_post_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_add_cart_post_v1.response_type = "cartridge"
 app_add_cart_post_v1.response_status = "created"
 
-app_expose_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_expose_port_post_v1.request['event'] = 'expose-port'
-app_expose_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_expose_port_post_v1.response_type = "application"
+#app_expose_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_expose_port_post_v1.request['event'] = 'expose-port'
+#app_expose_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_expose_port_post_v1.response_type = "application"
 
-app_show_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_show_port_post_v1.request['event'] = 'show-port'
-app_show_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_show_port_post_v1.response_type = "application"
+#app_show_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_show_port_post_v1.request['event'] = 'show-port'
+#app_show_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_show_port_post_v1.response_type = "application"
 
-app_gear_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gears")
-app_gear_get_v1.response_type = 'gears'
+#app_gear_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gears")
+#app_gear_get_v1.response_type = 'gears'
 
 app_gear_groups_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/gear_groups")
 app_gear_groups_get_v1.response_type = 'gear_groups'
 
-app_conceal_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
-app_conceal_port_post_v1.request['event'] = 'conceal-port'
-app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
-app_conceal_port_post_v1.response_type = "application"
+#app_conceal_port_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/events", "POST")
+#app_conceal_port_post_v1.request['event'] = 'conceal-port'
+#app_conceal_port_post_v1.response = RestApplication_V1.new(app_name, app_type, dom_id, app_scale)
+#app_conceal_port_post_v1.response_type = "application"
 
 app_cart_list_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges")
 app_cart_list_get_v1.response_type = "cartridges"
 
 app_cart_get_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}")
-app_cart_get_v1.response = RestCartridge_V1.new('embedded', embed_cart, app_name)
+app_cart_get_v1.response = RestEmbeddedCartridge_V1.new('embedded', embed_cart, app_name)
 app_cart_get_v1.response_type = "cartridge"
 
 app_cart_start_post_v1 = RestApi_V1.new("/domains/#{dom_id}/applications/#{app_name}/cartridges/#{embed_cart}/events", "POST")
@@ -281,9 +259,6 @@ REST_CALLS_V1 = [
                   environment_get_v1,
                   user_get_v1,
                   cartridge_list_get_v1,
-                  estimates_list_get_v1,
-                  estimates_app_get_v1,
-                  template_list_get_v1,
                   domain_add_post_v1,
                   domains_list_get_v1,
                   domain_get_v1,
@@ -305,11 +280,11 @@ REST_CALLS_V1 = [
                   app_scale_up_post_v1, 
                   app_scale_down_post_v1,
                   app_add_cart_post_v1, 
-                  app_expose_port_post_v1, 
-                  app_show_port_post_v1,
-                  app_gear_get_v1, 
+                  #app_expose_port_post_v1, 
+                  #app_show_port_post_v1,
+                  #app_gear_get_v1, 
                   app_gear_groups_get_v1,
-                  app_conceal_port_post_v1,
+                  #app_conceal_port_post_v1,
                   app_cart_list_get_v1, 
                   app_cart_get_v1,
                   app_cart_start_post_v1, 

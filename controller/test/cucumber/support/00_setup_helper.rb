@@ -14,7 +14,6 @@ $client_config = "/etc/openshift/express.conf"
 $domain = "example.com"
 
 # Set the dns helper module
-$dns_helper_module = File.dirname(__FILE__) + "/dns_helper.rb"
 $bind_keyvalue=""
 
 # oddjob service name and selinux context (specify nil if no alternate context is being used)

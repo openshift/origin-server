@@ -33,10 +33,6 @@ LoadModule authnz_ldap_module modules/mod_authnz_ldap.so
 </Location>
 
 # The following APIs do not require auth:
-<Location /broker/rest/application_templates*>
-    Allow from all
-</Location>
-
 <Location /broker/rest/cartridges*>
     Allow from all
 </Location>

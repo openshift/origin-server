@@ -5,10 +5,10 @@ Version: 7.1.0
 License: ASL 2.0
 Vendor:  jboss.org
 Categories:
-  - cartridge
+  - service
+  - web_framework
   - java
   - jboss
-  - web_framework
 Website: http://www.jboss.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
@@ -21,7 +21,7 @@ Cart-Data:
     Description: "Directory to store application temporary files."
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
-    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_INTERNAL_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
@@ -43,63 +43,48 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
 Provides:
+  - "jbossas-7"
+  - "jboss-as7"
   - "jboss"
   - "jboss(version) = 7.1.0"
   - "jboss(version) >= 7.1"
-  - "jboss-as7"
   - "jboss-as7.1"
-Requires:
-Conflicts:
-Native-Requires:
-  - java-1.6.0
-  - maven3
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
-Profiles:
-  standalone:
-    Provides: jboss-standalone, jboss-as7-standalone, jboss-as7.1-standalone
-    Reservations:
-      - MEM >= 100MB
-    Components:
-      jbossas-server:
-        &jbossas-server-component
-        Publishes:
-          get-doc-root:
-            Type: "FILESYSTEM:doc-root"
-          get-internal-uri:
-            Type: "NET_TCP:http"
-          publish-http-url:
-            Type: "NET_TCP:httpd-proxy-info"
-          publish_jboss_cluster:
-            Type: "NET_TCP:jboss-cluster-info"
-          publish_jboss_remoting:
-            Type: "NET_TCP:jboss-remoting-info"
-          publish-gear-endpoint:
-            Type: "NET_TCP:gear-endpoint-info"
-        Subscribes:
-          set-db-connection-info:
-            Type: "NET_TCP:db:connection-info"
-            Required: false
-          set-nosql-db-connection-info:
-            Type: "NET_TCP:nosqldb:connection-info"
-            Required: false
-          set-jdbc-info:
-            Type: "NET_TCP:jdbc"
-          set_jboss_cluster:
-            Type: "NET_TCP:jboss-cluster-info"
-          set_jboss_remoting:
-            Type: "NET_TCP:jboss-remoting-info"
-    Groups:
-      app-servers:
-        Components:
-          jbossas-server: jbossas-server
-        Scaling:
-          Min: 1
-          Max: -1
-Default-Profile: standalone
+  - jboss-standalone
+  - jboss-as7-standalone
+  - jboss-as7.1-standalone
+Group-Overrides:
+  - components:
+    - "jbossas-7"
+    - web_proxy
+Publishes:
+  get-internal-uri:
+    Type: "NET_TCP:http"
+  publish-http-url:
+    Type: "NET_TCP:httpd-proxy-info"
+  publish_jboss_cluster:
+    Type: "NET_TCP:jboss-cluster-info"
+  publish_jboss_remoting:
+    Type: "NET_TCP:jboss-remoting-info"
+  publish-gear-endpoint:
+    Type: "NET_TCP:gear-endpoint-info"
+Subscribes:
+  set-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+    Required: false
+  set-nosql-db-connection-info:
+    Type: "NET_TCP:nosqldb:connection-info"
+    Required: false
+  set-jdbc-info:
+    Type: "NET_TCP:jdbc"
+  set_jboss_cluster:
+    Type: "NET_TCP:jboss-cluster-info"
+  set_jboss_remoting:
+    Type: "NET_TCP:jboss-remoting-info"
+Group-Overrides:
+  - components:
+    - "jboss-as7"
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080
   - CLUSTER_PROXY_PORT: 7600

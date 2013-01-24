@@ -3,9 +3,8 @@ Display-Name: Perl 5.10
 Description: "Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests."
 Version: 1.0.0
 License: ASL 2.0
-Vendor:  
 Categories:
-  - cartridge
+  - service
   - perl
   - web_framework
 Website: "http://www.perl.org"
@@ -20,7 +19,7 @@ Cart-Data:
     Description: "Directory to store application temporary files."
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
-    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_INTERNAL_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
@@ -42,24 +41,11 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
-    
 Provides:
+  - perl-5.10
   - "mod_perl"
-Requires:
-Conflicts:
-Native-Requires:
-  -  mod_perl
-  -  perl-MongoDB
-  -  ImageMagick-perl
-  -  perl-App-cpanminus
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
-Start-Order: openshift-origin-cartridge-perl
+  - perl
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
   get-proxy-url:
     Type: "STRING:proxy-path"
   publish-http-url:
@@ -87,5 +73,9 @@ Subscribes:
 Scaling:
   Min: 1
   Max: -1
+Group-Overrides:
+  - components:
+    - perl-5.10
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

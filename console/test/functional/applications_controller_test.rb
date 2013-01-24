@@ -43,7 +43,8 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert !app.errors.empty?
     assert app.errors[:domain_name].present?, app.errors.inspect
-    assert_equal 1, app.errors[:domain_name].length
+    assert !app.errors[:domain_name].nil?
+    assert app.errors[:domain_name][0].include? 'Namespace is required and cannot be blank.'
   end
 
   test "should assign errors on empty name" do
@@ -148,11 +149,9 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app = assigns(:application)
     assert !app.persisted?
     assert !app.errors.empty?
-    # I need to be fixed to be gear_profile
-    assert app.errors[:node_profile].present?, app.errors.to_hash.inspect
-    assert_equal 1, app.errors[:node_profile].length, app.errors.to_hash.inspect
-
-    assert_select '.alert', /Invalid size: foobar/i
+    assert app.errors[:gear_profile].present?, app.errors.to_hash.inspect
+    assert_equal 1, app.errors[:gear_profile].length, app.errors.to_hash.inspect
+    assert app.errors[:gear_profile][0].include? 'Invalid size: foobar.'
   end
 
   test "should retrieve application list" do
@@ -306,7 +305,7 @@ class ApplicationsControllerTest < ActionController::TestCase
 
     assert_response :success
     assert app = assigns(:application)
-    assert app.errors.messages[:node_profile][0].match('Invalid Size: medium')
+    assert app.errors.messages[:gear_profile][0].include? 'Invalid size: medium.'
   end
 
   test 'should prevent scaled apps when not enough gears are available' do

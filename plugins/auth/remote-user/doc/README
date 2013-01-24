@@ -40,6 +40,5 @@ using the Remote User Auth plugin.  This example will use Basic Authentication.
     curl -k --user "<registered-user-name>:<password>" https://localhost/broker/rest/domains
 
     No auth is required for the following APIs:
-    curl -k https://localhost/broker/rest/application_templates
     curl -k https://localhost/broker/rest/cartridges
     curl -k https://localhost/broker/rest/api

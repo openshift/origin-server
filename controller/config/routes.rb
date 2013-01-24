@@ -13,9 +13,6 @@ Rails.application.routes.draw do
     end
     resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }
     resources :quickstarts, :only => [:index, :show]
-    resources :application_templates
-    #keeping for backward compatibility
-    resources :application_template, :controller => :application_templates
     resources :estimates, :constraints => { :id => /[\w]+/ }, :only => [:index, :show]
 
     # Allow restful update of the domain name via the standard id parameter
@@ -23,8 +20,9 @@ Rails.application.routes.draw do
     resources :domains, :constraints => { :id => /[A-Za-z0-9]+/ } do
       resources :applications, :constraints => { :id => /[\w]+/ } do
         resource :descriptor, :only => [:show]
-        resource :gears, :only => [:show]
         resources :gear_groups, :constraints => { :id => /[A-Za-z0-9]+/ }, :only => [:index, :show]
+        #added back the gears URL so we can return an appropriate message instead of a routing error
+        resources :gears, :only => [:index, :show]
         resources :cartridges, :controller => :emb_cart, :only => [:index, :show, :create, :update, :destroy], :constraints => { :id => /([\w\-]+(-)([\d]+(\.[\d]+)*)+)/ } do
             resources :events, :controller => :emb_cart_events, :only => [:create]
         end

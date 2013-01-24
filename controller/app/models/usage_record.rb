@@ -1,4 +1,21 @@
-class UsageRecord < OpenShift::UserModel
+# Record Usage of gear and additional storage for each user
+# @!attribute [r] login
+#   @return [String] Login name for the user.
+# @!attribute [r] gear_id
+#   @return [String] Gear identifier
+# @!attribute [r] usage_type
+#   @return [String] Represents type of usage, either gear or additional storage
+# @!attribute [r] event
+#   @return [String] Denotes begin/continue/end of given usage_type
+# @!attribute [r] sync_time
+#   @return [Time] When is the last time it synced this Usage record with billing vendor
+# @!attribute [r] gear_size
+#   @return [String] Gear size
+# @!attribute [rw] addtl_fs_gb
+#   @return [Integer] Additional filesystem storage in GB.
+class UsageRecord
+  include Mongoid::Document
+  include Mongoid::Timestamps
   
   EVENTS = { :begin => "begin",
              :end => "end",
@@ -7,31 +24,102 @@ class UsageRecord < OpenShift::UserModel
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
                   :addtl_fs_gb => "ADDTL_FS_GB" }
 
-  attr_accessor :uuid, :event, :time, :sync_time, :user, :usage_type, :gear_uuid, :gear_size, :addtl_fs_gb
-  primary_key :uuid
-  exclude_attributes :user
+  field :login, type: String
+  field :gear_id, type: Moped::BSON::ObjectId
+  field :event, type: String
+  field :time, type: Time
+  field :sync_time, type: Time
+  field :usage_type, type: String  
+  field :gear_size, type: String  
+  field :addtl_fs_gb, type: Integer
 
-  def initialize(event=nil, user=nil, time=nil, uuid=nil, usage_type=nil)
-    self.uuid = uuid ? uuid : OpenShift::Model.gen_uuid
-    self.event = event
-    self.time = time ? time : Time.now.utc
-    self.user = user
-    self.usage_type = usage_type
-    self.sync_time = nil
+  validates_inclusion_of :event, in: UsageRecord::EVENTS.values
+  validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
+  validates :gear_size, :presence => true, :if => :validate_gear_size?
+  validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
+
+  def validate_gear_size?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage] && self.event != UsageRecord::EVENTS[:end]) ? true : false
   end
 
-  # Deletes the usage record from the datastore
-  def delete
-    super(user.login)
+  def validate_addtl_fs_gb?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
   end
 
-  # Saves the usage record to the datastore
-  def save
-    super(user.login)
-  end
-  
-  def delete_by_gear_uuid
-    OpenShift::DataStore.instance.delete_usage_record_by_gear_uuid(user.login, gear_uuid, usage_type)
+  def self.track_usage(login, gear_id, event, usage_type,
+                       gear_size=nil, addtl_fs_gb=nil)
+    if Rails.configuration.usage_tracking[:datastore_enabled]
+      now = Time.now.utc
+      usage_record = UsageRecord.new(event: event, time: now, gear_id: gear_id,
+                                     usage_type: usage_type, login: login)
+      case usage_type
+      when UsageRecord::USAGE_TYPES[:gear_usage]
+        usage_record.gear_size = gear_size if gear_size
+      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+        usage_record.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
+      end
+      usage_record.save!
+
+      usage = nil
+      if event == UsageRecord::EVENTS[:begin]
+        usage = Usage.new(login: login, gear_id: gear_id,
+                          begin_time: now, usage_type: usage_type)
+        usage.gear_size = gear_size if gear_size
+        usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
+      elsif event == UsageRecord::EVENTS[:end]
+        usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
+        if usage
+          usage.end_time = now
+        else
+          Rails.logger.error "Can NOT find begin/continue usage record for login:#{login}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
+        end
+      end
+      usage.save! if usage
+    end
+
+    if Rails.configuration.usage_tracking[:syslog_enabled]
+      usage_string = "User: #{login}  Event: #{event}"
+      case usage_type
+      when UsageRecord::USAGE_TYPES[:gear_usage]
+        usage_string += "   Gear: #{gear_id}   Gear Size: #{gear_size}"
+      when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+        usage_string += "   Gear: #{gear_id}   Addtl File System GB: #{addtl_fs_gb}"
+      end
+      begin
+        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
+      rescue Exception => e
+        # Can't fail because of a secondary logging error
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
+    end
   end
 
+  def self.untrack_usage(login, gear_id, event, usage_type)
+    if Rails.configuration.usage_tracking[:datastore_enabled]
+      usage_record = where(:login => login, :gear_id => gear_id, :event => event, :usage_type => usage_type).sort(:time.desc).first
+      usage_record.delete if usage_record
+
+      usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
+      if usage
+        if event == UsageRecord::EVENTS[:begin]
+          usage.delete
+        elsif event == UsageRecord::EVENTS[:end]
+          usage.end_time = nil
+          usage.save!
+        end
+      end
+    end
+
+    if Rails.configuration.usage_tracking[:syslog_enabled]
+      usage_string = "Rollback User: #{login} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
+      begin
+        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
+      rescue Exception => e
+        # Can't fail because of a secondary logging error
+        Rails.logger.error e.message
+        Rails.logger.error e.backtrace
+      end
+    end
+  end
 end

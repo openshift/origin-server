@@ -67,8 +67,8 @@ class LastAccessUpdater
     Dir["#{@app_root_dir}/*"].each do |file|
       file_name = File.basename(file)
 
-      # If filename is a length 32 uuid, then it is an app
-      if file_name =~ /^[0-9a-f]{32}$/
+      # If filename is a length 24-32 uuid, then it is an app
+      if file_name =~ /^[0-9a-f]{24,32}$/
         read_app_data(file_name)
       end
     end

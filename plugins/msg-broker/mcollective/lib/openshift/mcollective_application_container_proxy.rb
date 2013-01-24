@@ -53,8 +53,9 @@ module OpenShift
       # * Uses only operations and attributes of user
       #
       def self.valid_gear_sizes_impl(user)
+        user_capabilities = user.get_capabilities
         capability_gear_sizes = []
-        capability_gear_sizes = user.capabilities['gear_sizes'] if user.capabilities.has_key?('gear_sizes')
+        capability_gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
 
         if user.auth_method == :broker_auth
           return ["small", "medium"] | capability_gear_sizes
@@ -93,7 +94,7 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
-            district_uuid = district.uuid
+            district_uuid = district._id.to_s
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
           elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
             raise OpenShift::NodeException.new("No district nodes available.", 140)
@@ -302,12 +303,12 @@ module OpenShift
         reserved_uid = nil
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            reserved_uid = OpenShift::DataStore.instance.reserve_district_uid(district_uuid)
+            reserved_uid = District::reserve_uid(district_uuid)
             raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
           end
         end
@@ -333,12 +334,14 @@ module OpenShift
       def unreserve_uid(uid, district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            #cleanup
+            #OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
+            District::unreserve_uid(district_uuid, uid)
           end
         end
       end
@@ -359,12 +362,14 @@ module OpenShift
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district.uuid
+            district_uuid = @district._id.to_s
           else
             district_uuid = get_district_uuid unless district_uuid
           end
           if district_uuid && district_uuid != 'NONE'
-            OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            #cleanup
+            #OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
+            District::inc_externally_reserved_uids_size(district_uuid)
           end
         end
       end
@@ -393,7 +398,7 @@ module OpenShift
       #      
       def create(app, gear, quota_blocks=nil, quota_files=nil)
         result = nil
-        (1..10).each do |i|
+        (1..10).each do |i|                    
           args = Hash.new
           args['--with-app-uuid'] = app.uuid
           args['--with-app-name'] = app.name
@@ -404,8 +409,8 @@ module OpenShift
           args['--with-namespace'] = app.domain.namespace
           args['--with-uid'] = gear.uid if gear.uid
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
-          result = parse_result(mcoll_reply)
-          if result.exitcode == 129 && has_uid_or_gid?(app.gear.uid) # Code to indicate uid already taken
+          result = parse_result(mcoll_reply, app, gear)
+          if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
             destroy(app, gear, true)
             inc_externally_reserved_uids_size
             gear.uid = reserve_uid
@@ -443,7 +448,7 @@ module OpenShift
         args['--with-namespace'] = app.domain.namespace
         args['--skip-hooks'] = true if skip_hooks
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
-        result_io = parse_result(result)
+        result_io = parse_result(result, app, gear)
 
         uid = gear.uid unless uid
         
@@ -538,7 +543,7 @@ module OpenShift
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -565,7 +570,7 @@ module OpenShift
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
 
@@ -594,7 +599,7 @@ module OpenShift
         args['--with-key'] = key
         args['--with-value'] = value
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -618,7 +623,7 @@ module OpenShift
         args['--with-container-uuid'] = gear.uuid
         args['--with-key'] = key
         result = execute_direct(@@C_CONTROLLER, 'env-var-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -645,7 +650,7 @@ module OpenShift
         args['--with-iv'] = iv
         args['--with-token'] = token
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-add', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
       #
@@ -668,7 +673,7 @@ module OpenShift
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-remove', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
 
 
@@ -692,7 +697,7 @@ module OpenShift
         args['--with-app-uuid'] = app.uuid
         args['--with-container-uuid'] = gear.uuid
         result = execute_direct(@@C_CONTROLLER, 'app-state-show', args)
-        parse_result(result)
+        parse_result(result, app , gear)
       end
       
       # 
@@ -744,7 +749,7 @@ module OpenShift
           #no-op
         end
         
-        return result_io, cart_data
+        return result_io#, cart_data
       end
       
       #
@@ -1214,6 +1219,18 @@ module OpenShift
       # * executes 'expose-port' action.
       # * method on Gear or Cart?
       #            
+      def get_expose_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'expose-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+      end
+      
+      def get_conceal_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'conceal-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+      end
+      
+      def get_show_port_job(app, gear, cart)
+        RemoteJob.new(cart, 'show-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+      end
+      
       def expose_port(app, gear, cart)
         args = Hash.new
         args['--with-app-uuid'] = app.uuid
@@ -1338,7 +1355,7 @@ module OpenShift
       #
       def update_namespace(app, gear, cart, new_ns, old_ns)
         mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
-        parse_result(mcoll_reply)
+        parse_result(mcoll_reply, app , gear)
       end
 
       #
@@ -1617,14 +1634,15 @@ module OpenShift
       # 
       def move_gear_post(app, gear, destination_container, state_map, keep_uid)
         reply = ResultIO.new
-        source_container = gear.container
-        gi = app.group_instance_map[gear.group_instance_name]
-        app.start_order.each do |ci_name|
-          next if not gi.component_instances.include? ci_name
-          cinst = app.comp_instance_map[ci_name]
-          cart = cinst.parent_cart_name
-          next if cart==app.name
-          idle, leave_stopped = state_map[ci_name]
+        gi = gear.group_instance
+        gear_components = gi.all_component_instances
+        start_order, stop_order = app.calculate_component_orders
+        source_container = gear.get_proxy
+        start_order.each do |cinst|
+          next if not gear_components.include? cinst
+          next if cinst.is_singleton? and (not gear.host_singletons)
+          cart = cinst.cartridge_name
+          idle, leave_stopped = state_map[cart]
           unless leave_stopped
             log_debug "DEBUG: Starting cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
             reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "start", nil, false)
@@ -1634,27 +1652,23 @@ module OpenShift
         log_debug "DEBUG: Fixing DNS and mongo for gear '#{gear.name}' after move"
         log_debug "DEBUG: Changing server identity of '#{gear.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         gear.server_identity = destination_container.id
-        gear.container = destination_container
-        if app.scalable and not gi.component_instances.find { |cart| cart.include? app.proxy_cartridge }
+        begin
           dns = OpenShift::DnsService.instance
-          begin
-            public_hostname = destination_container.get_public_hostname
-            dns.modify_application(gear.name, app.domain.namespace, public_hostname)
-            dns.publish
-          ensure
-            dns.close
-          end
+          public_hostname = destination_container.get_public_hostname
+          dns.modify_application(gear.name, app.domain.namespace, public_hostname)
+          dns.publish
+        ensure
+          dns.close
         end
 
-        if (not app.scalable) or (app.scalable and gi.component_instances.find { |cart| cart.include? app.proxy_cartridge } )
+        if (not app.scalable) or (app.scalable and gear.host_singletons)
           unless keep_uid
             unless app.aliases.nil?
               app.aliases.each do |server_alias|
-                reply.append destination_container.add_alias(app, app.gear, server_alias)
+                reply.append destination_container.add_alias(app, gear, server_alias)
               end
             end
           end
-          app.recreate_dns
         end
 
         reply
@@ -1679,14 +1693,14 @@ module OpenShift
       #
       def move_gear_pre(app, gear, state_map, keep_uid)
         reply = ResultIO.new
-        source_container = gear.container
-        gi = app.group_instance_map[gear.group_instance_name]
-        app.start_order.reverse.each { |ci_name|
-          next if not gi.component_instances.include? ci_name
-          cinst = app.comp_instance_map[ci_name]
-          cart = cinst.parent_cart_name
-          next if cart==app.name
-          idle, leave_stopped = state_map[ci_name]
+        source_container = gear.get_proxy
+        gi_comps = gear.group_instance.all_component_instances.to_a
+        start_order,stop_order = app.calculate_component_orders
+        stop_order.reverse.each { |cinst|
+          next if not gi_comps.include? cinst
+          next if cinst.is_singleton? and (not gear.host_singletons)
+          cart = cinst.cartridge_name
+          idle, leave_stopped = state_map[cart]
           # stop the cartridge if it needs to
           unless leave_stopped
             log_debug "DEBUG: Stopping existing app cartridge '#{cart}' before moving"
@@ -1702,7 +1716,7 @@ module OpenShift
           end
           # execute pre_move
           if embedded_carts.include? cart and not keep_uid
-            if (app.scalable and not cart.include? app.proxy_cartridge) or not app.scalable
+            if (app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy") or not app.scalable
               log_debug "DEBUG: Performing cartridge level pre-move for embedded #{cart} for '#{app.name}' on #{source_container.id}"
               reply.append source_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "pre-move", nil, false)
             end
@@ -1734,19 +1748,24 @@ module OpenShift
       # * uses rsync_destination_container
       # * uses move_gear_destroy_old
       # 
+      def move_gear_secure(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+        Application.run_in_application_lock(app) do
+          move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
+        end
+      end
+
       def move_gear(app, gear, destination_container, destination_district_uuid, allow_change_district, node_profile)
         reply = ResultIO.new
         state_map = {}
-        gear.node_profile = node_profile if node_profile
         orig_uid = gear.uid
 
         # resolve destination_container according to district
         destination_container, destination_district_uuid, keep_uid = resolve_destination(app, gear, destination_container, destination_district_uuid, allow_change_district)
 
-        source_container = gear.container
+        source_container = gear.get_proxy
         destination_node_profile = destination_container.get_node_profile
         if app.scalable and source_container.get_node_profile != destination_node_profile
-          log_debug "Cannot change node_profile for a gear belonging to a scalable application. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.node_profile}"
+          log_debug "Cannot change node_profile for a gear belonging to a scalable application. The destination container's node profile is #{destination_node_profile}, while the gear's node_profile is #{gear.group_instance.gear_size}"
           raise OpenShift::UserException.new("Error moving app.  Cannot change node profile.", 1)
         end
 
@@ -1754,13 +1773,11 @@ module OpenShift
         quota_blocks = nil
         quota_files = nil
         idle, leave_stopped, quota_blocks, quota_files = get_app_status(app)
-        gi = app.group_instance_map[gear.group_instance_name]
-        gi.component_instances.each do |ci_name|
-          cinst = app.comp_instance_map[ci_name]
-          cart = cinst.parent_cart_name
-          next if cart == app.name
+        gi = gear.group_instance
+        gi.all_component_instances.each do |cinst|
+          next if cinst.is_singleton? and (not gear.host_singletons)
           # idle, leave_stopped, quota_blocks, quota_files = get_cart_status(app, gear, cart)
-          state_map[ci_name] = [idle, leave_stopped]
+          state_map[cinst.cartridge_name] = [idle, leave_stopped]
         end
 
         begin
@@ -1776,12 +1793,13 @@ module OpenShift
             rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid, keep_uid)
 
             # now execute 'move'/'expose-port' hooks on the new nest of the components
-            app.configure_order.each do |ci_name|
-              next if not gi.component_instances.include?(ci_name)
-              cinst = app.comp_instance_map[ci_name]
-              cart = cinst.parent_cart_name
-              next if cart == app.name
-              idle, leave_stopped = state_map[ci_name]
+            start_order,stop_order = app.calculate_component_orders
+            gi_comps = gear.group_instance.all_component_instances.to_a
+            start_order.each do |cinst|
+              next if not gi_comps.include? cinst
+              next if cinst.is_singleton? and (not gear.host_singletons)
+              cart = cinst.cartridge_name
+              idle, leave_stopped = state_map[cart]
               if keep_uid
                 if framework_carts.include?(cart)
                   log_debug "DEBUG: Restarting httpd proxy for '#{cart}' on #{destination_container.id}"
@@ -1789,16 +1807,13 @@ module OpenShift
                 end
               else
                 if embedded_carts.include?(cart)
-                  if app.scalable and cart.include? app.proxy_cartridge
+                  if app.scalable and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                     log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
                     reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
                   else
                     log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
                     embedded_reply = destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
-                    component_details = embedded_reply.appInfoIO.string
-                    unless component_details.empty?
-                      app.set_embedded_cart_info(cart, component_details)
-                    end
+                    cinst.process_properties(embedded_reply)
                     reply.append embedded_reply
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
                     reply.append destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
@@ -1809,9 +1824,9 @@ module OpenShift
                   reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
                 end
               end
-              if app.scalable and not cart.include? app.proxy_cartridge
+              if app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                 begin
-                  reply.append destination_container.expose_port(app, gear, cinst.parent_cart_name)
+                  reply.append destination_container.expose_port(app, gear, cinst.cartridge_name)
                 rescue Exception=>e
                   # just pass because some embedded cartridges do not have expose-port hook implemented (e.g. jenkins-client)
                 end
@@ -1820,40 +1835,35 @@ module OpenShift
 
             # start the gears again and change DNS entry
             reply.append move_gear_post(app, gear, destination_container, state_map, keep_uid)
-            app.elaborate_descriptor
+            # app.elaborate_descriptor
             app.execute_connections
             if app.scalable
               # execute connections restart the haproxy service, so stop it explicitly if needed
-              app.start_order.reverse.each do |ci_name|
-                next if not gi.component_instances.include? ci_name
-                cinst = app.comp_instance_map[ci_name]
-                cart = cinst.parent_cart_name
-                next if cart==app.name
-                idle, leave_stopped = state_map[ci_name]
-                if leave_stopped and cart.include? app.proxy_cartridge
+              stop_order.each do |cinst|
+                next if not gi_comps.include? cinst
+                cart = cinst.cartridge_name
+                idle, leave_stopped = state_map[cart]
+                if leave_stopped and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                   log_debug "DEBUG: Explicitly stopping cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
                   reply.append destination_container.stop(app, gear, cart)
                 end
               end
             end
-            if gear.node_profile != destination_node_profile
-              log_debug "DEBUG: The gear's node profile changed from #{gear.node_profile} to #{destination_node_profile}"
-              gear.node_profile = destination_node_profile
+            if gear.group_instance.gear_size != destination_node_profile
+              log_debug "DEBUG: The gear's node profile changed from #{gear.group_instance.gear_size} to #{destination_node_profile}"
               if not app.scalable
-                app.node_profile = destination_node_profile 
-                gi.node_profile = destination_node_profile
+                gi.gear_size = destination_node_profile
               end
             end
             app.save
 
           rescue Exception => e
-            gear.container = source_container
+            gear.server_identity = source_container.id
             # remove-httpd-proxy of destination
             log_debug "DEBUG: Moving failed.  Rolling back gear '#{gear.name}' '#{app.name}' with remove-httpd-proxy on '#{destination_container.id}'"
-            gi.component_instances.each do |ci_name|
-              cinst = app.comp_instance_map[ci_name]
-              cart = cinst.parent_cart_name
-              next if cart == app.name
+            gi.all_component_instances.each do |cinst|
+              next if cinst.is_singleton? and (not gear.host_singletons)
+              cart = cinst.cartridge_name
               if framework_carts.include? cart
                 begin
                   reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "remove-httpd-proxy", nil, false)
@@ -1871,12 +1881,10 @@ module OpenShift
           begin
             unless keep_uid
               # post_move source
-              gi.component_instances.each do |ci_name|
-                cinst = app.comp_instance_map[ci_name]
-                cart = cinst.parent_cart_name
-                next if cart==app.name
-                proxy_cart = (app.proxy_cartridge or "")
-                if embedded_carts.include? cart and not cart.include? proxy_cart
+              gi.all_component_instances.each do |cinst|
+                next if cinst.is_singleton? and (not gear.host_singletons)
+                cart = cinst.cartridge_name
+                if embedded_carts.include? cart and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                   begin
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{source_container.id}"
                     reply.append source_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
@@ -1887,11 +1895,10 @@ module OpenShift
               end
             end
             # start source
-            gi.component_instances.each do |ci_name|
-              cinst = app.comp_instance_map[ci_name]
-              cart = cinst.parent_cart_name
-              next if cart==app.name
-              idle, leave_stopped = state_map[ci_name]
+            gi.all_component_instances.each do |cinst|
+              next if cinst.is_singleton? and (not gear.host_singletons)
+              cart = cinst.cartridge_name
+              idle, leave_stopped = state_map[cart]
               if not leave_stopped
                 reply.append source_container.run_cartridge_command(cart, app, gear, "start", nil, false) if framework_carts.include? cart
               end
@@ -1958,8 +1965,7 @@ module OpenShift
       # * uses MCollectiveApplicationContainerProxy.find_available_impl
       #
       def resolve_destination(app, gear, destination_container, destination_district_uuid, allow_change_district)
-        source_container = gear.container
-        source_container = gear.get_proxy if source_container.nil? 
+        source_container = gear.get_proxy
         source_district_uuid = source_container.get_district_uuid
         if destination_container.nil?
           unless allow_change_district
@@ -1969,7 +1975,7 @@ module OpenShift
               destination_district_uuid = source_district_uuid unless source_district_uuid == 'NONE'
             end
           end
-          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.node_profile, destination_district_uuid)
+          destination_container = MCollectiveApplicationContainerProxy.find_available_impl(gear.group_instance.gear_size, destination_district_uuid)
           log_debug "DEBUG: Destination container: #{destination_container.id}"
           destination_district_uuid = destination_container.get_district_uuid
         else
@@ -2022,13 +2028,13 @@ module OpenShift
       #
       def rsync_destination_container(app, gear, destination_container, destination_district_uuid, quota_blocks, quota_files, orig_uid, keep_uid)
         reply = ResultIO.new
-        source_container = gear.container
+        source_container = gear.get_proxy
         log_debug "DEBUG: Creating new account for gear '#{gear.name}' on #{destination_container.id}"
         reply.append destination_container.create(app, gear, quota_blocks, quota_files)
 
         log_debug "DEBUG: Moving content for app '#{app.name}', gear '#{gear.name}' to #{destination_container.id}"
         rsync_keyfile = Rails.configuration.auth[:rsync_keyfile]
-        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; exit_code=$?; ssh-agent -k; exit $exit_code`
+        log_debug `eval \`ssh-agent\`; ssh-add #{rsync_keyfile}; ssh -o StrictHostKeyChecking=no -A root@#{source_container.get_ip_address} "rsync -aA#{(gear.uid && gear.uid == orig_uid) ? 'X' : ''} -e 'ssh -o StrictHostKeyChecking=no' /var/lib/openshift/#{gear.uuid}/ root@#{destination_container.get_ip_address}:/var/lib/openshift/#{gear.uuid}/"; ssh-agent -k`
         if $?.exitstatus != 0
           raise OpenShift::NodeException.new("Error moving app '#{app.name}', gear '#{gear.name}' from #{source_container.id} to #{destination_container.id}", 143)
         end
@@ -2058,7 +2064,17 @@ module OpenShift
       # * just a shortcut?
       #
       def get_app_status(app)
-        get_cart_status(app, app.gear, app.framework)
+        web_framework = nil
+        app.requires.each do |feature|
+          cart = CartridgeCache.find_cartridge(feature)
+          next unless cart.categories.include? "web_framework"
+          web_framework = cart.name
+          break
+        end
+
+        component_instances = app.get_components_for_feature(web_framework)
+        gear = component_instances.first.group_instance.gears.first 
+        get_cart_status(app, gear, web_framework)
       end
 
       # 
@@ -2076,8 +2092,7 @@ module OpenShift
       # * uses do_with_retry
       #
       def get_cart_status(app, gear, cart_name)
-        reply = ResultIO.new
-        source_container = gear.container
+        source_container = gear.get_proxy
         leave_stopped = false
         idle = false
         quota_blocks = nil
@@ -2085,26 +2100,20 @@ module OpenShift
         log_debug "DEBUG: Getting existing app '#{app.name}' status before moving"
         do_with_retry('status') do
           result = source_container.status(app, gear, cart_name)
-          result.cart_commands.each do |command_item|
-            case command_item[:command]
-            when "ATTR"
-              key = command_item[:args][0]
-              value = command_item[:args][1]
-              if key == 'status'
-                case value
-                when "ALREADY_STOPPED"
-                  leave_stopped = true
-                when "ALREADY_IDLED"
-                  leave_stopped = true
-                  idle = true
-                end
-              elsif key == 'quota_blocks'
-                quota_blocks = value
-              elsif key == 'quota_files'
-                quota_files = value
+          result.properties["attributes"][gear.uuid].each do |key, value|
+            if key == 'status'
+              case value
+              when "ALREADY_STOPPED"
+                leave_stopped = true
+              when "ALREADY_IDLED"
+                leave_stopped = true
+                idle = true
               end
+            elsif key == 'quota_blocks'
+              quota_blocks = value
+            elsif key == 'quota_files'
+              quota_files = value
             end
-            reply.append result
           end
         end
 
@@ -2263,7 +2272,7 @@ module OpenShift
       # * that is: Why use an instance var at all?
       #
       def framework_carts
-        @framework_carts ||= CartridgeCache.cartridge_names('standalone')
+        @framework_carts ||= CartridgeCache.cartridge_names('web_framework')
       end
 
       #
@@ -2312,7 +2321,7 @@ module OpenShift
           reply.append run_cartridge_command('embedded/' + component, app, gear, 'configure')
         rescue Exception => e
           begin
-            Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.user.login}'"
+            Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.domain.owner.login}'"
             reply.debugIO << "Failed to embed '#{component} in '#{app.name}'"
             reply.append run_cartridge_command('embedded/' + component, app, gear, 'deconfigure')
           ensure
@@ -2508,12 +2517,14 @@ module OpenShift
       # * uses find_app
       # * uses sanitize_result
       #
-      def parse_result(mcoll_reply, app=nil, command=nil)
+      def parse_result(mcoll_reply, app=nil, gear=nil, command=nil)
+        result = ResultIO.new
+        
         mcoll_result = mcoll_reply[0]
         output = nil
         if (mcoll_result && (defined? mcoll_result.results) && !mcoll_result.results[:data].nil?)
           output = mcoll_result.results[:data][:output]
-          exitcode = mcoll_result.results[:data][:exitcode]
+          result.exitcode = mcoll_result.results[:data][:exitcode]
         else
           server_identity = app ? MCollectiveApplicationContainerProxy.find_app(app.uuid, app.name) : nil
           if server_identity && @id != server_identity
@@ -2522,9 +2533,9 @@ module OpenShift
             raise OpenShift::NodeException.new("Node execution failure (error getting result from node).  If the problem persists please contact Red Hat support.", 143)
           end
         end
-        
-        result = MCollectiveApplicationContainerProxy.sanitize_result(output, exitcode)
-        #result.exitcode = exitcode
+
+        gear_id = gear.nil? ? nil : gear.uuid
+        result.parse_output(output, gear_id)
 
         # raise an exception in case of non-zero exit code from the node
         if result.exitcode != 0
@@ -2535,7 +2546,7 @@ module OpenShift
             raise OpenShift::NodeException.new("Node execution failure (invalid exit code from node).  If the problem persists please contact Red Hat support.", 143, result)
           end
         end
-
+        
         result
       end
       
@@ -2627,6 +2638,7 @@ module OpenShift
       # * uses rpc_exec
       #
       def has_uid_or_gid?(uid)
+        return false if uid.nil?
         MCollectiveApplicationContainerProxy.rpc_exec('openshift', @id) do |client|
           client.has_uid_or_gid(:uid => uid.to_s) do |response|
             output = response[:body][:data][:output]
@@ -2668,7 +2680,7 @@ module OpenShift
 
         begin
           begin
-            resultIO = parse_result(result, app, command)
+            resultIO = parse_result(result, app, gear, command)
           rescue OpenShift::InvalidNodeException => e
             if command != 'configure' && allow_move
               @id = e.server_identity
@@ -2680,12 +2692,12 @@ module OpenShift
               app.save
               #retry
               result = execute_direct(framework, command, arguments)
-              resultIO = parse_result(result, app, command)
+              resultIO = parse_result(result, app, gear, command)
             else
               raise
             end
           end
-        rescue OpenShift::NodeException => e
+	rescue OpenShift::NodeException => e
           if command == 'deconfigure'
             if framework.start_with?('embedded/')
               if has_embedded_app?(app.uuid, framework[9..-1])
@@ -2834,7 +2846,7 @@ module OpenShift
           districts = District.find_all # candidate for caching
           rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
             districts.each do |district|
-              if district.server_identities.has_key?(server)
+              if district.server_identities_hash.has_key?(server)
                 server_infos << [server, capacity.to_f, district]
                 break
               end
@@ -3117,102 +3129,6 @@ module OpenShift
         active_gears_map
       end
 
-      # <<class method>>
-      #
-      # Filter return lines into output types:
-      # * messageIO[],
-      # * resultIO[],
-      # * errorIO[], 
-      # * cartProperties[]
-      # ...
-      #
-      # INPUTS:
-      # * output: MCollective::RPC::Result ?
-      #
-      # RETURNS:
-      # * ResultIO ?
-      #
-      # NOTES:
-      # * Should be a method on ???
-      # * Maybe should be result class that takes the 'output' list and self-parses?
-      #
-      def self.sanitize_result(output, exitcode=0)
-        result = ResultIO.new
-        result.exitcode = exitcode
- 
-        if output && !output.empty?
-          output.each_line do |line|
-            if line =~ /^CLIENT_(MESSAGE|RESULT|DEBUG|ERROR|INTERNAL_ERROR): /
-              if line =~ /^CLIENT_MESSAGE: /
-                result.messageIO << line['CLIENT_MESSAGE: '.length..-1]
-              elsif line =~ /^CLIENT_RESULT: /
-                result.resultIO << line['CLIENT_RESULT: '.length..-1]
-              elsif line =~ /^CLIENT_DEBUG: /
-                result.debugIO << line['CLIENT_DEBUG: '.length..-1]
-              elsif line =~ /^CLIENT_INTERNAL_ERROR: /
-                result.errorIO << line['CLIENT_INTERNAL_ERROR: '.length..-1]
-              else
-                result.errorIO << line['CLIENT_ERROR: '.length..-1]
-                result.hasUserActionableError = true
-              end
-            elsif line =~ /^CART_DATA: /
-              result.data << line['CART_DATA: '.length..-1]
-            elsif line =~ /^CART_PROPERTIES: /
-              property = line['CART_PROPERTIES: '.length..-1].chomp.split('=')
-              result.cart_properties[property[0]] = property[1]
-            elsif line =~ /^APP_INFO: /
-              result.appInfoIO << line['APP_INFO: '.length..-1]
-            elsif result.exitcode == 0
-              if line =~ /^SSH_KEY_(ADD|REMOVE): /
-                if line =~ /^SSH_KEY_ADD: /
-                  key = line['SSH_KEY_ADD: '.length..-1].chomp
-                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_ADD", :args => [key]})
-                else
-                  result.cart_commands.push({:command => "SYSTEM_SSH_KEY_REMOVE", :args => []})
-                end
-              elsif line =~ /^APP_SSH_KEY_(ADD|REMOVE): /
-                if line =~ /^APP_SSH_KEY_ADD: /
-                  response = line['APP_SSH_KEY_ADD: '.length..-1].chomp
-                  cart,key = response.split(' ')
-                  cart = cart.gsub(".", "-")
-                  result.cart_commands.push({:command => "APP_SSH_KEY_ADD", :args => [cart, key]})
-                else
-                  cart = line['APP_SSH_KEY_REMOVE: '.length..-1].chomp
-                  cart = cart.gsub(".", "-")
-                  result.cart_commands.push({:command => "APP_SSH_KEY_REMOVE", :args => [cart]})
-                end
-              elsif line =~ /^APP_ENV_VAR_REMOVE: /
-                key = line['APP_ENV_VAR_REMOVE: '.length..-1].chomp
-                result.cart_commands.push({:command => "APP_ENV_VAR_REMOVE", :args => [key]})
-              elsif line =~ /^ENV_VAR_(ADD|REMOVE): /
-                if line =~ /^ENV_VAR_ADD: /
-                  env_var = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
-                  result.cart_commands.push({:command => "ENV_VAR_ADD", :args => [env_var[0], env_var[1]]})
-                else
-                  key = line['ENV_VAR_REMOVE: '.length..-1].chomp
-                  result.cart_commands.push({:command => "ENV_VAR_REMOVE", :args => [key]})
-                end
-              elsif line =~ /^BROKER_AUTH_KEY_(ADD|REMOVE): /
-                if line =~ /^BROKER_AUTH_KEY_ADD: /
-                  result.cart_commands.push({:command => "BROKER_KEY_ADD", :args => []})
-                else
-                  result.cart_commands.push({:command => "BROKER_KEY_REMOVE", :args => []})
-                end
-              elsif line =~ /^ATTR: /
-                attr = line['ATTR: '.length..-1].chomp.split('=')
-                result.cart_commands.push({:command => "ATTR", :args => [attr[0], attr[1]]})
-              else
-                #result.debugIO << line
-              end
-            else # exitcode != 0
-              result.debugIO << line
-              Rails.logger.debug "DEBUG: server results: " + line
-            end
-          end
-        end
-        result
-      end
-
       #
       # <<implementation>>
       # <<class method>>
@@ -3231,26 +3147,6 @@ module OpenShift
       # * uses MCollective::RPC::Client
       #
       def self.execute_parallel_jobs_impl(handle)
-=begin
-        handle.each { |id, job_list|
-          options = MCollectiveApplicationContainerProxy.rpc_options
-          rpc_client = rpcclient('openshift', :options => options)
-          begin
-            mc_args = { id => job_list }
-            mcoll_reply = rpc_client.custom_request('execute_parallel', mc_args, id, {'identity' => id})
-            rpc_client.disconnect
-            if mcoll_reply and mcoll_reply.length > 0
-              mcoll_reply = mcoll_reply[0]
-              output = mcoll_reply.results[:data][:output]
-              exitcode = mcoll_reply.results[:data][:exitcode]
-              Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, status: #{exitcode}")
-              handle[id] = output if exitcode == 0
-            end
-          ensure
-            rpc_client.disconnect
-          end
-        }
-=end
         if handle && !handle.empty?
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options
@@ -3263,10 +3159,7 @@ module OpenShift
                 exitcode = mcoll_reply.results[:data][:exitcode]
                 sender = mcoll_reply.results[:sender]
                 Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
-                output.each do |o|
-                  r = MCollectiveApplicationContainerProxy.sanitize_result(o[:result_stdout], exitcode) if o.kind_of?(Hash) and o.include?(:result_stdout)
-                  o[:result_stdout] = r.resultIO.string.chomp if r and (r.resultIO.string.chomp.length != 0)
-                end if output.kind_of?(Array)
+                
                 handle[sender] = output if exitcode == 0
               end
             }

@@ -24,10 +24,6 @@ LoadModule authz_user_module modules/mod_authz_user.so
 </Location>
 
 # The following APIs do not require auth:
-<Location /broker/rest/application_templates*>
-    Allow from all
-</Location>
-
 <Location /broker/rest/cartridges*>
     Allow from all
 </Location>
