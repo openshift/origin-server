@@ -40,42 +40,6 @@ module OpenShift
       @dns_con
     end
 
-    def namespace_available?(namespace)
-      fqdn = "#{namespace}.#{@domain_suffix}"
-
-      # If we get a response, then the namespace is reserved
-      # An exception means that it is available
-      begin
-        dns.query(fqdn, Dnsruby::Types::TXT)
-        return false
-      rescue Dnsruby::NXDomain
-        return true
-      end
-    end
-
-    def register_namespace(namespace)
-      # create a TXT record for the namespace in the domain
-      fqdn = "#{namespace}.#{@domain_suffix}"
-      # enable updates with key
-      dns.tsig = @keyname, @keyvalue
-
-      update = Dnsruby::Update.new(@zone)
-      #   update.absent(fqdn, 'TXT')
-      update.add(fqdn, 'TXT', 60, "Text record for #{namespace}")
-      dns.send_message(update)
-    end
-
-    def deregister_namespace(namespace)
-      # create a TXT record for the namespace in the domain
-      fqdn = "#{namespace}.#{@domain_suffix}"
-      # enable updates with key
-      dns.tsig = @keyname, @keyvalue
-
-      update = Dnsruby::Update.new(@zone)
-      update.delete(fqdn, 'TXT')
-      dns.send_message(update)
-    end
-
     def register_application(app_name, namespace, public_hostname)
       # create an A record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"

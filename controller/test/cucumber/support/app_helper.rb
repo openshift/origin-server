@@ -1,10 +1,8 @@
 require 'active_support'
-require $dns_helper_module
 
 module AppHelper
   class TestApp
     include ActiveSupport::JSON
-    include DnsHelper
 
     # The regex to parse the ssh output from the create app results
     SSH_OUTPUT_PATTERN = %r|ssh://([^@]+)@([^/]+)|
@@ -116,7 +114,8 @@ jenkins_build = #{@jenkins_build}
     end
 
     def reserved?
-      return (!namespace_available?(@namespace) or File.exists?(@file))
+      #TODO Should we check for unique ns here?
+      return File.exists?(@file)
     end
 
     def has_domain?

@@ -1,0 +1,51 @@
+production:
+  sessions:
+    default:
+      <% 
+      default_config = { :host_port => 'localhost:27017', :user => 'openshift', :password => 'mooo', :db => 'openshift_broker' } 
+      config = defined?(Rails) ? Rails.application.config.datastore : default_config
+      %>
+      database: <%= config[:db] %>
+      hosts:
+        <% config[:host_port].split(',').each do |server| %>
+        - <%= server %>
+        <% end %>
+      username: <%= config[:user] %>
+      password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
+  options:
+    raise_not_found_error: true
+development:
+  sessions:
+    default:
+      <% 
+      default_config = { :host_port => 'localhost:27017', :user => 'openshift', :password => 'mooo', :db => 'openshift_broker_dev' } 
+      config = defined?(Rails) ? Rails.application.config.datastore : default_config
+      %>
+      database: <%= config[:db] %>
+      hosts:
+        <% config[:host_port].split(',').each do |server| %>
+        - <%= server %>
+        <% end %>
+      username: <%= config[:user] %>
+      password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
+  options:
+    raise_not_found_error: true
+test:
+  sessions:
+    default:
+      <% 
+      default_config = { :host_port => 'localhost:27017', :user => 'openshift', :password => 'mooo', :db => 'openshift_broker_test' } 
+      config = defined?(Rails) ? Rails.application.config.datastore : default_config
+      %>
+      database: <%= config[:db] %>
+      hosts:
+        <% config[:host_port].split(',').each do |server| %>
+        - <%= server %>
+        <% end %>
+      username: <%= config[:user] %>
+      password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
+  options:
+    raise_not_found_error: true

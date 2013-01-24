@@ -3,39 +3,28 @@ Display-Name: phpMyAdmin 3.4
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
 Version: 1.1.0
 License: ASL 2.0
-Vendor:
 Website: "http://www.phpmyadmin.net/"
+Categories:
+  - embedded
 Cart-Data:
   - Key: connection_url
     Type: cart_data
     Description: "phpMyAdmin connection URL"
 Provides:
+  - phpmyadmin-3.4
   - "phpmyadmin"
-Requires: 
-Conflicts:
-Native-Requires:
-Architecture: noarch
-Reservations:
-  - MEM >= 100MB
-Components:
-  default:
-    Service-Dependencies: ["mysql-5.1"]
-    Publishes:
-      get-serve-info:
-        Type: "NET_TCP:db-config:url"
-    Subscribes:
-      set-db-connection-info:
-        Type: "NET_TCP:db:connection-info"
-        Required: false
-      set-mysql-connection-info:
-        Type: "NET_TCP:db:mysql"
-        Required : true
-Groups:
-  default:
-    Components:
-      default : default
-    Scaling:
-      Min: 1
-      Max: 1
+Publishes:
+  get-serve-info:
+    Type: "NET_TCP:db-config:url"
+Subscribes:
+  set-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+    Required: false
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+    Required : true
+Scaling:
+  Min: 1
+  Max: 1
 Endpoints:
   - PROXY_PORT: 8080

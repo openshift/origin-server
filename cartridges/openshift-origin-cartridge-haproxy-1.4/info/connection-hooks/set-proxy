@@ -48,7 +48,6 @@ for arg in $kvargs; do
     #  Add gear to the proxy configuration if not already in there.
     #  Gear end-point is the form: $gear-ipaddress:$gear-port
     gear_name=$(echo "${zarr[0]}" | cut -f 1 -d '.')
-    curr_server_gears[$gear_name]="$ep"
 
     # Ensure endpoint is valid.
     [ -z "$ep" ]  &&  continue
@@ -61,14 +60,19 @@ for arg in $kvargs; do
        continue
     fi
 
-    if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
-        cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
-        sed -i "/\s*server\s*gear-${gear_name}\s.*/d" /tmp/haproxy.cfg.$$
-        cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
-        rm -f /tmp/haproxy.cfg.$$
-    fi
+	# If this is the local gear, we are NOT creating an entry for it
+	# The local gear entry is made separately later below
+    if [ "$OPENSHIFT_GEAR_DNS" != "${zarr[0]}" ]; then 
+        curr_server_gears[$gear_name]="$ep"
+        if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
+            cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
+            sed -i "/\s*server\s*gear-${gear_name}\s.*/d" /tmp/haproxy.cfg.$$
+            cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
+            rm -f /tmp/haproxy.cfg.$$
+        fi
 
-    echo "    server gear-$gear_name $ep check fall 2 rise 3 inter 2000 cookie $gear_name" >> "$haproxy_cfg"
+        echo "    server gear-$gear_name $ep check fall 2 rise 3 inter 2000 cookie $gear_name" >> "$haproxy_cfg"
+    fi
 done
 
 # Now remove all the gears from the haproxy configuration which are not in the

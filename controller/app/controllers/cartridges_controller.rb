@@ -1,48 +1,26 @@
 class CartridgesController < BaseController
   respond_to :xml, :json
   before_filter :check_version
-  include LegacyBrokerHelper
-  
   def show
     index
   end
-  
+
   # GET /cartridges
   def index
     type = params[:id]
-    
-    cartridges = Array.new
-    if type.nil? or type == "standalone"
-      cart_type = "standalone"
-      cache_key = "cart_list_#{cart_type}"
-      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-        Application.get_available_cartridges(cart_type)
-      end
-      carts.each do |cart|
-        if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new(cart_type, cart, nil, get_url, nil, nolinks)
-        else
-          cartridge = RestCartridge10.new(cart_type, cart, nil, get_url, nil, nolinks)
-        end
-        cartridges.push(cartridge)
+    if type.nil?
+      cartridges = CartridgeCache.cartridges
+    else
+      cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(type) }
+    end
+    rest_cartridges = []
+    cartridges.map! do |c|
+      if $requested_api_version == 1.0
+        rest_cartridges.push(RestCartridge10.new(c))
+      else
+        rest_cartridges.push(RestCartridge.new(c))
       end
     end
-    
-    if type.nil? or type == "embedded"
-      cart_type = "embedded"
-      cache_key = "cart_list_#{cart_type}"
-      carts = get_cached(cache_key, :expires_in => 21600.seconds) do
-        Application.get_available_cartridges(cart_type)
-      end
-      carts.each do |cart|
-	    if $requested_api_version >= 1.1
-          cartridge = RestCartridge11.new(cart_type, cart, nil, get_url, nil, nolinks)
-        else
-          cartridge = RestCartridge10.new(cart_type, cart, nil, get_url, nil, nolinks)
-        end
-        cartridges.push(cartridge)
-      end
-    end
-    render_success(:ok, "cartridges", cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges") 
+    render_success(:ok, "cartridges", rest_cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges")
   end
 end

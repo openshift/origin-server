@@ -1,7 +1,4 @@
-MONGO_REPLICA_SETS=false
-# Replica set example: "<host-1>:<port-1> <host-2>:<port-2> ..."
 MONGO_HOST_PORT="localhost:27017"
 MONGO_USER="openshift"
 MONGO_PASSWORD="mooo"
 MONGO_DB="openshift_broker_dev"
-MONGO_COLLECTION="auth_user"

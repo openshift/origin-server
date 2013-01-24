@@ -134,7 +134,7 @@ class Haproxy
           raise ShouldRetry, e.to_s
         end
 
-        @gear_count = self.stats['express'].count - 4
+        @gear_count = self.stats['express'].count - 3
         @sessions = self.stats['express']['BACKEND'].scur.to_i
         if @gear_count == 0
           raise ShouldRetry, "Failed to get information from haproxy"

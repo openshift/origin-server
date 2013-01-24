@@ -36,11 +36,10 @@ module OpenShift
       cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
       cipher.iv = iv = cipher.random_iv
       token = {:app_name => app.name,
-               @token_login_key => app.user.login,
-               :creation_time => app.creation_time}
+               @token_login_key => app.domain.owner.login,
+               :creation_time => app.created_at}
       encrypted_token = cipher.update(token.to_json)
       encrypted_token << cipher.final
-
       public_key = OpenSSL::PKey::RSA.new(File.read(@pubkeyfile), @privkeypass)
       encrypted_iv = public_key.public_encrypt(iv)
 
@@ -75,13 +74,21 @@ module OpenShift
       token = JSON.parse(json_token)
       username = token[@token_login_key.to_s]
       app_name = token['app_name']
-      creation_time = token['creation_time']
+      
+      begin
+        creation_time = Time.zone.parse(token['creation_time'])
+      rescue
+        raise OpenShift::AccessDeniedException.new
+      end
+      
+      begin
+        user = CloudUser.find_by(login: username)
+      rescue Mongoid::Errors::DocumentNotFound
+        raise OpenShift::AccessDeniedException.new
+      end
 
-      user = CloudUser.find(username)
-      raise OpenShift::AccessDeniedException.new if user.nil?
       app = Application.find(user, app_name)
-
-      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time != app.creation_time
+      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time.to_i !=  app.created_at.to_i
       return {:username => username, :auth_method => :broker_auth}
     end
 

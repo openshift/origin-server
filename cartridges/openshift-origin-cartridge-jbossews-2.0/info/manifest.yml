@@ -5,7 +5,7 @@ Version: 2.0.0
 License: ASL 2.0
 Vendor:  jboss.com
 Categories:
-  - cartridge
+  - service
   - java
   - jboss
   - tomcat
@@ -22,7 +22,7 @@ Cart-Data:
     Description: "Directory to store application temporary files."
   - Key: OPENSHIFT_REPO_DIR
     Type: environment
-    Description: "Application root directory where application files reside. This directory is reset everytime you do a git-push"
+    Description: "Application root directory where application files reside. This directory is reset every time you do a git-push"
   - Key: OPENSHIFT_INTERNAL_PORT
     Type: environment
     Description: "Internal port to which the web-framework binds to."
@@ -44,49 +44,32 @@ Cart-Data:
   - Key: OPENSHIFT_GEAR_UUID
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
-Suggests:
 Provides:
+  - "jbossews-2.0"
   - "jbossews"
   - "jbossews(version) = 2.0.0"
   - "jbossews(version) >= 2.0"
-  - "jboss-ews2.0"
-  - "jboss-ews2.0.0"
-Requires:
-Conflicts:
-Native-Requires:
-  - java-1.6.0
-  - maven3
-Architecture: noarch
-
-Reservations:
-  - MEM >= 100MB
-Components:
-  jbossews-server:
-    &jbossews-server-component
-    Publishes:
-      get-doc-root:
-        Type: "FILESYSTEM:doc-root"
-      get-internal-uri:
-        Type: "NET_TCP:http"
-      publish-http-url:
-        Type: "NET_TCP:httpd-proxy-info"
-      publish-gear-endpoint:
-        Type: "NET_TCP:gear-endpoint-info"
-    Subscribes:
-      set-db-connection-info:
-        Type: "NET_TCP:db:connection-info"
-        Required: false
-      set-nosql-db-connection-info:
-        Type: "NET_TCP:nosqldb:connection-info"
-        Required: false
-      set-jdbc-info:
-        Type: "NET_TCP:jdbc"
-Groups:
-  app-servers:
-    Components:
-      jbossews-server: jbossews-server
-    Scaling:
-      Min: 1
-      Max: -1
+  - "jboss-ews-2.0"
+  - "jboss-ews-2.0.0"
+Publishes:
+  get-internal-uri:
+    Type: "NET_TCP:http"
+  publish-http-url:
+    Type: "NET_TCP:httpd-proxy-info"
+  publish-gear-endpoint:
+    Type: "NET_TCP:gear-endpoint-info"
+Subscribes:
+  set-db-connection-info:
+    Type: "NET_TCP:db:connection-info"
+    Required: false
+  set-nosql-db-connection-info:
+    Type: "NET_TCP:nosqldb:connection-info"
+    Required: false
+  set-jdbc-info:
+    Type: "NET_TCP:jdbc"
+Group-Overrides:
+  - components:
+    - "jbossews-2.0"
+    - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

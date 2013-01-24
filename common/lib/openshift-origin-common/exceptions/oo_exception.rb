@@ -37,4 +37,5 @@ module OpenShift
   class DNSAlreadyExistsException < DNSException; end
   class DNSNotFoundException < DNSException; end
   class EstimatesException < OpenShift::OOException; end
+  class LockUnavailableException < OpenShift::OOException; end
 end

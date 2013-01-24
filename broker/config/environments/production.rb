@@ -38,50 +38,12 @@ Broker::Application.configure do
   ############################################
 
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker.conf'))
-  replica_sets = conf.get_bool("MONGO_REPLICA_SETS", "true")
-  hp = conf.get("MONGO_HOST_PORT", "localhost:27017")
-  if !hp
-    raise "Broker is missing Mongo configuration."
-  elsif replica_sets
-    # The string should be of the following form:
-    #
-    #   host-1:port-1 host-2:port-2 ...
-    #
-    # We need to parse into an array of arrays:
-    #
-    #   [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-    #
-    # where each host is a string and each port is an integer.
-
-    host_port = hp.split.map do |x|
-      (h,p) = x.split(":")
-      [h, p.to_i]
-    end
-  else
-    # The string should be of the following form:
-    #
-    #   host:port
-    #
-    # We need to parse into an array:
-    #
-    #   [host,port]
-    #
-    # where host is a string and port is an integer.
-    (h,p) = hp.split(":")
-    host_port = [h, p.to_i]
-  end
 
   config.datastore = {
-    :replica_set => replica_sets,
-    # Replica set example: [[<host-1>, <port-1>], [<host-2>, <port-2>], ...]
-    :host_port => host_port,
-
+    :host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
     :user => conf.get("MONGO_USER", "openshift"),
     :password => conf.get("MONGO_PASSWORD", "mooo"),
     :db => conf.get("MONGO_DB", "openshift_broker_dev"),
-    :collections => {:user => "user",
-                     :district => "district",
-                     :application_template => "template"},
     :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
