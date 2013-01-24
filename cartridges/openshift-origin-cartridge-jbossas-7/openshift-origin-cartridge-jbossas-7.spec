@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.4.0
+Version: 1.4.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -150,6 +150,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - messaging thread pool based on gear size (bdecoste@gmail.com)
 
