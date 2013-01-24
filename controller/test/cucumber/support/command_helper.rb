@@ -358,8 +358,8 @@ module CommandHelper
         exit_code = -1
         retries = 5
         while retries > 0 and (exit_code != 0 or exit_code != 101)
-          exit_code = run("#{$rhc_script} app delete #{app.name} -l #{app.login} -p #{app.password} --confirm -d")
-          sleep 30
+          sleep 30 unless retries == 5
+          exit_code = run("#{$rhc_script} app delete #{app.name} --confirm #{default_args(app)}")
           retries -= 1
         end
         (exit_code == 0 or exit_code == 101).should == true
@@ -369,8 +369,8 @@ module CommandHelper
         exit_code = -1
         retries = 5
         while retries > 0 and exit_code != 0
-          exit_code = run("#{$rhc_script} app show --state #{app.name} -l #{app.login} -p #{app.password} | grep 'does not exist'")
-          sleep 30
+          sleep 30 unless retries == 5
+          exit_code = run("#{$rhc_script} app show #{app.name} --state #{default_args(app)} | grep 'does not exist'")
           retries -= 1
         end
         exit_code.should == 0
