@@ -64,7 +64,7 @@ class Gear
   end
 
   def reserve_uid
-    @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size)
+    @container = OpenShift::ApplicationContainerProxy.find_available(group_instance.gear_size, nil, server_identities)
     self.set :server_identity, @container.id
     self.set :uid, @container.reserve_uid
   end
@@ -247,5 +247,11 @@ class Gear
     result = ResultIO.new
     result.append get_proxy.update_namespace(self.app, self, cart, new_ns, old_ns)
     self.app.process_commands(result)
+  end
+  
+  def server_identities
+    identities = self.group_instance.gears.map{|gear| gear.server_identity}
+    identities.uniq!
+    identities
   end
 end
