@@ -34,8 +34,6 @@ class UserController < BaseController
   def get_rest_user(cloud_user)
     if $requested_api_version == 1.0
       RestUser10.new(cloud_user, get_url, nolinks)
-    elsif $requested_api_version <= 1.3
-      RestUser13.new(cloud_user, get_url, nolinks)
     else
       RestUser.new(cloud_user, get_url, nolinks)
     end
