@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.4.0
+Version: 1.4.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - SSL support for custom domains. (mpatel@redhat.com)
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
