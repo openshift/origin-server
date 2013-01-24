@@ -50,8 +50,6 @@ end
 require 'rubygems'
 require 'openshift-origin-node'
 opts = GetoptLong.new(
-    ["--with-ssl-cert-name",  "-s", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-priv-key-name",  "-k", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-alias-name",     "-a", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
@@ -77,8 +75,6 @@ container_uuid = args['--with-container-uuid']
 container_name = args['--with-container-name']
 namespace      = args['--with-namespace']
 
-ssl_cert_name = args['--with-ssl-cert-name']
-priv_key_name = args['--with-priv-key-name']
 server_alias  = args['--with-alias-name']
 
 $dry_run = true if args['--dry-run']
@@ -92,7 +88,7 @@ end
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
                                                namespace)
-  frontend.remove_ssl_cert(ssl_cert_name, priv_key_name, server_alias)
+  frontend.remove_ssl_cert(server_alias)
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1

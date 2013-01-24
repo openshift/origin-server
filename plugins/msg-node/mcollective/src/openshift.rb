@@ -357,18 +357,18 @@ module MCollective
         namespace      = args['--with-namespace']
 
         ssl_cert      = args['--with-ssl-cert']
-        ssl_cert_name = args['--with-ssl-cert-name']
         priv_key      = args['--with-priv-key']
-        priv_key_name = args['--with-priv-key-name']
+        passphrase    = args['--with-passphrase']
         server_alias  = args['--with-alias-name']
 
         output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid,
                                                        container_name, namespace)
-          out, err, rc = frontend.add_ssl_cert(ssl_cert, ssl_cert_name,
-                                               priv_key, priv_key_name,
-                                               server_alias)
+          out, err, rc = frontend.add_ssl_cert(ssl_cert,
+                                               priv_key,
+                                               server_alias,
+                                               passphrase)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -385,16 +385,13 @@ module MCollective
         container_name = args['--with-container-name']
         namespace      = args['--with-namespace']
 
-        ssl_cert_name = args['--with-ssl-cert-name']
-        priv_key_name = args['--with-priv-key-name']
         server_alias  = args['--with-alias-name']
 
         output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid,
                                                        container_name, namespace)
-          out, err, rc = frontend.remove_ssl_cert(ssl_cert_name, priv_key_name,
-                                                  server_alias)
+          out, err, rc = frontend.remove_ssl_cert(server_alias)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
