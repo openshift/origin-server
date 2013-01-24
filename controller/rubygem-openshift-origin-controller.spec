@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.3.8
+Version: 1.3.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 24 2013 Adam Miller <admiller@redhat.com> 1.3.9-1
+- Ensure write to at least 2 mongo instances (dmcphers@redhat.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.8-1
 - Merge pull request #1183 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
