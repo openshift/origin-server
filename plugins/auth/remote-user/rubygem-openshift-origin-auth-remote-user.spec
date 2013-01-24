@@ -11,7 +11,7 @@
 
 Summary:        OpenShift plugin for remote-user authentication
 Name:           rubygem-%{gem_name}
-Version: 1.4.0
+Version: 1.4.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -91,6 +91,9 @@ rm -rf %{buildroot}
 /etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Thu Jan 10 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Merge pull request #697 from Miciah/plugins-auth-remote-user-README-updates
   (dmcphers+openshiftbot@redhat.com)
