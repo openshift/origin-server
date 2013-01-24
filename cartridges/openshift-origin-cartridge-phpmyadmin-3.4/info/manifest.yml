@@ -5,6 +5,8 @@ Version: 1.1.0
 License: ASL 2.0
 Vendor:
 Website: "http://www.phpmyadmin.net/"
+Categories:
+  - embedded
 Cart-Data:
   - Key: connection_url
     Type: cart_data

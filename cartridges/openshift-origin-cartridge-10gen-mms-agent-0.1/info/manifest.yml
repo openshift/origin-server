@@ -6,6 +6,7 @@ License: ""
 License-Url: https://mms.10gen.com/links/terms-of-service
 Vendor: 10gen.com
 Categories:
+  - embedded
   - cartridge
   - database-support
 Website: https://mms.10gen.com/

@@ -8,6 +8,7 @@ License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Vendor:
 Categories:
   - cartridge
+  - embedded
 Website: "http://openshift.redhat.com/"
 Help-Topics:
   "Getting Started Guide": https://openshift.redhat.com/community/blogs/getting-started-with-cron-jobs-on-openshift
