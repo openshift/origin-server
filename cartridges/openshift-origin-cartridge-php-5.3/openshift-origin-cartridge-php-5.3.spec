@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.4.0
+Version: 1.4.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -112,6 +112,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
 - Move PHPRC from app_ctl_pre.sh to app_ctl.sh - otherwise its not set/sourced
   in for apache (php appserver) running on the haproxy gear. (ramr@redhat.com)
