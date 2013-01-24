@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.3.9
+Version: 1.3.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,10 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 24 2013 Adam Miller <admiller@redhat.com> 1.3.10-1
+- In production, don't attempt to connect to the REST API on startup
+  (ccoleman@redhat.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.3.9-1
 - Merge remote-tracking branch 'upstream/master' (ffranz@redhat.com)
 - Bug 901949 - setting Accept header on OAuth to workaround a bug in some
