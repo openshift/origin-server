@@ -28,6 +28,9 @@
   color: #999999;
   text-decoration: none;
   font-weight: normal;
+  &:focus {
+    outline-offset: -2px;
+    }
 	}
 .navbar .nav > li > a:hover {
   background-color: transparent;
