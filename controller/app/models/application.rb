@@ -2041,7 +2041,7 @@ class Application
   # @return Cartridge
   def get_framework_cartridge
     web_cart = nil
-    features.each do |feature|
+    self.requires.each do |feature|
       cart = CartridgeCache.find_cartridge(feature)
       next unless cart.categories.include? "web_framework"
       web_cart = cart

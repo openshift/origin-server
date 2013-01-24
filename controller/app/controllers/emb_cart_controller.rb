@@ -237,6 +237,15 @@ class EmbCartController < BaseController
       end
 
       component_instance = application.component_instances.find_by(cartridge_name: id)
+      group_instance = application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+      
+      if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
+        return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
+      end
+
+      if scales_from and scales_to.nil? and group_instance.max >= 1 and group_instance.max < scales_from
+        return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
+      end
 
       application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 

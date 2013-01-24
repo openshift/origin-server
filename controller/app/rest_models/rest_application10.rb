@@ -24,7 +24,7 @@ class RestApplication10 < OpenShift::Model
     self.scalable = app.scalable
 
     if app.scalable
-      self.scale_min, self.scale_max = get_app_scaling_limits
+      self.scale_min, self.scale_max = app.get_app_scaling_limits
     else
       self.scale_min, self.scale_max = [1, 1]
     end
