@@ -221,19 +221,19 @@ class EmbCartController < BaseController
       end
       
       if scales_from and scales_from < 1
-        return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
       end
       
       if scales_to and scales_to == 0
-        return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
       
       if scales_to and scales_to < -1
-        return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
 
       if scales_to and scales_from and scales_to >= 1 and scales_to < scales_from
-        return render_error(:unprocessable_entity, "Invalid scales_(to|from) factor provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
+        return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
 
       component_instance = application.component_instances.find_by(cartridge_name: id)
