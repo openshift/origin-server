@@ -74,3 +74,12 @@
 .block-level + .block-level {
   margin-top: 8px;
 }
+
+
+@mixin tab-focus() {
+  // Default
+  outline: thin dotted currentColor;
+  // Webkit
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
