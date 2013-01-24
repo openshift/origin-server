@@ -207,14 +207,7 @@ class Application
   # {PendingAppOps} object which tracks the progess of the operation.
   def add_ssh_keys(user_id, keys, parent_op)
     return if keys.empty?
-    key_attrs = keys.map { |k|
-      if user_id.nil?
-        k["name"] = "domain-" + k["name"]
-      else
-        k["name"] = user_id.to_s + "-" + k["name"]
-      end
-      k
-    }
+    key_attrs = get_updated_ssh_keys(user_id, keys)
     Application.run_in_application_lock(self) do
       op_group = PendingAppOpGroup.new(op_type: :update_configuration,  args: {"add_keys_attrs" => key_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
@@ -239,14 +232,7 @@ class Application
   # {PendingAppOps} object which tracks the progess of the operation.
   def remove_ssh_keys(user_id, keys_attrs, parent_op=nil)
     return if keys_attrs.empty?
-    key_attrs = keys_attrs.map { |k|
-      if user_id.nil?
-        k["name"] = "domain-" + k["name"]
-      else
-        k["name"] = user_id.to_s + "-" + k["name"]
-      end
-      k
-    }
+    key_attrs = get_updated_ssh_keys(user_id, keys_attrs)
     Application.run_in_application_lock(self) do
       op_group = PendingAppOpGroup.new(op_type: :update_configuration, args: {"remove_keys_attrs" => key_attrs}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
@@ -1144,8 +1130,13 @@ class Application
 
   def calculate_gear_create_ops(ginst_id, gear_ids, singleton_gear_id, comp_specs, component_ops, additional_filesystem_gb, gear_size, ginst_op_id=nil, is_scale_up=false, hosts_app_dns=false, init_git_url=nil)
     pending_ops = []
-    ssh_keys = (self.app_ssh_keys + self.domain.system_ssh_keys + self.domain.owner.ssh_keys + CloudUser.find(self.domain.user_ids).map{|u| u.ssh_keys}.flatten)
-    ssh_keys = ssh_keys.map{|k| k.attributes}
+
+    a_ssh_keys = self.app_ssh_keys.map{|k| k.attributes}
+    d_ssh_keys = get_updated_ssh_keys(nil, self.domain.system_ssh_keys.map{|k| k.attributes})
+    o_ssh_keys = get_updated_ssh_keys(self.domain.owner._id, self.domain.owner.ssh_keys.map{|k| k.attributes})
+    u_ssh_keys = CloudUser.find(self.domain.user_ids).map{|u| get_updated_ssh_keys(u._id, u.ssh_keys.map{|k| k.attributes})}.flatten
+    
+    ssh_keys = a_ssh_keys + d_ssh_keys + o_ssh_keys + u_ssh_keys
     env_vars = self.domain.env_vars
     init_git_url = nil unless hosts_app_dns
 
@@ -2003,5 +1994,17 @@ class Application
     end
     
     group_overrides
+  end
+  
+  def get_updated_ssh_keys(user_id, keys_attrs)
+    updated_keys_attrs = deep_copy(keys_attrs).map { |k|
+      if user_id.nil?
+        k["name"] = "domain-" + k["name"]
+      else
+        k["name"] = user_id.to_s + "-" + k["name"]
+      end
+      k
+    }
+    updated_keys_attrs
   end
 end
