@@ -161,7 +161,7 @@ datastore_hash.each { |gear_uuid, gear_info|
       puts "OK"
     end
   elsif verbose
-    put "OK"
+    puts "OK"
   end
 }
 

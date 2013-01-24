@@ -6,12 +6,6 @@ License: ASL 2.0
 Vendor:
 Website: "http://www.phpmyadmin.net/"
 Cart-Data:
-  - Key: "username"
-    Type: cart_data
-    Description: "Admin user on phpmyadmin interface"
-  - Key: "password"
-    Type: cart_data
-    Description: "Password for admin user on phpmyadmin interface"
   - Key: connection_url
     Type: cart_data
     Description: "phpMyAdmin connection URL"
