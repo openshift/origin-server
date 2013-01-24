@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version: 1.1.0
+Version: 1.1.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -131,6 +131,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.1.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Tue Jan 22 2013 Adam Miller <admiller@redhat.com> 1.0.9-1
 - Merge pull request #1189 from ironcladlou/bz/902178
   (dmcphers+openshiftbot@redhat.com)
