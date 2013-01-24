@@ -2007,4 +2007,46 @@ class Application
     }
     updated_keys_attrs
   end
+  
+  # Get path for checking application health
+  # This method is only to maintain backwards compatibility for rest api version 1.0
+  # @return [String]
+  def health_check_path
+    web_cart = get_framework_cartridge
+    if web_cart.nil?
+      page = 'health'
+    elsif web_cart.categories.include? 'php'
+      page = 'health_check.php'
+    elsif web_cart.categories.include? 'zend'
+      page = 'health_check.php'
+    elsif web_cart.categories.include? 'perl'
+      page = 'health_check.pl'
+    else
+      page = 'health'
+    end
+  end
+  
+  # Get scaling limits for the application's group instance that has the web framework cartridge
+  # This method is only to maintain backwards compatibility for rest api version 1.0
+  # @return [Integer, Integer]
+  def get_app_scaling_limits
+    web_cart = get_framework_cartridge
+    component_instance = self.component_instances.find_by(cartridge_name: web_cart.name)
+    group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
+    [group_instance.min, group_instance.max]
+  end
+  
+  # Get the web framework cartridge
+  # This method is only to maintain backwards compatibility for rest api version 1.0
+  # @return Cartridge
+  def get_framework_cartridge
+    web_cart = nil
+    features.each do |feature|
+      cart = CartridgeCache.find_cartridge(feature)
+      next unless cart.categories.include? "web_framework"
+      web_cart = cart
+      break
+    end
+    web_cart
+  end  
 end

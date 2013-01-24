@@ -22,13 +22,17 @@ class RestApplication10 < OpenShift::Model
 
     self.gear_profile = app.default_gear_size
     self.scalable = app.scalable
-    self.scale_min,self.scale_max = [1,-1]
-    self.scale_max = 1 if !app.scalable
+
+    if app.scalable
+      self.scale_min, self.scale_max = get_app_scaling_limits
+    else
+      self.scale_min, self.scale_max = [1, 1]
+    end
 
     self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
     self.app_url = "http://#{app.fqdn}/"
     self.ssh_url = "ssh://#{app.ssh_uri}"
-    self.health_check_path = "" #app.health_check_path
+    self.health_check_path = app.health_check_path
 
     self.building_with = nil
     self.building_app = nil
