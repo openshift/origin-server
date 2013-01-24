@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.3.5
+Version: 1.4.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

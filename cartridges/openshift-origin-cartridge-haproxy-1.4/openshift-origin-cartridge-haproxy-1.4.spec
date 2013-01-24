@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.3.5
+Version: 1.4.0
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0

@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.3.4
+Version: 1.4.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
