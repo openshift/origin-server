@@ -44,7 +44,7 @@ of use.  The following list are some common variables but far from exhaustive:
 
     ENV['OPENSHIFT_APP_NAME']     - Application name
 
-When embedding a database using 'rhc app cartridge add', you can reference
+When embedding a database using 'rhc cartridge add', you can reference
 environment variables for username, host and password. Example for mysql:
 
     ENV['OPENSHIFT_MYSQL_DB_HOST']      - DB host
@@ -52,7 +52,7 @@ environment variables for username, host and password. Example for mysql:
     ENV['OPENSHIFT_MYSQL_DB_USERNAME']  - DB Username
     ENV['OPENSHIFT_MYSQL_DB_PASSWORD']  - DB Password
 
-When embedding a NoSQL database using 'rhc app cartridge add', you can
+When embedding a NoSQL database using 'rhc cartridge add', you can
 reference environment variables for username, host and password.
 Example for MongoDB:
     ENV['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB Host
