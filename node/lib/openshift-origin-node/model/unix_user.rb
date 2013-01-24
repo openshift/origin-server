@@ -258,7 +258,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       keys = read_ssh_keys authorized_keys_file
       key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
       cloud_name  = @config.get("CLOUD_NAME") || "OPENSHIFT"
-      ssh_comment = "#{cloud_name}-#{@uuid}#{comment}"
+      ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
       shell       = @config.get("GEAR_SHELL") || "/bin/bash"
       cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
 
