@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
-Version: 1.4.0
+Version: 1.4.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -125,6 +125,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 23 (admiller@redhat.com)
+
 * Fri Jan 18 2013 Dan McPherson <dmcphers@redhat.com> 1.3.3-1
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
