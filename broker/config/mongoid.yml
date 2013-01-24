@@ -12,8 +12,8 @@ production:
         <% end %>
       username: <%= config[:user] %>
       password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
   options:
-    ssl: <%= config[:ssl] %>
     raise_not_found_error: true
 development:
   sessions:
@@ -29,8 +29,8 @@ development:
         <% end %>
       username: <%= config[:user] %>
       password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
   options:
-    ssl: <%= config[:ssl] %>
     raise_not_found_error: true
 test:
   sessions:
@@ -46,6 +46,6 @@ test:
         <% end %>
       username: <%= config[:user] %>
       password: <%= config[:password] %>
+      ssl: <%= config[:ssl] %>
   options:
-    ssl: <%= config[:ssl] %>
     raise_not_found_error: true
