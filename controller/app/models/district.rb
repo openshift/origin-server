@@ -120,6 +120,12 @@ class District
     end
   end
   
+  def reserve_given_uid(uid)
+    District.where(:uuid => self.uuid, :available_capacity.gt => 0).find_and_modify( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
+    self.reload.with(consistency: :strong)
+    self.available_uids.include? uid
+  end
+
   def deactivate_node(server_identity)
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
