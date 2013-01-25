@@ -226,7 +226,6 @@ class Gear
   end
   
   def set_addtl_fs_gb(filesystem_gb, remote_job_handle)
-    return if self.group_instance.addtl_fs_gb == filesystem_gb
     RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, filesystem_gb,""))
   end
 
