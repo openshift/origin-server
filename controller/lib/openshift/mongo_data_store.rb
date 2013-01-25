@@ -176,7 +176,7 @@ module OpenShift
 
     def db(connection_opts=nil)
       if @replica_set
-        options = {:read => :secondary, :connect_timeout => 60, :ssl => @ssl, :safe => {:w => @host_port.length > 1 ? 2 : 1}}
+        options = {:read => :secondary, :connect_timeout => 60, :ssl => @ssl}
         options.merge!(connection_opts) if connection_opts
         con = Mongo::ReplSetConnection.new(*@host_port.dup << options)
       else
