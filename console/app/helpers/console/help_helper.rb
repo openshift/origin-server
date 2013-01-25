@@ -51,7 +51,7 @@ module Console::HelpHelper
   end
   
   def partners_url
-    community_base_url 'community/partners'
+    community_base_url 'partners'
   end
 
   def get_started_quickstart_url
