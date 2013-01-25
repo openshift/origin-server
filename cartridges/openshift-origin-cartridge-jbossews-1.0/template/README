@@ -89,7 +89,7 @@ of use.  The following list are some common variables but far from exhaustive:
     System.getenv("OPENSHIFT_TMP_DIR")   - Temp storage (unmodified files deleted after 10 days)
     System.getenv("OPENSHIFT_INTERNAL_IP")  - The IP address used to bind EWS1.0
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
+When embedding a database using 'rhc cartridge add', you can reference environment
 variables for username, host and password. For example, when embedding MySQL 5.1, the 
 following variables will be available:
 

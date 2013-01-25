@@ -29,7 +29,7 @@ of use.  The following list are some common variables but far from exhaustive:
     $ENV{'OPENSHIFT_DATA_DIR'}  - For persistent storage (between pushes)
     $ENV{'OPENSHIFT_TMP_DIR'}   - Temp storage (unmodified files deleted after 10 days)
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
+When embedding a database using 'rhc cartridge add', you can reference environment
 variables for username, host and password:
 
     $ENV{'OPENSHIFT_MYSQL_DB_HOST'}      - DB host
