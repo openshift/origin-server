@@ -8,8 +8,8 @@
 %{!?scl:%global pkg_name %{name}}
 
 Summary:   The OpenShift Enterprise Management Console
-Name:      openshift-console
-Version:   0.0.4
+Name:      openshift-origin-console
+Version:   0.2.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -41,6 +41,8 @@ Requires: v8-devel
 Requires: gcc-c++
 %endif
 BuildArch: noarch
+Provides: openshift-origin-console = %{version}
+Obsoletes: openshift-console
 
 %description
 This contains the console configuration components of OpenShift.
@@ -160,6 +162,12 @@ fi
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Fri Jan 25 2013 Troy Dawson <tdawson@redhat.com> 0.2.1-1
+- new package built with tito
+
+* Fri Jan 25 2013 Troy Dawson <tdawson@redhat.com>
+- new package built with tito
+
 * Tue Jan 22 2013 Troy Dawson <tdawson@redhat.com> 0.0.4-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
