@@ -29,7 +29,7 @@ setup_user_vars
 # haproxy_dir=$(get_cartridge_instance_dir "$cartridge_type")
 haproxy_dir=$APP_HOME/$cartridge_type
 sed -i "s#cookie\s*\(.*\)-$old_namespace#cookie \1-$new_namespace#g;   \
-        s#gear-\(.*\)-$old_namespace\s*#gear-\1-$new_namespace #g"     \
+        s#gear-\(.*\)-$old_namespace #gear-\1-$new_namespace #g"     \
     $haproxy_dir/conf/haproxy.cfg
 sed -i "s#\(.*\)-$old_namespace\.#\1-$new_namespace\.#g"   \
     $haproxy_dir/conf/gear-registry.db
