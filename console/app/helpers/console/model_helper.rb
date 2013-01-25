@@ -69,8 +69,8 @@ module Console::ModelHelper
     end
   end
 
-  def additional_storage_options(obj)
-    {:as => :select, :collection => (0..obj.max_storage_per_gear), :include_blank => false}
+ def storage_options(min,max)
+    {:as => :select, :collection => (min..max), :include_blank => false}
   end
 
   def scale_options

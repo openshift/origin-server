@@ -43,8 +43,8 @@ class StorageControllerTest < ActionController::TestCase
       mock.get '/broker/rest/user.json', json_header, mock_user(storage).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
       mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
-      mock.get '/broker/rest/domains/test/applications/test.json', json_header, mock_app.to_json
       mock.get '/broker/rest/domains/test/applications.json', json_header, [mock_app].to_json
+      mock.get '/broker/rest/domains/test/applications/test.json', json_header, mock_app.to_json
       mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [mock_resources].to_json
       mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, mock_groups.to_json
     end
