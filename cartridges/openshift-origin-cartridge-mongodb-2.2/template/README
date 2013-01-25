@@ -15,7 +15,7 @@ Environment Variables
 OpenShift provides several environment variables to reference for ease
 of use. 
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
+When embedding a database using 'rhc cartridge add', you can reference environment
 variables for username, host and password:
 
     os.environ['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB host

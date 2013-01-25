@@ -10,7 +10,7 @@ if [ -z $OPENSHIFT_DB_HOST ]
 then
     echo 1>&2
     echo "Could not find mysql database.  Please run:" 1>&2
-    echo "rhc app cartridge add -a $OPENSHIFT_APP_NAME -c mysql-5.1" 1>&2
+    echo "rhc cartridge add -a $OPENSHIFT_APP_NAME -c mysql-5.1" 1>&2
     echo "then make a sample commit (add whitespace somewhere) and re-push" 1>&2
     echo 1>&2
     exit 5

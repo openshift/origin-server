@@ -28,7 +28,7 @@ OpenShift provides several environment variables to reference for ease
 of use. 
 
 
-When embedding a database using 'rhc app cartridge add', you can reference
+When embedding a database using 'rhc cartridge add', you can reference
 environment variables for username, host and password. Example for mysql:
 
     os.environ['OPENSHIFT_MYSQL_DB_HOST']      - DB host
@@ -36,7 +36,7 @@ environment variables for username, host and password. Example for mysql:
     os.environ['OPENSHIFT_MYSQL_DB_USERNAME']  - DB Username
     os.environ['OPENSHIFT_MYSQL_DB_PASSWORD']  - DB Password
 
-When embedding a NoSQL database using 'rhc app cartridge add', you can
+When embedding a NoSQL database using 'rhc cartridge add', you can
 reference environment variables for username, host and password.
 Example for MongoDB:
     os.environ['OPENSHIFT_MONGODB_DB_HOST']      - NoSQL DB Host

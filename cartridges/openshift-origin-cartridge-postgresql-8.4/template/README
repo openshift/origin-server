@@ -19,7 +19,7 @@ of use.  The following list are some common variables but far from exhaustive:
     os.environ['OPENSHIFT_DATA_DIR']            - For persistent storage (between pushes)
     os.environ['OPENSHIFT_TMP_DIR']             - Temp storage (unmodified files deleted after 10 days)
 
-When embedding a database using 'rhc app cartridge add', you can reference environment
+When embedding a database using 'rhc cartridge add', you can reference environment
 variables for username, host and password:
 
     os.environ['OPENSHIFT_POSTGRESQL_DB_HOST']      - DB host

@@ -26,17 +26,17 @@
     %pre.cli
       = preserve do
         :escaped
-          rhc app cartridge list
+          rhc cartridge list
     %p
       You can manage the cartridge by running one of these commands
     %pre.cli
       = preserve do
         :escaped
-          rhc app cartridge start -a #{@application.name} -c #{@cartridge.name}
-          rhc app cartridge stop -a #{@application.name} -c #{@cartridge.name}
-          rhc app cartridge restart -a #{@application.name} -c #{@cartridge.name}
-          rhc app cartridge reload -a #{@application.name} -c #{@cartridge.name}
-          rhc app cartridge status -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge start -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge stop -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge restart -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge reload -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge status -a #{@application.name} -c #{@cartridge.name}
 
     %p
       You can remove the cartridge by running the following command.
@@ -45,7 +45,7 @@
     %pre.cli
       = preserve do
         :escaped
-          rhc app cartridge remove -a #{@application.name} -c #{@cartridge.name}
+          rhc cartridge remove -a #{@application.name} -c #{@cartridge.name}
 
   .span5
     %h2 Cartridge info
