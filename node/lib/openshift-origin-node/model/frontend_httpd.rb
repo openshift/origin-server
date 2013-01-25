@@ -226,9 +226,11 @@ module OpenShift
     end
 
     # Public: Adds a ssl certificate for an alias
-    def add_ssl_cert(ssl_cert, ssl_cert_name, priv_key, priv_key_name,
-                     server_alias)
+    def add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase='')
       basedir = @config.get("GEAR_BASE_DIR")
+
+      ssl_cert_name = clean_server_name(server_alias) + ".crt"
+      priv_key_name = clean_server_name(server_alias) + ".key"
 
       app_token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
       alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias}"
@@ -340,8 +342,10 @@ DefaultType None
     end
 
     # Public: Removes ssl certificate/private key associated with an alias
-    def remove_ssl_cert(ssl_cert_name, priv_key_name, server_alias)
+    def remove_ssl_cert(server_alias)
       basedir = @config.get("GEAR_BASE_DIR")
+      ssl_cert_name = clean_server_name(server_alias)
+      priv_key_name = clean_server_name(server_alias)
 
       #
       # Remove the alias specific configuration
