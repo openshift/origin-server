@@ -49,6 +49,9 @@
 .text-warning {
     color: #EED99D;
 }
+.block {
+  display: block;
+}
 
 // Disabled and read-only inputs
 /*input[disabled],
@@ -399,6 +402,19 @@ a.cap-link {
   margin-bottom: 20px;
 }
 
+.btn-console-header {
+  padding: 6px;
+  border: 1px solid transparent;
+  opacity: .75;
+  &:hover, &.highlight {
+    //border-color: rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.2);
+    opacity: 1;
+  }
+  &:active {
+    border-color: #B1E5F2;
+  }
+}
 
 .unstyled-flat.bits {
   margin: 0 0 10px 0;
@@ -579,6 +595,7 @@ $cartridgeBorderWidth: 10px;
   }
 .data {
   color: #eaebec;
+  text-transform: capitalize;
   }
 
 .cartridge_type.installed,

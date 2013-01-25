@@ -76,6 +76,11 @@ class Application < RestApi::Base
     @_gear_groups
   end
 
+  def restart!
+    post(:events, nil, {:event => :restart}.to_json)
+    true
+  end
+
   def web_url
     app_url
   end
