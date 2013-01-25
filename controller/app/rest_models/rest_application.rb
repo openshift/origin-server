@@ -26,7 +26,7 @@ class RestApplication < OpenShift::Model
     self.git_url = "ssh://#{app.ssh_uri}/~/git/#{@name}.git/"
     self.app_url = "http://#{app.fqdn}/"
     self.ssh_url = "ssh://#{app.ssh_uri}"
-    self.health_check_path = "" #app.health_check_path
+    self.health_check_path = app.health_check_path
 
     self.building_with = nil
     self.building_app = nil
