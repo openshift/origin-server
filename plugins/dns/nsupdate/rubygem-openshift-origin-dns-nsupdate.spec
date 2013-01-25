@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for DNS update service using nsupdate
 Name:           rubygem-%{gem_name}
-Version:        0.0.0
+Version:        0.0.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -87,3 +87,6 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Jan 25 2013 Krishna Raman <kraman@gmail.com> 0.0.1-1
+- new package built with tito
+
