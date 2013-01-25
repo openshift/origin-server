@@ -158,17 +158,14 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    #@domain = Domain.find :one, :as => current_user
     user_default_domain
     @application = @domain.find_application params[:id]
-
     @gear_groups = @application.gear_groups_with_state
 
     sshkey_uploaded?
   end
 
   def get_started
-    #@domain = Domain.find :one, :as => current_user
     user_default_domain
     @application = @domain.find_application params[:id]
 

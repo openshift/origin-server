@@ -76,6 +76,42 @@
 }
 
 
+// POPOVER ARROWS
+// -------------------------
+// For tipsies and popovers
+@mixin popoverArrow-top($arrowWidth: 5px) {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -$arrowWidth;
+  border-left: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid transparent;
+  border-top: $arrowWidth solid $subtleTextDarkBackground;
+}
+@mixin popoverArrow-left($arrowWidth: 5px) {
+  top: 50%;
+  right: 0;
+  margin-top: -$arrowWidth;
+  border-top: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid transparent;
+  border-left: $arrowWidth solid $subtleTextDarkBackground;
+}
+@mixin popoverArrow-bottom($arrowWidth: 5px) {
+  top: -5px;
+  left: 50%;
+  margin-left: -$arrowWidth;
+  border-left: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid $subtleTextDarkBackground;
+}
+@mixin popoverArrow-right($arrowWidth: 5px) {
+  top: 50%;
+  left: 0;
+  margin-top: -$arrowWidth;
+  border-top: $arrowWidth solid transparent;
+  border-bottom: $arrowWidth solid transparent;
+  border-right: $arrowWidth solid $subtleTextDarkBackground;
+}
+
 @mixin tab-focus() {
   // Default
   outline: thin dotted currentColor;
