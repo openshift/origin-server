@@ -156,11 +156,10 @@ client_result ""
 if is_a_scalable_app; then
     client_result 'Connection URL: postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
     client_result 'PostgreSQL gear-local connection URL: postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
-    client_result ""
 else
     client_result 'Connection URL: postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
-    client_result ""
 fi
+client_result ''
 
 cart_props "connection_url=postgresql://$psql_ip:$psql_port/"
 cart_props "username=admin"
