@@ -95,49 +95,54 @@ def check_user_response
 end
 
 reply = ResultIO.new
-case command
-when "start"
-  reply.append app.start
-when "stop"
-  reply.append app.stop  
-when "force-stop"
-  reply.append app.stop(nil, true)
-when "restart"
-  reply.append app.restart  
-when "status"
-  app.requires.each { |feature|
-    reply.append app.status(feature)
-  }
-when "force-destroy","destroy"
-  unless bypass
-    puts <<-WARNING
-  !!!! WARNING !!!! WARNING !!!! WARNING !!!!
-  You are about to destroy the #{app_name} application.
-
-  This is NOT reversible, all remote data for this application will be removed.
-  WARNING
-
-    print "Do you want to destroy this application (y/n): "
-    check_user_response
-  end
+begin
+  case command
+  when "start"
+    reply.append app.start
+  when "stop"
+    reply.append app.stop  
+  when "force-stop"
+    reply.append app.stop(nil, true)
+  when "restart"
+    reply.append app.restart  
+  when "status"
+    app.requires.each { |feature|
+      reply.append app.status(feature)
+    }
+  when "force-destroy","destroy"
+    unless bypass
+      puts <<-WARNING
+    !!!! WARNING !!!! WARNING !!!! WARNING !!!!
+    You are about to destroy the #{app_name} application.
   
-  app.destroy_app
-  reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
-when "remove-cartridge"
-  unless cartridge
-    puts "Cartridge is required to remove-dependency"
-    exit 1
+    This is NOT reversible, all remote data for this application will be removed.
+    WARNING
+  
+      print "Do you want to destroy this application (y/n): "
+      check_user_response
+    end
+    
+    app.destroy_app
+    reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
+  when "remove-cartridge"
+    unless cartridge
+      puts "Cartridge is required to remove-dependency"
+      exit 1
+    end
+    app.remove_features([cartridge])
+  when "remove-gear"
+    unless gear_uuid
+      puts "Gear uuid is required to remove-gear"
+      exit 1
+    end
+    app.remove_gear(gear_uuid)
+  else
+    puts "Command must be one of: #{CTL_APP_COMMANDS}"
+    usage
   end
-  app.remove_features([cartridge])
-when "remove-gear"
-  unless gear_uuid
-    puts "Gear uuid is required to remove-gear"
-    exit 1
-  end
-  app.remove_gear(gear_uuid)
-else
-  puts "Command must be one of: #{CTL_APP_COMMANDS}"
-  usage
+rescue OpenShift::UserException => e
+  puts e.message
+  exit 1
 end
 
 puts "DEBUG OUTPUT:\n#{reply.debugIO.string}\n" unless reply.debugIO.string.empty?
