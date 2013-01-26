@@ -20,11 +20,11 @@ Options:
     Namespace for application(s) (alphanumeric - max 16 chars) (required)
 -c|--command (create|update|delete|info)
 -s|--ssh_key <ssh key>
-    Users SSH key
+    User's SSH key
 -t|--key_type <ssh key type>
-    Users SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
+    User's SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
 -k|--key_name <ssh key name>
-    Users SSH key name
+    User's SSH key name
 -h|--help:
     Show Usage info
 USAGE
@@ -67,13 +67,20 @@ case args["--command"]
 when "create"
   if ssh_key.nil? || namespace.nil? || login.nil?
     print "Please provide login, ssh key and namespace to create the user\n"
-    exit -1
+    exit 1
   end
   user = nil
   begin
     CloudUser.find_by(login: login)
-    print "User #{login} already exists. Please use the 'update' command to alter ssh keys or namespace.\n"
-    exit -1
+    puts "User #{login} already exists.  Please use the 'update' command to alter ssh keys or namespace."
+    exit 1
+  rescue Mongoid::Errors::DocumentNotFound
+  end
+  
+  begin
+    Domain.find_by(canonical_namespace: namespace.downcase)
+    puts "Domain #{namespace.downcase} already exists.  Please choose another."
+    exit 1
   rescue Mongoid::Errors::DocumentNotFound
   end
   
@@ -84,7 +91,7 @@ when "create"
   reply.resultIO << "Successfully created user.\n"
 
   domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
-  domain.save
+  domain.save!
   reply.resultIO << "Successfully created domain.\n"  
 when "update"
   user = nil
@@ -93,7 +100,7 @@ when "update"
   rescue Mongoid::Errors::DocumentNotFound
   end
   unless user
-    print "User with login: #{login} not found\n"
+    puts "User with login: #{login} not found"
     exit 1
   end
   
@@ -123,15 +130,15 @@ when "delete"
   rescue Mongoid::Errors::DocumentNotFound
   end
   unless user
-    print "User with login: #{login} not found\n"
+    puts "User with login: #{login} not found"
     exit 1
   end
   unless user.domains.empty?
-    print "User still has domains. Delete them first\n"
+    puts "User still has domains. Delete them first"
     exit 1
   end
   unless user.domains.map { |dom| dom.applications }.flatten.empty?
-    print "User still has applications. Delete them first\n"
+    puts "User still has applications. Delete them first"
     exit 1
   end
   reply.append user.delete
@@ -143,7 +150,7 @@ else
   rescue Mongoid::Errors::DocumentNotFound
   end
   unless user
-    print "User with login: #{login} not found\n"
+    puts "User with login: #{login} not found"
     exit 1
   end
   reply.resultIO << "RHLogin: #{user.login}\n"
