@@ -128,21 +128,34 @@ when "delete"
   begin
     user = CloudUser.find_by(login: login)
   rescue Mongoid::Errors::DocumentNotFound
-  end
-  unless user
-    puts "User with login: #{login} not found"
+    puts "User with login '#{login}' not found"
     exit 1
   end
-  unless user.domains.empty?
-    puts "User still has domains. Delete them first"
-    exit 1
+  if namespace
+    domain = nil
+    user.domains.each do |d|
+      if namespace.downcase == d.canonical_namespace
+        domain = d
+        break
+      end
+    end
+    unless domain
+      puts "Domain not found: #{namespace.downcase}"
+      exit 1
+    end
+    unless domain.applications.empty?
+      puts "User still has applications. Delete them first."
+    end
+    domain.delete
+    reply.resultIO << "Successfully deleted domain.\n"
+  else
+    unless user.domains.empty?
+      puts "User still has domains. Delete them first."
+      exit 1
+    end
+    user.delete
+    reply.resultIO << "Successfully deleted user.\n"
   end
-  unless user.domains.map { |dom| dom.applications }.flatten.empty?
-    puts "User still has applications. Delete them first"
-    exit 1
-  end
-  reply.append user.delete
-  reply.resultIO << "Successfully deleted user.\n"  
 else
   user = nil
   begin
