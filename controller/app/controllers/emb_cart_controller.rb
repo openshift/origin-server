@@ -202,8 +202,14 @@ class EmbCartController < BaseController
     id = params[:id]
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
-    additional_storage = Integer(params[:additional_gear_storage]) rescue nil
-    
+    additional_storage = params[:additional_gear_storage]
+ 
+    begin 
+      additional_storage = Integer(additional_storage) if additional_storage
+    rescue
+      return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "PATCH_APP_CARTRIDGE", "additional_storage")
+    end
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
@@ -256,6 +262,8 @@ class EmbCartController < BaseController
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "PATCH_APP_CARTRIDGE")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "PATCH_APP_CARTRIDGE")
+    rescue Exception => e
+      return render_exception(e, "PATCH_APP_CARTRIDGE")
     end
     
     return render_success(:ok, "cartridge", [], "PATCH_APP_CARTRIDGE", "")  
