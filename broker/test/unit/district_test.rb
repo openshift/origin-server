@@ -65,6 +65,7 @@ class DistrictTest < ActiveSupport::TestCase
     assert_equal(orig_max_capacity, new_d.max_capacity)
   end
   
+=begin
   test "district nodes" do
     orig_d = get_district_obj
     orig_d.save!
@@ -115,6 +116,7 @@ class DistrictTest < ActiveSupport::TestCase
       system("rm -f /var/lib/openshift/.settings/district.info")
     end
   end
+=end
 
   def teardown
     District.delete_all
