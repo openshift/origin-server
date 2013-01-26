@@ -104,25 +104,40 @@ when "update"
     exit 1
   end
   
+  if namespace
+    if namespace.empty?
+      puts "Namespace cannot be blank."
+      exit 1
+    else
+      d = nil
+      if user.domains.empty?
+        d = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
+        d.save!
+        reply.resultIO << "Successfully added domain.\n"
+      else
+        d = user.domains.first
+        unless d.canonical_namespace == namespace.downcase
+          begin
+            Domain.find_by(canonical_namespace: namespace.downcase)
+            puts "Domain #{namespace.downcase} already exists.  Please choose another."
+            exit 1
+          rescue Mongoid::Errors::DocumentNotFound
+          end
+          d.namespace = namespace
+          d.canonical_namespace = namespace.downcase
+          d.save!
+          reply.resultIO << "Successfully updated domain.\n"
+        end
+      end
+    end
+  end
+  
   unless ssh_key.nil?
     user.update_ssh_key(ssh_key, ssh_type, ssh_name)
     user.save!
+    reply.resultIO << "Successfully updated user.\n"
   end
-
-  d = nil
-  if user.domains.empty?
-    d = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
-    d.save
-  else
-    d = user.domains.first
-    unless d.namespace == namespace.downcase
-      d.namespace = namespace
-      d.canonical_namespace = namespace.downcase
-      d.save
-    end
-  end
-
-  reply.resultIO << "Successfully updated user.\n"
+  
 when "delete"
   user = nil
   begin
