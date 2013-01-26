@@ -8,7 +8,7 @@ Vendor:
 Categories:
   - cartridge
   - web_framework
-  - experimental
+  - community
 Website:
 Help-Topics:
   "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift
