@@ -49,6 +49,10 @@ module Console::HelpHelper
   def get_involved_developers_url
     community_base_url 'developers/get-involved'
   end
+  
+  def partners_url
+    community_base_url 'partners'
+  end
 
   def get_started_quickstart_url
     community_base_url 'developers/get-started'
