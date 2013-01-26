@@ -41,7 +41,7 @@ function clone_external_git_repo {
     if [ ! -d $APP_HOME ]; then echo "ERROR: Application ${uuid} not found!  Please create." 1>&2; exit 2; fi
 
     allowed=""
-    methods=('git://' 'http://' 'https://' 'ftp://' 'ftps://' 'rsync://')
+    methods=('git://' 'http://' 'https://' 'file://' 'ftp://' 'ftps://' 'rsync://')
     for method in "${methods[@]}"
     do
         if [[ $git_url =~ ^"$method" ]]
