@@ -7,14 +7,14 @@
 %endif
 %{!?scl:%global pkg_name %{name}}
 
-Summary:   The OpenShift Enterprise Management Console
-Name:      openshift-console
-Version:   0.0.4
+Summary:   The OpenShift Management Console
+Name:      openshift-origin-console
+Version:   0.1.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-console-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
@@ -41,6 +41,8 @@ Requires: v8-devel
 Requires: gcc-c++
 %endif
 BuildArch: noarch
+Provides:  openshift-origin-console = %{version}
+Obsoletes: openshift-console
 
 %description
 This contains the console configuration components of OpenShift.
@@ -160,6 +162,15 @@ fi
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Thu Jan 24 2013 Troy Dawson <tdawson@redhat.com> 0.1.2-1
+- new package built with tito
+
+* Wed Jan 23 2013 Troy Dawson <tdawson@redhat.com> 0.1.1-1
+- bump to version 0.1.0 (tdawson@redhat.com)
+
+* Wed Jan 23 2013 Troy Dawson <tdawson@redhat.com>
+- Rename to openshift-origin-console
+
 * Tue Jan 22 2013 Troy Dawson <tdawson@redhat.com> 0.0.4-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
