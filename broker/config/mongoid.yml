@@ -13,6 +13,9 @@ production:
       username: <%= config[:user] %>
       password: <%= config[:password] %>
       ssl: <%= config[:ssl] %>
+      options:
+        consistency: :eventual
+        safe: true
   options:
     raise_not_found_error: true
 development:
@@ -30,6 +33,9 @@ development:
       username: <%= config[:user] %>
       password: <%= config[:password] %>
       ssl: <%= config[:ssl] %>
+      options:
+        consistency: :eventual
+        safe: true
   options:
     raise_not_found_error: true
 test:
@@ -47,5 +53,8 @@ test:
       username: <%= config[:user] %>
       password: <%= config[:password] %>
       ssl: <%= config[:ssl] %>
+      options:
+        consistency: :eventual
+        safe: true
   options:
     raise_not_found_error: true

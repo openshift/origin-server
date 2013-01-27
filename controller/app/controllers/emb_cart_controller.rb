@@ -154,7 +154,7 @@ class EmbCartController < BaseController
     end
   end
 
-  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]
+  # DELETE /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def destroy
     domain_id = params[:domain_id]
     id = params[:application_id]
@@ -196,6 +196,7 @@ class EmbCartController < BaseController
     end
   end
 
+  # PUT /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def update
     domain_id = params[:domain_id]
     application_id = params[:application_id]
@@ -242,7 +243,12 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "Invalid scales_(from|to) factor provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
 
-      component_instance = application.component_instances.find_by(cartridge_name: id)
+      begin
+        component_instance = application.component_instances.find_by(cartridge_name: id)
+      rescue Mongoid::Errors::DocumentNotFound
+        return render_error(:not_found, "Cartridge #{id} not embedded within application #{application_id}", 129, "PATCH_APP_CARTRIDGE")
+      end
+
       group_instance = application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
       
       if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min

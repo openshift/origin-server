@@ -349,6 +349,7 @@ class Application
     result_io = ResultIO.new
     features.each do |feature|
       cart = CartridgeCache.find_cartridge(feature)
+      raise OpenShift::UserException.new("Invalid feature: #{feature}", 109) unless cart
       Rails.logger.debug "Removing feature #{feature}"
       
       if !force
