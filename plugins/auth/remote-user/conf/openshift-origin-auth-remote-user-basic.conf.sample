@@ -3,7 +3,7 @@ LoadModule authn_file_module modules/mod_authn_file.so
 LoadModule authz_user_module modules/mod_authz_user.so
 
 <Location /broker>
-    AuthName "OpenShift"
+    AuthName "OpenShift broker API"
     AuthType Basic
     AuthUserFile /etc/openshift/htpasswd
     require valid-user

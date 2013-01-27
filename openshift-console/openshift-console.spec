@@ -129,8 +129,8 @@ fi
 %dir %attr(0750,-,-) %{consoledir}/httpd/conf.d
 %{consoledir}
 %{htmldir}/console
-%config(noreplace) %{consoledir}/config/environments/production.rb
-%config(noreplace) %{consoledir}/config/environments/development.rb
+%config %{consoledir}/config/environments/production.rb
+%config %{consoledir}/config/environments/development.rb
 %config(noreplace) %{_sysconfdir}/openshift/console.conf
 
 %defattr(0640,root,root,0750)
