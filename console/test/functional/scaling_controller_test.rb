@@ -117,7 +117,8 @@ class ScalingControllerTest < ActionController::TestCase
   test 'rejects impossible scales_to' do
     put :update, {:cartridge => {:scales_from => 2, :scales_to => -2}}.merge(scalable_app_params)
     assert_response :success
-    assert_select 'ul.alert-error > li', "Invalid scales_to factor -2 provided"
+    # scaling_controller flips the values so scales_from < scales_to so the error shows up with scales from
+    assert_select 'ul.alert-error > li', "Invalid scales_from factor -2 provided"
   end
 
   [true, false].each do |mock|
