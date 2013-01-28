@@ -11,7 +11,7 @@ class User < RestApi::Base
   include Capabilities
   has_many :keys
   has_many :domains
-  has_one :consumed_gear_sizes, :class_name => 'rest_api/base/attribute_hash'
+ 
 
   def plan_id
     super or 'freeshift'
