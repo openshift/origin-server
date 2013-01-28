@@ -1,4 +1,13 @@
+# Settings related to the MongoDB variant of an OpenShift auth plugin
+
+# The host:port for your MongoDB server
 MONGO_HOST_PORT="localhost:27017"
+
+# The user to connect to your MongoDB
 MONGO_USER="openshift"
+
+# The password to connect to your MongoDB
 MONGO_PASSWORD="mooo"
+
+# The database within your MongoDB to use for auth
 MONGO_DB="openshift_broker_dev"

@@ -1,5 +1,16 @@
+# Settings related to the nsupdate variant of an OpenShift DNS plugin
+
+# The DNS server
 BIND_SERVER="127.0.0.1"
+
+# The DNS server's port
 BIND_PORT=53
+
+# The key name for your zone
 BIND_KEYNAME="example.com"
-BIND_KEYVALUE="base64-encoded key, most likely from /var/named/example.com.key."
+
+# base64-encoded key, most likely from /var/named/example.com.key.
+BIND_KEYVALUE=""
+
+# The base zone for the DNS server
 BIND_ZONE="example.com"
