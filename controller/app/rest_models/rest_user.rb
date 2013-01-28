@@ -1,18 +1,7 @@
 class RestUser < OpenShift::Model
-  attr_accessor :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :consumed_gear_sizes, :max_gears
+  attr_accessor :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :max_gears
 
-  def initialize(cloud_user, url, nolinks=false)
-    consumed_map = {}
-    cloud_user.domains.each do |domain|
-      domain.applications.each do |a|
-        a.group_instances.each do |ginst|
-          size = ginst.gear_size
-          consumed_map[size] = 0 if not consumed_map.has_key?(size)
-          consumed_map[size] = consumed_map[size] + ginst.gears.size
-        end
-      end
-    end
-    
+  def initialize(cloud_user, url, nolinks=false)    
     self.login = cloud_user.login
     self.consumed_gears = cloud_user.consumed_gears
     self.capabilities = cloud_user.get_capabilities
@@ -20,7 +9,6 @@ class RestUser < OpenShift::Model
     self.capabilities.delete("max_gears")
     self.plan_id = cloud_user.plan_id
     self.usage_account_id = cloud_user.usage_account_id
-    self.consumed_gear_sizes = consumed_map
 
     unless nolinks
       @links = {
