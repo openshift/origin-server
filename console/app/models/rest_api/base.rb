@@ -30,6 +30,24 @@ module Net
   end
 end
 
+# Alias the request method so we can call the original, but log everything in the new ensure block
+class Net::HTTP
+  alias_method :request_original, :request
+
+  def request(*args)
+    res = request_original(*args)
+  ensure
+    # We need to get the request id from the response.
+    # Our log subscriber will take care of combining them
+    if (rid = (res.to_hash['x-request-id'].first rescue nil))
+      ActiveSupport::Notifications.instrument("request.http") do |payload|
+        payload[:rid] = rid
+        payload[:request] = args.first
+      end
+    end
+  end
+end
+
 class ActiveResource::Connection
   #
   # Changes made in commit https://github.com/rails/rails/commit/51f1f550dab47c6ec3dcdba7b153258e2a0feb69#activeresource/lib/active_resource/base.rb

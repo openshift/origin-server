@@ -65,7 +65,7 @@ module RestApi
       end
     end
     def debug?
-      @debug || ENV['REST_API_DEBUG']
+      @debug || ENV['REST_API_DEBUG'] || (Rails.configuration.rest_api_debug rescue false)
     end
     def force_http_debug
       unless ActiveResource::Connection.respond_to? :configure_http_with_debug
