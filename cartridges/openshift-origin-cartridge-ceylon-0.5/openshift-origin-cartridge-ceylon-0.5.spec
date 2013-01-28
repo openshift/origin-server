@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version: 1.0.0
+Version: 1.0.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -94,5 +94,8 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 28 2013 Unknown name 1.0.1-1
+- new package built with tito
+
 * Wed Jan 23 2013 Adam Miller <mlazar@redhat.com> 1.0.0-1
 - new cartridge (mlazar@redhat.com)
