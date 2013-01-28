@@ -214,7 +214,7 @@ class Domain
             app.complete_update_namespace(op.arguments["old_ns"], op.arguments["new_ns"], op) 
           }
         end
-        op.reload.with(consistency: :strong)
+        op.with(consistency: :strong).reload
         op.close_op
         op.delete if op.completed?
       end

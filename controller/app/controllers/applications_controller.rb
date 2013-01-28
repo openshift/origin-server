@@ -50,30 +50,30 @@ class ApplicationsController < BaseController
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
     default_gear_size.downcase! if default_gear_size
-    
+
     begin
-      domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
+      # Use strong consistency to avoid race condition creating domain and app in succession
+      domain = Domain.with(consistency: :strong).find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain '#{domain_id}' not found", 127,"ADD_APPLICATION")
     end
-    
+
     return render_error(:unprocessable_entity, "Application name is required and cannot be blank",
                         105, "ADD_APPLICATION", "name") if !app_name or app_name.empty?
-                        
+
     valid_sizes = OpenShift::ApplicationContainerProxy.valid_gear_sizes(domain.owner)
     return render_error(:unprocessable_entity, "Invalid size: #{default_gear_size}. Acceptable values are #{valid_sizes.join(",")}",
                         134, "ADD_APPLICATION", "gear_profile") if default_gear_size and !valid_sizes.include?(default_gear_size)
-      
-                        
+
     if Application.where(domain: domain, canonical_name: app_name.downcase).count > 0
       return render_error(:unprocessable_entity, "The supplied application name '#{app_name}' already exists", 100, "ADD_APPLICATION", "name")
     end
-    
+
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
     return render_error(:unprocessable_entity, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
-                  
+
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
                             109, "ADD_APPLICATION", "cartridge") if features.nil?
 
