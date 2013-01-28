@@ -552,7 +552,7 @@ module MCollective
       # Passes arguments to cartridge for use
       #
       def cartridge_do_action
-        Log.instance.info("cartridge_do_action call / request = #{request.pretty_inspect}")
+        Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
         validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
         validate :cartridge, :shellsafe
@@ -591,7 +591,7 @@ module MCollective
       # Set the district for a node
       #
       def set_district_action
-        Log.instance.info("set_district call / request = #{request.pretty_inspect}")
+        Log.instance.info("set_district call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
         uuid = request[:uuid]
         active = request[:active]
@@ -733,7 +733,7 @@ module MCollective
       # Executes a list of jobs parallely and returns their results embedded in args
       #
       def execute_parallel_action        
-        Log.instance.info("execute_parallel_action call / request = #{request.pretty_inspect}")
+        Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         #validate :joblist, /\A[\w\+\/= \{\}\"@\-\.:\'\\\n~,_]+\z/
         #validate :joblist, :shellsafe
 
