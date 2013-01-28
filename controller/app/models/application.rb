@@ -335,7 +335,7 @@ class Application
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :add_features, args: {"features" => features, "group_overrides" => group_overrides, "init_git_url"=>init_git_url}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
-    domain.reload.with(consistency: :strong)
+    domain.with(consistency: :strong).reload
     domain.run_jobs
     result_io
   end
@@ -376,7 +376,7 @@ class Application
       self.pending_op_groups.push PendingAppOpGroup.new(op_type: :remove_features, args: {"features" => features, "group_overrides" => group_overrides}, user_agent: self.user_agent)
       self.run_jobs(result_io)
     end
-    domain.reload.with(consistency: :strong)
+    domain.with(consistency: :strong).reload
     domain.run_jobs
     result_io
   end
@@ -871,7 +871,7 @@ class Application
   # True on success or False if unable to acquire the lock or no pending jobs.
   def run_jobs(result_io=nil)
     result_io = ResultIO.new if result_io.nil?
-    self.reload.with(consistency: :strong)
+    self.with(consistency: :strong).reload
     return true if (self.pending_op_groups.count == 0)
     begin
       while self.pending_op_groups.count > 0
@@ -963,7 +963,7 @@ class Application
           op_group.execute(result_io)
           unreserve_gears(op_group.num_gears_removed)
           op_group.delete
-          self.reload.with(consistency: :strong)
+          self.with(consistency: :strong).reload
         end
         
       end
@@ -1583,7 +1583,7 @@ class Application
       until Lock.lock_user(owner, self)
         sleep 1
       end
-      owner.reload.with(consistency: :strong)
+      owner.with(consistency: :strong).reload
       owner_capabilities = owner.get_capabilities
       if owner.consumed_gears + num_gears_added > owner_capabilities["max_gears"]
         raise OpenShift::GearLimitReachedException.new("#{owner.login} is currently using #{owner.consumed_gears} out of #{owner_capabilities["max_gears"]} limit and this application requires #{num_gears_added} additional gears.")
@@ -1606,7 +1606,7 @@ class Application
       until Lock.lock_user(owner, self)
         sleep 1
       end
-      owner.reload.with(consistency: :strong)
+      owner.with(consistency: :strong).reload
       owner.consumed_gears -= num_gears_removed
       owner.save
     ensure

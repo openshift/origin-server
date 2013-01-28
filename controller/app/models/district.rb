@@ -122,7 +122,7 @@ class District
   
   def reserve_given_uid(uid)
     District.where(:uuid => self.uuid, :available_capacity.gt => 0).find_and_modify( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
-    self.reload.with(consistency: :strong)
+    self.with(consistency: :strong).reload
     self.available_uids.include? uid
   end
 
@@ -131,7 +131,7 @@ class District
     if server_map.has_key?(server_identity)
       if server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
-        self.reload.with(consistency: :strong)
+        self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", false)
       else
@@ -147,7 +147,7 @@ class District
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
-        self.reload.with(consistency: :strong)
+        self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{_id}", true)
       else

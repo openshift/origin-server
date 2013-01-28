@@ -36,12 +36,12 @@ class PendingAppOpGroup
   end
   
   def eligible_rollback_ops
-    self.reload.with(consistency: :strong)
+    self.with(consistency: :strong).reload
     pending_ops.where(:state => :completed).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state => :completed).count == 0)}
   end
   
   def eligible_ops
-    self.reload.with(consistency: :strong)
+    self.with(consistency: :strong).reload
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
   
