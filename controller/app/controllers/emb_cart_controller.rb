@@ -204,8 +204,12 @@ class EmbCartController < BaseController
     scales_from = Integer(params[:scales_from]) rescue nil
     scales_to = Integer(params[:scales_to]) rescue nil
     additional_storage = params[:additional_gear_storage]
- 
-    begin 
+
+    if scales_from.nil? and scales_to.nil? and additional_storage.nil?
+      return render_error(:unprocessable_entity, "No update parameters specified.  Valid update parameters are: scales_from, scales_to, additional_gear_storage", 168, "PATCH_APP_CARTRIDGE") 
+    end
+
+    begin
       additional_storage = Integer(additional_storage) if additional_storage
     rescue
       return render_error(:unprocessable_entity, "Invalid storage value provided.", 165, "PATCH_APP_CARTRIDGE", "additional_storage")
