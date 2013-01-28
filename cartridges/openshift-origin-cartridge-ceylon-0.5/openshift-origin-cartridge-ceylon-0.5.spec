@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version: 1.0.1
+Version: 1.0.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -16,8 +16,6 @@ BuildArch: noarch
 BuildRequires: git
 Requires: openshift-origin-cartridge-abstract
 Requires: rubygem(openshift-origin-node)
-Requires: ceylon >= 0.5
-Requires: ceylon
 Requires: mod_bw
 Requires: rubygem-builder
 
@@ -94,6 +92,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Jan 28 2013 Matej Lazar <matejonnet@gmail.com> 1.0.2-1
+- 
+
 * Mon Jan 28 2013 Unknown name 1.0.1-1
 - new package built with tito
 
