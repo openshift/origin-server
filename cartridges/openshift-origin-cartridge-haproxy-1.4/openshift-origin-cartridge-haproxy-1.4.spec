@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.3.5
+Version: 1.3.6
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -94,6 +94,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Jan 28 2013 Adam Miller <admiller@redhat.com> 1.3.6-1
+- Bug 903564: Fix inconsistent sed when updating haproxy cfg
+  (ironcladlou@gmail.com)
+
 * Mon Jan 21 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
 - Merge pull request #1183 from danmcp/master
   (dmcphers+openshiftbot@redhat.com)
