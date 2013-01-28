@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mongo auth service
 Name:           rubygem-%{gem_name}
-Version:        1.1.1
+Version:        1.1.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -98,6 +98,16 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.1.2-1
+- 875575 (dmcphers@redhat.com)
+- Fix mongo auth plugin (rpenta@redhat.com)
+- Bug 890119 (lnader@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Ensure write to at least 2 mongo instances (dmcphers@redhat.com)
+- Adding support for broker to mongodb connections over SSL
+  (calfonso@redhat.com)
+
 * Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
 - updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
 - more changes for US3078 (abhgupta@redhat.com)
