@@ -182,7 +182,7 @@ class BaseController < ActionController::Base
   def check_version
     accept_header = request.headers['Accept']
     Rails.logger.debug accept_header    
-    mime_types = accept_header.split(%r{,\s*})
+    mime_types = accept_header ? accept_header.split(%r{,\s*}) : []
     version_header = API_VERSION
     mime_types.each do |mime_type|
       values = mime_type.split(%r{;\s*})

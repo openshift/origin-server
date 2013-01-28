@@ -169,7 +169,7 @@ class Gear
     get_proxy.get_public_hostname
   end
   
-  # Given a set of gears, retrueve the state of the gear
+  # Given a set of gears, retrieve the state of the gear
   #
   # == Parameters:
   # gears::
