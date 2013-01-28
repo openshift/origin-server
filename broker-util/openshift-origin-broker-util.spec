@@ -1,14 +1,19 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.4.1
+Version:        1.4.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
-
-Requires:       openshift-broker
+Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}-%{version}.tar.gz
 Requires:       ruby(abi) >= 1.8
+Requires:       openshift-origin-broker
+# For oo-register-dns
+Requires:       bind-utils
+# For oo-setup-bind
+Requires:       rng-tools
+# For oo-setup-broker
+Requires:       openssl
 %if 0%{?fedora} >= 17
 BuildRequires:  rubygems-devel
 %else
@@ -17,8 +22,8 @@ BuildRequires:  rubygems
 BuildArch:      noarch
 
 %description
-This package contains a set of utility scripts for the broker.  They must be
-run on a broker instance.
+This package contains a set of utility scripts for the openshift broker.  
+They must be run on a openshift broker instance.
 
 %prep
 %setup -q
