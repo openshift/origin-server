@@ -3,7 +3,7 @@
 
 Summary:   OpenShift Origin broker components
 Name:      openshift-origin-broker
-Version:   1.1.1
+Version:   1.1.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -198,6 +198,70 @@ chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.1.2-1
+- Merge pull request #1212 from brenton/misc5
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 873180 (dmcphers@redhat.com)
+- Disable test that doesnt work with concurrency (dmcphers@redhat.com)
+- BZ888056 - production.rb should not be marked as a conf file
+  (bleanhar@redhat.com)
+- fixing rebase/merge issue that caused missing comma in test rails env
+  configuration (abhgupta@redhat.com)
+- using openshift_broker_test db in test rails env for origin broker
+  (abhgupta@redhat.com)
+- Fix SSL option in mongoid.yml (rpenta@redhat.com)
+- bumping rest api version to handle change in rest user model
+  (abhgupta@redhat.com)
+- Fix usage model unit test (rpenta@redhat.com)
+- Fix Usage: Through an error instead of bailing out when gear was created with
+  usage-tracking disabled and later on gear was destroyed with usage-tracking
+  enabled (rpenta@redhat.com)
+- District unit test: clear all districts that were created during teardown
+  phase (rpenta@redhat.com)
+- Remove old mongo datastore test (rpenta@redhat.com)
+- Added system, subuser, usage tests from li repo (rpenta@redhat.com)
+- Fix district model and district unit tests rework (rpenta@redhat.com)
+- fixing broker integration tests (abhgupta@redhat.com)
+- minor cleanup (rpenta@redhat.com)
+- Populate mongoid.yml config from Rails datastore configuration.
+  (rpenta@redhat.com)
+- uncommenting app_cart_delete_v1 rest unit test (abhgupta@redhat.com)
+- uncommenting scale down unit test (abhgupta@redhat.com)
+- uncommenting app scale down unit tests (abhgupta@redhat.com)
+- fixing integration test (abhgupta@redhat.com)
+- Bug 889947 (lnader@redhat.com)
+- Fix for bug 889978 (abhgupta@redhat.com)
+- commenting out broken tests for now - were always broke but error was hidden
+  before (dmcphers@redhat.com)
+- fixing broker tests again after rebase (abhgupta@redhat.com)
+- fixing mongoid.yml for broker tests (abhgupta@redhat.com)
+- fix mongoid.yml username (dmcphers@redhat.com)
+- add dynect migration (dmcphers@redhat.com)
+- removed debug statements (lnader@redhat.com)
+- add random number to app alias (lnader@redhat.com)
+- removing app templates and other changes (dmcphers@redhat.com)
+- fixing rest_api_test and fixing backward compatibility bugs
+  (lnader@redhat.com)
+- fix broker integration tests (dmcphers@redhat.com)
+- fix create domain breakage (dmcphers@redhat.com)
+- fix broker functional tests (dmcphers@redhat.com)
+- fix functional tests (dmcphers@redhat.com)
+- fixing cloud user test cases (dmcphers@redhat.com)
+- test case fixes + typo fixes (dmcphers@redhat.com)
+- fixup cloud user usages (dmcphers@redhat.com)
+- fix db for test (dmcphers@redhat.com)
+- add bson_ext (dmcphers@redhat.com)
+- Added support for thread dump. Fixed default username in mongoid.yml file
+  (kraman@gmail.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Ensure write to at least 2 mongo instances (dmcphers@redhat.com)
+- Merge pull request #1192 from Miciah/bz-902630-failed-to-reload-openshift-
+  broker-service (dmcphers@redhat.com)
+- Bug 902630: fix `service openshift-broker reload` (miciah.masters@gmail.com)
+- Adding support for broker to mongodb connections over SSL
+  (calfonso@redhat.com)
+
 * Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
 - BZ876324 resolve ServerName/NameVirtualHost situation for
   node/broker/ssl.conf (lmeyer@redhat.com)
