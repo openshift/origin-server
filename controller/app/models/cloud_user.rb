@@ -31,7 +31,7 @@ class CloudUser
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
   field :pending_plan_id, type: String
-  field :pending_plan_uptime, type: String
+  field :pending_plan_uptime, type: Time
   field :usage_account_id, type: String
   field :consumed_gears, type: Integer, default: 0
   embeds_many :ssh_keys, class_name: SshKey.name
@@ -74,21 +74,22 @@ class CloudUser
 
   def save(options = {})
     res = false
-    notify_observers(:before_cloud_user_create)
+    notify = !self.persisted?
+    notify_observers(:before_cloud_user_create) if notify
     begin
       begin
         res = mongoid_save(options)
-        notify_observers(:cloud_user_create_success)
+        notify_observers(:cloud_user_create_success) if notify
       rescue Exception => e
         Rails.logger.debug e
         begin
-          notify_observers(:cloud_user_create_error)
+          notify_observers(:cloud_user_create_error) if notify
         ensure
           raise
         end
       end
     ensure
-      notify_observers(:after_cloud_user_create)
+      notify_observers(:after_cloud_user_create) if notify
     end
     res
   end
