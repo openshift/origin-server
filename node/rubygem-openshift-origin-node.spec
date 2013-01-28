@@ -30,6 +30,7 @@ Requires:       rubygem(openshift-origin-common)
 Requires:       python
 Requires:       libselinux-python
 Requires:       mercurial
+Requires:       httpd
 
 %if 0%{?fedora}%{?rhel} <= 6
 Requires:       libcgroup
@@ -141,16 +142,16 @@ rm -rf %{buildroot}
 %{gem_cache}
 %{gem_spec}
 %attr(0750,-,-) /usr/bin/oo-admin-ctl-cgroups
+/etc/openshift
 /usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
-%config(noreplace) /etc/openshift
 %config(noreplace) /etc/openshift/node.conf
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
-
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
 %attr(0755,-,-) %{appdir}
+%attr(0750,root,apache) %{appdir}/.httpd.d
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
