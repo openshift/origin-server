@@ -28,17 +28,24 @@ OpenShift. You may have additional directories or files.
      |  +- setup                   (required)
      |  +- teardown                (optional)
      |  +- control                 (required)
-     |  +- build                   (optional)
      +- versions                   (discretionary)
      |  +- `cartridge name`-`software version`
      |  |  +- bin
-     |  |     +- build
+     |  |     +- ...
      |  |  +- data
-     |  |     +- git_template.git
-     |  |        +- ... (bare git repository)
+     |  |     +- template          (optional)
+     |  |        +- .openshift
+     |  |        |   +- ...
+     |  |        +- ... (directory/file tree)
+     |  |     +- template.git       (discretionary)
+     |  |        +- ... (git bare repo)
      |  +- ...
      +- env                        (required)
      |  +- *.erb
+     +- template                   (optional)
+     |  +- ... (directory/file tree)
+     +  template.git               (discretionary)
+     +  +- ... (bare git repository)
      +- opt                        (optional)
      |  +- ...
      +- metadata
@@ -80,7 +87,9 @@ An example `manifest.yml` file:
 
 ```yaml
 Name: diy-0.1
+Namespace: DIY
 Display-Name: diy v1.0.0 (noarch)
+Namespace: DIY
 Description: "Experimental cartridge providing a way to try unsupported languages, frameworks, and middleware on OpenShift"
 Version: 1.0.0
 License: "ASL 2.0"
@@ -119,9 +128,7 @@ Subscribes:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
 Endpoints:
-  HTTP: 8080
-  SERVICE_A: 6666
-  SERVICE_B: 7777
+  - "HTTP_IP:WEB_PORT(8080):WEB_PROXY_PORT"
   ...
 Reservations:
   - MEM >= 10MB
@@ -176,13 +183,17 @@ Here is a `locked_files.txt` for a PHP cartridge:
     php-5.3/bin/
     php-5.3/conf/*
 
-Note in the above list the files in the `php-5.3/conf` directory are
-unlocked but the directory itself is not.  Directories like `.node-gyp`
-and `.npm` in nodejs are **NOT** candidates to be created in this
-manner as they require the gear to have read and write access while
-the application is deploying and running. These directories would need
-to be created by the nodejs `setup` script which is run while the gear
-is unlocked.
+In the above list:
+  * the file `.pearrc` will be created, if it does not exists, and be made editable.
+  * the directory `php-5.3/bin` is unlocked but not the files it contains. So you can add files.
+  * the files in `php-5.3/conf` are unlocked but the directory itself is not.
+    So you can edit files but not add files.
+
+Directories like `.node-gyp` and `.npm` in nodejs are **NOT** candidates
+to be created in this manner as they require the gear to have read
+and write access while the application is deploying and running. These
+directories would need to be created by the nodejs `setup` script which
+is run while the gear is unlocked.
 
 The following list is reserved by OpenShift in the the gear's home
 directory:
@@ -197,51 +208,142 @@ You may create any hidden file or directory (one that starts with a
 period) not in the reserved list in the gear's home directory while the
 cartridge is unlocked.
 
+## template vs template.git (for language cartridges)
+
+`template` or `template.git` directory provides an minimal example of a web application
+written in the language/framework your cartridge is providing.
+Your application should welcome the application developer to
+your cartridge and let them see that your cartridge has indeed been installed.
+If you provide a `template` directory, OpenShift will transform it into a bare git repository
+for use by the application developer. If you provide a `template.git` directory, OpenShift will
+copy the directory for use by the application developer. Your `setup` script should assume that
+`template` directories may be converted to `template.git` during the packaging of your cartridge
+for use by OpenShift. The PaaS operator may choose to convert all `template` directories to bare
+git repositories `template.git` to obtain the performance gain when adding your cartridge to gear.
+One good workflow point to make this change is when your cartridge is packaged into an RPM.
+
+A `ruby 1.8` with `Passenger` support would have a `public` sub-directory and
+a `config.ru` file to define the web application.
+
+    +- template
+    |  +- config.ru
+    |  +- public
+    |  |  +- .gitignore
+
+Note that .gitignore should be placed in empty directories to ensure they survive when the file tree
+is loaded into a git repository.
+
+The sub-directory `markers` may contain files created by the application developer
+that denote behaviour you are expected to honor in your cartridges lifecycle. Current
+examples from a Ruby 1.8 cartridge include:
+
+    force_clean_build     Previous output from bundle install --deployment will be
+                          removed and all gems will be reinstalled according to the
+                          current Gemfile/Gemfile.lock.
+    hot_deploy            Will prevent the apache process from being restarted during
+                          build/deployment. Note that mod_passenger will respawn the
+                          Rack worker processes if any code has been modified.
+    disable_auto_scaling  Will prevent scalable applications from scaling up
+                          or down according to application load.
+
+You may add additional markers to allow an application developer to control aspects
+of your cartridge.
+
+The sub-directory `.openshift` should contain the sub-directory `action_hooks` which
+will contain code the application developer wishes run during lifecycle changes.
+Examples would be:
+
+    pre_start_`cartridge name`-`software version`
+    post_start_`cartridge name`-`software version`
+    pre_stop_`cartridge name`-`software version`
+    ...
+
+You can obtain a template for the `template` directory from [xxx](http;//git...yyy).
+You will want to down the repo as a zip file and extract the files into your
+cartridge's `template` directory. Further details are in the README.writing_applications.md
+document.
+
+As a cartridge author you do not need to execute the default `action_hooks`.
+OpenShift will call them during lifecycle changes based on the actions given to the
+`control` script. If you wish to add additional hooks, you are expected to document them
+and you will need to run them explicately in your `control` script.
 
 ## Exposing Services / TCP Endpoints
 
-All cartridges expose endpoints to provide service or services to related gears
-in an application. The exposed endpoints are available via environment variables
-whose names are derived from endpoint names provided in the cartridge metadata.
-All endpoints route within a node to an assigned internal IP address and port
-specified in the endpoint metadata.
+Most cartridges provide a service by binding to one or many ports. Cartridges
+must explicitly declare which ports they will bind to, and provide meaningful
+variable names to describe:
 
-Endpoint environment variables are namespaced. The full variable name is
-generated by OpenShift and follows the form
-`OPENSHIFT_{CART_NS}_{ENDPOINT_NAME}:{PORT}`. The `{CART_NS}` segment is
-generated according to [TODO: DOC EXISTING ALGORITHM]. The `{ENDPOINT_NAME}` is
-specified by the cartridge endpoint metadata. The external port assignment
-itself is random.
+  * Any IP addresses necessary for binding
+  * The gear-local ports to which the cartridge services will bind
+  * (Optional) Publicly proxied ports which expose gear-local ports for use outside OpenShift or across application gears
 
-Endpoints are defined via the cartridge `manifest.yml` file, in the `Endpoints`
-section. Each entry is a key-value pair, where the key is the name of the
-endpoint, and the value is the endpoint's port.
+These declarations represent "Endpoints," and are defined in the cartridge
+`manifest.yml` in the `Endpoints` section using the following syntax:
+
+```
+Endpoints:
+  - "<name of IP variable>:<name of port variable>(<port>)[:<name of public port variable>]"
+  - ...
+```
+
+During cartridge installation within a gear, IP addresses will be automatically
+allocated and assigned to each distinct IP variable name, with the guarantee
+that the specified port will be bindable on the allocated address.
+
+If an endpoint specifies a public port variable, a public port proxy mapping will
+be created using a random external port accessible via the gear's DNS entry.
+
+Each portion of the endpoint definition becomes available via environment variables
+located within the gear and accessible to cartridge scripts and application code. The
+names of these variables are prefixed with OpenShift namespacing information in the
+follow the format:
+
+```
+OPENSHIFT_{cart namespace}_{name of IP variable} => <assigned internal IP>
+OPENSHIFT_{cart namespace}_{name of port variable} => <endpoint specified port>
+OPENSHIFT_{cart namespace}_{name of public port variable} => <assigned external port>
+```
+
+The `cart namespace` portion of the variables is defined by the `Namespace` entry
+in the cartridge manifest.
 
 ### Endpoint Example
 
 Given a cartridge named `CustomCart` and the following entry in `manifest.yml`:
 
 ```
+Name: CustomCart
+Namespace: CUSTOMCART
+
+...
+
 Endpoints:
-  - HTTP: 8080
-  - SERVICE_A: 55555
-  - SERVICE_B: 66666
+  - "HTTP_IP:WEB_PORT(8080):WEB_PROXY_PORT"
+  - "HTTP_IP:ADMIN_PORT(9000):ADMIN_PROXY_PORT"
+  - "INTERNAL_SERVICE_IP:INTERNAL_SERVICE_PORT(5544)"
 ```
 
-The following proxy port mappings will be generated:
+The following environment variables will be generated:
 
 ```
-<assigned external IP>:<assigned port 0> => <assigned internal IP>:8080
-<assigned external IP>:<assigned port 1> => <assigned internal IP>:5555
-<assigned external IP>:<assigned port 2> => <assigned internal IP>:6666
+# Internal IP/port allocations
+OPENSHIFT_CUSTOMCART_HTTP_IP=<assigned internal IP 1>
+OPENSHIFT_CUSTOMCART_WEB_PORT=8080
+OPENSHIFT_CUSTOMCART_ADMIN_PORT=9000
+OPENSHIFT_CUSTOMCART_INTERNAL_SERVICE_IP=<assigned internal IP 2>
+OPENSHIFT_CUSTOMCART_INTERNAL_SERVICE_PORT=5544
+
+# Public proxy port mappings
+OPENSHIFT_CUSTOMCART_WEB_PROXY_PORT=<assigned public port 1>
+OPENSHIFT_CUSTOMCART_ADMIN_PROXY_PORT=<assigned public port 2>
 ```
 
-The following environment variables will be created:
+In the above example, the public proxy port mappings are as follows:
 
 ```
-OPENSHIFT_CUSTOMCART_HTTP=<assigned external IP>:<assigned port 0>
-OPENSHIFT_CUSTOMCART_SERVICE_A=<assigned external IP>:<assigned port 1>
-OPENSHIFT_CUSTOMCART_SERVICE_B=<assigned external IP>:<assigned port 2>
+<assigned external IP>:<assigned public port 1> => OPENSHIFT_CUSTOMCART_HTTP_IP:OPENSHIFT_CUSTOMCART_WEB_PORT
+<assigned external IP>:<assigned public port 2> => OPENSHIFT_CUSTOMCART_HTTP_IP:OPENSHIFT_CUSTOMCART_ADMIN_PORT
 ```
 
 
@@ -333,6 +435,8 @@ Other candidates for templates are httpd configuration files for
 `includes`, configuring database to store persistent data in the
 OPENSHIFT_DATA_DIR, and setting the application name in the pom.xml file.
 
+`setup` may substitute a version dependent git_template.git repository.
+
 Lock context: `unlocked`
 
 ##### Messaging to OpenShift from cartridge
@@ -410,6 +514,9 @@ The `control` script allows OpenShift or user to control the state of the cartri
 
 The actions that must be supported:
 
+   * `build` is called when building the developers application and by default
+     from the git respository post-receive hook. The application is built in app-root/runtime/repo.
+   * `deploy` is called after a successful `build`
    * `start` start the software your cartridge controls
    * `stop` stop the software your cartridge controls
    * `status` return an 0 exit status if your cartridge code is running.
@@ -455,19 +562,6 @@ restart failed applications. For completeness, `.state` values:
     * `started`     application has been commanded to start
     * `stopped`     application has been commanded to stop
 
-## bin/build
-
-##### Synopsis
-
-`build`
-
-##### Description
-
-The `build` script is called during the `git push` to perform builds of the user's new code.
-
-Lock context: `locked`
-
-
 ## Environment Variables
 
 Environment variables are use to communicate setup information between
@@ -506,9 +600,7 @@ to be used for all cartridge entry points.
  * `OPENSHIFT_MYSQL_DB_SOCKET`
  * `OPENSHIFT_MYSQL_DB_URL`
  * `OPENSHIFT_MYSQL_DB_USERNAME`
- * `OPENSHIFT_PHP_IP`
  * `OPENSHIFT_PHP_LOG_DIR`
- * `OPENSHIFT_PHP_PORT`
 
 *jwh: now these are very cartridge dependent*
 

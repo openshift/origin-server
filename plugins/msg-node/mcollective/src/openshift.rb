@@ -528,6 +528,36 @@ module MCollective
         return exitcode, output
       end
 
+      def handle_v2_cartridge_action(cartridge, action, args)
+        container_uuid = args['--with-container-uuid']
+        app_uuid = args['--with-app-uuid']
+
+        begin
+          # is it time for an options hash? lack of named params makes this very messy
+          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
+            nil, nil, nil, nil, nil, logger = Log.instance)
+          
+          # we have to collect some kind of output to pass back to the broker here
+          # ex: jenkins SSH key add
+          output = ''
+
+          case action
+          when 'configure'
+            output = container.add_cart(cartridge)
+          when 'deconfigure'
+            output = container.remove_cart(cartridge)
+          else
+            Log.instance.warn("Unsupported command for V2 cartridges: #{action}")
+          end
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
       def handle_cartridge_action(cartridge, action, args)
         exitcode = 0
         output = ""
@@ -575,7 +605,12 @@ module MCollective
         else
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
-          exitcode, output = handle_cartridge_action(cartridge, action, args)
+
+          if %w(configure deconfigure).include?(action) && !OpenShift::Utils::Sdk.v1_cartridges.include?(cartridge)
+            handle_v2_cartridge_action(cartridge, action, args)
+          else
+            exitcode, output = handle_cartridge_action(cartridge, action, args)
+          end
         end
         reply[:exitcode] = exitcode
         reply[:output] = output

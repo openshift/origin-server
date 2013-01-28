@@ -14,7 +14,7 @@
 # limitations under the License.
 #++
 require "test/unit"
-require "mocha/setup"
+require "mocha"
 require "fileutils"
 require "openshift-origin-node/utils/environ"
 
@@ -42,7 +42,7 @@ class MyTest < Test::Unit::TestCase
     File.open(File.join(@gear_env, "OPENSHIFT_GEAR_UUID"), "w") { |fd|
       fd.write(%Q{export OPENSHIFT_GEAR_UUID="#{@uuid}"})
     }
-    env = OpenShift::Environ.load(@gear_env)
+    env = OpenShift::Utils::Environ.load(@gear_env)
     assert_equal @uuid, env["OPENSHIFT_GEAR_UUID"]
     assert_nil env["OPENSHIFT_APP_NAME"]
   end
@@ -56,7 +56,7 @@ class MyTest < Test::Unit::TestCase
       fd.write(%Q{export OPENSHIFT_MOCK_IP="127.0.0.666"})
     }
 
-    env = OpenShift::Environ.for_gear(File.join("/tmp", @uuid))
+    env = OpenShift::Utils::Environ.for_gear(File.join("/tmp", @uuid))
     assert_equal @uuid, env["OPENSHIFT_GEAR_UUID"]
     assert_equal "127.0.0.666", env["OPENSHIFT_MOCK_IP"]
     assert_nil env["OPENSHIFT_APP_NAME"]

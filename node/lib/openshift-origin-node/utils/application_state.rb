@@ -30,47 +30,49 @@ module OpenShift
     UNKNOWN   = "unknown"
   end
 
-  # Class to maintain persistent application state
-  class ApplicationState
+  module Utils
+    # Class to maintain persistent application state
+    class ApplicationState
 
-    attr_reader :uuid
+      attr_reader :uuid
 
-    def initialize(uuid)
-      @uuid = uuid
+      def initialize(uuid)
+        @uuid = uuid
 
-      config      = OpenShift::Config.new
-      @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", ".state")
-    end
-
-    # Public: Sets the application state.
-    #
-    # @param [String]   new_state - From Openshift::State.
-    # @return [Object]  self for chaining calls
-    def set(new_state)
-      new_state_val = nil
-      begin
-        new_state_val = OpenShift::State.const_get new_state.upcase.intern
-      rescue
-        raise ArgumentError, "Invalid state '#{new_state}' specified"
+        config      = OpenShift::Config.new
+        @state_file = File.join(config.get("GEAR_BASE_DIR"), uuid, "app-root", "runtime", ".state")
       end
 
-      File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0660) { |file|
-        file.write "#{new_state_val}\n"
-      }
-      self
-    end
+      # Public: Sets the application state.
+      #
+      # @param [String]   new_state - From Openshift::State.
+      # @return [Object]  self for chaining calls
+      def set(new_state)
+        new_state_val = nil
+        begin
+          new_state_val = OpenShift::State.const_get new_state.upcase.intern
+        rescue
+          raise ArgumentError, "Invalid state '#{new_state}' specified"
+        end
 
-    # Public: Fetch application state from gear.
-    #
-    # @return [String] application state or State::UNKNOWN on failure
-    def get
-      if File.exists?(@state_file)
-        app_state = nil
-        File.open(@state_file) { |input| app_state = input.read.chomp }
-      else
-        app_state = State::UNKNOWN
+        File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0660) { |file|
+          file.write "#{new_state_val}\n"
+        }
+        self
       end
-      app_state
+
+      # Public: Fetch application state from gear.
+      #
+      # @return [String] application state or State::UNKNOWN on failure
+      def get
+        if File.exists?(@state_file)
+          app_state = nil
+          File.open(@state_file) { |input| app_state = input.read.chomp }
+        else
+          app_state = State::UNKNOWN
+        end
+        app_state
+      end
     end
   end
 end

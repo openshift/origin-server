@@ -16,7 +16,7 @@
 
 require "rubygems"
 require "test/unit"
-require "mocha/setup"
+require "mocha"
 require "fileutils"
 require "openshift-origin-node/utils/application_state"
 
@@ -28,8 +28,6 @@ module OpenShift
     def setup
       @uuid = "d0db4f85e531439c94e5263339203f95"
       FileUtils.mkpath(File.join("/tmp", @uuid, "app-root", "runtime"))
-
-
     end
 
     # Called after every test method runs. Can be used to tear
@@ -39,13 +37,13 @@ module OpenShift
       FileUtils.rm_rf(File.join("/tmp", @uuid))
     end
 
-    def test_set
+    def test_set_get
       config = mock('OpenShift::Config')
       config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
       OpenShift::Config.stubs(:new).returns(config)
 
       # .state file is missing
-      state = OpenShift::ApplicationState.new(@uuid)
+      state = OpenShift::Utils::ApplicationState.new(@uuid)
       assert_equal State::UNKNOWN, state.get
 
       # .state file is created

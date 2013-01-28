@@ -15,9 +15,14 @@
 #++
 
 require 'rubygems'
-require 'openshift-origin-node/model/unix_user'
-require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/model/frontend_proxy'
+require 'openshift-origin-node/model/unix_user'
+require 'openshift-origin-node/model/v1_cart_model'
+require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/application_state'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/sdk'
 require 'openshift-origin-common'
 require 'logger'
 require 'yaml'
@@ -31,17 +36,6 @@ module OpenShift
 
     attr_reader :uuid, :application_uuid, :user
 
-    # Represents all possible application states.
-    module State
-      BUILDING = "building"
-      DEPLOYING = "deploying"
-      IDLE = "idle"
-      NEW = "new"
-      STARTED = "started"
-      STOPPED = "stopped"
-      UNKNOWN = "unknown"
-    end
-
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, logger = nil)
       @logger = logger ||= Logger.new(STDOUT)
@@ -52,10 +46,33 @@ module OpenShift
       @application_uuid = application_uuid
       @user = UnixUser.new(application_uuid, container_uuid, user_uid,
         app_name, container_name, namespace, quota_blocks, quota_files)
+      @state = OpenShift::Utils::ApplicationState.new(container_uuid)
+
+      # smells
+      @cart_model = nil
     end
 
     def name
       @uuid
+    end
+
+    def cart_model
+      unless @cart_model
+        @cart_model = (OpenShift::Utils::Sdk.is_new_sdk_app(@user.homedir)) ? V2CartridgeModel.new(@config, @user) : V1CartridgeModel.new(@config, @user)
+      end
+
+      @cart_model
+    end
+
+    def add_cart(cart)
+      # TODO: figure out when to mark app as v2 sdk
+      OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
+
+      cart_model.add_cart(cart)
+    end
+
+    def remove_cart(cart)
+      cart_model.remove_cart(cart)
     end
 
     # Create gear - model/unix_user.rb
@@ -69,48 +86,8 @@ module OpenShift
     def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
-      hook_timeout=30
-
-      output = ""
-      errout = ""
-      retcode = 0
-
-      hooks={}
-      ["pre", "post"].each do |hooktype|
-        if @user.homedir.nil? || ! File.exists?(@user.homedir)
-          hooks[hooktype]=[]
-        else
-          hooks[hooktype] = Dir.entries(@user.homedir).map { |cart|
-            [ File.join(@config.get("CARTRIDGE_BASE_PATH"),cart,"info","hooks","#{hooktype}-destroy"),
-              File.join(@config.get("CARTRIDGE_BASE_PATH"),"embedded",cart,"info","hooks","#{hooktype}-destroy"),
-            ].select { |hook| File.exists? hook }[0]
-          }.select { |hook|
-            not hook.nil?
-          }.map { |hook|
-            "#{hook} #{@user.container_name} #{@user.namespace} #{@user.container_uuid}"
-          }
-        end
-      end
-
-      unless skip_hooks
-        hooks["pre"].each do | cmd |
-          out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
-          errout << err if not err.nil?
-          output << out if not out.nil?
-          retcode = 121 if rc != 0
-        end
-      end
-
-      @user.destroy
-
-      unless skip_hooks
-        hooks["post"].each do | cmd |
-          out,err,rc = shellCmd(cmd, "/", true, 0, hook_timeout)
-          errout << err if not err.nil?
-          output << out if not out.nil?
-          retcode = 121 if rc != 0
-        end
-      end
+      # possible mismatch across cart model versions
+      output, errout, retcode = cart_model.destroy
 
       notify_observers(:after_container_destroy)
 
@@ -120,37 +97,14 @@ module OpenShift
     # Public: Fetch application state from gear.
     # Returns app state as string on Success and 'unknown' on Failure
     def get_app_state
-      env = load_env
-      app_state_file=File.join(env[:OPENSHIFT_HOMEDIR], 'app-root', 'runtime', '.state')
-      
-      if File.exists?(app_state_file)
-        app_state = nil
-        File.open(app_state_file) { |input| app_state = input.read.chomp }
-      else
-        app_state = :UNKNOWN
-      end
-      app_state
+      @state.get
     end
 
     # Public: Sets the application state.
     #
     # new_state - The new state to assign. Must be an ApplicationContainer::State.
     def set_app_state(new_state)
-      new_state_val = nil
-      begin
-        new_state_val = State.const_get(new_state)
-      rescue
-        raise ArgumentError, "Invalid state '#{new_state}' specified"
-      end
-
-      env = load_env
-      app_state_file = File.join(env[:OPENSHIFT_HOMEDIR], 'app-root', 'runtime', '.state')
-      
-      raise "Couldn't find app state file at #{app_state_file}" unless File.exists?(app_state_file)
-
-      File.open(app_state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
-        file.write "#{new_state_val}\n"
-      }
+      @start.set new_state
     end
 
     # Public: Sets the app state to "stopped" and causes an immediate forced 
@@ -158,13 +112,13 @@ module OpenShift
     #
     # TODO: exception handling
     def force_stop
-      set_app_state(:STOPPED)
+      @state.set(ApplicationState::State::STOPPED)
       UnixUser.kill_procs(@user.uid)
     end
 
 
     # Public: Cleans up the gear, providing any installed
-    # cartridges with the opportinity to perform their own
+    # cartridges with the opportunity to perform their own
     # cleanup operations via the tidy hook.
     #
     # The generic gear-level cleanup flow is:
@@ -180,11 +134,31 @@ module OpenShift
       @logger.debug("Starting tidy on gear #{@uuid}")
 
       env = load_env
-      gear_dir = env[:OPENSHIFT_HOMEDIR]
-      app_name = env[:OPENSHIFT_APP_NAME]
+      gear_dir = env['OPENSHIFT_HOMEDIR']
+      app_name = env['OPENSHIFT_APP_NAME']
+
       gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
       gear_tmp_dir = File.join(gear_dir, '.tmp')
 
+      stop_gear(gear_dir)
+
+      # Perform the gear- and cart- level tidy actions.  At this point, the gear has
+      # been stopped; we'll attempt to start the gear no matter what tidy operations fail.
+      begin
+        gear_level_tidy(gear_repo_dir, gear_tmp_dir)
+
+        # Delegate to cartridge model to perform cart-level tidy operations for all installed carts.
+        cart_model.tidy
+      rescue Exception => e
+        @logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
+      ensure
+        start_gear(gear_dir)
+      end
+
+      @logger.debug("Completed tidy for gear #{@uuid}")      
+    end
+
+    def stop_gear(gear_dir)
       begin
         # Stop the gear. If this fails, consider the tidy a failure.
         out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
@@ -197,66 +171,42 @@ module OpenShift
           })
         raise "Tidy failed on gear #{@uuid}; the gear couldn't be stopped successfully"
       end
+    end
 
-      # Perform the individual tidy actions. At this point, the gear has been stopped,
-      # and so we'll attempt to start the gear no matter what tidy operations fail.
+    def start_gear(gear_dir)
       begin
-        # Git pruning
-        tidy_action do
-          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
-          @logger.debug("Pruned git directory at #{gear_repo_dir}. Output:\n#{out}")
-        end
+        # Start the gear, and if that fails raise an exception, as the app is now
+        # in a bad state.
+        out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
+        @logger.debug("Started gear #{@uuid}. Output:\n#{out}")
+      rescue OpenShift::Utils::ShellExecutionException => e
+        @logger.error(%Q{
+          Failed to restart gear #{@uuid} following tidy: #{e.message}
+          --- stdout ---\n#{e.stdout}
+          --- stderr ---\n#{e.stderr}
+          })
+        raise "Tidy of gear #{@uuid} failed, and the gear was not successfuly restarted"
+      end
+    end
 
-        # Git GC
-        tidy_action do
-          OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
-          @logger.debug("Executed git gc for repo #{gear_repo_dir}. Output:\n#{out}")
-        end
-
-        # Temp dir cleanup
-        tidy_action do
-          FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
-          @logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
-        end
-
-        # Execute the tidy hooks in any installed carts, in the context
-        # of the gear user. For now, we detect cart installations by iterating
-        # over the gear subdirs and using the dir names to construct a path
-        # to cart scripts in the base cartridge directory. If such a file exists,
-        # it's assumed the cart is installed on the gear.
-        cart_tidy_timeout = 30
-        Dir.entries(gear_dir).each do |gear_subdir|
-          tidy_script = File.join(@config.get("CARTRIDGE_BASE_PATH"), gear_subdir, "info", "hooks", "tidy")
-          
-          next unless File.exists?(tidy_script)
-
-          begin
-            # Execute the hook in the context of the gear user
-            @logger.debug("Executing cart tidy script #{tidy_script} in gear #{@uuid} as user #{@user.uid}:#{@user.gid}")
-            OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, tidy_script, gear_dir, false, 0, cart_tidy_timeout)
-          rescue OpenShift::Utils::ShellExecutionException => e
-            @logger.warn("Cartridge tidy operation failed on gear #{@uuid} for cart #{gear_dir}: #{e.message} (rc=#{e.rc})")
-          end
-        end
-      rescue Exception => e
-        @logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
-      ensure
-        begin
-          # Start the gear, and if that fails raise an exception, as the app is now
-          # in a bad state.
-          out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
-          @logger.debug("Started gear #{@uuid}. Output:\n#{out}")
-        rescue OpenShift::Utils::ShellExecutionException => e
-          @logger.error(%Q{
-            Failed to restart gear #{@uuid} following tidy: #{e.message}
-            --- stdout ---\n#{e.stdout}
-            --- stderr ---\n#{e.stderr}
-            })
-          raise "Tidy of gear #{@uuid} failed, and the gear was not successfuly restarted"
-        end
+    def gear_level_tidy(gear_repo_dir, gear_tmp_dir)
+      # Git pruning
+      tidy_action do
+        run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
+        @logger.debug("Pruned git directory at #{gear_repo_dir}. Output:\n#{out}")
       end
 
-      @logger.debug("Completed tidy for gear #{@uuid}")      
+      # Git GC
+      tidy_action do
+        OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
+        @logger.debug("Executed git gc for repo #{gear_repo_dir}. Output:\n#{out}")
+      end
+
+      # Temp dir cleanup
+      tidy_action do
+        FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
+        @logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
+      end
     end
 
     # Executes a block, trapping ShellExecutionExceptions and treating them
@@ -408,8 +358,10 @@ module OpenShift
     #
     # Raises an exception on error.
     def get_cart_manifest(cart)
-      manifest_path = File.join(@config.get("CARTRIDGE_BASE_PATH"), cart, "info", "manifest.yml")
-      return YAML.load_file(manifest_path)
+      cart_model.get_manifest(cart)
+      # replaces:
+      # manifest_path = File.join(@config.get("CARTRIDGE_BASE_PATH"), cart, "info", "manifest.yml")
+      # return YAML.load_file(manifest_path)
     end
 
     # Compatibility function to resolve a cartridge's IP taking into account the
@@ -427,7 +379,7 @@ module OpenShift
     def get_cart_ip(env, cart_name)
       cart_ns = self.class.cart_name_to_namespace(cart_name)
 
-      lookup_order = ["OPENSHIFT_#{cart_ns}_IP".to_sym, "OPENSHIFT_#{cart_ns}_DB_HOST".to_sym]
+      lookup_order = ["OPENSHIFT_#{cart_ns}_IP", "OPENSHIFT_#{cart_ns}_DB_HOST"]
 
       lookup_order.each do |lookup|
         return env[lookup] if env.has_key?(lookup)
@@ -449,22 +401,7 @@ module OpenShift
     #
     # Returns env Array
     def load_env
-      env = {}
-      # Load environment variables into a hash
-      
-      Dir["#{user.homedir}/.env/*"].each { | f |
-        next if File.directory?(f)
-        contents = nil
-        File.open(f) {|input|
-          contents = input.read.chomp
-          index = contents.index('=')
-          contents = contents[(index + 1)..-1]
-          contents = contents[/'(.*)'/, 1] if contents.start_with?("'")
-          contents = contents[/"(.*)"/, 1] if contents.start_with?('"')
-        }
-        env[File.basename(f).intern] =  contents
-      }
-      env
+      Utils::Environ::for_gear(user.homedir)
     end
 
     # Converts a cartridge name to a cartridge namespace.
@@ -480,5 +417,57 @@ module OpenShift
     def self.cart_name_to_namespace(cart)
       return `echo #{cart} | sed 's/-//g' | sed 's/[^a-zA-Z_]*$//g' | tr '[a-z]' '[A-Z]'`.chomp
     end
+
+    # ---------------------------------------------------------------------
+    # This code can only be reached by v2 model cartridges
+
+    # start gear
+    def start
+      do_control("start")
+    end
+
+    # stop gear
+    def stop
+      do_control("stop")
+    end
+
+    # restart gear as supported by cartridges
+    def restart
+      do_control("restart")
+    end
+
+    # reload gear as supported by cartridges
+    def reload
+      do_control("reload")
+    end
+
+    # restore gear from tar ball
+    def restore
+      raise NotImplementedError("restore")
+    end
+
+    # write gear to tar ball
+    def snapshot
+      raise NotImplementedError("snapshot")
+    end
+
+    # PRIVATE: execute action using each cartridge's control script in gear
+    # FIXME: need to source hooks in command
+    def do_control(action)
+      gear_env = Utils::Environ.load(File.join(user.home_dir, ".env"))
+
+      @cart_model.process_cartridges { |path|
+        cartridge_env = Utils::Environ.load(File.join(path, "env")).merge(gear_env)
+
+        control       = Files.join(path, "bin", "control")
+        unless File.executable?(control)
+          raise "Corrupt cartridge: #{control} must exists and be executable"
+        end
+
+        command = control + " " + action
+        Utils::spawn(cartridge_env, command, user.home_dir)
+      }
+    end
+    # ---------------------------------------------------------------------
   end
 end

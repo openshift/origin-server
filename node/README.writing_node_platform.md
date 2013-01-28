@@ -161,9 +161,8 @@ about how lower-level operations are orchestrated / invoked.
 
 ### Gear Delete
 
-* Call cartridge runhook pre-destroy
 * Corral and kill all gear user processes (see pkill)
-* Call cartridge teardown                             * jwh: is this needed on Gear delete? *
+* Call cartridge teardown, if one exists
 * Delete gear httpd conf
 * Delete gear directories
 * Delete gear user
@@ -187,8 +186,6 @@ TODO: deal with node httpd bouncing somewhere
 * Bounce the node httpd
 * Enable cgroups
 
-TODO: any runhook calls here? e.g. post-install
-
 ### Cartridge Teardown
 
 * Conceal endpoint(s)
@@ -196,15 +193,12 @@ TODO: any runhook calls here? e.g. post-install
 * Load gear + cartridge env variables
 * Call cartridge control stop
 * Unlock cartridge
-* Call cartridge teardown
+* Call cartridge teardown, if one exists
 * Uninstall cart-supplied node httpd.confs
 * Lock cartridge (this may lock files/directories that are left elsewhere in the gear)
 * Delete cartridge directory
 * Enable cgroups
 * Bounce the node httpd (performance impact?)
-
-TODO: any runhook calls here? e.g. post-remove
-
 
 ### Cartridge Expose Endpoints
 
