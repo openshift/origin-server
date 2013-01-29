@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.1
+Version: 1.4.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,39 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Update console/README.md (ccoleman@redhat.com)
+- remove consumed_gear_sizes (dmcphers@redhat.com)
+- Merge pull request #1212 from brenton/misc5
+  (dmcphers+openshiftbot@redhat.com)
+- make test react to weirdness of controller (dmcphers@redhat.com)
+- Bug 876087 (dmcphers@redhat.com)
+- correct link (sgoodwin@redhat.com)
+- add partners link in footer (sgoodwin@redhat.com)
+- Merge pull request #1152 from jtharris/features/US3205
+  (dmcphers+openshiftbot@redhat.com)
+- BZ892990 - The server address should not be "localhost" on user account info
+  page (bleanhar@redhat.com)
+- fix references to rhc app cartridge (dmcphers@redhat.com)
+- Merge pull request #1208 from kraman/features/model_refactor
+  (dmcphers+openshiftbot@redhat.com)
+- US3205 - Adding restart functionality to UI (jharris@redhat.com)
+- Merge pull request #1206 from sg00dwin/misc-dev
+  (dmcphers+openshiftbot@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Fixed site application tests (lnader@redhat.com)
+- Fixed site Misc 1 tests (lnader@redhat.com)
+- fixed scaling test (lnader@redhat.com)
+- fixing site ssh key rest api integration test (abhgupta@redhat.com)
+- Merge pull request #1207 from
+  smarterclayton/only_boot_rest_api_in_development
+  (dmcphers+openshiftbot@redhat.com)
+- use clearfix instead of overflow:hidden allows tb focus to be seen
+  (sgoodwin@redhat.com)
+- In production, don't attempt to connect to the REST API on startup
+  (ccoleman@redhat.com)
+- overwrite mixin and adjustoffset for primary nav (sgoodwin@redhat.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
