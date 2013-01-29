@@ -263,6 +263,10 @@ class EmbCartController < BaseController
         return render_error(:unprocessable_entity, "The scales_from factor currently provided cannot be higher than the scales_to factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
       end
 
+      if component_instance.nil?
+        return render_error(:unprocessable_entity, "Invalid cartridge #{id} for application #{application.name}", 168, "PATCH_APP_CARTRIDGE", "cartridge")
+      end
+
       application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 
       component_instance = application.component_instances.find_by(cartridge_name: id)
