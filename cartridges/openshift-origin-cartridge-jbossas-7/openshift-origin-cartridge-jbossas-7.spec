@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.4.1
+Version: 1.4.2
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -152,6 +152,22 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
+  its-info-directory (dmcphers+openshiftbot@redhat.com)
+- BZ904081 (bdecoste@gmail.com)
+- fix references to rhc app cartridge (dmcphers@redhat.com)
+- 892068 (dmcphers@redhat.com)
+- cleanup (dmcphers@redhat.com)
+- Bug 889932 (dmcphers@redhat.com)
+- Manifest file fixes (kraman@gmail.com)
+- Fixed scaled app creation Fixed scaled app cartridge addition Updated
+  descriptors to set correct group overrides for web_cartridges
+  (kraman@gmail.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Bug 887353: removing a cartridge leaves info/ dir (miciah.masters@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
