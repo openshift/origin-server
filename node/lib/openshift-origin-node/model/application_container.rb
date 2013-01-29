@@ -290,14 +290,21 @@ module OpenShift
       # Load the manifest for the cartridge
       begin
         manifest = get_cart_manifest(cart)
-        endpoints = manifest["Endpoints"]
       rescue => e
-        @logger.error(%Q{Failed to retrieve endpoints from manifest for cart #{cart} in gear #{@uuid}: #{e.message}
+        @logger.error(%Q{Failed to parse manifest for cart #{cart} in gear #{@uuid}: #{e.message}
           #{e.backtrace}
           })
         raise "Couldn't create endpoints for cart #{cart} in gear #{@uuid}"
       end
-      
+
+      endpoints = manifest["Endpoints"]
+
+      # Nothing to do if no endpoints are defined in the manifest
+      if endpoints == nil
+        @logger.info("No Endpoints present in manifest for cart #{cart} in gear #{@uuid}; endpoint creation skipped")
+        return
+      end
+     
       proxy = OpenShift::FrontendProxyServer.new(@logger)
       cart_ip = get_cart_ip(env, cart)
       
