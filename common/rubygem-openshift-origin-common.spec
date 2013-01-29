@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.3.1
+Version: 1.3.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,17 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- fix for bug 896333 (abhgupta@redhat.com)
+- fixed runtime tests and Lock exception handling (lnader@redhat.com)
+- fix for bug 895730 and 895733 (abhgupta@redhat.com)
+- 892068 (dmcphers@redhat.com)
+- Bug 893879 (dmcphers@redhat.com)
+- Bug 889958 (dmcphers@redhat.com)
+- fix for bug 893365 (abhgupta@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
