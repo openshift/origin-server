@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.4.1
+Version: 1.4.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,33 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Bug 904100: Tolerate missing Endpoint cart manifest entries
+  (ironcladlou@gmail.com)
+- Switch calling convention to match US3143 (rmillner@redhat.com)
+- indexed and Bug 894985 (rchopra@redhat.com)
+- Bug 894985 (rchopra@redhat.com)
+- Bug 893879 (dmcphers@redhat.com)
+- Bug 892112 (rchopra@redhat.com)
+- district re-alignment for migration (rchopra@redhat.com)
+- use uuid for communication with node (rchopra@redhat.com)
+- Bug 892124 (rchopra@redhat.com)
+- BZ890104 (rchopra@redhat.com)
+- move fixes (rchopra@redhat.com)
+- admin-ctl-app remove particular gear (rchopra@redhat.com)
+- move unqueued (rchopra@redhat.com)
+- corrected ref to app.user to app.domain.owner (lnader@redhat.com)
+- refactoring to use getter/setter for user capabilities (abhgupta@redhat.com)
+- Removing merge conflicts (kraman@gmail.com)
+- porting bug fix for 883607 to model refactor branch (abhgupta@redhat.com)
+- Fixing php manifest Adding logging statements for debugging scaled apps
+  (kraman@gmail.com)
+- Added support for thread dump. Fixed default username in mongoid.yml file
+  (kraman@gmail.com)
+- Various bugfixes (kraman@gmail.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
