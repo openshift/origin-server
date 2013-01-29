@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
 Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 1.3.1
+Version: 1.3.2
 Release: 1%{?dist}
 Summary: Embedded jenkins client support for express 
 Group: Network/Daemons
@@ -70,6 +70,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
+- Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
+  its-info-directory (dmcphers+openshiftbot@redhat.com)
+- fix for bug 896360 (abhgupta@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Bug 887353: removing a cartridge leaves info/ dir (miciah.masters@gmail.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.3.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 
