@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.1
+Version: 1.4.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,226 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- fix read before initialize issue (rchopra@redhat.com)
+- Merge pull request #1234 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1230 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1232 from pravisankar/dev/ravi/fix-broker-extended-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 874594 Bug 888550 (dmcphers@redhat.com)
+- refix oo-admin-chk - remove pagination; minor fix with group override
+  matching (rchopra@redhat.com)
+- cartridge name validation fix BZ869196 (rchopra@redhat.com)
+- Fix Broker extended tests, Don't call observers for cloud user model if the
+  record is already persisted. (rpenta@redhat.com)
+- remove consumed_gear_sizes (dmcphers@redhat.com)
+- removing legacy broker rest api (abhgupta@redhat.com)
+- Bug 894230 Use strong consistency properly and when creating an app
+  (dmcphers@redhat.com)
+- Bug 902672 (dmcphers@redhat.com)
+- Bug 902286 (dmcphers@redhat.com)
+- Bug 876087 (dmcphers@redhat.com)
+- Bug 903551 (dmcphers@redhat.com)
+- Bug 870377 Give proper error for cart missing vs app (dmcphers@redhat.com)
+- Bug 884456 (dmcphers@redhat.com)
+- Merge pull request #1217 from pravisankar/dev/ravi/fix-quota
+  (dmcphers+openshiftbot@redhat.com)
+- Fix Quota, additional storage validations (rpenta@redhat.com)
+- Fix for bug 895441 - tightening our validations for cartridge scale factors
+  (abhgupta@redhat.com)
+- maintaining backward compatibility for rest application output
+  (abhgupta@redhat.com)
+- helper to rhc-fix-uid (rchopra@redhat.com)
+- fixing cucumber test that was incorrectly merged (abhgupta@redhat.com)
+- fixing rest api error message for scale factor validations
+  (abhgupta@redhat.com)
+- fixing issue where jenkins ssh key was not always being added with domain-
+  jenkins suffix in the authorized_keys file in the apps (abhgupta@redhat.com)
+- adding fix from master into model refactor manually for passing server
+  identities during gear creation (abhgupta@redhat.com)
+- reverting change to rest user model (abhgupta@redhat.com)
+- - Added UtilHelper module: It has deep_copy() method - Fix elaborate() in
+  application model: group_overides.dup only does shallow copy, we need to do
+  deep copy. (rpenta@redhat.com)
+- Fix for issue where addtl_fs_gb could not be set for non-scalable apps
+  (abhgupta@redhat.com)
+- Fix for bug 895441 - validing against scales_from being higher than scales_to
+  (abhgupta@redhat.com)
+- bumping rest api version to handle change in rest user model
+  (abhgupta@redhat.com)
+- Fix prereq for usage ops (rpenta@redhat.com)
+- - Remove addtl_fs_gb, gear_size fields from GroupInstance - Don't need
+  :set_additional_storage op, :set_gear_additional_storage op is enough - some
+  cleanup (rpenta@redhat.com)
+- making changes so that we call delete/deconfigure on the app and not each
+  cart (abhgupta@redhat.com)
+- fix for bug 896333 (abhgupta@redhat.com)
+- fixing gear usage record validation during app destroy (abhgupta@redhat.com)
+- GearSize fix: Set default_gear_size for the app to 'small' if nil is passed
+  from applications controller. (rpenta@redhat.com)
+- Usage: Added gear_size, addtl_fs_gb validations to avoid invalid
+  usage/usagerecord. (rpenta@redhat.com)
+- fixing application action rollback (abhgupta@redhat.com)
+- fix broker unit testcase (rchopra@redhat.com)
+- Fix Usage: Through an error instead of bailing out when gear was created with
+  usage-tracking disabled and later on gear was destroyed with usage-tracking
+  enabled (rpenta@redhat.com)
+- Fix Usage workflow: Don't create begin/end record if additional storage is
+  zero (rpenta@redhat.com)
+- Bug 895441 (rchopra@redhat.com)
+- indexed and Bug 894985 (rchopra@redhat.com)
+- fixed runtime tests and Lock exception handling (lnader@redhat.com)
+- _id is uuid for uri information (rchopra@redhat.com)
+- fix for bug 895730 and 895733 (abhgupta@redhat.com)
+- Added CloudUser.force_delete option and fix oo-admin-ctl-user script
+  (rpenta@redhat.com)
+- auto retry on application lock acquire (rchopra@redhat.com)
+- Fix district model and district unit tests rework (rpenta@redhat.com)
+- added retries to application destroy in case app is locked by another op
+  (lnader@redhat.com)
+- removed group check from descriptot (profiles no longer have groups
+  (lnader@redhat.com)
+- _id to uuid for controllers - affects migrated apps (rchopra@redhat.com)
+- Assume default gear size in calculate_gear_create_ops() if gear size is not
+  passed (rpenta@redhat.com)
+- fix for bug 889932 (abhgupta@redhat.com)
+- remove some more datastore references (rpenta@redhat.com)
+- fix build issue (rchopra@redhat.com)
+- Populate mongoid.yml config from Rails datastore configuration.
+  (rpenta@redhat.com)
+- changing reload calls to reload from primary (abhgupta@redhat.com)
+- fixing issue where completed pending_ops were not being deleted from domain
+  and user docs in mongo (abhgupta@redhat.com)
+- Rollback logic fixes (kraman@gmail.com)
+- cleanup (dmcphers@redhat.com)
+- user_agent tracking (rchopra@redhat.com)
+- Bug 893879 (dmcphers@redhat.com)
+- Bug 889958 (dmcphers@redhat.com)
+- fixing test condition (abhgupta@redhat.com)
+- fix for bug 893365 (abhgupta@redhat.com)
+- district re-alignment for migration (rchopra@redhat.com)
+- fix for bug893366 (rchopra@redhat.com)
+- Bug 893265 (dmcphers@redhat.com)
+- Bug 889940 Comment 6 (dmcphers@redhat.com)
+- Give a better message on missing feature (dmcphers@redhat.com)
+- Bug 891801 (dmcphers@redhat.com)
+- temporary fix for bug 893176 (lnader@redhat.com)
+- CloudUser.with_plan scope added for rhc-admin-ctl-plan (rpenta@redhat.com)
+- use uuid for communication with node (rchopra@redhat.com)
+- fix for bug 891810 (abhgupta@redhat.com)
+- fix for bug 892106 (abhgupta@redhat.com)
+- fix for bug 892881 (abhgupta@redhat.com)
+- fix for bug 892105 (abhgupta@redhat.com)
+- Bug 892068 and fixed HTTP error codes (lnader@redhat.com)
+- uuid field to the gear+application models (rchopra@redhat.com)
+- removing debug info being printed in test (abhgupta@redhat.com)
+- Bug 890119 (lnader@redhat.com)
+- fixing bug 892756 (abhgupta@redhat.com)
+- Bug 889958 (dmcphers@redhat.com)
+- Bug 892098 (lnader@redhat.com)
+- can't send nil for gear_size (dmcphers@redhat.com)
+- Bug 889940 (dmcphers@redhat.com)
+- Bug 892099 (dmcphers@redhat.com)
+- Bug 891901 (dmcphers@redhat.com)
+- Bug 892117 (dmcphers@redhat.com)
+- Bug 892139 (dmcphers@redhat.com)
+- Bug 892104 (dmcphers@redhat.com)
+- Bug 892129 (dmcphers@redhat.com)
+- fixed missing attribute (lnader@redhat.com)
+- Removing application estimate cucumber test (abhgupta@redhat.com)
+- Fixing extended broker tests (abhgupta@redhat.com)
+- Bug 889947 (lnader@redhat.com)
+- fix for REST API reading the value as true Bug 890001 (lnader@redhat.com)
+- temp fix for max_gears error (rchopra@redhat.com)
+- Fix for bug 889978 (abhgupta@redhat.com)
+- commenting out broken tests for now - were always broke but error was hidden
+  before (dmcphers@redhat.com)
+- Bug# 889957: part 1 (rpenta@redhat.com)
+- simplify previous fix (dmcphers@redhat.com)
+- update namespace fix (rchopra@redhat.com)
+- special case web_proxy (dmcphers@redhat.com)
+- Bug# 890009 : Fix 'nolinks' param (rpenta@redhat.com)
+- Bug 889940 part 2 (dmcphers@redhat.com)
+- Bug 889940 part 1 (dmcphers@redhat.com)
+- Bug 889917 (dmcphers@redhat.com)
+- fix for bug#889938 (rchopra@redhat.com)
+- Bug 889952 (lnader@redhat.com)
+- fix for bug#889986 (rchopra@redhat.com)
+- Bug 889939 (lnader@redhat.com)
+- Bug 889932 (dmcphers@redhat.com)
+- Bug 889951 (lnader@redhat.com)
+- Bug 890101 (dmcphers@redhat.com)
+- more runtime test fixes (rchopra@redhat.com)
+- fix runtime destroy test (rchopra@redhat.com)
+- admin script fixes (rchopra@redhat.com)
+- fixed merge mistake (lnader@redhat.com)
+- Fixed site application tests (lnader@redhat.com)
+- fixing site cartridge tests (abhgupta@redhat.com)
+- fixing site integration test for application (abhgupta@redhat.com)
+- removed rest_application13.rb (lnader@redhat.com)
+- admin-ctl-app remove particular gear (rchopra@redhat.com)
+- fixing ssh key test failures (abhgupta@redhat.com)
+- fixed regression errors (lnader@redhat.com)
+- more admin script fixes (rchopra@redhat.com)
+- fixing update namespacwe (abhgupta@redhat.com)
+- fixing update_namespace (abhgupta@redhat.com)
+- fixed domain update validation (lnader@redhat.com)
+- fixed 2 regression bugs (lnader@redhat.com)
+- fixing broker tests again after rebase (abhgupta@redhat.com)
+- search gear/app by uuid (rchopra@redhat.com)
+- logging exception in case of pending app job failure (abhgupta@redhat.com)
+- fixiing application scale-up (abhgupta@redhat.com)
+- district search fix (rchopra@redhat.com)
+- removing txt records (dmcphers@redhat.com)
+- removing gears resource from the routes (abhgupta@redhat.com)
+- refactoring to use getter/setter for user capabilities (abhgupta@redhat.com)
+- lock with timeout (kraman@gmail.com)
+- rollback component check from change calculations (rchopra@redhat.com)
+- reverting fix for broker integration test (abhgupta@redhat.com)
+- removing app templates and other changes (dmcphers@redhat.com)
+- fixing broker integration test (abhgupta@redhat.com)
+- addtional_storage fixes (rchopra@redhat.com)
+- removed show-port from tests and added correct error response to controller
+  (lnader@redhat.com)
+- fix rest-workflow (dmcphers@redhat.com)
+- fixing user creation in legacy controller (abhgupta@redhat.com)
+- fixing rest_api_test and fixing backward compatibility bugs
+  (lnader@redhat.com)
+- fix ssh key issue - not a final fix (dmcphers@redhat.com)
+- remove extra save call (dmcphers@redhat.com)
+- Fixing bad merge for add_alias (kraman@gmail.com)
+- porting bug fix for 883607 to model refactor branch (abhgupta@redhat.com)
+- handle options on cloud use save (dmcphers@redhat.com)
+- fix typo (dmcphers@redhat.com)
+- fix oo-accept-node (dmcphers@redhat.com)
+- fixing cloud user test cases (dmcphers@redhat.com)
+- Throw exception if user is trying to scale up/down a non scalable app
+  (lnader@redhat.com)
+- Removing application templates (kraman@gmail.com)
+- district fixes (rchopra@redhat.com)
+- Fixed error in feature removal (kraman@gmail.com)
+- default gear sizes (rchopra@redhat.com)
+- config is msg_broker and not gearchanger (rchopra@redhat.com)
+- test case fixes + typo fixes (dmcphers@redhat.com)
+- bug fixes in app and descriptor controller (lnader@redhat.com)
+- fix ss refs (dmcphers@redhat.com)
+- Merged Ravi's changes for usage records (kraman@gmail.com)
+- Fixed scaled app creation Fixed scaled app cartridge addition Updated
+  descriptors to set correct group overrides for web_cartridges
+  (kraman@gmail.com)
+- deregister dns (dmcphers@redhat.com)
+- Fixing php manifest Adding logging statements for debugging scaled apps
+  (kraman@gmail.com)
+- Added support for thread dump. Fixed default username in mongoid.yml file
+  (kraman@gmail.com)
+- Various bugfixes (kraman@gmail.com)
+- fixed error on creating app by adding the user lock on user create
+  (lnader@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 - Ensure write to at least 2 mongo instances (dmcphers@redhat.com)
