@@ -257,7 +257,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       authorized_keys_file = File.join(@homedir, ".ssh", "authorized_keys")
       keys = read_ssh_keys authorized_keys_file
       key_type    = "ssh-rsa" if key_type.to_s.strip.length == 0
-      cloud_name  = @config.get("CLOUD_NAME") || "OPENSHIFT"
+      cloud_name  = "OPENSHIFT"
       ssh_comment = "#{cloud_name}-#{@uuid}-#{comment}"
       shell       = @config.get("GEAR_SHELL") || "/bin/bash"
       cmd_entry   = "command=\"#{shell}\",no-X11-forwarding #{key_type} #{key} #{ssh_comment}"
@@ -313,7 +313,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     def add_env_var(key, value, prefix_cloud_name = false, &blk)
       env_dir = File.join(@homedir,'.env/')
       if prefix_cloud_name
-        key = (@config.get('CLOUD_NAME') || 'OPENSHIFT') + "_#{key}"
+        key = "OPENSHIFT_#{key}"
       end
       filename = File.join(env_dir, key)
       File.open(filename,
@@ -356,7 +356,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       [".env", ".env/.uservars"].each do |path|
         env_dir = File.join(@homedir,path)
         if prefix_cloud_name
-          key = (@config.get("CLOUD_NAME") || "OPENSHIFT") + "_#{key}"
+          key = "OPENSHIFT_#{key}"
         end
         env_file_path = File.join(env_dir, key)
         FileUtils.rm_f env_file_path
