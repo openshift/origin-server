@@ -4,7 +4,6 @@ namespace :test do
     t.libs << 'test'
     t.test_files = FileList[
       'test/unit/cloud_user_test.rb',
-      'test/unit/legacy_request_test.rb',
       'test/functional/**/*_test.rb',
       'test/integration/**/*_test.rb'
     ]
@@ -14,7 +13,6 @@ namespace :test do
     t.libs << 'test'
     t.test_files = FileList[
       'test/unit/cloud_user_test.rb',
-      'test/unit/legacy_request_test.rb',
       'test/unit/district_test.rb',
       'test/unit/usage_model_test.rb'
     ]
