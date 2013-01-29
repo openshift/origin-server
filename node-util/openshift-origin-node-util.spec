@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.4.1
+Version: 1.4.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,14 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Merge pull request #966 from mscherer/fix/node-util/fix_duplicate_functions
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 890005 (dmcphers@redhat.com)
+- fix oo-accept-node (dmcphers@redhat.com)
+- remove duplicate definition of function ( since there is the exact same code
+  before in the file, with added debug statement ) (misc@zarb.org)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
