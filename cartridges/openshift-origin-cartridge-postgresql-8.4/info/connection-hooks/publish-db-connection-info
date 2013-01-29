@@ -37,7 +37,7 @@ import_env_vars
 if is_a_scalable_app; then
     postgresql_host=$OPENSHIFT_GEAR_DNS
     postgresql_port=$OPENSHIFT_POSTGRESQL_DB_PROXY_PORT
-    postgresql_dburl="$postgresql://$OPENSHIFT_POSTGRESQL_DB_USERNAME:$OPENSHIFT_POSTGRESQL_DB_PASSWORD@$postgresql_host:$postgresql_port/"
+    postgresql_dburl="postgresql://$OPENSHIFT_POSTGRESQL_DB_USERNAME:$OPENSHIFT_POSTGRESQL_DB_PASSWORD@$postgresql_host:$postgresql_port/"
     postgresql_dbsocket=""
     echo -n "OPENSHIFT_POSTGRESQL_DB_GEAR_UUID=$OPENSHIFT_GEAR_UUID; "
     echo -n "OPENSHIFT_POSTGRESQL_DB_GEAR_DNS=$OPENSHIFT_GEAR_DNS; "
