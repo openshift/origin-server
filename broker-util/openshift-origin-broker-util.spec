@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.1
+Version:        1.4.2
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -72,6 +72,40 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Merge pull request #1234 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- refix oo-admin-chk - remove pagination; minor fix with group override
+  matching (rchopra@redhat.com)
+- rebase on latest version (tdawson@redhat.com)
+- Bug 874932 (dmcphers@redhat.com)
+- Bug 884456 (dmcphers@redhat.com)
+- Bug 873181 (dmcphers@redhat.com)
+- Bug 873180 (dmcphers@redhat.com)
+- Added CloudUser.force_delete option and fix oo-admin-ctl-user script
+  (rpenta@redhat.com)
+- Bug 895001 (rchopra@redhat.com)
+- missing validations (dmcphers@redhat.com)
+- Bug 892100 (dmcphers@redhat.com)
+- Bug 892132 (dmcphers@redhat.com)
+- Fix for bug 889978 (abhgupta@redhat.com)
+- Bug 890010 (lnader@redhat.com)
+- adding locks for subaccounts etc. (rchopra@redhat.com)
+- fix for bug (abhgupta@redhat.com)
+- fixing oo-admin-ctl-user script (abhgupta@redhat.com)
+- fix oo-admin-ctl-domain (rchopra@redhat.com)
+- secure move (rchopra@redhat.com)
+- admin script fixes (rchopra@redhat.com)
+- admin-ctl-app remove particular gear (rchopra@redhat.com)
+- more admin script fixes (rchopra@redhat.com)
+- oo-admin-chk refactored (rchopra@redhat.com)
+- refactoring to use getter/setter for user capabilities (abhgupta@redhat.com)
+- removing app templates and other changes (dmcphers@redhat.com)
+- fix all the cloud_user.find passing login calls (dmcphers@redhat.com)
+- district fixes (rchopra@redhat.com)
+- fixup cloud user usages (dmcphers@redhat.com)
+- Bug 903139 (dmcphers@redhat.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
