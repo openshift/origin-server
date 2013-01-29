@@ -23,7 +23,7 @@ class StorageController < ConsoleController
     application_information
     gear_group_information
 
-    @cartridge = @cartridges.find{ |c| c.name == params[:id] } or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
+    @cartridge = @application.find_cartridge(params[:id]) or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
 
     @cartridge.additional_gear_storage = Integer(params[:cartridge][:additional_gear_storage])
 
@@ -40,16 +40,12 @@ class StorageController < ConsoleController
   def user_information
     @user = User.find :one, :as => current_user
   end
+
   def application_information
     @application = @domain.find_application params[:application_id]
-    @cartridges = @application.cartridges
   end
 
   def gear_group_information
-    async{ @gear_groups = @application.cartridge_gear_groups }
-    async{ @gear_groups_with_state = @application.gear_groups }
-    join!(30)
-
-    @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
+    @gear_groups = @application.cartridge_gear_groups
   end
 end

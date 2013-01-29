@@ -1,7 +1,7 @@
-- breadcrumb_for_application @application, 'Modify Your Storage'
-- content_for :page_title, 'Modify Your Storage'
+- breadcrumb_for_application @application, 'Change Gear Storage'
+- content_for :page_title, 'Change Gear Storage'
 
-%h1 Modify Your Storage
+%h1 Change Gear Storage
 
 %section#storage-gear-groups
   %section
@@ -25,34 +25,42 @@
             > quota
 
   - @gear_groups.each_with_index do |group,g|
-    - group.cartridges.each_with_index do |cartridge,c|
-      .gear-group.tile
-        %h2
-          = cartridge.display_name
-          %span.pull-right= cartridge_storage(cartridge, group.gears.length)
+    :ruby
+      cartridge = group.cartridges.first
+      other_carts = group.cartridges - [cartridge]
+    .gear-group.tile
+      %h2
+        = cartridge.display_name
+        %span.pull-right= scaled_cartridge_storage(cartridge)
 
-        = semantic_form_for cartridge,
-                            :simple => true,
-                            :method => :put,
-                            :url => application_storage_cartridge_path(@application.id, cartridge.name) do |f|
+      = semantic_form_for cartridge,
+                          :simple => true,
+                          :method => :put,
+                          :url => application_storage_cartridge_path(@application.id, cartridge.name) do |f|
 
-          = f.semantic_errors :additional_gear_storage
+        = f.semantic_errors :additional_gear_storage
 
+        %p
+          Each gear this cartridge is deployed to has #{cartridge.base_gear_storage}GB of included storage.
+
+        - if cartridge.scales?
           %p
-            This cartridge currently provides #{cartridge.base_gear_storage}GB of storage per gear.
+            This cartridge is scalable.
+            The additional storage will apply to each extra gear.
 
-          - if group.gears.length > 1
-            %p
-              This cartridge is scalable.
-              The additional storage will apply to each extra gear.
+        - unless other_carts.empty?
+          %p This storage will also be shared by:
+          %ul
+            - other_carts.each do |cart|
+              %li= cart.display_name
 
-          = f.inputs :inline => true, :without_errors => true do
-            .input-prepend
-              %span.add-on Additional Storage Per Gear
-              = f.input :additional_gear_storage, storage_options(0,@user.max_storage_per_gear + 10).merge({:input_html => {:style => 'width: auto', :title => 'Additional Storage'}})
+        = f.inputs :inline => true, :without_errors => true do
+          .input-prepend
+            %span.add-on Additional Storage Per Gear
+            = f.input :additional_gear_storage, storage_options(0,@user.max_storage_per_gear).merge({:input_html => {:style => 'width: auto', :title => 'Additional Storage'}})
 
-            = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
-            = f.loading
+          = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
+          = f.loading
 
   %p
     For more information about storage for your application see
