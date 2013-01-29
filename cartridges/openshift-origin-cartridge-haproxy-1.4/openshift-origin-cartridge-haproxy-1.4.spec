@@ -7,7 +7,7 @@
 
 Summary:   Provides embedded haproxy-1.4 support
 Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.4.1
+Version: 1.4.2
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -96,6 +96,24 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
+  its-info-directory (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1212 from brenton/misc5
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 903564: Fix inconsistent sed when updating haproxy cfg
+  (ironcladlou@gmail.com)
+- BZ892909 copying the file to just modify it inplace is a waste of ressource,
+  and a security problem, since the file /tmp/haproxy.cfg.$$ has a predictible
+  name and there is no check to see if it already exist or if it was changed
+  between sed and cat ( or cat and cp ). A attacker with access to /tmp could
+  just create directory with the same name to create a DOS and erase haproxy
+  configuration. (misc@zarb.org)
+- fix for bug 892076 (abhgupta@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Bug 887353: removing a cartridge leaves info/ dir (miciah.masters@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
