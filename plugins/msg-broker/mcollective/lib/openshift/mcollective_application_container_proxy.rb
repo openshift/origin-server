@@ -1213,15 +1213,27 @@ module OpenShift
       # * method on Gear or Cart?
       #            
       def get_expose_port_job(app, gear, cart)
-        RemoteJob.new(cart, 'expose-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--cart-name'] = cart
+        RemoteJob.new('openshift-origin-node', 'expose-port', args)
       end
       
       def get_conceal_port_job(app, gear, cart)
-        RemoteJob.new(cart, 'conceal-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--cart-name'] = cart
+        RemoteJob.new('openshift-origin-node', 'conceal-port', args)
       end
       
       def get_show_port_job(app, gear, cart)
-        RemoteJob.new(cart, 'show-port', "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'")
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-container-uuid'] = gear.uuid
+        args['--cart-name'] = cart
+        RemoteJob.new('openshift-origin-node', 'show-port', args)
       end
       
       def expose_port(app, gear, cart)
