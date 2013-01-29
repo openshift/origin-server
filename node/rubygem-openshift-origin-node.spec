@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.1
+Version: 1.4.2
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -176,6 +176,29 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Bug 905568: Skip endpoint deletion if no Endpoints in manifest
+  (ironcladlou@gmail.com)
+- Merge pull request #1231 from ironcladlou/expose-port-fix
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1235 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1117 from mscherer/fix_better_cgroup_listing
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 874594 Bug 888550 (dmcphers@redhat.com)
+- Bug 904100: Tolerate missing Endpoint cart manifest entries
+  (ironcladlou@gmail.com)
+- BZ896406 - warning message when installing rubygem-openshift-origin-node
+  (bleanhar@redhat.com)
+- BZ876324 resolve ServerName/NameVirtualHost situation for
+  node/broker/ssl.conf (lmeyer@redhat.com)
+- Switch calling convention to match US3143 (rmillner@redhat.com)
+- adding a dash in the authorized key entry comment to make it more readable
+  (abhgupta@redhat.com)
+- fix for bug 894948 (abhgupta@redhat.com)
+- fix and factorise the function for the list of users as openshift_users do
+  not match on the same exact list of people than valid_user ( due to code
+  duplication and subtle difference between the copies ) (misc@zarb.org)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
