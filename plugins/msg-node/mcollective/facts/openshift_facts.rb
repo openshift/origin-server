@@ -22,24 +22,16 @@ if File.exists?(district_conf)
   district_uuid = config_file.get_value('uuid') ? config_file.get_value('uuid') : 'NONE'
   district_active = config_file.get_value('active') ? config_file.get_value('active') == "true" : false
 end
-Facter.add(:district_uuid) do
-  setcode { district_uuid }
-end
-Facter.add(:district_active) do
-  setcode { district_active }
-end
+Facter.add(:district_uuid) { setcode { district_uuid } }
+Facter.add(:district_active) { setcode { district_active } }
 
 #
 # Pull public_ip and public_hostname out of the node_data config
 #
 public_ip = get_node_config_value("PUBLIC_IP", "UNKNOWN").gsub(/['"]/,"")
 public_hostname = get_node_config_value("PUBLIC_HOSTNAME", "UNKNOWN").gsub(/['"]/,"")
-Facter.add(:public_ip) do
-  setcode { public_ip }
-end
-Facter.add(:public_hostname) do
-  setcode { public_hostname }
-end
+Facter.add(:public_ip) { setcode { public_ip } }
+Facter.add(:public_hostname) { setcode { public_hostname } }
 
 #
 # Find node_profile, max_apps, max_active_apps
@@ -47,64 +39,86 @@ end
 node_profile = 'small'
 max_apps = '0'
 max_active_apps = '0'
+max_gears = '0'
+max_active_gears = '0'
 if File.exists?('/etc/openshift/resource_limits.conf')
   config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
-  node_profile = config_file.get_value('node_profile') ? config_file.get_value('node_profile') : 'small'
-  max_apps = config_file.get_value('max_apps') ? config_file.get_value('max_apps') : '0'
-  max_active_apps = config_file.get_value('max_active_apps') ? config_file.get_value('max_active_apps') : '0'
-  quota_blocks = config_file.get_value('quota_blocks') ? config_file.get_value('quota_blocks') : '1048576'
-  quota_files = config_file.get_value('quota_files') ? config_file.get_value('quota_files') : '40000'
+  node_profile = config_file.get_value('node_profile') || 'small'
+  max_apps = config_file.get_value('max_apps') || '0'
+  max_active_apps = config_file.get_value('max_active_apps') || '0'
+  max_gears = config_file.get_value('max_gears') || max_apps
+  max_active_gears = config_file.get_value('max_active_gears') || max_active_apps
+  quota_blocks = config_file.get_value('quota_blocks') || '1048576'
+  quota_files = config_file.get_value('quota_files') || '40000'
 end
 
-Facter.add(:node_profile) do
-  setcode { node_profile }
-end
-
-Facter.add(:max_apps) do
-  setcode { max_apps }
-end
-
-Facter.add(:max_active_apps) do
-  setcode { max_active_apps }
-end
-
-Facter.add(:quota_blocks) do
-  setcode { quota_blocks }
-end
-
-Facter.add(:quota_files) do
-  setcode { quota_files }
-end
+Facter.add(:node_profile) { setcode { node_profile } }
+Facter.add(:max_apps) { setcode { max_apps } }
+Facter.add(:max_active_apps) { setcode { max_active_apps } }
+Facter.add(:max_active_gears) { setcode { max_active_gears } }
+Facter.add(:max_gears) { setcode { max_gears } }
+Facter.add(:quota_blocks) { setcode { quota_blocks } }
+Facter.add(:quota_files) { setcode { quota_files } }
 
 #
 # Count number of git repos and stopped apps
 #
 git_repos_count = 0
 stopped_app_count = 0
-Dir.glob("/var/lib/openshift/*").each { |app_dir|
+gears_active_count = 0 # includes everything but idle and stopped
+gears_total_count = 0
+gears_idled_count = 0
+gears_stopped_count = 0
+gears_started_count = 0
+gears_deploying_count = 0
+gears_unknown_count = 0
+Dir.glob("/var/lib/openshift/*").each do |app_dir|
   if File.directory?(app_dir) && !File.symlink?(app_dir)
     git_repos_count += Dir.glob(File.join(app_dir, "git/*.git")).count
 
-    active = true
-    Dir.glob(File.join(app_dir, 'app-root', 'runtime', '.state')).each {|file|
-      state = File.read(file).chomp
-      if 'idle' == state || 'stopped' == state
-        active = false
+    # note: only considered a gear if .state file is present. There are
+    # other directories that aren't gears, e.g. ".httpd.d"
+    Dir.glob(File.join(app_dir, %w{app-root runtime .state})).each do |file|
+      gears_total_count += 1
+      case File.read(file).chomp
+        # expected values: building, deploying, started, idle, new, stopped, or unknown
+      when 'idle'
+          stopped_app_count += 1 # legacy
+          gears_idled_count += 1
+      when 'stopped'
+          stopped_app_count += 1 # legacy
+          gears_stopped_count += 1
+      when 'started'
+          gears_started_count += 1
+      when %w[new building deploying]
+          gears_deploying_count += 1
+      else # literally 'unknown' or something else
+          gears_unknown_count += 1
       end
-    }
-    if not active
-      stopped_app_count += 1
     end
   end
-}
-
-Facter.add(:git_repos) do
-  setcode { git_repos_count }
+  # consider a gear active unless explicitly not
+  gears_active_count = gears_total_count - gears_idled_count - gears_stopped_count
 end
 
 #
-# Find active capacity
+# Record gear-based counts and capacity
 #
+Facter.add(:gears_active_count) { setcode { gears_active_count } }
+Facter.add(:gears_total_count) { setcode { gears_total_count } }
+Facter.add(:gears_idle_count) { setcode { gears_idled_count } }
+Facter.add(:gears_stopped_count) { setcode { gears_stopped_count } }
+Facter.add(:gears_started_count) { setcode { gears_started_count } }
+Facter.add(:gears_deploying_count) { setcode { gears_deploying_count } }
+Facter.add(:gears_unknown_count) { setcode { gears_unknown_count } }
+Facter.add(:gears_usage_pct) { setcode { gears_total_count * 100 / max_gears.to_f } }
+Facter.add(:gears_active_usage_pct) { setcode { gears_active_count * 100 / max_active_gears.to_f } }
+
+# Old "app" count, excludes some gears
+Facter.add(:git_repos) { setcode { git_repos_count } }
+#
+# Find active capacity - DEPRECATED
+# NOTE: based on count of git repos, not all gears
 Facter.add(:active_capacity) do
   git_repos =  Facter.value(:git_repos).to_f
   max_active_apps = Facter.value(:max_active_apps).to_f
@@ -113,8 +127,8 @@ Facter.add(:active_capacity) do
 end
 
 #
-# Find capacity
-#
+# Find capacity - DEPRECATED
+# NOTE: nothing actually uses this to limit gear placement
 Facter.add(:capacity) do
     git_repos =  Facter.value(:git_repos).to_f
     max_apps = Facter.value(:max_apps).to_f
