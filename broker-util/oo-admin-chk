@@ -79,31 +79,37 @@ datastore_hash = {}
 puts "Started at: #{Time.now}"
 start_time = (Time.now.to_f * 1000).to_i
 query = {"group_instances.gears.0" => {"$exists" => true}}
-selection = {"name" => 1,
-                       "created_at" => 1,
-                       "domain_id" => 1,
-                       "group_instances.gears.uuid" => 1,
-                       "group_instances.gears.uid" => 1,
-                       "group_instances.gears.server_identity" => 1,
-                       "group_instances._id" => 1 }
+selection = {:fields => ["name",
+                       "created_at",
+                       "domain_id",
+                       "group_instances.gears.uuid",
+                       "group_instances.gears.uid",
+                       "group_instances.gears.server_identity",
+                       "group_instances._id"], :timeout => false}
 ret = []
 
-$moped_session = Mongoid::Sessions.default
+$config = Rails.application.config.datastore
 
-def get_records(db, query, selection)
-  # 'by' - tweak to a larger number for faster results, smaller number if a timeout insults
-  by = 10000
-  skip_first = 0
-  while ( (results = $moped_session[db].find(query).select(selection).limit(by).skip(skip_first)) && results.any? )
-    results.each { |result| 
-      yield result 
-    }
-    skip_first += by
+def get_records(collection_name, query, selection)
+  if $config[:replica_set]
+    con = Mongo::ReplSetConnection.new(*$config[:host_port] \
+                   << {:read => :secondary})            
+  else
+    host_port = $config[:host_port].split(":")
+    con = Mongo::Connection.new(host_port[0], host_port[1])
   end
-end
+  db = con.db($config[:db])
+  db.authenticate($config[:user], $config[:password])
+  coll = db.collection(collection_name)
+  coll.find(query, selection) do |mcursor|
+    mcursor.each do |hash|
+      yield hash
+    end
+  end
+end 
 
 user_hash = {}
-get_records(:cloud_users, {}, {"consumed_gears" => 1, "login" => 1}) do |user|
+get_records(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
   user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
                             "domains" => {},
                             "login" => user["login"] } 
@@ -111,7 +117,7 @@ end
 
 
 domain_hash = {}
-get_records(:domains, {}, { "owner_id" => 1 }) { |domain|
+get_records(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
   owner_id = domain["owner_id"]
   domain_hash[domain["_id"]] = owner_id
   user_hash[owner_id]["domains"][domain["_id"]] = 0
