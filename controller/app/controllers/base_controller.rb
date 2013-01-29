@@ -311,6 +311,7 @@ class BaseController < ActionController::Base
       status = :internal_server_error
       if ex.resultIO
         error_code = ex.resultIO.exitcode
+        message = ""
         if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
           message = ex.resultIO.errorIO.string.strip
         end
