@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.4.1
+Version: 1.4.2
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
@@ -107,6 +107,21 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
+  its-info-directory (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #943 from mscherer/fix/cartridge/typo_in_pgsql_url
+  (dmcphers+openshiftbot@redhat.com)
+- fix references to rhc app cartridge (dmcphers@redhat.com)
+- 892068 (dmcphers@redhat.com)
+- Bug 889923 (dmcphers@redhat.com)
+- Manifest file fixes (kraman@gmail.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Bug 887353: removing a cartridge leaves info/ dir (miciah.masters@gmail.com)
+- fix assignation of postgresql_dburl, using a inexistant variable
+  (misc@zarb.org)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
