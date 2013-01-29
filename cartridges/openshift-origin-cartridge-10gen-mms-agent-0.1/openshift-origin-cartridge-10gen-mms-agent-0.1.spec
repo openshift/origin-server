@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.18.1
+Version: 1.18.2
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -62,6 +62,17 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
+- Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
+  its-info-directory (dmcphers+openshiftbot@redhat.com)
+- fix references to rhc app cartridge (dmcphers@redhat.com)
+- fix for bug 893876 (abhgupta@redhat.com)
+- specifying Requires for 10gen-mms and phpmyadmin cartridges
+  (abhgupta@redhat.com)
+- Moving model refactor work - Updated cartridge manifest files - Simplified
+  descriptor - Switched from mongo gem to use mongoid (kraman@gmail.com)
+- Bug 887353: removing a cartridge leaves info/ dir (miciah.masters@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.18.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
