@@ -11,6 +11,8 @@ class CartridgesController < BaseController
     if type.nil?
       cartridges = CartridgeCache.cartridges
     else
+      # handle "standalone" type for backwards compatibility
+      type = "web_framework" if type == "standalone"
       cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(type) }
     end
     rest_cartridges = []
