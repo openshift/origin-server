@@ -121,23 +121,6 @@ rescue GetoptLong::Error => e
   usage
 end
 
-def find_and_replace(file, find, replace)
-  data = File.open(file).read
-  File.open(file, "w") do |f|
-    data = data.gsub(find, replace)
-    f.write(data)
-  end
-end
-
-def insert_if_not_exist(file, find, to_insert)
-  data = File.open(file).read
-  return if data.match(find)
-  File.open(file, "w") do |f|
-    f.write(data)
-    f.write(to_insert)
-  end
-end
-
 broker_ip = args["--with-broker-ip"]
 node_hostname = args["--with-node-hostname"]
 node_domain = args["--domain"] || "example.com"
