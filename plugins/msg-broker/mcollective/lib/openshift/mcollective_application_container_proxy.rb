@@ -309,7 +309,7 @@ module OpenShift
           end
           if district_uuid && district_uuid != 'NONE'
             reserved_uid = District::reserve_uid(district_uuid)
-            raise OpenShift::OOException.new("uid could not be reserved") unless reserved_uid
+            raise OpenShift::OOException.new("uid could not be reserved in target district '#{district_uuid}'.  Please ensure the target district has available capacity.") unless reserved_uid
           end
         end
         reserved_uid
