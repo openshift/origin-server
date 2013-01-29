@@ -1,15 +1,15 @@
-Name: php-5.3
-Display-Name: PHP 5.3
-Description: "PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. Popular development frameworks include: CakePHP, Zend, Symfony, and Code Igniter."
-Version: 5.3.2
-License: "The PHP License, version 3.0"
-License-Url: http://www.php.net/license/3_0.txt
-Vendor: php.net
+Name: ceylon-0.5
+Display-Name: Ceylon 0.5
+Description: "Ceylon is a language for writing large programs in teams. Ceylon has a powerful static type system that prevents many bugs while letting you express more, more easily: union types, intersection types, higher order functions, mixin inheritance, and enumerated types."
+Version: 0.5
+License: "Please chec ceylon website for license details."
+License-Url: http://ceylon-lang.org/code/licenses/
+Vendor: ceylon-lang.org
 Categories:
   - service
-  - php
+  - ceylon
   - web_framework
-Website: http://www.php.net
+Website: http://ceylon-lang.org
 Help-Topics:
   "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
@@ -41,29 +41,15 @@ Cart-Data:
     Type: environment
     Description: "Unique ID which identified the gear. This value changes between gears."
 Provides:
-  - php-5.3
-  - "php"
-  - "php(version) = 5.3.2"
+  - ceylon-0.5
+  - "ceylon"
+  - "ceylon(version) = 0.5"
 Publishes:
-  get-php-ini:
-    Type: "FILESYSTEM:php-ini"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
     Type: "NET_TCP:gear-endpoint-info"
 Subscribes:
-  set-db-connection-info:
-    Type: "NET_TCP:db:connection-info"
-    Required: false
-  set-nosql-db-connection-info:
-    Type: "NET_TCP:nosqldb:connection-info"
-    Required: false
-  set-mysql-connection-info:
-    Type: "NET_TCP:db:mysql"
-    Required : false
-  set-postgres-connection-info:
-    Type: "NET_TCP:db:postgres"
-    Required : false
   set-doc-url:
     Type: "STRING:urlpath"
     Required : false
@@ -72,7 +58,7 @@ Scaling:
   Max: -1
 Group-Overrides:
   - components:
-    - php-5.3
+    - ceylon-0.5
     - web_proxy
 Endpoints:
   - PROXY_PORT: 8080

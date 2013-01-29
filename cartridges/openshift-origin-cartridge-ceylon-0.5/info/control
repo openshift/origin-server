@@ -1,21 +1,16 @@
-Name: php-5.3
-Version: 5.3.x
+Name: ceylon-0.5
+Version: 0.5
 Architecture: i686/x86_64
-Provides: php
+Provides: ceylon
 Depends:
 Conflicts:
 Type: Cartridge
 Role: misc
-Vendor: www.php.net
-DisplayName: PHP-5.3
-Bundles:  php-5.3-bundle.tar.gz
+Vendor: ceylon-lang.org
+DisplayName: Ceylon 0.5
 Description: 
-PHP is an HTML-embedded scripting language. PHP attempts to make it
-easy for developers to write dynamically generated webpages. PHP also
-offers built-in database integration for several commercial and
-non-commercial database management systems, so writing a
-database-enabled webpage with PHP is fairly simple. The most common
-use of PHP coding is probably as a replacement for CGI scripts.
-
-The php package contains the module which adds support for the PHP
-language to Apache HTTP Server.
+Ceylon is a language for writing large programs in teams.
+Ceylon has a powerful static type system that prevents many bugs
+while letting you express more, more easily: 
+union types, intersection types, higher order functions, mixin inheritance,
+and enumerated types.
