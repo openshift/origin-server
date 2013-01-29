@@ -221,7 +221,7 @@ class LegacyBrokerController < BaseController
     cart_type = @req.cart_type                                                                                                                                                                                                                                    
     unless cart_type
       log_action('nil', 'nil', 'nil', "LEGACY_CART_LIST", true, "Cartridge type not specified", get_extra_log_args)
-      @reply.resultIO << "Invalid cartridge types: #{cart_type} specified"
+      @reply.resultIO << "Cartridge type not specified"
       @reply.exitcode = 109
       render :json => @reply, :status => :bad_request
       return
