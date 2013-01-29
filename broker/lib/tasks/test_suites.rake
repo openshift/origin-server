@@ -10,24 +10,6 @@ namespace :test do
     ]
   end
 
-  Rake::TestTask.new :domain_system_test => ['test:prepare'] do |t|
-    t.libs << 'test'
-    t.test_files = FileList['test/system/domain_test.rb']
-    t.verbose = true
-  end
-
-  Rake::TestTask.new :cartridge_system_test => ['test:prepare'] do |t|
-    t.libs << "test"
-    t.test_files = FileList['test/system/app_cartridge_events_test.rb', 'test/system/app_cartridges_test.rb']
-    t.verbose = true
-  end
-
-  Rake::TestTask.new :application_system_test => ['test:prepare'] do |t|
-    t.libs << "test"
-    t.test_files = FileList['test/system/app_events_test.rb', 'test/system/application_test.rb']
-    t.verbose = true
-  end
-
   Rake::TestTask.new :oo_unit1 => ['test:prepare'] do |t|
     t.libs << 'test'
     t.test_files = FileList[
