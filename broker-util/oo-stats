@@ -1,6 +1,5 @@
-#!/usr/bin/env ruby
 #!/usr/bin/env oo-ruby
-# Use the second #! with OpenShift Enterprise 1.0/1.1, the first everywhere else.
+#!/usr/bin/env ruby
 #
 # This can be used as a script or library on an OpenShift broker host.
 # As a script, the default output is for command-line viewing, or choose
@@ -17,15 +16,14 @@
 # You can also use the set_option and set_columns methods to
 # customize the output you get from stats.display_results.
 #
-# One serious flaw should be noted: for historical reasons, the data
-# coming from the node hosts about gears excludes gears that don't
-# have a git repository, e.g. database gears. So you will often see
-# a discrepancy in counts from nodes vs Mongo. Also there's no separate
-# count for stopped gears vs. idled gears. These problems will likely
-# be remedied shortly.
+# The data still include legacy gear stats that miscounted gears, but
+# now newer gear state facts are gathered and displayed.
+# Discrepancies between counts in MongoDB vs. nodes should be either
+# 1. transient (gear create/destroy in progress), or
+# 2. indicative of a problem (broken gear on node or miscount in DB).
 
 #--
-# Copyright 2012 Red Hat, Inc.
+# Copyright 2013 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,24 +72,25 @@ class OOStats
   # these are the column lists you get by default
   def set_initial_columns
     set_columns :profile_summary =>
-        %w{district_count node_count nodes_active nodes_inactive
-          district_capacity dist_avail_capacity dist_avail_uids total_gears
-          total_active_gears effective_available_gears lowest_active_capacity_pct
-          highest_active_capacity_pct avg_active_capacity_pct
-          total_gears_in_db_records total_apps
+        %w{district_count district_capacity dist_avail_capacity dist_avail_uids
+          lowest_dist_usage_pct highest_dist_usage_pct avg_dist_usage_pct
+          nodes_count nodes_active total_apps
+          gears_total_count total_gears_in_db_records gear_count_db_minus_node
+          gears_active_count available_active_gears effective_available_gears
         }.map{|k| k.to_sym},
      :district_table =>
-        %w{name node_count dist_avail_capacity
-          total_active_gears effective_available_gears avg_active_capacity_pct
+        %w{name nodes_count dist_avail_capacity
+          gears_active_count effective_available_gears avg_active_usage_pct
         }.map{|k| k.to_sym},
      :district_summary =>
-        %w{profile node_count nodes_active nodes_inactive
-          district_capacity dist_avail_capacity dist_avail_uids total_gears
-          total_active_gears effective_available_gears lowest_active_capacity_pct
-          highest_active_capacity_pct avg_active_capacity_pct
+        %w{profile district_capacity dist_avail_capacity dist_avail_uids
+          nodes_count nodes_active gears_total_count
+          gears_active_count available_active_gears effective_available_gears
+          lowest_active_usage_pct highest_active_usage_pct avg_active_usage_pct
         }.map{|k| k.to_sym},
      :node_table =>
-        %w{name total_gears max_gears capacity active_gears max_active_gears active_capacity
+        %w{name gears_total_count max_gears gears_usage_pct gears_idle_count
+           gears_active_count max_active_gears gears_active_usage_pct
         }.map{|k| k.to_sym}
   end
 
@@ -191,17 +190,24 @@ class OOStats
     #      :district_uuid   => "2dfca730b863428da9af176160138651",
     #                       # or "NONE" if not in a district
     #      :district_active => true, # node marked as active in district?
-    #      :total_gears     => 12,
-    #      :active_gears    => 12,
-    #      :inactive_gears  => 0,
-    #        # keep in mind below we are actually talking about gears not apps
+    #       # gear-based limits and usage, according to node facts
+    #      :max_gears           => 100, # unenforced limit
+    #      :max_active_gears    => 50,
+    #      :gears_usage_pct     => 200.0, # percentage of max_gears consumed
+    #      :gears_active_usage_pct => 40.0, # percentage of max_active_gears consumed
+    #        # gear-based counts by state, according to node facts
+    #      :gears_started_count => 20,
+    #      :gears_idle_count    => 175,
+    #      :gears_stopped_count => 5,
+    #      :gears_deploying_count => 20, # in some part of create/update process
+    #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #      :gears_total_count   => 200,
+    #      :gears_active_count  => 20, # all gears except idle and stopped are "active"
+    #        # legacy ways of counting gears
     #      :max_apps        => 100,
     #      :capacity        => 12.0, # percentage of max_apps consumed
     #      :max_active_apps => 100,
     #      :active_capacity => 12.0, # percentage of max_active_apps consumed
-    #        # copies of the max_ settings apps=>gears
-    #      :max_gears        => 100,
-    #      :max_active_gears => 100,
     #   },
     #   "node2.example.com" => ...
     # }
@@ -211,18 +217,15 @@ class OOStats
         host = response[:senderid]
         node = {}
 
-        # convert from strings to relevant values
+        # convert from strings to relevant values if needed
         %w{node_profile district_uuid}.each {|fact| node[fact.to_sym] = facts[fact]}
         node[:district_active] = facts['district_active'] == 'true' ? true : false
-        %w{max_apps max_active_apps}.each {|fact| node[fact.to_sym] = facts[fact].to_i}
-        node[:max_gears] = node[:max_apps]
-        node[:max_active_gears] = node[:max_active_apps]
-        %w{capacity active_capacity}.each {|fact| node[fact.to_sym] = facts[fact].to_f}
-
-        # make necessary calculations
-        node[:active_gears] = (node[:max_active_apps] * node[:active_capacity] / 100).round
-        node[:total_gears] = (node[:max_apps] * node[:capacity] / 100).round
-        node[:inactive_gears] = node[:total_gears] - node[:active_gears]
+        %w{ max_apps max_active_apps max_gears max_active_gears gears_started_count
+            gears_idle_count gears_stopped_count gears_deploying_count
+            gears_unknown_count gears_total_count gears_active_count
+          }.each {|fact| node[fact.to_sym] = facts[fact].to_i}
+        %w{capacity active_capacity gears_usage_pct gears_active_usage_pct
+          }.each {|fact| node[fact.to_sym] = facts[fact].to_f}
 
         # record that hash for this node host
         node[:id] = host
@@ -282,7 +285,7 @@ class OOStats
     #         :uuid               => "2dfca730b863428da9af176160138651", # unique ID for district
     #         :name               => "small_district", # user-friendly name for district
     #         :profile            => "small", # gear profile ("size") for district
-    #         :node_count         => 2,       # number of nodes responding in the district
+    #         :nodes_count        => 2,       # number of nodes responding in the district
     #         :nodes_active       => 1,       # number of nodes marked "active" in district
     #         :nodes_inactive     => 1,       # number of nodes marked inactive (not open for gear placement)
     #           # N.B. un-districted nodes are always considered inactive, though they can
@@ -291,21 +294,26 @@ class OOStats
     #         # the following are *district* capacity numbers:
     #         :district_capacity   => 4000,    # configured number of gears allowed in this district
     #         :dist_avail_capacity => 3967,    # district_capacity minus gears already allocated
-    #         :dist_avail_uids     => 5967,    # number of user ids left in the district uid pool
+    #         :dist_avail_uids     => 5967,    # number of user ids left in the district 6000 uid pool
+    #         :dist_usage_pct      => 0.83, # percentage of district_capacity allocated
     #           # N.B. these are set to 0 for "NONE" districts (undistricted nodes)
     #
     #         # the following are capacity numbers according to responding nodes:
-    #         :total_gears            => 27,  # gears created on nodes
-    #         :total_active_gears     => 27,  # gears which are active (not stopped/idled)
+    #         :gears_started_count => 20,
+    #         :gears_idle_count    => 175,
+    #         :gears_stopped_count => 5,
+    #         :gears_deploying_count => 20, # in some part of create/update process
+    #         :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #         :gears_total_count   => 200,
+    #         :gears_active_count  => 20, # gears not idled or stopped are "active"
+    #           # available capacity numbers
     #         :available_active_gears => 173, # how many more active gears the nodes will support
-    #           # N.B. currently gear numbers are skewed lower than reality because the
-    #           # node only counts the ones that have git repos (e.g. DB gears are excluded)
-    #         :effective_available_gears => 173, # minimum of available_active_gears and dist_avail_capacity
+    #         :effective_available_gears => 173, # lower of available_active_gears, dist_avail_capacity
     #
-    #         # min/max/average percent usage of active gear capacity on nodes in this district:
-    #         :lowest_active_capacity_pct  => 12.0,
-    #         :highest_active_capacity_pct => 15.0,
-    #         :avg_active_capacity_pct     => 13.5,
+    #         # min/max/average percent usage of active gear usage on nodes in this district:
+    #         :lowest_active_usage_pct  => 12.0,
+    #         :highest_active_usage_pct => 15.0,
+    #         :avg_active_usage_pct     => 13.5,
     #
     #         :nodes=> [ array of entry_for_node values that are members of this district ]
     #
@@ -316,9 +324,10 @@ class OOStats
     # }
 
     # these are initial values, will accumulate as we go
-    starter_stats = Hash[ %w[
-       node_count nodes_active nodes_inactive available_active_gears effective_available_gears
-       total_active_gears total_gears avg_active_capacity_pct
+    starter_stats = Hash[%w[
+       nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
+       gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
+       gears_active_count available_active_gears avg_active_usage_pct
     ].collect {|key| [key.to_sym, 0]}]
 
     # may need a unique "NONE" district per profile for nodes that are not in a district
@@ -342,27 +351,31 @@ class OOStats
         merge(:missing_nodes => dist[:nodes].clone, :nodes => [])
     end
 
-    # We will drive everything according to the nodes that responded.
+    # We will drive this according to the nodes that responded.
     # There may be some that didn't respond, which won't be included.
     entry_for_node.each do |id,node|
       sum = summary_for_district[node[:district_uuid]] ||
-                   none_district[node[:node_profile]]
+                   none_district[node[:node_profile ]]
       sum[:nodes] << node
       sum[:missing_nodes].delete id  # responded, so not missing
-      sum[:node_count] += 1
-      sum[:nodes_active] += 1 if node[:district_active]
-      sum[:nodes_inactive] += 1 if !node[:district_active]
-      sum[:total_active_gears] += node[:active_gears]
-      sum[:total_gears] += node[:total_gears]
-      sum[:avg_active_capacity_pct] += node[:active_capacity]
-      sum[:available_active_gears] += node[:max_active_apps] - node[:active_gears]
+      sum[:nodes_count] += 1
+      sum[ node[:district_active] ? :nodes_active : :nodes_inactive] += 1
+      [ :gears_started_count, :gears_idle_count, :gears_stopped_count, :gears_deploying_count,
+        :gears_unknown_count, :gears_total_count, :gears_active_count
+      ].each {|key| sum[key] += node[key]}
+      # active gears can actually get higher than max; count that as 0 available, not negative
+      sum[:available_active_gears] += [0, node[:max_active_gears] - node[:gears_active_count]].max
+      sum[:avg_active_usage_pct] += node[:gears_active_usage_pct]
     end
 
     none_district.values.each {|sum| summary_for_district[sum[:uuid]] = sum}
     summary_for_district.each do |uuid,sum|
-      sum[:avg_active_capacity_pct] /= sum[:node_count] if sum[:node_count] > 0
-      sum[:lowest_active_capacity_pct] = sum[:nodes].map{|node| node[:active_capacity]}.min || 0.0
-      sum[:highest_active_capacity_pct] = sum[:nodes].map{|node| node[:active_capacity]}.max || 0.0
+      sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
+      cap = sum[:district_capacity]
+      sum[:dist_usage_pct] = cap.zero? ? 0.0 : 100.0 - 100.0 * sum[:dist_avail_capacity] / cap
+      sum[:lowest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.max || 0.0
+      # effective gears available are limited by district capacity
       sum[:effective_available_gears] = [sum[:available_active_gears], sum[:dist_avail_capacity]].min
       # convert :missing nodes to array
       sum[:missing_nodes] = sum[:missing_nodes].keys
@@ -377,7 +390,7 @@ class OOStats
     #      :profile   => "small",
     #      :districts => [ array of summaries from summary_of_district that have this profile ],
     #      :district_count => 1, # number of districts with this profile (may include 1 "NONE" district)
-    #      :node_count         => 2,       # number of nodes responding with this profile
+    #      :nodes_count        => 2,       # number of nodes responding with this profile
     #      :nodes_active       => 1,       # number of nodes marked "active" with this profile
     #      :nodes_inactive     => 1,       # number of nodes marked inactive (not open for gear placement)
     #        # N.B. un-districted nodes are always considered inactive, though they can
@@ -388,15 +401,18 @@ class OOStats
     #      :district_capacity   => 4000,    # configured number of gears allowed in districts
     #      :dist_avail_capacity => 3967,    # district_capacity minus gears already allocated
     #      :dist_avail_uids     => 5967,    # number of user ids left in the districts' uid pool
+    #      :highest_dist_usage_pct => 15.0,
+    #      :lowest_dist_usage_pct  => 12.0,
+    #      :avg_dist_usage_pct     => 13.5,
     #        # N.B. these will be 0 for "NONE" districts (undistricted nodes)
     #
     #      # the following are usage/capacity numbers according to responding nodes:
-    #      :total_gears            => 27,  # gears created on nodes
-    #      :total_active_gears     => 27,  # gears which are active (not stopped/idled)
+    #      :gears_active_count  => 20,
+    #      :gears_idle_count    => 175,
+    #      :gears_stopped_count => 5,
+    #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #      :gears_total_count   => 200,
     #      :available_active_gears => 173, # how many more active gears the nodes will support
-    #        # N.B. currently gear numbers are skewed lower than reality because the
-    #        # node only counts the ones that have git repos (e.g. DB gears are excluded)
-    #      :effective_available_gears => 173, # minimum of available_active_gears and dist_avail_capacity
     #
     #      # the following are usage numbers according to the DB, if collected
     #      :total_db_gears        => 27,  # gears recorded with this profile in the DB
@@ -405,22 +421,24 @@ class OOStats
     #      :cartridges_short      => { cartridge short name counts as in get_db_stats }
     #
     #      # min/max/average percent usage of active gear capacity on nodes in this profile:
-    #      :lowest_active_capacity_pct  => 12.0,
-    #      :highest_active_capacity_pct => 15.0,
-    #      :avg_active_capacity_pct     => 13.5,
+    #      :lowest_active_usage_pct  => 12.0,
+    #      :highest_active_usage_pct => 15.0,
+    #      :avg_active_usage_pct     => 13.5,
     #   },
     #   "medium" => {...},
     #   ...
     # }
+    #
 
     # these values will accumulate as we go
     starter_stats = Hash[ %w[
-       node_count district_count nodes_active nodes_inactive available_active_gears
-       effective_available_gears total_active_gears total_gears avg_active_capacity_pct
-       district_capacity dist_avail_capacity dist_avail_uids
+       nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
+       gears_stopped_count gears_unknown_count gears_total_count available_active_gears
+       effective_available_gears avg_active_usage_pct district_capacity
+       dist_avail_capacity dist_avail_uids avg_dist_usage_pct
     ].collect {|key| [key.to_sym, 0]}]
     summary_for_profile = Hash.new do |sum,p|
-      sum[p] = { # auto-created hash per profile
+      sum[p] = {
         :profile => p,
         :districts => [],
         :missing_nodes => [],
@@ -429,23 +447,29 @@ class OOStats
     summary_for_district.each do |uuid,dist|
       sum = summary_for_profile[dist[:profile]]
       sum[:districts] << dist
-      sum[:district_count] += 1
-      [ :node_count, :nodes_active, :nodes_inactive, :missing_nodes,
-        :available_active_gears, :total_active_gears, :total_gears, :district_capacity,
+      [ :gears_active_count, :gears_idle_count, :gears_stopped_count, :gears_unknown_count,
+        :gears_total_count, :available_active_gears, :effective_available_gears, :nodes_count,
+        :nodes_active, :nodes_inactive, :missing_nodes, :district_capacity,
         :dist_avail_capacity, :dist_avail_uids
-      ].each {|k| sum[k] += dist[k]}
-      sum[:avg_active_capacity_pct] += dist[:avg_active_capacity_pct] * dist[:node_count]
+      ].each {|key| sum[key] += dist[key]}
+      sum[:avg_active_usage_pct] += dist[:avg_active_usage_pct] * dist[:nodes_count]
+      sum[:avg_dist_usage_pct] += dist[:dist_usage_pct]
     end
     summary_for_profile.each do |profile,sum|
-      sum[:avg_active_capacity_pct] /= sum[:node_count] if sum[:node_count] > 0
-      sum[:lowest_active_capacity_pct] = sum[:districts].map{|d| d[:lowest_active_capacity_pct]}.min || 0.0
-      sum[:highest_active_capacity_pct] = sum[:districts].map{|d| d[:highest_active_capacity_pct]}.min || 0.0
-      sum[:effective_available_gears] = [sum[:available_active_gears], sum[:dist_avail_capacity]].min
+      sum[:district_count] = sum[:districts].size
+      sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
+      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.max || 0.0
+      sum[:avg_dist_usage_pct] /= sum[:district_count] if sum[:district_count] > 0
+      sum[:lowest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.min || 0.0
+      sum[:highest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.max || 0.0
       if count_for_profile
-        sum[:total_gears_in_db_records] = count_for_profile[profile][:gears]
-        sum[:total_apps] = count_for_profile[profile][:apps]
-        sum[:cartridges] = count_for_profile[profile][:cartridges]
-        sum[:cartridges_short] = count_for_profile[profile][:cartridges_short]
+        c = count_for_profile[profile]
+        sum[:total_gears_in_db_records] = c[:gears]
+        sum[:total_apps] = c[:apps]
+        sum[:cartridges] = c[:cartridges]
+        sum[:cartridges_short] = c[:cartridges_short]
+        sum[:gear_count_db_minus_node] = c[:gears] - sum[:gears_total_count]
       end
     end
     return summary_for_profile
@@ -753,6 +777,8 @@ class OOStats
     # figure out how to display each column
     cols.each do |col|
       name = col.to_s.camelize.
+        gsub(/Count$/, '').
+        gsub(/Total$/, '').
         gsub(/Total/, '#').
         gsub(/Available/, 'Avail')
       size = (rows.map {|row| row[col].to_s.length} + [name.length]).sort[-1]
@@ -817,7 +843,7 @@ For text format, print statistical summary at this level:
 \tnode: node statistics only
 LEVEL
     opts.on('-u','--only-user', <<FORMAT) { |x| options[:db_stats] = options[:only] = x }
-With text format, show ONLY per-user usage summary (implies --db)'
+With text format, show ONLY per-user usage summary (implies --db)
 FORMAT
     opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
   }
