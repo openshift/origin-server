@@ -12,9 +12,20 @@ quota_files=40000
 # 1GB.  1 block = 1024byte
 quota_blocks=1048576
 
-# For no over commitment, should be memory_limit_in_bytes / (Total System Memory - 1G)
+# App/gear usage limits
+# "apps" accounting uses incorrect logic.
+# max_apps isn't enforced by current logic, only used in metrics for overcommitment
 max_apps=100
+# max_active_apps is presently used for guiding gear placement.
+# For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
 max_active_apps=100
+# max_gears will replace max_apps in the future with correct accounting, but still
+# without enforcement (metrics usage only). Defaults to max_apps if not set.
+max_gears=100
+# max_active_gears will replace max_active_apps in the future with correct accounting.
+# Defaults to max_active_apps if not set.
+# For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
+max_active_gears=100
 
 # PAM - resource limits
 # limits_core
