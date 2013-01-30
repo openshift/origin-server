@@ -14,7 +14,7 @@
       <builderSize>small</builderSize>
     </hudson.plugins.openshift.OpenShiftBuilderSizeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
-      <builderType>php-5.3</builderType>
+      <builderType>ceylon-0.5</builderType>
     </hudson.plugins.openshift.OpenShiftBuilderTypeJobProperty>
     <hudson.plugins.openshift.OpenShiftBuilderTimeoutJobProperty>
       <builderTimeout>300000</builderTimeout>
@@ -66,9 +66,6 @@ source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
 alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 
-# Sync libs - Faster builds
-rsync UPSTREAM_SSH:~/php-5.3/phplib/ ~/php-5.3/phplib/
-
 # Build/update libs and run user pre_build and build
 . ci_build.sh
 
@@ -80,8 +77,7 @@ rsync UPSTREAM_SSH:~/php-5.3/phplib/ ~/php-5.3/phplib/
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/php-5.3/phplib/ UPSTREAM_SSH:~/php-5.3/phplib/
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/php-5.3/repo/
+rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/ceylon-0.5/repo/
 
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh

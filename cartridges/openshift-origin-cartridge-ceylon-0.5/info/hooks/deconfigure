@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Destroys php instance
+# Destroys ceylon instance
 
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
-    echo "$0 $@" | logger -p local0.notice -t openshift_origin_php_deconfigure
+    echo "$0 $@" | logger -p local0.notice -t openshift_origin_ceylon_deconfigure
     exit 1
 }
 
@@ -22,13 +22,13 @@ done
 
 [ $# -eq 3 ] || print_help
 
-cartridge_type="php-5.3"
+cartridge_type="ceylon-0.5"
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 setup_deconfigure "$1" $2 $3
 
-PHPCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
+CEYLONCART_INSTANCE_DIR=$(get_cartridge_instance_dir "$cartridge_type")
 
 source $APP_HOME/.env/OPENSHIFT_APP_UUID
 container_uuid=$3
@@ -45,9 +45,9 @@ else
 
     stop_app
 
-    confirm_pid_gone "${PHPCART_INSTANCE_DIR}/run/httpd.pid"
+    confirm_pid_gone "${CEYLONCART_INSTANCE_DIR}/run/httpd.pid"
 
-    confirm_log_files_inactive "$PHPCART_INSTANCE_DIR/logs"
+    confirm_log_files_inactive "$CEYLONCART_INSTANCE_DIR/logs"
 
     rm_cartridge_instance_dir "$cartridge_type"
     

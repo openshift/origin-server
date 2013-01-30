@@ -1,4 +1,4 @@
-php 5.3
+ceylon 0.5
 
 BUILD: Using standard RHEL RPM
 (Installed and updated via yum)
@@ -7,9 +7,6 @@ DEPENDENCIES:
 All are pulled in automatically via yum
 
 BUNDLE:
-/etc/openshift/php.conf
 
 TODO:
-Create openshift specific php.ini file
-Sandbox
-Jim's stack
+

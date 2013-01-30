@@ -2,7 +2,7 @@ Name: ceylon-0.5
 Display-Name: Ceylon 0.5
 Description: "Ceylon is a language for writing large programs in teams. Ceylon has a powerful static type system that prevents many bugs while letting you express more, more easily: union types, intersection types, higher order functions, mixin inheritance, and enumerated types."
 Version: 0.5
-License: "Please chec ceylon website for license details."
+License: "Please visit ceylon website for license details."
 License-Url: http://ceylon-lang.org/code/licenses/
 Vendor: ceylon-lang.org
 Categories:
