@@ -1,15 +1,6 @@
 %global htmldir %{_var}/www/html
 %global brokerdir %{_var}/www/openshift/broker
 
-Summary:   OpenShift Origin broker components
-Name:      openshift-origin-broker
-Version:   1.1.2
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %global with_systemd 1
 %else
