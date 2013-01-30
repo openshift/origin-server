@@ -33,3 +33,6 @@ Components:
     Scaling:
       Min: 1
       Max: 1
+Configure-Order:
+  - web_framework
+  - web_proxy
