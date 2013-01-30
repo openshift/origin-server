@@ -6,10 +6,12 @@ do
     . $f
 done
 
+VIRTENV="~/python-2.6/virtenv"
+
 cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
 if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
 then 
-    OPENSHIFT_PYTHON_MIRROR="http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
+    OPENSHIFT_PYTHON_MIRROR="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
 fi
 
 # Run when jenkins is not being used or run when inside a build
@@ -22,19 +24,14 @@ fi
 if [ -f ${OPENSHIFT_REPO_DIR}setup.py ]
 then
     echo "setup.py found.  Setting up virtualenv"
-    cd ~/python-2.6/virtenv
+    cd $VIRTENV
 
     # Hack to fix symlink on rsync issue
     /bin/rm -f lib64
-    virtualenv --system-site-packages ~/python-2.6/virtenv
+    virtualenv --system-site-packages $VIRTENV
     . ./bin/activate
-	if [ -n "$OPENSHIFT_PYTHON_MIRROR" ]
-	then
-		python ${OPENSHIFT_REPO_DIR}setup.py develop -i $OPENSHIFT_PYTHON_MIRROR
-	else
-		python ${OPENSHIFT_REPO_DIR}setup.py develop
-	fi
-    virtualenv --relocatable ~/python-2.6/virtenv
+	python ${OPENSHIFT_REPO_DIR}setup.py develop $OPENSHIFT_PYTHON_MIRROR
+    virtualenv --relocatable $VIRTENV
 fi
 
 # Run build
