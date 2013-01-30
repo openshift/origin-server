@@ -84,7 +84,21 @@ module OpenShift
     def is_ci_builder?
       return categories.include?('ci_builder')
     end
-    
+   
+    def is_premium?
+      return categories.include?('premium')
+    end
+
+    def price
+      price = 0
+      if self.is_premium?
+        data = {:cart => self.name}
+        self.class.notify_observers(:get_cart_pricing, data)
+        price = data[:price]
+      end
+      price
+    end
+ 
     def from_descriptor(spec_hash={})
       self.name = spec_hash["Name"]
       self.version = spec_hash["Version"] || "0.0"

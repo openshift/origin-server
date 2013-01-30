@@ -9,10 +9,12 @@
 #   @return [String] Denotes begin/continue/end of given usage_type
 # @!attribute [r] sync_time
 #   @return [Time] When is the last time it synced this Usage record with billing vendor
-# @!attribute [r] gear_size
+# @!attribute [rw] gear_size
 #   @return [String] Gear size
 # @!attribute [rw] addtl_fs_gb
 #   @return [Integer] Additional filesystem storage in GB.
+# @!attribute [rw] cart_name
+#   @return [String] Premium cartridge name
 class UsageRecord
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -22,7 +24,8 @@ class UsageRecord
              :continue => "continue" }
              
   USAGE_TYPES = { :gear_usage => "GEAR_USAGE",
-                  :addtl_fs_gb => "ADDTL_FS_GB" }
+                  :addtl_fs_gb => "ADDTL_FS_GB",
+                  :premium_cart => "PREMIUM_CART" }
 
   field :login, type: String
   field :gear_id, type: Moped::BSON::ObjectId
@@ -32,11 +35,13 @@ class UsageRecord
   field :usage_type, type: String  
   field :gear_size, type: String  
   field :addtl_fs_gb, type: Integer
+  field :cart_name, type: String
 
   validates_inclusion_of :event, in: UsageRecord::EVENTS.values
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
+  validates :cart_name, :presence => true, :if => :validate_cart_name?
 
   def validate_gear_size?
     (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage] && self.event != UsageRecord::EVENTS[:end]) ? true : false
@@ -46,17 +51,23 @@ class UsageRecord
     (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
   end
 
+  def validate_cart_name?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]) ? true : false
+  end
+
   def self.track_usage(login, gear_id, event, usage_type,
-                       gear_size=nil, addtl_fs_gb=nil)
+                       gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
       usage_record = UsageRecord.new(event: event, time: now, gear_id: gear_id,
                                      usage_type: usage_type, login: login)
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
-        usage_record.gear_size = gear_size if gear_size
+        usage_record.gear_size = gear_size
       when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-        usage_record.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
+        usage_record.addtl_fs_gb = addtl_fs_gb
+      when UsageRecord::USAGE_TYPES[:premium_cart]
+        usage_record.cart_name = cart_name
       end
       usage_record.save!
 
@@ -66,6 +77,7 @@ class UsageRecord
                           begin_time: now, usage_type: usage_type)
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
+        usage.cart_name = cart_name if cart_name
       elsif event == UsageRecord::EVENTS[:end]
         usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
         if usage

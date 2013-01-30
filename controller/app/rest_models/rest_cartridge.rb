@@ -1,7 +1,7 @@
 class RestCartridge < OpenShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :price
 
   def initialize(cart)
     self.name = cart.name
@@ -13,7 +13,7 @@ class RestCartridge < OpenShift::Model
     self.tags = cart.categories
     self.website = cart.website
     self.type = "standalone"
-    self.type = "embedded" if cart.categories.include? "embedded"
+    self.type = "embedded" if cart.is_embeddable?
     scale = cart.components_in_profile(nil).first.scaling
     unless scale.nil?
       self.scales_from = self.supported_scales_from = scale.min
@@ -23,6 +23,7 @@ class RestCartridge < OpenShift::Model
     scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
     self.scales_with = scaling_cart.name
     self.help_topics = cart.help_topics
+    self.price = cart.price
   end
 
   def to_xml(options={})

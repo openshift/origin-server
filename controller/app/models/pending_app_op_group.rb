@@ -171,7 +171,8 @@ class PendingAppOpGroup
             raise OpenShift::NodeException.new("Unable to create gear", result_io.exitcode, result_io) if result_io.exitcode != 0
             self.inc(:num_gears_created, 1)
           when :track_usage
-            UsageRecord.track_usage(op.args["login"], op.args["gear_ref"], op.args["event"], op.args["usage_type"], op.args["gear_size"], op.args["additional_filesystem_gb"])
+            UsageRecord.track_usage(op.args["login"], op.args["gear_ref"], op.args["event"], op.args["usage_type"],
+                                    op.args["gear_size"], op.args["additional_filesystem_gb"], op.args["cart_name"])
           when :register_dns          
             gear.register_dns
           when :deregister_dns          
