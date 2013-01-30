@@ -270,11 +270,12 @@ class Application
   end
   
   def group_instances_with_scale
-    processed_group_overrides, cleaned_group_overrides = process_group_overrides(self.component_instances.map{|c| c.to_hash}, self.group_overrides)
+    # processed_group_overrides, cleaned_group_overrides = process_group_overrides(self.component_instances.map{|c| c.to_hash}, self.group_overrides)
     
     #map to current group_instances
     self.group_instances.map do |group_instance|
-      override_spec = processed_group_overrides.select{ |go| go["components"] == group_instance.to_hash[:component_instances] }.first
+      override_spec = group_instance.get_group_override
+      # override_spec = processed_group_overrides.select{ |go| go["components"] == group_instance.to_hash[:component_instances] }.first
       group_instance.min = override_spec["min_gears"]
       group_instance.max = override_spec["max_gears"]
       group_instance
@@ -902,11 +903,12 @@ class Application
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :update_component_limits
-            group_override = {"components" => [op_group.args["comp_spec"]]}
+            found = self.group_overrides.find {|go| go["components"].include? op_group.args["comp_spec"] }
+            group_override = found || {"components" => [op_group.args["comp_spec"]]}
             group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
             group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
             group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
-            updated_overrides = [group_override]
+            updated_overrides = (found ? [] : [group_override]) + (self.group_overrides || [])
             features = self.requires
             ops, add_gear_count, rm_gear_count = update_requirements(features, updated_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
@@ -1624,8 +1626,8 @@ class Application
       prof = cart.profile_for_feature(component_instance["comp"])
       prof = prof[0] if prof.is_a?(Array)
       comp = prof.get_component(component_instance["comp"])
-      overrides += prof.group_overrides.map{ |go| go["cart_set"] = cart.name ; go["comp_set"] = comp.name ; go }
-      overrides << {"components" => [{"cart" => cart.name, "comp" => comp.name}], "min_gears"=>comp.scaling.min, "max_gears"=>comp.scaling.max, "cart_set" => cart.name, "comp_set" => comp.name}
+      overrides += prof.group_overrides
+      overrides << {"components" => [{"cart" => cart.name, "comp" => comp.name}], "min_gears"=>comp.scaling.min, "max_gears"=>comp.scaling.max } if ! comp.is_singleton?
     end
 
     # Resolve all components within the group overrides
@@ -1647,105 +1649,39 @@ class Application
       cleaned_override["min_gears"] = group_override["min_gears"] if group_override.has_key?("min_gears")
       cleaned_override["max_gears"] = group_override["max_gears"] if group_override.has_key?("max_gears")
       cleaned_override["additional_filesystem_gb"] = group_override["additional_filesystem_gb"] if group_override.has_key?("additional_filesystem_gb")
-      cleaned_overrides << cleaned_override unless group_override.has_key?("cart_set")
+      cleaned_overrides << cleaned_override if group_override["components"] and group_override["components"].count > 0
     end
 
-    processed_group_overrides = []    
-    while component_instances.size > 0
-      processed_group_override = {}
-      comp_spec = component_instances.first
-      
-      relevant_components = [comp_spec]
-      relevant_group_overrides = []
-      processed_components = []
-      
-      begin
-        proc_comp_spec = (relevant_components - processed_components).first
-        
-        comp_spec_overrides = overrides.reject {|o_spec| !o_spec["components"].include?(proc_comp_spec) }
-        relevant_group_overrides = (relevant_group_overrides + comp_spec_overrides).uniq
-        
-        transitive_components = comp_spec_overrides.map{ |o_spec| o_spec["components"] }.flatten.uniq
-        relevant_components += transitive_components
-        relevant_components.uniq!
-        processed_components += [proc_comp_spec]
-      end while (relevant_components - processed_components).length != 0
-      
-      relevant_components.uniq!
-      relevant_components.delete(nil)
-      
-      processed_group_override["components"] = relevant_components
-      component_instances -= processed_group_override["components"]
-      
-      scale = {min: 0, max: -1, additional_filesystem_gb: 0, gear_size: self.default_gear_size}
-      #process cart specified minimums
-      singletons_only = true
-      relevant_group_overrides.each do |g_comp_spec|
-        next if !g_comp_spec.has_key?("cart_set")
-        
-        if g_comp_spec.has_key?("min_gears") and g_comp_spec["min_gears"] > scale[:min]
-          scale[:cart_min] = scale[:min] = g_comp_spec["min_gears"]
-          scale[:min_cart] = g_comp_spec["cart_set"]
-          scale[:min_comp] = g_comp_spec["comp_set"]
-        end
-        
-        if g_comp_spec.has_key?("max_gears") and (g_comp_spec["max_gears"] < scale[:max] or scale[:max] == -1)
-          if(g_comp_spec["max_gears"] == 1)
-            scale[:singleton_cart] = g_comp_spec["cart_set"]
-            scale[:singleton_comp] = g_comp_spec["comp_set"]          
-          else
-            singletons_only = false
-            if g_comp_spec["max_gears"] != -1
-              scale[:cart_max] = scale[:max] = g_comp_spec["max_gears"]
-              scale[:max_cart] = g_comp_spec["cart_set"]
-              scale[:max_comp] = g_comp_spec["comp_set"]
-            end
-          end
-        end
-                
-        scale[:gear_size] = g_comp_spec["gear_size"] if g_comp_spec.has_key?("gear_size") and (GEAR_SIZES.index(g_comp_spec["gear_size"]) > GEAR_SIZES.index(scale[:gear_size]))
-        scale[:additional_filesystem_gb] += g_comp_spec["additional_filesystem_gb"] if g_comp_spec.has_key?("additional_filesystem_gb")
-      end
-      
-      #fix scale if group only contains singletons
-      if singletons_only
-        scale[:cart_max] = scale[:max] = 1
-        scale[:max_cart] = scale[:singleton_cart]
-        scale[:max_comp] = scale[:singleton_comp]
-      end
-      
-      relevant_group_overrides.each do |g_comp_spec|
-        next if g_comp_spec.has_key? "cart_set"
-        
-        if g_comp_spec.has_key?("min_gears") 
-          if g_comp_spec["min_gears"] < scale[:min]
-            raise OpenShift::ScaleConflictException.new(scale[:min_cart], scale[:min_comp], g_comp_spec["min_gears"], nil, scale[:cart_min], nil)
-          end
-          scale[:min] = g_comp_spec["min_gears"] if g_comp_spec["min_gears"] > scale[:min]
-        end
-        
-        if  g_comp_spec.has_key?("max_gears") 
-          if scale[:max] != -1 and g_comp_spec["max_gears"] > scale[:max]
-            raise OpenShift::ScaleConflictException.new(scale[:min_cart], scale[:min_comp], nil, g_comp_spec["max_gears"], nil, scale[:cart_max])
-          end
-          scale[:max] = g_comp_spec["max_gears"] if g_comp_spec["max_gears"] != -1 and (g_comp_spec["max_gears"] < scale[:max] or scale[:max] == -1)
-        end
-        
-        if g_comp_spec.has_key?("gear_size") and (GEAR_SIZES.index(g_comp_spec["gear_size"]) > GEAR_SIZES.index(scale[:gear_size]))
-          scale[:gear_size] = g_comp_spec["gear_size"]
-        end
-        
-        scale[:additional_filesystem_gb] += g_comp_spec["additional_filesystem_gb"] if g_comp_spec.has_key?("additional_filesystem_gb")
-      end
-      
-      processed_group_override["min_gears"] = scale[:min]
-      processed_group_override["max_gears"] = scale[:max]
-      processed_group_override["gear_size"] = scale[:gear_size]
-      processed_group_override["additional_filesystem_gb"] = scale[:additional_filesystem_gb] || 0
-      processed_group_overrides << processed_group_override
-    end
-    
-    [processed_group_overrides, cleaned_overrides]
+    # work on cleaned_overrides only 
+    go_map = {}
+    cleaned_overrides.each { |go|
+      merged_go = deep_copy(go)
+      go["components"].each { |comp|
+        existing_go = go_map["#{comp["cart"]}/#{comp["comp"]}"]
+        merged_go = merge_group_overrides(merged_go, existing_go) if existing_go
+      }
+      merged_go["components"].each { |comp|
+        go_map["#{comp["cart"]}/#{comp["comp"]}"] = merged_go
+      }
+    }
+    processed_group_overrides = deep_copy(go_map.values.uniq)
+    return [processed_group_overrides, processed_group_overrides]
+  end
+
+  def merge_group_overrides(first, second)
+    return_go = { }
+    return_go["components"] = (first["components"] + second["components"]).uniq
+    return_go["min_gears"] = [first["min_gears"]||1, second["max_gears"]||1].max if first["min_gears"] or second["min_gears"]
+    return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
+    fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? 10000 : first["max_gears"]
+    smax = (second["max_gears"].nil? or second["max_gears"]==-1) ? 10000 : second["max_gears"]
+    return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
+    return_go["max_gears"] = -1 if return_go["max_gears"]==10000
+
+    fi = GEAR_SIZES.index(first["gear_size"]) || 0
+    si = GEAR_SIZES.index(second["gear_size"]) || 0
+    return_go["gear_size"] = GEAR_SIZES[[fi,si].max] if first["gear_size"] or second["gear_size"]
+    return_go
   end
 
   # Computes the group instances, component instances and connections required to support a given set of features
@@ -1843,11 +1779,11 @@ class Application
       group_instance = {}
       group_instance[:component_instances] = go["components"]
       group_instance[:scale] = {}
-      group_instance[:scale][:min] = go["min_gears"]
-      group_instance[:scale][:max] = go["max_gears"]
-      group_instance[:scale][:gear_size] = go["gear_size"]
+      group_instance[:scale][:min] = ( go["min_gears"] || 1 )
+      group_instance[:scale][:max] = ( go["max_gears"] || -1 )
+      group_instance[:scale][:gear_size] = ( go["gear_size"] || GEAR_SIZES[0] )
       group_instance[:scale][:additional_filesystem_gb] ||= 0
-      group_instance[:scale][:additional_filesystem_gb] += go["additional_filesystem_gb"]
+      group_instance[:scale][:additional_filesystem_gb] += (go["additional_filesystem_gb"] || 0)
       group_instance[:_id] =Moped::BSON::ObjectId.new
       group_instance
     }

@@ -63,8 +63,7 @@ def datastore_has_gear?(gear_uuid, app_uuid=nil)
   if $false_positive_check_cnt < FALSE_POSITIVE_CHECK_LIMIT
     query = { "group_instances.gears.uuid" => gear_uuid }
     query['uuid'] = app_uuid if app_uuid
-    hash = $moped_session[:applications].find(query).first
-    return !hash.nil?
+    return Application.where(query).exists?
   else
     return true
   end
