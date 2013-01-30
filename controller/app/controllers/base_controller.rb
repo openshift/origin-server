@@ -149,7 +149,7 @@ class BaseController < ActionController::Base
       
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
     rescue OpenShift::UserException => e
-      render_format_exception(e)
+      render_exception(e)
     rescue OpenShift::AccessDeniedException
       log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_log_args)
       request_http_basic_authentication
@@ -299,9 +299,7 @@ class BaseController < ActionController::Base
   #  log_tag::
   #    Tag used in action logs
   def render_exception(ex, log_tag=nil)
-    Rails.logger.error "Reference ID: #{@request_id}"
-    Rails.logger.error ex.message
-    Rails.logger.error ex.backtrace
+    Rails.logger.error "Reference ID: #{@request_id} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
     error_code = ex.respond_to?('code') ? ex.code : 1
     message = ex.message
     if ex.kind_of? OpenShift::UserException
