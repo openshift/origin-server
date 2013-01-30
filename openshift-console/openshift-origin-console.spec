@@ -9,7 +9,7 @@
 
 Summary:   The OpenShift Enterprise Management Console
 Name:      openshift-origin-console
-Version:   0.4.0
+Version:   0.4.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -160,6 +160,9 @@ fi
 /sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 %changelog
+* Wed Jan 30 2013 Troy Dawson <tdawson@redhat.com> 0.4.1-1
+- Change name from openshift-console to openshift-origin-console
+
 * Tue Jan 22 2013 Troy Dawson <tdawson@redhat.com> 0.0.4-1
 - - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
