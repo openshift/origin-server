@@ -4,7 +4,12 @@ class ApplicationTypesController < ConsoleController
 
   def index
     @capabilities = user_capabilities
-    flash.now[:warning] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
+
+    if @plan_id = 'freeshift'
+    flash.now[:warning] = "Currently you do not have enough available gears in your FreeShift account to create a new application. Please see our <a href='/community/faq'>FAQ</a> for more information.".html_safe unless @capabilities.gears_free?
+    else
+      flash.now[:warning] = "Currently all your gears are in use, please spin down another application in order to free up resources." unless @capabilites.gears_free?
+    end
 
     @browse_tags = [
       ['Java', :java],
@@ -73,7 +78,12 @@ class ApplicationTypesController < ConsoleController
       flash.now[:error] = "The cartridges defined for this type are not valid.  The #{@application_type.source} may not be correct."
     end
 
-    flash.now[:error] = "You have no free gears.  You'll need to scale down or delete another application first." unless @capabilities.gears_free?
+    if @plan_id = 'freeshift'
+    flash.now[:error] = "You currently have no free gears availible in your FreeShift account. You'll need to scale down or delete another application first in order to free up resources." unless @capabilities.gears_free?
+    else
+      flash.now[:error] = "Currently there are no free gears available to create a new application. Please spin down an existing app to free up resources." unless @capabilities.gears_free?
+    end
+
     @disabled = @missing_cartridges.present? || @cartridges.blank?
 
     user_default_domain rescue nil
