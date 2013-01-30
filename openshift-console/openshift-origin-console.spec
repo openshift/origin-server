@@ -8,8 +8,8 @@
 %{!?scl:%global pkg_name %{name}}
 
 Summary:   The OpenShift Enterprise Management Console
-Name:      openshift-console
-Version:   0.0.4
+Name:      openshift-origin-console
+Version:   0.4.0
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
