@@ -89,7 +89,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-httpd-singular.8.gz
 
 %attr(0640,-,-) %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/oddjobd-restorer.conf
-%attr(0640,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
+%attr(0644,-,-) %config(noreplace) %{_sysconfdir}/dbus-1/system.d/openshift-restorer.conf
 
 %{_localstatedir}/www/html/restorer.php
 
