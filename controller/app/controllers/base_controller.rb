@@ -303,6 +303,7 @@ class BaseController < ActionController::Base
     Rails.logger.error ex.message
     Rails.logger.error ex.backtrace
     error_code = ex.respond_to?('code') ? ex.code : 1
+    message = ex.message
     if ex.kind_of? OpenShift::UserException
       status = :unprocessable_entity
     elsif ex.kind_of? OpenShift::DNSException
@@ -315,6 +316,7 @@ class BaseController < ActionController::Base
         if ex.resultIO.errorIO && ex.resultIO.errorIO.length > 0
           message = ex.resultIO.errorIO.string.strip
         end
+        message ||= ""
         message += "\nReference ID: #{@request_id}"
       end
     else
@@ -322,7 +324,7 @@ class BaseController < ActionController::Base
     end
 
     internal_error = status != :unprocessable_entity
-    render_error(status, ex.message, error_code, log_tag, nil, nil, nil, internal_error)
+    render_error(status, message, error_code, log_tag, nil, nil, nil, internal_error)
   end
 
   # Renders a REST response with for a succesful request.
