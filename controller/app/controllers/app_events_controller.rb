@@ -27,7 +27,7 @@ class AppEventsController < BaseController
     end
 
     return render_error(:unprocessable_entity, "Alias must be specified for adding or removing application alias.", 126,
-                        "APPLICATION_EVENT", "event") if ['add-alias', 'remove-alias'].include?(event) && !server_alias
+                        "APPLICATION_EVENT", "event") if ['add-alias', 'remove-alias'].include?(event) && (server_alias.nil? or server_alias.to_s.empty?)
     return render_error(:unprocessable_entity, "Reached gear limit of #{@cloud_user.max_gears}", 104,
                         "APPLICATION_EVENT") if (event == 'scale-up') && (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
@@ -94,7 +94,7 @@ class AppEventsController < BaseController
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "#{event.sub('-', '_').upcase}_APPLICATION")
     rescue OpenShift::UserException => uex
-      return render_error(:unprocessable_entity, "#{uex.message}", nil, "#{event.sub('-', '_').upcase}_APPLICATION")
+      return render_error(:unprocessable_entity, uex.message, uex.code, "#{event.sub('-', '_').upcase}_APPLICATION")
     rescue Exception => e
       return render_exception(e, "#{event.sub('-', '_').upcase}_APPLICATION")
     end
