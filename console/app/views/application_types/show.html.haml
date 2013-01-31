@@ -12,6 +12,7 @@
   #new_application.form-horizontal .controls > h3 > small { margin-left: 10px; vertical-align: middle; display: inline-block; }
   #new_application.form-horizontal .controls > h3 > select { margin-top: -5px; }
   #new_application.form-horizontal .control-label { margin-left: 15px; width: 120px; text-align: left; color: #949494; }
+  #new_application.form-horizontal .error > .control-label { color: #CD1E25; }
   #new_application.form-horizontal .help-block { color: #949494; max-width: 500px; -moz-transition: 0.2s; overflow: hidden; text-overflow: ellipsis; }
   #new_application.form-horizontal .form-actions { padding-left: 140px; }
   #new_application.collapse-help .help-block { white-space: nowrap; opacity: 0.5; margin-top: 0; }
@@ -36,7 +37,8 @@
     = hidden_field_tag 'application_type[initial_git_url]', @application_type.initial_git_url
     -#= hidden_field_tag 'application_type[initial_git_branch]', @application_type.initial_git_branch
 
-  = f.semantic_errors :name, :domain_name, :node_profile, :cartridges, :cartridge, :initial_git_url, :initial_git_branch, :scale
+  - e = @application.errors
+  = f.semantic_errors :except => [:initial_git_url, :initial_git_branch, :name, :domain_name, :cartridges, :gear_profile]
 
   - if @application_type.tags.include? :in_development
     .alert This template is development only and not accessible in production
@@ -66,18 +68,20 @@
           %p.help-block= link_to "Share this link", application_type_url(@application_type.id, @application_type.to_params)
 
   %fieldset.inputs
-    - errors = @application.errors.full_messages.present?
     -# This is implemented custom here rather than integrating into Formtastic because of its specific nature
-    .control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}, :class => errors ? 'error' : ''}
+    -#.control-group.control-group-important{:data => errors ? {:"server-error" => 'true'} : {}, :class => errors ? 'error' : ''}
+    = control_group(e.has_key?(:name) || e.has_key?(:domain_name), :important => true) do
       %h3.control-label Public URL
       .controls.first
         = render :partial => 'applications/name', :locals => {:form => f, :application => @application}
+        = f.inline_errors_for :name
+        = f.inline_errors_for :domain_name
       .controls
         %p.help-block
           OpenShift will automatically register this domain name for your application.  You can add
           your own domain name later.
 
-    .control-group.control-group-important
+    = control_group(e.has_key?(:initial_git_url) || e.has_key?(:initial_git_branch), :important => true) do
       %h3.control-label Source Code
       .controls.first
         - if @advanced
@@ -93,6 +97,8 @@
             - else
               Default 
             %small= link_to "Change", advanced_path, :data => {:submit_form => true}
+        = f.inline_errors_for :initial_git_url
+        = f.inline_errors_for :initial_git_branch
 
       .controls
         %p.help-block 
@@ -104,7 +110,7 @@
             We'll create a Git code repository in the cloud, and populate it with a set of 
             reasonable defaults. 
 
-    .control-group.control-group-important
+    = control_group(e.has_key?(:gear_profile), :important => true) do
       %h3.control-label Gears
       .controls.first
         - gear_sizes = @capabilities.gear_sizes
@@ -120,6 +126,7 @@
         - else
           %h3= gear_sizes.first.to_s.titleize
           = f.hidden_field :gear_profile
+        = f.inline_errors_for :gear_profile
 
       .controls
         %p.help-block
@@ -129,7 +136,7 @@
           - if gear_sizes.length > 1
             If you require more resources, select a larger gear size here.
 
-    .control-group.control-group-important
+    = control_group(e.has_key?(:cartridges), :important => true) do
       %h3.control-label Cartridges
       .controls.first
         - if @cartridges.present?
@@ -145,6 +152,7 @@
         - else
           %h3
             %span.text-warning{:title => 'All applications require at least a web cartridge'} None
+        = f.inline_errors_for :cartridges
 
       .controls
         %p.help-block
