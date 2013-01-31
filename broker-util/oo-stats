@@ -16,8 +16,6 @@
 # You can also use the set_option and set_columns methods to
 # customize the output you get from stats.display_results.
 #
-# The data still include legacy gear stats that miscounted gears, but
-# now newer gear state facts are gathered and displayed.
 # Discrepancies between counts in MongoDB vs. nodes should be either
 # 1. transient (gear create/destroy in progress), or
 # 2. indicative of a problem (broken gear on node or miscount in DB).
@@ -168,6 +166,17 @@ class OOStats
       Rails.configuration.analytics[:enabled] = false
       # Wait this long for answers from node hosts
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      # Get a read-only DB connection (to a secondary if possible)
+      db_config = Rails.application.config.datastore
+      if db_config[:replica_set]
+        con = Mongo::ReplSetConnection.new(*db_config[:host_port] \
+                       << {:read => :secondary})
+      else
+        host_port = db_config[:host_port].split(":")
+        con = Mongo::Connection.new(host_port[0], host_port[1])
+      end
+      @db = con.db(db_config[:db])
+      @db.authenticate(db_config[:user], db_config[:password])
     rescue Exception => e
       puts <<-"FAIL"
         Broker application failed to load; aborting.
@@ -203,11 +212,6 @@ class OOStats
     #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
     #      :gears_total_count   => 200,
     #      :gears_active_count  => 20, # all gears except idle and stopped are "active"
-    #        # legacy ways of counting gears
-    #      :max_apps        => 100,
-    #      :capacity        => 12.0, # percentage of max_apps consumed
-    #      :max_active_apps => 100,
-    #      :active_capacity => 12.0, # percentage of max_active_apps consumed
     #   },
     #   "node2.example.com" => ...
     # }
@@ -220,11 +224,11 @@ class OOStats
         # convert from strings to relevant values if needed
         %w{node_profile district_uuid}.each {|fact| node[fact.to_sym] = facts[fact]}
         node[:district_active] = facts['district_active'] == 'true' ? true : false
-        %w{ max_apps max_active_apps max_gears max_active_gears gears_started_count
+        %w{ max_gears max_active_gears gears_started_count
             gears_idle_count gears_stopped_count gears_deploying_count
             gears_unknown_count gears_total_count gears_active_count
           }.each {|fact| node[fact.to_sym] = facts[fact].to_i}
-        %w{capacity active_capacity gears_usage_pct gears_active_usage_pct
+        %w{gears_usage_pct gears_active_usage_pct
           }.each {|fact| node[fact.to_sym] = facts[fact].to_f}
 
         # record that hash for this node host
@@ -247,8 +251,8 @@ class OOStats
     #        :name               => "small_district", #user-friendly name
     #        :uuid               => "2dfca730b863428da9af176160138651", #unique ID
     #        :nodes => {
-    #                    "node1.example.com" => {"active"=>true},
-    #                    "node2.example.com" => {"active"=>true}
+    #                    "node1.example.com" => {:name =>"node1.example.com", :active =>true},
+    #                    "node2.example.com" => {:name =>"node2.example.com", :active =>true}
     #                  },
     #        :district_capacity   => 6000,   # configured number of gears allowed in this district
     #        :dist_avail_capacity => 5967,   # district_capacity minus gears already allocated
@@ -257,15 +261,16 @@ class OOStats
     #   "6e5d3ccc0bb1456399687c0be51676f8" => ...
     # }
 
-    District.find_all.each do |dist|
-      entry_for_district[dist.uuid] = {
-        :profile             => dist.node_profile,
-        :name                => dist.name,
-        :uuid                => dist.uuid,
+    fields = %w[uuid name gear_size server_identities max_capacity available_capacity available_uids]
+    _with_each_record(:districts, {}, {:fields => fields }) do |dist|
+      entry_for_district[dist['uuid']] = {
+        :profile             => dist['gear_size'],
+        :name                => dist['name'],
+        :uuid                => dist['uuid'],
         :nodes               => district_nodes_clone(dist),
-        :district_capacity   => dist.max_capacity,
-        :dist_avail_capacity => dist.available_capacity,
-        :dist_avail_uids     => dist.available_uids.length,
+        :district_capacity   => dist['max_capacity'],
+        :dist_avail_capacity => dist['available_capacity'],
+        :dist_avail_uids     => dist['available_uids'].length,
       }
     end
     return entry_for_district
@@ -274,7 +279,12 @@ class OOStats
   # perform a manual clone such that we don't get BSON entries
   def district_nodes_clone(district)
     cloned = {}
-    district.server_identities.each {|id,active| cloned[id] = {"active" => active["active"]}}
+    district['server_identities'].each do |node|
+      cloned[node['name']] = {
+          :name => node['name'],
+          :active => node['active']
+      }
+    end
     return cloned
   end
 
@@ -546,51 +556,85 @@ class OOStats
     # }
     #
 
-    # this is for the pre-model-refactor DB - will need adjustment after that's done
-    query = {"apps.group_instances.gears.0" => {"$exists" => true}}
-    options = {:fields => %w[
-                           login
-                           apps.node_profile
-                           apps.group_instances.gears.node_profile
-                           apps.group_instances.gears.configured_components
-                          ],
-               :timeout => false}
-    OpenShift::DataStore.instance.user_collection.find(query, options) do |mcursor|
-      mcursor.each do |user|
-        count_of = count_for_user[user['login']]
-        count_of[:login] = user['login']
-        user['apps'].each do |app|
-          app_profile = app['node_profile']
-          count_of["#{app_profile}_apps".to_sym] += 1
-          count_all[:apps] += 1
-          count_for_profile[app_profile][:apps] += 1
-          count_of[:apps] += 1
-          app['group_instances'].each do |group|
-            gear = group['gears'][0] or next # some broken apps seem to have no gears
-            gear_profile = gear['node_profile'] # for now, same as app profile, but...
-            count_of["#{gear_profile}_gears".to_sym] += 1
-            count_of[:gears] += 1
-            count_for_profile[gear_profile][:gears] += 1
+    # read all user records and their logins from DB
+    login_for_id = {}
+    _with_each_record(:cloud_users, {}, {:fields => %w[consumed_gears login], :timeout => false}) do |user|
+      login_for_id[user["_id"]] = login = user["login"]
+      count_for_user[login][:login] = login # creates a count hash for every user
+    end
+    # read all domain records and map to user's hash of counts
+    count_for_domain = {}
+    _with_each_record(:domains, {}, {:fields => ["owner_id"], :timeout => false}) do |domain|
+      count_for_domain[domain["_id"]] = count_for_user[login_for_id[domain["owner_id"]]]
+    end
+    query = {"group_instances.gears.0" => {"$exists" => true}}
+    selection = {:fields => %w[
+                             domain_id
+                             default_gear_size
+                             component_instances.cartridge_name
+                             component_instances.group_instance_id
+                             group_instances._id
+                             group_instances.gears.server_identity
+                            ], :timeout => false}
+    _with_each_record(:applications, query, selection) do |app|
+        # record global stats
+        count_all[:apps] += 1
+        # record stats by gear profile (size)
+        profile = app['default_gear_size']
+        count_for_profile[profile][:apps] += 1
+        # record stats by user
+        user_ct = count_for_domain[app['domain_id']] # per-domain=user counts
+        user_ct["#{profile}_apps".to_sym] += 1
+        user_ct[:apps] += 1
+        # build hashes for the cartridges this app uses
+        carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+        short_carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+        app['component_instances'].each do |comp|
+          carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
+          # from "foo-bar-1.1" we want "foo-bar" for the short name
+          short_carts_for_group[gid] << cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)[1]
+        end
+        # now walk the gears and count up everything.
+        # group_instances contain arrays of like-minded gears.
+        app['group_instances'].each do |group|
+          carts = carts_for_group[group['_id']]
+          short_carts = short_carts_for_group[group['_id']]
+          group['gears'].each do |gear|
             count_all[:gears] += 1
-            gear['configured_components'].each do |cart_desc|
-              # e.g. extract from       "@@app/cart-mysql-5.1/comp-mysql-server" => "mysql-5.1"
-              cart = cart_desc.gsub %r{ ^.* \b cart-([^/]+) (/|$)   .*         $ }x, '\1'
-              # Now pull the shorter name out without the version number
-              # e.g. extract from        "@@app/cart- mysql  - 5.1    /comp-mysql-server" => "mysql"
-              short = cart_desc.gsub %r{ ^.* \b cart-([-\w]+)-[\d.]+ (/|$)   .*         $ }x, '\1'
-              # If either regex doesn't match then we are left with the whole description to ponder.
-              count_for_profile[gear_profile][:cartridges][cart] += 1
-              count_for_profile[gear_profile][:cartridges_short][short] += 1
+            # For now, we assume gear profile is same as app profile.
+            # If that assumption becomes untrue, we can look up gear profile by
+            # correlating with the server_identity's node profile.
+            count_for_profile[profile][:gears] += 1
+            # account for the user's gear usage
+            user_ct["#{profile}_gears".to_sym] += 1
+            user_ct[:gears] += 1
+            # for this gear, record the cartridges used in this group_instance
+            carts.each do |cart|
               count_all[:cartridges][cart] += 1
+              count_for_profile[profile][:cartridges][cart] += 1
+            end
+            short_carts.each do |short|
               count_all[:cartridges_short][short] += 1
+              count_for_profile[profile][:cartridges_short][short] += 1
             end
           end
         end
-        count_all[:users_with_num_apps][ count_of[:apps] ] += 1
-        count_all[:users_with_num_gears][count_of[:gears]] += 1
-      end
+    end
+    # sum distribution of apps/gears per user
+    count_for_user.values.each do |user_ct|
+      count_all[:users_with_num_apps][ user_ct[:apps] ] += 1
+      count_all[:users_with_num_gears][user_ct[:gears]] += 1
     end
     return count_all, count_for_profile, count_for_user
+  end
+
+  def _with_each_record(collection_name, query, selection)
+    coll = @db.collection(collection_name)
+    coll.find(query, selection) do |mcursor|
+      mcursor.each do |hash|
+        yield hash
+      end
+    end
   end
 
   def outline(str)
