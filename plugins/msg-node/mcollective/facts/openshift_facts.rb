@@ -37,26 +37,24 @@ Facter.add(:public_hostname) { setcode { public_hostname } }
 # Find node_profile, max_apps, max_active_apps
 #
 node_profile = 'small'
-max_apps = '0'
-max_active_apps = '0'
-max_gears = '0'
-max_active_gears = '0'
+max_apps = nil
+max_active_apps = nil
+max_gears = nil
+max_active_gears = nil
 if File.exists?('/etc/openshift/resource_limits.conf')
   config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
   node_profile = config_file.get_value('node_profile') || 'small'
-  max_apps = config_file.get_value('max_apps') || '0'
-  max_active_apps = config_file.get_value('max_active_apps') || '0'
-  max_gears = config_file.get_value('max_gears') || max_apps
-  max_active_gears = config_file.get_value('max_active_gears') || max_active_apps
   quota_blocks = config_file.get_value('quota_blocks') || '1048576'
   quota_files = config_file.get_value('quota_files') || '40000'
+  # use max_{active_,}gears if set in resource limits, or fall back to old "apps" names
+  max_gears = config_file.get_value('max_gears') || config_file.get_value('max_apps') || '0'
+  max_active_gears = config_file.get_value('max_active_gears') ||
+    config_file.get_value('max_active_apps') || '0'
 end
 
 Facter.add(:node_profile) { setcode { node_profile } }
-Facter.add(:max_apps) { setcode { max_apps } }
-Facter.add(:max_active_apps) { setcode { max_active_apps } }
-Facter.add(:max_active_gears) { setcode { max_active_gears } }
-Facter.add(:max_gears) { setcode { max_gears } }
+Facter.add(:max_gears) { setcode { max_gears || '0' } }
+Facter.add(:max_active_gears) { setcode { max_active_gears || '0' } }
 Facter.add(:quota_blocks) { setcode { quota_blocks } }
 Facter.add(:quota_files) { setcode { quota_files } }
 
@@ -90,7 +88,7 @@ Dir.glob("/var/lib/openshift/*").each do |app_dir|
           gears_stopped_count += 1
       when 'started'
           gears_started_count += 1
-      when %w[new building deploying]
+      when *%w[new building deploying]
           gears_deploying_count += 1
       else # literally 'unknown' or something else
           gears_unknown_count += 1
@@ -111,31 +109,17 @@ Facter.add(:gears_stopped_count) { setcode { gears_stopped_count } }
 Facter.add(:gears_started_count) { setcode { gears_started_count } }
 Facter.add(:gears_deploying_count) { setcode { gears_deploying_count } }
 Facter.add(:gears_unknown_count) { setcode { gears_unknown_count } }
-Facter.add(:gears_usage_pct) { setcode { gears_total_count * 100 / max_gears.to_f } }
-Facter.add(:gears_active_usage_pct) { setcode { gears_active_count * 100 / max_active_gears.to_f } }
+gears_usage_pct = begin gears_total_count * 100.0 / max_gears.to_f; rescue; 0.0; end
+gears_active_usage_pct = begin gears_active_count * 100.0 / max_active_gears.to_f; rescue; 0.0; end
+Facter.add(:gears_usage_pct) { setcode { gears_usage_pct } }
+Facter.add(:gears_active_usage_pct) { setcode { gears_active_usage_pct } }
 
 # Old "app" count, excludes some gears
 Facter.add(:git_repos) { setcode { git_repos_count } }
 #
-# Find active capacity - DEPRECATED
-# NOTE: based on count of git repos, not all gears
-Facter.add(:active_capacity) do
-  git_repos =  Facter.value(:git_repos).to_f
-  max_active_apps = Facter.value(:max_active_apps).to_f
-  active_capacity = ( (git_repos - stopped_app_count.to_f) / max_active_apps ) * 100
-  setcode { active_capacity.to_s }
-end
-
-#
-# Find capacity - DEPRECATED
-# NOTE: nothing actually uses this to limit gear placement
-Facter.add(:capacity) do
-    git_repos =  Facter.value(:git_repos).to_f
-    max_apps = Facter.value(:max_apps).to_f
-    capacity = ( git_repos / max_apps ) * 100
-    setcode { capacity.to_s }
-end
-
+# capacity and active capacity - deprecated but kept for backward compat
+Facter.add(:capacity) { setcode { gears_usage_pct.to_s } }
+Facter.add(:active_capacity) { setcode { gears_active_usage_pct.to_s } }
 
 #
 # Get sshfp record

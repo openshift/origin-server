@@ -12,18 +12,15 @@ quota_files=40000
 # 1GB.  1 block = 1024byte
 quota_blocks=1048576
 
-# App/gear usage limits
-# "apps" accounting uses incorrect logic.
-# max_apps isn't enforced by current logic, only used in metrics for overcommitment
-max_apps=100
-# max_active_apps is presently used for guiding gear placement.
-# For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
-max_active_apps=100
-# max_gears will replace max_apps in the future with correct accounting, but still
-# without enforcement (metrics usage only). Defaults to max_apps if not set.
+# Gear usage limits:
+# "apps" accounting used outdated logic ("git repos" not "gears"). It is being
+# replaced with "gears" accounting. Logic for max{_active,}_gears falls back to
+# use max{_active,}_apps if not set, and vice versa. Gears usage/capacity/limits
+# are counted according to actual gears regardless.
+#
+# max_gears isn't enforced by current logic, only used in metrics for overcommitment.
 max_gears=100
-# max_active_gears will replace max_active_apps in the future with correct accounting.
-# Defaults to max_active_apps if not set.
+# max_active_gears is used for limiting/guiding gear placement.
 # For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
 max_active_gears=100
 
