@@ -56,6 +56,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,-,-) %{_sbindir}/oo-setup-broker
 %attr(0755,-,-) %{_sbindir}/oo-accept-broker
 %attr(0755,-,-) %{_sbindir}/oo-accept-systems
+%attr(0755,-,-) %{_sbindir}/oo-stats
 /usr/share/openshift/kickstarts/openshift-origin-remix.ks
 
 %doc LICENSE

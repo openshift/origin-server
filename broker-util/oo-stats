@@ -1,0 +1,911 @@
+#!/usr/bin/env oo-ruby
+#!/usr/bin/env ruby
+#
+# This can be used as a script or library on an OpenShift broker host.
+# As a script, the default output is for command-line viewing, or choose
+# --format tsv for something you can analyze in your favorite spreadsheet,
+# or json/xml/yaml to process all the data in your tool of choice.
+# Run with the -h flag to view options.
+#
+# To use as a library, do the following in irb or your ruby script:
+# load 'oo-stats'
+# stats = OOStats.new
+# stats.gather_statistics
+#
+# ... now stats.results gives you a hash with all the data gathered.
+# You can also use the set_option and set_columns methods to
+# customize the output you get from stats.display_results.
+#
+# Discrepancies between counts in MongoDB vs. nodes should be either
+# 1. transient (gear create/destroy in progress), or
+# 2. indicative of a problem (broken gear on node or miscount in DB).
+
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'time'
+
+class OOStats
+
+  # called when OOStats.new is called
+  def initialize(options = nil)
+    @options = options || @options || { # default if none given
+      :wait => 2,
+      :format => :text,
+    }
+    @time = {}
+    @time[:load_broker_environment] = time_msecs { load_broker_rails_env }
+    set_initial_columns
+  end
+
+  # Available options are essentially the same as script options
+  # e.g. set_option :format => :xml
+  def set_option(options)
+    @options.merge! options
+  end
+
+  # set the columns displayed for text/tsv reports
+  def set_columns(columns_for_table_hash)
+    # text_tableize or tsv_tableize use these. If the column list they get
+    # is nil (because it wasn't specified) they auto-generate columns for you.
+    # See set_initial_columns below for example usage.
+    @columns_for ||= {}
+    @columns_for.merge! columns_for_table_hash
+  end
+
+  # these are the column lists you get by default
+  def set_initial_columns
+    set_columns :profile_summary =>
+        %w{district_count district_capacity dist_avail_capacity dist_avail_uids
+          lowest_dist_usage_pct highest_dist_usage_pct avg_dist_usage_pct
+          nodes_count nodes_active total_apps
+          gears_total_count total_gears_in_db_records gear_count_db_minus_node
+          gears_active_count available_active_gears effective_available_gears
+        }.map{|k| k.to_sym},
+     :district_table =>
+        %w{name nodes_count dist_avail_capacity
+          gears_active_count effective_available_gears avg_active_usage_pct
+        }.map{|k| k.to_sym},
+     :district_summary =>
+        %w{profile district_capacity dist_avail_capacity dist_avail_uids
+          nodes_count nodes_active gears_total_count
+          gears_active_count available_active_gears effective_available_gears
+          lowest_active_usage_pct highest_active_usage_pct avg_active_usage_pct
+        }.map{|k| k.to_sym},
+     :node_table =>
+        %w{name gears_total_count max_gears gears_usage_pct gears_idle_count
+           gears_active_count max_active_gears gears_active_usage_pct
+        }.map{|k| k.to_sym}
+  end
+
+  # use to time an operation in milliseconds
+  def time_msecs
+    start_time = (Time.now.to_f * 1000).to_i
+    yield
+    return (Time.now.to_f * 1000).to_i - start_time
+  end
+
+  # gather all statistics and analyze
+  def gather_statistics
+    # read method comments about the structures they return
+    @time[:get_node_entries] = time_msecs { @entry_for_node = get_node_entries }
+    @time[:get_district_entries] = time_msecs { @entry_for_district = get_district_entries }
+    if @options[:db_stats] # don't gather this data unless requested with --db
+      @time[:get_db_stats] = time_msecs do
+        @count_all, @count_for_profile, @count_for_user = get_db_stats
+      end
+    end
+    @time[:summarize_districts] = time_msecs do
+      @summary_for_district = summarize_districts(@entry_for_district, @entry_for_node)
+    end
+    @time[:summarize_profiles] = time_msecs do
+      @summary_for_profile = summarize_profiles(@summary_for_district, @count_for_profile)
+    end
+    @count_all ||= {} # db count may not have occurred
+    @count_all[:nodes] = @entry_for_node.size
+    @count_all[:districts] = @entry_for_district.size
+    @count_all[:profiles] = @summary_for_profile.size
+    return @time
+  end
+
+  # Bundle up the statistics results in a hash
+  def results
+    r = {
+      :timings_msecs => @time,                             #timing hash
+      :node_entries => @entry_for_node.values,             #array of node hashes from mcollective
+      :district_entries => @entry_for_district.values,     #array of district hashes from DB
+      :district_summaries => @summary_for_district.values, #array of district summary hashes
+      :profile_summaries => @summary_for_profile.values,   #array of profile summary hashes
+      # remember, unless --db option is present, the db is not scanned for apps/gears/carts
+      # in that case, only data from the nodes and districts are included
+      :count_all => @count_all,                            #overall summary hash
+      # if db counts were gathered, hash of app/gear/cart counts per profile
+      :db_count_for_profile => @count_for_profile,
+      # if db counts were gathered, array of users with app/gear counts
+      :db_count_per_user => @count_for_user ? @count_for_user.values : nil,
+    }
+  end
+
+  # Print results to stdout according to current options
+  def display_results
+    r = results
+    case @options[:format] 
+    when :yaml
+      puts r.to_yaml
+    when :xml
+      puts r.to_xml
+    when :json
+      puts r.to_json
+    when :tsv
+      display_results_tsv r
+    else # :text
+      display_results_text r
+    end
+    nil
+  end
+
+  # Load the broker rails environment so we can leverage its tools
+  def load_broker_rails_env
+    begin
+      require "/var/www/openshift/broker/config/environment"
+      # Disable analytics for admin scripts
+      Rails.configuration.analytics[:enabled] = false
+      # Wait this long for answers from node hosts
+      Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
+      # Get a read-only DB connection (to a secondary if possible)
+      db_config = Rails.application.config.datastore
+      if db_config[:replica_set]
+        con = Mongo::ReplSetConnection.new(*db_config[:host_port] \
+                       << {:read => :secondary})
+      else
+        host_port = db_config[:host_port].split(":")
+        con = Mongo::Connection.new(host_port[0], host_port[1])
+      end
+      @db = con.db(db_config[:db])
+      @db.authenticate(db_config[:user], db_config[:password])
+    rescue Exception => e
+      puts <<-"FAIL"
+        Broker application failed to load; aborting.
+        The error was: #{e.message}
+      FAIL
+      exit 1
+    end
+  end
+
+
+  # get the node statistics by querying the facts on every node
+  def get_node_entries
+    entry_for_node = {}
+    # Which comes out looking like:
+    # {
+    #   "node1.example.com" => {
+    #      :id              => "node1.example.com", # hostname
+    #      :name            => "node1", # for short
+    #      :node_profile    => "small", # node/gear profile
+    #      :district_uuid   => "2dfca730b863428da9af176160138651",
+    #                       # or "NONE" if not in a district
+    #      :district_active => true, # node marked as active in district?
+    #       # gear-based limits and usage, according to node facts
+    #      :max_gears           => 100, # unenforced limit
+    #      :max_active_gears    => 50,
+    #      :gears_usage_pct     => 200.0, # percentage of max_gears consumed
+    #      :gears_active_usage_pct => 40.0, # percentage of max_active_gears consumed
+    #        # gear-based counts by state, according to node facts
+    #      :gears_started_count => 20,
+    #      :gears_idle_count    => 175,
+    #      :gears_stopped_count => 5,
+    #      :gears_deploying_count => 20, # in some part of create/update process
+    #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #      :gears_total_count   => 200,
+    #      :gears_active_count  => 20, # all gears except idle and stopped are "active"
+    #   },
+    #   "node2.example.com" => ...
+    # }
+    OpenShift::MCollectiveApplicationContainerProxy.rpc_exec('rpcutil') do |client|
+      client.inventory do |response|
+        facts = response[:body][:data][:facts]
+        host = response[:senderid]
+        node = {}
+
+        # convert from strings to relevant values if needed
+        %w{node_profile district_uuid}.each {|fact| node[fact.to_sym] = facts[fact]}
+        node[:district_active] = facts['district_active'] == 'true' ? true : false
+        %w{ max_gears max_active_gears gears_started_count
+            gears_idle_count gears_stopped_count gears_deploying_count
+            gears_unknown_count gears_total_count gears_active_count
+          }.each {|fact| node[fact.to_sym] = facts[fact].to_i}
+        %w{gears_usage_pct gears_active_usage_pct
+          }.each {|fact| node[fact.to_sym] = facts[fact].to_f}
+
+        # record that hash for this node host
+        node[:id] = host
+        node[:name] = host.split('.')[0]
+        entry_for_node[host] = node
+      end
+    end
+    return entry_for_node
+  end
+
+
+  # get the district definitions from the DB
+  def get_district_entries
+    entry_for_district = {}
+    # Which looks like:
+    # {
+    #   "2dfca730b863428da9af176160138651" => {
+    #        :profile            => "small",        # gear profile (aka "size")
+    #        :name               => "small_district", #user-friendly name
+    #        :uuid               => "2dfca730b863428da9af176160138651", #unique ID
+    #        :nodes => {
+    #                    "node1.example.com" => {:name =>"node1.example.com", :active =>true},
+    #                    "node2.example.com" => {:name =>"node2.example.com", :active =>true}
+    #                  },
+    #        :district_capacity   => 6000,   # configured number of gears allowed in this district
+    #        :dist_avail_capacity => 5967,   # district_capacity minus gears already allocated
+    #        :dist_avail_uids     => 5967,   # number of user ids left in the pool
+    #   },
+    #   "6e5d3ccc0bb1456399687c0be51676f8" => ...
+    # }
+
+    fields = %w[uuid name gear_size server_identities max_capacity available_capacity available_uids]
+    _with_each_record(:districts, {}, {:fields => fields }) do |dist|
+      entry_for_district[dist['uuid']] = {
+        :profile             => dist['gear_size'],
+        :name                => dist['name'],
+        :uuid                => dist['uuid'],
+        :nodes               => district_nodes_clone(dist),
+        :district_capacity   => dist['max_capacity'],
+        :dist_avail_capacity => dist['available_capacity'],
+        :dist_avail_uids     => dist['available_uids'].length,
+      }
+    end
+    return entry_for_district
+  end
+
+  # perform a manual clone such that we don't get BSON entries
+  def district_nodes_clone(district)
+    cloned = {}
+    district['server_identities'].each do |node|
+      cloned[node['name']] = {
+          :name => node['name'],
+          :active => node['active']
+      }
+    end
+    return cloned
+  end
+
+  def summarize_districts(entry_for_district, entry_for_node)
+    # Returned hash looks like:
+    # {
+    #   "2dfca730b863428da9af176160138651" => {
+    #         :uuid               => "2dfca730b863428da9af176160138651", # unique ID for district
+    #         :name               => "small_district", # user-friendly name for district
+    #         :profile            => "small", # gear profile ("size") for district
+    #         :nodes_count        => 2,       # number of nodes responding in the district
+    #         :nodes_active       => 1,       # number of nodes marked "active" in district
+    #         :nodes_inactive     => 1,       # number of nodes marked inactive (not open for gear placement)
+    #           # N.B. un-districted nodes are always considered inactive, though they can
+    #           # have gears placed if there are no districts with capacity for the profile.
+    #
+    #         # the following are *district* capacity numbers:
+    #         :district_capacity   => 4000,    # configured number of gears allowed in this district
+    #         :dist_avail_capacity => 3967,    # district_capacity minus gears already allocated
+    #         :dist_avail_uids     => 5967,    # number of user ids left in the district 6000 uid pool
+    #         :dist_usage_pct      => 0.83, # percentage of district_capacity allocated
+    #           # N.B. these are set to 0 for "NONE" districts (undistricted nodes)
+    #
+    #         # the following are capacity numbers according to responding nodes:
+    #         :gears_started_count => 20,
+    #         :gears_idle_count    => 175,
+    #         :gears_stopped_count => 5,
+    #         :gears_deploying_count => 20, # in some part of create/update process
+    #         :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #         :gears_total_count   => 200,
+    #         :gears_active_count  => 20, # gears not idled or stopped are "active"
+    #           # available capacity numbers
+    #         :available_active_gears => 173, # how many more active gears the nodes will support
+    #         :effective_available_gears => 173, # lower of available_active_gears, dist_avail_capacity
+    #
+    #         # min/max/average percent usage of active gear usage on nodes in this district:
+    #         :lowest_active_usage_pct  => 12.0,
+    #         :highest_active_usage_pct => 15.0,
+    #         :avg_active_usage_pct     => 13.5,
+    #
+    #         :nodes=> [ array of entry_for_node values that are members of this district ]
+    #
+    #         :missing_nodes => [ ids of node hosts for this district that did not respond ]
+    #       },
+    #   "6e5d3ccc0bb1456399687c0be51676f8" => { ... },
+    #   ...
+    # }
+
+    # these are initial values, will accumulate as we go
+    starter_stats = Hash[%w[
+       nodes_count nodes_active gears_started_count nodes_inactive gears_idle_count
+       gears_stopped_count gears_deploying_count gears_unknown_count gears_total_count
+       gears_active_count available_active_gears avg_active_usage_pct
+    ].collect {|key| [key.to_sym, 0]}]
+
+    # may need a unique "NONE" district per profile for nodes that are not in a district
+    none_district = Hash.new do |h,profile|
+      h[profile] = {
+        :name    => "(NONE)",
+        :uuid    => "NONE profile=#{profile}",
+        :profile => profile,
+        :district_capacity   => 0,
+        :dist_avail_capacity => 0,
+        :dist_avail_uids     => 0,
+        :nodes               => [],
+        :missing_nodes       => {},
+      }.merge starter_stats
+    end
+
+    # hash to store the summaries per district
+    summary_for_district = {}
+    entry_for_district.each do |uuid,dist|
+      summary_for_district[uuid] = dist.merge(starter_stats).
+        merge(:missing_nodes => dist[:nodes].clone, :nodes => [])
+    end
+
+    # We will drive this according to the nodes that responded.
+    # There may be some that didn't respond, which won't be included.
+    entry_for_node.each do |id,node|
+      sum = summary_for_district[node[:district_uuid]] ||
+                   none_district[node[:node_profile ]]
+      sum[:nodes] << node
+      sum[:missing_nodes].delete id  # responded, so not missing
+      sum[:nodes_count] += 1
+      sum[ node[:district_active] ? :nodes_active : :nodes_inactive] += 1
+      [ :gears_started_count, :gears_idle_count, :gears_stopped_count, :gears_deploying_count,
+        :gears_unknown_count, :gears_total_count, :gears_active_count
+      ].each {|key| sum[key] += node[key]}
+      # active gears can actually get higher than max; count that as 0 available, not negative
+      sum[:available_active_gears] += [0, node[:max_active_gears] - node[:gears_active_count]].max
+      sum[:avg_active_usage_pct] += node[:gears_active_usage_pct]
+    end
+
+    none_district.values.each {|sum| summary_for_district[sum[:uuid]] = sum}
+    summary_for_district.each do |uuid,sum|
+      sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
+      cap = sum[:district_capacity]
+      sum[:dist_usage_pct] = cap.zero? ? 0.0 : 100.0 - 100.0 * sum[:dist_avail_capacity] / cap
+      sum[:lowest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:nodes].map{|node| node[:gears_active_usage_pct]}.max || 0.0
+      # effective gears available are limited by district capacity
+      sum[:effective_available_gears] = [sum[:available_active_gears], sum[:dist_avail_capacity]].min
+      # convert :missing nodes to array
+      sum[:missing_nodes] = sum[:missing_nodes].keys
+    end
+    return summary_for_district
+  end
+
+  def summarize_profiles(summary_for_district, count_for_profile)
+    # Returned hash looks like: (a lot like the district summaries)
+    # {
+    #   "small" => {
+    #      :profile   => "small",
+    #      :districts => [ array of summaries from summary_of_district that have this profile ],
+    #      :district_count => 1, # number of districts with this profile (may include 1 "NONE" district)
+    #      :nodes_count        => 2,       # number of nodes responding with this profile
+    #      :nodes_active       => 1,       # number of nodes marked "active" with this profile
+    #      :nodes_inactive     => 1,       # number of nodes marked inactive (not open for gear placement)
+    #        # N.B. un-districted nodes are always considered inactive, though they can
+    #        # have gears placed if there are no districts with capacity for the profile.
+    #      :missing_nodes => [ ids of districted node hosts for this profile that did not respond ]
+    #
+    #      # the following are summarized *district* capacity numbers:
+    #      :district_capacity   => 4000,    # configured number of gears allowed in districts
+    #      :dist_avail_capacity => 3967,    # district_capacity minus gears already allocated
+    #      :dist_avail_uids     => 5967,    # number of user ids left in the districts' uid pool
+    #      :highest_dist_usage_pct => 15.0,
+    #      :lowest_dist_usage_pct  => 12.0,
+    #      :avg_dist_usage_pct     => 13.5,
+    #        # N.B. these will be 0 for "NONE" districts (undistricted nodes)
+    #
+    #      # the following are usage/capacity numbers according to responding nodes:
+    #      :gears_active_count  => 20,
+    #      :gears_idle_count    => 175,
+    #      :gears_stopped_count => 5,
+    #      :gears_unknown_count => 0,  # state not one of the above, shouldn't happen
+    #      :gears_total_count   => 200,
+    #      :available_active_gears => 173, # how many more active gears the nodes will support
+    #
+    #      # the following are usage numbers according to the DB, if collected
+    #      :total_db_gears        => 27,  # gears recorded with this profile in the DB
+    #      :total_apps            => 20,  # apps recorded with this profile in the DB
+    #      :cartridges            => { cartridge counts as in get_db_stats }
+    #      :cartridges_short      => { cartridge short name counts as in get_db_stats }
+    #
+    #      # min/max/average percent usage of active gear capacity on nodes in this profile:
+    #      :lowest_active_usage_pct  => 12.0,
+    #      :highest_active_usage_pct => 15.0,
+    #      :avg_active_usage_pct     => 13.5,
+    #   },
+    #   "medium" => {...},
+    #   ...
+    # }
+    #
+
+    # these values will accumulate as we go
+    starter_stats = Hash[ %w[
+       nodes_count nodes_active nodes_inactive gears_active_count gears_idle_count
+       gears_stopped_count gears_unknown_count gears_total_count available_active_gears
+       effective_available_gears avg_active_usage_pct district_capacity
+       dist_avail_capacity dist_avail_uids avg_dist_usage_pct
+    ].collect {|key| [key.to_sym, 0]}]
+    summary_for_profile = Hash.new do |sum,p|
+      sum[p] = {
+        :profile => p,
+        :districts => [],
+        :missing_nodes => [],
+      }.merge starter_stats
+    end
+    summary_for_district.each do |uuid,dist|
+      sum = summary_for_profile[dist[:profile]]
+      sum[:districts] << dist
+      [ :gears_active_count, :gears_idle_count, :gears_stopped_count, :gears_unknown_count,
+        :gears_total_count, :available_active_gears, :effective_available_gears, :nodes_count,
+        :nodes_active, :nodes_inactive, :missing_nodes, :district_capacity,
+        :dist_avail_capacity, :dist_avail_uids
+      ].each {|key| sum[key] += dist[key]}
+      sum[:avg_active_usage_pct] += dist[:avg_active_usage_pct] * dist[:nodes_count]
+      sum[:avg_dist_usage_pct] += dist[:dist_usage_pct]
+    end
+    summary_for_profile.each do |profile,sum|
+      sum[:district_count] = sum[:districts].size
+      sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
+      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.max || 0.0
+      sum[:avg_dist_usage_pct] /= sum[:district_count] if sum[:district_count] > 0
+      sum[:lowest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.min || 0.0
+      sum[:highest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.max || 0.0
+      if count_for_profile
+        c = count_for_profile[profile]
+        sum[:total_gears_in_db_records] = c[:gears]
+        sum[:total_apps] = c[:apps]
+        sum[:cartridges] = c[:cartridges]
+        sum[:cartridges_short] = c[:cartridges_short]
+        sum[:gear_count_db_minus_node] = c[:gears] - sum[:gears_total_count]
+      end
+    end
+    return summary_for_profile
+  end
+
+  # get statistics from the DB about users/apps/gears/cartridges
+  def get_db_stats
+    # initialize the things we will count for the entire installation
+    count_all = {
+        :apps => 0,
+        :gears => 0,
+        :cartridges => Hash.new {|h,k| h[k] = 0},
+        :cartridges_short => Hash.new {|h,k| h[k] = 0},
+        :users_with_num_apps => Hash.new {|h,k| h[k] = 0},
+        :users_with_num_gears => Hash.new {|h,k| h[k] = 0},
+      }
+    # which ends up looking like:
+    # {
+    #   :apps  => 21,
+    #   :gears => 39,
+    #   :cartridges=> {
+    #     "ruby-1.9"    => 5,
+    #     "ruby-1.8"    => 7,
+    #     "perl-5.10"   => 7,
+    #     "mysql-5.1"   => 15,
+    #     "haproxy-1.4" => 12,
+    #     ...
+    #   },
+    #   :cartridges_short=> {
+    #     "ruby"    => 12,
+    #     "perl"    => 7,
+    #     "mysql"   => 15,
+    #     "haproxy" => 12,
+    #     ...
+    #   },
+    #   :users_with_num_apps => {
+    #     1 => 10,  # 10 users have 1 app
+    #     2 => 2,
+    #     9 => 1,
+    #     ...
+    #   },
+    #   :users_with_num_gears => {
+    #     1 => 9,  # 9 users have 1 gear
+    #     2 => 2,
+    #     4 => 1,
+    #     11 => 1,
+    #     ...
+    #   },
+    # },
+
+    count_for_profile = Hash.new do |hash,profile|
+      hash[profile] = {
+        :apps => 0,
+        :gears => 0,
+        :cartridges => Hash.new {|h,k| h[k] = 0},
+        :cartridges_short => Hash.new {|h,k| h[k] = 0},
+      }
+    end
+    # counts broken out by profile, which ends up looking like:
+    # {
+    #   "small"  => { hash like above without :users_with_num_* },
+    #   "medium" => { ... },
+    #   ...
+    # }
+
+    count_for_user = Hash.new do |hash,user|
+      hash[user] = Hash.new {|h,k| h[k] = 0}
+    end
+    # which ends up looking like:
+    # {
+    #   "user1" => {:login => "user1", :small_gears =>33, :small_apps =>18},
+    #   "user2" => {:login => "user2", :medium_apps =>1, :medium_gears =>2, :small_gears =>4, :small_apps =>2}
+    #   ...
+    # }
+    #
+
+    # read all user records and their logins from DB
+    login_for_id = {}
+    _with_each_record(:cloud_users, {}, {:fields => %w[consumed_gears login], :timeout => false}) do |user|
+      login_for_id[user["_id"]] = login = user["login"]
+      count_for_user[login][:login] = login # creates a count hash for every user
+    end
+    # read all domain records and map to user's hash of counts
+    count_for_domain = {}
+    _with_each_record(:domains, {}, {:fields => ["owner_id"], :timeout => false}) do |domain|
+      count_for_domain[domain["_id"]] = count_for_user[login_for_id[domain["owner_id"]]]
+    end
+    query = {"group_instances.gears.0" => {"$exists" => true}}
+    selection = {:fields => %w[
+                             domain_id
+                             default_gear_size
+                             component_instances.cartridge_name
+                             component_instances.group_instance_id
+                             group_instances._id
+                             group_instances.gears.server_identity
+                            ], :timeout => false}
+    _with_each_record(:applications, query, selection) do |app|
+        # record global stats
+        count_all[:apps] += 1
+        # record stats by gear profile (size)
+        profile = app['default_gear_size']
+        count_for_profile[profile][:apps] += 1
+        # record stats by user
+        user_ct = count_for_domain[app['domain_id']] # per-domain=user counts
+        user_ct["#{profile}_apps".to_sym] += 1
+        user_ct[:apps] += 1
+        # build hashes for the cartridges this app uses
+        carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+        short_carts_for_group = Hash.new {|h,k| h[k] = []} # hash of arrays
+        app['component_instances'].each do |comp|
+          carts_for_group[gid = comp['group_instance_id']] << (cart = comp['cartridge_name'])
+          # from "foo-bar-1.1" we want "foo-bar" for the short name
+          short_carts_for_group[gid] << cart.match(/^  ([-\w]+)  -  [\d.]+  $/x)[1]
+        end
+        # now walk the gears and count up everything.
+        # group_instances contain arrays of like-minded gears.
+        app['group_instances'].each do |group|
+          carts = carts_for_group[group['_id']]
+          short_carts = short_carts_for_group[group['_id']]
+          group['gears'].each do |gear|
+            count_all[:gears] += 1
+            # For now, we assume gear profile is same as app profile.
+            # If that assumption becomes untrue, we can look up gear profile by
+            # correlating with the server_identity's node profile.
+            count_for_profile[profile][:gears] += 1
+            # account for the user's gear usage
+            user_ct["#{profile}_gears".to_sym] += 1
+            user_ct[:gears] += 1
+            # for this gear, record the cartridges used in this group_instance
+            carts.each do |cart|
+              count_all[:cartridges][cart] += 1
+              count_for_profile[profile][:cartridges][cart] += 1
+            end
+            short_carts.each do |short|
+              count_all[:cartridges_short][short] += 1
+              count_for_profile[profile][:cartridges_short][short] += 1
+            end
+          end
+        end
+    end
+    # sum distribution of apps/gears per user
+    count_for_user.values.each do |user_ct|
+      count_all[:users_with_num_apps][ user_ct[:apps] ] += 1
+      count_all[:users_with_num_gears][user_ct[:gears]] += 1
+    end
+    return count_all, count_for_profile, count_for_user
+  end
+
+  def _with_each_record(collection_name, query, selection)
+    coll = @db.collection(collection_name)
+    coll.find(query, selection) do |mcursor|
+      mcursor.each do |hash|
+        yield hash
+      end
+    end
+  end
+
+  def outline(str)
+    puts '-' * str.length
+    puts str
+    puts '-' * str.length
+  end
+
+  def display_results_text(res=results)
+
+    # first, display the per-user usage if available
+    if @options[:db_stats] 
+      if users = res[:db_count_per_user]
+        outline "Usage of apps and gears by user:"
+        # columns are the keys (:small_apps :small_gears etc) with :login at front
+        text_tableize users, @columns_for[:user_table]
+        puts "\n\n"
+      end
+
+      if users_for_count = res[:count_all][:users_with_num_apps]
+        outline "Distribution of apps usage (app count : users) :"
+        text_legendize users_for_count
+        puts "\n\n"
+      end
+
+      if users_for_count = res[:count_all][:users_with_num_gears]
+        outline "Distribution of gears usage (gear count : users) :"
+        text_legendize users_for_count
+        puts "\n\n"
+      end
+    end
+
+    unless @options[:only]
+      if cartridges = res[:count_all][:cartridges]
+        # display system-wide cartridge usage
+        outline "System-wide usage of cartridges:"
+        cartridges.sort_by {|cart,count| cart}.each { |duple| puts "  #{duple[0]} : #{duple[1]}" }
+        puts "\n\n"
+      end
+      # display systems info
+      case @options[:level]
+      when :profile
+        res[:profile_summaries].sort_by {|a| a[:profile]}.each do |profile|
+          # print summary for that profile
+          outline "Profile '#{profile[:profile]}' summary:"
+          text_legendize profile, @columns_for[:profile_summary]
+          puts "\nDistricts:"
+          text_tableize profile[:districts].sort_by {|a| a[:name]}, @columns_for[:district_table]
+          unless profile[:missing_nodes].empty?
+            puts "\nWARNING: the following districted node(s) in this profile DID NOT respond:"
+            puts profile[:missing_nodes].join ", "
+          end
+          puts "\n\n"
+        end
+      when :district
+        res[:district_summaries].sort_by {|a| a[:profile] + a[:name] }.each do |district|
+          # print summary for that district
+          outline "District '#{district[:name]}' summary:"
+          text_legendize district, @columns_for[:district_summary]
+          puts "\nNodes:"
+          text_tableize district[:nodes].sort_by {|a| a[:name]}, @columns_for[:node_table]
+          unless district[:missing_nodes].empty?
+            puts "\nWARNING: the following node(s) in this district DID NOT respond:"
+            puts district[:missing_nodes].join ", "
+          end
+          puts "\n\n"
+        end
+      else # :node
+        missing_nodes = []
+        res[:district_summaries].sort_by {|a| a[:profile] + a[:name] }.each do |district|
+          missing_nodes += district[:missing_nodes]
+          puts "Nodes for district '#{district[:name]}' with profile '#{district[:profile]}':"
+          text_tableize district[:nodes].sort_by {|a| a[:name]}, @columns_for[:node_table]
+          puts "\n\n"
+        end
+        unless missing_nodes.empty?
+          puts "\nWARNING: the following districted node(s) DID NOT respond:"
+          puts missing_nodes.join ", "
+          puts
+        end
+      end
+      outline "Summary for all systems:"
+      text_legendize res[:count_all], @columns_for[:count_all_legend]
+      puts "\n\n"
+    end
+  end
+
+
+  # display tab-separated values (spreadsheet friendly)
+  def display_results_tsv(res=results)
+    # Right now no column lists have been defined, so all are generated on the fly.
+    # Use "set_columns" to create column orderings for these if desired
+    puts "Resource usage summary:"
+    tsv_legendize res[:count_all], @columns_for[:tsv_db_count_all]
+
+    missing_nodes = res[:profile_summaries].inject([]) {|a,p| a += p[:missing_nodes]}
+    unless missing_nodes.empty?
+      puts "\n\nWARNING: these districted nodes DID NOT respond:"
+      missing_nodes.each {|n| puts n}
+    end
+
+    puts "\n\nPer-gear-profile usage summary:"
+    tsv_tableize res[:profile_summaries].sort_by {|h| h[:profile]},
+        @columns_for[:tsv_profile_summaries]
+
+    puts "\n\nPer-district usage summary:"
+    tsv_tableize res[:district_summaries].sort_by {|h| "#{h[:profile]}-#{h[:name]}"},
+        @columns_for[:tsv_district_summaries]
+
+    puts "\n\nPer-node usage summary:"
+    tsv_tableize res[:node_entries].sort_by {|h| "#{h[:node_profile]}-#{h[:name]}"},
+        @columns_for[:tsv_node_entries]
+
+    if res[:db_count_per_user] # --db option specified
+      puts "\n\nPer-user usage summary:"
+      tsv_tableize res[:db_count_per_user], @columns_for[:tsv_db_count_for_user]
+    end
+
+    if users_for_count = res[:count_all][:users_with_num_apps]
+      puts "\n\nDistribution of apps usage (app count : users) :"
+      tsv_legendize users_for_count
+    end
+
+    if users_for_count = res[:count_all][:users_with_num_gears]
+      puts "\n\nDistribution of gears usage (gear count : users) :"
+      tsv_legendize users_for_count
+    end
+
+    if res[:count_all][:cartridges] # --db option specified
+      puts "\n\nCartridge usage summary:"
+      tsv_legendize res[:count_all][:cartridges], @columns_for[:tsv_cartridge_legend]
+      # also break them down by profile
+      res[:profile_summaries].sort_by {|h| h[:profile]}.each do |profile|
+        puts "\n\nCartridge usage summary for profile '#{profile[:profile]}':"
+        tsv_legendize profile[:cartridges], @columns_for[:tsv_cartridge_legend]
+      end
+    end
+
+    puts "\n\nTimings for gathering this information (milliseconds):"
+    tsv_legendize res[:timings_msecs], @columns_for[:tsv_timings]
+  end
+
+
+  def auto_column_list(hashes)
+    # automatically build the column list using those keys which have "simple" values
+    cols = {}
+    hashes.each do |hash|
+      hash.each {|key,value| cols[key] = true if [String, Symbol, Integer, Fixnum].include? value.class}
+    end
+    cols = cols.keys.sort # if you wanted a specific order you wouldn't be here
+    # OK let's make an exception to bring a few identifier columns to the front
+    [:name, :profile, :node_profile, :login].each {|col| cols.include?(col) and cols = [col] + (cols - [col])}
+    return cols
+  end
+
+  def tsv_legendize(hash, order=nil)
+    order ||= auto_column_list([hash])
+    order.each {|key| puts "#{key.to_s.humanize}\t#{hash[key]}" }
+  end
+
+  def tsv_tableize(hashes, cols=nil)
+    cols ||= auto_column_list(hashes)
+    # print columns
+    puts cols.map {|col| col.to_s.humanize}.join "\t"
+    # print all records
+    hashes.each {|hash| puts cols.map {|col| hash[col]}.join "\t"}
+  end
+
+
+  # display data in formatted key:value "legend"
+  def text_legendize(hash, order=nil)
+    order ||= auto_column_list([hash])
+    humanized = {}
+    max_size = []
+    order.each {|key| max_size << (humanized[key] = key.to_s.humanize).length }
+    max_size = max_size.max.to_s
+    order.each {|key| printf " %#{max_size}s : %s\n", humanized[key], hash[key].to_s unless hash[key].nil? }
+  end
+
+  # display data in a nicely formatted table
+  def text_tableize(rows, cols=nil)
+    cols ||= auto_column_list(rows)
+    show_for_col = {}
+    # figure out how to display each column
+    cols.each do |col|
+      name = col.to_s.camelize.
+        gsub(/Count$/, '').
+        gsub(/Total$/, '').
+        gsub(/Total/, '#').
+        gsub(/Available/, 'Avail')
+      size = (rows.map {|row| row[col].to_s.length} + [name.length]).sort[-1]
+      show_for_col[col] = {:name => name, :size => size}
+    end
+    # print table header and divider
+    puts cols.map {|col| c=show_for_col[col]; sprintf "%#{c[:size]}s", c[:name] }.join ' '
+    puts cols.map {|col| '-' * show_for_col[col][:size] }.join ' '
+    # print table contents
+    rows.each do |row|
+      puts cols.map {|col| sprintf "%#{show_for_col[col][:size]}s", row[col].to_s}.join ' '
+    end
+  end
+
+end #class OOStats
+
+
+############ EXECUTION ##########
+#
+# If this script is running directly, gather the information and display.
+# In a different context (e.g. irb) just load the class and don't run anything.
+
+if __FILE__ == $0
+
+  #
+  # Options parsing...
+  #
+  require 'optparse'
+  options = {
+    :wait => 2,
+    :level => :profile,
+    :format => :text,
+  }
+  optparse = OptionParser.new { |opts|
+    opts.banner = <<-"USAGE"
+      #{$0}: Output usage statistics from this installation.
+
+      Usage: #{$0} [switches]
+      Example: #{$0}              # standard text display
+      Example: #{$0} --wait 10    # for slower node responses
+      Example: #{$0} --format xml
+
+      Switches:
+    USAGE
+
+    opts.on('-w','--wait SECONDS', Integer, <<WAIT) { |wait| options[:wait] = wait }
+Seconds for broker to wait for node responses (integer, default 2).
+\tIf nodes are not responding in time, increase this as needed.
+WAIT
+    opts.on('-d','--db', <<USER) { |x| options[:db_stats] = x }
+Gather and include MongoDB usage stats.
+\tThis scans all users, apps, and gears in the MongoDB. With thousands
+\tof users and applications, this may take seconds or minutes and
+\tput noticeable load on MongoDB.
+USER
+    opts.on('-f','--format FORMAT', [:json, :xml, :yaml, :tsv, :text],
+            'Choose output format (json, tsv, xml, yaml, default: text)') { |x| options[:format] = x }
+    opts.on('-l','--level LEVEL', [:profile, :district, :node], <<LEVEL) { |l| options[:level] = l }
+For text format, print statistical summary at this level:
+\tprofile: profile and district summary statistics (default)
+\tdistrict: district summary and node statistics
+\tnode: node statistics only
+LEVEL
+    opts.on('-u','--only-user', <<FORMAT) { |x| options[:db_stats] = options[:only] = x }
+With text format, show ONLY per-user usage summary (implies --db)
+FORMAT
+    opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
+  }
+
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts e.message
+    puts "\n" + optparse.to_s
+    puts "\n" + e.message
+    exit 1
+  end
+
+  #
+  # execution
+  #
+  o = OOStats.new(options)
+  o.gather_statistics
+  o.display_results
+
+end
