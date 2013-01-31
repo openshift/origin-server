@@ -9,10 +9,12 @@
 #   @return [Time] Denotes start time of given usage_type
 # @!attribute [r] end_time
 #   @return [Time] Denotes stop time of given usage_type
-# @!attribute [r] gear_size
+# @!attribute [rw] gear_size
 #   @return [String] Gear size
 # @!attribute [rw] addtl_fs_gb
 #   @return [Integer] Additional filesystem storage in GB.
+# @!attribute [rw] cart_name
+#   @return [String] Premium cartridge name
 class Usage
   include Mongoid::Document
   include Mongoid::Timestamps
@@ -25,10 +27,12 @@ class Usage
   field :usage_type, type: String
   field :gear_size, type: String
   field :addtl_fs_gb, type: Integer
+  field :cart_name, type: String
 
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
+  validates :cart_name, :presence => true, :if => :validate_cart_name?
 
   def validate_gear_size?
     (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]) ? true : false
@@ -38,6 +42,10 @@ class Usage
     (self.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]) ? true : false
   end
   
+  def validate_cart_name?
+    (self.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]) ? true : false
+  end
+
   def self.find_all
     get_list(self.each)
   end
