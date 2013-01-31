@@ -67,7 +67,7 @@ class District
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         begin
           capacity = container.get_capacity
-          if capacity == 0
+          if capacity == 0 or capacity == 0.0
             container_node_profile = container.get_node_profile
             if container_node_profile == gear_size
               container.set_district("#{_id}", true)
@@ -78,7 +78,7 @@ class District
               raise OpenShift::OOException.new("Node with server identity: #{server_identity} is of node profile '#{container_node_profile}' and needs to be '#{gear_size}' to add to district '#{name}'")  
             end
           else
-            raise OpenShift::OOException.new("Node with server identity: #{server_identity} already has apps on it")
+            raise OpenShift::OOException.new("Node with server identity: #{server_identity} already has gears on it")
           end
         rescue OpenShift::NodeException => e
           raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be found")
@@ -103,7 +103,7 @@ class District
       unless server_map[server_identity]["active"]
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         capacity = container.get_capacity
-        if capacity == 0 or capacity==0.0
+        if capacity == 0 or capacity == 0.0
           container.set_district('NONE', false)
           server_identities.delete({ "name" => server_identity, "active" => false} )
           if not self.save
