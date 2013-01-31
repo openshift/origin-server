@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.2
+Version: 1.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -176,6 +176,16 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Merge pull request #1255 from sosiouxme/newfacts
+  (dmcphers+openshiftbot@redhat.com)
+- <facter,resource_limits> active_capacity/max_active_apps/etc switched to
+  gear-based accounting (lmeyer@redhat.com)
+- Merge pull request #1238 from sosiouxme/newfacts
+  (dmcphers+openshiftbot@redhat.com)
+- <facter,resource_limits> reckon by gears (as opposed to git repos), add gear
+  status facts (lmeyer@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Bug 905568: Skip endpoint deletion if no Endpoints in manifest
   (ironcladlou@gmail.com)
