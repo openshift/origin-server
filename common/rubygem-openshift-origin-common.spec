@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.3.2
+Version: 1.3.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,9 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Collect/Sync Usage data for EAP cart (rpenta@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - fix for bug 896333 (abhgupta@redhat.com)
 - fixed runtime tests and Lock exception handling (lnader@redhat.com)
