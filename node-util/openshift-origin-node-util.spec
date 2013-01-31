@@ -26,8 +26,17 @@ run on a node instance.
 
 %install
 mkdir -p %{buildroot}%{_sbindir}
+
 cp bin/oo-* %{buildroot}%{_sbindir}/
 cp bin/rhc-* %{buildroot}%{_sbindir}/
+
+%if 0%{?fedora} >= 18
+  mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
+  rm %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.3
+%else
+  mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.3 %{buildroot}%{_sbindir}/oo-httpd-singular
+  rm %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4
+%endif
 
 mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
@@ -40,6 +49,7 @@ cp conf/oddjob/oddjobd-restorer.conf %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
 cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 
 cp man8/*.8 %{buildroot}%{_mandir}/man8/
+
 
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}%{_initddir}

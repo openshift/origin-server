@@ -25,6 +25,7 @@ Requires: perl-CPANPLUS
 Requires: rpm-build
 Requires: expat-devel
 Requires: perl-IO-Socket-SSL
+Requires: httpd < 2.4
 Obsoletes: cartridge-perl-5.10
 
 %description
