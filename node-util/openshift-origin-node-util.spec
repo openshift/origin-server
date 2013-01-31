@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.4.2
+Version: 1.4.3
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,9 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Bug 906034 - chmod on openshift-restorer.conf (jhonce@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #966 from mscherer/fix/node-util/fix_duplicate_functions
   (dmcphers+openshiftbot@redhat.com)
