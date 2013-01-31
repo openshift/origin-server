@@ -97,6 +97,23 @@ class GroupInstance
     {component_instances: comps, scale: {current: self.gears.length, additional_filesystem_gb: self.addtl_fs_gb, gear_size: self.gear_size}, _id: _id}
   end
 
+  def get_group_override
+    value = nil
+    comps = all_component_instances.map{ |c| c.to_hash }
+    comps.each do |comp|
+      found = false
+      application.group_overrides.each do |group_override|
+        if group_override["components"].include?(comp)
+          value = group_override
+          found = true
+          break
+        end
+      end if application.group_overrides
+      break if found
+    end
+    value or { "components" => self.to_hash[:component_instances] }
+  end
+
   protected
   
   # Run an operation on a list of gears on this group instance.
