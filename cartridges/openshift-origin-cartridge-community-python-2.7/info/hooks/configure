@@ -103,7 +103,7 @@ fi
 #
 export CART_INFO_DIR
 import_env_vars
-$CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
+${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
 restart_httpd_graceful
 
