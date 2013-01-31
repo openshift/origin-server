@@ -3,6 +3,10 @@
 # BZ 901449: SELinux failure prevent using "/usr/bin/env ruby".
 
 require 'etc'
+require 'open4'
+
+# each value begins with the subsystem name and a dot (.)
+# extract the subsystem name and check it against the list
 
 # When combined with selinux, this script will allow users to read their own
 # cgroups entries but not other users cgroups entries
@@ -15,12 +19,17 @@ unless attribute =~ /\A[a-zA-Z0-9\.\-_]*\z/
     exit 1
 end
 
-if File.exists? "/cgroup/all/openshift/#{login}/#{attribute}"
-    fp = File.new("/cgroup/all/openshift/#{login}/#{attribute}")
-    value = fp.gets
-    fp.close
-else
-    puts "Could not find attribute #{attribute}"
+cmd = "cgget -n -v -r #{attribute} /openshift/#{login}"
+# This would be simple, but we can't catch errors
+#value = %x[%{cmd}]
+pid, stdin, stdout, stderr = open4(cmd)
+
+value = stdout.read.strip
+error = stderr.read.strip
+
+if not error == "" then
+    $stderr.puts "Could not find attribute #{attribute}"
+    $stderr.puts error
     exit 2
 end
 
