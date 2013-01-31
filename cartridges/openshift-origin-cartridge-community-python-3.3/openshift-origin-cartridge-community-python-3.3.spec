@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version: 0.1.0
+Version: 0.1.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,5 +77,8 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Jan 30 2013 Ram Ranganathan <ramr@redhat.com> 0.1.1-1
+- new package built with tito
+
 * Mon Jan 14 2013 Ram Ranganathan <ramr@redhat.com> 0.1.0-1
 - new package built with tito
