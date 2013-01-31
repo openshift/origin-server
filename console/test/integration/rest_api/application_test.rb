@@ -64,10 +64,10 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     setup_domain
 
     assert_create_app({:cartridges => ['ruby-1.9','mysql-5.1']}, "Simple cartridges list") do |app|
-      assert_equal ['ruby-1.9', 'mysql-5.1'], app.cartridges.map(&:name)
+      assert_equal ['ruby-1.9', 'mysql-5.1'].sort, app.cartridges.map(&:name).sort
     end
     assert_create_app({:cartridges => [{:name => 'ruby-1.9'},'mysql-5.1']}, "Mixed objects list") do |app|
-      assert_equal ['ruby-1.9', 'mysql-5.1'], app.cartridges.map(&:name)
+      assert_equal ['ruby-1.9', 'mysql-5.1'].sort, app.cartridges.map(&:name).sort
     end
   end
 
