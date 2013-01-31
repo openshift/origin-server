@@ -34,4 +34,4 @@ sed -i "s#cookie\s*\(.*\)-$old_namespace#cookie \1-$new_namespace#g;   \
 sed -i "s#\(.*\)-$old_namespace\.#\1-$new_namespace\.#g"   \
     $haproxy_dir/conf/gear-registry.db
 
-$CART_INFO_DIR/hooks/reload "$application" "$new_namespace" "$uuid"
+$CART_INFO_DIR/hooks/cond-reload "$application" "$new_namespace" "$uuid"
