@@ -7,14 +7,14 @@
 %endif
 %{!?scl:%global pkg_name %{name}}
 
-Summary:   The OpenShift Enterprise Management Console
+Summary:   The OpenShift Management Console
 Name:      openshift-origin-console
 Version:   0.4.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-console-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
@@ -41,6 +41,8 @@ Requires: v8-devel
 Requires: gcc-c++
 %endif
 BuildArch: noarch
+Provides:  openshift-origin-console = %{version}
+Obsoletes: openshift-console
 
 %description
 This contains the console configuration components of OpenShift.
