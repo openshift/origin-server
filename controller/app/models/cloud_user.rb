@@ -149,8 +149,8 @@ class CloudUser
   def inherited_capabilities
     @inherited_capabilities ||= begin
         if self.parent_user_id
-          cap = CloudUser.find_by(_id: self.parent_user_id).get_capabilities
-          cap.slice(*Array(cap['inherit_on_subaccounts']))
+          caps = CloudUser.find_by(_id: self.parent_user_id).get_capabilities
+          caps.slice(*Array(caps['inherit_on_subaccounts']))
         end
       rescue Mongoid::Errors::DocumentNotFound
       end || {}
@@ -160,8 +160,8 @@ class CloudUser
     self.capabilities.deep_dup.merge!(inherited_capabilities)
   end
 
-  def set_capabilities(cap=nil)
-    self.capabilities = cap.presence || default_capabilities
+  def set_capabilities(caps=nil)
+    self.capabilities = caps.presence || default_capabilities
   end
 
   # Delete user and all its artifacts like domains, applications associated with the user 
