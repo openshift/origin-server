@@ -15,7 +15,7 @@ class ApplicationTypesController < ConsoleController
       ['Perl', :perl],
       nil,
       ['All web cartridges', :cartridge],
-      ['All quickstart applications', :instant_app],
+      ['All instant applications', :instant_app],
       nil,
       ['Blogs', :blog],
       ['Content management systems', :cms],
