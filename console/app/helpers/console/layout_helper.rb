@@ -71,6 +71,17 @@ module Console::LayoutHelper
     end
   end
 
+  def control_group(*args, &block)
+    opts = args.extract_options!
+    classes = ['control-group']
+    classes << 'control-group-important' if opts[:important]
+    data = if opts[:errors] || args.first == true
+        classes << 'error'
+        {:server_error => true}    
+      end
+    content_tag(:div, capture_haml{ yield }.html_safe, :class => classes.join(' '), :data => data)
+  end
+
   def alert_class_for(key)
     case key
     when :success

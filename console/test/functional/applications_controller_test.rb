@@ -104,7 +104,7 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert app.errors[:name].present?, app.errors.inspect
     assert_equal 1, app.errors[:name].length
 
-    assert_select '.alert.alert-error', /Application name is required/i
+    assert_select '.error .help-inline', /Application name is required/i
     assert_select "select[name='application[scale]'] > option[selected]", 'Scale with web traffic'
     assert_select "input[name='application[initial_git_url]'][value=http://foo.com]"
     #assert_select "input[name='application[initial_git_branch]'][value=bar]"
