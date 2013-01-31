@@ -2,7 +2,6 @@
 
 # Exit on any errors
 set -e
-#set -x
 
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
@@ -31,11 +30,23 @@ echo "export JENKINS_URL='https://${application}-${new_namespace}.${CLOUD_DOMAIN
 . $APP_HOME/.env/JENKINS_URL
 . $APP_HOME/.env/JENKINS_USERNAME
 . $APP_HOME/.env/JENKINS_PASSWORD
+. $APP_HOME/.env/OPENSHIFT_JENKINS_IP
+. $APP_HOME/.env/OPENSHIFT_JENKINS_PORT
 . $APP_HOME/.env/OPENSHIFT_DATA_DIR
 
-if ls $APP_HOME/app-root/data/jobs/*/config.xml > /dev/null 2>&1
+jobs_path="$APP_HOME/app-root/data/jobs"
+if ls $jobs_path/*/config.xml > /dev/null 2>&1
 then
-    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $APP_HOME/app-root/data/jobs/*/config.xml
+    sed -i "s/-${old_namespace}.${CLOUD_DOMAIN}/-${new_namespace}.${CLOUD_DOMAIN}/g" $jobs_path/*/config.xml
+
+    # POST each config XML back to Jenkins to ensure the contents are reloaded
+    # into memory
+    for job_path in $jobs_path/*; do
+      job=$(basename $job_path)
+      config_url="http://$OPENSHIFT_JENKINS_IP:$OPENSHIFT_JENKINS_PORT/job/$job/config.xml"
+      config_file=$jobs_path/$job/config.xml
+      curl -X POST --user $JENKINS_USERNAME:$JENKINS_PASSWORD --data-binary @${config_file} $config_url > /dev/null 2>&1
+    done
 fi
 
 if [ -f $APP_HOME/app-root/data/config.xml ]
