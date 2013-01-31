@@ -13,7 +13,7 @@
 
 Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:           openshift-origin-msg-node-mcollective
-Version: 1.4.2
+Version: 1.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -60,6 +60,17 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Merge pull request #1255 from sosiouxme/newfacts
+  (dmcphers+openshiftbot@redhat.com)
+- <facter,resource_limits> active_capacity/max_active_apps/etc switched to
+  gear-based accounting (lmeyer@redhat.com)
+- Merge pull request #1238 from sosiouxme/newfacts
+  (dmcphers+openshiftbot@redhat.com)
+- <facter,resource_limits> reckon by gears (as opposed to git repos), add gear
+  status facts (lmeyer@redhat.com)
+- <facter> some code cleanup - no functional change (lmeyer@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Reduce logging noise in MCollective agent (ironcladlou@gmail.com)
 - Switch calling convention to match US3143 (rmillner@redhat.com)
