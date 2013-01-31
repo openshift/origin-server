@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.4.2
+Version: 1.4.3
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -87,6 +87,12 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Add openshift-origin-cartridge-community-python-3.3 cartridge.
+  (smitram@gmail.com)
+- Add openshift-origin-cartridge-community-python-2.7 cartridge.
+  (smitram@gmail.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Add file:// to the allowed git protocols and add the community-pod to the
   list of 'frameworks'!! (ramr@redhat.com)
