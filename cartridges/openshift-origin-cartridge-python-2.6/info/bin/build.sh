@@ -6,9 +6,10 @@ do
     . $f
 done
 
-VIRTENV="~/python-2.6/virtenv"
-
 cart_instance_dir=$OPENSHIFT_HOMEDIR/python-2.6
+
+VIRTENV=$cart_instance_dir/virtenv
+
 if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
 then 
     OPENSHIFT_PYTHON_MIRROR="-i http://mirror1.ops.rhcloud.com/mirror/python/web/simple"
