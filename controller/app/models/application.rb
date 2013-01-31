@@ -1185,6 +1185,7 @@ class Application
 
   def calculate_gear_destroy_ops(ginst_id, gear_ids, additional_filesystem_gb)
     pending_ops = []
+    delete_gear_op = nil
     gear_ids.each do |gear_id|
       destroy_gear_op   = PendingAppOp.new(op_type: :destroy_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id})
       deregister_dns_op = PendingAppOp.new(op_type: :deregister_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [destroy_gear_op._id.to_s])
@@ -1201,6 +1202,14 @@ class Application
         pending_ops.push(track_usage_fs_op)
       end
     end
+    comp_specs = self.group_instances.find(ginst_id).all_component_instances.map{ |c| c.to_hash }
+    comp_specs.each do |comp_spec|
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      gear_ids.each do |gear_id|
+        pending_ops.push(PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:end], 
+          "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [delete_gear_op._id.to_s]))
+      end if cartridge.is_premium?
+    end
     pending_ops
   end
 
@@ -1209,7 +1218,8 @@ class Application
 
     comp_specs.each do |comp_spec|
       component_ops[comp_spec] = {new_component: nil, adds: []} if component_ops[comp_spec].nil?
-      is_singleton = CartridgeCache.find_cartridge(comp_spec["cart"]).get_component(comp_spec["comp"]).is_singleton?
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
+      is_singleton = cartridge.get_component(comp_spec["comp"]).is_singleton?
 
       new_component_op_id = []
       unless is_scale_up
@@ -1225,6 +1235,8 @@ class Application
           op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => singleton_gear_id, "comp_spec" => comp_spec, "init_git_url"=>init_git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push op
           component_ops[comp_spec][:adds].push op
+          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => singleton_gear_id, "event" => UsageRecord::EVENTS[:begin], 
+            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
         end
       else
         gear_id_prereqs.each do |gear_id, prereq_id|
@@ -1233,6 +1245,8 @@ class Application
           op = PendingAppOp.new(op_type: :add_component, args: {"group_instance_id"=> group_instance_id, "gear_id" => gear_id, "comp_spec" => comp_spec, "init_git_url"=>git_url}, prereq: new_component_op_id + [prereq_id])
           ops.push op
           component_ops[comp_spec][:adds].push op
+          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
+            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
         end
       end
     end
@@ -1310,12 +1324,19 @@ class Application
     ops = []
     comp_specs.each do |comp_spec|
       component_instance = self.component_instances.find_by(cartridge_name: comp_spec["cart"], component_name: comp_spec["comp"])
+      cartridge = CartridgeCache.find_cartridge(comp_spec["cart"])
       if component_instance.is_plugin? || (!self.scalable && component_instance.is_embeddable?)
         if component_instance.is_singleton?
-          ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec}))
+          op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => singleton_gear._id.to_s, "comp_spec" => comp_spec})
+          ops.push op
+          ops.push(PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => singleton_gear._id.to_s, "event" => UsageRecord::EVENTS[:end], 
+            "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
         else
           group_instance.gears.each do |gear|
-            ops.push(PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec}))
+            op = PendingAppOp.new(op_type: :remove_component, args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id, "comp_spec" => comp_spec})
+            ops.push op
+            ops.push(PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "gear_ref" => gear._id.to_s, "event" => UsageRecord::EVENTS[:end],
+              "usage_type" => UsageRecord::USAGE_TYPES[:premium_cart], "cart_name" => comp_spec["cart"]}, prereq: [op._id.to_s])) if cartridge.is_premium?
           end
         end
       end
