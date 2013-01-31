@@ -242,7 +242,7 @@ class OODiag
     js-debuginfo js-devel libev libev-debuginfo libev-devel libev-source
     libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb mcollective
     mcollective-client mcollective-common mod_bw mod_bw-debuginfo mod_passenger
-    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
+    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-origin-console
     openshift-origin-broker openshift-origin-broker-util
     openshift-origin-cartridge-abstract openshift-origin-cartridge-cron-1.4
     openshift-origin-cartridge-diy-0.1 openshift-origin-cartridge-haproxy-1.4
@@ -423,7 +423,7 @@ class OODiag
         ver = @rpms[rpm][:version]
         unless rel.include?('el6op') ||
                # waive two errata RPMs that didn't get the right distro tag
-               rpm == 'openshift-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
+               rpm == 'openshift-origin-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
                rpm == 'openshift-origin-broker' && "#{ver}-#{rel}" == '1.0.2-1.el6'
           # this RPM doesn't seem to have come from the proper channel
           do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{ver}-#{rel} does not have 'el6op' in it"
