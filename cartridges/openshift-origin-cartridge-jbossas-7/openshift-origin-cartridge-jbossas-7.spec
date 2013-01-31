@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.4.2
+Version: 1.4.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -108,17 +108,22 @@ ln -s %{cartridgedir}/../abstract-jboss/info/hooks/configure %{buildroot}%{cartr
 %if 0%{?rhel}
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/java/apache-maven-3.0.3 100
 alternatives --set maven-3.0 /usr/share/java/apache-maven-3.0.3
+
+alternatives --remove jbossas-7.0 /opt/jboss-as-%{oldjbossver}
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
+alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 %endif
 
 %if 0%{?fedora}
 alternatives --remove maven-3.0 /usr/share/java/apache-maven-3.0.3
 alternatives --install /etc/alternatives/maven-3.0 maven-3.0 /usr/share/maven 102
 alternatives --set maven-3.0 /usr/share/maven
+
+alternatives --remove jbossas-7.0 /user/share/jboss-as
+alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /usr/share/jboss-as 102
+alternatives --set jbossas-7 /usr/share/jboss-as
 %endif
 
-alternatives --remove jbossas-7.0 /opt/jboss-as-%{oldjbossver}
-alternatives --install /etc/alternatives/jbossas-7 jbossas-7 /opt/jboss-as-%{jbossver} 102
-alternatives --set jbossas-7 /opt/jboss-as-%{jbossver}
 #
 # Temp placeholder to add a postgresql datastore -- keep this until the
 # the postgresql module is added to jboss as 7.* upstream.
@@ -152,6 +157,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 31 2013 Bill DeCoste <bdecoste@gmail.com> 1.4.3-1
+- add Fedora link to AS base 
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)
