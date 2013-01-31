@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.2
+Version: 1.4.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,17 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Merge pull request #1253 from smarterclayton/bug_878328_clarify_filter
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 878328 - Alter instant app filter title to be clearer
+  (ccoleman@redhat.com)
+- Bug 902962 - Only highlight URL field when error occurs (ccoleman@redhat.com)
+- Merge pull request #1244 from brenton/misc6
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 893298 - fixing the missing . on the site /account page
+  (bleanhar@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Update console/README.md (ccoleman@redhat.com)
 - remove consumed_gear_sizes (dmcphers@redhat.com)
