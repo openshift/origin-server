@@ -225,8 +225,9 @@ class Gear
     @app ||= group_instance.application
   end
   
-  def set_addtl_fs_gb(filesystem_gb, remote_job_handle)
-    RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, filesystem_gb,""))
+  def set_addtl_fs_gb(additional_filesystem_gb, remote_job_handle)
+    total_fs_gb = additional_filesystem_gb + Gear.base_filesystem_gb(self.group_instance.gear_size)
+    RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
   end
 
   def update_namespace(args, handle)
