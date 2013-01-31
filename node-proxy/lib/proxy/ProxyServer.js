@@ -448,7 +448,7 @@ function _websocketHandler(proxy_server, ws) {
 function _asyncLoadRouteFiles(routes, callback) {
   /*  Need to get the routes via a command, exec it and pass callback.  */
   if (routes  &&  routes.cmd) {
-    return child_process.exec(routes.cmd, function(err, stdout, stderr) {
+    return child_process.exec(routes.cmd, { maxBuffer: 400 * 8192 }, function(err, stdout, stderr) {
       return callback(stdout.split('\n') );
     });
 
