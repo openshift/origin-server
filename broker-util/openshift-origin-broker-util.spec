@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.2
+Version:        1.4.3
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -73,6 +73,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Merge pull request #1258 from sosiouxme/metrics
+  (dmcphers+openshiftbot@redhat.com)
+- <oo-stats> update for model refactor and add to specfile (lmeyer@redhat.com)
+- fix for bz903963 - conditionally reload haproxy after update namespace
+  (rchopra@redhat.com)
+- oo-stats updated to use new facts available (lmeyer@redhat.com)
+- <new> oo-stats gathers systems stats and displays them (lmeyer@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1234 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
