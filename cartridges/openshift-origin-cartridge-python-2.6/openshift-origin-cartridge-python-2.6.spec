@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
-Version: 1.4.2
+Version: 1.4.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -109,6 +109,13 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Bug 906217: Fix broken path reference in Python build script
+  (ironcladlou@gmail.com)
+- Merge pull request #964 from mscherer/refactor/cartridges/clean_build.sh
+  (dmcphers+openshiftbot@redhat.com)
+- refactor the code of build.sh for perl and python cartridges (misc@zarb.org)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - fix references to rhc app cartridge (dmcphers@redhat.com)
 - 892068 (dmcphers@redhat.com)
