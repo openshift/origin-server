@@ -12,7 +12,7 @@
           %span.data #{@application.gear_count} total
 
         %li#restart-container.popover-restart
-          = link_to image_tag('restart-icon.png', :alt => 'Restart', :title => 'Restart Application'), application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header'}
+          = link_to image_tag('restart-icon.png', :alt => 'Restart'), application_restart_path(@application), { :id => 'restart-link', 'data-html' => 'true', 'data-placement' => 'bottom', :class => 'block btn-console-header', :title => 'Restart Application'}
           #restart-popover.hide
             = render 'restarts/form'
 
