@@ -35,8 +35,7 @@ disable_cgroups
 
 check_cartridge_dir_doesnt_exist
 
-#  FIXME:  Switch to using openshift once the repo is cloned.
-community_repo="git://github.com/ramr/openshift-community-cartridge-python-2.7.git"
+community_repo="git://github.com/openshift/openshift-community-cartridge-python-2.7.git"
 
 #
 # Create the core of the application
