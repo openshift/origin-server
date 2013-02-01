@@ -42,6 +42,11 @@ class ActiveSupport::TestCase
     @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_multiple_gear_sizes@test.com')))
   end
 
+  def with_user_with_extra_storage
+    set_user(new_named_user('user_with_extra_storage@test.com'))
+    @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_extra_storage@test.com')))
+  end
+
   # some unit tests or test environments may want to preserve domains
   # created for unique users
   alias_method :cleanup_domain?, :cleanup_user?
@@ -161,6 +166,10 @@ class ActiveSupport::TestCase
 
   def with_scalable_app
     use_app(:scalable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.8', :scale => true, :as => new_named_user('user_with_scaled_app')}) }
+  end
+
+  def with_storage_app
+    use_app(:readable_app) { Application.new({:name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user("user_with_extra_storage@test.com")}) }
   end
 
   def mock_body_for(&block)

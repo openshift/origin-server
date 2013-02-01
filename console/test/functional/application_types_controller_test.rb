@@ -184,10 +184,11 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], session[:user_capabilities]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, user.max_storage_per_gear], session[:user_capabilities]
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
+    assert_equal user.max_storage_per_gear, assigns(:capabilities).max_storage_per_gear
   end
 
   test "show page should refresh cached user_capabilities" do
@@ -198,16 +199,17 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
+    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], session[:user_capabilities]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, user.max_storage_per_gear], session[:user_capabilities]
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
+    assert_equal user.max_storage_per_gear, assigns(:capabilities).max_storage_per_gear
   end
 
   test "should raise on missing type" do

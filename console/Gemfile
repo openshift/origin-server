@@ -4,6 +4,12 @@ gemspec
 
 gem 'pry' if ENV['PRY']
 
+group :development do
+  gem 'quiet_assets'
+  gem 'thin'
+  gem 'pry-rails'
+end if ENV['LOCAL']
+
 group :test do
   gem 'ci_reporter',   '~> 1.7.0', :require => nil
   gem 'test-unit'      if RUBY_VERSION.to_f >= 1.9

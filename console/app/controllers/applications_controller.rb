@@ -159,6 +159,7 @@ class ApplicationsController < ConsoleController
 
   def show
     user_default_domain
+    @user = User.find :one, :as => current_user
     @application = @domain.find_application params[:id]
     @gear_groups = @application.gear_groups_with_state
 
