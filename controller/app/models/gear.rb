@@ -202,7 +202,10 @@ class Gear
   def get_proxy
     if @container.nil? and !self.server_identity.nil?
       @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
+    elsif @container and @container.id!=self.server_identity 
+      @container = OpenShift::ApplicationContainerProxy.instance(self.server_identity)
     end    
+
     return @container
   end
 
