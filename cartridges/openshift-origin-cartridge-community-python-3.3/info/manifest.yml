@@ -47,8 +47,8 @@ Cart-Data:
     Description: "Unique ID which identified the gear. This value changes between gears."
 Suggests:
 Provides:
+  - "python-3.3"
   - "wsgi"
-  - "gevent"
 Requires:
 Conflicts:
 Native-Requires:
