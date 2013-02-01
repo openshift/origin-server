@@ -90,7 +90,7 @@ class RemoteJob < OpenShift::Model
     tag = tag || ""
     parallel_job = { 
                      :tag => tag,
-                     :gear => gear._id.to_s,
+                     :gear => gear.uuid.to_s,
                      :job => { :cartridge => rjob.cartridge, :action => rjob.action, :args => rjob.args },
                      :result_stdout => "",
                      :result_stderr => "",
