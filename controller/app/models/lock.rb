@@ -35,7 +35,7 @@ class Lock
     begin
       timenow = Time.now.to_i
       lock = Lock.find_or_create_by( :user_id => user._id )
-      lock = Lock.where( {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lte => timenow}], :app_ids => app._id} ).find_and_modify( {"$set" => { locked: true, timeout: (timenow+600) }}, new:true)
+      lock = Lock.where( {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lte => timenow}], "$exists" => { "app_ids.#{app._id}" => true } } ).find_and_modify( {"$set" => { locked: true, timeout: (timenow+600) }}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -52,7 +52,7 @@ class Lock
   # True if the unlock was succesful.
   def self.unlock_user(user, app)
     begin    
-      lock = Lock.where( { :user_id => user._id, :locked => true, :app_ids => app._id} ).find_and_modify( {"$set" => { "locked" => false}}, new:true)
+      lock = Lock.where( { :user_id => user._id, :locked => true, "$exists" => { "app_ids.#{app._id}" => true } } ).find_and_modify({"$set" => { "locked" => false}}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -71,7 +71,11 @@ class Lock
   def self.lock_application(application)
     begin    
       user_id = application.domain.owner_id
-      lock = Lock.where( { :user_id => user_id, :app_ids.nin => [application._id] } ).find_and_modify( {"$push"=> {app_ids: application._id}}, new:true)
+      appid = application._id.to_s
+      timenow = Time.now.to_i
+      query = { :user_id => user_id, "$or" => [{"$exists"=>{"app_ids.#{appid}" => false}}, {$lte => {"app_ids.#{appid}.timeout" => timenow}}] }
+      updates = {"$set"=> { "app_ids.#{appid}" => timenow+600 }}
+      lock = Lock.where(query).find_and_modify( updates, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to obtain lock for application #{application.name}: #{ex.message}"
@@ -90,7 +94,7 @@ class Lock
   def self.unlock_application(application)
     begin    
       user_id = application.domain.owner_id
-      lock = Lock.where( { user_id: user_id, locked: false, :app_ids => application._id} ).find_and_modify( {"$pull"=> {app_ids: application._id}}, new:true)
+      lock = Lock.where( { user_id: user_id, locked: false, "$exists" => { "app_ids.#{appid}" => true}  } ).find_and_modify( {"$unset"=> {"app_ids.#{appid}" => ""}}, new:true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to unlock application #{application.name}: #{ex.message}"
