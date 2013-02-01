@@ -39,6 +39,8 @@ Options:
     The sub account to remove from the login parent account
   --allowsubaccounts (true|false)
     Add / Remove the capability to manage sub accounts 
+  --allowplanupgrade (true|false)
+    Add / Remove the capability to upgrade your plan.
   --addgearsize <gearsize>
     Add gearsize to the capability for this login user
   --removegearsize <gearsize>
@@ -119,6 +121,24 @@ def allow_sub_accounts(user, allow)
     end
 end
 
+def allow_plan_upgrade(user, allow)
+    user_capabilities = user.get_capabilities
+    if user_capabilities['plan_upgrade_enabled'] == allow
+        puts "User already has plan_upgrade_enabled set to #{allow}"
+        return
+    end
+
+    print "Setting plan_upgraded_enabled capability to #{allow} for user #{user.login}... "
+    user_capabilities['plan_upgrade_enabled'] = allow
+    user.set_capabilities(user_capabilities)
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred modifying the user capabilities."
+        exit 6
+    end
+end
+
 def add_sub_account(user, subaccount_login)
     user_capabilities = user.get_capabilities
     unless user_capabilities['subaccounts']
@@ -187,16 +207,14 @@ end
 def add_gear_size(user, gear_size)
     user_capabilities = user.get_capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
-    gear_sizes = []
-    gear_sizes = user_capabilities['gear_sizes'] if user_capabilities.has_key?('gear_sizes')
-    
+    gear_sizes = Array(user_capabilities['gear_sizes'])
+
     if gear_sizes.include?(gear_size)
         puts "User #{user.login} already has gear size #{gear_size} in its capabilities."
         return
     end
-    
-    user_capabilities = user.get_capabilities
-    user_capabilities["gear_sizes"] << gear_size
+
+    user_capabilities['gear_sizes'] = (gear_sizes << gear_size)
     user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
@@ -254,6 +272,7 @@ opts = GetoptLong.new(
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
     ["--removesubaccount", GetoptLong::REQUIRED_ARGUMENT],
     ["--allowsubaccounts", GetoptLong::REQUIRED_ARGUMENT],
+    ["--allowplanupgrade", GetoptLong::REQUIRED_ARGUMENT],
     ["--addgearsize",      GetoptLong::REQUIRED_ARGUMENT],
     ["--removegearsize",   GetoptLong::REQUIRED_ARGUMENT],
     ["--inheritgearsizes", GetoptLong::REQUIRED_ARGUMENT],
@@ -328,6 +347,10 @@ unless allowsubaccounts.nil?
     changed_user = true
 end
 
+unless args["--allowplanupgrade"].nil?
+  allow_plan_upgrade(user, args["--allowplanupgrade"].to_b)
+end
+
 unless account_to_add.nil?
     add_sub_account(user, account_to_add)
 end
@@ -368,6 +391,7 @@ user_capabilities = user.get_capabilities
 puts "User #{user.login}:"
 puts "      consumed gears: #{user.consumed_gears}"
 puts "           max gears: #{user_capabilities['max_gears']}"
+puts "plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
 puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
 puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')
 puts "  inherit gear sizes: #{user_capabilities['inherit_on_subaccounts'].include?('gear_sizes')}" if user_capabilities.has_key?('inherit_on_subaccounts')

@@ -2,7 +2,7 @@ source 'http://rubygems.org'
 
 gemspec
 
-gem 'pry' if ENV['PRY']
+gem 'pry', :require => 'pry' if ENV['PRY']
 
 group :test do
   gem 'ci_reporter',   '~> 1.7.0', :require => nil
