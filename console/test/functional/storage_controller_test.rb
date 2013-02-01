@@ -1,79 +1,116 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class StorageControllerTest < ActionController::TestCase
-  uses_http_mock :sometimes
+  test "should get redirected from show without max_storage_per_gear" do
+    get :show, {:application_id => with_app.to_param}
+    app = assigns(:application)
 
-  def mock_domain
-    {:id => 'test'}
+    assert_redirected_to new_application_storage_path(app)
   end
 
-  def mock_app
-    {
-      :name => 'test',
-      :framework => 'php-5.3', :git_url => 'ssh://foo@bar-domain.rhcloud.com/~/something/repo.git'}
+  test "should show with max_storage_per_gear" do
+    get :show, {:application_id => with_storage_app.to_param}
+
+    assert_response :success
   end
 
-  def mock_user(storage = 0)
-    {
-      :max_storage_per_gear => storage
-    }
+  test "should not be able to set storage higher than user's max_storage_per_gear" do
+    set_storage(with_storage_app,'ruby-1.8',100,false)
+    app = assigns(:application)
+
+    assert_redirected_to application_storage_path(app)
+    assert flash[:error].length == 1, "Should only get one error"
+    assert /^User can not exceed max storage quota per gear/, flash[:error].first
   end
 
-  def mock_groups
+  test "setting storage with single cartridge" do
+    set_storage(with_storage_app,'ruby-1.8',5)
+    check_storage(5)
+  end
+
+  test "setting storage with embedded database" do
+    set_storage(with_storage_app(:db => true),'ruby-1.8',5)
+    check_storage(5)
+  end
+
+  test "setting storage with scaled cartridge and embedded database" do
+    set_storage(with_storage_app(:db => true, :scale => true),'ruby-1.8',5)
+    check_storage(5)
+
+    set_storage(with_storage_app(:db => true, :scale => true, :clear => false),'mysql-5.1',3)
+    check_storage(3,5)
+  end
+
+  def set_storage(app,cart,value,check = true)
+    post :update, {:application_id => app.to_param, :id => cart, :cartridge => {:additional_gear_storage => value}}
+    if check
+      app = assigns(:application)
+      assert_redirected_to application_storage_path(app)
+      assert /^Updated storage for cartridge/, flash[:success].first
+    end
+  end
+
+  def check_storage(value, other = 0)
+    app = assigns(:application)
+
+    # Get the page again so we know we have updated information
+    get :show, {:application_id => app.to_param}
+    app = assigns(:application)
+    cartridge = assigns(:cartridge)
+    gear_groups = assigns(:gear_groups)
+
+    # Partitition the gear groups to find the one with our cart
+    (with_cart,without_cart) = gear_groups.partition{|group| group.cartridges.include?(cartridge) }
+
+    # Make sure our gear groups have the right values
     [
-      {
-        :name => '@@app/comp-web/php-5.3',
-        :uuid => 1,
-        :gears => [ {:id => 1, :state => 'started'} ],
-        :cartridges => [ {:name => 'php-5.3'}, ]
-      }
-    ]
-  end
-
-  def mock_resources
-    {:name => 'php-5.3', :additional_gear_storage => 1 }
-  end
-
-  def with_mock_app(storage = 0)
-    allow_http_mock
-
-    User.any_instance.stubs(:max_storage_per_gear).returns(storage)
-
-    ActiveResource::HttpMock.respond_to(false) do |mock|
-      mock.get '/broker/rest/user.json', json_header, mock_user(storage).to_json
-      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [].to_json
-      mock.get '/broker/rest/domains.json', json_header, [mock_domain].to_json
-      mock.get '/broker/rest/domains/test/applications.json', json_header, [mock_app].to_json
-      mock.get '/broker/rest/domains/test/applications/test.json', json_header, mock_app.to_json
-      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [mock_resources].to_json
-      mock.get '/broker/rest/domains/test/applications/test/gear_groups.json', json_header, mock_groups.to_json
+      {:carts => with_cart, :value => value},
+      {:carts => without_cart, :value => other}
+    ].each do |values|
+      val = values[:value]
+      values[:carts].map(&:cartridges).flatten.each do |cart|
+        assert_equal val, cart.additional_gear_storage
+      end
     end
-    {:application_id => 'test'}
   end
 
-  def storage_app_params
-    {
-      :application_id => with_storage_app.to_param,
-      :id => with_storage_app.cartridges.first.name
+  def with_storage_app(args = {})
+    args = {
+      :scale => false,
+      :db    => false,
+      :clear => true
+    }.merge(args)
+
+    name = "stor"
+    name << "scal" if args[:scale]
+    name << "db" if args[:db]
+
+    app_args = {
+      :name => name,
+      :cartridge => 'ruby-1.8',
+      :scale => args[:scale] || false,
+      :as => new_named_user("user_with_extra_storage@test.com")
     }
+
+    use_app(name){ Application.new(app_args) }.tap do |app|
+      add_database(app) if args[:db]
+      clear_storage(app) if args[:clear]
+    end
   end
 
-  [true,false].each do |mock|
-    test "should get redirected from show without scaling #{'(mock)' if mock}" do
-      with_unique_user
-
-      get :show, mock ? with_mock_app : {:application_id => with_app.to_param}
-
-      assert app = assigns(:application)
-      assert_redirected_to new_application_storage_path(app)
+  def clear_storage(app)
+    Cartridge.all(app.send(:child_options)).each do |cart|
+      cart.additional_gear_storage = 0
+      cart.save
     end
+  end
 
-    test "should show storage page#{' (mock)' if mock}" do
-      with_user_with_extra_storage
-
-      get :show, mock ? with_mock_app(10) : {:application_id => with_storage_app.to_param}
-
-      assert_response :success
+  def add_database(app)
+    unless Cartridge.all(app.send(:child_options)).map(&:name).include?('mysql-5.1')
+      cart = Cartridge.new({:type => 'embedded', :name => 'mysql-5.1'})
+      cart.application = app
+      cart.as = app.as
+      cart.save
     end
   end
 end

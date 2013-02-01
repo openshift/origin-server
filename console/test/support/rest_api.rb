@@ -168,10 +168,6 @@ class ActiveSupport::TestCase
     use_app(:scalable_app) { Application.new({:name => "scaled", :cartridge => 'ruby-1.8', :scale => true, :as => new_named_user('user_with_scaled_app')}) }
   end
 
-  def with_storage_app
-    use_app(:readable_app) { Application.new({:name => "normal", :cartridge => 'ruby-1.8', :as => new_named_user("user_with_extra_storage@test.com")}) }
-  end
-
   def mock_body_for(&block)
     req = ActiveResource::HttpMock.requests.find &block
     assert req, "No mock request was found for this block"
@@ -181,10 +177,10 @@ class ActiveSupport::TestCase
   end
 
   def auth_headers
-   h = {}
-   h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
-   h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
-   h
+    h = {}
+    h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
+    h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
+    h
   end
 
   def json_header(is_post=false)
