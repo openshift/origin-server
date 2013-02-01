@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.3
+Version: 0.0.2
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -52,13 +52,18 @@ rm -rf %{buildroot}
 %attr(0755,-,-) %{cartridgedir}/bin/
 %attr(0755,-,-) %{frameworkdir}
 %{_sysconfdir}/openshift/cartridges/%{name}
-%{cartridgedir}/changelog
-%{cartridgedir}/control
 %{cartridgedir}/metadata/manifest.yml
 %doc %{cartridgedir}/README.md
 
 
 %changelog
+* Fri Feb 01 2013 Paul Morie <pmorie@gmail.com> 0.0.2-1
+- Re-version mock RPM to 0.0.1 (pmorie@gmail.com)
+- wip (pmorie@gmail.com)
+
+* Fri Feb 01 2013 Paul Morie <pmorie@gmail.com> 0.4-1
+- 
+
 * Fri Feb 01 2013 Paul Morie <pmorie@gmail.com> 0.3-1
 - wip: mock readme (pmorie@gmail.com)
 - Automatic commit of package [openshift-origin-cartridge-mock] release
