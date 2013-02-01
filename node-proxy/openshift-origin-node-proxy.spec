@@ -2,7 +2,7 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version: 0.5.1
+Version: 0.5.2
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -134,6 +134,9 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
+- Fix for node proxy file list getting truncated. (mrunalp@gmail.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 0.5.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
