@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version: 1.1.2
+Version: 1.1.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.1.3-1
+- Add tomcat version tags so that new RHC will allow 'rhc app create foo
+  tomcat6' (ccoleman@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.1.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)
