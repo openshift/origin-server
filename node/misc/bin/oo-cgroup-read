@@ -2,6 +2,7 @@
 
 # BZ 901449: SELinux failure prevent using "/usr/bin/env ruby".
 
+require 'optparse'
 require 'etc'
 require 'open4'
 
@@ -10,27 +11,90 @@ require 'open4'
 
 # When combined with selinux, this script will allow users to read their own
 # cgroups entries but not other users cgroups entries
-euid = Process::Sys.geteuid
-login = Etc.getpwuid(euid).name
 
-attribute=ARGV[0]
-unless attribute =~ /\A[a-zA-Z0-9\.\-_]*\z/
-    puts "#{attribute} is an invalid attribute"
-    exit 1
+
+def usage
+  puts <<EOF
+usage: oo-cgroup-read [-h|--help] <attrname>
+
+attrname: the name of the cgroup attribute requested
+EOF
+
 end
 
-cmd = "cgget -n -v -r #{attribute} /openshift/#{login}"
-# This would be simple, but we can't catch errors
-#value = %x[%{cmd}]
-pid, stdin, stdout, stderr = open4(cmd)
 
-value = stdout.read.strip
-error = stderr.read.strip
+# Check that the user didn't send any nasty strings at us.
+def scrub_input(instring)
+  unless instring =~ /\A[a-zA-Z0-9\.\-_]*\z/
+    puts "#{instring} is an invalid attribute"
+    exit 1
+  end
+end
 
-if not error == "" then
+#
+# Call cgget to retrieve the value for the user.
+# cgget does not set a return flag on failure to find a value or error
+# You have to check the stdout
+#
+def get_cgroup_attribute(attribute, username)
+  cmd = "cgget -n -v -r #{attribute} /openshift/#{username}"
+  # This would be simple, but we can't catch errors
+  #value = %x[%{cmd}]
+  pid, stdin, stdout, stderr = open4(cmd)
+
+  # get the error string (if any).  Remove trailing newlines.
+  error = stderr.read.strip
+
+  if not error == "" then
     $stderr.puts "Could not find attribute #{attribute}"
     $stderr.puts error
     exit 2
+  end
+
+  # Get the output string. Remove trailing newlines (just one)
+  value = stdout.read.strip
 end
+
+#
+# Check for a help request from the user
+#
+# Only check for help.
+#
+def parse_options
+  options = {}
+
+  optparse = OptionParser.new do |opts|
+    opts.banner = "Usage: #{File.basename($0)} [-h|--help] <attrname>"
+
+    # Help
+    opts.on('-h', '--help', 'Display usage information') do
+      usage
+      exit
+    end
+  end
+
+  optparse.parse!
+end
+  
+
+# Check for help request
+parse_options
+
+# What user is making the request?
+euid = Process::Sys.geteuid
+username = Etc.getpwuid(euid).name
+
+# What attribute are they asking for?
+attrname = ARGV[0]
+
+if attrname == nil then
+  $stderr.puts "ERROR: no attribute name requested"
+  usage
+  exit 2
+end
+
+scrub_input attrname
+
+value = get_cgroup_attribute attrname, username
 
 puts value
