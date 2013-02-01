@@ -82,6 +82,3 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 * Wed Jan 30 2013 Ram Ranganathan <ramr@redhat.com> 0.1.1-1
 - new package built with tito
-
-* Mon Jan 14 2013 Ram Ranganathan <ramr@redhat.com> 0.1.0-1
-- new package built with tito
