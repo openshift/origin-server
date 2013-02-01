@@ -87,28 +87,8 @@ selection = {:fields => ["name",
                        "group_instances._id"], :timeout => false}
 ret = []
 
-$config = Rails.application.config.datastore
-
-def get_records(collection_name, query, selection)
-  if $config[:replica_set]
-    con = Mongo::ReplSetConnection.new(*$config[:host_port] \
-                   << {:read => :secondary})            
-  else
-    host_port = $config[:host_port].split(":")
-    con = Mongo::Connection.new(host_port[0], host_port[1])
-  end
-  db = con.db($config[:db])
-  db.authenticate($config[:user], $config[:password])
-  coll = db.collection(collection_name)
-  coll.find(query, selection) do |mcursor|
-    mcursor.each do |hash|
-      yield hash
-    end
-  end
-end 
-
 user_hash = {}
-get_records(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
+OpenShift::DataStoreUtil.get_records(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
   user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
                             "domains" => {},
                             "login" => user["login"] } 
@@ -116,13 +96,13 @@ end
 
 
 domain_hash = {}
-get_records(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
+OpenShift::DataStoreUtil.get_records(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
   owner_id = domain["owner_id"]
   domain_hash[domain["_id"]] = owner_id
   user_hash[owner_id]["domains"][domain["_id"]] = 0
 } 
 
-get_records(:applications, query, selection) do |app|
+OpenShift::DataStoreUtil.get_records(:applications, query, selection) do |app|
     gear_count = 0
     creation_time = app['created_at']
     domain_id = app['domain_id']
