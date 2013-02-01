@@ -167,7 +167,7 @@ class OOStats
       # Wait this long for answers from node hosts
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
       # Get a read-only DB connection (to a secondary if possible)
-      @db = OpenShift::DataStoreUtil.get_database
+      @db = OpenShift::DataStore.db
     rescue Exception => e
       puts <<-"FAIL"
         Broker application failed to load; aborting.
