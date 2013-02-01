@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.3
+Version: 1.4.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,28 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Merge pull request #1269 from rajatchopra/master
+  (dmcphers+openshiftbot@redhat.com)
+- US2626 changes based on feedback - Add application name in Usage and
+  UsageRecord models - Change 'price' to 'usage_rate_usd' in rest cartridge
+  model - Change 'charges' to 'usage_rates' in rails configuration - Rails
+  configuration stores usage_rates for different currencies (currently only
+  have usd) (rpenta@redhat.com)
+- Merge pull request #1270 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1260 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 906603 Handle race condition creating user with concurrent calls
+  (dmcphers@redhat.com)
+- fix instability of ci tests (rchopra@redhat.com)
+- Merge pull request #1252 from
+  smarterclayton/us3350_establish_plan_upgrade_capability
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 906266, bug 906230, and bug 906233 (abhgupta@redhat.com)
+- Review - use 'caps' instead of 'cap' for shortname (ccoleman@redhat.com)
+- US3350 - Expose a plan_upgrade_enabled capability that indicates whether
+  users can select a plan (ccoleman@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - cleanup (dmcphers@redhat.com)
 - Removing unnecessary cucumber scenarios (mhicks@redhat.com)
