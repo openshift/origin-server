@@ -74,7 +74,6 @@ BROKER_REST_API_BASE="https://localhost/broker/rest/"
 # we will fill APP_VALUES with output from ruby commands corresponding to the map
 declare -A APP_VALUES
 declare -A APP_VALUE_MAP=(
-		["oo_ds_provider"]="OpenShift::DataStore.instance_variable_get('@oo_ds_provider')"
 		["oo_auth_provider"]="OpenShift::AuthService.instance_variable_get('@oo_auth_provider')"
 		["oo_dns_provider"]="OpenShift::DnsService.instance_variable_get('@oo_dns_provider')"
 		["proxy_provider"]="OpenShift::ApplicationContainerProxy.instance_variable_get('@proxy_provider')"
@@ -407,26 +406,6 @@ function check_selinux_booleans() {
 # DataStore
 #
 # ============================================================================
-
-function check_datastore() {
-    verbose checking datastore
-    DATA_PLUGIN=${APP_VALUES["oo_ds_provider"]}
-    case $DATA_PLUGIN in
-        'OpenShift::DataStore')
-
-	    fail "configured datastore class is the abstract one: $DATA_PLUGIN"
-	    ;;
-	'OpenShift::MongoDataStore')
-	    verbose "datastore plugin: $DATA_PLUGIN"
-	    check_datastore_mongo
-            ;;
-
-	*)
-	    fail unknown datastore class: $DATA_PLUGIN
-	;;
-    esac
-    unset DATA_PLUGIN
-}
 
 function check_mongo_login() {
     # $HOST_PORT=$1
@@ -864,7 +843,6 @@ load_application_values
 check_firewall
 check_services
 
-check_datastore
 check_authentication
 check_dynamic_dns
 check_messaging

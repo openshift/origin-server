@@ -293,9 +293,6 @@ module OpenShift
       # RAISES:
       # * OpenShift::OOException
       #
-      # USES:
-      # * OpenShift::DataStore
-      #
       # NOTES:
       # * a method on District class of the node.
       # 
@@ -325,9 +322,6 @@ module OpenShift
       # * uid: Integer - the UID to unreserve within the district
       # * district_uuid: String - district handle or identifier
       #
-      # USES:
-      # * OpenShift::DataStore
-      #
       # NOTES:
       # * method on the District object.
       #
@@ -340,7 +334,6 @@ module OpenShift
           end
           if district_uuid && district_uuid != 'NONE'
             #cleanup
-            #OpenShift::DataStore.instance.unreserve_district_uid(district_uuid, uid)
             District::unreserve_uid(district_uuid, uid)
           end
         end
@@ -356,9 +349,6 @@ module OpenShift
       # RETURNS:
       # * not quite sure.
       #
-      # NOTES:
-      # uses OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size()
-      #
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
@@ -368,7 +358,6 @@ module OpenShift
           end
           if district_uuid && district_uuid != 'NONE'
             #cleanup
-            #OpenShift::DataStore.instance.inc_district_externally_reserved_uids_size(district_uuid)
             District::inc_externally_reserved_uids_size(district_uuid)
           end
         end

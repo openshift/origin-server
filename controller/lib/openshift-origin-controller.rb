@@ -10,5 +10,5 @@ end
 require "openshift/application_container_proxy"
 require "openshift/auth_service"
 require "openshift/dns_service"
-require "openshift/data_store"
+require "openshift/data_store_util"
 require "openshift/exceptions"

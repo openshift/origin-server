@@ -108,7 +108,7 @@ class Application
   end
 
   def self.find(user, app_name)
-    user.domains.each { |d| d.applications.each { |a| return a if a.name==app_name } }
+    user.domains.each { |d| d.applications.each { |a| return a if a.canonical_name == app_name.downcase } }
     return nil 
   end
 
