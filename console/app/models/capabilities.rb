@@ -1,17 +1,17 @@
 module Capabilities
+  UnlimitedGears = 1.0/0
   extend ActiveSupport::Concern
 
   included do
     has_one :capabilities, :class_name => 'rest_api/base/attribute_hash'
+    def capabilities
+      attributes[:capabilities] || {}
+    end
     include Helpers
   end
 
-  def gear_sizes
-    @gear_sizes ||= capabilities[:gear_sizes].map(&:to_sym)
-  end
-
   def to_capabilities
-    Capabilities::Cacheable.from(self)
+    raise "to_capabilities must be implemented"
   end
 
   module Helpers
@@ -25,10 +25,12 @@ module Capabilities
   end
 
   class Cacheable
-    include Helpers
-
     # Changing this order will break serialization of cached data
-    ATTRS = [:max_gears, :consumed_gears, :gear_sizes].each{ |s| attr_reader s }
+    ATTRS = [:max_gears, :consumed_gears, :gear_sizes].
+            concat(Console.config.cached_capabilities).
+            each{ |s| attr_reader s }
+
+    include Helpers
 
     def initialize(*args)
       arg = args.each
@@ -37,7 +39,11 @@ module Capabilities
     end
 
     def self.from(obj)
-      new(*(obj.is_a?(Array) ? obj : ATTRS.map{ |s| obj.send(s) })) if obj
+      case obj
+      when Array then new(*obj)
+      when Hash then  new(*ATTRS.map{ |s| obj[s] || obj[s.to_s] })
+      else            new(*ATTRS.map{ |s| obj.send(s) })
+      end if obj
     end
 
     def to_capabilities
@@ -45,12 +51,19 @@ module Capabilities
     end
 
     def to_a
-      ATTRS.map{ |s| send(s) }
+      ATTRS.map{ |s| send(s) }.map!{ |v| v == UnlimitedGears ? nil : v }
+    end
+
+    def gear_sizes
+      Array(@gear_sizes).map(&:to_sym)
+    end
+    def max_gears
+      @max_gears || UnlimitedGears
     end
 
     private
       def max_gears=(i)
-        @max_gears = Integer(i)
+        @max_gears = i ? Integer(i) : nil
       end
       def consumed_gears=(i)
         @consumed_gears = Integer(i)
@@ -58,5 +71,7 @@ module Capabilities
       def gear_sizes=(arr)
         @gear_sizes = Array(arr)
       end
+
+      Console.config.cached_capabilities.each{ |s| attr_writer s }
   end
 end

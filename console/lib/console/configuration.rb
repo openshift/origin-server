@@ -35,6 +35,13 @@ module Console
     config_accessor :cartridge_type_metadata
     config_accessor :include_helpers
 
+    #
+    # Additional user capabilities to cache in
+    # the session. Changing the order of this 
+    # value will break existing sessions.
+    #
+    config_accessor :cached_capabilities
+
     Builtin = {
       :openshift => {
         :url => 'https://openshift.redhat.com/broker/rest',
@@ -159,5 +166,6 @@ module Console
     config.parent_controller = 'ApplicationController'
     config.security_controller = 'Console::Auth::Basic'
     config.include_helpers = true
+    config.cached_capabilities = []
   end
 end

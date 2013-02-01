@@ -101,6 +101,9 @@ class SubUserTest < ActionDispatch::IntegrationTest
     `oo-admin-ctl-user -l #{@username} --allowsubaccounts true`
     `oo-admin-ctl-user -l #{@username} --inheritgearsizes true`
 
+    user = CloudUser.find_by(login: @username)
+    assert_equal ['c9', 'small'], user.get_capabilities['gear_sizes'].sort
+
     @headers["X-Impersonate-User"] = "subuser#{@random}"
     get "rest/domains.json", nil, @headers
     assert_equal 200, status

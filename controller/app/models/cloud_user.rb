@@ -25,9 +25,7 @@ class CloudUser
   DEFAULT_SSH_KEY_NAME = "default"
 
   field :login, type: String
-  field :capabilities, type: Hash, default: {"subaccounts" => false, 
-                                             "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]], 
-                                             "max_gears" => Rails.application.config.openshift[:default_max_gears]}
+  field :capabilities, type: Hash, default: ->{ default_capabilities }
   field :parent_user_id, type: Moped::BSON::ObjectId
   field :plan_id, type: String
   field :pending_plan_id, type: String
@@ -135,37 +133,35 @@ class CloudUser
       self.ssh_keys.delete_if {|ssh_key| ssh_key.name == name}
     end
   end
-  
+
   def domains
     (Domain.where(owner: self) + Domain.where(user_ids: self._id)).uniq
   end
-  
-  # Return user capabilities. Subaccount user may inherit capabilities from its parent.
-  def get_capabilities
-    user_capabilities = deep_copy(self.capabilities)
-    if self.parent_user_id
-      begin
-        parent_user = CloudUser.find_by(_id: self.parent_user_id)
-        parent_capabilities = parent_user.get_capabilities
-        parent_capabilities['inherit_on_subaccounts'].each do |cap|
-          user_capabilities[cap] = parent_capabilities[cap] if parent_capabilities[cap]
-        end if parent_capabilities.has_key?('inherit_on_subaccounts')
-      rescue Mongoid::Errors::DocumentNotFound
-        #do nothing
-      end
-    end
-    user_capabilities
+
+  def default_capabilities
+    {
+      "subaccounts" => false,
+      "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]],
+      "max_gears" => Rails.application.config.openshift[:default_max_gears],
+    }
   end
 
-  # Set user capabilities.
-  def set_capabilities(user_capabilities={})
-    if user_capabilities.nil? || user_capabilities.empty?
-      self.capabilities = {"subaccounts" => false, 
-                           "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]], 
-                           "max_gears" => Rails.application.config.openshift[:default_max_gears]}
-    else
-      self.capabilities = user_capabilities
-    end
+  def inherited_capabilities
+    @inherited_capabilities ||= begin
+        if self.parent_user_id
+          caps = CloudUser.find_by(_id: self.parent_user_id).get_capabilities
+          caps.slice(*Array(caps['inherit_on_subaccounts']))
+        end
+      rescue Mongoid::Errors::DocumentNotFound
+      end || {}
+  end
+
+  def get_capabilities
+    self.capabilities.deep_dup.merge!(inherited_capabilities)
+  end
+
+  def set_capabilities(caps=nil)
+    self.capabilities = caps.presence || default_capabilities
   end
 
   # Delete user and all its artifacts like domains, applications associated with the user 
