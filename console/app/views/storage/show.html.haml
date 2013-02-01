@@ -1,6 +1,9 @@
 - breadcrumb_for_application @application, 'Change Gear Storage'
 - content_for :page_title, 'Change Gear Storage'
 
+-# This will only render if we have this partial, like in Online or if an admin wants to provide information
+- flash.now[:info] = render('increase_storage') unless @can_modify_storage
+
 %h1 Change Gear Storage
 
 %section#storage-gear-groups
@@ -57,7 +60,13 @@
         = f.inputs :inline => true, :without_errors => true do
           .input-prepend
             %span.add-on Additional Storage Per Gear
-            = f.input :additional_gear_storage, storage_options(0,@user.max_storage_per_gear).merge({:input_html => {:style => 'width: auto', :title => 'Additional Storage'}})
+            :ruby
+              default_html = {
+                :style => 'width: auto',
+                :title => 'Additional Storage',
+                :disabled => !@can_modify_storage
+              }
+            = f.input :additional_gear_storage, storage_options(0,@max_storage).merge({:input_html => default_html})
 
           = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
           = f.loading

@@ -30,8 +30,4 @@ class User < RestApi::Base
   def gear_sizes
     Array(capabilities[:gear_sizes]).map(&:to_sym)
   end
-
-  def can_modify_storage?
-    max_storage_per_gear > 0
-  end
 end

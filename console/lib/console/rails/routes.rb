@@ -30,7 +30,7 @@ module ActionDispatch::Routing
             resources :cartridges, :controller => :scaling, :only => [:update], :id => /[^\/]+/, :format => false #, :format => /json|csv|xml|yaml/
           end
 
-          resource :storage, :controller => :storage, :only => [:show, :new] do
+          resource :storage, :controller => :storage, :only => [:show] do
             resources :cartridges, :controller => :storage, :only => [:update], :id => /[^\/]+/, :format => false #, :format => /json|csv|xml|yaml/
           end
 

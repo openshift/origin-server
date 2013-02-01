@@ -1,28 +1,15 @@
 class StorageController < ConsoleController
   include AsyncAware
 
-  def new
-    user_default_domain
-    user_information
-    application_information
-  end
+  before_filter :user_information
+  before_filter :application_information
 
   def show
-    user_default_domain
-    user_information
-    application_information
-
-    redirect_to new_application_storage_path unless @user.can_modify_storage?
-
-    gear_group_information
+    @max_storage = @user.capabilities[:max_storage_per_gear] || 0
+    @can_modify_storage = @max_storage > 0
   end
 
   def update
-    user_default_domain
-    user_information
-    application_information
-    gear_group_information
-
     @cartridge = @application.find_cartridge(params[:id]) or raise RestApi::ResourceNotFound.new(Cartridge.model_name, params[:id])
 
     @cartridge.additional_gear_storage = Integer(params[:cartridge][:additional_gear_storage])
@@ -38,14 +25,12 @@ class StorageController < ConsoleController
 
   private
   def user_information
+    user_default_domain
     @user = User.find :one, :as => current_user
   end
 
   def application_information
     @application = @domain.find_application params[:application_id]
-  end
-
-  def gear_group_information
     @gear_groups = @application.cartridge_gear_groups
   end
 end
