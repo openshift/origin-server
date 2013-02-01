@@ -10,7 +10,7 @@
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
 Version: 1.4.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> - 1.4.4-2
+- bump spec for chain build
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Merge pull request #1252 from
   smarterclayton/us3350_establish_plan_upgrade_capability
