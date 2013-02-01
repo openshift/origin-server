@@ -903,12 +903,13 @@ class Application
             ops, add_gear_count, rm_gear_count = update_requirements(features, group_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
           when :update_component_limits
-            found = self.group_overrides.find {|go| go["components"].include? op_group.args["comp_spec"] }
+            updated_overrides = deep_copy(self.group_overrides || [])
+            found = updated_overrides.find {|go| go["components"].include? op_group.args["comp_spec"] }
             group_override = found || {"components" => [op_group.args["comp_spec"]]}
             group_override["min_gears"] = op_group.args["min"] unless op_group.args["min"].nil?
             group_override["max_gears"] = op_group.args["max"] unless op_group.args["max"].nil?
             group_override["additional_filesystem_gb"] = op_group.args["additional_filesystem_gb"] unless op_group.args["additional_filesystem_gb"].nil?
-            updated_overrides = (found ? [] : [group_override]) + (self.group_overrides || [])
+            updated_overrides.push(group_override) unless found
             features = self.requires
             ops, add_gear_count, rm_gear_count = update_requirements(features, updated_overrides)
             try_reserve_gears(add_gear_count, rm_gear_count, op_group, ops)
