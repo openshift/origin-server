@@ -88,7 +88,7 @@ selection = {:fields => ["name",
 ret = []
 
 user_hash = {}
-OpenShift::DataStoreUtil.get_records(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
+OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
   user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
                             "domains" => {},
                             "login" => user["login"] } 
@@ -96,13 +96,13 @@ end
 
 
 domain_hash = {}
-OpenShift::DataStoreUtil.get_records(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
+OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
   owner_id = domain["owner_id"]
   domain_hash[domain["_id"]] = owner_id
   user_hash[owner_id]["domains"][domain["_id"]] = 0
 } 
 
-OpenShift::DataStoreUtil.get_records(:applications, query, selection) do |app|
+OpenShift::DataStore.find(:applications, query, selection) do |app|
     gear_count = 0
     creation_time = app['created_at']
     domain_id = app['domain_id']

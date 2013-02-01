@@ -1,7 +1,7 @@
 module OpenShift
-  class DataStoreUtil
+  class DataStore
 
-    def self.get_database(read_preference=:secondary, session_name='default')
+    def self.db(read_preference=:secondary, session_name='default')
       config = Mongoid::Config.sessions[session_name]
       host_port = config['hosts'].map { |host| host.split(':')}
       con = Mongo::ReplSetConnection.new(*host_port << {:read => read_preference})
