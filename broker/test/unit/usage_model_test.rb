@@ -7,7 +7,8 @@ class UsageModelTest < ActiveSupport::TestCase
 
   test "create and find usage event" do
     orig = usage
-    ue = Usage.new(login: orig.login, gear_id: orig.gear_id, begin_time: orig.begin_time, end_time: orig.end_time, usage_type: UsageRecord::USAGE_TYPES[:gear_usage], gear_size: orig.gear_size)
+    ue = Usage.new(login: orig.login, app_name: orig.app_name, gear_id: orig.gear_id, begin_time: orig.begin_time,
+                   end_time: orig.end_time, usage_type: UsageRecord::USAGE_TYPES[:gear_usage], gear_size: orig.gear_size)
     ue._id = orig._id
     ue.save!
     ue = Usage.find(orig._id)
@@ -132,10 +133,9 @@ class UsageModelTest < ActiveSupport::TestCase
   end
 
   def usage
-    obj = Usage.new(login: "user#{gen_uuid}", gear_id: "gear#{gen_uuid}", begin_time: Time.now.utc, end_time: nil, usage_type: UsageRecord::USAGE_TYPES[:gear_usage])
+    obj = Usage.new(login: "user#{gen_uuid}", app_name: "app#{gen_uuid}", gear_id: "gear#{gen_uuid}", begin_time: Time.now.utc, end_time: nil, usage_type: UsageRecord::USAGE_TYPES[:gear_usage])
     obj.gear_size = 'small'
     obj.addtl_fs_gb = 5
-    obj.updated_at = nil
     obj
   end
 end

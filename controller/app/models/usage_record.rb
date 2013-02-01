@@ -1,6 +1,8 @@
 # Record Usage of gear and additional storage for each user
 # @!attribute [r] login
 #   @return [String] Login name for the user.
+# @!attribute [r] app_name
+#   @return [String] Application name that belongs to the user.
 # @!attribute [r] gear_id
 #   @return [String] Gear identifier
 # @!attribute [r] usage_type
@@ -28,6 +30,7 @@ class UsageRecord
                   :premium_cart => "PREMIUM_CART" }
 
   field :login, type: String
+  field :app_name, type: String
   field :gear_id, type: Moped::BSON::ObjectId
   field :event, type: String
   field :time, type: Time
@@ -37,6 +40,8 @@ class UsageRecord
   field :addtl_fs_gb, type: Integer
   field :cart_name, type: String
 
+  validates :login, :presence => true
+  validates :app_name, :presence => true
   validates_inclusion_of :event, in: UsageRecord::EVENTS.values
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
@@ -55,12 +60,12 @@ class UsageRecord
     (self.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]) ? true : false
   end
 
-  def self.track_usage(login, gear_id, event, usage_type,
+  def self.track_usage(login, app_name, gear_id, event, usage_type,
                        gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
       usage_record = UsageRecord.new(event: event, time: now, gear_id: gear_id,
-                                     usage_type: usage_type, login: login)
+                                     usage_type: usage_type, login: login, app_name: app_name)
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
         usage_record.gear_size = gear_size
@@ -73,7 +78,7 @@ class UsageRecord
 
       usage = nil
       if event == UsageRecord::EVENTS[:begin]
-        usage = Usage.new(login: login, gear_id: gear_id,
+        usage = Usage.new(login: login, app_name: app_name, gear_id: gear_id,
                           begin_time: now, usage_type: usage_type)
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
