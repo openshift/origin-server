@@ -10,7 +10,7 @@ Repo layout
 .openshift/action_hooks/build - Script that gets run every git push as part of the build process
 .openshift/action_hooks/deploy - Script that gets run every git push after build but before the app is restarted
 .openshift/action_hooks/post_deploy - Script that gets run every git push after the app is restarted
-
+.openshift/markers/enable_debugging - Enables remote Jenkins server debugging on port 7600
 
 Quickstart
 ==========
@@ -110,3 +110,26 @@ inaccessible.  During a build the following steps take place:
 Users can look at the build job by clicking on it in the Jenkins interface and
 going to "configure".  It is the Jenkins' build job to stop, sync and start the
 application once a build is complete.
+
+Debugging Jenkins
+-----------------
+The Jenkins server can be configured to accept remote debugger connections. To enable
+debugging, create a file '.openshift/markers/enable_debugging' in the Jenkins app
+Git repository and restart Jenkins. The debug server will listen on port 7600 for
+connections.
+
+Use SSH port forwarding to start a remote debugging session on the server.
+The rhc command is helpful for this. For example, in a sample Jenkins application
+named 'jenkins' containing the 'enable_debugging' marker, the following command
+will automatically enable SSH port forwarding:
+
+    $ rhc port-forward -a jenkins
+    Checking available ports...
+    Forwarding ports
+      Service Connect to            Forward to
+      ==== ================ ==== ================
+      java 127.0.251.1:7600  =>  127.0.251.1:7600
+      java 127.0.251.1:8080  =>  127.0.251.1:8080
+    Press CTRL-C to terminate port forwarding
+
+The local debugger can now be attached to '127.0.251.1:7600'.

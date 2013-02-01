@@ -38,17 +38,23 @@ isrunning() {
 start_jenkins() {
     src_user_hook pre_start_${cartridge_type}
     set_app_state started
-    /etc/alternatives/jre/bin/java \
+    
+    JENKINS_CMD="/etc/alternatives/jre/bin/java \
+        -Xmx168m \
+        -XX:MaxPermSize=100m \
         -Dcom.sun.akuma.Daemon=daemonized \
-        -Djava.awt.headless=true \
-        -DJENKINS_HOME=$OPENSHIFT_DATA_DIR/ \
+        -Djava.awt.headless=true"
+
+    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_debugging" ]; then
+        JENKINS_CMD="${JENKINS_CMD} -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=${OPENSHIFT_JENKINS_IP}:7600,suspend=n"
+    fi
+
+    JENKINS_CMD="${JENKINS_CMD} -DJENKINS_HOME=$OPENSHIFT_DATA_DIR/ \
         -Dhudson.slaves.NodeProvisioner.recurrencePeriod=500 \
         -Dhudson.slaves.NodeProvisioner.initialDelay=100 \
         -Dhudson.slaves.NodeProvisioner.MARGIN=100 \
         -Dhudson.model.UpdateCenter.never=true \
         -Dhudson.DNSMultiCast.disabled=true \
-        -Xmx168m \
-        -XX:MaxPermSize=100m \
         -jar /usr/lib/jenkins/jenkins.war \
         --ajp13Port=-1 \
         --controlPort=-1 \
@@ -58,7 +64,10 @@ start_jenkins() {
         --debug=5 \
         --handlerCountMax=45 \
         --handlerCountMaxIdle=20 \
-        --httpListenAddress="$OPENSHIFT_INTERNAL_IP" &
+        --httpListenAddress=$OPENSHIFT_INTERNAL_IP"
+
+    $JENKINS_CMD &    
+
     echo $! > /dev/null
     if [ $? -eq 0 ]; then
         run_user_hook post_start_${cartridge_type}
