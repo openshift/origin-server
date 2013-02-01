@@ -167,16 +167,7 @@ class OOStats
       # Wait this long for answers from node hosts
       Rails.configuration.msg_broker[:rpc_options][:disctimeout] = @options[:wait]
       # Get a read-only DB connection (to a secondary if possible)
-      db_config = Rails.application.config.datastore
-      if db_config[:replica_set]
-        con = Mongo::ReplSetConnection.new(*db_config[:host_port] \
-                       << {:read => :secondary})
-      else
-        host_port = db_config[:host_port].split(":")
-        con = Mongo::Connection.new(host_port[0], host_port[1])
-      end
-      @db = con.db(db_config[:db])
-      @db.authenticate(db_config[:user], db_config[:password])
+      @db = OpenShift::DataStoreUtil.get_database
     rescue Exception => e
       puts <<-"FAIL"
         Broker application failed to load; aborting.
