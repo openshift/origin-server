@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mock
 
 Name: openshift-origin-cartridge-mock
-Version: 0.2
+Version: 0.3
 Release: 1%{?dist}
 Summary: Mock cartridge for V2 Cartridge SDK
 Group: Development/Languages
@@ -59,6 +59,14 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Feb 01 2013 Paul Morie <pmorie@gmail.com> 0.3-1
+- wip: mock readme (pmorie@gmail.com)
+- Automatic commit of package [openshift-origin-cartridge-mock] release
+  [0.2-1]. (pmorie@gmail.com)
+- wip: mock cart rpm (pmorie@gmail.com)
+- wip: mock cartridge spec (pmorie@gmail.com)
+- wip: rename mock cart (pmorie@gmail.com)
+
 * Thu Jan 31 2013 Paul Morie <pmorie@gmail.com> 0.2-1
 - new package built with tito
 
