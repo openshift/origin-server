@@ -362,6 +362,12 @@ find_and_replace("/etc/pam.d/sshd", "pam_selinux", "pam_openshift")
   rescue Errno::ENOENT
   end
 end
+['/tmp','/var/tmp'].each do |dir|
+  File.open('/etc/security/namespace.d/openshift_' + dir.gsub('/','') + '.conf', 'w') do |f|
+    f.write("# file create by oo-setup-node for openshift directory polyinstanciation, see http://selinuxproject.org/page/NB_Poly\n")
+    f.write(dir + "$HOME/.tmp/   user:iscript=/usr/sbin/oo-namespace-init root,adm,apache\n")
+  end
+end
 
 $log.info "Increasing kernel port, connection and semaphore limits"
 insert_if_not_exist("/etc/sysctl.conf", "net.ipv4.ip_local_port_range = 15000 35530", "net.ipv4.ip_local_port_range = 15000 35530\n")
