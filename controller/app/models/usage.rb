@@ -1,6 +1,8 @@
 # Usage Summary 
 # @!attribute [r] login
 #   @return [String] Login name for the user.
+# @!attribute [r] app_name
+#   @return [String] Application name that belongs to the user.
 # @!attribute [r] gear_id
 #   @return [String] Gear identifier
 # @!attribute [r] usage_type
@@ -21,6 +23,7 @@ class Usage
   store_in collection: "usage"
 
   field :login, type: String
+  field :app_name, type: String
   field :gear_id, type: Moped::BSON::ObjectId
   field :begin_time, type: Time
   field :end_time, type: Time
@@ -29,6 +32,8 @@ class Usage
   field :addtl_fs_gb, type: Integer
   field :cart_name, type: String
 
+  validates :login, :presence => true
+  validates :app_name, :presence => true
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?

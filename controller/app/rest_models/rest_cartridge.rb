@@ -1,7 +1,7 @@
 class RestCartridge < OpenShift::Model
   attr_accessor :type, :name, :version, :license, :license_url, :tags, :website, 
     :help_topics, :properties, :display_name, :description, :scales_from, :scales_to,
-    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :price
+    :supported_scales_to, :supported_scales_from, :current_scale, :scales_with, :usage_rate_usd
 
   def initialize(cart)
     self.name = cart.name
@@ -23,7 +23,7 @@ class RestCartridge < OpenShift::Model
     scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
     self.scales_with = scaling_cart.name
     self.help_topics = cart.help_topics
-    self.price = cart.price
+    self.usage_rate_usd = cart.usage_rate(:usd)
   end
 
   def to_xml(options={})
