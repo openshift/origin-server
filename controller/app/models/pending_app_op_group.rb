@@ -193,8 +193,7 @@ class PendingAppOpGroup
             gear.update_configuration(op.args,handle)
             use_parallel_job = true
           when :update_namespace
-            gear.update_namespace(op.args, handle)
-            use_parallel_job = true
+            gear.update_namespace(op.args)
           when :add_broker_auth_key 
             job = gear.get_broker_auth_key_add_job(args["iv"], args["token"])
             RemoteJob.add_parallel_job(handle, "", gear, job)
