@@ -1691,7 +1691,13 @@ class Application
         go_map["#{comp["cart"]}/#{comp["comp"]}"] = merged_go
       }
     }
-    processed_group_overrides = deep_copy(go_map.values.uniq)
+    processed_group_overrides = []
+    component_instances.each { |ci|
+      go = go_map["#{ci["cart"]}/#{ci["comp"]}"]
+      next if go.nil?
+      processed_group_overrides << deep_copy(go) if !processed_group_overrides.include? go
+    }
+    # processed_group_overrides = deep_copy(go_map.values.uniq)
     return [processed_group_overrides, processed_group_overrides]
   end
 
