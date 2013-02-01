@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.3.3
+Version: 1.3.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -93,6 +93,13 @@ rm -rf %{buildroot}
 %doc %{gem_docdir}
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
+- US2626 changes based on feedback - Add application name in Usage and
+  UsageRecord models - Change 'price' to 'usage_rate_usd' in rest cartridge
+  model - Change 'charges' to 'usage_rates' in rails configuration - Rails
+  configuration stores usage_rates for different currencies (currently only
+  have usd) (rpenta@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
 - Collect/Sync Usage data for EAP cart (rpenta@redhat.com)
 
