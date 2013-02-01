@@ -35,8 +35,6 @@ install -D -m 644 pam_openshift.8 %{buildroot}/%{_mandir}/man8/pam_openshift.8
 
 install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 
-mkdir -p %{buildroot}/%{_sysconfdir}/security/namespace.d
-install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 
 %files
 %doc AUTHORS ChangeLog COPYING README README.xml
@@ -44,7 +42,6 @@ install -D -m 644 namespace.d/* %{buildroot}/%{_sysconfdir}/security/namespace.d
 %attr(0755,root,root) /%{_lib}/security/pam_libra.so
 %attr(0644,root,root) %{_mandir}/man8/pam_openshift.8.gz
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
-%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/security/namespace.d/*
 
 %changelog
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
