@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.1.2
+Version: 0.1.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,12 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
+- Fix bug where first provider is used by the broker and it ends up switching
+  between python 2.7 and python 3.3 on a db add. Set the first provider to the
+  specific cartridge name. (smitram@gmail.com)
+- Cleanup old/first invalid changelog entry. (smitram@gmail.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 0.1.2-1
 - new package built with tito
 
