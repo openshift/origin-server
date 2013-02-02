@@ -1451,15 +1451,16 @@ class Application
                 pending_ops.push(track_usage_old_fs_op)
               end
             end
-            if change[:to_scale][:additional_filesystem_gb] != 0
-              group_instance.gears.each do |gear|
-                fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
-                    args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
-                    saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, 
-                    prereq: (usage_ops.empty?? usage_prereq : usage_ops))
+            group_instance.gears.each do |gear|
+              fs_op = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+                  args: {"group_instance_id"=> group_instance._id.to_s, "gear_id" => gear._id.to_s, "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, 
+                  saved_values: {"additional_filesystem_gb" => change[:from_scale][:additional_filesystem_gb]}, 
+                  prereq: (usage_ops.empty?? usage_prereq : usage_ops))
+              pending_ops.push(fs_op)
+
+              if change[:to_scale][:additional_filesystem_gb] != 0
                 track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear._id.to_s,
                     "event" => UsageRecord::EVENTS[:begin], "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => change[:to_scale][:additional_filesystem_gb]}, prereq: [fs_op._id.to_s])
-                pending_ops.push(fs_op)
                 pending_ops.push(track_usage_fs_op)
               end
             end
