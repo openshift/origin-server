@@ -9,8 +9,8 @@ module OpenShift
       db.authenticate(config['username'], config['password'])
       db
     end
-    
-    def self.get_records(collection_name, query, selection)
+
+    def self.find(collection_name, query, selection)
       db = get_database
       db.collection(collection_name).find(query, selection) do |mcursor|
         mcursor.each do |hash|
