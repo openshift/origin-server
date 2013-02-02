@@ -3,8 +3,13 @@ module OpenShift
 
     def self.db(read_preference=:secondary, session_name='default')
       config = Mongoid::Config.sessions[session_name]
-      host_port = config['hosts'].map { |host| host.split(':')}
-      con = Mongo::ReplSetConnection.new(*host_port << {:read => read_preference})
+      hosts = config['hosts']
+      if hosts.length > 1
+        con = Mongo::ReplSetConnection.new(hosts, {:read => read_preference})
+      else
+        host_port = hosts[0].split(':')
+        con = Mongo::Connection.new(host_port[0], host_port[1].to_i)
+      end
       db = con.db(config['database'])
       db.authenticate(config['username'], config['password'])
       db
