@@ -94,7 +94,7 @@ module OpenShift
         if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
           district = District.find_available(node_profile)
           if district
-            district_uuid = district._id.to_s
+            district_uuid = district.uuid
             Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
           elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
             raise OpenShift::NodeException.new("No district nodes available.", 140)
@@ -300,7 +300,7 @@ module OpenShift
         reserved_uid = nil
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district._id.to_s
+            district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
@@ -328,7 +328,7 @@ module OpenShift
       def unreserve_uid(uid, district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district._id.to_s
+            district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
@@ -352,7 +352,7 @@ module OpenShift
       def inc_externally_reserved_uids_size(district_uuid=nil)
         if Rails.configuration.msg_broker[:districts][:enabled]
           if @district
-            district_uuid = @district._id.to_s
+            district_uuid = @district.uuid
           else
             district_uuid = get_district_uuid unless district_uuid
           end
