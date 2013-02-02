@@ -24,30 +24,33 @@ module OpenShift
       # @param [String] gear_dir       Home directory of the gear
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear(gear_dir)
-        load(File.join(gear_dir, '*/env')).merge(load(File.join(gear_dir, '.env')))
+        load("/etc/openshift/env", File.join(gear_dir, '.env'), File.join(gear_dir, '*', 'env'))
       end
 
       # Read a Gear's + n number cartridge environment variables into a environ(7) hash
       # @param [String]               env_dir of gear to be read
       # @return [Hash<String,String>] environment variable name: value
-      def self.load(env_dir)
-        # add wildcard for globbing if needed
-        env_dir += '/*' if not env_dir.end_with? '*'
+      def self.load(*dirs)
+        env = Hash.new
 
-        # Find and read environment variables for gear and cartridges into a hash
-        env = {}
-        Dir[env_dir].each { |file|
-          next if file.end_with?('.erb')
-          next if File.directory? file
+        dirs.each { |env_dir|
+          # add wildcard for globbing if needed
+          env_dir += '/*' if not env_dir.end_with? '*'
 
-          contents = nil
-          File.open(file) { |input|
-            contents = input.read.chomp
-            index    = contents.index('=')
-            contents = contents[(index + 1)..-1]
-            contents.gsub!(/\A["']|["']\Z/, '')
+          # Find, read and load environment variables into a hash
+          Dir[env_dir].each { |file|
+            next if file.end_with? '.erb'
+            next if not File.file? file
+
+            contents = nil
+            File.open(file) { |input|
+              contents = input.read.chomp
+              index    = contents.index('=')
+              contents = contents[(index + 1)..-1]
+              contents.gsub!(/\A["']|["']\Z/, '')
+            }
+            env[File.basename(file)] = contents
           }
-          env[File.basename(file)] = contents
         }
         env
       end

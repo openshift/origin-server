@@ -584,16 +584,21 @@ to be used for all cartridge entry points.
  * `OPENSHIFT_GEAR_NAME` OpenShift assigned name for the gear. May or may not be equal to `OPENSHIFT_APP_NAME`
  * `OPENSHIFT_GEAR_UUID` OpenShift assigned UUID for the gear
  * `OPENSHIFT_HOMEDIR` OpenShift assigned directory for the gear
- * `OPENSHIFT_INTERNAL_IP` the private IP address for this gear *jwh: may go away*
- * `OPENSHIFT_INTERNAL_PORT` the private PORT for this gear *jwh: may go away*
  * `OPENSHIFT_REPO_DIR` the directory where the developer's application is "archived" to and will be run from.
  * `OPENSHIFT_TMP_DIR` the directory where your cartridge may store temporary data
+
+#### When writing the ERB for your openshift.conf configuration. These are set when OpenShift is installed.
+ * `OPENSHIFT_APACHE_BANDWIDTH`              (Default: "all 500000")
+ * `OPENSHIFT_APACHE_MAX_CONNECTION`         (Default: "all 20")
+ * `OPENSHIFT_APACHE_BANDWIDTH_ERROR`        (Default: "510")
+ * `OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL`    (Default: 86400)
+ * `OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX`      (Default: "-%Y%m%d-%H%M%S-%Z"
 
 ### Examples of Cartridge Provided Variables ###
 
 *jwh: Is this true? or should the manifest call these out and the node do the work? Or, are these ERB candidates?*
 
- * `OPENSHIFT_MYSQL_DB_HOST`
+ * `OPENSHIFT_MYSQL_DB_HOST`                  Backwards capatibility (ERB populated from `OPENSHIFT_MYSQL_DB_IP`)
  * `OPENSHIFT_MYSQL_DB_LOG_DIR`
  * `OPENSHIFT_MYSQL_DB_PASSWORD`
  * `OPENSHIFT_MYSQL_DB_PORT`
@@ -674,4 +679,39 @@ The following files and directories are never backed up:
 haproxy-\*/run/stats
 app-root/runtime/.state
 app-root/data/.bash_history
+```
+
+## Sample `conf.d/openshift.conf.erb`
+
+```
+ServerRoot "<%= ENV['OPENSHIFT_HOMEDIR']%>/ruby-1.8"
+DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR']%>/public"
+Listen <%= ENV['OPENSHIFT_RUBY_IP']%>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>
+User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+
+ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/ruby-1.8/logs/error_log<%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX']%> <%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL'%>"
+CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/logs/access_log<%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX']%> <%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL'%>" combined
+
+PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
+PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
+PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
+PassengerUseGlobalQueue off
+<Directory <%= ENV['OPENSHIFT_REPO_DIR]%>/public>
+  AllowOverride all
+  Options -MultiViews
+</Directory>
+
+# TODO: Adjust from ALL to more conservative values
+<IfModule !mod_bw.c>
+    LoadModule bw_module    modules/mod_bw.so
+</IfModule>
+
+<ifModule mod_bw.c>
+  BandWidthModule On
+  ForceBandWidthModule On
+  BandWidth <%= ENV['OPENSHIFT_APACHE_BANDWIDTH']%>
+  MaxConnection <%= ENV['OPENSHIFT_APACHE_MAX_CONNECTION']%>
+  BandWidthError <%= ENV['OPENSHIFT_APACHE_BANDWIDTH_ERROR']%>
+</IfModule>
 ```

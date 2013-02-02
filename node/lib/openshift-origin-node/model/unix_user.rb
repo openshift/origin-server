@@ -714,5 +714,31 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
                 "ERROR: unable to chcon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                 ) unless 0 == rc
     end
+
+    # Deterministically constructs an IP address for the given UID based on the given
+    # host identifier (LSB of the IP). The host identifier must be a value between 1-127
+    # inclusive.
+    #
+    # The global user IP range begins at 0x7F000000.
+    #
+    # Returns an IP address string in dotted-quad notation.
+    def self.get_ip_addr(uid, host_id)
+      raise "Invalid host_id specified" unless host_id && host_id.is_a?(Integer)
+      raise "Invalid UID specified" unless uid && uid.is_a?(Integer)
+
+      if uid.to_i < 0 || uid.to_i > 262143
+        raise "User uid #{@uid} is outside the working range 0-262143"
+      end
+
+      if host_id < 1 || host_id > 127
+        raise "Supplied host identifier #{host_id} must be between 1 and 127"
+      end
+
+      # Generate an IP (32-bit unsigned) in the user's range
+      ip = 0x7F000000 + (uid.to_i << 7)  + host_id
+
+      # Return the IP in dotted-quad notation
+      "#{ip >> 24}.#{ip >> 16 & 0xFF}.#{ip >> 8 & 0xFF}.#{ip & 0xFF}"
+    end
   end
 end

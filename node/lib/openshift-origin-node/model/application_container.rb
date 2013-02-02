@@ -19,6 +19,7 @@ require 'openshift-origin-node/model/frontend_proxy'
 require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/model/v1_cart_model'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/cartridge'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
@@ -34,7 +35,8 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
 
-    attr_reader :uuid, :application_uuid, :user
+    attr_reader :uuid, :application_uuid, :user, :state
+
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, logger = nil)
@@ -56,66 +58,181 @@ module OpenShift
       @uuid
     end
 
+    #-----------------------------------
+    # Cart Model:
+    # 
+    # There are two use cases for determining the cartridge
+    # model to use:
+    # 
+    # 1. ApplicationContainer is created for a new application which
+    #    contains no cartridges and the model must be inferred from the name
+    #    of the cartridge being added
+    def establish_cart_model(cart)
+      unless @cart_model
+        @cart_model = (OpenShift::Utils::Sdk.v1_cartridges.include?(cart)) ? 
+          V1CartridgeModel.new(@config, @user, self, @logger) : V2CartridgeModel.new(@config, @user, self, @logger)
+      end
+    end
+
+    # 2. ApplicationContainer is created for an existing app which
+    #    already has a cartridge and thus an appropriate cart model
+    #    to use.
     def cart_model
       unless @cart_model
-        @cart_model = (OpenShift::Utils::Sdk.is_new_sdk_app(@user.homedir)) ? V2CartridgeModel.new(@config, @user) : V1CartridgeModel.new(@config, @user)
+        @cart_model = (OpenShift::Utils::Sdk.is_new_sdk_app(@user.homedir)) ? 
+          V2CartridgeModel.new(@config, @user, self, @logger) : V1CartridgeModel.new(@config, @user, self, @logger)
       end
 
       @cart_model
     end
 
-    def add_cart(cart)
-      # TODO: figure out when to mark app as v2 sdk
-      OpenShift::Utils::Sdk.mark_new_sdk_app(@user.homedir)
+    # Loads a cartridge from manifest for the given name.
+    #
+    # TODO: Caching?
+    def get_cartridge(cart_name)
+      begin
+        manifest_path = cart_model.get_cart_manifest_path(cart_name)
+        manifest = YAML.load_file(manifest_path)
+        return OpenShift::Runtime::Cartridge.new(manifest)
+      rescue => e
+        @logger.error(e.backtrace)
+        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@uuid}: #{e.message}"
+      end
+    end
 
+    # Add cartridge to gear.  This method establishes the cartridge model
+    # to use, but does not mark the application.  Marking the application
+    # is the responsibility of the cart model.
+    #
+    # This method does not enforce constraints on whether the cartridge 
+    # being added is compatible with other installed cartridges.  That 
+    # is the responsibility of the broker.
+    #
+    # context: root -> gear user -> root
+    # @param cart   cartridge name
+    def add_cart(cart)
+      establish_cart_model(cart)
       cart_model.add_cart(cart)
     end
 
+    # Remove cartridge from gear
+    #
+    # context: root -> gear user -> root
+    # @param cart   cartridge name
     def remove_cart(cart)
       cart_model.remove_cart(cart)
     end
 
-    # Create gear - model/unix_user.rb
+    # create gear
+    #
+    # - model/unix_user.rb
+    # context: root
     def create
       notify_observers(:before_container_create)
       @user.create
       notify_observers(:after_container_create)
     end
 
-    # Destroy gear - model/unix_user.rb
+    # Destroy gear
+    #
+    # - model/unix_user.rb
+    # context: root
+    # @param skip_hooks should destroy call the gear's hooks before destroying the gear
     def destroy(skip_hooks=false)
       notify_observers(:before_container_destroy)
 
       # possible mismatch across cart model versions
-      output, errout, retcode = cart_model.destroy
+      output, errout, retcode = cart_model.destroy(skip_hooks)
 
       notify_observers(:after_container_destroy)
 
       return output, errout, retcode
     end
 
-    # Public: Fetch application state from gear.
-    # Returns app state as string on Success and 'unknown' on Failure
-    def get_app_state
-      @state.get
-    end
-
-    # Public: Sets the application state.
-    #
-    # new_state - The new state to assign. Must be an ApplicationContainer::State.
-    def set_app_state(new_state)
-      @start.set new_state
-    end
-
-    # Public: Sets the app state to "stopped" and causes an immediate forced 
+    # Public: Sets the app state to "stopped" and causes an immediate forced
     # termination of all gear processes.
     #
     # TODO: exception handling
     def force_stop
-      @state.set(ApplicationState::State::STOPPED)
+      @state.value = ApplicationState::State::STOPPED
       UnixUser.kill_procs(@user.uid)
     end
 
+    # Creates public endpoints for the given cart. Public proxy mappings are created via
+    # the FrontendProxyServer, and the resulting mapped ports are written to environment
+    # variables with names based on the cart manifest endpoint entries.
+    #
+    # Returns nil on success, or raises an exception if any errors occur: all errors here
+    # are considered fatal.
+    def create_public_endpoints(cart_name)
+      env = Utils::Environ::for_gear(@user.homedir)
+      cart = get_cartridge(cart_name)
+
+      proxy = OpenShift::FrontendProxyServer.new(@logger)
+
+      # TODO: better error handling
+      cart.public_endpoints.each do |endpoint|
+        # Load the private IP from the gear
+        private_ip = env[endpoint.private_ip_name]
+
+        if private_ip == nil
+          raise "Missing private IP #{endpoint.private_ip_name} for cart #{cart.name} in gear #{@uuid}, "\
+            "required to create public endpoint #{endpoint.public_port_name}"
+        end
+
+        # Attempt the actual proxy mapping assignment
+        public_port = proxy.add(@user.uid, private_ip, endpoint.private_port)
+
+        @user.add_env_var(endpoint.public_port_name, public_port)
+
+        @logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
+          "[#{endpoint.public_port_name}=#{public_port}]")
+      end
+    end
+
+    # Deletes all public endpoints for the given cart. Public port mappings are
+    # looked up and deleted using the FrontendProxyServer, and all corresponding
+    # environment variables are deleted from the gear.
+    #
+    # Returns nil on success. Failed public port delete operations are logged
+    # and skipped.
+    def delete_public_endpoints(cart_name)
+      env = Utils::Environ::for_gear(@user.homedir)
+      cart = get_cartridge(cart_name)
+
+      proxy = OpenShift::FrontendProxyServer.new(@logger)
+
+      public_ports = []
+      public_port_vars = []
+
+      cart.public_endpoints.each do |endpoint|
+        # Load the private IP from the gear
+        private_ip = env[endpoint.private_ip_name]
+
+        public_port_vars << endpoint.public_port_name
+
+        public_port = proxy.find_mapped_proxy_port(@user.uid, private_ip, endpoint.private_port)
+
+        public_ports << public_port unless public_port == nil
+      end
+
+      begin
+        # Remove the proxy entries
+        rc = proxy.delete_all(public_ports, true)
+        @logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
+          "Endpoints: #{public_port_vars}\n"\
+          "Public ports: #{public_ports}")
+      rescue => e
+        @logger.warn(%Q{Couldn't delete all public endpoints for cart #{cart.name} in gear #{@uuid}: #{e.message}
+          Endpoints: #{public_port_vars}
+          Public ports: #{public_ports}
+          #{e.backtrace}
+          })
+      end
+
+      # Clean up the environment variables
+      public_port_vars.each { |var| @user.remove_env_var(var) }
+    end
 
     # Public: Cleans up the gear, providing any installed
     # cartridges with the opportunity to perform their own
@@ -133,7 +250,7 @@ module OpenShift
     def tidy
       @logger.debug("Starting tidy on gear #{@uuid}")
 
-      env = load_env
+      env = Utils::Environ::for_gear(@user.homedir)
       gear_dir = env['OPENSHIFT_HOMEDIR']
       app_name = env['OPENSHIFT_APP_NAME']
 
@@ -155,10 +272,11 @@ module OpenShift
         start_gear(gear_dir)
       end
 
-      @logger.debug("Completed tidy for gear #{@uuid}")      
+      @logger.debug("Completed tidy for gear #{@uuid}")
     end
 
     def stop_gear(gear_dir)
+      # TODO: remove shell command
       begin
         # Stop the gear. If this fails, consider the tidy a failure.
         out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
@@ -174,6 +292,7 @@ module OpenShift
     end
 
     def start_gear(gear_dir)
+      # TODO: remove shell command
       begin
         # Start the gear, and if that fails raise an exception, as the app is now
         # in a bad state.
@@ -223,251 +342,53 @@ module OpenShift
       end
     end
 
-    # Creates an endpoint for the given cart within a gear. The flow is:
-    #
-    # 1. Extract the Endpoint metadata from the cart manifest.
-    # 2. For each endpoint:
-    #   a. Compute the internal name for the endpoint (OPENSHIFT_{CART_NS}_{ENDPOINT_NAME}).
-    #   b. Attempt to create a proxy mapping for the endpoint via FrontendProxyServer.
-    #   c. Create an environment variable for the endpoint name with a value of
-    #      the mapped proxy port assigned from (b).
-    #
-    # Returns nil on success, and raises an exception if the manifest can't be parsed
-    # or if any individual endpoint creation fails for any reason.
-    def create_endpoints(cart)
-      env = load_env
-
-      # Load the manifest for the cartridge
-      begin
-        manifest = get_cart_manifest(cart)
-      rescue => e
-        @logger.error(%Q{Failed to parse manifest for cart #{cart} in gear #{@uuid}: #{e.message}
-          #{e.backtrace}
-          })
-        raise "Couldn't create endpoints for cart #{cart} in gear #{@uuid}"
-      end
-
-      endpoints = manifest["Endpoints"]
-
-      # Nothing to do if no endpoints are defined in the manifest
-      if endpoints == nil
-        @logger.info("No Endpoints present in manifest for cart #{cart} in gear #{@uuid}; endpoint creation skipped")
-        return
-      end
-     
-      proxy = OpenShift::FrontendProxyServer.new(@logger)
-      cart_ip = get_cart_ip(env, cart)
-      
-      endpoints.each do |endpoint|
-        begin
-          # Yank the specific info from the endpoint Hash
-          name = endpoint.flatten[0]
-          port = endpoint.flatten[1]
-
-          # Compute the endpoint name
-          cart_ns = self.class.cart_name_to_namespace(cart)
-          endpoint_name = "OPENSHIFT_#{cart_ns}_#{name}"
-
-          # Attempt the actual proxy mapping assignment
-          proxy_port = proxy.add(@user.uid, cart_ip, port)
-
-          # Create an env var for the endpoint
-          @user.add_env_var(endpoint_name, proxy_port)
-
-          @logger.info("Created endpoint #{endpoint_name}=#{cart_ip}:#{proxy_port} for cart #{cart} on gear #{@uuid}")
-        rescue => e
-          @logger.error(%Q{Failed to create endpoint #{endpoint} for cart #{cart} in gear #{@uuid}: #{e.message}
-            #{e.backtrace}
-            })
-          raise "Couldn't create endpoint #{endpoint} for cart #{cart} in gear #{@uuid}"
-        end
-      end
-    end
-
-    # Deletes all endpoints for the given cart based on the cartridge manifest
-    # Endpoint entries and cleans up the related environment variables from
-    # the gear.
-    #
-    # Returns nil on success, and raises an exception if the manifest can't be parsed.
-    # Any failed deletes will be logged and skipped.
-    def delete_endpoints(cart)
-      env = load_env
-
-      # Load the manifest for the cartridge
-      begin
-        manifest = get_cart_manifest(cart)
-      rescue => e
-        @logger.error(%Q{Failed to parse manifest for cart #{cart} in gear #{@uuid}: #{e.message}
-          #{e.backtrace}
-          })
-        raise "Couldn't delete endpoints for cart #{cart} in gear #{@uuid}"
-      end
-
-      endpoints = manifest["Endpoints"]
-
-      # Nothing to do if no endpoints are defined in the manifest
-      if endpoints == nil
-        @logger.info("No Endpoints present in manifest for cart #{cart} in gear #{@uuid}; endpoint deletion skipped")
-        return
-      end
-
-      proxy = OpenShift::FrontendProxyServer.new(@logger)
-      cart_ip = get_cart_ip(env, cart)
-
-      proxy_ports = []
-      endpoint_vars = []
-
-      # Gather endpoint metadata
-      endpoints.each do |endpoint|
-        name = endpoint.flatten[0]
-        port = endpoint.flatten[1]
-
-        # Compute the endpoint name
-        cart_ns = self.class.cart_name_to_namespace(cart)
-        endpoint_name = "OPENSHIFT_#{cart_ns}_#{name}"
-
-        endpoint_vars << endpoint_name
-
-        proxy_port = proxy.find_mapped_proxy_port(@user.uid, cart_ip, port)
-
-        if proxy_port != nil
-          proxy_ports << proxy_port
-        end
-      end
-
-      begin
-        # Remove the proxy entries
-        rc = proxy.delete_all(proxy_ports, true)
-        @logger.info(%Q{Deleted #{endpoints.length} endpoints for cart #{cart} in gear #{@uuid}
-          Endpoints: #{endpoints}
-          Proxy ports: #{proxy_ports}
-          })
-      rescue => e
-        @logger.warn(%Q{Couldn't delete all endpoints for cart #{cart} in gear #{@uuid}: #{e.message}
-          Endpoints: #{endpoints}
-          Proxy ports: #{proxy_ports}
-          #{e.backtrace}
-          })
-      end
-
-      # Clean up the environment variables
-      endpoint_vars.each { |var| @user.remove_env_var(var) }
-    end
-
-    # Resolves, loads, and returns the given cartridge manifest as a YAML object.
-    #
-    # Raises an exception on error.
-    def get_cart_manifest(cart)
-      cart_model.get_manifest(cart)
-      # replaces:
-      # manifest_path = File.join(@config.get("CARTRIDGE_BASE_PATH"), cart, "info", "manifest.yml")
-      # return YAML.load_file(manifest_path)
-    end
-
-    # Compatibility function to resolve a cartridge's IP taking into account the
-    # fact that there are two different naming conventions in use from when there
-    # was a hard distinction between database and non-database cartridges.
-    #
-    # The cart IP will be resolved by using a lookup order against the provided
-    # environment hash. The order of precedence from most to least preferred is:
-    #
-    #   1. OPENSHIFT_{CART_NS}_IP
-    #   2. OPENSHIFT_{CART_NS}_DB_HOST
-    #
-    # Returns the IP for the given cart/environment and raises an exception if
-    # no preferred key is present in the hash.
-    def get_cart_ip(env, cart_name)
-      cart_ns = self.class.cart_name_to_namespace(cart_name)
-
-      lookup_order = ["OPENSHIFT_#{cart_ns}_IP", "OPENSHIFT_#{cart_ns}_DB_HOST"]
-
-      lookup_order.each do |lookup|
-        return env[lookup] if env.has_key?(lookup)
-      end
-      
-      raise %Q{Couldn't determine IP for cartridge #{cart_name}
-        Cart namespace: #{cart_ns}
-        Lookup order: #{lookup_order}
-        Env: #{env}
-      }
-    end
-
-    # Public: Load a gears environment variables into the environment
-    #
-    # Examples
-    #
-    #   load_env
-    #   # => {"OPENSHIFT_APP_NAME"=>"myapp"}
-    #
-    # Returns env Array
-    def load_env
-      Utils::Environ::for_gear(user.homedir)
-    end
-
-    # Converts a cartridge name to a cartridge namespace.
-    #
-    # Examples:
-    #
-    #     cart_name_to_namespace('jbossas-7')
-    #     => "JBOSSAS"
-    #     cart_name_to_namespace('jenkins-client-1.4')
-    #     => "JENKINSCLIENT"
-    #
-    # Returns the cartridge namespace as a String.
-    def self.cart_name_to_namespace(cart)
-      return `echo #{cart} | sed 's/-//g' | sed 's/[^a-zA-Z_]*$//g' | tr '[a-z]' '[A-Z]'`.chomp
-    end
-
-    # ---------------------------------------------------------------------
-    # This code can only be reached by v2 model cartridges
-
     # start gear
-    def start
-      do_control("start")
+    # Throws ShellExecutionException on failure
+    def start(cart_name = nil)
+      @state.value = OpenShift::State::STARTED
+      cart_model.do_control("start", cart_name)
     end
 
     # stop gear
-    def stop
-      do_control("stop")
+    def stop(cart_name = nil)
+      @state.value = OpenShift::State::STOPPED
+      cart_model.do_control("stop", cart_name)
+    end
+
+    # build application
+    def build(cart_name = nil)
+      @state.value = OpenShift::State::BUILDING
+      cart_model.do_control("build", cart_name)
+    end
+
+    # deploy application
+    def deploy(cart_name = nil)
+      @state.value = OpenShift::State::DEPLOYING
+      cart_model.do_control("deploy", cart_name)
     end
 
     # restart gear as supported by cartridges
-    def restart
-      do_control("restart")
+    def restart(cart_name = nil)
+      cart_model.do_control("restart", cart_name)
     end
 
     # reload gear as supported by cartridges
-    def reload
-      do_control("reload")
+    def reload(cart_name = nil)
+      cart_model.do_control("reload", cart_name)
     end
 
     # restore gear from tar ball
-    def restore
+    def restore(cart_name = nil)
       raise NotImplementedError("restore")
     end
 
     # write gear to tar ball
-    def snapshot
+    def snapshot(cart_name = nil)
       raise NotImplementedError("snapshot")
     end
 
-    # PRIVATE: execute action using each cartridge's control script in gear
-    # FIXME: need to source hooks in command
-    def do_control(action)
-      gear_env = Utils::Environ.load(File.join(user.home_dir, ".env"))
-
-      @cart_model.process_cartridges { |path|
-        cartridge_env = Utils::Environ.load(File.join(path, "env")).merge(gear_env)
-
-        control       = Files.join(path, "bin", "control")
-        unless File.executable?(control)
-          raise "Corrupt cartridge: #{control} must exists and be executable"
-        end
-
-        command = control + " " + action
-        Utils::spawn(cartridge_env, command, user.home_dir)
-      }
+    def status(cart_name = nil)
+      cart_model.do_control("status", cart_name)
     end
-    # ---------------------------------------------------------------------
   end
 end

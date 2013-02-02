@@ -18,8 +18,9 @@
 # Test the OpenShift VERSION string
 #
 require 'test_helper'
+require 'openshift-origin-node/version'
 
-class TestVersion < Test::Unit::TestCase
+class VersionFunctionalTest < Test::Unit::TestCase
 
   def test_leading_space
     assert_no_match(/^\s+/, 

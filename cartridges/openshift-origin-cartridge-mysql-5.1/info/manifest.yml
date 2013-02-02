@@ -40,4 +40,4 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - DB_PROXY_PORT: 3306
+  - "HOST:PORT(3306):DB_PROXY_PORT"

@@ -36,7 +36,8 @@ USAGE
 end
 
 require "rubygems"
-require 'openshift-node'
+require 'openshift-origin-node'
+require 'openshift-origin-node/utils/environ'
 require "etc"
 
 opts = GetoptLong.new(
@@ -69,10 +70,23 @@ end
 
 
 begin
+  config = Config.new
+  stop_lock = File.join(config.get('GEAR_BASE_DIR'), uuid, %w{app-root runtime .stop_lock})
+
+  case command
+    when "start"
+      FileUtils.touch stop_lock
+    when "stop"
+      FileUtils.remove stop_lock
+    else
+      env = Utils::Environ.for_gear(File.join(config.get('GEAR_BASE_DIR'), uuid))
+      $stderr.puts "Application is explicitly stopped!  Use 'rhc app start -a #{env['OPENSHIFT_APP_NAME']} to start back up."
+  end
+
   container = OpenShift::ApplicationContainer.new(uuid, uuid)
-  container.send(command.to_sym)
+  container.send command.to_sym
 rescue Exception => e
-  $stderr.puts(e.message)
+  $stderr.puts e.message
   exit -1
 else
   exit 0

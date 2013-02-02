@@ -19,6 +19,7 @@
 #
 module OpenShift; end
 
+require 'test_helper'
 require 'openshift-origin-node/model/frontend_proxy'
 require 'test/unit'
 require 'fileutils'
@@ -26,7 +27,7 @@ require 'mocha'
 
 # Run unit test manually
 # ruby -I node/lib:common/lib node/test/unit/frontend_proxy_test.rb
-class TestFrontendProxy < Test::Unit::TestCase
+class FrontendProxyTest < Test::Unit::TestCase
 
   def setup
     config = mock('OpenShift::Config')

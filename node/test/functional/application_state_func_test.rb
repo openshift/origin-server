@@ -14,45 +14,53 @@
 # limitations under the License.
 #++
 
+require 'test_helper'
 require "rubygems"
+require "etc"
 require "test/unit"
 require "mocha"
 require "fileutils"
 require "openshift-origin-node/utils/application_state"
+require "openshift-origin-node/utils/shell_exec"
 
 module OpenShift
-  class ApplicationStateTest < Test::Unit::TestCase
+  class ApplicationStateFunctionalTest < Test::Unit::TestCase
 
-    # Called before every test method runs. Can be used
-    # to set up fixture information.
     def setup
-      @uuid = "d0db4f85e531439c94e5263339203f95"
-      FileUtils.mkpath(File.join("/tmp", @uuid, "app-root", "runtime"))
-    end
+      skip "run_as tests require root permissions"  if 0 != Process.uid
 
-    # Called after every test method runs. Can be used to tear
-    # down fixture information.
+      @uid = 1000
+      @uuid = `uuidgen -r |sed -e s/-//g`.chomp
+      @runtime_dir = File.join("/tmp", @uuid, %w{app-root runtime})
+      Utils.oo_spawn("mkdir -p #@runtime_dir",
+                  :uid => @uid)
+    end
 
     def teardown
       FileUtils.rm_rf(File.join("/tmp", @uuid))
     end
 
     def test_set_get
+      skip "run_as tests require root permissions"  if 0 != Process.uid
+
       config = mock('OpenShift::Config')
       config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
       OpenShift::Config.stubs(:new).returns(config)
 
       # .state file is missing
       state = OpenShift::Utils::ApplicationState.new(@uuid)
-      assert_equal State::UNKNOWN, state.get
+      assert_equal State::UNKNOWN, state.value
 
       # .state file is created
-      state.set(State::NEW)
-      assert_equal State::NEW, state.get
+      state.value = State::NEW
+      assert_equal State::NEW, state.value
 
       # .state file is updated
-      state.set(State::STARTED)
-      assert_equal State::STARTED, state.get
+      state.value = State::STARTED
+      assert_equal State::STARTED, state.value
+
+      stats = File.stat(File.join(@runtime_dir, ".state"))
+      assert_equal @uid, stats.uid
     end
   end
 end

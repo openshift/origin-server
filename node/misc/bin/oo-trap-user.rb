@@ -1,6 +1,22 @@
 #!/usr/bin/env oo-ruby
+#--
+# Copyright 2012-2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
 
 require 'rubygems'
+require 'etc'
 require 'base64'
 require 'syslog'
 require 'openshift-origin-common'
@@ -9,100 +25,116 @@ require 'openshift-origin-node/utils/environ'
 module OpenShift
   module Application
     class TrapUser
+      CGROUPS_CONTROLLERS = "cpu,cpuacct,memory,net_cls,freezer"
+      CGROUPS_PATH_PREFIX = "/openshift/"
 
       def initialize
+        Syslog.open($0, Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_USER) unless Syslog.opened?
+
         @commands_map = {
-            "cd"               => "/bin/bash",
-            "ctl_all"          => "/bin/bash",
-            "deploy.sh"        => "/bin/bash",
             "git-receive-pack" => "/usr/bin/git-receive-pack",
             "git-upload-pack"  => "/usr/bin/git-upload-pack",
-            "java"             => "/bin/bash",
-            "mkdir"            => "/bin/bash",
-            "post_deploy.sh"   => "/bin/bash",
-            "restore"          => "/bin/bash",
-            "rhc-list-ports"   => "/bin/bash",
-            "rhcsh"            => "/bin/bash",
-            "rsync"            => "/bin/bash",
-            "scp"              => "/bin/bash",
-            "set"              => "/bin/bash",
             "snapshot"         => "/bin/bash",
+            "restore"          => "/bin/bash",
             "tail"             => "/usr/bin/tail",
-            "test"             => "/bin/bash",
+            "rhcsh"            => "/bin/bash",
             "true"             => "/bin/true",
+            "java"             => "/bin/bash",
+            "scp"              => "/bin/bash",
+            "cd"               => "/bin/bash",
+            "set"              => "/bin/bash",
+            "mkdir"            => "/bin/bash",
+            "test"             => "/bin/bash",
+            "rsync"            => "/bin/bash",
+            "ctl_all"          => "/bin/bash",
+            "deploy.sh"        => "/bin/bash",
+            "rhc-list-ports"   => "/bin/bash",
+            "post_deploy.sh"   => "/bin/bash",
+            "quota"            => "/usr/bin/quota",
         }
       end
 
+      # join current process to openshift cgoups if possible
+      #
+      # cgclassify -g cpu,cpuacct,memory,net_cls,freezer:/openshift/510fe9db6b61de4618000005 30608
+      def join_cgroups
+        name          = Etc.getpwuid(Process.uid).name
+        pid           = Process.spawn("cgclassify", "-g", "#{CGROUPS_CONTROLLERS}:#{CGROUPS_PATH_PREFIX}/#{name} #{Process.pid}")
+        _, exitstatus = Process.wait2(pid)
+        Syslog.warning("user #{name}: cgroup classification failed: exitstatus = #{exitstatus}") if 0 != exitstatus
+      end
+
       def apply
-        Syslog.open($0, Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_USER) unless Syslog.opened?
+        join_cgroups
 
-        env      = OpenShift::Utils::Environ.for_gear("~")
-        orig_cmd = ENV['SSH_ORIGINAL_COMMAND'] || "rhcsh"
-        Syslog.info(orig_cmd)
+        config       = OpenShift::Config.new
+        env          = OpenShift::Utils::Environ.for_gear("~")
+        command_line = ENV['SSH_ORIGINAL_COMMAND'] || "rhcsh"
+        Syslog.info(command_line)
 
-        config = OpenShift::Config.new
+        orig_argv    = command_line.split(' ')
+        orig_command = orig_argv.shift
 
-        allargs = orig_cmd.split(' ')
-        basecmd = allargs[0]
-        cmd     = @commands_map[basecmd]
-        if cmd.nil?
-          Syslog.err("Invalid command #{orig_cmd}")
-          $stderr.puts("Invalid command #{orig_cmd}")
-          return 2
-        end
+        canon_command = @commands_map[orig_command]
+        canon_argv    = []
+        case orig_command
+          # rhc snapshot...
+          when "snapshot"
+            canon_argv.push('snapshot.sh')
 
-        case basecmd
-          when "snapshot" # This gets called with "snapshot"
-            allargs = ['snapshot.sh']
+          # rhc restore...
+          when "restore"
+            canon_argv.push('restore.sh')
+            canon_argv.push('INCLUDE_GIT') if orig_argv.first == 'INCLUDE_GIT'
 
-          when "restore" # This gets called with "restore <INCLUDE_GIT>"
-            include_git = false
-            if allargs.length > 1 and allargs[1] == 'INCLUDE_GIT'
-              include_git = true
-            end
-            allargs = ['restore.sh']
-            allargs.push('INCLUDE_GIT') if include_git
-
+          # ssh {uuid}@{...}
           when "rhcsh"
-            env["PS1"] = "rhcsh> "
-            if allargs.length < 2
-              allargs = ['--init-file', '/usr/bin/rhcsh', '-i']
+            env['PS1'] = 'rhcsh> '
+            canon_argv.concat %w(--init-file /usr/bin/rhcsh)
+            if orig_argv.empty?
+              canon_argv.push("-i")
             else
-              str     = allargs[1..-1].join(' ')
-              allargs = ['--init-file', '/usr/bin/rhcsh', '-c', str]
+              canon_argv.push("-c")
+              canon_argv.concat(orig_argv)
             end
 
+          # ssh {uuid}@{...} ctl_all start app
           when 'ctl_all'
-            allargs = ['-c', ". /usr/bin/rhcsh > /dev/null ; ctl_all #{allargs[-1]}"]
+            canon_argv.push('-c')
+            canon_argv.push(". /usr/bin/rhcsh > /dev/null ; ctl_all #{orig_argv.join(' ')}")
 
+          #  ssh {uuid}@{...}...
           when 'java', 'set', 'scp', 'cd', 'test', 'mkdir', 'rsync', 'deploy.sh', 'post_deploy.sh', 'rhc-list-ports'
-            str     = allargs.join(' ')
-            allargs = ['-c', str]
+            canon_argv.push('-c')
+            canon_argv.push(orig_command)
+            canon_argv.concat(orig_argv)
 
+          #  rhc tail...
           when 'tail'
-            files = []
+            canon_argv.push('-f')
 
-            files_start_index = 1
+            files_start_index = 0
             args              = []
-            add_follow        = true
+            files             = []
 
-            if allargs[1] == '--opts'
-              files_start_index = 3
-              args_str          = Base64.decode64(allargs[2])
+            if orig_argv.first == '--opts'
+              files_start_index = 2
+              args_str          = Base64.decode64(orig_argv[1])
               args              = args_str.split()
               args.each do |arg|
                 if arg.start_with?('..') || arg.start_with?('/')
                   print "All paths must be relative: " + arg
                   return 88
                 elsif arg == '-f' or arg == '-F' or arg.start_with?('--follow')
-                  add_follow = false
+                  canon_argv.delete('-f')
                 end
               end
             end
 
-            allargs[files_start_index..-1].each do |glob_list|
+            orig_argv[files_start_index..-1].each do |glob_list|
               Dir.glob(glob_list).each do |f|
                 begin
+                  # fail if '..' found in filename or starts with '/'
                   if !f[".."].nil? or f.start_with?("/")
                     print "invalid character"
                     return 91
@@ -129,31 +161,42 @@ module OpenShift
               return 32
             end
 
-            allargs = Array.new(args)
-            allargs.push('-f') if add_follow
-            allargs += files
+            canon_argv.concat(args)
+            canon_argv.concat(files)
+
           when 'git-receive-pack', 'git-upload-pack'
-            thearg = allargs[1..-1].join(' ')
-            if thearg[0] == "'" and thearg[-1] == "'"
-              thearg.gsub!("'", "")
-              thearg.gsub!("\\'", "")
-              thearg.gsub!("//", "/")
+            # git repositories need to be parsed specially
+            git_argv = orig_argv.join(' ')
+            git_argv.gsub!("'", "") if git_argv[0] == "'" and git_argv[-1] == "'"
 
-              # replace leading tilde (~) with user's home path
-              realpath = File.absolute_path(thearg)
-              unless realpath.start_with?(config.get('GEAR_BASE_DIR'))
-                Syslog.alert("Invalid repository: not in GEAR_BASE_DIR - #{thearg}: (#{realpath}) not in gear dir")
-                $stderr.puts("Invalid repository #{thearg}: not in gear dir")
-                exit 3
-              end
+            git_argv.gsub!("\\'", "")
+            git_argv.gsub!("//", "/")
 
-              unless File.directory?(realpath)
-                Syslog.alert("Invalid repository #{thearg} (#{realpath}) not a directory")
-                $stderr.puts("Invalid repository #{thearg}: not a directory")
-                exit(3)
-              end
-              allargs = [thearg]
+            # replace leading tilde (~) with user's home path
+            realpath = File.expand_path(git_argv)
+            unless realpath.start_with?(config.get('GEAR_BASE_DIR'))
+              Syslog.warning("Invalid repository: not in GEAR_BASE_DIR - #{config.get('GEAR_BASE_DIR')}: (#{realpath}) not in gear dir")
+              $stderr.puts("Invalid repository #{git_argv}: not in gear dir")
+              exit 3
             end
+
+            unless File.directory?(realpath)
+              Syslog.warning("Invalid repository #{git_argv} (#{realpath}) not a directory")
+              $stderr.puts("Invalid repository #{git_argv}: not a directory")
+              exit 3
+            end
+
+            canon_argv.push(git_argv)
+
+          when 'quota'
+            # defaults are good
+
+          else
+            # Catch all, just run the command as-is via bash.
+            canon_command = "/bin/bash"
+            canon_argv.push('-c')
+            canon_argv.push(orig_command)
+            canon_argv.concat(orig_argv)
         end
 
 # FIXME: need libselinux-ruby for Ruby 1.9.3
@@ -172,7 +215,8 @@ module OpenShift
 # exit(1)
 # else
 
-        Kernel.exec(env, cmd, [cmd] + allargs)
+#puts "env: #{env} #{canon_command} #{canon_argv.inspect}"
+        Kernel.exec(env, canon_command, *canon_argv)
         return 1
       end
     end

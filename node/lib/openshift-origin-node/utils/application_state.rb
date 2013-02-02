@@ -15,7 +15,9 @@
 #++
 
 require 'rubygems'
+require 'etc'
 require 'openshift-origin-common'
+require 'openshift-origin-node/utils/shell_exec'
 
 module OpenShift
 
@@ -47,7 +49,7 @@ module OpenShift
       #
       # @param [String]   new_state - From Openshift::State.
       # @return [Object]  self for chaining calls
-      def set(new_state)
+      def value=(new_state)
         new_state_val = nil
         begin
           new_state_val = OpenShift::State.const_get new_state.upcase.intern
@@ -55,16 +57,23 @@ module OpenShift
           raise ArgumentError, "Invalid state '#{new_state}' specified"
         end
 
-        File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0660) { |file|
+        File.open(@state_file, File::WRONLY|File::TRUNC|File::CREAT, 0640) { |file|
           file.write "#{new_state_val}\n"
         }
+
+        parent = File.dirname(@state_file)
+        OpenShift::Utils.oo_spawn(
+            "chown --reference #{parent} #@state_file;
+             chcon --reference #{parent} #@state_file"
+        )
         self
       end
+
 
       # Public: Fetch application state from gear.
       #
       # @return [String] application state or State::UNKNOWN on failure
-      def get
+      def value
         if File.exists?(@state_file)
           app_state = nil
           File.open(@state_file) { |input| app_state = input.read.chomp }

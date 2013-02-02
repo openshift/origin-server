@@ -13,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
+require 'test_helper'
 require "test/unit"
 require "mocha"
 require "fileutils"
 require "openshift-origin-node/utils/environ"
 
-class MyTest < Test::Unit::TestCase
+class EnvironTest < Test::Unit::TestCase
 
   # Called before every test method runs. Can be used
   # to set up fixture information.
   def setup
-    @uuid     = "f5586d7e690e4a7ea71da1507d60c192"
-    @gear_env = File.join("/tmp", @uuid, ".env")
-    @cart_env = File.join("/tmp", @uuid, "mock-0.0", "env")
+    @uuid     = 'f5586d7e690e4a7ea71da1507d60c192'
+    @gear_env = File.join('/tmp', @uuid, '.env')
+    @cart_env = File.join('/tmp', @uuid, 'mock-0.0', 'env')
     FileUtils.mkpath(@gear_env)
     FileUtils.mkpath(@cart_env)
   end
@@ -34,31 +35,46 @@ class MyTest < Test::Unit::TestCase
   # down fixture information.
 
   def teardown
-    FileUtils.rm_rf(File.join("/tmp", @uuid))
+    FileUtils.rm_rf(File.join('/tmp', @uuid))
   end
 
   # Verify can read one directory of environment variables
   def test_single_directory
-    File.open(File.join(@gear_env, "OPENSHIFT_GEAR_UUID"), "w") { |fd|
-      fd.write(%Q{export OPENSHIFT_GEAR_UUID="#{@uuid}"})
+    File.open(File.join(@gear_env, 'OPENSHIFT_GEAR_UUID'), 'w') { |fd|
+      fd.write(%Q{export OPENSHIFT_GEAR_UUID="#@uuid"})
     }
     env = OpenShift::Utils::Environ.load(@gear_env)
-    assert_equal @uuid, env["OPENSHIFT_GEAR_UUID"]
-    assert_nil env["OPENSHIFT_APP_NAME"]
+    assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
+    assert_nil env['OPENSHIFT_APP_NAME']
   end
 
   # Verify can read a gear and cartridge environment variables
   def test_two_directories
-    File.open(File.join(@gear_env, "OPENSHIFT_GEAR_UUID"), "w") { |fd|
-      fd.write(%Q{export OPENSHIFT_GEAR_UUID="#{@uuid}"})
+    File.open(File.join(@gear_env, 'OPENSHIFT_GEAR_UUID'), 'w') { |fd|
+      fd.write(%Q{export OPENSHIFT_GEAR_UUID="#@uuid"})
     }
-    File.open(File.join(@cart_env, "OPENSHIFT_MOCK_IP"), "w") { |fd|
-      fd.write(%Q{export OPENSHIFT_MOCK_IP="127.0.0.666"})
+    File.open(File.join(@cart_env, 'OPENSHIFT_MOCK_IP'), 'w') { |fd|
+      fd.write('export OPENSHIFT_MOCK_IP="127.0.0.666"')
     }
 
-    env = OpenShift::Utils::Environ.for_gear(File.join("/tmp", @uuid))
-    assert_equal @uuid, env["OPENSHIFT_GEAR_UUID"]
-    assert_equal "127.0.0.666", env["OPENSHIFT_MOCK_IP"]
-    assert_nil env["OPENSHIFT_APP_NAME"]
+    env = OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid))
+    assert_equal @uuid, env['OPENSHIFT_GEAR_UUID']
+    assert_equal "127.0.0.666", env['OPENSHIFT_MOCK_IP']
+    assert_nil env['OPENSHIFT_APP_NAME']
+  end
+
+  # Verify cartridge overrides gear
+  def test_override
+    File.open(File.join(@gear_env, 'DEFAULT_LABEL'), 'w') { |fd|
+      fd.write('export DEFAULT_LABEL="bogus"')
+    }
+    env = OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid))
+        assert_equal 'bogus', env['DEFAULT_LABEL']
+    
+    File.open(File.join(@cart_env, 'DEFAULT_LABEL'), 'w') { |fd|
+      fd.write('export DEFAULT_LABEL="VIP"')
+    }
+    env = OpenShift::Utils::Environ.for_gear(File.join('/tmp', @uuid))
+    assert_equal 'VIP', env['DEFAULT_LABEL']
   end
 end

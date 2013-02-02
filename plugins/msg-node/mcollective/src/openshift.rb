@@ -230,7 +230,7 @@ module MCollective
         output = ""
         begin
           container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
-          output = container.get_app_state()
+          output = container.state.value
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -594,6 +594,9 @@ module MCollective
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc = nil
         output = ""
+
+        Log.instance.debug("passed validations")
+
         if cartridge == 'openshift-origin-node'
           cmd = "oo-#{action}"
           if action == 'connector-execute'
@@ -603,12 +606,16 @@ module MCollective
             exitcode, output = handle_oo_cmd(action, args)
           end
         else
+          Log.instance.debug("validing args")
           validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
           validate :args, :shellsafe
+          Log.instance.debug("determining how to handle cart action")
 
           if %w(configure deconfigure).include?(action) && !OpenShift::Utils::Sdk.v1_cartridges.include?(cartridge)
+            Log.instance.info("handling as V2 cart action")
             handle_v2_cartridge_action(cartridge, action, args)
           else
+            Log.instance.info("handling as V1 cart action")
             exitcode, output = handle_cartridge_action(cartridge, action, args)
           end
         end
@@ -821,7 +828,7 @@ module MCollective
           pj, pid, sout, serr = reap_args
           reap_output(pj, pid, sout, serr)
         }
-        Log.instance.info("execute_parallel_action call - 10 #{joblist}")
+        Log.instance.info("execute_parallel_action call - #{joblist}")
         reply[:output] = joblist
         reply[:exitcode] = 0
       end

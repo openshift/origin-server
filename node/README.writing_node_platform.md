@@ -211,3 +211,11 @@ TODO: deal with node httpd bouncing somewhere
 * Read cartridge manifest
 * Delete .env/OPENSHIFT_${CART_NS}_PROXY_PORT
 * remove_proxy_port $uuid "$OPENSHIFT_INTERNAL_IP:$OPENSHIFT_INTERNAL_PORT"
+
+### Running cartridge scripts
+
+#### Environment Variables
+
+ 1. Read /etc/openshift/env
+ 2. Read gear `.env` directory, merge into 1. overwriting duplicates
+ 3. Read cartridge `env` directory, merge into 2. overwriting duplicates
