@@ -106,14 +106,5 @@ module OpenShift
         end
       end
     end
-    
-    def login(request, params, cookies)
-      if params['broker_auth_key'] && params['broker_auth_iv']
-        validate_broker_key(params['broker_auth_iv'], params['broker_auth_key'])
-      else
-        data = JSON.parse(params['json_data'])
-        return authenticate(request, data['rhlogin'], params['password'])
-      end
-    end
   end
 end
