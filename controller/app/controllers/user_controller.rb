@@ -31,11 +31,11 @@ class UserController < BaseController
 
   private
 
-  def get_rest_user(cloud_user)
-    if $requested_api_version == 1.0
-      RestUser10.new(cloud_user, get_url, nolinks)
-    else
-      RestUser.new(cloud_user, get_url, nolinks)
+    def get_rest_user(cloud_user)
+      if requested_api_version == 1.0
+        RestUser10.new(cloud_user, get_url, nolinks)
+      else
+        RestUser.new(cloud_user, get_url, nolinks)
+      end
     end
-  end
 end

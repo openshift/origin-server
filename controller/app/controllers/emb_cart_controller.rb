@@ -14,33 +14,33 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "LIST_APP_CARTRIDGES")
     end
-    
+
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
       cartridges = get_application_rest_cartridges(application) if application
-      
+
       render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES", "Listing cartridges for application #{id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "LIST_APP_CARTRIDGES")
     end
   end
-  
+
   # GET /domains/[domain_id]/applications/[application_id]/cartridges/[id]
   def show
     domain_id = params[:domain_id]
     application_id = params[:application_id]
     id = params[:id]
     status_messages = !params[:include].nil? and params[:include].split(",").include?("status_messages")
-    
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "SHOW_APP_CARTRIDGE")
     end
-    
+
     begin
       application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
@@ -48,7 +48,7 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{application_id}' not found for domain '#{domain_id}'", 101, "SHOW_APP_CARTRIDGE")
     end
-    
+
     begin
       component_instance = application.component_instances.find_by(cartridge_name: id)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides, status_messages)
@@ -63,7 +63,7 @@ class EmbCartController < BaseController
     domain_id = params[:domain_id]
     id = params[:application_id]
     name = params[:name]
-    
+
     # :cartridge param is deprecated because it isn't consistent with
     # the rest of the apis which take :name. Leave it here because
     # some tools may still use it
@@ -79,7 +79,7 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "EMBED_CARTRIDGE")
     end
-    
+
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
@@ -87,7 +87,7 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "EMBED_CARTRIDGE")
     end
-    
+
     begin
       component_instance = application.component_instances.find_by(cartridge_name: name)
       if !component_instance.nil?
@@ -96,7 +96,7 @@ class EmbCartController < BaseController
     rescue
       #ignore
     end
-    
+
     unless colocate_with.nil? or colocate_with.empty?
       begin
         colocate_component_instance = application.component_instances.find_by(cartridge_name: colocate_with)
@@ -109,7 +109,7 @@ class EmbCartController < BaseController
     if scales_to and scales_from and scales_to != -1 and scales_from > scales_to
       return render_error(:unprocessable_entity, "Invalid scaling values provided. 'scales_from(#{scales_from})' cannot be greater than 'scales_to(#{scales_to})'.", 109, "EMBED_CARTRIDGE", "cartridge")      
     end
-    
+
     begin
       group_overrides = []
       # Todo: REST API assumes cartridge only has one component
@@ -124,7 +124,7 @@ class EmbCartController < BaseController
       prof = cart.profile_for_feature(name)
       comp = prof.components.first
       comp_spec = {"cart" => cart.name, "comp" => comp.name}
-      
+
       unless colocate_component_instance.nil?
         group_overrides << {"components" => [colocate_component_instance.to_hash, comp_spec]}
       end
@@ -137,7 +137,7 @@ class EmbCartController < BaseController
       end
 
       cart_create_reply = application.add_features([name], group_overrides)
-      
+
       component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
       cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
 
@@ -166,7 +166,7 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "REMOVE_CARTRIDGE")
     end
-    
+
     begin
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
@@ -174,18 +174,18 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "REMOVE_CARTRIDGE")
     end
-    
+
     begin
       comp = application.component_instances.find_by(cartridge_name: cartridge)
       feature = application.get_feature(comp.cartridge_name, comp.component_name)     
       application.remove_features([feature])
-      
-      if $requested_api_version == 1.0
-        app = RestApplication10.new(application, get_url, nolinks)
-      else
-        app = RestApplication.new(application, get_url, nolinks)
-      end
-      
+
+      app = if requested_api_version == 1.0
+          RestApplication10.new(application, get_url, nolinks)
+        else
+          RestApplication.new(application, get_url, nolinks)
+        end
+
       render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "REMOVE_CARTRIDGE")
@@ -221,7 +221,7 @@ class EmbCartController < BaseController
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Domain #{domain_id} not found", 127, "PATCH_APP_CARTRIDGE")
     end
-    
+
     begin
       application = Application.find_by(domain: domain, canonical_name: application_id.downcase)
       @application_name = application.name
@@ -230,15 +230,15 @@ class EmbCartController < BaseController
       if !application.scalable and ((scales_from and scales_from != 1) or (scales_to and scales_to != 1 and scales_to != -1))
         return render_error(:unprocessable_entity, "Application '#{application_id}' is not scalable", 100, "PATCH_APP_CARTRIDGE", "name")
       end
-      
+
       if scales_from and scales_from < 1
         return render_error(:unprocessable_entity, "Invalid scales_from factor #{scales_from} provided", 168, "PATCH_APP_CARTRIDGE", "scales_from") 
       end
-      
+
       if scales_to and scales_to == 0
         return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
-      
+
       if scales_to and scales_to < -1
         return render_error(:unprocessable_entity, "Invalid scales_to factor #{scales_to} provided", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
@@ -254,7 +254,7 @@ class EmbCartController < BaseController
       end
 
       group_instance = application.group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
-      
+
       if scales_to and scales_from.nil? and scales_to >= 1 and scales_to < group_instance.min
         return render_error(:unprocessable_entity, "The scales_to factor currently provided cannot be lower than the scales_from factor previously provided. Please specify both scales_(from|to) factors together to override.", 168, "PATCH_APP_CARTRIDGE", "scales_to") 
       end
@@ -279,7 +279,7 @@ class EmbCartController < BaseController
     rescue Exception => e
       return render_exception(e, "PATCH_APP_CARTRIDGE")
     end
-    
+
     return render_success(:ok, "cartridge", [], "PATCH_APP_CARTRIDGE", "")  
   end
 end

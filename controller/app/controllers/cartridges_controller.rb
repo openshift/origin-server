@@ -15,12 +15,11 @@ class CartridgesController < BaseController
       type = "web_framework" if type == "standalone"
       cartridges = CartridgeCache.cartridges.keep_if{ |c| c.categories.include?(type) }
     end
-    rest_cartridges = []
-    cartridges.map! do |c|
-      if $requested_api_version == 1.0
-        rest_cartridges.push(RestCartridge10.new(c))
+    rest_cartridges = cartridges.map do |c|
+      if requested_api_version == 1.0
+        RestCartridge10.new(c)
       else
-        rest_cartridges.push(RestCartridge.new(c))
+        RestCartridge.new(c)
       end
     end
     render_success(:ok, "cartridges", rest_cartridges, "LIST_CARTRIDGES", "List #{type.nil? ? 'all' : type} cartridges")
