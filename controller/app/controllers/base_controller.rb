@@ -69,17 +69,6 @@ class BaseController < ActionController::Base
   
   protected
   
-  # Generates a unique request ID to identify indivigulal REST API calls in the logs
-  #
-  # == Returns:
-  #   GUID to identify the the request
-  def gen_req_uuid
-    # The request id can be generated differently to make it a bit more meaningful
-    File.open("/proc/sys/kernel/random/uuid", "r") do |file|
-      file.gets.strip.gsub("-","")
-    end
-  end
-  
   def authenticate
     login = nil
     password = nil
@@ -227,14 +216,6 @@ class BaseController < ActionController::Base
       return false
     end
     raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
-  end
-
-  def get_cloud_user_info(cloud_user)
-    if cloud_user
-      return { :uuid  => cloud_user._id.to_s, :login => cloud_user.login }
-    else
-      return { :uuid  => 0, :login => 'anonymous' }
-    end
   end
 
   def get_extra_log_args
