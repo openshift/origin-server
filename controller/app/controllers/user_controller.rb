@@ -1,7 +1,5 @@
 class UserController < BaseController
-  respond_to :json, :xml
-  before_filter :authenticate, :check_version
-  
+
   # GET /user
   def show
     return render_error(:not_found, "User '#{@login}' not found", 99, "SHOW_USER") unless @cloud_user
@@ -15,7 +13,7 @@ class UserController < BaseController
 
     return render_error(:not_found, "User '#{@login}' not found", 99, "DELETE_USER") unless @cloud_user
     return render_error(:forbidden, "User deletion not permitted. Only applicable for subaccount users.", 138, "DELETE_USER") unless @cloud_user.parent_user_id
-  
+
     begin
       if force
         @cloud_user.force_delete

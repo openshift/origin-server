@@ -1,6 +1,8 @@
 class CartridgesController < BaseController
-  respond_to :xml, :json
-  before_filter :check_version
+
+  skip_before_filter :authenticate
+
+  # FIXME: Should not do this
   def show
     index
   end

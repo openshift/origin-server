@@ -1,6 +1,4 @@
 class KeysController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
 
   #GET /user/keys
   def index

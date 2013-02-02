@@ -1,6 +1,4 @@
 class EmbCartEventsController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
 
   # POST /domain/[domain_id]/applications/[application_id]/cartridges/[cartridge_id]/events
   def create

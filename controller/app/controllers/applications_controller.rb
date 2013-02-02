@@ -1,7 +1,6 @@
 class ApplicationsController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
   include RestModelHelper
+
   # GET /domains/[domain id]/applications
   def index
     domain_id = params[:domain_id]

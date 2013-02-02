@@ -1,6 +1,4 @@
 class AccountController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
 
   def create
     username = params[:username]

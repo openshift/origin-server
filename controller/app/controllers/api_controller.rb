@@ -1,6 +1,6 @@
 class ApiController < BaseController
 
-  before_filter :check_version, :only => :show
+  skip_before_filter :authenticate
 
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted

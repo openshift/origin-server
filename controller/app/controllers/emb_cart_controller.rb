@@ -1,6 +1,4 @@
 class EmbCartController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
   include RestModelHelper
 
   # GET /domains/[domain_id]/applications/[application_id]/cartridges
