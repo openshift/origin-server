@@ -14,6 +14,8 @@
 # limitations under the License.
 #++
 
+require File.expand_path('../coverage_helper.rb', __FILE__)
+
 require File.expand_path('../../lib/openshift-origin-node', __FILE__)
 require 'rubygems'
 require 'test/unit'
