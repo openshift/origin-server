@@ -189,11 +189,8 @@ class Domain
   # True on success or false on failure
   def run_jobs
     begin
-      ops = pending_ops.where(state: "init")
-      ops.each do |op|
-        # set the op state to :queued
-        op.set(:state, :queued)
-        
+      while self.pending_ops.where(state: "init").count > 0
+        op = self.pending_ops.where(state: "init").first
         case op.op_type
         when :add_ssh_key
           op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
@@ -214,7 +211,16 @@ class Domain
             app.complete_update_namespace(op.arguments["old_ns"], op.arguments["new_ns"], op) 
           }
         end
-        op.with(consistency: :strong).reload
+
+        # reloading the op reloads the domain and then incorrectly reloads (potentially)
+        # the op based on its position within the pending_ops list
+        # hence, reloading the domain, and then fetching the op using the _id
+        self.with(consistency: :strong).reload
+        op = self.pending_ops.find_by(_id: op._id)
+        
+        # set the op state to :queued if it is still in the :init state
+        op.set(:state, :queued) if op.state == :init
+
         op.close_op
         op.delete if op.completed?
       end

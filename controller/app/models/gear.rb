@@ -233,7 +233,7 @@ class Gear
     RemoteJob.add_parallel_job(remote_job_handle, "addtl-fs-gb", self, get_proxy.get_update_gear_quota_job(self, total_fs_gb, ""))
   end
 
-  def update_namespace(args, handle)
+  def update_namespace(args)
     old_ns = args["old_namespace"]
     new_ns = args["new_namespace"]
     cart = args["cartridge"]
