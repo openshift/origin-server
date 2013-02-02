@@ -53,7 +53,7 @@ class BaseController < ActionController::Base
       end
     end
     
-    @reply = RestReply.new(:ok, "links", links)
+    @reply = new_rest_reply(:ok, "links", links)
     respond_with @reply, :status => @reply.status
   end
   

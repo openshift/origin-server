@@ -1,12 +1,12 @@
 class RestReply < OpenShift::Model
   attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions
   
-  def initialize(status=nil, type=nil, data=nil)
+  def initialize(requested_api_version, status=nil, type=nil, data=nil)
     self.status = status
     self.type = type
     self.data = data
     self.messages = []
-    self.version = $requested_api_version.to_s
+    self.version = requested_api_version.to_s
     self.supported_api_versions = OpenShift::Controller::ApiBehavior::SUPPORTED_API_VERSIONS
   end
   

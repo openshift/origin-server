@@ -7,42 +7,38 @@ module OpenShift
       SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3]
 
       protected
+        attr :requested_api_version
 
-        def set_locale
-          I18n.locale = nil
+        def new_rest_reply(*arguments)
+          RestReply.new(requested_api_version, *arguments)
         end
 
         def check_version
-          accept_header = request.headers['Accept']
-          Rails.logger.debug accept_header    
-          mime_types = accept_header ? accept_header.split(%r{,\s*}) : []
-          version_header = API_VERSION
-          mime_types.each do |mime_type|
-            values = mime_type.split(%r{;\s*})
-            values.each do |value|
-              value = value.downcase
-              if value.include?("version")
-                version_header = value.split("=")[1].delete(' ').to_f
+          version = catch(:version) do
+            (request.accept || "").split(',').each do |mime_type|
+              values = mime_type.split(';').map(&:strip)
+              @nolinks = true if values.include? 'nolinks'
+              values.map(&:strip).map(&:downcase).each do |value|
+                throw :version, value.split("=")[1].to_f if value.starts_with? "version"
               end
             end
-          end
+            nil
+          end.presence || API_VERSION
 
-          #$requested_api_version = request.headers['X_API_VERSION'] 
-          if not version_header
-            $requested_api_version = API_VERSION
+          if SUPPORTED_API_VERSIONS.include? version
+            @requested_api_version = version
           else
-            $requested_api_version = version_header
-          end
-
-          if not SUPPORTED_API_VERSIONS.include? $requested_api_version
-            invalid_version = $requested_api_version
-            $requested_api_version = API_VERSION
-            return render_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
+            @requested_api_version = API_VERSION
+            render_error(:not_acceptable, "Requested API version #{version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
           end
         end
 
         def get_url
           @rest_url ||= "#{rest_url}/"
+        end
+
+        def set_locale
+          I18n.locale = nil
         end
 
         def nolinks

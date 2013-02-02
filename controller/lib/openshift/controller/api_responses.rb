@@ -29,7 +29,7 @@ module OpenShift
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
         #    msg,  err_code, field, and msg_type will be ignored.
         def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
-          reply = RestReply.new(status)
+          reply = new_rest_reply(status)
           if messages && !messages.empty?
             reply.messages.concat(messages)
             if log_tag
@@ -100,7 +100,7 @@ module OpenShift
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
         #    publish_msg, log_msg, and msg_type will be ignored.
         def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
-          reply = RestReply.new(status, type, data)
+          reply = new_rest_reply(status, type, data)
           if messages && !messages.empty?
             reply.messages.concat(messages)
             if log_tag

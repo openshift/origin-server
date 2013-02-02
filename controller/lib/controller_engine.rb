@@ -46,5 +46,7 @@ end
 
 module OpenShift
   class CloudEngine < ::Rails::Engine
+    config.autoload_paths << File.expand_path("../lib", __FILE__)
+    config.autoload_paths << File.expand_path("../app/rest_model", __FILE__)
   end
 end

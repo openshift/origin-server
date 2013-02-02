@@ -105,7 +105,7 @@ class AppEventsController < BaseController
       else
         RestApplication.new(application, get_url, nolinks)
       end
-    @reply = RestReply.new(:ok, "application", app)
+    @reply = new_rest_reply(:ok, "application", app)
     message = Message.new("INFO", msg)
     @reply.messages.push(message)
     respond_with @reply, :status => @reply.status
