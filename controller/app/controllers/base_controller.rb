@@ -1,11 +1,9 @@
 class BaseController < ActionController::Base
-  respond_to :json, :xml
   before_filter :check_version, :only => :show
   before_filter :check_nolinks
-  API_VERSION = 1.3
-  SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3]
   include OpenShift::Controller::ActionLog
   include OpenShift::Controller::ApiResponses
+  include OpenShift::Controller::ApiBehavior
   #Mongoid.logger.level = Logger::WARN
   #Moped.logger.level = Logger::WARN
   
@@ -16,10 +14,6 @@ class BaseController < ActionController::Base
   @application_uuid = nil
   
   before_filter :set_locale
-  def set_locale
-    # if params[:locale] is nil then I18n.default_locale will be used
-    I18n.locale = nil
-  end
 
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
@@ -148,69 +142,5 @@ class BaseController < ActionController::Base
       raise unless cu && (@cloud_user.parent_user_id == cu.parent_user_id)
       @cloud_user = cu
     end
-  end
-
-  def rest_replies_url(*args)
-    return "/broker/rest/api"
-  end
-  
-  def get_url
-    #Rails.logger.debug "Request URL: #{request.url}"
-    url = URI::join(request.url, "/broker/rest/")
-    #Rails.logger.debug "Request URL: #{url.to_s}"
-    return url.to_s
-  end
-
-  def nolinks
-    get_bool(params[:nolinks])
-  end
-  
-  def check_nolinks
-    begin
-      nolinks
-    rescue Exception => e
-      return render_exception(e)
-    end
-  end
- 
-  def check_version
-    accept_header = request.headers['Accept']
-    Rails.logger.debug accept_header    
-    mime_types = accept_header ? accept_header.split(%r{,\s*}) : []
-    version_header = API_VERSION
-    mime_types.each do |mime_type|
-      values = mime_type.split(%r{;\s*})
-      values.each do |value|
-        value = value.downcase
-        if value.include?("version")
-          version_header = value.split("=")[1].delete(' ').to_f
-        end
-      end
-    end
-    
-    #$requested_api_version = request.headers['X_API_VERSION'] 
-    if not version_header
-      $requested_api_version = API_VERSION
-    else
-      $requested_api_version = version_header
-    end
-    
-    if not SUPPORTED_API_VERSIONS.include? $requested_api_version
-      invalid_version = $requested_api_version
-      $requested_api_version = API_VERSION
-      return render_error(:not_acceptable, "Requested API version #{invalid_version} is not supported. Supported versions are #{SUPPORTED_API_VERSIONS.map{|v| v.to_s}.join(",")}")
-    end
-  end
-
-  def get_bool(param_value)
-    return false unless param_value
-    if param_value.is_a? TrueClass or param_value.is_a? FalseClass
-      return param_value
-    elsif param_value.is_a? String and param_value.upcase == "TRUE"
-      return true
-    elsif param_value.is_a? String and param_value.upcase == "FALSE"
-      return false
-    end
-    raise OpenShift::OOException.new("Invalid value '#{param_value}'. Valid options: [true, false]", 167)
   end
 end

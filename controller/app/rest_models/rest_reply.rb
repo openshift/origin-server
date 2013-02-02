@@ -7,7 +7,7 @@ class RestReply < OpenShift::Model
     self.data = data
     self.messages = []
     self.version = $requested_api_version.to_s
-    self.supported_api_versions = BaseController::SUPPORTED_API_VERSIONS
+    self.supported_api_versions = OpenShift::Controller::ApiBehavior::SUPPORTED_API_VERSIONS
   end
   
   def process_result_io(result_io)
