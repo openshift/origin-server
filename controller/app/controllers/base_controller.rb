@@ -4,7 +4,7 @@ class BaseController < ActionController::Base
   before_filter :check_nolinks
   API_VERSION = 1.3
   SUPPORTED_API_VERSIONS = [1.0, 1.1, 1.2, 1.3]
-  include UserActionLogger
+  include OpenShift::Controller::ActionLog
   #Mongoid.logger.level = Logger::WARN
   #Moped.logger.level = Logger::WARN
   
@@ -83,7 +83,6 @@ class BaseController < ActionController::Base
   def authenticate
     login = nil
     password = nil
-    @request_id = gen_req_uuid
     
     if request.headers['User-Agent'] == "OpenShift"
       if params['broker_auth_key'] && params['broker_auth_iv']
@@ -144,12 +143,13 @@ class BaseController < ActionController::Base
           init_user
         end
       end
-      
+
+      log_actions_as(@cloud_user)
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
     rescue OpenShift::UserException => e
       render_exception(e)
     rescue OpenShift::AccessDeniedException
-      log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_log_args)
+      log_action_for(login, nil, "AUTHENTICATE", true, "Access denied", get_extra_log_args)
       request_http_basic_authentication
     end
   end
@@ -284,18 +284,17 @@ class BaseController < ActionController::Base
   #    msg,  err_code, field, and msg_type will be ignored.
   def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
     reply = RestReply.new(status)
-    user_info = get_cloud_user_info(@cloud_user)
     if messages && !messages.empty?
       reply.messages.concat(messages)
       if log_tag
         log_msg = []
         messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, log_msg.join(', '), get_extra_log_args)
+        log_action(log_tag, !internal_error, log_msg.join(', '), get_extra_log_args)
       end
     else
       msg_type = :error unless msg_type
       reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, msg, get_extra_log_args) if log_tag
+      log_action(log_tag, !internal_error, msg, get_extra_log_args) if log_tag
     end
     respond_with reply, :status => reply.status
   end
@@ -308,7 +307,7 @@ class BaseController < ActionController::Base
   #  log_tag::
   #    Tag used in action logs
   def render_exception(ex, log_tag=nil)
-    Rails.logger.error "Reference ID: #{@request_id} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
+    Rails.logger.error "Reference ID: #{request.uuid} - #{ex.message}\n  #{ex.backtrace.join("\n  ")}"
     error_code = ex.respond_to?('code') ? ex.code : 1
     message = ex.message
     if ex.kind_of? OpenShift::UserException
@@ -324,7 +323,7 @@ class BaseController < ActionController::Base
           message = ex.resultIO.errorIO.string.strip
         end
         message ||= ""
-        message += "\nReference ID: #{@request_id}"
+        message += "\nReference ID: #{request.uuid}"
       end
     else
       status = :internal_server_error
@@ -356,18 +355,17 @@ class BaseController < ActionController::Base
   #    publish_msg, log_msg, and msg_type will be ignored.
   def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
     reply = RestReply.new(status, type, data)
-    user_info = get_cloud_user_info(@cloud_user)
     if messages && !messages.empty?
       reply.messages.concat(messages)
       if log_tag
         log_msg = []
         messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '), get_extra_log_args)
+        log_action(log_tag, true, log_msg.join(', '), get_extra_log_args)
       end
     else
       msg_type = :info unless msg_type
       reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-      log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg, get_extra_log_args) if log_tag
+      log_action(log_tag, true, log_msg, get_extra_log_args) if log_tag
     end
     respond_with reply, :status => reply.status
   end

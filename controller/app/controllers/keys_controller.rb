@@ -73,7 +73,7 @@ class KeysController < BaseController
     end
 
     if @cloud_user.ssh_keys.where(name: id).count == 0
-      log_action(@request_id, @cloud_user._id, @cloud_user.login, "UPDATE_KEY", false, "SSH key #{id} not found")
+      log_action("UPDATE_KEY", false, "SSH key #{id} not found")
       @reply = RestReply.new(:not_found)
       @reply.messages.push(Message.new(:error, "SSH key not found", 118))
       respond_with @reply, :status => @reply.status
@@ -83,14 +83,14 @@ class KeysController < BaseController
     begin
       @cloud_user.update_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
-      log_action(@request_id, @cloud_user._id, @cloud_user.login, "UPDATE_KEY", true, "Updated SSH key #{id}")
+      log_action("UPDATE_KEY", true, "Updated SSH key #{id}")
       @reply = RestReply.new(:ok, "key", ssh_key)
       @reply.messages.push(Message.new(:info, "Updated SSH key with name #{id} for user #{@login}"))
       respond_with @reply, :status => @reply.status
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code, "UPDATE_KEY")
     rescue Exception => e
-      log_action(@request_id, @cloud_user._id, @cloud_user.login, "UPDATE_KEY", false, "Failed to update SSH key #{id}: #{e.message}")
+      log_action("UPDATE_KEY", false, "Failed to update SSH key #{id}: #{e.message}")
       Rails.logger.error e
       Rails.logger.error e.backtrace
       @reply = RestReply.new(:internal_server_error)
