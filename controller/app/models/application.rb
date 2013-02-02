@@ -1153,21 +1153,21 @@ class Application
     gear_ids.each do |gear_id|
       host_singletons = (gear_id == singleton_gear_id)
       app_dns = (host_singletons && hosts_app_dns)
-      create_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
-      create_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
+      init_gear_op = PendingAppOp.new(op_type: :init_gear,   args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "host_singletons" => host_singletons, "app_dns" => app_dns})
+      init_gear_op.prereq = [ginst_op_id] unless ginst_op_id.nil?
+      reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
+      create_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
       track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
           "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
-      reserve_uid_op  = PendingAppOp.new(op_type: :reserve_uid,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
-      init_gear_op    = PendingAppOp.new(op_type: :create_gear,  args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [reserve_uid_op._id.to_s], retry_rollback_op: reserve_uid_op._id.to_s)
-      register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [init_gear_op._id.to_s])
+      register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
       fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
         args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
         prereq: [create_gear_op._id.to_s],
         saved_values: {"additional_filesystem_gb" => 0})
       pending_ops.push(init_gear_op)
+      pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
       pending_ops.push(track_usage_op)      
-      pending_ops.push(reserve_uid_op)
       pending_ops.push(register_dns_op)
       pending_ops.push(fs_op)
       if additional_filesystem_gb != 0
@@ -1438,8 +1438,10 @@ class Application
           ops = calculate_add_component_ops(change[:added], change[:from], gear_id_prereqs, singleton_gear._id.to_s, component_ops, false, nil)
           pending_ops.push(*ops)
 
+          changed_additional_filesystem_gb = nil
           #add/remove fs space from existing gears
           if change[:from_scale][:additional_filesystem_gb] != change[:to_scale][:additional_filesystem_gb]
+            changed_additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb]
             usage_prereq = []
             usage_prereq = [pending_ops.last._id.to_s] if pending_ops.last
             usage_ops = []
@@ -1470,7 +1472,7 @@ class Application
             comp_specs = self.component_instances.where(group_instance_id: group_instance._id).map{|c| c.to_hash}
             singleton_gear = group_instance.gears.find_by(host_singletons: true)
             gear_ids = (1..scale_change).map {|idx| Moped::BSON::ObjectId.new.to_s}
-            additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || group_instance.addtl_fs_gb
+            additional_filesystem_gb = changed_additional_filesystem_gb || group_instance.addtl_fs_gb
             gear_size = change[:to_scale][:gear_size] || group_instance.gear_size
 
             ops = calculate_gear_create_ops(change[:from], gear_ids, singleton_gear._id.to_s, comp_specs, component_ops, additional_filesystem_gb, gear_size, nil, true)
