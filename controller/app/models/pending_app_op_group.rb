@@ -36,12 +36,22 @@ class PendingAppOpGroup
   end
   
   def eligible_rollback_ops
-    self.with(consistency: :strong).reload
+    # reloading the op_group reloads the application and then incorrectly reloads (potentially)
+    # the op_group based on its position within the :pending_op_groups list
+    # hence, reloading the application, and then fetching the op_group using the _id
+    reloaded_app = Application.find_by(_id: application._id)
+    op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
+    self.pending_ops = op_group.pending_ops
     pending_ops.where(:state => :completed).select{|op| (pending_ops.where(:prereq => op._id.to_s, :state => :completed).count == 0)}
   end
   
   def eligible_ops
-    self.with(consistency: :strong).reload
+    # reloading the op_group reloads the application and then incorrectly reloads (potentially)
+    # the op_group based on its position within the :pending_op_groups list
+    # hence, reloading the application, and then fetching the op_group using the _id
+    reloaded_app = Application.find_by(_id: application._id)
+    op_group = reloaded_app.pending_op_groups.find_by(_id: self._id)
+    self.pending_ops = op_group.pending_ops
     pending_ops.where(:state.ne => :completed).select{|op| pending_ops.where(:_id.in => op.prereq, :state.ne => :completed).count == 0}
   end
   
