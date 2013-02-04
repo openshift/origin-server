@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.4
+Version: 1.4.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,29 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Merge pull request #1292 from pravisankar/dev/ravi/bug907373
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 907373 - Minor fix in oo-admin-chk (rpenta@redhat.com)
+- Bug 906759 - Add usage_rate_usd field to RestEmbeddedCartridge model
+  (rpenta@redhat.com)
+- Merge pull request #1287 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1284 from pravisankar/dev/ravi/bug906717
+  (dmcphers+openshiftbot@redhat.com)
+- Reloading the application and fetching the pending_op_groups from it instead
+  of reloading the embedded object (abhgupta@redhat.com)
+- Merge pull request #1279 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- adjust to 1.8.1 driver (dmcphers@redhat.com)
+- missed a file (dmcphers@redhat.com)
+- Bug 906717 - Fix additional storage for scaled gear (rpenta@redhat.com)
+- Fix for bug 906266 and bug 904913 (abhgupta@redhat.com)
+- Better naming (dmcphers@redhat.com)
+- Merge pull request #1276 from danmcp/master (dmcphers@redhat.com)
+- share db connection logic (dmcphers@redhat.com)
+- fix bz894976 - dont run connections on old container (rchopra@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Merge pull request #1269 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)
