@@ -198,7 +198,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value']]
+    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
