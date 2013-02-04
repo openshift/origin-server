@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -44,6 +44,10 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
+- remove default configuration since this prevent login ( RH#885479 )
+  (misc@zarb.org)
+
 * Sat Nov 17 2012 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
