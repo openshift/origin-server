@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_broker_auth_test"
 require 'test/unit'
 require 'test_helper'
 
