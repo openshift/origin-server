@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.5
+Version: 1.4.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,18 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Merge pull request #1265 from fotioslindiakos/storage
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing tests (fotios@redhat.com)
+- Moved can_modify_storage to controller and capabilities Use flash message if
+  user cannot modify storage (fotios@redhat.com)
+- Fixing functional tests (fotios@redhat.com)
+- Show gear_groups properly when the carts have different storage values
+  (fotios@redhat.com)
+- More changes (fotios@redhat.com)
+- US2441: Storage UI (fotios@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - popover title wasn't rendering - fix (sgoodwin@redhat.com)
 
