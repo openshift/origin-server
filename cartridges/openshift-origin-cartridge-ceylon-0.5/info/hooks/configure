@@ -63,7 +63,8 @@ secure_app_dir
 
 secure_cart_instance_dir
 
-secure_conf_dirs
+#TODO
+#secure_conf_dirs
 
 observe_setup_app_and_git_dirs
 
