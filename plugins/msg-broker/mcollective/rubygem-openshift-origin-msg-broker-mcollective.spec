@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.4.3
+Version: 1.4.4
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -86,6 +86,10 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Fix _id to uuid issue with districts (dmcphers@redhat.com)
+- share db connection logic (dmcphers@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - better error message (dmcphers@redhat.com)
 
