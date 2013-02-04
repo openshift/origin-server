@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.4.4
+Version: 1.4.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -157,6 +157,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Merge pull request #1285 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- BZ906845 (bdecoste@gmail.com)
+- BZ906845 (bdecoste@gmail.com)
+- BZ906845 (bdecoste@gmail.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - add Fedora link to AS base for AS7 (bdecoste@gmail.com)
 
