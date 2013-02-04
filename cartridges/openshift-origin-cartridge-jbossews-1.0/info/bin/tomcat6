@@ -41,16 +41,16 @@ replace_envs
 max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
 max_threads=`ulimit -u`
 
-if [ "x$JVM_HEAP_RATIO" = "x" ]; then
+if [ -z $JVM_HEAP_RATIO ]; then
 	JVM_HEAP_RATIO=0.5
 fi
-if [ "x$JVM_PERMGEN_RATIO" = "x" ]; then
+if [ -z $JVM_PERMGEN_RATIO ]; then
 	JVM_PERMGEN_RATIO=0.2
 fi
 
 max_memory_mb=`expr $max_memory_bytes / 1048576`
-max_heap=`echo $( echo "$max_memory_mb * $JVM_HEAP_RATIO" | bc )|awk '{print int($1+0.5)}'`
-max_permgen=`echo $( echo "$max_memory_mb * $JVM_PERMGEN_RATIO" | bc )|awk '{print int($1+0.5)}'`
+max_heap=$( echo "$max_memory_mb * $JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+max_permgen=$( echo "$max_memory_mb * $JVM_PERMGEN_RATIO" | bc | awk '{print int($1+0.5)}')
 
 if [ $max_permgen -gt 256 ]
 then
@@ -62,7 +62,7 @@ memory_options="-Xmx${max_heap}m -XX:MaxPermSize=${max_permgen}m -XX:+Aggressive
 #
 # Specify options to pass to the Java VM.
 #
-if [ "x$JAVA_OPTS" = "x" ]; then
+if [ -z $JAVA_OPTS ]; then
    JAVA_OPTS="$memory_options -Djava.util.logging.config.file=$CATALINA_BASE/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true"                                                                                                                                    
 
    if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
