@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.1.4
+Version: 0.1.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- Ensure python is tagged vith versions (ccoleman@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
 - Fix community git url to the openshift forked version (thanks kraman for
   forking that) of the cartridges. (smitram@gmail.com)
