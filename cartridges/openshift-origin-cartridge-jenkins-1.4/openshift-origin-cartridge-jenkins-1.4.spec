@@ -2,7 +2,7 @@
 
 Summary:   Provides jenkins-1.4 support
 Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.4.3
+Version: 1.4.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -90,6 +90,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Add remote debugging support to Jenkins (ironcladlou@gmail.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Bug 906454: Update Jenkins job configs during domain update
   (ironcladlou@gmail.com)
