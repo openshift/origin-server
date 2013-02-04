@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.8
-Version: 1.4.2
+Version: 1.4.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -127,6 +127,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Bug 906671: Fix log location in Ruby tidy hook (ironcladlou@gmail.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)
