@@ -91,7 +91,7 @@ end
 def set_max_storage(user, maxstorage)
     user_capabilities = user.get_capabilities
     if user_capabilities["max_storage_per_gear"] == maxstorage
-        puts "User already has max_storage_per_gear set to #{user.max_storage_per_gear}"
+        puts "User already has max_storage_per_gear set to #{user_capabilities['max_storage_per_gear']}"
         return
     end
 
