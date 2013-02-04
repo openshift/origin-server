@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.5
+Version:        1.4.6
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -73,6 +73,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-accept-systems.8.gz
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Merge pull request #1265 from fotioslindiakos/storage
+  (dmcphers+openshiftbot@redhat.com)
+- Fix setting max_storage for oo-admin-ctl-user (fotios@redhat.com)
+- Added ability to set max storage to oo-admin-ctl-user (fotios@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - Bug 901444 Fixing bad merge (dmcphers@redhat.com)
 - Better naming (dmcphers@redhat.com)
