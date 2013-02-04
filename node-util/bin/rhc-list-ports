@@ -5,6 +5,14 @@
 /usr/sbin/lsof -iTCP -sTCP:LISTEN -P 2> /dev/null | /bin/awk '/LISTEN/{ print $9 }' | /bin/sort -u
 /usr/sbin/lsof -iTCP -sTCP:LISTEN -P 2> /dev/null | /bin/awk '/LISTEN/{ print $1" -> "$9 }' | /bin/sort -u 1>&2
 
+# List ports of attached databases available to user:
+
+for f in $(ls -1 ~/.env/.uservars/*_DB_HOST 2>/dev/null); do
+    DB=$(echo $f |sed -e 's/.*OPENSHIFT_\(.*\)_DB_HOST/\1/' |tr '[A-Z]' '[a-z]')
+    PORT_FILE=$(echo $f |sed 's/_DB_HOST/_DB_PORT/')
+    echo $DB '->' $(cat $f)\:$(cat $PORT_FILE)
+done
+
 gear_registry="./haproxy-1.4/conf/gear-registry.db"
 if [ -f "$gear_registry" ]; then
     cat "$gear_registry" | while read line; do echo "$line" |  \
