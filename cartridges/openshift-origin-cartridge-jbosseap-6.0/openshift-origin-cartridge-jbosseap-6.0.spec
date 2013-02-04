@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEAP6.0 support
 Name:      openshift-origin-cartridge-jbosseap-6.0
-Version: 1.4.3
+Version: 1.4.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -162,6 +162,12 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Merge pull request #1285 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- BZ906845 (bdecoste@gmail.com)
+- BZ906845 (bdecoste@gmail.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Collect/Sync Usage data for EAP cart (rpenta@redhat.com)
 
