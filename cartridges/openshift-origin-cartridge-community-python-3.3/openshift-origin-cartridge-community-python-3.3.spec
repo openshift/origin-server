@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version: 0.1.3
+Version: 0.1.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Fix community git url to the openshift forked version (thanks kraman for
+  forking that) of the cartridges. (smitram@gmail.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Fix bug where first provider is used by the broker and it ends up switching
   between python 2.7 and python 3.3 on a db add. Set the first provider to the
