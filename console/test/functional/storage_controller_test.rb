@@ -1,13 +1,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class StorageControllerTest < ActionController::TestCase
-  test "should get redirected from show without max_storage_per_gear" do
-    get :show, {:application_id => with_app.to_param}
-    app = assigns(:application)
-
-    assert_redirected_to new_application_storage_path(app)
-  end
-
   test "should show with max_storage_per_gear" do
     get :show, {:application_id => with_storage_app.to_param}
 
