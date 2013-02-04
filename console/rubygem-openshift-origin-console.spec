@@ -9,8 +9,8 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.4
-Release:        2%{?dist}
+Version: 1.4.5
+Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- popover title wasn't rendering - fix (sgoodwin@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-2
 - bump spec for chainbuild (admiller@redhat.com)
 
