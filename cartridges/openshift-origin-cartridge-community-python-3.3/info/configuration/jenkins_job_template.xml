@@ -64,11 +64,10 @@
       <command>
 source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
-venv_excludes="--exclude=bin/activate --exclude=pyvenv.cfg"
-alias rsync="rsync $venv_excludes --delete-after -az -e '$GIT_SSH'"
+alias rsync="rsync --exclude-from='/usr/libexec/openshift/cartridges/python-3.3/info/configuration/rsync.excludes' --delete-after -az -e '$GIT_SSH'"
 
 # Sync cache - Faster builds
-rsync UPSTREAM_SSH:~/python-3.3/venv/ ~/python-3.3/venv/
+rsync UPSTREAM_SSH:~/python-3.3/virtenv/venv/ ~/python-3.3/virtenv/venv/
 
 # Build/update libs and run user pre_build and build
 . ci_build.sh
@@ -81,7 +80,7 @@ rsync UPSTREAM_SSH:~/python-3.3/venv/ ~/python-3.3/venv/
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/python-3.3/venv/ UPSTREAM_SSH:~/python-3.3/venv/
+rsync ~/python-3.3/virtenv/venv/ UPSTREAM_SSH:~/python-3.3/virtenv/venv/
 rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/app-root/runtime/repo/
 
 # Configure / start app
