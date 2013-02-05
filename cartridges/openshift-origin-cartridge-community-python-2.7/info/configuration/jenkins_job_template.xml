@@ -64,7 +64,7 @@
       <command>
 source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+alias rsync="rsync --exclude-from='/usr/libexec/openshift/cartridges/python-2.7/info/configuration/rsync.excludes' --delete-after -az -e '$GIT_SSH'"
 
 # Sync cache - Faster builds
 rsync UPSTREAM_SSH:~/python-2.7/virtenv/ ~/python-2.7/virtenv/
