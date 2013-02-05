@@ -30,13 +30,33 @@ class DistrictTest < ActiveSupport::TestCase
     uid = District.reserve_uid(orig_d.uuid)
     assert(uid.nil?)
     
-    2.times do |i| 
+    2.times do |i|
       District.unreserve_uid(orig_d.uuid, 1)
       new_d = District.find_by(uuid: orig_d.uuid)
       assert_equal(1, new_d.available_uids.length)
       assert_equal(1 , new_d.available_capacity)
       assert(new_d.available_uids.include?(1))
-    end  
+    end
+
+    d = get_district_obj
+    d.save!
+    d.available_capacity.times do |i|
+      uid = District.reserve_uid(d.uuid)
+    end
+
+    uid = District.reserve_uid(d.uuid)
+    assert_nil uid
+  end
+  
+  test "reserve given district uid" do
+    d = get_district_obj
+    d.save!
+    d = District.find_by(uuid: d.uuid)
+    assert(!d.available_uids.include?(6001))
+    available_capacity_before = d.available_capacity
+    assert(!d.reserve_given_uid(6001))
+    d = District.find_by(uuid: d.uuid)
+    assert_equal(available_capacity_before, d.available_capacity)
   end
 
   test "inc district externally reserved uids size" do
