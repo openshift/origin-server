@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 1.4.3
+Version: 1.4.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -201,6 +201,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Bug 903548 - Fix the website url on the Ruby 1.9 cart (ccoleman@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Bug 906671: Fix log location in Ruby tidy hook (ironcladlou@gmail.com)
 
