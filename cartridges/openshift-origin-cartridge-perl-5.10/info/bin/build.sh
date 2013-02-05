@@ -41,13 +41,13 @@ then
            echo "***  Please add $f to deplist.txt to install it from CPAN."
            continue;
         fi
-        ENABLE_TEST=""
+        DISABLE_TEST="-n"
         if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_cpan_tests" ]
         then
             echo ".openshift/markers/enable_cpan_tests!  enabling default cpan tests" 1>&2
-            ENABLE_TEST="-n"
+            DISABLE_TEST=""
         fi
-        cpanm $ENABLE_TEST $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
+        cpanm $DISABLE_TEST $OPENSHIFT_CPAN_MIRROR -L ~/${cartridge_type}/perl5lib "$f"
     done
 fi
 
