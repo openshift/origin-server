@@ -9,8 +9,8 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.7
-Release:        2%{?dist}
+Version: 1.4.8
+Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -124,6 +124,13 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.8-1
+- Merge pull request #1309 from smarterclayton/improve_capability_extension
+  (dmcphers+openshiftbot@redhat.com)
+- Fix caching issues in plan controller, handle new attributes, revert to
+  correct version of Rails model lookup code (caused Cartridge.prefix to be
+  reset) (ccoleman@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-2
 - bump for chainbuild
 
