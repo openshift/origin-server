@@ -5,3 +5,4 @@ log/*
 tmp/*
 public/stylesheets/.sass-cache/
 Gemfile.lock
+test/coverage
