@@ -8,7 +8,7 @@ module CapabilityAware
   def current_api_user
     @current_api_user ||= begin
         @user_capabilities = nil
-        session[:user_capabilities] = nil
+        session[:caps] = nil
         User.find :one, :as => current_user
       end
   end
@@ -17,9 +17,10 @@ module CapabilityAware
   # refresh of the values stored in session
   def user_capabilities(args = {})
     @user_capabilities = nil if args[:refresh]
+    model = Console.config.capabilities_model_class
     @user_capabilities ||=
-      (Capabilities::Cacheable.from(session[:user_capabilities]) rescue nil) ||
-      current_api_user.to_capabilities.tap{ |c| session[:user_capabilities] = c.to_a }
+      (model.from(session[:caps]) rescue nil) ||
+      model.from(current_api_user).tap{ |c| session[:caps] = c.to_session }
   end
 end
 RestApi::Base.observers << UserSessionSweeper
