@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.5
+Version: 1.4.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -79,6 +79,16 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Fix for bug 907683 - Reloading from primary (abhgupta@redhat.com)
+- Merge pull request #1303 from pravisankar/dev/ravi/app-lock-timeout
+  (dmcphers+openshiftbot@redhat.com)
+- fix issue with reserve given not taking the valid uid (dmcphers@redhat.com)
+- - Added Application Lock Timeout (default: 10 mins) - Unit tests for Lock
+  model (rpenta@redhat.com)
+- Setting quota on new gear only if additional storage is specified
+  (abhgupta@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - Merge pull request #1292 from pravisankar/dev/ravi/bug907373
   (dmcphers+openshiftbot@redhat.com)
