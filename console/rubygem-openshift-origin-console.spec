@@ -9,7 +9,7 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.6
+Version: 1.4.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -124,6 +124,17 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- Merge pull request #1302 from smarterclayton/restore_uppercase_bits
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1301 from smarterclayton/fix_firesass_support
+  (dmcphers+openshiftbot@redhat.com)
+- Restore uppercase style (ccoleman@redhat.com)
+- Fix FireSass support in origin (ccoleman@redhat.com)
+- Merge pull request #1295 from smarterclayton/hide_service_tag
+  (dmcphers+openshiftbot@redhat.com)
+- Hide the service tag in the UI (ccoleman@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
 - Merge pull request #1265 from fotioslindiakos/storage
   (dmcphers+openshiftbot@redhat.com)
