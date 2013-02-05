@@ -14,7 +14,8 @@ namespace :test do
     t.test_files = FileList[
       'test/unit/cloud_user_test.rb',
       'test/unit/district_test.rb',
-      'test/unit/usage_model_test.rb'
+      'test/unit/usage_model_test.rb',
+      'test/unit/lock_test.rb'
     ]
   end
 
