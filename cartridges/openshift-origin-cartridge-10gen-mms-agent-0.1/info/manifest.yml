@@ -23,5 +23,8 @@ Subscribes:
 Scaling:
   Min: 1
   Max: 1
+Configure-Order:
+  - mongodb
+  - 10gen-mms-agent-0.1
 Endpoints:
   - PROXY_PORT: 8080
