@@ -32,7 +32,7 @@ optparse = OptionParser.new { |opts|
                 "\nExample: #{$0} -v -w 1" +
 		"\n\nCheck for correctness and consistency across the installation systems\n\n"
 
-    opts.on('-w','--wait seconds', Integer, 'Seconds to wait for node responses (default 5)') do |wait|
+    opts.on('-w','--wait seconds', Float, 'Seconds to wait for node responses (default 5)') do |wait|
       OOAS_OPTIONS[:wait] = wait
     end
     opts.on('-v','--verbose', 'Print verbose statements') { |verbose| OOAS_OPTIONS[:verbose] = verbose }
@@ -199,7 +199,16 @@ end
 # from elsewhere, just load the methods without running any.
 
 if __FILE__ == $0
-  optparse.parse!
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
+    exit 1
+  end
+
   $OOAS_STATUS=0
   load_rails_env
   check_nodes_public_hostname

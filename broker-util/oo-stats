@@ -859,8 +859,8 @@ if __FILE__ == $0
       Switches:
     USAGE
 
-    opts.on('-w','--wait SECONDS', Integer, <<WAIT) { |wait| options[:wait] = wait }
-Seconds for broker to wait for node responses (integer, default 2).
+    opts.on('-w','--wait SECONDS', Float, <<WAIT) { |wait| options[:wait] = wait }
+Seconds for broker to wait for node responses (default 2).
 \tIf nodes are not responding in time, increase this as needed.
 WAIT
     opts.on('-d','--db', <<USER) { |x| options[:db_stats] = x }
@@ -886,9 +886,10 @@ FORMAT
   begin
     optparse.parse!
   rescue OptionParser::InvalidArgument => e
-    puts e.message
-    puts "\n" + optparse.to_s
-    puts "\n" + e.message
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
     exit 1
   end
 
