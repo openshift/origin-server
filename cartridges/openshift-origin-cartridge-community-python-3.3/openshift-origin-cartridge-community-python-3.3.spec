@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version: 0.1.5
+Version: 0.1.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,13 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- Bug 907426 - [US3327]Jenkins build failed for python-2.7/python-3.3 apps
+  (smitram@gmail.com)
+- Bug 907372 - [US3327]Meet error "could not create 'YourAppName.egg-info':
+  Permission denied" when snapshot restored for python-2.7/python-3.3 apps
+  (smitram@gmail.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
 - Ensure python is tagged vith versions (ccoleman@redhat.com)
 
