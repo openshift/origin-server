@@ -124,7 +124,7 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
-* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> - 1.4.7-2
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-2
 - bump for chainbuild
 
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
