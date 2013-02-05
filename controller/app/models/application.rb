@@ -1160,21 +1160,24 @@ class Application
       track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
           "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
       register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
-      fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
-        args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
-        prereq: [create_gear_op._id.to_s],
-        saved_values: {"additional_filesystem_gb" => 0})
       pending_ops.push(init_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
       pending_ops.push(track_usage_op)      
       pending_ops.push(register_dns_op)
-      pending_ops.push(fs_op)
+
       if additional_filesystem_gb != 0
+        fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+          args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
+          prereq: [create_gear_op._id.to_s],
+          saved_values: {"additional_filesystem_gb" => 0})
+        pending_ops.push(fs_op)
+
         track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
           "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
+
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
 
