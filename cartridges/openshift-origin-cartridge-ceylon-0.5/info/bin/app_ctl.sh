@@ -24,7 +24,7 @@ CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
 APP_DIR=${CART_DIR}/${cartridge_type}
 APP_LOG_PATH=${CART_DIR}/${cartridge_type}/log/ceylon.log
 
-APP_BIN_DIR="$APP_DIR"/bin
+APP_BIN_DIR="$CEYLON_HOME"/bin
 
 PID_FILE="${CART_DIR}/run/ceylon.pid"
 
@@ -57,11 +57,25 @@ function start_app() {
         else
             src_user_hook pre_start_${cartridge_type}
             set_app_state started
+
+			JAVA_OPTS="-Dhttpd.bind.host=${OPENSHIFT_INTERNAL_IP}"
+			JAVA_OPTS="$JAVA_OPTS -Dcom.redhat.ceylon.common.tool.terminal.width=9999" #do not wrap output
+            if [ "${ENABLE_JPDA:-0}" -eq 1 ] ; then
+				JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n"
+            fi
+            
+            PRESERVE_JAVA_OPTS="true"
+            export $PRESERVE_JAVA_OPTS
+			export $JAVA_OPTS
+
+			ceylon_repos="--rep http://modules.ceylon-lang.org/test/"
+			ceylon_repos="${ceylon_repos} --rep ${CEYLON_REPO}"
+			ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}/.openshift/config/modules"
+            
+            source ${OPENSHIFT_REPO_DIR}/.openshift/config/ceylon.properties
+
             # Start
-            jopts="${JAVA_OPTS}"
-            [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n ${JAVA_OPTS}"
-            #TODO prepare ceylon.sh
-            JAVA_OPTS="${jopts}" $APP_BIN_DIR/ceylon.sh > ${APP_LOG_PATH} 2>&1 &
+            $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} > ${APP_LOG_PATH} 2>&1 &
             PROCESS_ID=$!
             echo $PROCESS_ID > $PID_FILE
             if ! ishttpup; then
