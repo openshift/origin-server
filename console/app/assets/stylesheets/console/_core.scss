@@ -591,11 +591,12 @@ $cartridgeBorderWidth: 10px;
 
 .section-console h6 {
   color: #9a9b9c;
-   font-weight: normal;
+  font-weight: normal;
   }
-.data {
+.section-console .bits .data {
   color: #eaebec;
-  text-transform: capitalize;
+  text-transform: uppercase;
+  font-size: $baseFontSize * 0.90; // match h6
   }
 
 .cartridge_type.installed,
