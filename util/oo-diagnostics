@@ -37,7 +37,7 @@ class OODiag
   require 'tempfile'
   def initialize(options = nil)
     @options = options || @options || {
-      :wait => 5,
+      :wait => 2,
       :verbose => false,
     }
     @errors = 0
@@ -1039,7 +1039,7 @@ if __FILE__ == $0
   #
   require 'optparse'
   options = {
-    :wait => 5,
+    :wait => 2,
     :verbose => false,
   }
   optparse = OptionParser.new { |opts|
@@ -1054,12 +1054,21 @@ if __FILE__ == $0
     USAGE
 
     opts.on('-v','--verbose', 'Print verbose statements') { |verbose| options[:verbose] = verbose }
-    opts.on('-w','--wait seconds', Integer,
-            'Seconds for broker to wait for node responses (default 5)') { |wait| options[:wait] = wait }
+    opts.on('-w','--wait seconds', Float,
+            'Seconds for broker to wait for node responses (default 2)') { |wait| options[:wait] = wait }
     opts.on('-o','--abortok', 'Continue tests even when an abort is thrown by a test') { |abortok| options[:abortok] = abortok }
     opts.on('-h','--help', 'Print usage') { puts opts; exit 0 }
   }
-  optparse.parse!
+
+  begin
+    optparse.parse!
+  rescue OptionParser::InvalidArgument => e
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
+    exit 1
+  end
   options[:tests] = ARGV
 
   #
