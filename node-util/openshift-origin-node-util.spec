@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.4.4
+Version: 1.4.5
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -103,6 +103,10 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Bug 876247 - Report attached databases in a scaled application via rhc-list-
+  ports (jhonce@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - setup the namespace configuration oo-setup-node (misc@zarb.org)
 
