@@ -8,10 +8,10 @@
 class Lock
   include Mongoid::Document
   
-  has_and_belongs_to_many :apps, class_name: Application.name, inverse_of: nil
   belongs_to :user, class_name: CloudUser.name
   field :locked, type: Boolean, default: false
   field :timeout, type: Integer, default: 0
+  field :app_ids, type: Hash, default: {}
 
   # Attempts to lock the {CloudUser}. Once locked, no other threads can obtain a lock on the {CloudUser} or any owned {Application}s.
   # This lock is denied if any of the {Application}s owned by the {CloudUser} are currently locked.
@@ -30,12 +30,16 @@ class Lock
   def self.delete_lock(user)
     lock = Lock.delete( :user_id => user._id )
   end
-  
-  def self.lock_user(user, app)
+ 
+  # Attempts to lock the {CloudUser}. 
+  # NOTE: User lock is available only for user apps with application lock.
+  def self.lock_user(user, app, timeout=600)
     begin
-      timenow = Time.now.to_i
+      now = Time.now.to_i
       lock = Lock.find_or_create_by( :user_id => user._id )
-      lock = Lock.where( {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lte => timenow}], :app_ids => app._id} ).find_and_modify( {"$set" => { locked: true, timeout: (timenow+600) }}, new:true)
+      query = {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids.#{app._id}" => { "$exists" => true }}
+      updates = {"$set" => { locked: true, timeout: (now + timeout) }}
+      lock = Lock.where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -51,12 +55,14 @@ class Lock
   # == Returns:
   # True if the unlock was succesful.
   def self.unlock_user(user, app)
-    begin    
-      lock = Lock.where( { :user_id => user._id, :locked => true, :app_ids => app._id} ).find_and_modify( {"$set" => { "locked" => false}}, new:true)
+    begin
+      query = {:user_id => user._id, :locked => true, "app_ids.#{app._id}" => { "$exists" => true }}
+      updates = {"$set" => { "locked" => false }}
+      lock = Lock.where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
-    end    
+    end
   end
   
   # Attempts to lock an {Application}. Once locked, no other threads can obtain a lock on the {Application} or the {CloudUser} that owns it.
@@ -68,18 +74,22 @@ class Lock
   #
   # == Returns:
   # True if the lock was succesful.
-  def self.lock_application(application)
-    begin    
+  def self.lock_application(application, timeout=600)
+    begin
       user_id = application.domain.owner_id
-      lock = Lock.where( { :user_id => user_id, :app_ids.nin => [application._id] } ).find_and_modify( {"$push"=> {app_ids: application._id}}, new:true)
+      app_id = application._id.to_s
+      now = Time.now.to_i
+      query = { :user_id => user_id, "$or" => [{"app_ids.#{app_id}" => {"$exists" => false}}, {"app_ids.#{app_id}" => {"$lt" => now}}] }
+      updates = {"$set"=> { "app_ids.#{app_id}" => (now + timeout) }}
+      lock = Lock.where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to obtain lock for application #{application.name}: #{ex.message}"
       return false
-    end      
+    end
   end
   
-  # Attempts to unlock an {Application}. 
+  # Attempts to unlock an {Application}.
   #
   # == Parameters:
   # application::
@@ -88,9 +98,12 @@ class Lock
   # == Returns:
   # True if the unlock was succesful.
   def self.unlock_application(application)
-    begin    
+    begin
       user_id = application.domain.owner_id
-      lock = Lock.where( { user_id: user_id, locked: false, :app_ids => application._id} ).find_and_modify( {"$pull"=> {app_ids: application._id}}, new:true)
+      app_id = application._id.to_s
+      query = {:user_id => user_id, :locked => false, "app_ids.#{app_id}" => { "$exists" => true }}
+      updates = {"$unset"=> {"app_ids.#{app_id}" => ""}}
+      lock = Lock.where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to unlock application #{application.name}: #{ex.message}"
