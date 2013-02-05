@@ -14,7 +14,7 @@ then
    source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_ceylon
 fi
         
-find source/ -name *\.ceylon -o -name *\.java -print0 | xargs -0 -J% " compile %"
+find ${OPENSHIFT_REPO_DIR}/source/ -name *\.ceylon -o -name *\.java -print0 | xargs -0 -I% " compile %"
 compile_files=`find source/ -name *\.ceylon -o -name *\.java`
 printf "Compiling files:\n$files\n"
 ${CEYLON_HOME}/bin/ceylon compile --out ${CEYLON_REPO} ${compile_files}

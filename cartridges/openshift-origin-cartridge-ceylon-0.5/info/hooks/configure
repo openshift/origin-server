@@ -81,7 +81,7 @@ create_standard_repo_dir_env_var
 create_standard_path_env_var
 
 CEYLON_HOME=/usr/lib/ceylon/0.5
-CEYLON_REPO=${OPENSHIFT_DATA_DIR}/ceylon/repo
+CEYLON_REPO=$APP_HOME/app-root/data/ceylon/repo
 mkdir -p ${CEYLON_REPO}
 chown -R $user_id.$group_id ${CEYLON_REPO}
 
