@@ -10,7 +10,7 @@
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
 Version: 1.4.7
-Release:        1%{?dist}
+Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -124,6 +124,9 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> - 1.4.7-2
+- bump for chainbuild
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
 - Merge pull request #1302 from smarterclayton/restore_uppercase_bits
   (dmcphers+openshiftbot@redhat.com)
