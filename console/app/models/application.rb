@@ -1,10 +1,6 @@
 #
 # The REST API model object representing an application instance.
 #
-
-# Explicitly require the gear group to prevent race conditions with autoload - http://bit.ly/SVrPH3
-require 'gear_group'
-
 class Application < RestApi::Base
   include AsyncAware
 

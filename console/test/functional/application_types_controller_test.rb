@@ -178,13 +178,13 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # confirm the session is clear of relevant keys
-    assert session.has_key?(:user_capabilities) == false
+    assert !session.has_key?(:caps)
 
     # make the request
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, true], session[:user_capabilities]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, nil, true], session[:caps]
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
@@ -198,13 +198,13 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     type = types[0]
 
     # seed the cache with values that will never be returned by the broker.
-    session[:user_capabilities] = ['test_value','test_value',['test_value','test_value'], 'test_value']
+    session[:caps] = ['test_value','test_value',['test_value','test_value'], 'test_value']
 
     # make the request
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, true], session[:user_capabilities]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, nil, true], session[:caps]
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes

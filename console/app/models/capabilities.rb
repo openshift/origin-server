@@ -10,8 +10,8 @@ module Capabilities
     include Helpers
   end
 
-  def to_capabilities
-    raise "to_capabilities must be implemented"
+  def gear_sizes
+    Array(capabilities[:gear_sizes]).map(&:to_sym)
   end
 
   module Helpers
@@ -25,33 +25,41 @@ module Capabilities
   end
 
   class Cacheable
+    class_attribute :attrs
+    def self.cache_attribute(*attrs)
+      self.attrs ||= []
+      return self.attrs if attrs.empty?
+      self.attrs += attrs
+      attrs.each{ |s| attr_reader s }
+    end
+
+    #
+    # Raise if the values cannot be converted
+    #
+    def self.from(obj)
+      case obj
+      when Array then new(*obj)
+      when Hash then  new(*attrs.map{ |s| obj[s] || obj[s.to_s] })
+      else            new(*attrs.map{ |s| obj.send(s) })
+      end if obj
+    end
+
     # Changing this order will break serialization of cached data
-    ATTRS = [:max_gears, :consumed_gears, :gear_sizes].
-            concat(Console.config.cached_capabilities).
-            each{ |s| attr_reader s }
+    cache_attribute :max_gears, :consumed_gears, :gear_sizes, :plan_id
 
     include Helpers
 
     def initialize(*args)
       arg = args.each
-      ATTRS.each{ |t| send("#{t}=", arg.next) }
+      self.class.attrs.each{ |t| send("#{t}=", arg.next) }
     rescue StopIteration
     end
 
-    def self.from(obj)
-      case obj
-      when Array then new(*obj)
-      when Hash then  new(*ATTRS.map{ |s| obj[s] || obj[s.to_s] })
-      else            new(*ATTRS.map{ |s| obj.send(s) })
-      end if obj
-    end
-
-    def to_capabilities
-      self
-    end
-
     def to_a
-      ATTRS.map{ |s| send(s) }.map!{ |v| v == UnlimitedGears ? nil : v }
+      self.class.attrs.map{ |s| send(s) }.map!{ |v| v == UnlimitedGears ? nil : v }
+    end
+    def to_session
+      to_a
     end
 
     def gear_sizes
@@ -61,7 +69,7 @@ module Capabilities
       @max_gears || UnlimitedGears
     end
 
-    private
+    protected
       def max_gears=(i)
         @max_gears = i ? Integer(i) : nil
       end
@@ -71,7 +79,8 @@ module Capabilities
       def gear_sizes=(arr)
         @gear_sizes = Array(arr)
       end
-
-      Console.config.cached_capabilities.each{ |s| attr_writer s }
+      def plan_id=(id)
+        @plan_id = id.nil? ? nil : id.to_s
+      end
   end
 end

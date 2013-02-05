@@ -67,33 +67,14 @@ class ActiveResource::Base
       find_or_create_resource_for(ActiveSupport::Inflector.singularize(name.to_s))
     end
 
+    alias_method :original_find_or_create_resource_for, :find_or_create_resource_for
+    # Tries to find a resource for a given name; if it fails, then the resource is created
     def find_or_create_resource_for(name)
       # also sanitize names with dashes
       name = name.to_s.gsub(/[^\w\:]/, '_')
       # association support
       return reflections[name.to_sym].klass if reflections.key?(name.to_sym)
-
-      resource_name = name.to_s.camelize
-      ancestors = self.class.name.split("::")
-      if ancestors.size > 1
-        find_resource_in_modules(resource_name, ancestors)
-      else
-        self.class.const_get(resource_name)
-      end
-    rescue NameError => e
-      begin
-        if self.class.const_defined?(resource_name)
-          resource = self.class.const_get(resource_name)
-        else
-          resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
-        end
-      rescue NameError # invalid constant name (starting by number for example)
-        resource_name = 'Constant' + resource_name
-        resource = self.class.const_set(resource_name, Class.new(ActiveResource::Base))
-      end
-      resource.prefix = self.class.prefix_source
-      resource.site   = self.class.site
-      resource
+      original_find_or_create_resource_for(name)
     end
 end
 

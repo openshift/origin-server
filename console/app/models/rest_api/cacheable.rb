@@ -80,8 +80,8 @@ module RestApi
           key
         end
 
-        def cache_find_method(symbol, key=[name, "find_#{symbol}"])
-          cache_method "find_#{symbol}", key, :before => remove_authorization_from_model
+        def cache_find_method(symbol, key=[name, "find_#{symbol}"], opts={})
+          cache_method "find_#{symbol}", key, opts.reverse_merge!(:before => remove_authorization_from_model)
         end
         def remove_authorization_from_model
           lambda { |e| Array(e).each { |c| c.as = nil } }

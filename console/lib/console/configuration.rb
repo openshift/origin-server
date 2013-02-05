@@ -36,11 +36,15 @@ module Console
     config_accessor :include_helpers
 
     #
-    # Additional user capabilities to cache in
-    # the session. Changing the order of this 
-    # value will break existing sessions.
+    # A class that represents the capabilities object
     #
-    config_accessor :cached_capabilities
+    # Must implement:
+    #
+    #   - new(User)
+    #   - from(<session_object>)
+    #   - #to_session => <session_object>
+    #
+    config_accessor :capabilities_model
 
     Builtin = {
       :openshift => {
@@ -99,6 +103,14 @@ module Console
     end
     def user_agent=(agent)
       @user_agent = agent
+    end
+
+    def capabilities_model_class
+      @capabilities_model_class ||= @capabilities_model.constantize
+    end
+    def capabilities_model=(name)
+      @capabilities_model_class = nil
+      @capabilities_model = name
     end
 
     protected
@@ -166,6 +178,6 @@ module Console
     config.parent_controller = 'ApplicationController'
     config.security_controller = 'Console::Auth::Basic'
     config.include_helpers = true
-    config.cached_capabilities = []
+    config.capabilities_model = 'Capabilities::Cacheable'
   end
 end
