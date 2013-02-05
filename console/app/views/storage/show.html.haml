@@ -1,9 +1,6 @@
 - breadcrumb_for_application @application, 'Change Gear Storage'
 - content_for :page_title, 'Change Gear Storage'
 
--# This will only render if we have this partial, like in Online or if an admin wants to provide information
-- flash.now[:info] = render('increase_storage') unless @can_modify_storage
-
 %h1 Change Gear Storage
 
 %section#storage-gear-groups
@@ -27,6 +24,9 @@
             $ ssh #{@application.ssh_string}
             > quota
 
+  -# This will only render if we have this partial, like in Online or if an admin wants to provide information
+  = render('increase_storage') unless @can_modify_storage
+
   - @gear_groups.each_with_index do |group,g|
     :ruby
       cartridge = group.cartridges.first
@@ -36,47 +36,47 @@
         = cartridge.display_name
         %span.pull-right= scaled_cartridge_storage(cartridge)
 
-      = semantic_form_for cartridge,
-                          :simple => true,
-                          :method => :put,
-                          :url => application_storage_cartridge_path(@application.id, cartridge.name) do |f|
+      %p
+        Each gear this cartridge is deployed to has #{cartridge.base_gear_storage}GB of included storage.
 
-        = f.semantic_errors :additional_gear_storage
-
+      - if cartridge.scales?
         %p
-          Each gear this cartridge is deployed to has #{cartridge.base_gear_storage}GB of included storage.
+          This cartridge is scalable.
+          The additional storage will apply to each extra gear.
 
-        - if cartridge.scales?
-          %p
-            This cartridge is scalable.
-            The additional storage will apply to each extra gear.
+      - unless other_carts.empty?
+        %p This storage will also be shared by:
+        %ul
+          - other_carts.each do |cart|
+            %li= cart.display_name
 
-        - unless other_carts.empty?
-          %p This storage will also be shared by:
-          %ul
-            - other_carts.each do |cart|
-              %li= cart.display_name
+      - if @can_modify_storage
+        = semantic_form_for cartridge,
+                            :simple => true,
+                            :method => :put,
+                            :url => application_storage_cartridge_path(@application.id, cartridge.name) do |f|
 
-        = f.inputs :inline => true, :without_errors => true do
-          .input-prepend
-            %span.add-on Additional Storage Per Gear
-            :ruby
-              default_html = {
-                :style => 'width: auto',
-                :title => 'Additional Storage',
-                :disabled => !@can_modify_storage
-              }
-            = f.input :additional_gear_storage, storage_options(0,@max_storage).merge({:input_html => default_html})
+          = f.semantic_errors :additional_gear_storage
+          = f.inputs :inline => true, :without_errors => true do
+            .input-prepend
+              %span.add-on Additional Storage Per Gear
+              :ruby
+                default_html = {
+                  :style => 'width: auto',
+                  :title => 'Additional Storage',
+                }
+              = f.input :additional_gear_storage, storage_options(0,@max_storage).merge({:input_html => default_html})
 
-          = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
-          = f.loading
+            = f.commit_button :label => 'Save', :button_html => {:class => 'btn btn-small'}
+            = f.loading
 
   %p
     For more information about storage for your application see
     #{link_to 'our FAQ on storage', storage_help_url}.
 
 - content_for :javascripts do
-  :javascript
-    jQuery('#storage-gear-groups FORM :input').change(function() {
-      jQuery(this).closest('form').find('INPUT.btn').addClass('btn-primary');
-    });
+  - if @can_modify_storage
+    :javascript
+      jQuery('#storage-gear-groups FORM :input').change(function() {
+        jQuery(this).closest('form').find('INPUT.btn').addClass('btn-primary');
+      });

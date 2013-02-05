@@ -9,9 +9,7 @@ class StorageControllerTest < ActionController::TestCase
 
   test "should not be able to set storage higher than user's max_storage_per_gear" do
     set_storage(with_storage_app,'ruby-1.8',100,false)
-    app = assigns(:application)
 
-    assert_redirected_to application_storage_path(app)
     assert flash[:error].length == 1, "Should only get one error"
     assert /^User can not exceed max storage quota per gear/, flash[:error].first
   end
