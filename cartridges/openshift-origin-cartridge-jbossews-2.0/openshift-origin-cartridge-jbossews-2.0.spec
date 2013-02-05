@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version: 1.1.4
+Version: 1.1.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -133,6 +133,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Bug 906845 - maven heap size (bdecoste@gmail.com)
+- Bug 906845 (bdecoste@gmail.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.1.4-1
 - Merge pull request #1285 from bdecoste/master
   (dmcphers+openshiftbot@redhat.com)
