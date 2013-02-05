@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.6
+Version:        1.4.7
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -74,6 +74,16 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- <oo-stats, oo-diagnostics> allow -w .5, improve options errmsg
+  (lmeyer@redhat.com)
+- <oo-accept-systems> fix bug 893896 - allow -w .5 and improve parameter error
+  report (lmeyer@redhat.com)
+- <oo-accept-broker> fix bug 905656 - exit message and status
+  (lmeyer@redhat.com)
+- <oo-stats> add man page; fix profile summation bug 907286.
+  (lmeyer@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
 - Merge pull request #1265 from fotioslindiakos/storage
   (dmcphers+openshiftbot@redhat.com)
