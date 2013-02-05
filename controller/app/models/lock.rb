@@ -24,7 +24,7 @@ class Lock
   # True if the lock was succesful.
   
   def self.create_lock(user)
-    lock = Lock.find_or_create_by( :user_id => user._id )
+    lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
   end
   
   def self.delete_lock(user)
@@ -36,10 +36,10 @@ class Lock
   def self.lock_user(user, app, timeout=600)
     begin
       now = Time.now.to_i
-      lock = Lock.find_or_create_by( :user_id => user._id )
+      lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
       query = {:user_id => user._id, "$or" => [{:locked => false}, {:timeout.lt => now}], "app_ids.#{app._id}" => { "$exists" => true }}
       updates = {"$set" => { locked: true, timeout: (now + timeout) }}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
+      lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -58,7 +58,7 @@ class Lock
     begin
       query = {:user_id => user._id, :locked => true, "app_ids.#{app._id}" => { "$exists" => true }}
       updates = {"$set" => { "locked" => false }}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
+      lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure
       return false
@@ -81,7 +81,7 @@ class Lock
       now = Time.now.to_i
       query = { :user_id => user_id, "$or" => [{"app_ids.#{app_id}" => {"$exists" => false}}, {"app_ids.#{app_id}" => {"$lt" => now}}] }
       updates = {"$set"=> { "app_ids.#{app_id}" => (now + timeout) }}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
+      lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to obtain lock for application #{application.name}: #{ex.message}"
@@ -103,7 +103,7 @@ class Lock
       app_id = application._id.to_s
       query = {:user_id => user_id, :locked => false, "app_ids.#{app_id}" => { "$exists" => true }}
       updates = {"$unset"=> {"app_ids.#{app_id}" => ""}}
-      lock = Lock.where(query).find_and_modify(updates, new: true)
+      lock = Lock.with(consistency: :strong).where(query).find_and_modify(updates, new: true)
       return (not lock.nil?)
     rescue Moped::Errors::OperationFailure => ex
       Rails.logger.error "Failed to unlock application #{application.name}: #{ex.message}"
