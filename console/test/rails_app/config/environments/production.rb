@@ -60,11 +60,5 @@ RailsApp::Application.configure do
   config.assets.js_compressor = :uglifier
   config.assets.precompile += %w(common.css origin.css console.js modernizr.min.js)
 
-  if config.respond_to? :sass
-    config.sass.style = :compressed
-    config.sass.line_comments = false
-    config.sass.relative_assets = true
-  end
-
   Console.configure(ENV['CONSOLE_CONFIG_FILE'] || '/etc/openshift/console.conf')
 end
