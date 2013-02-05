@@ -71,6 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-setup-broker.8.gz
 %{_mandir}/man8/oo-accept-broker.8.gz
 %{_mandir}/man8/oo-accept-systems.8.gz
+%{_mandir}/man8/oo-stats.8.gz
 
 %changelog
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1

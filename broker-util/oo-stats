@@ -459,8 +459,8 @@ class OOStats
     summary_for_profile.each do |profile,sum|
       sum[:district_count] = sum[:districts].size
       sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
-      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.min || 0.0
-      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.max || 0.0
+      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:lowest_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:highest_active_usage_pct]}.max || 0.0
       sum[:avg_dist_usage_pct] /= sum[:district_count] if sum[:district_count] > 0
       sum[:lowest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.min || 0.0
       sum[:highest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.max || 0.0

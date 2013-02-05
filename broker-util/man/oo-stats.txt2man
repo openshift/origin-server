@@ -1,0 +1,58 @@
+NAME
+  oo-stats
+  
+SYNOPSIS
+  oo-stats [-dhu] [-f FORMAT] [-l LEVEL] [-w SECONDS] 
+ 
+DESCRIPTION
+  This is a utility to gather and display usage statistics from this installation.
+  Data are gathered from two sources:
+  1. From node facts via mcollective
+  2. From the database (optionally)
+ 
+OPTIONS
+
+    -w, --wait SECONDS  
+        Seconds for broker to wait for node responses (integer, default 2).
+	If nodes are not responding in time, increase this as needed.
+
+    -d, --db  
+        Gather and include MongoDB usage stats.
+	This scans all users, apps, and gears in the MongoDB. With thousands
+	of users and applications, this may take seconds or minutes and
+	put noticeable load on MongoDB.
+
+    -f, --format FORMAT  
+        Choose output format (json, tsv, xml, yaml, default: text)
+
+    -l, --level LEVEL  
+        For text format, print statistical summary at this level:
+	* profile: profile and district summary statistics (default)
+	* district: district summary and node statistics
+	* node: node statistics only
+
+    -u, --only-user  
+        With text format, show ONLY per-user usage summary (implies --db)
+
+    -h, --help  
+        Display a simple help dialog.
+ 
+EXAMPLE
+
+  $ oo-stats              # standard text display
+
+  $ oo-stats --wait 10    # for slower node responses
+
+  $ oo-stats --format xml
+
+  
+HINTS
+
+This utility can be used as a script to either create a quick view of the current
+state of the installation or to generate a data dump for use with another tool.
+It can also be used as a library interactively or from another script.
+See comments in the script for details.
+ 
+
+AUTHOR
+  Luke Meyer <lmeyer@redhat.com> - man page written for OpenShift Origin 
