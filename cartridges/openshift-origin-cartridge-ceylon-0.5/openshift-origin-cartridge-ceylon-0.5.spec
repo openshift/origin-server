@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version:   1.0.9
+Version:   1.0.10
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -95,6 +95,9 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Tue Feb 05 2013 Matej Lazar <matejonnet@gmail.com> 1.0.10-1
+- Template fix. (matejonnet@gmail.com)
+
 * Tue Feb 05 2013 Matej Lazar <matejonnet@gmail.com> 1.0.9-1
 - Lounch app. (matejonnet@gmail.com)
 
