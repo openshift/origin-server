@@ -184,7 +184,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # compare the session cache with expected values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, nil, true], session[:caps]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
@@ -204,7 +204,7 @@ class ApplicationTypesControllerTest < ActionController::TestCase
     get :show, :id => type.id
 
     # confirm that the assigned values match our cached values
-    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes, nil, true], session[:caps]
+    assert_equal [user.max_gears, user.consumed_gears, user.gear_sizes], Array(session[:caps]).first(3)
     assert_equal user.max_gears, assigns(:capabilities).max_gears
     assert_equal user.consumed_gears, assigns(:capabilities).consumed_gears
     assert_equal user.gear_sizes, assigns(:capabilities).gear_sizes
