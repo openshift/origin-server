@@ -12,7 +12,7 @@
 
 Summary:        Common dependencies of the msg components for OpenShift server and node
 Name:           openshift-origin-msg-common
-Version: 1.2.1
+Version: 1.2.2
 Release:        1%{?dist}
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
@@ -41,6 +41,9 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Wed Jan 23 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
 - bump_minor_versions for sprint 23 (admiller@redhat.com)
 
