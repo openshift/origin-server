@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.4.5
+Version: 1.4.6
 Release:        1%{?dist}
 
 Group:          Network/Daemons
@@ -99,6 +99,17 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- remove BuildRoot: (tdawson@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1296 from jwhonce/dev/bz895878
+  (dmcphers+openshiftbot@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Bug 876247 - Write DB forwarding to stderr (jhonce@redhat.com)
+- Bug 895878 - Added support for broker's new 24 character uuid
+  (jhonce@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - Bug 876247 - Report attached databases in a scaled application via rhc-list-
   ports (jhonce@redhat.com)
