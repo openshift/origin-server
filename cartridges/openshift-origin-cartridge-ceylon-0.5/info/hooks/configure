@@ -81,12 +81,12 @@ create_standard_repo_dir_env_var
 create_standard_path_env_var
 
 CEYLON_HOME=/usr/lib/ceylon/0.5
-CEYLON_REPO=$APP_HOME/app-root/data/ceylon/repo
+CEYLON_USER_REPO=$APP_HOME/app-root/data/ceylon/repo
 mkdir -p ${CEYLON_REPO}
 chown -R $user_id.$group_id ${CEYLON_REPO}
 
 echo "export CEYLON_HOME=$CEYLON_HOME" > $APP_HOME/.env/CEYLON_HOME
-echo "export CEYLON_REPO=$CEYLON_REPO" > $APP_HOME/.env/CEYLON_REPO
+echo "export CEYLON_USER_REPO=$CEYLON_USER_REPO" > $APP_HOME/.env/CEYLON_USER_REPO
 
 observe_setup_env_uservars_dir
 

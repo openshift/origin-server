@@ -59,17 +59,17 @@ function start_app() {
             set_app_state started
 
 			JAVA_OPTS="-Dhttpd.bind.host=${OPENSHIFT_INTERNAL_IP}"
+			JAVA_OPTS="$JAVA_OPTS -Dceylon.cache.repo=${CEYLON_USER_REPO}/cache"
 			JAVA_OPTS="$JAVA_OPTS -Dcom.redhat.ceylon.common.tool.terminal.width=9999" #do not wrap output
             if [ "${ENABLE_JPDA:-0}" -eq 1 ] ; then
 				JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n"
             fi
             
-            PRESERVE_JAVA_OPTS="true"
-            export $PRESERVE_JAVA_OPTS
-			export $JAVA_OPTS
+            export PRESERVE_JAVA_OPTS="true"
+			export JAVA_OPTS
 
 			ceylon_repos="--rep http://modules.ceylon-lang.org/test/"
-			ceylon_repos="${ceylon_repos} --rep ${CEYLON_REPO}"
+			ceylon_repos="${ceylon_repos} --rep ${CEYLON_USER_REPO}"
 			ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}/.openshift/config/modules"
             
             source ${OPENSHIFT_REPO_DIR}/.openshift/config/ceylon.properties
