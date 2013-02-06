@@ -9,8 +9,8 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.8
-Release:        2%{?dist}
+Version: 1.4.9
+Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
@@ -120,6 +120,36 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.9-1
+- Merge pull request #1330 from rhamilto/master (dmcphers@redhat.com)
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1314 from fotioslindiakos/BZ907570 (dmcphers@redhat.com)
+- Merge pull request #1327 from fotioslindiakos/max_gears_errors
+  (dmcphers@redhat.com)
+- Merge pull request #1325 from fotioslindiakos/async_aware_bug
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 907570: Don't render form is user cannot upgrade storage
+  (fotios@redhat.com)
+- Only process the :base errors once (fotios@redhat.com)
+- Tweaking the logo dimensions to improve upon the rotate on hover effect.
+  (rhamilto@redhat.com)
+- Merge pull request #1323 from
+  smarterclayton/capabilities_test_too_sensitive_to_scope
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes a problem loading the gear_group model in the storage_controller with
+  AsyncAware (fotios@redhat.com)
+- The capabilities test in application types controller test is too sensitive
+  to the actual values on the session, we need to make it cleaner.
+  (ccoleman@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- Merge pull request #1319 from smarterclayton/align_popover_right
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Align popover to the right for restart (ccoleman@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.8-2
 - bump for chainbuild
 
