@@ -75,11 +75,7 @@ install -m 755 conf/%{gem_name}-kerberos.conf.sample %{buildroot}%{brokerdir}/ht
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp conf/openshift-origin-auth-remote-user.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc %{gem_docdir}
 %doc %{_docdir}/%{name}-%{version}
 %{gem_instdir}

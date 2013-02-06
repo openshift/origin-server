@@ -38,8 +38,6 @@ traffic) for an OpenShift Origin node.
 %build
 
 %install
-rm -rf %{buildroot}
-
 #  Runtime directories.
 mkdir -p %{buildroot}%{_var}/lock/subsys
 mkdir -p %{buildroot}%{_var}/run
@@ -111,9 +109,6 @@ if [ "$1" -eq "0" ]; then
 %endif
 fi
 
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %if %{with_systemd}

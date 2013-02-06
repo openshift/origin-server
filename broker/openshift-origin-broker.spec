@@ -16,7 +16,6 @@ Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{nam
 %define with_systemd 0
 %endif
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:  httpd
 Requires:  bind
 Requires:  mod_ssl
@@ -51,7 +50,6 @@ This includes the public APIs for the client tools.
 %build
 
 %install
-rm -rf %{buildroot}
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 %else
@@ -111,9 +109,6 @@ mv %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf %{buildroot}%{brokerdi
 %if 0%{?fedora} >= 17
 rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(0640,apache,apache,0750)

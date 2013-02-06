@@ -10,8 +10,6 @@ Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
 Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 BuildRequires: git
@@ -49,7 +47,6 @@ popd
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
@@ -110,12 +107,7 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 #cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbossews-1.0/modules/org/postgresql/jdbc/main/module.xml
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0755,-,-) %{cartridgedir}/info/hooks
