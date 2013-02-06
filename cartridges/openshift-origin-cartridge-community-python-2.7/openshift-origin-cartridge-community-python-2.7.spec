@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.1.6
+Version: 0.1.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
 - Bug 907426 - [US3327]Jenkins build failed for python-2.7/python-3.3 apps
   (smitram@gmail.com)
