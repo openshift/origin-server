@@ -9,7 +9,7 @@ Summary: Embedded phpMyAdmin support for express
 Group: Applications/Internet
 License: ASL 2.0
 URL: https://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 

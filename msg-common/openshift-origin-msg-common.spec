@@ -16,7 +16,7 @@ Version: 1.2.1
 Release:        1%{?dist}
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}mcollective-common
 BuildArch:      noarch
 

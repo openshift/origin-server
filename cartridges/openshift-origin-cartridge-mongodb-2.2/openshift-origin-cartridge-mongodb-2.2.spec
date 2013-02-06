@@ -9,7 +9,7 @@ Summary: Embedded mongodb support for OpenShift
 Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch

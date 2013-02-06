@@ -5,7 +5,7 @@ Summary:        Openshift PAM module
 Group:          System Environment/Base
 License:        GPLv2
 URL:            http://www.openshift.com/
-Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 Requires:       policycoreutils
 
