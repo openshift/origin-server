@@ -15,7 +15,7 @@
     "website":"https://www.djangoproject.com/",
     "initial_git_url":"git://github.com/openshift/django-example.git",
     "cartridges":["python-2.6"],
-    "summary":"A high-level Python web framework that encourages rapid development and clean, pragmatic design.",
+    "summary":"A high-level Python web framework that encourages rapid development and clean, pragmatic design. Administrator user name and password are written to $OPENSHIFT_DATA_DIR/CREDENTIALS.",
     "tags":["python","django","framework"],
     "admin_tags":[]
   }},
@@ -35,7 +35,7 @@
     "website":"http://drupal.org/",
     "initial_git_url":"git://github.com/openshift/drupal-example.git",
     "cartridges":["php-5.3","mysql-5.1"],
-    "summary":"An open source content management platform written in PHP powering millions of websites and applications. It is built, used, and supported by an active and diverse community of people around the world.",
+    "summary":"An open source content management platform written in PHP powering millions of websites and applications. It is built, used, and supported by an active and diverse community of people around the world. Administrator user name and password are written to $OPENSHIFT_DATA_DIR/CREDENTIALS.",
     "tags":["php","drupal","wiki","framework","instant_app"],
     "admin_tags":[]
   }},
@@ -75,7 +75,7 @@
     "website":"http://wordpress.org",
     "initial_git_url":"git://github.com/openshift/wordpress-example.git",
     "cartridges":["php-5.3","mysql-5.1"],
-    "summary":"A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability.",
+    "summary":"A semantic personal publishing platform written in PHP with a MySQL back end, focusing on aesthetics, web standards, and usability. Administrator user name and password are written to $OPENSHIFT_DATA_DIR/CREDENTIALS.",
     "tags":["php","wordpress","blog","framework","instant_app"],
     "admin_tags":[]
   }}
