@@ -80,12 +80,22 @@ mkdir -p .%{gem_dir}
 rm -f Gemfile.lock
 bundle install --local
 
+mkdir -p %{buildroot}%{_var}/log/openshift/console/
+mkdir -m 770 %{buildroot}%{_var}/log/openshift/console/httpd/
+touch %{buildroot}%{_var}/log/openshift/console/production.log
+chmod 0666 %{buildroot}%{_var}/log/openshift/console/production.log
+
 pushd test/rails_app/
-CONSOLE_CONFIG_FILE=../../conf/console.conf.example RAILS_ENV=production RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
+CONSOLE_CONFIG_FILE=../../conf/console.conf.example \
+  RAILS_ENV=production \
+  RAILS_LOG_PATH=%{buildroot}%{_var}/log/openshift/console/production.log
+  RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
 
 rm -rf tmp/cache/*
-echo > log/production.log
+echo > %{buildroot}%{_var}/log/openshift/console/production.log
 popd
+
+rm -rf %{buildroot}%{_var}/log/openshift/*
 
 rm -f Gemfile.lock
 %endif
