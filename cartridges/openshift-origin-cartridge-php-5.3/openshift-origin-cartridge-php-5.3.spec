@@ -2,7 +2,7 @@
 
 Summary:   Provides php-5.3 support
 Name:      openshift-origin-cartridge-php-5.3
-Version: 1.4.2
+Version: 1.4.3
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -106,6 +106,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)
