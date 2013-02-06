@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.18.3
+Version: 1.18.4
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -54,6 +54,9 @@ ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.18.4-1
+- remove BuildRoot: (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
 - Fixing broker extended tests (abhgupta@redhat.com)
 
