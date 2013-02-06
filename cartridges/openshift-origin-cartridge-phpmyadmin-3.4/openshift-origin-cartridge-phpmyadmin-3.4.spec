@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
 Name: openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.4.3
+Version: 1.4.4
 Release: 1%{?dist}
 Summary: Embedded phpMyAdmin support for express
 
@@ -58,6 +58,10 @@ cp %{cartridgedir}/info/configuration/etc/phpMyAdmin/config.inc.php %{_sysconfdi
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Fixing broker extended tests (abhgupta@redhat.com)
 
