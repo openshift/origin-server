@@ -16,6 +16,7 @@ fi
 
 JAVA_OPTS="-Dceylon.cache.repo=${CEYLON_USER_REPO}/cache"
 JAVA_OPTS="$JAVA_OPTS -Dcom.redhat.ceylon.common.tool.terminal.width=9999" #do not wrap output
+
 export JAVA_OPTS
 export PRESERVE_JAVA_OPTS="true"
 

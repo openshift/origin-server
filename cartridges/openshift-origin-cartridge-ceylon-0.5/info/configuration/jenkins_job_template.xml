@@ -64,12 +64,29 @@
       <command>
 source /usr/libexec/openshift/cartridges/abstract/info/lib/jenkins_util
 
-alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
+#jenkins_rsync UPSTREAM_SSH:~/.m2/ ~/.m2/
+jenkins_rsync UPSTREAM_SSH:~/app-root/data/ceylon/repo/ ~/app-root/data/ceylon/repo/
 
-# Build/update libs and run user pre_build and build
+# Build setup and run user pre_build and build
 . ci_build.sh
 
-# Run tests here
+#export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+#mvn --global-settings $OPENSHIFT_MAVEN_MIRROR clean package -Popenshift -DskipTests
+
+JAVA_OPTS="-Dceylon.cache.repo=~/app-root/data/ceylon/repo/cache"
+JAVA_OPTS="$JAVA_OPTS -Dcom.redhat.ceylon.common.tool.terminal.width=9999" #do not wrap output
+
+export JAVA_OPTS
+export PRESERVE_JAVA_OPTS="true"
+
+ceylon_repos="--rep http://modules.ceylon-lang.org/test/"
+ceylon_repos="${ceylon_repos} --rep ~/app-root/data/ceylon/repo/"
+ceylon_repos="${ceylon_repos} --rep ~/$WORKSPACE/.openshift/config/modules"
+
+compile_files=`find ~/app-root/repo/source/ -name *\.ceylon -o -name *\.java`
+printf "Compiling files:\n$compile_files\n"
+${CEYLON_HOME}/bin/ceylon compile --src ~/app-root/repo/source --out ~/app-root/data/ceylon/repo ${ceylon_repos} ${compile_files}
+
 
 # Deploy new build
 
@@ -77,8 +94,11 @@ alias rsync="rsync --delete-after -az -e '$GIT_SSH'"
 jenkins_stop_app UPSTREAM_SSH
 
 # Push content back to application
-rsync ~/$WORKSPACE/ UPSTREAM_SSH:~/ceylon-0.5/repo/
 
+jenkins_rsync ~/app-root/data/ceylon/repo/ $UPSTREAM_SSH:~/app-root/data/ceylon/repo/
+
+jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
+  
 # Configure / start app
 $GIT_SSH UPSTREAM_SSH deploy.sh
 
