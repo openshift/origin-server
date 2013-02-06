@@ -21,7 +21,7 @@ export PRESERVE_JAVA_OPTS="true"
 
 ceylon_repos="--rep http://modules.ceylon-lang.org/test/"
 ceylon_repos="${ceylon_repos} --rep ${CEYLON_USER_REPO}"
-ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}/.openshift/config/modules"
+ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}.openshift/config/modules"
 
 compile_files=`find ${OPENSHIFT_REPO_DIR}/source/ -name *\.ceylon -o -name *\.java`
 printf "Compiling files:\n$compile_files\n"

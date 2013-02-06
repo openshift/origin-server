@@ -23,13 +23,23 @@ APP_LOG_PATH=${CART_DIR}/log/ceylon.log
 
 APP_BIN_DIR="$CEYLON_HOME"/bin
 
-PID_FILE="${CART_DIR}/run/ceylon.pid"
+export CEYLON_PID_FILE="${CART_DIR}/run/ceylon.pid"
+
+# Kill the process given by $1 and its children
+killtree() {
+    local _pid=$1
+    for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
+        killtree ${_child}
+    done
+    echo kill -TERM ${_pid}
+    kill -TERM ${_pid}
+}
 
 # Check if the jbossas process is running
 isrunning() {
     # Check for running app
-    if [ -f "$APP_PID_FILE" ]; then
-      pid=$(cat $APP_PID_FILE);
+    if [ -f "$CEYLON_PID_FILE" ]; then
+      pid=$(cat $CEYLON_PID_FILE);
       if /bin/ps --pid $pid 1>&2 >/dev/null;
       then
         return 0
@@ -82,16 +92,15 @@ function start_app() {
 
 			ceylon_repos="--rep http://modules.ceylon-lang.org/test/"
 			ceylon_repos="${ceylon_repos} --rep ${CEYLON_USER_REPO}"
-			ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}/.openshift/config/modules"
+			ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}.openshift/config/modules"
             
             source ${OPENSHIFT_REPO_DIR}/.openshift/config/ceylon.properties
 
 			echo "Starting Ceylon module: ${run_module_id}. Using repos: ${ceylon_repos}"
 
             # Start
-            $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} > ${APP_LOG_PATH} 2>&1 &
-            PROCESS_ID=$!
-            echo $PROCESS_ID > $PID_FILE
+            export LAUNCH_CEYLON_IN_BACKGROUND="true"
+            $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} >> ${APP_LOG_PATH} 2>&1 &
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
                 exit 1
@@ -105,11 +114,12 @@ function stop_app() {
     set_app_state stopped
     if ! isrunning; then
         echo "Application is already stopped" 1>&2
-    elif [ -f "$PID_FILE" ]; then
+    elif [ -f "$CEYLON_PID_FILE" ]; then
         src_user_hook pre_stop_${cartridge_type}
-        pid=$(cat $PID_FILE);
+        pid=$(cat $CEYLON_PID_FILE);
         echo "Sending SIGTERM to ceylon:$pid ..." 1>&2
         killtree $pid
+        wait_for_stop $pid
         run_user_hook post_stop_${cartridge_type}
     else 
         echo "Failed to locate Ceylon PID File" 1>&2
@@ -126,11 +136,9 @@ case "$1" in
         exit 0
     ;;
     restart)
-        #stop_app
-        #start_app
-        #exit 0
         app_ctl.sh stop
         app_ctl.sh start
+        exit 0
     ;;
     status)
         # Restore stdout and close file descriptor #4
