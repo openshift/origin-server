@@ -1868,7 +1868,11 @@ class Application
     else
       computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
     end
-    computed_configure_order
+    
+    # configure order can have nil if the component is already configured
+    # for eg, phpmyadmin is being added and it is the only component being passed/added
+    # this could happen if mysql is already previously configured
+    computed_configure_order.select { |co| not co.nil? }
   end
 
   # Returns the start/stop order specified in the application descriptor or processes the start and stop
@@ -1918,6 +1922,11 @@ class Application
     else
       computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
     end
+
+    # start/stop order can have nil if the component is not present in the application
+    # for eg, php is being stopped and haproxy is not present in a non-scalable application
+    computed_start_order = computed_start_order.select { |co| not co.nil? }
+    computed_stop_order = computed_stop_order.select { |co| not co.nil? }
 
     [computed_start_order, computed_stop_order]
   end
