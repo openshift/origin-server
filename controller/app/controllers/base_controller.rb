@@ -288,9 +288,9 @@ class BaseController < ActionController::Base
     if messages && !messages.empty?
       reply.messages.concat(messages)
       if log_tag
-        log_msg = []
-        messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, log_msg.join(', '), get_extra_log_args)
+        extended_log_msg = []
+        messages.each { |msg| extended_log_msg.push(msg.text) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, !internal_error, msg, get_extra_log_args, extended_log_msg.join(', '))
       end
     else
       msg_type = :error unless msg_type
@@ -360,9 +360,9 @@ class BaseController < ActionController::Base
     if messages && !messages.empty?
       reply.messages.concat(messages)
       if log_tag
-        log_msg = []
-        messages.each { |msg| log_msg.push(msg.text) }
-        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg.join(', '), get_extra_log_args)
+        extended_log_msg = []
+        messages.each { |msg| extended_log_msg.push(msg.text) }
+        log_action(@request_id, user_info[:uuid], user_info[:login], log_tag, true, log_msg, get_extra_log_args, extended_log_msg.join(', '))
       end
     else
       msg_type = :info unless msg_type

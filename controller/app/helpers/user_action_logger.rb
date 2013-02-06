@@ -13,13 +13,15 @@ module UserActionLogger
     @@action_logger
   end
   
-  def log_action(request_id, user_id, login, action, success = true, description = "", args = {})
+  def log_action(request_id, user_id, login, action, success = true, description = "", args = {}, detailed_description = nil)
     log_level = success ? Logger::DEBUG : Logger::ERROR
     action_logger = get_action_logger()
 
     if not action_logger.nil?
       result = success ? "SUCCESS" : "FAILURE"
       description = description.nil? ? "" : description.strip
+      detailed_description = detailed_description.nil? ? "" : detailed_description.strip
+      detailed_description = description if detailed_description.length == 0
       time_obj = Time.new
       date = time_obj.strftime("%Y-%m-%d")
       time = time_obj.strftime("%H:%M:%S")
@@ -32,7 +34,7 @@ module UserActionLogger
     
     # Using a block prevents the message in the block from being executed 
     # if the log_level is lower than the one set for the logger
-    Rails.logger.add(log_level) {"[REQ_ID=#{request_id}] ACTION=#{action} #{description}"}
+    Rails.logger.add(log_level) {"[REQ_ID=#{request_id}] ACTION=#{action} #{detailed_description}"}
   end
 
 end
