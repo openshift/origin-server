@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossAS7 support
 Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.4.6
+Version: 1.4.7
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -149,6 +149,10 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
 - Bug 906845 - maven heap size (bdecoste@gmail.com)
 - Bug 906845 (bdecoste@gmail.com)
