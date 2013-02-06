@@ -1,6 +1,4 @@
 class StorageController < ConsoleController
-  include AsyncAware
-
   before_filter :user_information
   before_filter :application_information
 
