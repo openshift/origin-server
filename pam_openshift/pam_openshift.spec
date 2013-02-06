@@ -1,5 +1,5 @@
 Name:           pam_openshift
-Version: 1.2.2
+Version: 1.2.3
 Release:        1%{?dist}
 Summary:        Openshift PAM module
 Group:          System Environment/Base
@@ -44,6 +44,9 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.2.3-1
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.2.2-1
 - remove default configuration since this prevent login ( RH#885479 )
   (misc@zarb.org)
