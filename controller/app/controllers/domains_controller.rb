@@ -20,7 +20,6 @@ class DomainsController < BaseController
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       @domain_name = domain.namespace
-      log_action(@request_id, @cloud_user._id, @cloud_user.login, "SHOW_DOMAIN", true, "Found domain #{id}")
       return render_success(:ok, "domain", get_rest_domain(domain), "SHOW_DOMAIN", "Found domain #{id}")
     rescue Mongoid::Errors::DocumentNotFound
       render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
