@@ -18,13 +18,8 @@ This package contains a set of utility scripts for the broker and node.
 %build
 
 %install
-rm -rf %{buildroot}
-
 mkdir -p %{buildroot}%{_bindir}
 cp oo-* %{buildroot}%{_bindir}/
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0755,-,-) %{_bindir}/oo-ruby

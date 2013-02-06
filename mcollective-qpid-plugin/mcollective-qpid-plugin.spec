@@ -6,7 +6,6 @@ Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       mcollective
 Requires:       ruby-qpid-qmf
 BuildArch:      noarch
@@ -20,15 +19,10 @@ Plugin to enable m-collective communication over amqp 1.0 enabled broker
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/libexec/mcollective/mcollective/connector/
 cp src/qpid.rb %{buildroot}/usr/libexec/mcollective/mcollective/connector/
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc COPYRIGHT LICENSE README.md
 /usr/libexec/mcollective/mcollective/connector/qpid.rb
 

@@ -10,7 +10,6 @@ Group: Applications/Internet
 License: ASL 2.0
 URL: https://openshift.redhat.com
 Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
 Requires: openshift-origin-cartridge-abstract
@@ -27,8 +26,6 @@ Provides rhc phpMyAdmin cartridge support
 %build
 
 %install
-rm -rf $RPM_BUILD_ROOT
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
 ln -s %{cartridgedir}/../../abstract/info/connection-hooks/set-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-db-connection-info
@@ -42,11 +39,7 @@ ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 %post
 cp %{cartridgedir}/info/configuration/etc/phpMyAdmin/config.inc.php %{_sysconfdir}/phpMyAdmin/config.inc.php
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/

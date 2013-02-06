@@ -50,7 +50,6 @@ openshift jboss cartridges.
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartdir}
 cp -rv abstract %{buildroot}%{cartdir}/
 cp -rv abstract-httpd %{buildroot}%{cartdir}/

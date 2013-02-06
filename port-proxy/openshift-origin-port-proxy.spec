@@ -77,7 +77,6 @@ if [ "$1" -eq "0" ]; then
 fi
 
 %files
-%defattr(-,root,root,-)
 %doc LICENSE
 %if %{with_systemd}
 %{_unitdir}/openshift-port-proxy.service

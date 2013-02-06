@@ -24,7 +24,6 @@ Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{nam
 %global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
 %endif
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:  rubygem-openshift-origin-console
 Requires:  %{?scl:%scl_prefix}rubygem-passenger
 Requires:  %{?scl:%scl_prefix}rubygem-passenger-native
@@ -54,7 +53,6 @@ This includes the configuration necessary to run the console with mod_passenger.
 %build
 
 %install
-rm -rf %{buildroot}
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 %else
@@ -102,9 +100,6 @@ rm %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf
 rm %{buildroot}%{consoledir}/httpd/console.conf
 mv %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf %{buildroot}%{consoledir}/httpd/conf/console.conf
 %endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %preun
 if [ "$1" -eq "0" ]; then

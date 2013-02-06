@@ -25,7 +25,6 @@ run on a node instance.
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
 cp bin/oo-* %{buildroot}%{_sbindir}/
 cp bin/rhc-* %{buildroot}%{_sbindir}/
@@ -49,9 +48,6 @@ cp init.d/openshift-gears %{buildroot}%{_initddir}/
 mkdir -p %{buildroot}/etc/systemd/system
 mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
 %endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
