@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.6
+Version: 1.4.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,28 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- Merge pull request #1332 from abhgupta/abhgupta-ssh-keys
+  (dmcphers@redhat.com)
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for issue where system ssh keys were being left behind in the domain
+  object (abhgupta@redhat.com)
+- Fix for bug 908199 - we are logging only the basic info in user_action.log
+  (abhgupta@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- Fix for bug 806395 - added list of alias as valid options in remove alias
+  link for application in rest response (abhgupta@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1317 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Fix for bug 907764 - fixing configure/start/stop order for components
+  (abhgupta@redhat.com)
+- fix BZ907788 - gear size gets stored in group overrides now
+  (rchopra@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
 - Fix for bug 907683 - Reloading from primary (abhgupta@redhat.com)
 - Merge pull request #1303 from pravisankar/dev/ravi/app-lock-timeout
