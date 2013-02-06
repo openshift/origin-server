@@ -82,8 +82,13 @@ create_standard_path_env_var
 
 CEYLON_HOME=/usr/lib/ceylon/0.5
 CEYLON_USER_REPO=$APP_HOME/app-root/data/ceylon/repo
-mkdir -p ${CEYLON_REPO}
-chown -R $user_id.$group_id ${CEYLON_REPO}
+mkdir -p ${CEYLON_USER_REPO}
+chown -R $user_id.$group_id ${CEYLON_USER_REPO}
+
+CART_DIR=$APP_HOME/$cartridge_type
+APP_LOG_DIR=${CART_DIR}/log
+mkdir -p ${APP_LOG_DIR}
+chown -R $user_id.$group_id ${APP_LOG_DIR}
 
 echo "export CEYLON_HOME=$CEYLON_HOME" > $APP_HOME/.env/CEYLON_HOME
 echo "export CEYLON_USER_REPO=$CEYLON_USER_REPO" > $APP_HOME/.env/CEYLON_USER_REPO

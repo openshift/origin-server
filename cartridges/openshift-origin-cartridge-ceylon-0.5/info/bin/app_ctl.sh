@@ -18,11 +18,8 @@ done
 
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-
 CART_DIR=$OPENSHIFT_HOMEDIR/$cartridge_type
-
-APP_DIR=${CART_DIR}/${cartridge_type}
-APP_LOG_PATH=${CART_DIR}/${cartridge_type}/log/ceylon.log
+APP_LOG_PATH=${CART_DIR}/log/ceylon.log
 
 APP_BIN_DIR="$CEYLON_HOME"/bin
 
@@ -39,6 +36,21 @@ isrunning() {
       fi
     fi
     # not running
+    return 1
+}
+
+# Check if the server http port is up
+function ishttpup() {
+    let count=0
+    while [ ${count} -lt 24 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_INTERNAL_IP}:8080" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_INTERNAL_IP}:8080 listening port"
+            return 0
+        fi
+        let count=${count}+1
+        sleep 2
+    done
     return 1
 }
 
@@ -74,6 +86,8 @@ function start_app() {
             
             source ${OPENSHIFT_REPO_DIR}/.openshift/config/ceylon.properties
 
+			echo "Starting Ceylon module: ${run_module_id}. Using repos: ${ceylon_repos}"
+
             # Start
             $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} > ${APP_LOG_PATH} 2>&1 &
             PROCESS_ID=$!
@@ -93,12 +107,12 @@ function stop_app() {
         echo "Application is already stopped" 1>&2
     elif [ -f "$PID_FILE" ]; then
         src_user_hook pre_stop_${cartridge_type}
-        pid=$(cat $JBOSS_PID_FILE);
-        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+        pid=$(cat $PID_FILE);
+        echo "Sending SIGTERM to ceylon:$pid ..." 1>&2
         killtree $pid
         run_user_hook post_stop_${cartridge_type}
     else 
-        echo "Failed to locate JBOSS PID File" 1>&2
+        echo "Failed to locate Ceylon PID File" 1>&2
     fi
 }
 
@@ -127,9 +141,9 @@ case "$1" in
             exit 0
         fi
 
-        echo tailing "$APP_DIR/log/server.log"
-        echo "------ Tail of ${cartridge_type} application server.log ------"
-        tail "$APP_DIR/log/server.log"
+        echo tailing "$APP_LOG_PATH"
+        echo "------ Tail of ${cartridge_type} application ------"
+        tail $APP_LOG_PATH
         exit 0
     ;;
 esac
