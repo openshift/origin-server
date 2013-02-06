@@ -3,8 +3,6 @@ class StorageController < ConsoleController
   before_filter :application_information
 
   def show
-    @max_storage = @user.capabilities[:max_storage_per_gear] || 0
-    @can_modify_storage = @max_storage > 0
   end
 
   def update
@@ -15,9 +13,8 @@ class StorageController < ConsoleController
     if @cartridge.save
       redirect_to application_storage_path, :flash => {:success => "Updated storage for cartridge '#{@cartridge.display_name}'"}
     else
-      #FIXME: Should this be handled automatically?
-      errors =  @cartridge.errors.messages.values.flatten
-      redirect_to application_storage_path, :flash => {:error => errors }
+      flash.now[:error] = @cartridge.errors.messages.values.flatten
+      render :show
     end
   end
 
@@ -25,6 +22,8 @@ class StorageController < ConsoleController
   def user_information
     user_default_domain
     @user = User.find :one, :as => current_user
+    @max_storage = @user.capabilities[:max_storage_per_gear] || 0
+    @can_modify_storage = @max_storage > 0
   end
 
   def application_information
