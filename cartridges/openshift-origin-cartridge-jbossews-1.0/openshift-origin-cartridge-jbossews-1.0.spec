@@ -4,7 +4,7 @@
 
 Summary:   Provides JBossEWS1.0 support
 Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.4.5
+Version: 1.4.6
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -127,6 +127,10 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - Bug 906845 - maven heap size (bdecoste@gmail.com)
 - Bug 906845 (bdecoste@gmail.com)
