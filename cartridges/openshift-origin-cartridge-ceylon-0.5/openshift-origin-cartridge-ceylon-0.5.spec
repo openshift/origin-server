@@ -2,7 +2,7 @@
 
 Summary:   Provides ceylon-0.5 support
 Name:      openshift-origin-cartridge-ceylon-0.5
-Version:   1.0.12
+Version:   1.0.13
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -95,6 +95,10 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Feb 06 2013 Matej Lazar <matejonnet@gmail.com> 1.0.13-1
+- Jenkins template. (matejonnet@gmail.com)
+- Start, Stop, ReStart fixed. (matejonnet@gmail.com)
+
 * Wed Feb 06 2013 Matej Lazar <matejonnet@gmail.com> 1.0.12-1
 - Update start stop. (matejonnet@gmail.com)
 - Update start stop. (matejonnet@gmail.com)
