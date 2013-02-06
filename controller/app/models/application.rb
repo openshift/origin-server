@@ -811,11 +811,11 @@ class Application
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
-        domain_keys_to_add.push({"name" => self.name, "content" => command_item[:args][0], "type" => "ssh-rsa"})
+        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0]))
       when "SYSTEM_SSH_KEY_REMOVE"
         begin
           key = self.domain.system_ssh_keys.find_by(name: self.name)
-          domain_keys_to_rm.push({"name" => key.name, "content" => key.content, "type" => key.type})
+          domain_keys_to_rm.push(key)
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
         end
