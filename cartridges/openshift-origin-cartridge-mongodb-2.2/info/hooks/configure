@@ -84,6 +84,11 @@ echo "export OPENSHIFT_MONGODB_DB_PORT='$MONGODB_PORT'" > $APP_HOME/.env/OPENSHI
 echo "export OPENSHIFT_MONGODB_DB_URL='mongodb://admin:$password@$MONGODB_IP:$MONGODB_PORT/'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_URL
 echo "export OPENSHIFT_MONGODB_DB_LOG_DIR='$MONGODB_DIR/log'" > $APP_HOME/.env/OPENSHIFT_MONGODB_DB_LOG_DIR
 
+for env_file in $APP_HOME/.env/OPENSHIFT_MONGODB_DB_*; do
+  echo "source $env_file"
+  source $env_file
+done
+
 ## Setup user
 source_if_exists "$APP_HOME/.env/OPENSHIFT_APP_NAME"
 DB_NAME=${OPENSHIFT_APP_NAME:-$application}

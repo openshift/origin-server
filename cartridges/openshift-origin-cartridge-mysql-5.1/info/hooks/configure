@@ -85,6 +85,11 @@ echo "export OPENSHIFT_MYSQL_DB_SOCKET='${MYSQL_DIR}/socket/mysql.sock'" > $APP_
 echo "export OPENSHIFT_MYSQL_DB_URL='mysql://$username:$password@$MYSQL_IP:$MYSQL_PORT/'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_URL
 echo "export OPENSHIFT_MYSQL_DB_LOG_DIR='${MYSQL_DIR}/log'" > $APP_HOME/.env/OPENSHIFT_MYSQL_DB_LOG_DIR
 
+for env_file in $APP_HOME/.env/OPENSHIFT_MYSQL_DB_*; do
+  echo "source $env_file"
+  source $env_file
+done
+
 ## Setup user
 dbname=${OPENSHIFT_APP_NAME:-$application}
 echo "drop database test;
