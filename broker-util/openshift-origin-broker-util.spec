@@ -31,8 +31,6 @@ They must be run on a openshift broker instance.
 %build
 
 %install
-rm -rf %{buildroot}
-
 mkdir -p %{buildroot}%{_sbindir}
 cp oo-* %{buildroot}%{_sbindir}/
 
@@ -40,9 +38,6 @@ mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
 mkdir -p %{buildroot}/usr/share/openshift/kickstarts
 cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstarts
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk

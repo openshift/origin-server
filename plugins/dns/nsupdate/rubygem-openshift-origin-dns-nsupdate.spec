@@ -15,7 +15,6 @@ Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
 Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -73,11 +72,7 @@ mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns-nsupdate.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-dns-nsupdate.conf.example
 
-%clean
-rm -rf %{buildroot}                                
-
 %files
-%defattr(-,root,root,-)
 %doc %{gem_docdir}
 %doc %{_docdir}/%{name}-%{version}
 %{gem_instdir}

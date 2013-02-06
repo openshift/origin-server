@@ -10,8 +10,6 @@ Group: Applications/Internet
 License: ASL 2.0
 URL: http://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 Requires: openshift-origin-cartridge-abstract
@@ -33,7 +31,6 @@ Provides 10gen MMS agent cartridge support
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
@@ -42,12 +39,7 @@ cp COPYRIGHT %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
