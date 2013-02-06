@@ -1,6 +1,5 @@
 @runtime
 @runtime3
-@not-origin
 Feature: HAProxy Application Sub-Cartridge
   
   Scenario Outline: Create Delete one application with haproxy
@@ -19,13 +18,17 @@ Feature: HAProxy Application Sub-Cartridge
     And the embedded haproxy-1.4 cartridge directory will not exist
     And the haproxy configuration file will not exist
 
-  Scenarios: Create Delete Application With haproxy Scenarios
-    | type         | proc_name |
-    | php-5.3      | httpd     |
-    | perl-5.10    | httpd     |
-    | python-2.6   | httpd     |
-    | ruby-1.8     | httpd     |
-    | ruby-1.9     | httpd     |
-    | nodejs-0.6   | node      |
-    | jbossas-7    | java      |
-    | jbosseap-6.0 | java      |
+    @rhel-only
+    Scenarios: Create Delete Application With haproxy Scenarios
+      | type         | proc_name |
+      | ruby-1.8     | httpd     |
+      | jbossas-7    | java      |
+      | jbosseap-6.0 | java      |
+
+    Scenarios: Create Delete Application With haproxy Scenarios - Origin
+      | type         | proc_name |
+      | php-5.3      | httpd     |
+      | perl-5.10    | httpd     |
+      | python-2.6   | httpd     |
+      | ruby-1.9     | httpd     |
+      | nodejs-0.6   | node      |

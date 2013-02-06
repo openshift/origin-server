@@ -6,7 +6,13 @@ REST_CALLS = [
                REST_CALLS_V1
              ]
 
-$end_point = "https://localhost/broker/rest"
+if File.exists?("/etc/openshift/node.conf")
+  config = ParseConfig.new("/etc/openshift/node.conf")
+  $end_point = "https://#{config.get_value("PUBLIC_HOSTNAME")}/broker/rest"
+else
+  $end_point = "https://localhost/broker/rest"
+end
+
 $user = 'test-user' + gen_uuid[0..9]
 $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")

@@ -23,12 +23,9 @@ Requires:       %{?scl:%scl_prefix}rubygem(json)
 Requires:       rubygem(openshift-origin-common)
 Requires:       mcollective
 Requires:       mcollective-client
-Requires:       qpid-cpp-server
-Requires:       qpid-cpp-client
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
 Requires:       openshift-origin-msg-common
-Requires:       %{?scl:%scl_prefix}ruby-qpid-qmf
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
