@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Common
 Name:           rubygem-%{gem_name}
-Version: 1.3.4
+Version: 1.3.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -89,6 +89,10 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.3.5-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.3.4-1
 - US2626 changes based on feedback - Add application name in Usage and
   UsageRecord models - Change 'price' to 'usage_rate_usd' in rest cartridge
