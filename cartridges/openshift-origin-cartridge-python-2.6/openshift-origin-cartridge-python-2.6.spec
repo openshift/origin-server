@@ -2,7 +2,7 @@
 
 Summary:   Provides python-2.6 support
 Name:      openshift-origin-cartridge-python-2.6
-Version: 1.4.4
+Version: 1.4.5
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -102,6 +102,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Ensure python is tagged vith versions (ccoleman@redhat.com)
 
