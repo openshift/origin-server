@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.3.2
+Version: 1.3.3
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
@@ -62,6 +62,10 @@ alternatives --set switchyard-0.6 /usr/share/switchyard
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)
