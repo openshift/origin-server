@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for DNS update service using nsupdate
 Name:           rubygem-%{gem_name}
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -82,6 +82,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
 - 875575 (dmcphers@redhat.com)
 
