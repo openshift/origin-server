@@ -2,7 +2,7 @@
 
 Summary:   Provides mod_perl support
 Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.4.3
+Version: 1.4.4
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -101,6 +101,13 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- remove BuildRoot: (tdawson@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Bug 908047 -  Perl dependency testing flag was backwards (jhonce@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Merge pull request #964 from mscherer/refactor/cartridges/clean_build.sh
   (dmcphers+openshiftbot@redhat.com)
