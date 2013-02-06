@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.4.4
+Version: 1.4.5
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,15 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1328 from rajatchopra/master (dmcphers@redhat.com)
+- refix bug907788 - moves across node profiles will not be supported
+  (rchopra@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Fix _id to uuid issue with districts (dmcphers@redhat.com)
 - share db connection logic (dmcphers@redhat.com)
