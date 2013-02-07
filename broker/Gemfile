@@ -7,13 +7,19 @@ gem 'xml-simple'
 gem 'rack'
 gem 'regin'
 gem 'open4'
-gem 'openshift-origin-controller'
-gem 'rest-client'
 gem 'systemu'
 gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
 gem 'minitest', '3.2.0'
+
+if ENV['SOURCE']
+  gem 'openshift-origin-common', :path => '../common'
+  gem 'openshift-origin-controller', :path => '../controller'
+  gem 'netrc' # rest-client has an undeclared prereq on netrc
+else
+  gem 'openshift-origin-controller'
+end
 
 # Load plugin gems.
 Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.map{|x| File.basename(x, ".conf")}.each {|plugin| gem plugin}
@@ -42,6 +48,7 @@ Dir["/etc/openshift/plugins.d/*.conf"].delete_if{ |x| x.end_with? "-dev.conf" }.
 # and rake tasks are available in development mode:
 group :development, :test do
   # The require part from http://tinyurl.com/3pf68ho
+  gem 'rest-client', :require => 'rest-client'
   gem 'mocha', '0.12.1', :require => nil
   gem 'rake', '>= 0.8.7', '<= 0.9.2.2'
   gem 'simplecov'
