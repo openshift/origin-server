@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.5.0
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -77,6 +77,14 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
   (dmcphers+openshiftbot@redhat.com)
