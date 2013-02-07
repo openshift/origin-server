@@ -61,6 +61,9 @@ class Application
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
+  
+  index({'group_instances.gears.uuid' => 1}, {:unique => true})
+  create_indexes
     
   attr_accessor :user_agent
 
