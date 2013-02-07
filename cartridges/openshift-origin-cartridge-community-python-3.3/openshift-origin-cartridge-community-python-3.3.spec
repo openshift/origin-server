@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version: 0.1.7
+Version: 0.2.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

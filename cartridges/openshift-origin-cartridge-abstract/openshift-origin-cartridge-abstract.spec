@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.4.4
+Version: 1.5.0
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0

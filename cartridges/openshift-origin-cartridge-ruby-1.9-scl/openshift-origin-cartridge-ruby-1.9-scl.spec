@@ -2,7 +2,7 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 1.4.5
+Version: 1.5.0
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0

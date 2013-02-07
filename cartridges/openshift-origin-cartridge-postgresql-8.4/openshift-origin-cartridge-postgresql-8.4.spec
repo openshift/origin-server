@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.4.3
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 

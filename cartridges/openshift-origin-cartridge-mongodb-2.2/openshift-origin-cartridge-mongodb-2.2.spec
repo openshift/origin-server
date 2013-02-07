@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
 Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.4.3
+Version: 1.5.0
 Release: 1%{?dist}
 Summary: Embedded mongodb support for OpenShift
 
