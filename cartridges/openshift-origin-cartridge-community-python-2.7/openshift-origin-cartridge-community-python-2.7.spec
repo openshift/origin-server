@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.2.0
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
 - make Source line uniform among all spec files (tdawson@redhat.com)
 
