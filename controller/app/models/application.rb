@@ -1663,7 +1663,7 @@ class Application
       prof = cart.profile_for_feature(component_instance["comp"])
       prof = prof[0] if prof.is_a?(Array)
       comp = prof.get_component(component_instance["comp"])
-      overrides += prof.group_overrides
+      overrides += deep_copy(prof.group_overrides)
       component_go = {"components" => [{"cart" => cart.name, "comp" => comp.name}] }
       if !comp.is_singleton? 
         component_go["min_gears"] = comp.scaling.min
