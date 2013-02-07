@@ -9,11 +9,11 @@ class LockTest < ActiveSupport::TestCase
     app2_name = "app"+gen_uuid
 
     user = CloudUser.new(login: login) 
-    domain = Domain.new(namespace: domain, canonical_namespace: domain.downcase)
+    domain = Domain.new(namespace: domain)
     domain.owner = user
-    app1 = Application.new(name: app1_name, canonical_name: app1_name.downcase)
+    app1 = Application.new(name: app1_name)
     app1.domain = domain
-    app2 = Application.new(name: app2_name, canonical_name: app2_name.downcase)
+    app2 = Application.new(name: app2_name)
     app2.domain = domain
 
     init_lock = Lock.create_lock(user)

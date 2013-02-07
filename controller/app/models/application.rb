@@ -88,7 +88,7 @@ class Application
 
   def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil)
     default_gear_size = GEAR_SIZES[0] unless default_gear_size
-    app = Application.new(domain: domain, name: application_name, canonical_name: application_name.downcase, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     app.user_agent = user_agent
     features << "web_proxy" if scalable
     if app.valid?
@@ -138,6 +138,12 @@ class Application
     self.app_ssh_keys = []
     self.pending_op_groups = []
     self.save
+  end
+
+  # Setter for applicaton name - sets the name and the canonical_name
+  def name=(app_name)
+    self.canonical_name = app_name.downcase
+    super
   end
 
   # Adds an additional namespace to the application. This function supports the first step of the update namespace workflow.

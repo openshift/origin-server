@@ -49,6 +49,12 @@ class Domain
     super
     self.user_ids << owner._id if owner
   end
+
+  # Setter for domain namespace - sets the namespace and the canonical_namespace
+  def namespace=(domain_name)
+    self.canonical_namespace = domain_name.downcase
+    super 
+  end
   
   # Change the namespace for this Domain and all applications under it. 
   # The namespace update happens in 2 steps:
@@ -63,7 +69,8 @@ class Domain
   #   The domain operation which tracks the first step of the update.
   def update_namespace(new_namespace)
     old_ns = namespace
-    set(:namespace, new_namespace)
+    self.namespace = new_namespace
+    self.save
     pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_completion_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
