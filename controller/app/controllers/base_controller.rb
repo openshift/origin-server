@@ -148,7 +148,8 @@ class BaseController < ActionController::Base
       @cloud_user.auth_method = @auth_method unless @cloud_user.nil?
     rescue OpenShift::UserException => e
       render_exception(e)
-    rescue OpenShift::AccessDeniedException
+    rescue OpenShift::AccessDeniedException => e
+      Rails.logger.warn "Access denied #{e.message}"
       log_action(@request_id, 'nil', login, "AUTHENTICATE", true, "Access denied", get_extra_log_args)
       request_http_basic_authentication
     end

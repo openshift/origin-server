@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "integration_application_test"
 require 'test_helper'
 
 class ApplicationTest < ActiveSupport::TestCase

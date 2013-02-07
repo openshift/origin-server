@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_bind_dns_service_test"
 require 'rubygems'
 require 'bundler'
 Bundler.setup

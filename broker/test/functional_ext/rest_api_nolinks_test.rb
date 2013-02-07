@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_rest_api_nolinks_test"
 require 'test_helper'
 require 'helpers/rest/api_common'
 #set nolinks before loading rest api models

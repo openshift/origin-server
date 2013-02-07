@@ -1,3 +1,4 @@
+ENV["TEST_NAME"] = "unit_cloud_user_test"
 require 'test_helper'
 require 'openshift-origin-controller'
 require 'mocha'
