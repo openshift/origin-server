@@ -1,22 +1,20 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/phpmyadmin-3.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/phpmyadmin-3.4
 
-Name: openshift-origin-cartridge-phpmyadmin-3.4
-Version: 1.5.1
-Release: 1%{?dist}
-Summary: Embedded phpMyAdmin support for express
-
-Group: Applications/Internet
-License: ASL 2.0
-URL: https://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: phpMyAdmin
-Requires: httpd < 2.4
-Obsoletes: cartridge-phpmyadmin-3.4
+Summary:       Embedded phpMyAdmin support for express
+Name:          openshift-origin-cartridge-phpmyadmin-3.4
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Applications/Internet
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      phpMyAdmin
+Requires:      httpd < 2.4
+BuildArch:     noarch
+Obsoletes:     cartridge-phpmyadmin-3.4
 
 %description
 Provides rhc phpMyAdmin cartridge support

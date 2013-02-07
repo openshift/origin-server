@@ -1,4 +1,4 @@
-%define brokerdir %{_var}/www/openshift/broker
+%global brokerdir %{_var}/www/openshift/broker
 
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
@@ -9,31 +9,30 @@
 %global gem_name openshift-origin-auth-remote-user
 %global rubyabi 1.9.1
 
-Summary:        OpenShift plugin for remote-user authentication
-Name:           rubygem-%{gem_name}
-Version: 1.5.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       rubygem(openshift-origin-common)
-Requires:       %{?scl:%scl_prefix}rubygem(json)
-Requires:       openshift-broker
-
+Summary:       OpenShift plugin for remote-user authentication
+Name:          rubygem-%{gem_name}
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      rubygem(openshift-origin-common)
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      openshift-broker
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
 
 %description
 Provides a remote-user auth service based plugin

@@ -1,38 +1,37 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/python-2.6
 
-Summary:   Provides python-2.6 support
-Name:      openshift-origin-cartridge-python-2.6
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Summary:       Provides python-2.6 support
+Name:          openshift-origin-cartridge-python-2.6
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      mod_bw
+Requires:      python
+Requires:      mod_wsgi >= 3.2
+Requires:      mod_wsgi < 3.4
+Requires:      httpd < 2.4
+Requires:      MySQL-python
+Requires:      pymongo
+Requires:      pymongo-gridfs
+Requires:      python-psycopg2
+Requires:      python-virtualenv
+Requires:      python-magic
+Requires:      libjpeg
+Requires:      libjpeg-devel
+Requires:      libcurl
+Requires:      libcurl-devel
+Requires:      numpy
+Requires:      numpy-f2py
+Requires:      gcc-gfortran
+Requires:      freetype-devel
 BuildRequires: git
-Requires:  openshift-origin-cartridge-abstract
-Requires:  rubygem(openshift-origin-node)
-Requires:  mod_bw
-Requires:  python
-Requires:  mod_wsgi >= 3.2
-Requires:  mod_wsgi < 3.4
-Requires:  httpd < 2.4
-Requires:  MySQL-python
-Requires:  pymongo
-Requires:  pymongo-gridfs
-Requires:  python-psycopg2
-Requires:  python-virtualenv
-Requires:  python-magic
-Requires:  libjpeg
-Requires:  libjpeg-devel
-Requires:  libcurl
-Requires:  libcurl-devel
-Requires:  numpy
-Requires:  numpy-f2py
-Requires:  gcc-gfortran
-Requires:  freetype-devel
-Obsoletes: cartridge-python-2.6
-
-BuildArch: noarch
+BuildArch:     noarch
+Obsoletes:     cartridge-python-2.6
 
 %description
 Provides wsgi support to OpenShift

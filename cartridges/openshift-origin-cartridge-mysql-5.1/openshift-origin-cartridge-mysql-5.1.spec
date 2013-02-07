@@ -1,22 +1,20 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/mysql-5.1
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mysql-5.1
 
-Name: openshift-origin-cartridge-mysql-5.1
-Version: 1.5.1
-Release: 1%{?dist}
-Summary: Provides embedded mysql support
-
-Group: Network/Daemons
-License: ASL 2.0
-URL: http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides embedded mysql support
+Name:          openshift-origin-cartridge-mysql-5.1
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      mysql-server
+Requires:      mysql-devel
 BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: mysql-server
-Requires: mysql-devel
-Obsoletes: cartridge-mysql-5.1
+BuildArch:     noarch
+Obsoletes:     cartridge-mysql-5.1
 
 %description
 Provides mysql cartridge support to OpenShift

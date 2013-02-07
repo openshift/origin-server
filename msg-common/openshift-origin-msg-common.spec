@@ -10,15 +10,15 @@
     %global mco_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/
 %endif
 
-Summary:        Common dependencies of the msg components for OpenShift server and node
-Name:           openshift-origin-msg-common
-Version: 1.3.1
-Release:        1%{?dist}
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}mcollective-common
-BuildArch:      noarch
+Summary:       Common dependencies of the msg components for OpenShift server and node
+Name:          openshift-origin-msg-common
+Version:       1.3.1
+Release:       1%{?dist}
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}mcollective-common
+BuildArch:     noarch
 
 %description
 Provides the common dependencies of the msg components for OpenShift server and node

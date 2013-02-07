@@ -1,47 +1,46 @@
-%define htmldir %{_localstatedir}/www/html
-%define openshiftconfigdir %{_localstatedir}/www/.openshift
-%define consoledir %{_localstatedir}/www/openshift/console
+%global htmldir %{_localstatedir}/www/html
+%global openshiftconfigdir %{_localstatedir}/www/.openshift
+%global consoledir %{_localstatedir}/www/openshift/console
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
 %{!?scl:%global pkg_name %{name}}
 
-Summary:   The OpenShift Management Console
-Name:      openshift-origin-console
-Version:   0.4.2
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%define with_systemd 1
+%global with_systemd 1
 %global gemdir /usr/share/rubygems/gems
 %else
-%define with_systemd 0
+%global with_systemd 0
 %global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
 %endif
 
-Requires:  rubygem-openshift-origin-console
-Requires:  %{?scl:%scl_prefix}rubygem-passenger
-Requires:  %{?scl:%scl_prefix}rubygem-passenger-native
-Requires:  %{?scl:%scl_prefix}rubygem-passenger-native-libs
-Requires:  %{?scl:%scl_prefix}mod_passenger
+Summary:       The OpenShift Management Console
+Name:          openshift-origin-console
+Version:       0.4.2
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      rubygem-openshift-origin-console
+Requires:      %{?scl:%scl_prefix}rubygem-passenger
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
+Requires:      %{?scl:%scl_prefix}mod_passenger
 %if 0%{?rhel}
-Requires:  %{?scl:%scl_prefix}rubygem-minitest
-Requires:  %{?scl:%scl_prefix}rubygem-therubyracer
-Requires: openshift-origin-util-scl
+Requires:      %{?scl:%scl_prefix}rubygem-minitest
+Requires:      %{?scl:%scl_prefix}rubygem-therubyracer
+Requires:      openshift-origin-util-scl
 %endif
 %if 0%{?fedora}
-Requires: openshift-origin-util
-Requires: v8-devel
-Requires: gcc-c++
+Requires:      openshift-origin-util
+Requires:      v8-devel
+Requires:      gcc-c++
 %endif
-BuildArch: noarch
-Provides:  openshift-origin-console = %{version}
-Obsoletes: openshift-console
+BuildArch:     noarch
+Provides:      openshift-origin-console = %{version}
+Obsoletes:     openshift-console
 
 %description
 This contains the console configuration components of OpenShift.

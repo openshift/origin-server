@@ -6,50 +6,47 @@
 %{?scl:%scl_package rubygem-%{gem_name}}
 %global gem_name openshift-origin-node
 %global rubyabi 1.9.1
-
 %global appdir %{_var}/lib/openshift
-%define apprundir %{_var}/run/openshift
+%global apprundir %{_var}/run/openshift
 
-Summary:        Cloud Development Node
-Name:           rubygem-%{gem_name}
-Version: 1.5.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(json)
-Requires:       %{?scl:%scl_prefix}rubygem(parseconfig)
-Requires:       %{?scl:%scl_prefix}rubygem(mocha)
-Requires:       %{?scl:%scl_prefix}rubygem(rspec)
-Requires:       rubygem(openshift-origin-common)
-Requires:       python
-Requires:       libselinux-python
-Requires:       mercurial
-Requires:       httpd
-
+Summary:       Cloud Development Node
+Name:          rubygem-%{gem_name}
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
+Requires:      %{?scl:%scl_prefix}rubygem(mocha)
+Requires:      %{?scl:%scl_prefix}rubygem(rspec)
+Requires:      rubygem(openshift-origin-common)
+Requires:      python
+Requires:      libselinux-python
+Requires:      mercurial
+Requires:      httpd
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:       libcgroup
+Requires:      libcgroup
 %else
-Requires:       libcgroup-tools
+Requires:      libcgroup-tools
 %endif
-Requires:       pam_openshift
-Requires:       quota
-
+Requires:      pam_openshift
+Requires:      quota
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
-Obsoletes: 	    rubygem-stickshift-node
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
+Obsoletes: 	   rubygem-stickshift-node
 
 %description
 This contains the Cloud Development Node packaged as a rubygem.

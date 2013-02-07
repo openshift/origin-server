@@ -7,34 +7,34 @@
 %global gem_name openshift-origin-dns-nsupdate
 %global rubyabi 1.9.1
 
-Summary:        OpenShift plugin for DNS update service using nsupdate
-Name:           rubygem-%{gem_name}
-Version:        0.0.3
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(json)
-Requires:       %{?scl:%scl_prefix}rubygem(dnsruby)
-Requires:       rubygem(openshift-origin-common)
-Requires:       bind-utils
-Requires:       openshift-origin-broker
-Requires:     selinux-policy-targeted
-Requires:     policycoreutils-python
+Summary:       OpenShift plugin for DNS update service using nsupdate
+Name:          rubygem-%{gem_name}
+Version:       0.0.3
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
+Requires:      rubygem(openshift-origin-common)
+Requires:      bind-utils
+Requires:      openshift-origin-broker
+Requires:      selinux-policy-targeted
+Requires:      policycoreutils-python
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
 
 %description
 Provides a DNS service update plugin using nsupdate

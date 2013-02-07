@@ -1,56 +1,51 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/ruby-1.8
 
-Summary:   Provides ruby rack support running on Phusion Passenger
-Name:      openshift-origin-cartridge-ruby-1.8
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildRequires: git
-Requires:  openshift-origin-cartridge-abstract
-Requires:  rubygem(openshift-origin-node)
-Requires:  mod_bw
-Requires:  sqlite-devel
-Requires:  rubygems
-Requires:  rubygem-rack >= 1.1.0
-#Requires:  rubygem-rack < 1.2.0
-Requires:  rubygem-passenger
-Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
-Requires:  mod_passenger
-Requires:  rubygem-bundler
-Requires:  rubygem-mongo
-Requires:  rubygem-sqlite3
-Requires:  rubygem-thread-dump
-Requires:  ruby-sqlite3
-Requires:  ruby-mysql
-Requires:  rubygem-bson_ext
-Requires:  mysql-devel
-Requires:  ruby-devel
-Requires:  libxml2
-Requires:  libxml2-devel
-Requires:  libxslt
-Requires:  libxslt-devel
-Requires:  gcc-c++
-Requires:  js
-Obsoletes: cartridge-ruby-1.8
-
-%if 0%{?rhel}
-Requires:  ruby-nokogiri
-%endif
-
-%if 0%{?fedora}
-Requires:  rubygem-nokogiri
-%endif
-
-Obsoletes: openshift-origin-cartridge-ruby-1.1
-
+Summary:       Provides ruby rack support running on Phusion Passenger
+Name:          openshift-origin-cartridge-ruby-1.8
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      mod_bw
+Requires:      sqlite-devel
+Requires:      rubygems
+Requires:      rubygem-rack >= 1.1.0
+#Requires:      rubygem-rack < 1.2.0
+Requires:      rubygem-passenger
+Requires:      rubygem-passenger-native
+Requires:      rubygem-passenger-native-libs
+Requires:      mod_passenger
+Requires:      rubygem-bundler
+Requires:      rubygem-mongo
+Requires:      rubygem-sqlite3
+Requires:      rubygem-thread-dump
+Requires:      ruby-sqlite3
+Requires:      ruby-mysql
+Requires:      rubygem-bson_ext
+Requires:      mysql-devel
+Requires:      ruby-devel
+Requires:      libxml2
+Requires:      libxml2-devel
+Requires:      libxslt
+Requires:      libxslt-devel
+Requires:      gcc-c++
+Requires:      js
 # Deps for users
-Requires: ruby-RMagick
-
-BuildArch: noarch
+Requires:      ruby-RMagick
+%if 0%{?rhel}
+Requires:      ruby-nokogiri
+%endif
+%if 0%{?fedora}
+Requires:      rubygem-nokogiri
+%endif
+BuildRequires: git
+BuildArch:     noarch
+Obsoletes:     cartridge-ruby-1.8
+Obsoletes:     openshift-origin-cartridge-ruby-1.1
 
 %description
 Provides ruby support to OpenShift

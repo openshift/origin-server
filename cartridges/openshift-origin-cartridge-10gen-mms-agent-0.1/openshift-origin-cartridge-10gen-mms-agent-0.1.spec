@@ -1,23 +1,20 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/10gen-mms-agent-0.1
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
-Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.19.1
-Release: 1%{?dist}
-Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
-
-Group: Applications/Internet
-License: ASL 2.0
-URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires: openshift-origin-cartridge-abstract
-Requires: openshift-origin-cartridge-mongodb-2.2
-Requires: pymongo
-Requires: mms-agent
-Obsoletes: cartridge-10gen-mms-agent-0.1
-
+Summary:       Embedded 10gen MMS agent for performance monitoring of MondoDB
+Name:          openshift-origin-cartridge-10gen-mms-agent-0.1
+Version:       1.19.1
+Release:       1%{?dist}
+Group:         Applications/Internet
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      openshift-origin-cartridge-mongodb-2.2
+Requires:      pymongo
+Requires:      mms-agent
+BuildArch:     noarch
+Obsoletes:     cartridge-10gen-mms-agent-0.1
 
 %description
 Provides 10gen MMS agent cartridge support

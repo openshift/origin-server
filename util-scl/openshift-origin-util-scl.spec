@@ -1,13 +1,12 @@
-Summary:        Utility scripts for the OpenShift Origin broker and node
-Name:           openshift-origin-util-scl
-Version: 1.2.1
-Release:        1%{?dist}
-Group:          Network/Daemons
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildArch:      noarch
+Summary:       Utility scripts for the OpenShift Origin broker and node
+Name:          openshift-origin-util-scl
+Version:       1.2.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+BuildArch:     noarch
 
 %description
 This package contains a set of utility scripts for the broker and node. 

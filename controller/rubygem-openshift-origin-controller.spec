@@ -7,30 +7,30 @@
 %global gem_name openshift-origin-controller
 %global rubyabi 1.9.1
 
-Summary:        Cloud Development Controller
-Name:           rubygem-%{gem_name}
-Version: 1.5.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(state_machine)
-Requires:       rubygem(openshift-origin-common)
+Summary:       Cloud Development Controller
+Name:          rubygem-%{gem_name}
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(state_machine)
+Requires:      rubygem(openshift-origin-common)
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
-Obsoletes: 	rubygem-stickshift-controller
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
+Obsoletes: 	   rubygem-stickshift-controller
 
 %description
 This contains the Cloud Development Controller packaged as a rubygem.

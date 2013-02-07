@@ -1,35 +1,33 @@
-%define cartdir %{_libexecdir}/openshift/cartridges
+%global cartdir %{_libexecdir}/openshift/cartridges
 
-Summary:   OpenShift common cartridge components
-Name:      openshift-origin-cartridge-abstract
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires:  facter
-Requires:  git
-Requires:  make
-Requires:  mod_ssl
+Summary:       OpenShift common cartridge components
+Name:          openshift-origin-cartridge-abstract
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      facter
+Requires:      git
+Requires:      make
+Requires:      mod_ssl
 # abstract/info/connection-hooks/publish-http-url
-Requires:  python
+Requires:      python
 # abstract/info/bin/jenkins_build
-Requires:  ruby
-Requires:  rubygems
-Requires:  rubygem(json)
+Requires:      ruby
+Requires:      rubygems
+Requires:      rubygem(json)
 # abstract/info/bin/open_ports.sh
-Requires:  socat
+Requires:      socat
 # abstract/info/bin/nurture_app_push.sh
-Requires:  curl
+Requires:      curl
 # abstract/info/bin/sync_gears.sh
-Requires:  rsync
+Requires:      rsync
 # abstract/info/lib/network
-Requires:  lsof
-
-Obsoletes: stickshift-abstract
+Requires:      lsof
+BuildArch:     noarch
+Obsoletes:     stickshift-abstract
 
 %description
 This contains the common function used while building cartridges.

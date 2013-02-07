@@ -1,24 +1,23 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/switchyard-0.6
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
-Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.4.1
-Release: 1%{?dist}
-Summary: Embedded SwitchYard modules for JBoss
-Group: Network/Daemons
-License: ASL 2.0
-URL: https://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: mysql-devel
-Requires: wget
-Requires: java-1.6.0-openjdk
-Requires: rubygems
-Requires: rubygem-json
-Requires: switchyard-as7-modules
+Summary:       Embedded SwitchYard modules for JBoss
+Name:          openshift-origin-cartridge-switchyard-0.6
+Version:       1.4.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      mysql-devel
+Requires:      wget
+Requires:      java-1.6.0-openjdk
+Requires:      rubygems
+Requires:      rubygem-json
+Requires:      switchyard-as7-modules
+BuildArch:     noarch
 
 %description
 Provides embedded switchyard support for JBoss cartridges
