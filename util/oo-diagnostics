@@ -16,7 +16,7 @@
 # via https://bugzilla.redhat.com/
 
 #--
-# Copyright 2012 Red Hat, Inc.
+# Copyright 2013 Red Hat, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -242,8 +242,8 @@ class OODiag
     js-debuginfo js-devel libev libev-debuginfo libev-devel libev-source
     libmcrypt libmcrypt-debuginfo libmcrypt-devel libmongodb mcollective
     mcollective-client mcollective-common mod_bw mod_bw-debuginfo mod_passenger
-    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-origin-console
-    openshift-origin-broker openshift-origin-broker-util
+    mongodb mongodb-debuginfo mongodb-devel mongodb-server openshift-console
+    openshift-origin-console openshift-origin-broker openshift-origin-broker-util
     openshift-origin-cartridge-abstract openshift-origin-cartridge-cron-1.4
     openshift-origin-cartridge-diy-0.1 openshift-origin-cartridge-haproxy-1.4
     openshift-origin-cartridge-jbosseap-6.0
@@ -417,19 +417,25 @@ class OODiag
   def test_enterprise_rpms
     skip_test unless @project_is[:enterprise]
     verbose "Checking that all OpenShift RPMs are actually from OpenShift Enterprise"
+    rogue_rpms = []
     ENTERPRISE_RPMS.each do |rpm|
       if @rpms.has_key?(rpm)
         rel = @rpms[rpm][:release]
         ver = @rpms[rpm][:version]
         unless rel.include?('el6op') ||
                # waive two errata RPMs that didn't get the right distro tag
-               rpm == 'openshift-origin-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
+               rpm == 'openshift-console' && "#{ver}-#{rel}" == '0.0.5-3.el6' ||
                rpm == 'openshift-origin-broker' && "#{ver}-#{rel}" == '1.0.2-1.el6'
-          # this RPM doesn't seem to have come from the proper channel
-          do_warn "#{rpm} should be an OpenShift Enterprise RPM but installed version #{ver}-#{rel} does not have 'el6op' in it"
+          rogue_rpms << "#{rpm} should be an OpenShift Enterprise RPM but installed version #{ver}-#{rel} does not have 'el6op' in it"
         end
       end
     end
+    rogue_rpms.empty? or do_warn <<-ROGUES
+      The following problems were found with your RPMs: \n\t#{ rogue_rpms.join("\n\t") }
+      Please ensure that you have not enabled EPEL or other third-party repositories, and
+      do not have any of these RPMs pre-installed in your install image. These RPMs must come
+      from your OpenShift Enterprise subscription in order to be supported.
+    ROGUES
   end
 
   def test_selinux_policy_rpm
@@ -439,7 +445,7 @@ class OODiag
 
   def test_broker_cache_permissions
     skip_test unless @is_broker
-    if `find /var/www/openshift/broker/tmp/cache/ -user root`.length > 0
+    if `find /var/www/openshift/broker/tmp/cache/* -user root`.length > 0
       do_fail "broker application cache contains files belonging to root; please clear the cache"
     else
       verbose "broker application cache permissions appear fine"
@@ -670,7 +676,8 @@ class OODiag
     d_profile_active = Hash.new
     d_nodes_with_profile = Hash.new {|h,k| h[k] = []}
     districts.each do |district|
-      profile = district.node_profile
+      profile = district.methods.include?(:node_profile) ? district.node_profile : district.gear_size
+                            # model refactor renamed :node_profile => :gear_size
       verbose "district '#{district.name}' has profile '#{profile}'"
       if district.server_identities.empty?
         do_warn "There are no node hosts in district '#{district.name}'"
@@ -731,7 +738,7 @@ class OODiag
     d_profile_for.each do |node,profile|
       # check that no nodes from districts are missing
       do_fail <<-MISSING if !a_profile_for[node]
-        Node host #{node} is a member of district '#{district_for[node]}' but cannot be found.
+        Node host #{node} is a member of district '#{d_district_for[node]}' but cannot be found.
         If the host exists, it is not responding via MCollective.
         If it should not be in the district, please remove it with oo-admin-ctl-district.
       MISSING
@@ -742,9 +749,10 @@ class OODiag
     skip_test unless @is_broker
     if @project_is[:online]
       run_script(@rpms['rhc-devenv'] ? "rhc-accept-devenv" : "rhc-accept-broker")
+      run_script("oo-accept-systems -w #{@options[:wait]}") if @rpms["openshift-origin-broker-util"]
     elsif @rpms["openshift-origin-broker-util"]
       run_script("oo-accept-broker")
-      run_script("oo-accept-systems") if File.exists? '/usr/sbin/oo-accept-systems'
+      run_script("oo-accept-systems -w #{@options[:wait]}") if File.exists? '/usr/sbin/oo-accept-systems'
     else
       do_warn "openshift-origin-broker-util is not installed; you really should install it"
     end
@@ -769,15 +777,16 @@ class OODiag
     #
     # create a tmp file with all of the unique error log statements after the most recent openshift-broker start
     #
-    rubytmpfile = Tempfile.new('oodiag-log-#{$$}')
-    tmpfile = rubytmpfile.path
-    system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' /var/log/openshift/broker/httpd/error_log | sort -u > #{tmpfile}]
+    tmpfile = Tempfile.new("oodiag-log-#{$$}").path
+    logfile = @project_is[:enterprise] ? '/var/www/openshift/broker/httpd/logs/error_log' : '/var/log/openshift/broker/httpd/error_log'
+    verbose "no file #{logfile}" and skip_test if ! File.exists? logfile # log file just not there
+    system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' #{logfile} | sort -u > #{tmpfile}]
+    # if no restart msg, just use the whole thing
+    system %Q[sort -u #{logfile} > #{tmpfile}] if ! File.exists? tmpfile
+    verbose "log #{logfile} is empty" and skip_test if ! File.exists? tmpfile
     #
     # info about Passenger prespawn errors
     expect_log_error 'Cannot execute.*prespawn.*Permission denied (13)', tmpfile
-    #
-    # info about mcollective client log error
-    expect_log_error 'Could not start logger: Errno::EACCES', tmpfile
     #
     # look for real Passenger startup problems
     out = `grep 'Passenger could not be initialized\\|Unable to start the Phusion Passenger watchdog' #{tmpfile}`
@@ -790,7 +799,20 @@ class OODiag
     #
     # look for Passenger errors during operation
     out = `grep 'Unexpected error in mod_passenger' #{tmpfile}`
-    do_fail %Q[broker error_log: serious problem with Passenger operation:\n  #{out.split("\n").first}\n] unless out.empty?
+    do_fail <<-ERR unless out.empty?
+      broker error_log: serious problem with Passenger operation:
+        #{out.split("\n").first}
+    ERR
+    #
+    # info about mcollective client log error
+    out = `grep 'Could not start logger: Errno::EACCES' #{tmpfile}`
+    do_warn <<-FIXLOG unless out.empty?
+      broker error_log: this problem indicates mcollective client logging is failing:
+        #{out}
+      Please fix this issue with the following commands:
+        # chown apache:root /var/log/mcollective-client.log
+        # service openshift-broker restart
+    FIXLOG
     #
     # done with the tmp file
     system "rm #{tmpfile}"
@@ -820,8 +842,7 @@ class OODiag
   end
 
   def test_for_nonrpm_rubygems
-    # not sure if other projects will want this. uncomment to silence:
-    # skip_test unless @project_is[:enterprise]
+    skip_test if @project_is[:origin] # origin kind of relies on gem install
     verbose "checking for presence of gem-installed rubygems"
 
     # list out all gem directories and find those without RPM ownership
@@ -860,13 +881,40 @@ class OODiag
     NOOO
   end
 
+  def test_node_httpd_error_log
+    skip_test unless @is_broker
+    #
+    # create a tmp file with all of the unique error log statements after the most recent httpd start
+    #
+    tmpfile = Tempfile.new("oodiag-node-#{$$}").path
+    logfile = '/var/log/httpd/error_log'
+    verbose "no file #{logfile}" and skip_test if ! File.exists? logfile # log file just not there
+    system %Q[sed -n 'H; /configured -- resuming normal operations/h; ${g;p;}' #{logfile} | sort -u > #{tmpfile}]
+    # if no restart msg, just use the whole thing
+    system %Q[sort -u #{logfile} > #{tmpfile}] if ! File.exists? tmpfile
+    verbose "log #{logfile} is empty" and skip_test if ! File.exists? tmpfile
+    #
+    # look for proxy lb error
+    out = `grep 'proxy: ap_get_scoreboard_lb.*failed in child .* for worker' #{tmpfile}`
+    verbose <<-ERR unless out.empty?
+      node httpd error_log: this log message is expected for now:
+        #{out.split("\n").first}
+      For details see: https://bugzilla.redhat.com/show_bug.cgi?id=892871
+    ERR
+    #
+    # done with the tmp file
+    system "rm #{tmpfile}"
+  end
+
   def test_node_mco_log
     skip_test unless @is_node
     #
     # create a tmp file with all of the unique log statements after most recent mcollective start
-    rubytmpfile = Tempfile.new('oodiag-mco-#{$$}')
-    tmpfile = rubytmpfile.path
+    tmpfile = Tempfile.new("oodiag-mco-#{$$}").path
     system %Q! sed -n 'H; /INFO.*The Marionette Collective.*started logging/h; ${g;p;}' /var/log/mcollective.log | sed 's|^\w, \[[^]]*\]||' | sort -u > #{tmpfile} !
+    # if no restart see, just use the whole thing
+    system %Q! sort -u /var/log/mcollective.log > #{tmpfile} ! unless File.exists? tmpfile
+    return unless File.exists? tmpfile
     #
     # Look for the mco timeout warning
     out = `grep 'WARN.*created at [0-9]* is [0-9]* seconds old, TTL is' #{tmpfile}`
@@ -906,23 +954,56 @@ class OODiag
   end
 
   def service_enabled?(svc)
-    system "chkconfig #{svc} >& /dev/null"
+    if @os_is[:rhel6]
+      system "chkconfig #{svc} >& /dev/null"
+    else #systemd
+      system "systemctl is-enabled #{svc}.service >& /dev/null"
+    end
+    return $?.exitstatus == 0
+  end
+  def service_started?(svc)
+    if @os_is[:rhel6]
+      system "service #{svc} status >& /dev/null"
+    else #systemd
+      system "systemctl status #{svc}.service >& /dev/null"
+    end
     return $?.exitstatus == 0
   end
   def test_services_enabled
     fail_without = []
     warn_without = []
     if @is_broker
-      fail_without += %w{httpd network sshd openshift-broker}
+      fail_without += %w{httpd network sshd}
+      fail_without += @project_is[:online] ? %w{rhc-broker rhc-site} : %w{openshift-broker}
       warn_without += %w{ntpd}
     end
     if @is_node
       fail_without += %w{httpd network sshd openshift-port-proxy openshift-gears mcollective
                         cgconfig cgred openshift-cgroups }
-      warn_without += %w{ntpd oddjobd}
+      fail_without += %w{openshift-node-web-proxy } unless @project_is[:enterprise]
+
+      warn_without += %w{ntpd oddjobd messagebus}
     end
     skip_test if fail_without.empty? && warn_without.empty?
-    verbose "checking that required services are enabled"
+       #
+    verbose "checking that required services are running now"
+    missing = fail_without.uniq.select {|svc| !service_started? svc}
+    do_fail <<-REQ unless missing.empty?
+      The following service(s) are not currently started:
+        #{missing.join ", "}
+      These services are required for OpenShift functionality.
+      Please "service <service> start" for any not currently started.
+    REQ
+       #
+    missing = warn_without.uniq.select {|svc| !service_started? svc}
+    do_warn <<-WANT unless missing.empty?
+      The following service(s) are not currently started:
+        #{missing.join ", "}
+      Unless you know they are not needed, use "service <service> start" for any
+      that are not currently started.
+    WANT
+       #
+    verbose "checking that required services are enabled at boot"
     missing = fail_without.uniq.select {|svc| !service_enabled? svc}
     do_fail <<-REQ unless missing.empty?
       The following service(s) are not started at boot time:
@@ -931,6 +1012,7 @@ class OODiag
       Please "chkconfig <service> on" for each to ensure that they start at boot,
       and "service <service> start" for any not currently running.
     REQ
+       #
     missing = warn_without.uniq.select {|svc| !service_enabled? svc}
     do_warn <<-WANT unless missing.empty?
       The following service(s) are not started at boot time:
@@ -1015,15 +1097,26 @@ class OODiag
 
         do_warn <<-"WARN" unless out.empty?
            RPM package owned configuration files have been altered:
-           #{out}
-           Ensure any package owned configuration files which have been
+             #{out}
+           Ensure any package-owned configuration files which have been
            altered are accurate. This may require a manual merge of
            your previous alterations. Once you are comfortable with the merge,
-           remove the reported .rpm* configuration file (otherwise, you'll continue
-           to see this warning each time your run the diagnostic test.
+           remove the reported .rpm* configuration file (or you will continue
+           to see this warning each time you run the diagnostic test).
        WARN
      end
   end
+
+  def test_broken_httpd_version
+    httpd = @rpms['httpd'] or skip_test
+    version = "#{httpd[:version]}-#{httpd[:release]}"
+    %w{ 2.2.22-14.ep6.el6 2.2.17-15.4.ep5.el6 }.include? version and do_fail <<-BORKED
+      httpd-#{version} is installed. This version includes serious known issues that
+      impact OpenShift operations.  Please upgrade or downgrade httpd accordingly.
+      For details see: https://bugzilla.redhat.com/show_bug.cgi?id=893884
+      BORKED
+  end
+
 end #class OODiag
 
 
