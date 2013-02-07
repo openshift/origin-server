@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.7
+Version: 1.4.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 07 2013 Dan McPherson <dmcphers@redhat.com> 1.4.8-1
+- deep copy the group overrides so that a software cache of cartridges does not
+  suffer changes (rchopra@redhat.com)
+- Bug 908825 Create gear uuid index in the right place (dmcphers@redhat.com)
+- Setting namespace and canonical_namespace for the domain together and doing
+  the same for the application (abhgupta@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
 - Merge pull request #1332 from abhgupta/abhgupta-ssh-keys
   (dmcphers@redhat.com)
