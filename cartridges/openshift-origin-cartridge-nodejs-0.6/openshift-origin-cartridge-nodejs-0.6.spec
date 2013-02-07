@@ -2,7 +2,7 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.5.0
+Version: 1.5.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
@@ -100,6 +100,12 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+- Merge pull request #1333 from mrunalp/bugs/908538
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 908538: Fix for git checkout failing in npm build. (mrunalp@gmail.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - remove BuildRoot: (tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)
