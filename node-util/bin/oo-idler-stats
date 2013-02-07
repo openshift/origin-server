@@ -131,18 +131,18 @@ def get_app_type(app_path, app_name="unknown"):
     if 0 == len(installed):
         return "unknown"
 
-    candidates = set(["diy-0.1", "jbossas-7", "jbosseap-6.0", "nodejs-0.6", "perl-5.10", \
-        "php-5.3", "python-2.6", "ruby-1.8", "ruby-1.9", "zend-5.6"]).intersection(installed)
+    candidates = set(["diy-0.1", "jbossas-7", "jbosseap-6.0", "nodejs-0.6", "perl-5.10", "perl-5.16"\
+        "php-5.3", "php-5.4", "python-2.6", "ruby-1.8", "ruby-1.9", "zend-5.6"]).intersection(installed)
     if 0 < len(candidates):
         return candidates.pop().rsplit('-', 1)[0]
 
-    candidates = set(["mongodb-2.0", "mysql-5.1", "postgresql-8.4", \
+    candidates = set(["mongodb-2.0", "mysql-5.1", "postgresql-8.4", "postgresql-9.2"\
         "jenkins-1.4"]).intersection(installed)
     if 0 < len(candidates):
         return candidates.pop().rsplit('-', 1)[0]
 
     candidates = set(["metrics-0.1", "rockmongo-1.1", "10gen-mms-agent-0.1", \
-        "cron-1.4", "haproxy-1.4", "jenkins-client-1.4", "phpmyadmin-3.4"]).intersection(installed)
+        "cron-1.4", "haproxy-1.4", "jenkins-client-1.4", "phpmyadmin-3.4", "phpmyadmin-3.5"]).intersection(installed)
     if 0 < len(candidates):
         return candidates.pop().rsplit('-', 1)[0]
 

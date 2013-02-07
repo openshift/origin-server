@@ -1,5 +1,5 @@
 @runtime
-@not-origin
+@rhel-only
 Feature: Cartridge Runtime Extended Checks (JBoss)
 
   @runtime_extended2

@@ -1,11 +1,11 @@
 Summary:        Utility scripts for the OpenShift Origin broker and node
 Name:           openshift-origin-util-scl
-Version: 1.1.1
+Version: 1.2.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 BuildArch:      noarch
 
@@ -18,13 +18,8 @@ This package contains a set of utility scripts for the broker and node.
 %build
 
 %install
-rm -rf %{buildroot}
-
 mkdir -p %{buildroot}%{_bindir}
 cp oo-* %{buildroot}%{_bindir}/
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0755,-,-) %{_bindir}/oo-ruby
@@ -32,6 +27,13 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.1.2-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Wed Dec 12 2012 Adam Miller <admiller@redhat.com> 1.1.1-1
 - bump_minor_versions for sprint 22 (admiller@redhat.com)
 

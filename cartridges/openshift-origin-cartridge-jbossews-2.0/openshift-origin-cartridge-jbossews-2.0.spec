@@ -4,14 +4,12 @@
 
 Summary:   Provides JBossEWS2.0 support
 Name:      openshift-origin-cartridge-jbossews-2.0
-Version: 1.1.3
+Version: 1.2.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
 
 BuildRequires: git
@@ -49,7 +47,6 @@ popd
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
@@ -108,12 +105,7 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 #cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives/jbossews-2.0/modules/org/postgresql/jdbc/main/module.xml
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0755,-,-) %{cartridgedir}/info/hooks
@@ -133,6 +125,22 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.1.6-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.1.5-1
+- Bug 906845 - maven heap size (bdecoste@gmail.com)
+- Bug 906845 (bdecoste@gmail.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.1.4-1
+- Merge pull request #1285 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- BZ906845 (bdecoste@gmail.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.1.3-1
 - Add tomcat version tags so that new RHC will allow 'rhc app create foo
   tomcat6' (ccoleman@redhat.com)

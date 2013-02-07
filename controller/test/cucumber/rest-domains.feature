@@ -136,17 +136,23 @@ Feature: domains
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
     Then the response should be "201"
     When I send a PUT request to "/domains/api<random>" with the following:"id=apiX<random>"
     Then the response should be "200"
     And the response should be a "domain" with attributes "id=apiX<random>"
     
-    
-    Scenarios:
-     | format | 
-     | JSON | 
-     | XML | 
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | format | php_version |
+      | JSON   | php-5.3     |
+      | XML    | php-5.3     |
+      
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | format | php_version |
+      | JSON   | php-5.4     |
+      | XML    | php-5.4     |
      
      
   Scenario Outline: Update the domain of another user
@@ -217,7 +223,7 @@ Feature: domains
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
     Then the response should be "201"
     When I send a DELETE request to "/domains/api<random>"
     Then the response should be "400"
@@ -225,25 +231,39 @@ Feature: domains
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "204"
     
-    Scenarios:
-     | format | 
-     | JSON | 
-     | XML | 
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | format | php_version |
+      | JSON   | php-5.3     |
+      | XML    | php-5.3     |
+      
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | format | php_version |
+      | JSON   | php-5.4     |
+      | XML    | php-5.4     |
      
   Scenario Outline: Force Delete domain with existing applications
     Given a new user
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
     Then the response should be "201"
     When I send a DELETE request to "/domains/api<random>?force=true"
     Then the response should be "204"
     
-    Scenarios:
-     | format | 
-     | JSON | 
-     | XML | 
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | format | php_version |
+      | JSON   | php-5.3     |
+      | XML    | php-5.3     |
+      
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | format | php_version |
+      | JSON   | php-5.4     |
+      | XML    | php-5.4     |
      
   Scenario Outline: Create more than one domain
     Given a new user

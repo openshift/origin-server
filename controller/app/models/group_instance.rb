@@ -51,8 +51,16 @@ class GroupInstance
     get_attribute_value("gear_size") || application.default_gear_size
   end
 
+  def gear_size=(value)
+    get_group_override["gear_size"] = value
+  end
+
   def addtl_fs_gb
     get_attribute_value("additional_filesystem_gb") || 0
+  end
+
+  def addtl_fs_gb=(value)
+    get_group_override["additional_filesystem_gb"] = value
   end
 
   # Adds ssh keys to all gears within the group instance.

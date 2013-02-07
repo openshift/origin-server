@@ -1,11 +1,11 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.4
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/origin-server/source/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:       ruby(abi) >= 1.8
 Requires:       openshift-origin-broker
 # For oo-register-dns
@@ -31,8 +31,6 @@ They must be run on a openshift broker instance.
 %build
 
 %install
-rm -rf %{buildroot}
-
 mkdir -p %{buildroot}%{_sbindir}
 cp oo-* %{buildroot}%{_sbindir}/
 
@@ -40,9 +38,6 @@ mkdir -p %{buildroot}%{_mandir}/man8/
 cp man/*.8 %{buildroot}%{_mandir}/man8/
 mkdir -p %{buildroot}/usr/share/openshift/kickstarts
 cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstarts
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
@@ -71,8 +66,38 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man8/oo-setup-broker.8.gz
 %{_mandir}/man8/oo-accept-broker.8.gz
 %{_mandir}/man8/oo-accept-systems.8.gz
+%{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Fixing domain update in oo-admin-ctl-domain script (abhgupta@redhat.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.8-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- <oo-stats, oo-diagnostics> allow -w .5, improve options errmsg
+  (lmeyer@redhat.com)
+- <oo-accept-systems> fix bug 893896 - allow -w .5 and improve parameter error
+  report (lmeyer@redhat.com)
+- <oo-accept-broker> fix bug 905656 - exit message and status
+  (lmeyer@redhat.com)
+- <oo-stats> add man page; fix profile summation bug 907286.
+  (lmeyer@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Merge pull request #1265 from fotioslindiakos/storage
+  (dmcphers+openshiftbot@redhat.com)
+- Fix setting max_storage for oo-admin-ctl-user (fotios@redhat.com)
+- Added ability to set max storage to oo-admin-ctl-user (fotios@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Bug 901444 Fixing bad merge (dmcphers@redhat.com)
+- Better naming (dmcphers@redhat.com)
+- share db connection logic (dmcphers@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Merge pull request #1252 from
   smarterclayton/us3350_establish_plan_upgrade_capability

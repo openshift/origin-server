@@ -2,12 +2,12 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version: 0.1.3
+Version: 0.2.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
-Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch:     noarch
 BuildRequires: git
 Requires:      openshift-origin-cartridge-abstract
@@ -77,6 +77,26 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.1.7-1
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 0.1.6-1
+- Bug 907426 - [US3327]Jenkins build failed for python-2.7/python-3.3 apps
+  (smitram@gmail.com)
+- Bug 907372 - [US3327]Meet error "could not create 'YourAppName.egg-info':
+  Permission denied" when snapshot restored for python-2.7/python-3.3 apps
+  (smitram@gmail.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.5-1
+- Ensure python is tagged vith versions (ccoleman@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Fix community git url to the openshift forked version (thanks kraman for
+  forking that) of the cartridges. (smitram@gmail.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 0.1.3-1
 - Fix bug where first provider is used by the broker and it ends up switching
   between python 2.7 and python 3.3 on a db add. Set the first provider to the

@@ -42,6 +42,11 @@ class ActiveSupport::TestCase
     @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_multiple_gear_sizes@test.com')))
   end
 
+  def with_user_with_extra_storage
+    set_user(new_named_user('user_with_extra_storage@test.com'))
+    @controller.stubs(:current_user).returns(set_user(new_named_user('user_with_extra_storage@test.com')))
+  end
+
   # some unit tests or test environments may want to preserve domains
   # created for unique users
   alias_method :cleanup_domain?, :cleanup_user?
@@ -172,10 +177,10 @@ class ActiveSupport::TestCase
   end
 
   def auth_headers
-   h = {}
-   h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
-   h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
-   h
+    h = {}
+    h['Cookie'] = "rh_sso=#{@user.ticket}" if @user.ticket
+    h['Authorization'] = ActionController::HttpAuthentication::Basic.encode_credentials(@user.login, @user.password) if @user.login
+    h
   end
 
   def json_header(is_post=false)

@@ -846,7 +846,6 @@ check_services
 check_authentication
 check_dynamic_dns
 check_messaging
-exit
 
 if [ "$STATUS" -eq 0 ]
 then

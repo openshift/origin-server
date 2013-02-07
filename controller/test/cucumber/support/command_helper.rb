@@ -404,7 +404,18 @@ module CommandHelper
   end
 
   def default_args(app)
-    " -l #{app.login} -p #{app.password} --clean --debug --noprompt --server=localhost --insecure"
+    hostname = "localhost"
+    begin
+      if File.exists?("/etc/openshift/node.conf")
+        config = ParseConfig.new("/etc/openshift/node.conf")
+        val = config.get_value("PUBLIC_HOSTNAME").gsub!(/[ \t]*#[^\n]*/,"")
+        val = val[1..-2] if val.start_with? "\""
+        hostname = val
+      end
+    rescue
+      puts "Unable to determine hostname. Defaulting to localhost]\n"
+    end
+    " -l #{app.login} -p #{app.password} --clean --debug --noprompt --server=#{hostname} --insecure"
   end
 
   #

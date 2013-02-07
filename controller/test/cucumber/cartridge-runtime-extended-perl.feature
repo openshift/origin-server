@@ -13,6 +13,12 @@ Feature: Cartridge Runtime Extended Checks (Perl)
     When I destroy the application
     Then a <proc_name> process will not be running
 
+  @rhel-only
   Scenarios: Code push scenarios
     | type         | proc_name | hot_deploy_status | pid_changed   |
     | perl-5.10    | httpd     | is not enabled    | should be     |
+
+  @fedora-only
+  Scenarios: Code push scenarios
+    | type         | proc_name | hot_deploy_status | pid_changed   |
+    | perl-5.16    | httpd     | is not enabled    | should be     |

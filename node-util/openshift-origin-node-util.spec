@@ -1,12 +1,12 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-node-util
-Version: 1.4.3
+Version: 1.5.1
 Release:        1%{?dist}
 
 Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 Requires:       oddjob
 Requires:       rng-tools
@@ -25,10 +25,18 @@ run on a node instance.
 %build
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_sbindir}
+
 cp bin/oo-* %{buildroot}%{_sbindir}/
 cp bin/rhc-* %{buildroot}%{_sbindir}/
+
+%if 0%{?fedora} >= 18
+  mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4 %{buildroot}%{_sbindir}/oo-httpd-singular
+  rm %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.3
+%else
+  mv %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.3 %{buildroot}%{_sbindir}/oo-httpd-singular
+  rm %{buildroot}%{_sbindir}/oo-httpd-singular.apache-2.4
+%endif
 
 mkdir -p %{buildroot}/%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_sysconfdir}/oddjobd.conf.d/
@@ -42,6 +50,7 @@ cp www/html/restorer.php %{buildroot}/%{_localstatedir}/www/html/
 
 cp man8/*.8 %{buildroot}%{_mandir}/man8/
 
+
 %if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}%{_initddir}
 cp init.d/openshift-gears %{buildroot}%{_initddir}/
@@ -49,9 +58,6 @@ cp init.d/openshift-gears %{buildroot}%{_initddir}/
 mkdir -p %{buildroot}/etc/systemd/system
 mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-gears.service
 %endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-accept-node
@@ -103,6 +109,38 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- remove BuildRoot: (tdawson@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1296 from jwhonce/dev/bz895878
+  (dmcphers+openshiftbot@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Bug 876247 - Write DB forwarding to stderr (jhonce@redhat.com)
+- Bug 895878 - Added support for broker's new 24 character uuid
+  (jhonce@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Bug 876247 - Report attached databases in a scaled application via rhc-list-
+  ports (jhonce@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- setup the namespace configuration oo-setup-node (misc@zarb.org)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Bug 906034 - chmod on openshift-restorer.conf (jhonce@redhat.com)
 

@@ -16,7 +16,6 @@ module OpenShift
     end
 
     def self.find(collection_name, query, selection)
-      db = get_database
       db.collection(collection_name).find(query, selection) do |mcursor|
         mcursor.each do |hash|
           yield hash

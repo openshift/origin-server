@@ -30,12 +30,10 @@ module OpenShift
         #    msg,  err_code, field, and msg_type will be ignored.
         def render_error(status, msg, err_code=nil, log_tag=nil, field=nil, msg_type=nil, messages=nil, internal_error=false)
           reply = new_rest_reply(status)
-          if messages && !messages.empty?
+          if messages.present?
             reply.messages.concat(messages)
             if log_tag
-              log_msg = []
-              messages.each { |msg| log_msg.push(msg.text) }
-              log_action(log_tag, !internal_error, log_msg.join(', '), get_extra_log_args)
+              log_action(log_tag, !internal_error, msg, get_extra_log_args, messages.map(&:text).join(', '))
             end
           else
             msg_type = :error unless msg_type
@@ -101,12 +99,10 @@ module OpenShift
         #    publish_msg, log_msg, and msg_type will be ignored.
         def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
           reply = new_rest_reply(status, type, data)
-          if messages && !messages.empty?
+          if messages.present?
             reply.messages.concat(messages)
             if log_tag
-              log_msg = []
-              messages.each { |msg| log_msg.push(msg.text) }
-              log_action(log_tag, true, log_msg.join(', '), get_extra_log_args)
+              log_action(log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', '))
             end
           else
             msg_type = :info unless msg_type

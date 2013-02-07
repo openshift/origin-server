@@ -9,13 +9,12 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.4
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -79,6 +78,71 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- Setting namespace and canonical_namespace for the domain together and doing
+  the same for the application (abhgupta@redhat.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- Merge pull request #1332 from abhgupta/abhgupta-ssh-keys
+  (dmcphers@redhat.com)
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for issue where system ssh keys were being left behind in the domain
+  object (abhgupta@redhat.com)
+- Fix for bug 908199 - we are logging only the basic info in user_action.log
+  (abhgupta@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- Fix for bug 806395 - added list of alias as valid options in remove alias
+  link for application in rest response (abhgupta@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1317 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Fix for bug 907764 - fixing configure/start/stop order for components
+  (abhgupta@redhat.com)
+- fix BZ907788 - gear size gets stored in group overrides now
+  (rchopra@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Fix for bug 907683 - Reloading from primary (abhgupta@redhat.com)
+- Merge pull request #1303 from pravisankar/dev/ravi/app-lock-timeout
+  (dmcphers+openshiftbot@redhat.com)
+- fix issue with reserve given not taking the valid uid (dmcphers@redhat.com)
+- - Added Application Lock Timeout (default: 10 mins) - Unit tests for Lock
+  model (rpenta@redhat.com)
+- Setting quota on new gear only if additional storage is specified
+  (abhgupta@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Merge pull request #1292 from pravisankar/dev/ravi/bug907373
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 907373 - Minor fix in oo-admin-chk (rpenta@redhat.com)
+- Bug 906759 - Add usage_rate_usd field to RestEmbeddedCartridge model
+  (rpenta@redhat.com)
+- Merge pull request #1287 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1284 from pravisankar/dev/ravi/bug906717
+  (dmcphers+openshiftbot@redhat.com)
+- Reloading the application and fetching the pending_op_groups from it instead
+  of reloading the embedded object (abhgupta@redhat.com)
+- Merge pull request #1279 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- adjust to 1.8.1 driver (dmcphers@redhat.com)
+- missed a file (dmcphers@redhat.com)
+- Bug 906717 - Fix additional storage for scaled gear (rpenta@redhat.com)
+- Fix for bug 906266 and bug 904913 (abhgupta@redhat.com)
+- Better naming (dmcphers@redhat.com)
+- Merge pull request #1276 from danmcp/master (dmcphers@redhat.com)
+- share db connection logic (dmcphers@redhat.com)
+- fix bz894976 - dont run connections on old container (rchopra@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - Merge pull request #1269 from rajatchopra/master
   (dmcphers+openshiftbot@redhat.com)

@@ -12,13 +12,12 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.3
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -131,11 +130,7 @@ cp %{buildroot}%{gem_instdir}/misc/init/openshift-cgroups %{buildroot}/etc/rc.d/
 # Don't install or package what's left in the misc directory
 rm -rf %{buildroot}%{gem_instdir}/misc
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc LICENSE COPYRIGHT
 %doc %{gem_docdir}
 %{gem_instdir}
@@ -176,6 +171,28 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- remove BuildRoot: (tdawson@redhat.com)
+- move rest api tests to functionals (dmcphers@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- working on testing coverage (dmcphers@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Merge pull request #1255 from sosiouxme/newfacts
   (dmcphers+openshiftbot@redhat.com)

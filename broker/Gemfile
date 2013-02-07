@@ -8,10 +8,10 @@ gem 'rack'
 gem 'regin'
 gem 'open4'
 gem 'systemu'
-gem 'minitest'
 gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
+gem 'minitest', '3.2.0'
 
 if ENV['SOURCE']
   gem 'openshift-origin-common', :path => '../common'

@@ -3,31 +3,40 @@
 @not-enterprise
 Feature: phpMyAdmin Embedded Cartridge
 
-  Scenario: Add Remove phpMyAdmin to one application
-    Given a new php-5.3 type application
+  Scenario Outline: Add Remove phpMyAdmin to one application
+    Given a new <php_version> type application
     
     When I embed a mysql-5.1 cartridge into the application
-    And I embed a phpmyadmin-3.4 cartridge into the application
-    Then the embedded phpmyadmin-3.4 cartridge http proxy file will exist
+    And I embed a <phpmyadmin_version> cartridge into the application
+    Then the embedded <phpmyadmin_version> cartridge http proxy file will exist
     And 4 processes named httpd will be running
-    And the embedded phpmyadmin-3.4 cartridge directory will exist
-    And the embedded phpmyadmin-3.4 cartridge log files will exist
+    And the embedded <phpmyadmin_version> cartridge directory will exist
+    And the embedded <phpmyadmin_version> cartridge log files will exist
 
-    When I stop the phpmyadmin-3.4 cartridge
+    When I stop the <phpmyadmin_version> cartridge
     Then 2 processes named httpd will be running
-    And the web console for the phpmyadmin-3.4 cartridge is not accessible
+    And the web console for the <phpmyadmin_version> cartridge is not accessible
 
-    When I start the phpmyadmin-3.4 cartridge
+    When I start the <phpmyadmin_version> cartridge
     Then 4 processes named httpd will be running
-    And the web console for the phpmyadmin-3.4 cartridge is accessible
-
+    And the web console for the <phpmyadmin_version> cartridge is accessible
     
-    When I restart the phpmyadmin-3.4 cartridge
+    When I restart the <phpmyadmin_version> cartridge
     Then 4 processes named httpd will be running
-    And the web console for the phpmyadmin-3.4 cartridge is accessible
+    And the web console for the <phpmyadmin_version> cartridge is accessible
 
     When I destroy the application
     Then 0 processes named httpd will be running
-    And the embedded phpmyadmin-3.4 cartridge http proxy file will not exist
-    And the embedded phpmyadmin-3.4 cartridge directory will not exist
-    And the embedded phpmyadmin-3.4 cartridge log files will not exist
+    And the embedded <phpmyadmin_version> cartridge http proxy file will not exist
+    And the embedded <phpmyadmin_version> cartridge directory will not exist
+    And the embedded <phpmyadmin_version> cartridge log files will not exist
+    
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | php_version | phpmyadmin_version |
+      | php-5.3     | phpmyadmin-3.4     |
+
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | php_version | phpmyadmin_version |
+      | php-5.4     | phpmyadmin-3.5     |

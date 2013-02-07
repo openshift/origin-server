@@ -90,7 +90,7 @@ when "create"
   Lock.create_lock(user)
   reply.resultIO << "Successfully created user.\n"
 
-  domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
+  domain = Domain.new(namespace: namespace, owner: user)
   domain.save!
   reply.resultIO << "Successfully created domain.\n"  
 when "update"
@@ -111,7 +111,11 @@ when "update"
     else
       d = nil
       if user.domains.empty?
-        d = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: user)
+        d = Domain.new(namespace: namespace, owner: user)
+        if not d.valid?
+          puts "Namespace is not valid"
+          exit 1
+        end
         d.save!
         reply.resultIO << "Successfully added domain.\n"
       else
@@ -123,8 +127,18 @@ when "update"
             exit 1
           rescue Mongoid::Errors::DocumentNotFound
           end
+
+          # Validate the namespace being updated
+          orig_namespace = d.namespace
           d.namespace = namespace
-          d.canonical_namespace = namespace.downcase
+          if not d.valid?
+            puts "Namespace is not valid"
+            exit 1
+          end
+
+          # reset the original namespace back for updating
+          d.namespace = orig_namespace
+          d.update_namespace(namespace)
           d.save!
           reply.resultIO << "Successfully updated domain.\n"
         end

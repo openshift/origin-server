@@ -2,16 +2,14 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
 Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.4.2
+Version: 1.5.1
 Release: 1%{?dist}
 Summary: Provides embedded PostgreSQL support
 
 Group: Network/Daemons
 License: ASL 2.0
 URL: http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot:    %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
 
 BuildRequires: git
@@ -68,8 +66,6 @@ touch git_template.git/refs/heads/.gitignore
 
 
 %install
-rm -rf $RPM_BUILD_ROOT
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
@@ -81,13 +77,7 @@ ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{cartridgedir}/info/hooks/update-namespace
 
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
@@ -107,6 +97,13 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)

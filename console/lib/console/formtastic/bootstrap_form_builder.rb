@@ -57,7 +57,9 @@ module Console
         html_options = args.extract_options!
         html_options[:class] ||= 'alert alert-error unstyled errors'
         except = Array(html_options.delete(:except))
-        args = (@object.errors.keys - except) unless except.blank?
+        # Skip the base here because we will add it later if desired
+        except << :base
+        args = (@object.errors.keys - except)
 
         full_errors = args.inject([]) do |array, method|
           attribute = localized_string(method, method.to_sym, :label) || humanized_attribute_name(method)

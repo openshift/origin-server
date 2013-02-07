@@ -13,12 +13,12 @@ Feature: Rest Quick tests
     And the response should be a "key" with attributes "name=api&type=ssh-rsa&content=XYZ123567"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
     Then the response should be "201"
-    And the response should be a "application" with attributes "name=app&framework=php-5.3"
+    And the response should be a "application" with attributes "name=app&framework=<php_version>"
     When I send a GET request to "/domains/api<random>/applications/app"
     Then the response should be "200"
-    And the response should be a "application" with attributes "name=app&framework=php-5.3"
+    And the response should be a "application" with attributes "name=app&framework=<php_version>"
     When I send a GET request to "/domains/api<random>/applications"
     Then the response should be "200"
     When I send a POST request to "/domains/api<random>/applications/app/events" with the following:"event=stop"
@@ -36,7 +36,7 @@ Feature: Rest Quick tests
     When I send a POST request to "/domains/api<random>/applications/app/cartridges" with the following:"cartridge=mysql-5.1"
     Then the response should be "201"
     When I send a GET request to "/domains/api<random>/applications/app/descriptor"
-    Then the response descriptor should have "php-5.3,mysql-5.1" as dependencies
+    Then the response descriptor should have "<php_version>,mysql-5.1" as dependencies
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=stop"
     Then the response should be "200"
     When I send a POST request to "/domains/api<random>/applications/app/cartridges/mysql-5.1/events" with the following:"event=start"
@@ -57,8 +57,15 @@ Feature: Rest Quick tests
     When I send a DELETE request to "/user/keys/api"
     Then the response should be "204"
     
-    Scenarios:
-     | format | 
-     | JSON | 
-     | XML | 
+    @fedora-only
+    Scenarios: Fedora 18
+     | format | php_version |
+     | JSON   |  php-5.4    |
+     | XML    |  php-5.4    |
+
+    @rhel-only
+    Scenarios: RHEL
+     | format | php_version |
+     | JSON   |  php-5.3    |
+     | XML    |  php-5.3    |
 

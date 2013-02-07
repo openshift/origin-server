@@ -44,7 +44,7 @@ function create_repo {
 
 function obfuscate_password {
     password="$1"
-    java -classpath "${APP_HOME}/app-root/data/war/WEB-INF/lib/acegi-security-1.0.5.jar:${APP_HOME}/app-root/data/war/WEB-INF/lib/commons-codec-1.4.jar:${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
+    java -classpath "${APP_HOME}/app-root/data/war/WEB-INF/lib/acegi-security-1.0.5.jar:${APP_HOME}/app-root/data/war/WEB-INF/lib/acegi-security-1.0.7.jar:${APP_HOME}/app-root/data/war/WEB-INF/lib/commons-codec-1.7.jar:${APP_HOME}/app-root/data/war/WEB-INF/lib/commons-codec-1.4.jar:${CARTRIDGE_BASE_PATH}/jenkins-1.4/info/lib/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password
 }
 
 function generate_ssh_keys {

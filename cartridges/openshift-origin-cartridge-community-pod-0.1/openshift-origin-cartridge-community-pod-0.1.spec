@@ -2,12 +2,12 @@
 
 Summary:       Provides support for using community cartridges
 Name:          openshift-origin-cartridge-community-pod-0.1
-Version: 1.3.2
+Version: 1.4.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
-Source0:       http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch:     noarch
 BuildRequires: git
 Requires:      openshift-origin-cartridge-abstract

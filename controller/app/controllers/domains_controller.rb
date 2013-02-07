@@ -40,7 +40,7 @@ class DomainsController < BaseController
       return render_error(:conflict, "There is already a namespace associated with this user", 103, "ADD_DOMAIN", "id")
     end
 
-    domain = Domain.new(namespace: namespace, canonical_namespace: namespace.downcase, owner: @cloud_user)
+    domain = Domain.new(namespace: namespace, owner: @cloud_user)
     if not domain.valid?
       Rails.logger.error "Domain is not valid"
       messages = get_error_messages(domain, {"namespace" => "id"})
@@ -79,7 +79,6 @@ class DomainsController < BaseController
 
     # set the new namespace for validation 
     domain.namespace = new_namespace
-    domain.canonical_namespace = new_namespace.downcase
     if not domain.valid?
       messages = get_error_messages(domain, {"namespace" => "id"})
       return render_error(:unprocessable_entity, nil, nil, "UPDATE_DOMAIN", nil, nil, messages)
@@ -87,14 +86,12 @@ class DomainsController < BaseController
     
     #reset the old namespace for use in update_namespace
     domain.namespace = existing_namespace
-    domain.canonical_namespace = existing_namespace.downcase
     
     @domain_name = domain.namespace
     Rails.logger.debug "Updating domain #{domain.namespace} to #{new_namespace}"
 
     begin
       domain.update_namespace(new_namespace)
-      domain.canonical_namespace = new_namespace.downcase
       domain.save
     rescue Exception => e
       return render_exception(e, "UPDATE_DOMAIN") 

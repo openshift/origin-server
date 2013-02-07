@@ -9,13 +9,12 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.4.3
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -23,12 +22,9 @@ Requires:       %{?scl:%scl_prefix}rubygem(json)
 Requires:       rubygem(openshift-origin-common)
 Requires:       mcollective
 Requires:       mcollective-client
-Requires:       qpid-cpp-server
-Requires:       qpid-cpp-client
 Requires:       selinux-policy-targeted
 Requires:       policycoreutils-python
 Requires:       openshift-origin-msg-common
-Requires:       %{?scl:%scl_prefix}ruby-qpid-qmf
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires:  ruby193-build
 BuildRequires:  scl-utils-build
@@ -60,7 +56,6 @@ gem install -V \
 %{?scl:EOF}
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gem_dir}
 
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
@@ -68,11 +63,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg-broker-mcollective.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-msg-broker-mcollective.conf.example
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %dir %{gem_instdir}
 %dir %{gem_dir}
 %doc Gemfile LICENSE
@@ -86,6 +77,27 @@ rm -rf %{buildroot}
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1328 from rajatchopra/master (dmcphers@redhat.com)
+- refix bug907788 - moves across node profiles will not be supported
+  (rchopra@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Fix _id to uuid issue with districts (dmcphers@redhat.com)
+- share db connection logic (dmcphers@redhat.com)
+
 * Thu Jan 31 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - better error message (dmcphers@redhat.com)
 
