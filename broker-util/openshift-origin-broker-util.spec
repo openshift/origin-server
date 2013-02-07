@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version: 1.5.0
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,10 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Fixing domain update in oo-admin-ctl-domain script (abhgupta@redhat.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.8-1
 - remove BuildRoot: (tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)
