@@ -27,6 +27,7 @@ Requires:  rubygem(xml-simple)
 Requires:  rubygem(bson_ext)
 Requires:  rubygem(rest-client)
 Requires:  rubygem(parseconfig)
+Requires:  rubygem(cucumber)
 Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
@@ -94,6 +95,7 @@ touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
+cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
@@ -129,6 +131,7 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%config(noreplace) %{_sysconfdir}/openshift/quickstarts.json
 %{_sysconfdir}/openshift/broker-dev.conf
 
 %defattr(0640,root,root,0750)

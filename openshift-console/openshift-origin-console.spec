@@ -101,6 +101,16 @@ rm %{buildroot}%{consoledir}/httpd/console.conf
 mv %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf %{buildroot}%{consoledir}/httpd/conf/console.conf
 %endif
 
+%if 0%{?fedora} >= 18
+mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{consoledir}/httpd/httpd.conf
+%else
+mv %{buildroot}%{consoledir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{consoledir}/httpd/httpd.conf
+%endif
+rm %{buildroot}%{consoledir}/httpd/httpd.conf.apache-*
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
 %preun
 if [ "$1" -eq "0" ]; then
 %if %{with_systemd}

@@ -38,40 +38,41 @@ Broker::Application.configure do
   ############################################
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))
   config.datastore = {
-    :host_port => "localhost:27017",
-    :user => "openshift",
-    :password => "mooo",
-    :db => "openshift_broker_test",
+    :host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
+    :user => conf.get("MONGO_USER", "openshift"),
+    :password => conf.get("MONGO_PASSWORD", "mooo"),
+    :db => conf.get("MONGO_DB", "openshift_broker_dev"),
     :ssl => conf.get_bool("MONGO_SSL", "false")
   }
 
   config.usage_tracking = {
-    :datastore_enabled => false,
-    :syslog_enabled => false
+    :datastore_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_DATASTORE", "false"),
+    :syslog_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_SYSLOG", "false")
   }
 
   config.analytics = {
-    :enabled => false
+    :enabled => conf.get_bool("ENABLE_ANALYTICS", "false"), # global flag for whether any analytics should be enabled
   }
 
   config.user_action_logging = {
-    :logging_enabled => true,
-    :log_filepath => "/var/log/openshift/user_action.log"
+    :logging_enabled => conf.get_bool("ENABLE_USER_ACTION_LOG", "true"),
+    :log_filepath => conf.get("USER_ACTION_LOG_FILE", "/var/log/openshift/user_action.log")
   }
 
   config.openshift = {
-    :domain_suffix => "example.com",
-    :default_max_gears => 3,
-    :default_gear_size => "small",
-    :default_gear_capabilities => ["small"],
-    :gear_sizes => ["small","medium"]
+    :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
+    :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
+    :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
+    :gear_sizes => conf.get("VALID_GEAR_SIZES", "small,medium").split(","),
+    :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
+    :community_quickstarts_url => conf.get('COMMUNITY_QUICKSTARTS_URL'),
   }
 
   config.auth = {
-    :salt => "foobarbaz",
-    :privkeyfile => "/var/www/openshift/broker/config/server_priv.pem",
-    :privkeypass => "",
-    :pubkeyfile  => "/var/www/openshift/broker/config/server_pub.pem",
-    :rsync_keyfile => "/etc/openshift/rsync_id_rsa"
+    :salt => conf.get("AUTH_SALT", ""),
+    :privkeyfile => conf.get("AUTH_PRIVKEYFILE", "/var/www/openshift/broker/config/server_priv.pem"),
+    :privkeypass => conf.get("AUTH_PRIVKEYPASS", ""),
+    :pubkeyfile  => conf.get("AUTH_PUBKEYFILE", "/var/www/openshift/broker/config/server_pub.pem"),
+    :rsync_keyfile => conf.get("AUTH_RSYNC_KEY_FILE", "/etc/openshift/rsync_id_rsa")
   }
 end

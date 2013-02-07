@@ -2,5 +2,15 @@
 Feature: Cartridge Runtime Standard Checks (Perl)
 
   @runtime2
-  Scenario: Perl cartridge checks
-    Given a new perl-5.10 application, verify it using httpd
+  Scenario Outline: Perl cartridge checks
+    Given a new <perl_version> application, verify it using httpd
+  
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | perl_version |
+      | perl-5.10    |
+      
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | perl_version |
+      | perl-5.16    |

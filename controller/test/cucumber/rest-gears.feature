@@ -9,7 +9,7 @@ Feature: gear-groups
     And I accept "<format>"
     When I send a POST request to "/domains" with the following:"id=api<random>"
     Then the response should be "201"
-    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=php-5.3"
+    When I send a POST request to "/domains/api<random>/applications" with the following:"name=app&cartridge=<php_version>"
     Then the response should be "201"
 
     When I send a GET request to "/domains/api<random>/applications/app/gear_groups"
@@ -33,6 +33,12 @@ Feature: gear-groups
     When I send a DELETE request to "/domains/api<random>/applications/app"
     Then the response should be "204"
 
-    Scenarios:
-     | format |
-     | XML |
+    @rhel-only
+    Scenarios: RHEL scenarios
+      | format | php_version |
+      | XML    | php-5.3     |
+      
+    @fedora-only
+    Scenarios: Fedora 18 scenarios
+      | format | php_version |
+      | XML    | php-5.4     |

@@ -3,8 +3,8 @@
 @not-enterprise
 Feature: MongoDB Application Sub-Cartridge
   
-  Scenario: Create Delete one application with a MongoDB database
-    Given a new perl-5.10 type application
+  Scenario Outline: Create Delete one application with a MongoDB database
+    Given a new <perl_version> type application
     
     When I embed a mongodb-2.2 cartridge into the application
     Then 1 process named mongod will be running
@@ -30,3 +30,13 @@ Feature: MongoDB Application Sub-Cartridge
     And the mongodb database will not exist
     And the mongodb configuration file will not exist
     And the embedded mongodb-2.2 cartridge directory will not exist
+
+    @fedora-only
+    Scenario: Fedora 18 scenarios
+      | perl_version |
+      | perl-5.16    |
+      
+    @rhel-only
+    Scenario: RHEL scenarios
+      | perl_version |
+      | perl-5.10    |
