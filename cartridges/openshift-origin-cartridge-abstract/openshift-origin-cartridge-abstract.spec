@@ -2,7 +2,7 @@
 
 Summary:   OpenShift common cartridge components
 Name:      openshift-origin-cartridge-abstract
-Version: 1.5.0
+Version: 1.5.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -86,6 +86,20 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
 - remove BuildRoot: (tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)
