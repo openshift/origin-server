@@ -52,11 +52,6 @@ Feature: Trap User Shell
     And the application is made publicly accessible
     Then I can obtain disk quota information via SSH
 
-    @fedora-only
-    Scenarios: Fedora 18
-     | php_version |
-     |  php-5.4    |
-     
     @rhel-only
     Scenarios: RHEL
      | php_version |
