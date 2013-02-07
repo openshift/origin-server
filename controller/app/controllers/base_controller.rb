@@ -338,7 +338,7 @@ class BaseController < ActionController::Base
       reply.messages.concat(messages)
       if log_tag
         extended_log_msg = []
-        log_action(log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', ').join(', '))
+        log_action(log_tag, true, log_msg, get_extra_log_args, messages.map(&:text).join(', '))
       end
     else
       msg_type = :info unless msg_type
