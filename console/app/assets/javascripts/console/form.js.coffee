@@ -44,11 +44,15 @@ $ ->
         ($ 'input[type=submit][disabled]').removeAttr('disabled')
       ($ window).bind 'pagehide', finished
       ($ this).closest('form').bind 'submit', ->
-        this.finished = finished
-        if ($ '.control-group.error-client').length == 0
-          ($ loading_match, this).show()
-          ($ 'input[type=submit]', this).attr('disabled','disabled')
-          true
+        if $(this).valid is undefined || $(this).valid()
+          this.finished = finished
+          if ($ '.control-group.error-client').length == 0
+            ($ loading_match, this).show()
+            ($ 'input[type=submit]', this).attr('disabled','disabled')
+            true
+          else
+            false
+        else
+          false
 
   $(document).activateForms()
-
