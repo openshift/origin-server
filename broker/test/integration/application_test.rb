@@ -14,10 +14,10 @@ class ApplicationTest < ActiveSupport::TestCase
     ns = "ns" + gen_uuid[0..12]
     app_name = "app" + gen_uuid[0..12]
 
-    orig_d = Domain.new(namespace: ns, canonical_namespace: ns.downcase)
+    orig_d = Domain.new(namespace: ns)
     orig_d.save!
 
-    orig_app = Application.new(domain: orig_d, name: app_name, canonical_name: app_name.downcase)
+    orig_app = Application.new(domain: orig_d, name: app_name)
     orig_app.save!
 
     app = Application.find_by(canonical_name: app_name.downcase)
