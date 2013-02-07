@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker and node
 Name:           openshift-origin-util-scl
-Version: 1.2.0
+Version: 1.2.1
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -27,6 +27,9 @@ cp oo-* %{buildroot}%{_bindir}/
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.2.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.1.2-1
 - remove BuildRoot: (tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)
