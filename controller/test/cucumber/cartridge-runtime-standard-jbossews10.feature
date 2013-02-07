@@ -1,6 +1,6 @@
 @runtime
-@not-origin
-Feature: Cartridge Runtime Standard Checks (JBoss EWS1.0)
+@rhel-only
+Feature: Cartridge Runtime Standard Checks (JBoss EWS2.0)
 
   @runtime2
   Scenario: JBoss EWS1.0 cartridge checks

@@ -1,6 +1,6 @@
 @runtime_extended
 @runtime_extended2
-@not-origin
+@rhel-only
 Feature: Cartridge Lifecycle JBossEAP Verification Tests
   Scenario: Application Creation
     Given the libra client tools

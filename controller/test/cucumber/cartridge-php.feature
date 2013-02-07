@@ -1,10 +1,9 @@
 @runtime
 @runtime2
-@not-origin
 Feature: PHP Application
 
-  Scenario: Test Alias Hooks
-    Given a new php-5.3 type application
+  Scenario Outline: Test Alias Hooks
+    Given a new <php_version> type application
     And I add an alias to the application
     Then the php application will be aliased
     And the php file permissions are correct
@@ -12,3 +11,13 @@ Feature: PHP Application
     Then the php application will not be aliased 
     When I destroy the application
     Then the application http proxy file will not exist
+
+    @fedora-only
+    Scenario: Fedora 18
+     | php_version |
+     | php-5.4     |
+
+    @rhel-only
+    Scenario: RHEL
+     | php_version |
+     | php-5.3     |

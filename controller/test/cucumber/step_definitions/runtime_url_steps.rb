@@ -19,13 +19,12 @@ end
 When /^I run the health\-check for the ([^ ]+) cartridge$/ do | type |
   host = "#{@app.name}-#{@account.domain}.dev.rhcloud.com"
 
-  url = case type
-    when 'perl-5.10'
-      "health_check.pl"
-    when 'php-5.3'
-      "health_check.php"
-    else
-      "health"
+  if type.start_with?("perl-")
+    url = "health_check.pl"
+  elsif type.start_with?("php-")
+    url = "health_check.php"
+  else
+    url = "health"
   end
 
   # Use curl to hit the app, causing restorer to turn it back on.

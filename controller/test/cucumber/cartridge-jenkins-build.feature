@@ -1,6 +1,5 @@
 @jenkins
 @runtime_extended1
-@not-origin
 Feature: Jenkins Application
   Scenario: Create and Deploy a DIY and Jenkins Application
     Given the libra client tools

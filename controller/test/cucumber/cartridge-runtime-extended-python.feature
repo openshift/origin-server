@@ -1,4 +1,5 @@
 @runtime
+@rhel-only
 Feature: Cartridge Runtime Extended Checks (Python)
 
   @runtime_extended2
