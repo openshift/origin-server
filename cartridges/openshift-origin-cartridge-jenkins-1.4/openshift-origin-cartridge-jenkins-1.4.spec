@@ -1,23 +1,22 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/jenkins-1.4
 
-Summary:   Provides jenkins-1.4 support
-Name:      openshift-origin-cartridge-jenkins-1.4
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
+Summary:       Provides jenkins-1.4 support
+Name:          openshift-origin-cartridge-jenkins-1.4
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
 #https://issues.jenkins-ci.org/browse/JENKINS-15047
-Requires: java >= 1.6
-Requires: jenkins
-Requires: jenkins-plugin-openshift
-Obsoletes: cartridge-jenkins-1.4
+Requires:      java >= 1.6
+Requires:      jenkins
+Requires:      jenkins-plugin-openshift
+BuildRequires: git
+BuildArch:     noarch
+Obsoletes:     cartridge-jenkins-1.4
 
 %description
 Provides jenkins cartridge to openshift nodes

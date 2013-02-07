@@ -1,32 +1,28 @@
-%define webproxymoduledir %{_prefix}/lib/node_modules/openshift-node-web-proxy
-
-Summary:        Routing proxy for OpenShift Origin Node
-Name:           openshift-origin-node-proxy
-Version: 0.6.1
-Release:        1%{?dist}
-
-Group:          Network/Daemons
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
-Requires:       nodejs
-Requires:       nodejs-async
-Requires:       nodejs-optimist
-Requires:       nodejs-supervisor
-Requires:       nodejs-ws
-BuildArch:      noarch
-
+%global webproxymoduledir %{_prefix}/lib/node_modules/openshift-node-web-proxy
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%define with_systemd 1
+%global with_systemd 1
 %else
-%define with_systemd 0
+%global with_systemd 0
 %endif
 
+Summary:       Routing proxy for OpenShift Origin Node
+Name:          openshift-origin-node-proxy
+Version:       0.6.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      nodejs
+Requires:      nodejs-async
+Requires:      nodejs-optimist
+Requires:      nodejs-supervisor
+Requires:      nodejs-ws
 %if %{with_systemd}
+Requires:      systemd-units
 BuildRequires: systemd-units
-Requires:  systemd-units
 %endif
+BuildArch:     noarch
 
 %description
 This package contains a routing proxy (for handling HTTP[S] and Websockets

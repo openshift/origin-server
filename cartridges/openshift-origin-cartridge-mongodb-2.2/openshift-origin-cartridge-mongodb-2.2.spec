@@ -1,28 +1,24 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/mongodb-2.2
 %global frameworkdir %{_libexecdir}/openshift/cartridges/mongodb-2.2
 
-Name: openshift-origin-cartridge-mongodb-2.2
-Version: 1.5.1
-Release: 1%{?dist}
-Summary: Embedded mongodb support for OpenShift
-
-Group: Network/Daemons
-License: ASL 2.0
-URL: http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Embedded mongodb support for OpenShift
+Name:          openshift-origin-cartridge-mongodb-2.2
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      mongodb-server
+Requires:      mongodb-devel
+Requires:      libmongodb
+Requires:      mongodb
 BuildRequires: git
-
-Requires: openshift-origin-cartridge-abstract
-Requires: mongodb-server
-Requires: mongodb-devel
-Requires: libmongodb
-Requires: mongodb
-
-Obsoletes: openshift-origin-cartridge-mongodb-2.0
-Obsoletes: cartridge-mongodb-2.0
-Obsoletes: cartridge-mongodb-2.2
+BuildArch:     noarch
+Obsoletes:     openshift-origin-cartridge-mongodb-2.0
+Obsoletes:     cartridge-mongodb-2.0
+Obsoletes:     cartridge-mongodb-2.2
 
 %description
 Provides rhc mongodb cartridge support
@@ -333,7 +329,7 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{c
 
 * Tue May 22 2012 Adam Miller <admiller@redhat.com> 0.20.2-1
 - Fix displayed connection info. (mpatel@redhat.com)
-- %%build uses git, so BuildRequires: git (admiller@redhat.com)
+- %%build uses git, so BuildRequires:      git (admiller@redhat.com)
 - Address review comments. (mpatel@redhat.com)
 - Changes to make mongodb run in standalone gear. (mpatel@redhat.com)
 

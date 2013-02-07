@@ -1,45 +1,44 @@
-%define htmldir %{_localstatedir}/www/html
-%define brokerdir %{_localstatedir}/www/openshift/broker
-
-Summary:   OpenShift Origin broker components
-Name:      openshift-origin-broker
-Version:   1.1.2
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+%global htmldir %{_localstatedir}/www/html
+%global brokerdir %{_localstatedir}/www/openshift/broker
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%define with_systemd 1
+%global with_systemd 1
 %else
-%define with_systemd 0
+%global with_systemd 0
 %endif
 
-Requires:  httpd
-Requires:  bind
-Requires:  mod_ssl
-Requires:  mod_passenger
-Requires:  mongodb-server
-Requires:  policycoreutils-python
-Requires:  rubygem(rails)
-Requires:  rubygem(xml-simple)
-Requires:  rubygem(bson_ext)
-Requires:  rubygem(rest-client)
-Requires:  rubygem(parseconfig)
-Requires:  rubygem(cucumber)
-Requires:  rubygem(json)
-Requires:  rubygem(openshift-origin-controller)
-Requires:  rubygem(passenger)
-Requires:  rubygem-passenger-native
-Requires:  rubygem-passenger-native-libs
+Summary:       OpenShift Origin broker components
+Name:          openshift-origin-broker
+Version:       1.1.2
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      httpd
+Requires:      bind
+Requires:      mod_ssl
+Requires:      mod_passenger
+Requires:      mongodb-server
+Requires:      policycoreutils-python
+Requires:      rubygem(rails)
+Requires:      rubygem(xml-simple)
+Requires:      rubygem(bson_ext)
+Requires:      rubygem(rest-client)
+Requires:      rubygem(parseconfig)
+Requires:      rubygem(cucumber)
+Requires:      rubygem(json)
+Requires:      rubygem(openshift-origin-controller)
+Requires:      rubygem(passenger)
+Requires:      rubygem-passenger-native
+Requires:      rubygem-passenger-native-libs
 %if %{with_systemd}
+Requires:      systemd-units
 BuildRequires: systemd-units
-Requires:  systemd-units
 %endif
-Provides:  openshift-broker
-BuildArch: noarch
-Obsoletes: stickshift-broker
+BuildArch:     noarch
+Provides:      openshift-broker
+Obsoletes:     stickshift-broker
 
 %description
 This contains the broker 'controlling' components of OpenShift Origin.

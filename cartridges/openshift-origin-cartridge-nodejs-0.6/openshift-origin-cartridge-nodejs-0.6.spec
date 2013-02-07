@@ -1,28 +1,27 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/nodejs-0.6
 
-Summary:   Provides Node-0.6 support
-Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides Node-0.6 support
+Name:          openshift-origin-cartridge-nodejs-0.6
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      nodejs >= 0.6
+Requires:      nodejs-async
+Requires:      nodejs-connect
+Requires:      nodejs-express
+Requires:      nodejs-mongodb
+Requires:      nodejs-mysql
+Requires:      nodejs-node-static
+Requires:      nodejs-pg
+Requires:      nodejs-supervisor
 BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: nodejs >= 0.6
-Requires: nodejs-async
-Requires: nodejs-connect
-Requires: nodejs-express
-Requires: nodejs-mongodb
-Requires: nodejs-mysql
-Requires: nodejs-node-static
-Requires: nodejs-pg
-Requires: nodejs-supervisor
-Obsoletes: cartridge-nodejs-0.6
+BuildArch:     noarch
+Obsoletes:     cartridge-nodejs-0.6
 
 %description
 Provides Node.js support to OpenShift

@@ -7,36 +7,36 @@
 %global gem_name openshift-origin-common
 %global rubyabi 1.9.1
 
-Summary:        Cloud Development Common
-Name:           rubygem-%{gem_name}
-Version: 1.4.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(activemodel)
-Requires:       %{?scl:%scl_prefix}rubygem(json)
+Summary:       Cloud Development Common
+Name:          rubygem-%{gem_name}
+Version:       1.4.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(activemodel)
+Requires:      %{?scl:%scl_prefix}rubygem(json)
 %if 0%{?rhel}
-Requires: openshift-origin-util-scl
+Requires:      openshift-origin-util-scl
 %endif
 %if 0%{?fedora}
-Requires: openshift-origin-util
+Requires:      openshift-origin-util
 %endif
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildRequires:  %{?scl:%scl_prefix}rubygem-yard
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
-Obsoletes: 	rubygem-stickshift-common
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygem-yard
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
+Obsoletes: 	   rubygem-stickshift-common
 
 %package doc
 Summary:        Cloud Development Common Library Documentation

@@ -1,46 +1,44 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/postgresql-8.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
-Name: openshift-origin-cartridge-postgresql-8.4
-Version: 1.5.1
-Release: 1%{?dist}
-Summary: Provides embedded PostgreSQL support
-
-Group: Network/Daemons
-License: ASL 2.0
-URL: http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: postgresql < 9
-Requires: postgresql-server
-Requires: postgresql-libs
-Requires: postgresql-devel
-Requires: postgresql-contrib
-Requires: postgresql-ip4r
-Requires: postgresql-jdbc
-Requires: postgresql-plperl
-Requires: postgresql-plpython
-Requires: postgresql-pltcl
-Requires: PyGreSQL
-Requires: perl-Class-DBI-Pg
-Requires: perl-DBD-Pg
-Requires: perl-DateTime-Format-Pg
-Requires: php-pear-MDB2-Driver-pgsql
-Requires: php-pgsql
-Requires: gdal
-Requires: postgis
-Requires: python-psycopg2
+Summary:       Provides embedded PostgreSQL support
+Name:          openshift-origin-cartridge-postgresql-8.4
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      postgresql < 9
+Requires:      postgresql-server
+Requires:      postgresql-libs
+Requires:      postgresql-devel
+Requires:      postgresql-contrib
+Requires:      postgresql-ip4r
+Requires:      postgresql-jdbc
+Requires:      postgresql-plperl
+Requires:      postgresql-plpython
+Requires:      postgresql-pltcl
+Requires:      PyGreSQL
+Requires:      perl-Class-DBI-Pg
+Requires:      perl-DBD-Pg
+Requires:      perl-DateTime-Format-Pg
+Requires:      php-pear-MDB2-Driver-pgsql
+Requires:      php-pgsql
+Requires:      gdal
+Requires:      postgis
+Requires:      python-psycopg2
 %if 0%{?rhel} <= 6 && 0%{?fedora} <=16
-Requires: ruby-postgres
+Requires:      ruby-postgres
 %endif
-Requires: rubygem-pg
-Requires: rhdb-utils
-Requires: uuid-pgsql
-Obsoletes: cartridge-postgresql-8.4
+Requires:      rubygem-pg
+Requires:      rhdb-utils
+Requires:      uuid-pgsql
+BuildRequires: git
+BuildArch:     noarch
+Obsoletes:     cartridge-postgresql-8.4
 
 %description
 Provides PostgreSQL cartridge support to OpenShift

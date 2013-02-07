@@ -5,23 +5,21 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/haproxy-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/haproxy-1.4
 
-Summary:   Provides embedded haproxy-1.4 support
-Name:      openshift-origin-cartridge-haproxy-1.4
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides embedded haproxy-1.4 support
+Name:          openshift-origin-cartridge-haproxy-1.4
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      haproxy
+Requires:      %{?scl:%scl_prefix}rubygem-daemons
+Requires:      %{?scl:%scl_prefix}rubygem-rest-client
 BuildRequires: git
-
-Requires:  openshift-origin-cartridge-abstract
-Requires:  haproxy
-Requires:  %{?scl:%scl_prefix}rubygem-daemons
-Requires:  %{?scl:%scl_prefix}rubygem-rest-client
-Obsoletes: cartridge-haproxy-1.4
+BuildArch:     noarch
+Obsoletes:     cartridge-haproxy-1.4
 
 %description
 Provides haproxy balancer support to OpenShift

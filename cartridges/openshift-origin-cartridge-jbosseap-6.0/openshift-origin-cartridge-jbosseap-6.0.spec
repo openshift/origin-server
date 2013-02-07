@@ -2,46 +2,42 @@
 %global jbossver 6.0.0.GA
 %global oldjbossver 6.0.0.Beta2
 
-Summary:   Provides JBossEAP6.0 support
-Name:      openshift-origin-cartridge-jbosseap-6.0
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides JBossEAP6.0 support
+Name:          openshift-origin-cartridge-jbosseap-6.0
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract-jboss
+Requires:      rubygem(openshift-origin-node)
+Requires:      jbossas-appclient
+Requires:      jbossas-bundles
+Requires:      jbossas-core
+Requires:      jbossas-domain
+Requires:      jbossas-hornetq-native
+Requires:      jbossas-jbossweb-native
+Requires:      jbossas-modules-eap
+Requires:      jbossas-product-eap
+Requires:      jbossas-standalone
+Requires:      jbossas-welcome-content-eap
+Requires:      jboss-eap6-modules >= %{jbossver}
+Requires:      jboss-eap6-index
+Requires:      lsof
+Requires:      java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk-devel
+%if 0%{?rhel}
+Requires:      maven3
+%endif
+%if 0%{?fedora}
+Requires:      maven
+%endif
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: openshift-origin-cartridge-abstract-jboss
-Requires: rubygem(openshift-origin-node)
-Requires: jbossas-appclient
-Requires: jbossas-bundles
-Requires: jbossas-core
-Requires: jbossas-domain
-Requires: jbossas-hornetq-native
-Requires: jbossas-jbossweb-native
-Requires: jbossas-modules-eap
-Requires: jbossas-product-eap
-Requires: jbossas-standalone
-Requires: jbossas-welcome-content-eap
-Requires: jboss-eap6-modules >= %{jbossver}
-Requires: jboss-eap6-index
-Requires: lsof
-Requires: java-1.7.0-openjdk
-Requires: java-1.7.0-openjdk-devel
-Obsoletes: cartridge-jbosseap-6.0
-
-%if 0%{?rhel}
-Requires: maven3
-%endif
-
-%if 0%{?fedora}
-Requires: maven
-%endif
-
+BuildArch:     noarch
+Obsoletes:     cartridge-jbosseap-6.0
 
 %description
 Provides JBossEAP6.0 support to OpenShift
@@ -379,7 +375,7 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 * Tue Jun 19 2012 Adam Miller <admiller@redhat.com> 0.1.9-1
 - merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
-- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+- add Requires:      lsof to jboss spec (bdecoste@gmail.com)
 
 * Fri Jun 15 2012 Adam Miller <admiller@redhat.com> 0.1.8-1
 - updated eap template pom (bdecoste@gmail.com)

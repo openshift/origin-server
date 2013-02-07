@@ -1,32 +1,31 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/perl-5.10
 
-Summary:   Provides mod_perl support
-Name:      openshift-origin-cartridge-perl-5.10
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides mod_perl support
+Name:          openshift-origin-cartridge-perl-5.10
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      mod_perl
+Requires:      mod_bw
+Requires:      perl-DBD-SQLite
+Requires:      perl-DBD-MySQL
+Requires:      perl-MongoDB
+Requires:      ImageMagick-perl
+Requires:      perl-App-cpanminus
+Requires:      perl-CPAN
+Requires:      perl-CPANPLUS
+Requires:      rpm-build
+Requires:      expat-devel
+Requires:      perl-IO-Socket-SSL
+Requires:      httpd < 2.4
 BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: mod_perl
-Requires: mod_bw
-Requires: perl-DBD-SQLite
-Requires: perl-DBD-MySQL
-Requires: perl-MongoDB
-Requires: ImageMagick-perl
-Requires: perl-App-cpanminus
-Requires: perl-CPAN
-Requires: perl-CPANPLUS
-Requires: rpm-build
-Requires: expat-devel
-Requires: perl-IO-Socket-SSL
-Requires: httpd < 2.4
-Obsoletes: cartridge-perl-5.10
+BuildArch:     noarch
+Obsoletes:     cartridge-perl-5.10
 
 %description
 Provides rhc perl cartridge support

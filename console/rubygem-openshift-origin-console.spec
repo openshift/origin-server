@@ -7,59 +7,57 @@
 %global gem_name openshift-origin-console
 %global rubyabi 1.9.1
 
-Summary:        OpenShift Origin Management Console
-Name:           rubygem-%{gem_name}
-Version: 1.5.1
-Release:        2%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            https://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
+Summary:       OpenShift Origin Management Console
+Name:          rubygem-%{gem_name}
+Version:       1.5.1
+Release:       2%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:       %{?scl:%scl_prefix}rubygem(rails)
-Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
-Requires:       %{?scl:%scl_prefix}rubygem(rdiscount)
-Requires:       %{?scl:%scl_prefix}rubygem(formtastic)
-Requires:       %{?scl:%scl_prefix}rubygem(net-http-persistent)
-Requires:       %{?scl:%scl_prefix}rubygem(haml)
-Requires:       %{?scl:%scl_prefix}rubygem(ci_reporter)
-Requires:       %{?scl:%scl_prefix}rubygem(coffee-rails)
-Requires:       %{?scl:%scl_prefix}rubygem(compass-rails)
-Requires:       %{?scl:%scl_prefix}rubygem(jquery-rails)
-Requires:       %{?scl:%scl_prefix}rubygem(mocha)
-Requires:       %{?scl:%scl_prefix}rubygem(sass-rails)
-Requires:       %{?scl:%scl_prefix}rubygem(simplecov)
-Requires:       %{?scl:%scl_prefix}rubygem(test-unit)
-Requires:       %{?scl:%scl_prefix}rubygem(uglifier)
-Requires:       %{?scl:%scl_prefix}rubygem(webmock)
-
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
-BuildRequires:  %{?scl:%scl_prefix}rubygem(rails)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(compass-rails)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(mocha)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(simplecov)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(test-unit)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(ci_reporter)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(webmock)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(sprockets)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(rdiscount)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(formtastic)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(net-http-persistent)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(haml)
-BuildRequires:  %{?scl:%scl_prefix}rubygem(therubyracer)
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(rdiscount)
+Requires:      %{?scl:%scl_prefix}rubygem(formtastic)
+Requires:      %{?scl:%scl_prefix}rubygem(net-http-persistent)
+Requires:      %{?scl:%scl_prefix}rubygem(haml)
+Requires:      %{?scl:%scl_prefix}rubygem(ci_reporter)
+Requires:      %{?scl:%scl_prefix}rubygem(coffee-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(compass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(jquery-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(mocha)
+Requires:      %{?scl:%scl_prefix}rubygem(sass-rails)
+Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
+Requires:      %{?scl:%scl_prefix}rubygem(test-unit)
+Requires:      %{?scl:%scl_prefix}rubygem(uglifier)
+Requires:      %{?scl:%scl_prefix}rubygem(webmock)
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
+BuildRequires: %{?scl:%scl_prefix}rubygem(rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(compass-rails)
+BuildRequires: %{?scl:%scl_prefix}rubygem(mocha)
+BuildRequires: %{?scl:%scl_prefix}rubygem(simplecov)
+BuildRequires: %{?scl:%scl_prefix}rubygem(test-unit)
+BuildRequires: %{?scl:%scl_prefix}rubygem(ci_reporter)
+BuildRequires: %{?scl:%scl_prefix}rubygem(webmock)
+BuildRequires: %{?scl:%scl_prefix}rubygem(sprockets)
+BuildRequires: %{?scl:%scl_prefix}rubygem(rdiscount)
+BuildRequires: %{?scl:%scl_prefix}rubygem(formtastic)
+BuildRequires: %{?scl:%scl_prefix}rubygem(net-http-persistent)
+BuildRequires: %{?scl:%scl_prefix}rubygem(haml)
+BuildRequires: %{?scl:%scl_prefix}rubygem(therubyracer)
 %endif
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby 
-BuildRequires:  %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby 
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildArch:     noarch
+Provides:      rubygem(%{gem_name}) = %version
 
-
-BuildArch:      noarch
-Provides:       rubygem(%{gem_name}) = %version
 %description
 This contains the OpenShift Origin Management Console.
 

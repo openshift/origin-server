@@ -11,26 +11,26 @@
     %global mco_agent_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/agent/
 %endif
 
-Summary:        M-Collective agent file for openshift-origin-msg-node-mcollective
-Name:           openshift-origin-msg-node-mcollective
-Version: 1.5.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:       rubygems
-Requires:       rubygem-open4
-Requires:       rubygem-json
-Requires:       rubygem-openshift-origin-node
-Requires:       mcollective
-Requires:       facter
+Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
+Name:          openshift-origin-msg-node-mcollective
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      rubygems
+Requires:      rubygem-open4
+Requires:      rubygem-json
+Requires:      rubygem-openshift-origin-node
+Requires:      mcollective
+Requires:      facter
 %if 0%{?fedora}%{?rhel} <= 6
-Requires:       %{?scl:%scl_prefix}facter
+Requires:      %{?scl:%scl_prefix}facter
 %endif
-Requires:       openshift-origin-msg-common
-BuildArch:      noarch
-Obsoletes:      openshift-mcollective-agent
+Requires:      openshift-origin-msg-common
+BuildArch:     noarch
+Obsoletes:     openshift-mcollective-agent
 
 %description
 mcollective communication plugin
@@ -86,9 +86,9 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 - Replace expose/show/conceal-port hooks with Endpoints (ironcladlou@gmail.com)
 
 * Tue Dec 18 2012 Adam Miller <admiller@redhat.com> 1.3.2-1
-- - oo-setup-broker fixes:   - Open dns ports for access to DNS server from
+- - oo-setup-broker fixes:  - Open dns ports for access to DNS server from
   outside the VM   - Turn on SELinux booleans only if they are off (Speeds up
-  re-install)   - Added console SELinux booleans - oo-setup-node fixes:   -
+  re-install)   - Added console SELinux booleans - oo-setup-node fixes:  -
   Setup mcollective to use broker IPs - Updates abstract cartridges to set
   proper order for php-5.4 and postgres-9.1 cartridges - Updated broker to add
   fedora 17 cartridges - Fixed facts cron job (kraman@gmail.com)
@@ -130,7 +130,7 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 - bump_minor_versions for sprint 21 (admiller@redhat.com)
 
 * Fri Nov 16 2012 Adam Miller <admiller@redhat.com> 1.1.3-1
-- BZ 876942: Disable threading until we can explore proper concurrency
+- BZ 876942:Disable threading until we can explore proper concurrency
   management (rmillner@redhat.com)
 - Only use scl if it's available (ironcladlou@gmail.com)
 
