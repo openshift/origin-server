@@ -3,7 +3,7 @@
 
 Summary:   Embedded cron support for express
 Name:      openshift-origin-cartridge-cron-1.4
-Version: 1.5.0
+Version: 1.5.1
 Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
@@ -75,6 +75,9 @@ ln -s %{cartridgedir}/jobs/openshift-origin-cron-monthly %{buildroot}/%{_sysconf
 %{cartridgedir}/info/manifest.yml
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - make Source line uniform among all spec files (tdawson@redhat.com)
 
