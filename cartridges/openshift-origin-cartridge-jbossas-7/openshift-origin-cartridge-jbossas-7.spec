@@ -2,36 +2,32 @@
 %global jbossver 7.1.0.Final
 %global oldjbossver 7.0.2.Final
 
-Summary:   Provides JBossAS7 support
-Name:      openshift-origin-cartridge-jbossas-7
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides JBossAS7 support
+Name:          openshift-origin-cartridge-jbossas-7
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract-jboss
+Requires:      rubygem(openshift-origin-node)
+Requires:      jboss-as7 >= %{jbossver}
+Requires:      jboss-as7-modules >= %{jbossver}
+Requires:      lsof
+Requires:      java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk-devel
+%if 0%{?rhel}
+Requires:      maven3
+%endif
+%if 0%{?fedora}
+Requires:      maven
+%endif
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: openshift-origin-cartridge-abstract-jboss
-Requires: rubygem(openshift-origin-node)
-Requires: jboss-as7 >= %{jbossver}
-Requires: jboss-as7-modules >= %{jbossver}
-Requires: lsof
-Requires: java-1.7.0-openjdk
-Requires: java-1.7.0-openjdk-devel
-Obsoletes: cartridge-jbossas-7
-
-%if 0%{?rhel}
-Requires: maven3
-%endif
-
-%if 0%{?fedora}
-Requires: maven
-%endif
-
+BuildArch:     noarch
+Obsoletes:     cartridge-jbossas-7
 
 %description
 Provides JBossAS7 support to OpenShift
@@ -363,7 +359,7 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 - merged Replace all env vars in standalone.xml (bdecoste@gmail.com)
 - Merge pull request #124 from
   matejonnet/dev/mlazar/update/jboss_add_custom_module_dir (bdecoste@gmail.com)
-- add Requires: lsof to jboss spec (bdecoste@gmail.com)
+- add Requires:      lsof to jboss spec (bdecoste@gmail.com)
 - Add custom module path to JBoss AS. (matejonnet@gmail.com)
 - Replace all env vars in standalone.xml. (matejonnet@gmail.com)
 

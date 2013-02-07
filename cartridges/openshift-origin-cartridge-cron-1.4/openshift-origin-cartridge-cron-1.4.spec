@@ -1,21 +1,20 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/cron-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/cron-1.4
 
-Summary:   Embedded cron support for express
-Name:      openshift-origin-cartridge-cron-1.4
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Network/Daemons
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires:  openshift-origin-cartridge-abstract
-Requires:  rubygem(openshift-origin-node)
-Requires:  cronie
-Requires:  crontabs
-Obsoletes: cartridge-cron-1.4
+Summary:       Embedded cron support for express
+Name:          openshift-origin-cartridge-cron-1.4
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      cronie
+Requires:      crontabs
+BuildArch:     noarch
+Obsoletes:     cartridge-cron-1.4
 
 %description
 Provides OpenShift cron cartridge support

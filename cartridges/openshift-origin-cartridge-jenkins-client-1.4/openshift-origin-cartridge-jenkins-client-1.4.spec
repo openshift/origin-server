@@ -1,28 +1,27 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/jenkins-client-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
-Name: openshift-origin-cartridge-jenkins-client-1.4
-Version: 1.4.1
-Release: 1%{?dist}
-Summary: Embedded jenkins client support for express 
-Group: Network/Daemons
-License: ASL 2.0
-URL: https://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: mysql-devel
-Requires: wget
+Summary:       Embedded jenkins client support for express 
+Name:          openshift-origin-cartridge-jenkins-client-1.4
+Version:       1.4.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           https://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      mysql-devel
+Requires:      wget
 %if 0%{?fedora}%{?rhel} <= 6
-Requires: java-1.6.0-openjdk
+Requires:      java-1.6.0-openjdk
 %else
-Requires: java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk
 %endif
-Requires: rubygems
-Requires: rubygem-json
-Obsoletes: cartridge-jenkins-client-1.4
+Requires:      rubygems
+Requires:      rubygem-json
+BuildArch:     noarch
+Obsoletes:     cartridge-jenkins-client-1.4
 
 %description
 Provides embedded jenkins client support

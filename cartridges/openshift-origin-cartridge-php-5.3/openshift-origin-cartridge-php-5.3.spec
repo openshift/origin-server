@@ -1,42 +1,41 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/php-5.3
 
-Summary:   Provides php-5.3 support
-Name:      openshift-origin-cartridge-php-5.3
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides php-5.3 support
+Name:          openshift-origin-cartridge-php-5.3
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract
+Requires:      rubygem(openshift-origin-node)
+Requires:      php >= 5.3.2
+Requires:      php < 5.4
+Requires:      httpd < 2.4
+Requires:      php
+Requires:      mod_bw
+Requires:      rubygem-builder
+Requires:      php-devel
+Requires:      php-pdo
+Requires:      php-gd
+Requires:      php-xml
+Requires:      php-mysql
+Requires:      php-pecl-mongo
+Requires:      php-pgsql
+Requires:      php-mbstring
+Requires:      php-pear
+Requires:      php-imap
+Requires:      php-pecl-apc
+Requires:      php-mcrypt
+Requires:      php-soap
+Requires:      php-bcmath
+Requires:      php-process
+Requires:      php-pecl-imagick
+Requires:      php-pecl-xdebug
 BuildRequires: git
-Requires: openshift-origin-cartridge-abstract
-Requires: rubygem(openshift-origin-node)
-Requires: php >= 5.3.2
-Requires: php < 5.4
-Requires: httpd < 2.4
-Requires: php
-Requires: mod_bw
-Requires: rubygem-builder
-Requires: php-devel
-Requires: php-pdo
-Requires: php-gd
-Requires: php-xml
-Requires: php-mysql
-Requires: php-pecl-mongo
-Requires: php-pgsql
-Requires: php-mbstring
-Requires: php-pear
-Requires: php-imap
-Requires: php-pecl-apc
-Requires: php-mcrypt
-Requires: php-soap
-Requires: php-bcmath
-Requires: php-process
-Requires: php-pecl-imagick
-Requires: php-pecl-xdebug
-Obsoletes: cartridge-php-5.3
+BuildArch:     noarch
+Obsoletes:     cartridge-php-5.3
 
 %description
 Provides php support to OpenShift

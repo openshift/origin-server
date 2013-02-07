@@ -1,22 +1,19 @@
-Name:           pam_openshift
-Version: 1.3.1
-Release:        1%{?dist}
-Summary:        Openshift PAM module
-Group:          System Environment/Base
-License:        GPLv2
-URL:            http://www.openshift.com/
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
-Requires:       policycoreutils
-
-BuildRequires:  pam-devel
-BuildRequires:  libselinux-devel
-BuildRequires:  libattr-devel
-
-Provides:       pam-libra = %{version}-%{release}
-Provides:       pam-openshift = %{version}-%{release}
-Obsoletes:      pam-libra < %{version}-%{release}
-Obsoletes:      pam-openshift < %{version}-%{release}
+Summary:       Openshift PAM module
+Name:          pam_openshift
+Version:       1.3.1
+Release:       1%{?dist}
+Group:         System Environment/Base
+License:       GPLv2
+URL:           http://www.openshift.com/
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      policycoreutils
+BuildRequires: pam-devel
+BuildRequires: libselinux-devel
+BuildRequires: libattr-devel
+Provides:      pam-libra = %{version}-%{release}
+Provides:      pam-openshift = %{version}-%{release}
+Obsoletes:     pam-libra < %{version}-%{release}
+Obsoletes:     pam-openshift < %{version}-%{release}
 
 %description
 The Openshift PAM module configures proper SELinux context for

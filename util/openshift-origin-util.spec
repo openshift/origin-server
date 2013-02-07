@@ -1,14 +1,14 @@
-Summary:        Utility scripts for the OpenShift Origin broker and node
-Name:           openshift-origin-util
-Version:        1.0.4
-Release:        1%{?dist}
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:       bind-utils
-Requires:       ruby
-Requires:       rubygems
-BuildArch:      noarch
+Summary:       Utility scripts for the OpenShift Origin broker and node
+Name:          openshift-origin-util
+Version:       1.0.4
+Release:       1%{?dist}
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      bind-utils
+Requires:      ruby
+Requires:      rubygems
+BuildArch:     noarch
 
 %description
 This package contains a set of utility scripts for the

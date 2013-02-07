@@ -2,34 +2,30 @@
 %global jbossver 1.0.2.GA
 %global oldjbossver 1.0.1.GA
 
-Summary:   Provides JBossEWS1.0 support
-Name:      openshift-origin-cartridge-jbossews-1.0
-Version: 1.5.1
-Release:   1%{?dist}
-Group:     Development/Languages
-License:   ASL 2.0
-URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-BuildArch: noarch
-
+Summary:       Provides JBossEWS1.0 support
+Name:          openshift-origin-cartridge-jbossews-1.0
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      openshift-origin-cartridge-abstract-jboss
+Requires:      rubygem(openshift-origin-node)
+Requires:      tomcat6
+Requires:      lsof
+Requires:      java-1.7.0-openjdk
+Requires:      java-1.7.0-openjdk-devel
+%if 0%{?rhel}
+Requires:      maven3
+%endif
+%if 0%{?fedora}
+Requires:      maven
+%endif
 BuildRequires: git
 BuildRequires: java-devel >= 1:1.6.0
 BuildRequires: jpackage-utils
-Requires: openshift-origin-cartridge-abstract-jboss
-Requires: rubygem(openshift-origin-node)
-Requires: tomcat6
-Requires: lsof
-Requires: java-1.7.0-openjdk
-Requires: java-1.7.0-openjdk-devel
-
-%if 0%{?rhel}
-Requires: maven3
-%endif
-
-%if 0%{?fedora}
-Requires: maven
-%endif
-
+BuildArch:     noarch
 
 %description
 Provides JBossEWS1.0 support to OpenShift

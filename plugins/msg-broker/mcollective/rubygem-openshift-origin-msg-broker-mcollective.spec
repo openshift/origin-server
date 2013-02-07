@@ -7,35 +7,35 @@
 %global gem_name openshift-origin-msg-broker-mcollective
 %global rubyabi 1.9.1
 
-Summary:        OpenShift plugin for mcollective service
-Name:           rubygem-%{gem_name}
-Version: 1.5.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
-Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-Requires:       %{?scl:%scl_prefix}ruby
-Requires:       %{?scl:%scl_prefix}rubygems
-Requires:       %{?scl:%scl_prefix}rubygem(json)
-Requires:       rubygem(openshift-origin-common)
-Requires:       mcollective
-Requires:       mcollective-client
-Requires:       selinux-policy-targeted
-Requires:       policycoreutils-python
-Requires:       openshift-origin-msg-common
+Summary:       OpenShift plugin for mcollective service
+Name:          rubygem-%{gem_name}
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      rubygem(openshift-origin-common)
+Requires:      mcollective
+Requires:      mcollective-client
+Requires:      selinux-policy-targeted
+Requires:      policycoreutils-python
+Requires:      openshift-origin-msg-common
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires:  ruby193-build
-BuildRequires:  scl-utils-build
+BuildRequires: ruby193-build
+BuildRequires: scl-utils-build
 %endif
-BuildRequires:  %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
-BuildRequires:  %{?scl:%scl_prefix}ruby
-BuildRequires:  %{?scl:%scl_prefix}rubygems
-BuildRequires:  %{?scl:%scl_prefix}rubygems-devel
-BuildArch:      noarch
-Obsoletes:      rubygem-gearchanger-mcollective-plugin
-Obsoletes:      rubygem-gearchanger-m-collective-plugin
+BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
+BuildRequires: %{?scl:%scl_prefix}ruby
+BuildRequires: %{?scl:%scl_prefix}rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
+BuildArch:     noarch
+Obsoletes:     rubygem-gearchanger-mcollective-plugin
+Obsoletes:     rubygem-gearchanger-m-collective-plugin
 
 %description
 OpenShift plugin for mcollective based node/gear manager
@@ -91,7 +91,7 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 - Merge pull request #1328 from rajatchopra/master (dmcphers@redhat.com)
 - refix bug907788 - moves across node profiles will not be supported
   (rchopra@redhat.com)
-- remove BuildRoot: (tdawson@redhat.com)
+- remove BuildRoot:(tdawson@redhat.com)
 - make Source line uniform among all spec files (tdawson@redhat.com)
 
 * Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
@@ -102,7 +102,7 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 - better error message (dmcphers@redhat.com)
 
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
-- Bug 904100: Tolerate missing Endpoint cart manifest entries
+- Bug 904100:Tolerate missing Endpoint cart manifest entries
   (ironcladlou@gmail.com)
 - Switch calling convention to match US3143 (rmillner@redhat.com)
 - indexed and Bug 894985 (rchopra@redhat.com)

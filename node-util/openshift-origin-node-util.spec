@@ -1,19 +1,17 @@
-Summary:        Utility scripts for the OpenShift Origin broker
-Name:           openshift-origin-node-util
-Version: 1.5.1
-Release:        1%{?dist}
-
-Group:          Network/Daemons
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-
-Requires:       oddjob
-Requires:       rng-tools
-Requires:       rubygem-openshift-origin-node
-Requires:       httpd
-Requires:       php >= 5.3.2
-BuildArch:      noarch
+Summary:       Utility scripts for the OpenShift Origin broker
+Name:          openshift-origin-node-util
+Version:       1.5.1
+Release:       1%{?dist}
+Group:         Network/Daemons
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      oddjob
+Requires:      rng-tools
+Requires:      rubygem-openshift-origin-node
+Requires:      httpd
+Requires:      php >= 5.3.2
+BuildArch:     noarch
 
 %description
 This package contains a set of utility scripts for a node.  They must be

@@ -1,14 +1,14 @@
-Summary:        m-collective communication plugin for amqp enabled qpid broker
-Name:           mcollective-qpid-plugin
-Version: 1.3.1
-Release:        1%{?dist}
-Group:          Development/Languages
-License:        ASL 2.0
-URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:       mcollective
-Requires:       ruby-qpid-qmf
-BuildArch:      noarch
+Summary:       m-collective communication plugin for amqp enabled qpid broker
+Name:          mcollective-qpid-plugin
+Version:       1.3.1
+Release:       1%{?dist}
+Group:         Development/Languages
+License:       ASL 2.0
+URL:           http://openshift.redhat.com
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
+Requires:      mcollective
+Requires:      ruby-qpid-qmf
+BuildArch:     noarch
 
 %description
 Plugin to enable m-collective communication over amqp 1.0 enabled broker
