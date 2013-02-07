@@ -459,8 +459,8 @@ class OOStats
     summary_for_profile.each do |profile,sum|
       sum[:district_count] = sum[:districts].size
       sum[:avg_active_usage_pct] /= sum[:nodes_count] if sum[:nodes_count] > 0
-      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.min || 0.0
-      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:gears_active_usage_pct]}.max || 0.0
+      sum[:lowest_active_usage_pct] = sum[:districts].map{|d| d[:lowest_active_usage_pct]}.min || 0.0
+      sum[:highest_active_usage_pct] = sum[:districts].map{|d| d[:highest_active_usage_pct]}.max || 0.0
       sum[:avg_dist_usage_pct] /= sum[:district_count] if sum[:district_count] > 0
       sum[:lowest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.min || 0.0
       sum[:highest_dist_usage_pct] = sum[:districts].map{|d| d[:dist_usage_pct]}.max || 0.0
@@ -859,8 +859,8 @@ if __FILE__ == $0
       Switches:
     USAGE
 
-    opts.on('-w','--wait SECONDS', Integer, <<WAIT) { |wait| options[:wait] = wait }
-Seconds for broker to wait for node responses (integer, default 2).
+    opts.on('-w','--wait SECONDS', Float, <<WAIT) { |wait| options[:wait] = wait }
+Seconds for broker to wait for node responses (default 2).
 \tIf nodes are not responding in time, increase this as needed.
 WAIT
     opts.on('-d','--db', <<USER) { |x| options[:db_stats] = x }
@@ -886,9 +886,10 @@ FORMAT
   begin
     optparse.parse!
   rescue OptionParser::InvalidArgument => e
-    puts e.message
-    puts "\n" + optparse.to_s
-    puts "\n" + e.message
+    puts "\n ##### #{e.message} #####"
+    puts optparse.to_s
+    puts "\n ##### #{e.message} #####"
+    puts
     exit 1
   end
 

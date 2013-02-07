@@ -29,6 +29,8 @@ Options:
     Login with OpenShift access (required)
   --setmaxgears <number>
     Set the maximum number of gears a user is allowed to use
+  --setmaxstorage <number>
+    Set the maximum storage additional storage per gear for a user
   --setconsumedgears <number>
     Set the number of gears a user has consumed (use carefully)
   --listsubaccounts
@@ -77,6 +79,24 @@ def set_max_gears(user, maxgears)
 
     print "Setting max_gears to #{maxgears}... "
     user_capabilities["max_gears"]=maxgears
+    user.set_capabilities(user_capabilities)
+    if user.save
+        puts "Done."
+    else
+        puts "An error occurred saving the user."
+        exit 6
+    end
+end
+
+def set_max_storage(user, maxstorage)
+    user_capabilities = user.get_capabilities
+    if user_capabilities["max_storage_per_gear"] == maxstorage
+        puts "User already has max_storage_per_gear set to #{user_capabilities['max_storage_per_gear']}"
+        return
+    end
+
+    print "Setting max_storage_per_gear to #{maxstorage}... "
+    user_capabilities["max_storage_per_gear"]=maxstorage
     user.set_capabilities(user_capabilities)
     if user.save
         puts "Done."
@@ -267,6 +287,7 @@ end
 opts = GetoptLong.new(
     ["--login",          "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--setmaxgears",      GetoptLong::REQUIRED_ARGUMENT],
+    ["--setmaxstorage",    GetoptLong::REQUIRED_ARGUMENT],
     ["--setconsumedgears", GetoptLong::REQUIRED_ARGUMENT],
     ["--listsubaccounts",  GetoptLong::NO_ARGUMENT],
     ["--addsubaccount",    GetoptLong::REQUIRED_ARGUMENT],
@@ -296,6 +317,14 @@ if args["--setmaxgears"]
     exit 1
   end
   maxgears = args["--setmaxgears"].to_i
+end
+
+if args["--setmaxstorage"]
+  unless args["--setmaxstorage"] =~ /^[0-9]+$/
+    puts "ERROR: Max storage must be a positive integer"
+    exit 1
+  end
+  maxstorage = args["--setmaxstorage"].to_i
 end
 
 if args["--setconsumedgears"]
@@ -334,6 +363,11 @@ subaccount_list = []
 
 unless maxgears.nil?
     set_max_gears(user, maxgears)
+    changed_user = true
+end
+
+unless maxstorage.nil?
+    set_max_storage(user,maxstorage)
     changed_user = true
 end
 
@@ -391,6 +425,7 @@ user_capabilities = user.get_capabilities
 puts "User #{user.login}:"
 puts "      consumed gears: #{user.consumed_gears}"
 puts "           max gears: #{user_capabilities['max_gears']}"
+puts "max storage per gear: #{user_capabilities['max_storage_per_gear'] || 0}"
 puts "plan upgrade enabled: #{user_capabilities['plan_upgrade_enabled']}"
 puts "          gear sizes: #{user_capabilities['gear_sizes'].join(', ')}" if user_capabilities.has_key?('gear_sizes')
 puts "sub accounts allowed: #{user_capabilities['subaccounts']}" if user_capabilities.has_key?('subaccounts')

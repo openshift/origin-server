@@ -9,13 +9,12 @@
 
 Summary:        OpenShift Origin Management Console
 Name:           rubygem-%{gem_name}
-Version: 1.4.4
+Version: 1.5.1
 Release:        2%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            https://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -108,9 +107,6 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-%clean
-rm -rf %{buildroot}
-
 %files
 %doc %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/LICENSE 
@@ -124,6 +120,84 @@ rm -rf %{buildroot}
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-2
+- bump for chainbuild
+
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.9-2
+- bump for chainbuild
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.9-1
+- Merge pull request #1330 from rhamilto/master (dmcphers@redhat.com)
+- Merge pull request #1324 from tdawson/tdawson/remove_rhel5_spec_stuff
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1314 from fotioslindiakos/BZ907570 (dmcphers@redhat.com)
+- Merge pull request #1327 from fotioslindiakos/max_gears_errors
+  (dmcphers@redhat.com)
+- Merge pull request #1325 from fotioslindiakos/async_aware_bug
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 907570: Don't render form is user cannot upgrade storage
+  (fotios@redhat.com)
+- Only process the :base errors once (fotios@redhat.com)
+- Tweaking the logo dimensions to improve upon the rotate on hover effect.
+  (rhamilto@redhat.com)
+- Merge pull request #1323 from
+  smarterclayton/capabilities_test_too_sensitive_to_scope
+  (dmcphers+openshiftbot@redhat.com)
+- Fixes a problem loading the gear_group model in the storage_controller with
+  AsyncAware (fotios@redhat.com)
+- The capabilities test in application types controller test is too sensitive
+  to the actual values on the session, we need to make it cleaner.
+  (ccoleman@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- Merge pull request #1319 from smarterclayton/align_popover_right
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1318 from tdawson/tdawson/openshift-common-sources
+  (dmcphers+openshiftbot@redhat.com)
+- Align popover to the right for restart (ccoleman@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.8-2
+- bump for chainbuild
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.8-1
+- Merge pull request #1309 from smarterclayton/improve_capability_extension
+  (dmcphers+openshiftbot@redhat.com)
+- Fix caching issues in plan controller, handle new attributes, revert to
+  correct version of Rails model lookup code (caused Cartridge.prefix to be
+  reset) (ccoleman@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-2
+- bump for chainbuild
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.7-1
+- Merge pull request #1302 from smarterclayton/restore_uppercase_bits
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1301 from smarterclayton/fix_firesass_support
+  (dmcphers+openshiftbot@redhat.com)
+- Restore uppercase style (ccoleman@redhat.com)
+- Fix FireSass support in origin (ccoleman@redhat.com)
+- Merge pull request #1295 from smarterclayton/hide_service_tag
+  (dmcphers+openshiftbot@redhat.com)
+- Hide the service tag in the UI (ccoleman@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.6-1
+- Merge pull request #1265 from fotioslindiakos/storage
+  (dmcphers+openshiftbot@redhat.com)
+- Fixing tests (fotios@redhat.com)
+- Moved can_modify_storage to controller and capabilities Use flash message if
+  user cannot modify storage (fotios@redhat.com)
+- Fixing functional tests (fotios@redhat.com)
+- Show gear_groups properly when the carts have different storage values
+  (fotios@redhat.com)
+- More changes (fotios@redhat.com)
+- US2441: Storage UI (fotios@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- popover title wasn't rendering - fix (sgoodwin@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 1.4.4-2
 - bump spec for chainbuild (admiller@redhat.com)
 

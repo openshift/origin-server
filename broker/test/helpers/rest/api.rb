@@ -6,7 +6,20 @@ REST_CALLS = [
                REST_CALLS_V1
              ]
 
-$end_point = "https://localhost/broker/rest"
+hostname = "localhost"
+begin
+  if File.exists?("/etc/openshift/node.conf")
+    config = ParseConfig.new("/etc/openshift/node.conf")
+    val = config.get_value("PUBLIC_HOSTNAME").gsub!(/[ \t]*#[^\n]*/,"")
+    val = val[1..-2] if val.start_with? "\""
+    hostname = val
+  end
+rescue
+  puts "Unable to determine hostname. Defaulting to localhost.\n"
+end
+
+$end_point = "https://#{hostname}/broker/rest"
+
 $user = 'test-user' + gen_uuid[0..9]
 $password = 'nopass'
 $credentials = Base64.encode64("#{$user}:#{$password}")

@@ -13,7 +13,14 @@ Feature: Cartridge Runtime Extended Checks (PHP)
     When I destroy the application
     Then a <proc_name> process will not be running
 
-  Scenarios: Code push scenarios
-    | type         | proc_name | hot_deploy_status | pid_changed   |
-    | php-5.3      | httpd     | is enabled        | should not be |
-    | php-5.3      | httpd     | is not enabled    | should be     |
+    @rhel-only
+    Scenarios: Code push scenarios
+      | type         | proc_name | hot_deploy_status | pid_changed   |
+      | php-5.3      | httpd     | is enabled        | should not be |
+      | php-5.3      | httpd     | is not enabled    | should be     |
+      
+    @fedora-only
+    Scenarios: Code push scenarios
+      | type         | proc_name | hot_deploy_status | pid_changed   |
+      | php-5.4      | httpd     | is enabled        | should not be |
+      | php-5.4      | httpd     | is not enabled    | should be     |      

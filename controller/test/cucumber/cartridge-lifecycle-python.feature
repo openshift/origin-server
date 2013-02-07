@@ -1,5 +1,6 @@
 @runtime_extended
 @runtime_extended1
+@rhel-only
 Feature: Cartridge Lifecycle Python Verification Tests
   Scenario: Application Creation
     Given the libra client tools

@@ -8,7 +8,7 @@ Release:   1%{?dist}
 Group:     Network/Daemons
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   openshift-origin-broker-%{version}.tar.gz
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %define with_systemd 1
@@ -16,7 +16,6 @@ Source0:   openshift-origin-broker-%{version}.tar.gz
 %define with_systemd 0
 %endif
 
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires:  httpd
 Requires:  bind
 Requires:  mod_ssl
@@ -28,6 +27,7 @@ Requires:  rubygem(xml-simple)
 Requires:  rubygem(bson_ext)
 Requires:  rubygem(rest-client)
 Requires:  rubygem(parseconfig)
+Requires:  rubygem(cucumber)
 Requires:  rubygem(json)
 Requires:  rubygem(openshift-origin-controller)
 Requires:  rubygem(passenger)
@@ -51,7 +51,6 @@ This includes the public APIs for the client tools.
 %build
 
 %install
-rm -rf %{buildroot}
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 %else
@@ -96,6 +95,7 @@ touch %{buildroot}%{_localstatedir}/log/openshift/user_action.log
 
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker.conf
 cp conf/broker.conf %{buildroot}%{_sysconfdir}/openshift/broker-dev.conf
+cp conf/quickstarts.json %{buildroot}%{_sysconfdir}/openshift/quickstarts.json
 
 %if 0%{?fedora} >= 18
 mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.4 %{buildroot}%{brokerdir}/httpd/httpd.conf
@@ -111,9 +111,6 @@ mv %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf %{buildroot}%{brokerdi
 %if 0%{?fedora} >= 17
 rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(0640,apache,apache,0750)
@@ -134,6 +131,7 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
+%config(noreplace) %{_sysconfdir}/openshift/quickstarts.json
 %{_sysconfdir}/openshift/broker-dev.conf
 
 %defattr(0640,root,root,0750)

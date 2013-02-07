@@ -49,7 +49,7 @@ function get_mountpoint() {
 
 # find the filesystem type above a given file or directory
 function get_filesystem_type() {
-    grep " $1 " /etc/fstab |tr -s ' ' |cut -d' ' -f3
+    egrep "\s+$1\s+" /etc/fstab | awk '{ print $3 }'
 }
 
 # get the fstab options for a given mount point
@@ -60,7 +60,7 @@ function get_fstab_mount_options() {
 # get the current mount options for a given mount point
 function get_current_mount_options() {
     # options are the comma delimited string between parens
-    mount | grep " $1 " | sed -e 's/^.*(// ; s/).*$// ' | sort -u
+    mount | egrep " $1 " | sed -e 's/^.*(// ; s/).*$// ' | sort -u
 }
 
 ORIGIN_MOUNTPOINT=$(get_mountpoint $origin_dir)

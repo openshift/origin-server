@@ -3,7 +3,7 @@ Display-Name: Ruby 1.9
 Description: "Ruby is a dynamic, reflective, general-purpose object-oriented programming language. Popular development frameworks include Ruby on Rails and Sinatra."
 Version: 1.0.0
 License: ASL 2.0
-Website: https://www.ruby-lang.org
+Website: http://www.ruby-lang.org
 Categories:
   - service
   - ruby

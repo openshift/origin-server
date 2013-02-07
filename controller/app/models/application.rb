@@ -61,6 +61,9 @@ class Application
   embeds_many :component_instances, class_name: ComponentInstance.name
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
+  
+  index({'group_instances.gears.uuid' => 1}, {:unique => true})
+  create_indexes
     
   attr_accessor :user_agent
 
@@ -88,7 +91,7 @@ class Application
 
   def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil)
     default_gear_size = GEAR_SIZES[0] unless default_gear_size
-    app = Application.new(domain: domain, name: application_name, canonical_name: application_name.downcase, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
+    app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     app.user_agent = user_agent
     features << "web_proxy" if scalable
     if app.valid?
@@ -138,6 +141,12 @@ class Application
     self.app_ssh_keys = []
     self.pending_op_groups = []
     self.save
+  end
+
+  # Setter for applicaton name - sets the name and the canonical_name
+  def name=(app_name)
+    self.canonical_name = app_name.downcase
+    super
   end
 
   # Adds an additional namespace to the application. This function supports the first step of the update namespace workflow.
@@ -811,11 +820,11 @@ class Application
     commands.each do |command_item|
       case command_item[:command]
       when "SYSTEM_SSH_KEY_ADD"
-        domain_keys_to_add.push({"name" => self.name, "content" => command_item[:args][0], "type" => "ssh-rsa"})
+        domain_keys_to_add.push(SystemSshKey.new(name: self.name, type: "ssh-rsa", content: command_item[:args][0]))
       when "SYSTEM_SSH_KEY_REMOVE"
         begin
           key = self.domain.system_ssh_keys.find_by(name: self.name)
-          domain_keys_to_rm.push({"name" => key.name, "content" => key.content, "type" => key.type})
+          domain_keys_to_rm.push(key)
         rescue Mongoid::Errors::DocumentNotFound
           #ignore
         end
@@ -1160,21 +1169,24 @@ class Application
       track_usage_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin], 
           "usage_type" => UsageRecord::USAGE_TYPES[:gear_usage], "gear_size" => gear_size}, prereq: [create_gear_op._id.to_s])
       register_dns_op = PendingAppOp.new(op_type: :register_dns, args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id}, prereq: [create_gear_op._id.to_s])
-      fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
-        args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
-        prereq: [create_gear_op._id.to_s],
-        saved_values: {"additional_filesystem_gb" => 0})
       pending_ops.push(init_gear_op)
       pending_ops.push(reserve_uid_op)
       pending_ops.push(create_gear_op)
       pending_ops.push(track_usage_op)      
       pending_ops.push(register_dns_op)
-      pending_ops.push(fs_op)
+
       if additional_filesystem_gb != 0
+        fs_op           = PendingAppOp.new(op_type: :set_gear_additional_filesystem_gb, 
+          args: {"group_instance_id"=> ginst_id, "gear_id" => gear_id, "additional_filesystem_gb" => additional_filesystem_gb}, 
+          prereq: [create_gear_op._id.to_s],
+          saved_values: {"additional_filesystem_gb" => 0})
+        pending_ops.push(fs_op)
+
         track_usage_fs_op = PendingAppOp.new(op_type: :track_usage, args: {"login" => self.domain.owner.login, "app_name" => self.name, "gear_ref" => gear_id, "event" => UsageRecord::EVENTS[:begin],
           "usage_type" => UsageRecord::USAGE_TYPES[:addtl_fs_gb], "additional_filesystem_gb" => additional_filesystem_gb}, prereq: [fs_op._id.to_s])
         pending_ops.push(track_usage_fs_op)
       end
+
       gear_id_prereqs[gear_id] = register_dns_op._id.to_s
     end
 
@@ -1865,7 +1877,11 @@ class Application
     else
       computed_configure_order = self.component_configure_order.map{|c| categories[c]}.flatten
     end
-    computed_configure_order
+    
+    # configure order can have nil if the component is already configured
+    # for eg, phpmyadmin is being added and it is the only component being passed/added
+    # this could happen if mysql is already previously configured
+    computed_configure_order.select { |co| not co.nil? }
   end
 
   # Returns the start/stop order specified in the application descriptor or processes the start and stop
@@ -1915,6 +1931,11 @@ class Application
     else
       computed_stop_order = self.component_stop_order.map{|c| categories[c]}.flatten
     end
+
+    # start/stop order can have nil if the component is not present in the application
+    # for eg, php is being stopped and haproxy is not present in a non-scalable application
+    computed_start_order = computed_start_order.select { |co| not co.nil? }
+    computed_stop_order = computed_stop_order.select { |co| not co.nil? }
 
     [computed_start_order, computed_stop_order]
   end

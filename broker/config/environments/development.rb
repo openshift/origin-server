@@ -38,7 +38,6 @@ Broker::Application.configure do
   ############################################
 
   conf = OpenShift::Config.new(File.join(OpenShift::Config::CONF_DIR, 'broker-dev.conf'))
-
   config.datastore = {
     :host_port => conf.get("MONGO_HOST_PORT", "localhost:27017"),
     :user => conf.get("MONGO_USER", "openshift"),

@@ -8,6 +8,7 @@ Vendor:
 Categories:
   - service
   - python
+  - python2
   - web_framework
   - community
 Website: "http://www.python.org"

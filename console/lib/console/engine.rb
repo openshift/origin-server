@@ -20,6 +20,11 @@ module Console
         app.middleware.insert_before(::ActionDispatch::Static, ::ActionDispatch::Static, "#{root}/public")
       end
     end
+
+    def self.require_relative(file)
+      file = File.expand_path(file)
+      require_dependency "#{root}/#{Pathname.new(file).relative_path_from(Rails.application.root)}"
+    end
   end
 end
 

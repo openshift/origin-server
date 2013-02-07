@@ -11,12 +11,12 @@
 
 Summary:        OpenShift plugin for remote-user authentication
 Name:           rubygem-%{gem_name}
-Version: 1.4.2
+Version: 1.5.1
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -75,11 +75,7 @@ install -m 755 conf/%{gem_name}-kerberos.conf.sample %{buildroot}%{brokerdir}/ht
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp conf/openshift-origin-auth-remote-user.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf.example
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc %{gem_docdir}
 %doc %{_docdir}/%{name}-%{version}
 %{gem_instdir}
@@ -98,6 +94,13 @@ then
 fi
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - 875575 (dmcphers@redhat.com)
 - separate out console and broker realms per BZ893369 (lmeyer@redhat.com)

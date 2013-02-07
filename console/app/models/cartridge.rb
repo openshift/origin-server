@@ -12,6 +12,7 @@ class Cartridge < RestApi::Base
     integer :scales_from, :scales_to, :current_scale
     string :scales_with
     string :gear_profile
+    integer :base_gear_storage, :additional_gear_storage
   end
   custom_id :name
 
@@ -36,6 +37,19 @@ class Cartridge < RestApi::Base
   def supported_scales_to
     super || 1
   end
+
+  def additional_gear_storage
+    (super || 0).to_i
+  end
+
+  def base_gear_storage
+    (super || 1).to_i
+  end
+
+  def total_storage
+    base_gear_storage + additional_gear_storage
+  end
+
   def type
     @attributes[:type]
   end

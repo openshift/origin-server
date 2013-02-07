@@ -8,6 +8,10 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers = {}
     @headers["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
     @headers["Accept"] = "application/json"
+    
+    if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+      `/bin/oo-register-user -l admin -p admin --username #{@username} --userpass password`
+    end
   end
 
   def test_normal_auth_success
@@ -34,7 +38,9 @@ class SubUserTest < ActionDispatch::IntegrationTest
     get "rest/domains.json", nil, @headers
     assert_equal 200, status
 
-    `oo-admin-ctl-user -l #{@username} --allowsubaccounts true`
+    u = CloudUser.find_by login: @username
+    u.capabilities["subaccounts"] = true
+    u.save
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
     get "rest/domains.json", nil, @headers
@@ -45,13 +51,23 @@ class SubUserTest < ActionDispatch::IntegrationTest
     get "rest/domains.json", nil, @headers
     assert_equal 200, status
 
-    @headers2 = @headers.clone
+    @headers2 = {}
     @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}x:password")
+    @headers2["Accept"] = "application/json"
+    if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
+      `/bin/oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
+    end
+    
     get "rest/domains.json", nil, @headers2
     assert_equal 200, status
 
-    `oo-admin-ctl-user -l #{@username} --allowsubaccounts true`
-    `oo-admin-ctl-user -l #{@username}x --allowsubaccounts true`
+    u = CloudUser.find_by login: @username
+    u.capabilities["subaccounts"] = true
+    u.save
+
+    u = CloudUser.find_by login: "#{@username}x"
+    u.capabilities["subaccounts"] = true
+    u.save
 
     @headers["X-Impersonate-User"] = "subuser#{@random}"
     get "rest/domains.json", nil, @headers
@@ -69,13 +85,16 @@ class SubUserTest < ActionDispatch::IntegrationTest
     delete "rest/user.json", nil, @headers
     assert_equal 403, status
 
-    `oo-admin-ctl-user -l #{@username} --allowsubaccounts true`
+    u = CloudUser.find_by login: "#{@username}"
+    u.capabilities["subaccounts"] = true
+    u.save
 
-    @headers2 = @headers.clone
+    @headers2 = {}
     subaccount_user = "subuser#{@random}"
-    @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{subaccount_user}:password")
-
-    @headers["X-Impersonate-User"] = subaccount_user
+    @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}:password")
+    @headers2["Accept"] = "application/json"
+    @headers2["X-Impersonate-User"] = subaccount_user
+    
     get "rest/domains.json", nil, @headers
     assert_equal 200, status
 
@@ -97,9 +116,9 @@ class SubUserTest < ActionDispatch::IntegrationTest
     get "rest/domains.json", nil, @headers
     assert_equal 200, status
 
-    `oo-admin-ctl-user -l #{@username} --addgearsize c9`
-    `oo-admin-ctl-user -l #{@username} --allowsubaccounts true`
-    `oo-admin-ctl-user -l #{@username} --inheritgearsizes true`
+    u = CloudUser.find_by login: "#{@username}"
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>["small", "c9"], "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
+    u.save
 
     user = CloudUser.find_by(login: @username)
     assert_equal ['c9', 'small'], user.get_capabilities['gear_sizes'].sort
@@ -113,14 +132,18 @@ class SubUserTest < ActionDispatch::IntegrationTest
     assert_equal 2, capabilities["gear_sizes"].size
     assert_equal ["c9", "small"], capabilities["gear_sizes"].sort
 
-    `oo-admin-ctl-user -l #{@username} --removegearsize c9`
+    u = CloudUser.find_by login: "#{@username}"
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>["small"], "max_gears"=>3, "inherit_on_subaccounts"=>["gear_sizes"]}
+    u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
     capabilities = subuser.get_capabilities
     assert_equal 1, capabilities["gear_sizes"].size
     assert_equal "small", capabilities["gear_sizes"][0]
 
-    `oo-admin-ctl-user -l #{@username} --inheritgearsizes false`
+    u = CloudUser.find_by login: "#{@username}"
+    u.capabilities = {"subaccounts"=>true, "gear_sizes"=>["small"], "max_gears"=>3, "inherit_on_subaccounts"=>[]}
+    u.save
 
     subuser = CloudUser.find_by(login: "subuser#{@random}")
     capabilities = subuser.get_capabilities

@@ -9,13 +9,12 @@
 
 Summary:        OpenShift plugin for DNS update service using nsupdate
 Name:           rubygem-%{gem_name}
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        rubygem-%{gem_name}-%{version}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:       %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:       %{?scl:%scl_prefix}ruby
 Requires:       %{?scl:%scl_prefix}rubygems
@@ -73,11 +72,7 @@ mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns-nsupdate.conf.example %{buildroot}/etc/openshift/plugins.d/openshift-origin-dns-nsupdate.conf.example
 
-%clean
-rm -rf %{buildroot}                                
-
 %files
-%defattr(-,root,root,-)
 %doc %{gem_docdir}
 %doc %{_docdir}/%{name}-%{version}
 %{gem_instdir}
@@ -87,6 +82,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.0.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 0.0.2-1
 - 875575 (dmcphers@redhat.com)
 

@@ -2,14 +2,12 @@
 
 Summary:   Provides ruby rack support running on Phusion Passenger
 Name:      openshift-origin-cartridge-ruby-1.9-scl
-Version: 1.4.2
+Version: 1.5.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildRequires: git
 Requires:  openshift-origin-cartridge-abstract
 Requires:  rubygem(openshift-origin-node)
@@ -149,7 +147,6 @@ rm -rf git_template
 touch git_template.git/refs/heads/.gitignore
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
@@ -178,11 +175,7 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-db-connection-info %
 ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-info %{buildroot}%{cartridgedir}/info/connection-hooks/set-nosql-db-connection-info
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0755,-,-) %{cartridgedir}/info/hooks
@@ -201,6 +194,19 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Bug 903548 - Fix the website url on the Ruby 1.9 cart (ccoleman@redhat.com)
+
+* Mon Feb 04 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- Bug 906671: Fix log location in Ruby tidy hook (ironcladlou@gmail.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)

@@ -78,7 +78,7 @@ class RestApplication < OpenShift::Model
         ]),
         "REMOVE_ALIAS" => Link.new("Remove application alias", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "remove-alias"),
-          Param.new("alias", "string", "The application alias to be removed")
+          Param.new("alias", "string", "The application alias to be removed", @aliases)
         ]),
         "SCALE_UP" => Link.new("Scale up application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-up")
@@ -86,11 +86,11 @@ class RestApplication < OpenShift::Model
         "SCALE_DOWN" => Link.new("Scale down application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "scale-down")
         ]),
-        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                       
-          Param.new("event", "string", "event", "tidy")                                                                                                                                                                                                                            
-        ]),                                                                                                                                                                                                                                                                        
-        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [                                                                                                                                             
-          Param.new("event", "string", "event", "reload")                                                                                                                                                                                                                          
+        "TIDY" => Link.new("Tidy the application framework", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "tidy")
+        ]),
+        "RELOAD" => Link.new("Reload the application", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
+          Param.new("event", "string", "event", "reload")
         ]),
         "THREAD_DUMP" => Link.new("Trigger thread dump", "POST", URI::join(url, "domains/#{@domain_id}/applications/#{@name}/events"), [
           Param.new("event", "string", "event", "thread-dump")

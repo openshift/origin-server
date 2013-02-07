@@ -1,5 +1,5 @@
 @runtime
-@not-origin
+@rhel-only
 Feature: Cartridge Runtime Standard Checks (JBoss EAP)
 
   @runtime2

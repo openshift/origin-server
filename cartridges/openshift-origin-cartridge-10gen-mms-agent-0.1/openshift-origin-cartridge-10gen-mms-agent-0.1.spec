@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/10gen-mms-agent-0.1
 
 Name: openshift-origin-cartridge-10gen-mms-agent-0.1
-Version: 1.18.2
+Version: 1.19.1
 Release: 1%{?dist}
 Summary: Embedded 10gen MMS agent for performance monitoring of MondoDB
 
@@ -10,8 +10,6 @@ Group: Applications/Internet
 License: ASL 2.0
 URL: http://openshift.redhat.com
 Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 
 Requires: openshift-origin-cartridge-abstract
@@ -33,7 +31,6 @@ Provides 10gen MMS agent cartridge support
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp -r info %{buildroot}%{cartridgedir}/
@@ -42,12 +39,7 @@ cp COPYRIGHT %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
@@ -62,6 +54,15 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.19.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.18.4-1
+- remove BuildRoot: (tdawson@redhat.com)
+
+* Tue Feb 05 2013 Adam Miller <admiller@redhat.com> 1.18.3-1
+- Fixing broker extended tests (abhgupta@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.18.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)

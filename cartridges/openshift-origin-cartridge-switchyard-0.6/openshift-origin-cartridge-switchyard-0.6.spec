@@ -2,15 +2,13 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/switchyard-0.6
 
 Name: openshift-origin-cartridge-switchyard-0.6
-Version: 1.3.2
+Version: 1.4.1
 Release: 1%{?dist}
 Summary: Embedded SwitchYard modules for JBoss
 Group: Network/Daemons
 License: ASL 2.0
 URL: https://openshift.redhat.com
-Source0: http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
 
 Requires: openshift-origin-cartridge-abstract
@@ -34,7 +32,6 @@ Provides embedded switchyard support for JBoss cartridges
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
@@ -50,13 +47,7 @@ alternatives --remove switchyard-0.6 /usr/share/switchyard
 alternatives --install /etc/alternatives/switchyard-0.6 switchyard-0.6 /usr/share/switchyard 102
 alternatives --set switchyard-0.6 /usr/share/switchyard
 
-
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0750,-,-) %{cartridgedir}/info/hooks/
@@ -71,6 +62,13 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)

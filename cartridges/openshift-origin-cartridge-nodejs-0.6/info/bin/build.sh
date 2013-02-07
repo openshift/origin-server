@@ -74,6 +74,13 @@ if [ -f "${OPENSHIFT_REPO_DIR}"/deplist.txt ]; then
     done
 fi
 
+# Workaround for failure in npm install when a package in package.json
+# points to a git commit. 
+# This issue occurs because we are running in the context of a
+# git post receive-hook
+unset GIT_DIR
+unset GIT_WORK_TREE
+
 if [ -f "${OPENSHIFT_REPO_DIR}"/package.json ]; then
     (cd "${OPENSHIFT_REPO_DIR}"; npm install -d)
 fi

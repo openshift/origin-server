@@ -2,13 +2,13 @@
 
 Summary:        Routing proxy for OpenShift Origin Node
 Name:           openshift-origin-node-proxy
-Version: 0.5.2
+Version: 0.6.1
 Release:        1%{?dist}
 
 Group:          Network/Daemons
 License:        ASL 2.0
 URL:            http://openshift.redhat.com
-Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}-%{version}.tar.gz
+Source0:        http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 
 Requires:       nodejs
 Requires:       nodejs-async
@@ -38,8 +38,6 @@ traffic) for an OpenShift Origin node.
 %build
 
 %install
-rm -rf %{buildroot}
-
 #  Runtime directories.
 mkdir -p %{buildroot}%{_var}/lock/subsys
 mkdir -p %{buildroot}%{_var}/run
@@ -112,9 +110,6 @@ if [ "$1" -eq "0" ]; then
 fi
 
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %files
 %if %{with_systemd}
 %attr(0644,-,-) %{_unitdir}/openshift-node-web-proxy.service
@@ -134,6 +129,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc README
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 0.6.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 0.5.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Fri Feb 01 2013 Adam Miller <admiller@redhat.com> 0.5.2-1
 - Fix for node proxy file list getting truncated. (mrunalp@gmail.com)
 

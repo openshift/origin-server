@@ -16,32 +16,8 @@ then
     OPENSHIFT_MAVEN_MIRROR="$CONFIG_DIR/settings.rhcloud.xml"
 fi
 
-resource_limits_file=`readlink -f /etc/openshift/resource_limits.conf`
-resource_limits_file_name=`basename $resource_limits_file`
-node_profile=`echo ${resource_limits_file_name/*./}`
-case "$node_profile" in
-    micro)
-        OPENSHIFT_MAVEN_XMX="-Xmx208m"
-    ;;
-    small)
-        OPENSHIFT_MAVEN_XMX="-Xmx396m"
-    ;;
-    medium)
-        OPENSHIFT_MAVEN_XMX="-Xmx792m"
-    ;;
-    large)
-        OPENSHIFT_MAVEN_XMX="-Xmx1584m"
-    ;;
-    exlarge)
-        OPENSHIFT_MAVEN_XMX="-Xmx1584m"
-    ;;
-    jumbo)
-        OPENSHIFT_MAVEN_XMX="-Xmx1584m"
-    ;;
-    *)
-        OPENSHIFT_MAVEN_XMX="-Xmx396m"
-    ;;
-esac
+max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
+max_memory_mb=`expr $max_memory_bytes / 1048576`
 
 # If hot deploy is enabled, we need to restrict the Maven memory size to fit
 # alongside the running application server. For now, just hard-code it to 64
@@ -49,36 +25,18 @@ esac
 if ! in_ci_build && hot_deploy_marker_is_present ; then
     echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
     
-    case "$node_profile" in
-        micro)
-            # 256 - (100 + 100) = 56
-            OPENSHIFT_MAVEN_XMX="-Xmx32m"
-        ;;
-        small)
-            # 512 - (256 + 128) = 128
-            OPENSHIFT_MAVEN_XMX="-Xmx96m"
-        ;;
-        medium)
-            # 1024 - (664 + 128) = 232
-            OPENSHIFT_MAVEN_XMX="-Xmx192m"
-        ;;
-        large)
-            # 2048 - (1456 + 148) = 444
-            OPENSHIFT_MAVEN_XMX="-Xmx384m"
-        ;;
-        exlarge)
-            # 4096 - (2888 + 184) = 1024
-            OPENSHIFT_MAVEN_XMX="-Xmx896m"
-        ;;
-        jumbo)
-            # 8192 - (5888 + 256) = 2048
-            OPENSHIFT_MAVEN_XMX="-Xm1584m"
-        ;;
-        *)
-            OPENSHIFT_MAVEN_XMX="-Xmx96m"
-        ;;
-    esac
+    if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+		MAVEN_JVM_HEAP_RATIO=0.25
+	fi
+else
+	if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+		MAVEN_JVM_HEAP_RATIO=0.75
+	fi
 fi
+
+max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+
+OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
 
 if [ -z "$BUILD_NUMBER" ]
 then

@@ -2,14 +2,12 @@
 
 Summary:   Provides Node-0.6 support
 Name:      openshift-origin-cartridge-nodejs-0.6
-Version: 1.4.2
+Version: 1.5.1
 Release:   1%{?dist}
 Group:     Development/Languages
 License:   ASL 2.0
 URL:       http://openshift.redhat.com
-Source0:   http://mirror.openshift.com/pub/origin-server/source/%{name}/%{name}-%{version}.tar.gz
-
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+Source0:   http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 BuildArch: noarch
 
 BuildRequires: git
@@ -51,7 +49,6 @@ touch git_template.git/refs/heads/.gitignore
 
 
 %install
-rm -rf %{buildroot}
 mkdir -p %{buildroot}%{cartridgedir}
 mkdir -p %{buildroot}%{cartridgedir}/info/data/
 mkdir -p %{buildroot}%{cartridgedir}/info/connection-hooks/
@@ -83,12 +80,7 @@ ln -s %{cartridgedir}/../abstract/info/connection-hooks/set-nosql-db-connection-
 ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridgedir}/info/bin/sync_gears.sh
 
 
-%clean
-rm -rf %{buildroot}
-
-
 %files
-%defattr(-,root,root,-)
 %dir %{cartridgedir}
 %dir %{cartridgedir}/info
 %attr(0755,-,-) %{cartridgedir}/info/hooks
@@ -108,6 +100,16 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 24 (admiller@redhat.com)
+- Merge pull request #1333 from mrunalp/bugs/908538
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 908538: Fix for git checkout failing in npm build. (mrunalp@gmail.com)
+
+* Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+
 * Tue Jan 29 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
 - Merge pull request #1194 from Miciah/bug-887353-removing-a-cartridge-leaves-
   its-info-directory (dmcphers+openshiftbot@redhat.com)

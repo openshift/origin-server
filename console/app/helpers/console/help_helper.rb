@@ -154,6 +154,10 @@ module Console::HelpHelper
     community_base_url 'developers/scaling'
   end
 
+  def storage_help_url
+    community_base_url 'faq/what-is-add-on-storage'
+  end
+
   def user_guide_url
     user_guide_topic_url 'index.html'
   end
@@ -265,6 +269,14 @@ module Console::HelpHelper
 
   def community_url
     community_path
+  end
+
+  def enterprise_evaluation_request_url
+    community_base_url 'page/openshift-enterprise-online-evaluation-request'
+  end
+
+  def resource_request_url
+    community_base_url 'page/resource-request-form'
   end
 
   private

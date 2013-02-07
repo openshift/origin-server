@@ -49,6 +49,12 @@ class Domain
     super
     self.user_ids << owner._id if owner
   end
+
+  # Setter for domain namespace - sets the namespace and the canonical_namespace
+  def namespace=(domain_name)
+    self.canonical_namespace = domain_name.downcase
+    super 
+  end
   
   # Change the namespace for this Domain and all applications under it. 
   # The namespace update happens in 2 steps:
@@ -63,7 +69,8 @@ class Domain
   #   The domain operation which tracks the first step of the update.
   def update_namespace(new_namespace)
     old_ns = namespace
-    set(:namespace, new_namespace)
+    self.namespace = new_namespace
+    self.save
     pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_completion_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
@@ -163,19 +170,33 @@ class Domain
     end
   end
   
-  def add_system_ssh_keys(keys_attrs)
+  def add_system_ssh_keys(ssh_keys)
+    keys_attrs = ssh_keys.map{|k| k.attributes.dup}
     pending_op = PendingDomainOps.new(op_type: :add_domain_ssh_keys, arguments: { "keys_attrs" => keys_attrs }, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pushAll" => { system_ssh_keys: keys_attrs }})
   end
 
-  def remove_system_ssh_keys(key_names)
-    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => key_names}, on_apps: applications, created_at: Time.now, state: "init")
-    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: key_names }})
+  def remove_system_ssh_keys(ssh_keys)
+    keys_attrs = ssh_keys.map{|k| k.attributes.dup}
+    pending_op = PendingDomainOps.new(op_type: :delete_domain_ssh_keys, arguments: {"keys_attrs" => keys_attrs}, on_apps: applications, created_at: Time.now, state: "init")
+    Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pullAll" => { system_ssh_keys: keys_attrs }})
   end
 
   def add_env_variables(variables)
+    env_vars_to_rm = []
+    variables.each do |new_var|
+      self.env_vars.each do |cur_var|
+        if cur_var["key"] == new_var["key"] && cur_var["value"] != new_var["value"]
+          env_vars_to_rm << cur_var.dup
+        end
+      end
+    end
+
     pending_op = PendingDomainOps.new(op_type: :add_env_variables, arguments: {"variables" => variables}, on_apps: applications, created_at: Time.now, state: "init")
     Domain.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash }, "$pushAll" => { env_vars: variables }})
+
+    # if this is an update to an existing environment variable, remove the previous ones
+    Domain.where(_id: self.id).update_all({ "$pullAll" => { env_vars: env_vars_to_rm }}) unless env_vars_to_rm.empty?
   end
 
   def remove_env_variables(variables)

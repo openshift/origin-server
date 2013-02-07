@@ -121,7 +121,7 @@ class District
   end
   
   def reserve_given_uid(uid)
-    District.where(:uuid => self.uuid, :available_capacity.gt => 0).find_and_modify( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
+    District.where(:uuid => self.uuid, :available_uids => uid).find_and_modify( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
     self.with(consistency: :strong).reload
     self.available_uids.include? uid
   end
