@@ -108,12 +108,11 @@ When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate
     cart = @gear.add_cartridge(cart_name)
 
     if negate
-      assert_raise(RuntimeError) do
+      assert_raise(OpenShift::Utils::ShellExecutionException) do
         exit_code = cart.configure
       end
     else
-      exit_code = cart.configure
-      assert_equal 0, exit_code
+      cart.configure
     end
   end
 end
@@ -127,8 +126,7 @@ When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
 
     embedded_cart = @gear.carts[cart_name]
 
-    exit_code = embedded_cart.deconfigure
-    assert_equal 0, exit_code
+    embedded_cart.deconfigure
   end
 end
 

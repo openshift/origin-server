@@ -35,7 +35,7 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
 
-    attr_reader :uuid, :application_uuid, :user, :state
+    attr_reader :uuid, :application_uuid, :user, :state, :container_name
 
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
@@ -46,6 +46,7 @@ module OpenShift
 
       @uuid = container_uuid
       @application_uuid = application_uuid
+      @container_name = container_name
       @user = UnixUser.new(application_uuid, container_uuid, user_uid,
         app_name, container_name, namespace, quota_blocks, quota_files)
       @state = OpenShift::Utils::ApplicationState.new(container_uuid)
@@ -109,18 +110,18 @@ module OpenShift
     # is the responsibility of the broker.
     #
     # context: root -> gear user -> root
-    # @param cart   cartridge name
-    def add_cart(cart)
-      establish_cart_model(cart)
-      cart_model.add_cart(cart)
+    # @param cart_name   cartridge name
+    def configure(cart_name, template_git_url=nil)
+      establish_cart_model(cart_name)
+      cart_model.configure(cart_name, template_git_url)
     end
 
     # Remove cartridge from gear
     #
     # context: root -> gear user -> root
-    # @param cart   cartridge name
-    def remove_cart(cart)
-      cart_model.remove_cart(cart)
+    # @param cart_name   cartridge name
+    def deconfigure(cart_name)
+      cart_model.deconfigure(cart_name)
     end
 
     # create gear
@@ -342,53 +343,91 @@ module OpenShift
       end
     end
 
+    def update_namespace(cart_name, old_namespace, new_namespace)
+      cart_model.update_namespace(cart_name, old_namespace, new_namespace)
+    end
+
+    def connector_execute(cart_name, connector, args)
+      cart_model.connector_execute(cart_name, connector, args)
+    end
+
+    def deploy_httpd_proxy(cart_name)
+      cart_model.deploy_httpd_proxy(cart_name)
+    end
+
+    def remove_httpd_proxy(cart_name)
+      cart_model.remove_httpd_proxy(cart_name)
+    end
+
+    def restart_httpd_proxy(cart_name)
+      cart_model.restart_httpd_proxy(cart_name)
+    end
+
+    def move(cart_name, idle)
+      cart_model.move(cart_name, idle)
+    end
+
+    def pre_move(cart_name)
+      cart_model.pre_move(cart_name)
+    end
+
+    def post_move(cart_name)
+      cart_model.post_move(cart_name)
+    end
+
+    # === Cartridge control methods
+
     # start gear
     # Throws ShellExecutionException on failure
-    def start(cart_name = nil)
+    def start(cart_name)
       @state.value = OpenShift::State::STARTED
       cart_model.do_control("start", cart_name)
     end
 
     # stop gear
-    def stop(cart_name = nil)
+    def stop(cart_name)
       @state.value = OpenShift::State::STOPPED
       cart_model.do_control("stop", cart_name)
     end
 
     # build application
-    def build(cart_name = nil)
+    def build(cart_name)
       @state.value = OpenShift::State::BUILDING
       cart_model.do_control("build", cart_name)
     end
 
     # deploy application
-    def deploy(cart_name = nil)
+    def deploy(cart_name)
       @state.value = OpenShift::State::DEPLOYING
       cart_model.do_control("deploy", cart_name)
     end
 
     # restart gear as supported by cartridges
-    def restart(cart_name = nil)
+    def restart(cart_name)
       cart_model.do_control("restart", cart_name)
     end
 
     # reload gear as supported by cartridges
-    def reload(cart_name = nil)
+    def reload(cart_name)
       cart_model.do_control("reload", cart_name)
     end
 
     # restore gear from tar ball
-    def restore(cart_name = nil)
+    def restore(cart_name)
       raise NotImplementedError("restore")
     end
 
     # write gear to tar ball
-    def snapshot(cart_name = nil)
+    def snapshot(cart_name)
       raise NotImplementedError("snapshot")
     end
 
-    def status(cart_name = nil)
+    def status(cart_name)
       cart_model.do_control("status", cart_name)
+    end
+
+    def thread_dump(cart_name)
+      cart_model.do_control("threaddump", cart_name)
     end
   end
 end

@@ -89,16 +89,60 @@ module OpenShift
       end
     end
 
-    def add_cart(cart)
-      handle_cartridge_action(cart, 'configure', "#{@user.app_name} #{@user.namespace} #{@user.container_uuid}")
+    def update_namespace(cart_name, old_namespace, new_namespace)
+      do_control('update-namespace', cart_name, "#{@gear.container_name} #{new_namespace} #{old_namespace} #{@user.container_uuid}")
     end
 
-    def remove_cart(cart)
-      handle_cartridge_action(cart, 'deconfigure', "#{@user.app_name} #{@user.namespace} #{@user.container_uuid}")
+    def configure(cart_name, template_git_url)
+      do_control('configure', cart_name, "#{@gear.container_name} #{@user.namespace} #{@user.container_uuid} #{template_git_url}")
     end
 
-    def do_control(action, cart_name)
-      handle_cartridge_action(cart_name, action, "#{@user.app_name} #{@user.namespace} #{@user.container_uuid}")
+    def deconfigure(cart_name)
+      do_control('deconfigure', cart_name)
+    end
+
+    def deploy_httpd_proxy(cart_name)
+      do_control('deploy-httpd-proxy', cart_name)
+    end
+
+    def remove_httpd_proxy(cart_name)
+      do_control('remove-httpd-proxy', cart_name)
+    end
+
+    def restart_httpd_proxy(cart_name)
+      do_control('restart-httpd-proxy', cart_name)
+    end
+
+    def move(cart_name, idle)
+      args = idle ? "#{@gear.container_name} #{@user.namespace} #{@user.container_uuid} --idle"
+        : "#{@gear.container_name} #{@user.namespace} #{@user.container_uuid}"
+
+      do_control('move', cart_name, args)
+    end
+
+    def pre_move(cart_name)
+      do_control('pre-move', cart_name)
+    end
+
+    def post_move(cart_name)
+      do_control('post-move', cart_name)
+    end
+
+    def connector_execute(cart_name, connector, args)
+      do_control(connector, cart_name, args, "connection-hooks")
+    end
+
+    def do_control(action, cart_name, args=nil, hook_dir="hooks")
+      args = args ||= "#{@gear.container_name} #{@user.namespace} #{@user.container_uuid}"
+
+      exitcode, output = handle_cartridge_action(cart_name, action, hook_dir, args)
+
+      if exitcode != 0
+        raise OpenShift::Utils::ShellExecutionException.new(
+          "Control action '#{action}' returned an error. rc=#{exitcode}", exitcode, output)
+      end
+
+      output
     end
 
     #------------------------------------
@@ -106,16 +150,16 @@ module OpenShift
 
     # pre-refactor, V1 cartridges were added by the mcollective agent by 
     # calling the configure hook directly.
-    def handle_cartridge_action(cartridge, action, args)
+    def handle_cartridge_action(cartridge, action, hook_dir, args)
       exitcode = 0
       output = ""
 
-      if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"
-        cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+      if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/#{hook_dir}/#{action}"
+        cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/#{hook_dir}/#{action} #{args} 2>&1"
         logger.info("handle_cartridge_action executing #{cart_cmd}")
         pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
       elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
-        cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
+        cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/#{hook_dir}/#{action} #{args} 2>&1"
         logger.info("handle_cartridge_action executing #{cart_cmd}")
         pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
       else

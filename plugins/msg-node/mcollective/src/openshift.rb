@@ -26,22 +26,122 @@ module MCollective
         arg.gsub(/(passwo?r?d\s*[:=]+\s*)\S+/i, '\\1[HIDDEN]').gsub(/(usern?a?m?e?\s*[:=]+\s*)\S+/i,'\\1[HIDDEN]')
       end
 
-      def oo_app_create(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
+      # Handles all incoming messages. Validates the input, executes the action, and constructs
+      # a reply.
+      def cartridge_do_action
+        Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+        Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
+        validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
+        validate :cartridge, :shellsafe
+        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|system-messages|connector-execute|get-quota|set-quota)\Z/
+        validate :action, :shellsafe
+        cartridge = request[:cartridge]
+        action = request[:action]
+        args = request[:args] ||= []
+        pid, stdin, stdout, stderr = nil, nil, nil, nil
+        rc = nil
+        output = ""
 
+        # Do the action execution
+        exitcode, output = execute_action(action, args)
+
+        reply[:exitcode] = exitcode
+        reply[:output] = output
+
+        if exitcode == 0
+          Log.instance.info("cartridge_do_action reply (#{exitcode}):\n------\n#{cleanpwd(output)}\n------)")
+        else
+          Log.instance.info("cartridge_do_action failed (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
+          reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
+        end
+      end
+
+      # Dispatches the given action to a method on the agent.
+      #
+      # Returns [exitcode, output] from the resulting action execution.
+      def execute_action(action, args)
+        action_method = "oo_#{action.gsub('-', '_')}"
+
+        exitcode = 0
+        output = ""
+
+        if not self.respond_to?(action_method)
+          exitcode = 127
+          output = "Unsupported action: #{action}/#{action_method}"
+        else
+          Log.instance.info("Executing action [#{action}] using method #{action_method} with args [#{args}]")
+          begin
+            exitcode, output = self.send(action_method.to_sym, args)
+          rescue => e
+            Log.instance.error("Unhandled action execution exception for action [#{action}]: #{e.message}")
+            Log.instance.error(e.backtrace)
+            exitcode = 127
+            output = "An internal exception occured processing action #{action}"
+          end
+          Log.instance.info("Finished executing action [#{action}] (#{exitcode})")
+        end
+
+        return exitcode, output
+      end
+
+      # Executes a list of jobs sequentially, adding the exitcode and output
+      # from execute_action to each job following the execution.
+      #
+      # The actual message reply object is set with an exitcode of 0 and
+      # output containing the job list (in which the individual execution
+      # results are embedded).
+      #
+      # BZ 876942: Disable threading until we can explore proper concurrency management
+      def execute_parallel_action        
+        Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
+
+        joblist = request[config.identity]
+
+        joblist.each do |parallel_job|
+          job = parallel_job[:job]
+          
+          cartridge = job[:cartridge]
+          action = job[:action]
+          args = job[:args]
+
+          exitcode, output = execute_action(action, args)
+          
+          parallel_job[:result_exit_code] = exitcode
+          parallel_job[:result_stdout] = output
+        end
+
+        Log.instance.info("execute_parallel_action call - #{joblist}")
+        reply[:output] = joblist
+        reply[:exitcode] = 0
+      end
+
+      # Builds a new ApplicationContainer instance from the standard
+      # argument payload which is expected for any message used for
+      # gear/cart operations.
+      #
+      # Use this to get a new ApplicationContainer instance in all cases.
+      def get_app_container_from_args(args)
         app_uuid = args['--with-app-uuid']
-        gear_uuid = args['--with-container-uuid']
-        uid = args['--with-uid']
-        uid = nil if uid && uid.to_s.empty?
-        quota_blocks = args['--with-quota-blocks']
-        quota_files = args['--with-quota-files']
         app_name = args['--with-app-name']
+        gear_uuid = args['--with-container-uuid']
         gear_name = args['--with-container-name']
         namespace = args['--with-namespace']
+        quota_blocks = args['--with-quota-blocks']
+        quota_files = args['--with-quota-files']
+        uid = args['--with-uid']
+
+        quota_blocks = nil if quota_blocks && quota_blocks.to_s.empty?
+        quota_files = nil if quota_files && quota_files.to_s.empty?
+        uid = nil if uid && uid.empty?
+
+        OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name, 
+          namespace, quota_blocks, quota_files, Log.instance)
+      end
+
+      def oo_app_create(args)
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
-                                                           namespace, quota_blocks, quota_files)
+          container = get_app_container_from_args(args)
           container.create
         rescue OpenShift::UserCreationException => e
           Log.instance.info e.message
@@ -56,18 +156,11 @@ module MCollective
         end
       end
 
-      def oo_app_destroy(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        app_uuid = args['--with-app-uuid']
-        app_name = args['--with-app-name']
-        gear_uuid = args['--with-container-uuid']
-        gear_name = args['--with-container-name']
-        namespace = args['--with-namespace']
+      def oo_app_destroy(args)
         skip_hooks = args['--skip-hooks'] ? args['--skip-hooks'] : false
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, nil, app_name, gear_name, 
-                                                           namespace, nil, nil)
+          container = get_app_container_from_args(args)
           out, err, rc = container.destroy(skip_hooks)
         rescue Exception => e
           Log.instance.info e.message
@@ -80,18 +173,14 @@ module MCollective
         end
       end
 
-      def oo_authorized_ssh_key_add(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+      def oo_authorized_ssh_key_add(args)
         ssh_key = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
         comment = args['--with-ssh-key-comment']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.add_ssh_key(ssh_key, key_type, comment)
         rescue Exception => e
           Log.instance.info e.message
@@ -102,17 +191,13 @@ module MCollective
         end
       end
 
-      def oo_authorized_ssh_key_remove(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+      def oo_authorized_ssh_key_remove(args)
         ssh_key = args['--with-ssh-key']
         comment = args['--with-ssh-comment']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.remove_ssh_key(ssh_key, comment)
         rescue Exception => e
           Log.instance.info e.message
@@ -123,17 +208,13 @@ module MCollective
         end
       end
 
-      def oo_broker_auth_key_add(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+      def oo_broker_auth_key_add(args)
         iv = args['--with-iv']
         token = args['--with-token']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.add_broker_auth(iv, token)
         rescue Exception => e
           Log.instance.info e.message
@@ -144,15 +225,10 @@ module MCollective
         end
       end
 
-      def oo_broker_auth_key_remove(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
-        
+      def oo_broker_auth_key_remove(args)
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.remove_broker_auth
         rescue Exception => e
           Log.instance.info e.message
@@ -163,17 +239,13 @@ module MCollective
         end
       end
 
-      def oo_env_var_add(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+      def oo_env_var_add(args)
         key = args['--with-key']
         value = args['--with-value']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.add_env_var(key, value)
         rescue Exception => e
           Log.instance.info e.message
@@ -184,15 +256,12 @@ module MCollective
         end
       end
 
-      def oo_env_var_remove(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        uuid = args['--with-container-uuid']
+      def oo_env_var_remove(args)
         key = args['--with-key']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(uuid, uuid)
+          container = get_app_container_from_args(args)
           container.user.remove_env_var(key)
         rescue Exception => e
           Log.instance.info e.message
@@ -203,9 +272,7 @@ module MCollective
         end
       end
 
-      def oo_cartridge_list(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
+      def oo_cartridge_list(args)
         list_descriptors = true if args['--with-descriptors']
         porcelain = true if args['--porcelain']
 
@@ -221,15 +288,13 @@ module MCollective
         end
       end
 
-      def oo_app_state_show(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
+      def oo_app_state_show(args)
         container_uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']        
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
+          container = get_app_container_from_args(args)
           output = container.state.value
         rescue Exception => e
           Log.instance.info e.message
@@ -240,9 +305,7 @@ module MCollective
         end
       end
 
-      def oo_get_quota(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_get_quota(args)
         uuid = args['--uuid']
 
         output = ""
@@ -257,9 +320,7 @@ module MCollective
         end
       end
 
-      def oo_set_quota(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_set_quota(args)
         uuid   = args['--uuid']
         blocks = args['--blocks']
         inodes = args['--inodes']
@@ -276,15 +337,13 @@ module MCollective
         end
       end
 
-      def oo_force_stop(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
+      def oo_force_stop(args)
         container_uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
         
         output = ""
         begin
-          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid)
+          container = get_app_container_from_args(args)
           container.force_stop
         rescue Exception => e
           Log.instance.info e.message
@@ -295,9 +354,7 @@ module MCollective
         end
       end
 
-      def oo_add_alias(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_add_alias(args)
         container_uuid = args['--with-container-uuid']
         container_name = args['--with-container-name']
         namespace = args['--with-namespace']
@@ -322,9 +379,7 @@ module MCollective
         end
       end
 
-      def oo_remove_alias(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_remove_alias(args)
         container_uuid = args['--with-container-uuid']
         container_name = args['--with-container-name']
         namespace = args['--with-namespace']
@@ -349,9 +404,7 @@ module MCollective
         end
       end
 
-      def oo_ssl_cert_add(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_ssl_cert_add(args)
         container_uuid = args['--with-container-uuid']
         container_name = args['--with-container-name']
         namespace      = args['--with-namespace']
@@ -378,9 +431,7 @@ module MCollective
         end
       end
 
-      def oo_ssl_cert_remove(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        
+      def oo_ssl_cert_remove(args)
         container_uuid = args['--with-container-uuid']
         container_name = args['--with-container-name']
         namespace      = args['--with-namespace']
@@ -401,16 +452,9 @@ module MCollective
         end
       end
 
-      def oo_tidy(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
-
+      def oo_tidy(args)
         begin
-          # is it time for an options hash? lack of named params makes this very messy
-          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
-            nil, nil, nil, nil, nil, logger = Log.instance)
+          container = get_app_container_from_args(args)
           container.tidy
         rescue Exception => e
           Log.instance.info e.message
@@ -421,17 +465,12 @@ module MCollective
         end
       end
 
-      def oo_expose_port(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-
-        container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+      def oo_expose_port(args)
         cart_name = args['--cart-name']
 
         begin
-          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
-            nil, nil, nil, nil, nil, logger = Log.instance)
-          container.create_endpoints(cart_name)
+          container = get_app_container_from_args(args)
+          container.create_public_endpoints(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -441,114 +480,63 @@ module MCollective
         end
       end
 
-      def oo_connector_execute(cmd, args)
-        Log.instance.info "COMMAND: #{cmd}"
-        gear_uuid = args['--gear-uuid']
+      def oo_conceal_port(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.delete_public_endpoints(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_connector_execute(args)
         cart_name = args['--cart-name']
         hook_name = args['--hook-name']
         input_args = args['--input-args']
         
-        hook_path = "/usr/libexec/openshift/cartridges/#{cart_name}/info/connection-hooks/#{hook_name}"
-        if File.exists? hook_path
-           pid, stdin, stdout, stderr = Open4::popen4ext(true, "#{hook_path} #{input_args} 2>&1")
+        begin
+          container = get_app_container_from_args(args)
+          container.connector_execute(cart_name, hook_name, input_args)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
         else
-           raise Exception.new("Could not find #{hook_path}")
+          return 0, ""
         end
-        return pid, stdin, stdout, stderr
       end
 
-      def handle_oo_cmd(action, args)
-        cmd = "oo-#{action}"
-        case action
-        when "app-create"
-          rc, output = oo_app_create(cmd, args)
-        when "app-destroy"
-          rc, output = oo_app_destroy(cmd, args)
-        when "authorized-ssh-key-add"
-          rc, output = oo_authorized_ssh_key_add(cmd, args)
-        when "authorized-ssh-key-remove"
-          rc, output = oo_authorized_ssh_key_remove(cmd, args)
-        when "broker-auth-key-add"
-          rc, output = oo_broker_auth_key_add(cmd, args)
-        when "broker-auth-key-remove"
-          rc, output = oo_broker_auth_key_remove(cmd, args)
-        when "env-var-add" 
-          rc, output = oo_env_var_add(cmd, args)
-        when "env-var-remove" 
-          rc, output = oo_env_var_remove(cmd, args)
-        when "cartridge-list"
-          rc, output = oo_cartridge_list(cmd, args)
-        when "app-state-show"
-          rc, output = oo_app_state_show(cmd, args)
-        when "get-quota"
-          rc, output = oo_get_quota(cmd, args)
-        when "set-quota"
-          rc, output = oo_set_quota(cmd, args)
-        when "ssl-cert-add"
-          rc, output = oo_ssl_cert_add(cmd, args)
-        when "ssl-cert-remove"
-          rc, output = oo_ssl_cert_remove(cmd, args)
-        when "force-stop"
-          rc, output = oo_force_stop(cmd, args)
-        when "add-alias"
-          rc, output = oo_add_alias(cmd, args)
-        when "remove-alias"
-          rc, output = oo_remove_alias(cmd, args)
-        when "tidy"
-          rc, output = oo_tidy(cmd, args)
-        when "expose-port"
-          rc, output = oo_expose_port(cmd, args)
+      def oo_update_namespace(args)
+        cart_name = args['--cart-name']
+        old_ns = args['--with-old-namespace']
+        new_ns = args['--with-new-namespace']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.update_namespace(cart_name, old_ns, new_ns)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
         else
-          return nil, nil
+          return 0, ""
         end
-        return rc, output
       end
 
-      def complete_process_gracefully(pid, stdin, stdout)
-        stdin.close
-        ignored, status = Process::waitpid2 pid
-        exitcode = status.exitstatus
-        # Do this to avoid cartridges that might hold open stdout
+      def oo_configure(args)
+        cart_name = args['--cart-name']
+        template_git_url = args['--with-template-git-url']
+
         output = ""
         begin
-          Timeout::timeout(5) do
-            while (line = stdout.gets)
-              output << line
-            end
-          end
-        rescue Timeout::Error
-          Log.instance.info("WARNING: stdout read timed out")
-        end
-
-        if exitcode == 0
-          Log.instance.info("(#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-        else
-          Log.instance.info("ERROR: (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-        end
-        return exitcode, output
-      end
-
-      def handle_v2_cartridge_action(cartridge, action, args)
-        container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
-
-        begin
-          # is it time for an options hash? lack of named params makes this very messy
-          container = OpenShift::ApplicationContainer.new(app_uuid, container_uuid, nil, 
-            nil, nil, nil, nil, nil, logger = Log.instance)
-          
-          # we have to collect some kind of output to pass back to the broker here
-          # ex: jenkins SSH key add
-          output = ''
-
-          case action
-          when 'configure'
-            output = container.add_cart(cartridge)
-          when 'deconfigure'
-            output = container.remove_cart(cartridge)
-          else
-            Log.instance.warn("Unsupported command for V2 cartridges: #{action}")
-          end
+          container = get_app_container_from_args(args)
+          output = container.configure(cart_name, template_git_url)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -558,77 +546,218 @@ module MCollective
         end
       end
 
-      def handle_cartridge_action(cartridge, action, args)
-        exitcode = 0
-        output = ""
+      def oo_deconfigure(args)
+        cart_name = args['--cart-name']
 
-        if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"
-          cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
-          Log.instance.info("handle_cartridge_action executing #{cart_cmd}")
-          pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
-        elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"
-          cart_cmd = "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1"
-          Log.instance.info("handle_cartridge_action executing #{cart_cmd}")
-          pid, stdin, stdout, stderr = Open4::popen4ext(true, cart_cmd)
+        output = ""
+        begin
+          container = get_app_container_from_args(args)
+          output = container.deconfigure(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
         else
-          exitcode = 127
-          output = "ERROR: action '#{action}' not found."
+          return 0, output
         end
-        exitcode, output = complete_process_gracefully(pid, stdin, stdout) if exitcode == 0
-        return exitcode, output
       end
 
-      #
-      # Passes arguments to cartridge for use
-      #
-      def cartridge_do_action
-        Log.instance.info("cartridge_do_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
-        Log.instance.info("cartridge_do_action validation = #{request[:cartridge]} #{request[:action]} #{request[:args]}")
-        validate :cartridge, /\A[a-zA-Z0-9\.\-\/]+\z/
-        validate :cartridge, :shellsafe
-        validate :action, /\A(app-create|app-destroy|env-var-add|env-var-remove|broker-auth-key-add|broker-auth-key-remove|authorized-ssh-key-add|authorized-ssh-key-remove|ssl-cert-add|ssl-cert-remove|configure|deconfigure|update-namespace|tidy|deploy-httpd-proxy|remove-httpd-proxy|restart-httpd-proxy|move|pre-move|post-move|info|post-install|post-remove|pre-install|reload|restart|start|status|stop|force-stop|add-alias|remove-alias|threaddump|cartridge-list|expose-port|system-messages|connector-execute|get-quota|set-quota)\Z/
-        validate :action, :shellsafe
-        cartridge = request[:cartridge]
-        action = request[:action]
-        args = request[:args]
-        pid, stdin, stdout, stderr = nil, nil, nil, nil
-        rc = nil
-        output = ""
+      def oo_deploy_httpd_proxy(args)
+        cart_name = args['--cart-name']
 
-        Log.instance.debug("passed validations")
-
-        if cartridge == 'openshift-origin-node'
-          cmd = "oo-#{action}"
-          if action == 'connector-execute'
-            pid, stdin, stdout, stderr = oo_connector_execute(cmd, args)
-            exitcode, output = complete_process_gracefully(pid, stdin, stdout)
-          else
-            exitcode, output = handle_oo_cmd(action, args)
-          end
+        begin
+          container = get_app_container_from_args(args)
+          container.deploy_httpd_proxy(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
         else
-          Log.instance.debug("validing args")
-          validate :args, /\A[\w\+\/= \{\}\"@\-\.:;\'\\\n~,]+\z/
-          validate :args, :shellsafe
-          Log.instance.debug("determining how to handle cart action")
-
-          if %w(configure deconfigure).include?(action) && !OpenShift::Utils::Sdk.v1_cartridges.include?(cartridge)
-            Log.instance.info("handling as V2 cart action")
-            handle_v2_cartridge_action(cartridge, action, args)
-          else
-            Log.instance.info("handling as V1 cart action")
-            exitcode, output = handle_cartridge_action(cartridge, action, args)
-          end
-        end
-        reply[:exitcode] = exitcode
-        reply[:output] = output
-        if exitcode == 0
-          Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-        else
-          Log.instance.info("cartridge_do_action failed (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-          reply.fail! "cartridge_do_action failed #{exitcode}. Output #{output}"
+          return 0, ""
         end
       end
-     
+
+      def oo_remove_httpd_proxy(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.remove_httpd_proxy(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_restart_httpd_proxy(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.restart_httpd_proxy(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_move(args)
+        cart_name = args['--cart-name']
+        idle = args['--idle']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.move(cart_name, idle)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_pre_move(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.pre_move(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_post_move(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.post_move(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_system_messages(args)
+        cart_name = args['--cart-name']
+
+        output = ""
+        begin
+          output = OpenShift::Node.find_system_messages(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
+      def oo_start(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.start(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_stop(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.stop(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_restart(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.restart(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_reload(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.reload(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_status(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.status(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
+      def oo_threaddump(args)
+        cart_name = args['--cart-name']
+
+        begin
+          container = get_app_container_from_args(args)
+          container.threaddump(cart_name)
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, ""
+        end
+      end
+
       #
       # Set the district for a node
       #
@@ -756,125 +885,6 @@ module MCollective
         }
         reply[:output] = active_gears
         reply[:exitcode] = 0
-      end
-
-      def handle_oo_job(parallel_job)
-        job = parallel_job[:job]
-        rc, output = handle_oo_cmd(job[:action], job[:args])
-        parallel_job[:result_exit_code] = rc
-        if rc == 0
-          parallel_job[:result_stdout] = output
-          parallel_job[:result_stderr] = ""
-        else
-          parallel_job[:result_stdout] = ""
-          parallel_job[:result_stderr] = output
-        end
-      end
-
-      #
-      # Executes a list of jobs parallely and returns their results embedded in args
-      #
-      def execute_parallel_action        
-        Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
-        #validate :joblist, /\A[\w\+\/= \{\}\"@\-\.:\'\\\n~,_]+\z/
-        #validate :joblist, :shellsafe
-
-        joblist = request[config.identity]
-        pidlist = []
-        inline_list = []
-        joblist.each { |parallel_job|
-          job = parallel_job[:job]
-          cartridge = job[:cartridge]
-          action = job[:action]
-          args = job[:args]
-          if cartridge == 'openshift-origin-node' && action != 'connector-execute'
-            inline_list << parallel_job
-          else
-            begin
-              if cartridge == 'openshift-origin-node' && action == 'connector-execute'
-                pid, stdin, stdout, stderr = oo_connector_execute(action, args)
-              else
-                pid, stdout, stderr = execute_parallel_job(cartridge, action, args)
-              end
-            rescue Exception =>e
-              parallel_job[:result_exit_code] = 127
-              parallel_job[:result_stdout] = e.message
-              parallel_job[:result_stderr] = e.message
-              next
-            end
-            pidlist << [parallel_job, pid, stdout, stderr]
-          end
-        }
-
-        # All the inline calls are made using multiple threads instead of processes
-        in_threads = []
-        inline_list.each do |parallel_job|
-          # BZ 876942: Disable threading until we can explore proper concurrency management
-          # in_threads << Thread.new(parallel_job) do |pj|   # BZ 876942
-            pj = parallel_job                                # BZ 876942
-            begin
-              handle_oo_job(pj)
-            rescue Exception => e
-              pj[:result_exit_code] = 1
-              pj[:result_stdout] = e.message
-              pj[:result_stderr] = e.message
-              next
-            end
-          # end                                              # BZ 876942
-        end
-        in_threads.each { |thr| thr.join }
-
-        pidlist.each { |reap_args|
-          pj, pid, sout, serr = reap_args
-          reap_output(pj, pid, sout, serr)
-        }
-        Log.instance.info("execute_parallel_action call - #{joblist}")
-        reply[:output] = joblist
-        reply[:exitcode] = 0
-      end
-
-      def execute_parallel_job(cartridge, action, args)
-        pid, stdin, stdout, stderr = nil, nil, nil, nil
-        if cartridge == 'openshift-origin-node' && action == 'connector-execute'
-          cmd = "oo-#{action}"
-          pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 #{cmd} #{args} 2>&1")
-        else
-          if File.exists? "/usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-            #pid, stdin, stdout, stderr = Open4::popen4("/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-          elsif File.exists? "/usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action}"                
-            pid, stdin, stdout, stderr = Open4::popen4ext(true, "/usr/bin/runcon -l s0-s0:c0.c1023 /usr/libexec/openshift/cartridges/embedded/#{cartridge}/info/hooks/#{action} #{args} 2>&1")
-          else
-            raise Exception.new("cartridge_do_action ERROR action '#{action}' not found.")
-          end
-        end
-        stdin.close
-        return pid, stdout, stderr
-      end
-
-      def reap_output(parallel_job, pid, stdout, stderr)
-        ignored, status = Process::waitpid2 pid
-        exitcode = status.exitstatus
-        # Do this to avoid cartridges that might hold open stdout
-        output = ""
-        begin
-          Timeout::timeout(5) do
-            while (line = stdout.gets)
-              output << line
-            end
-          end
-        rescue Timeout::Error
-          Log.instance.info("cartridge_do_action WARNING - stdout read timed out")
-        end
-
-        if exitcode == 0
-          Log.instance.info("cartridge_do_action (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-        else
-          Log.instance.info("cartridge_do_action ERROR (#{exitcode})\n------\n#{cleanpwd(output)}\n------)")
-        end
-
-        parallel_job[:result_stdout] = output
-        parallel_job[:result_exit_code] = exitcode
       end
     end
   end

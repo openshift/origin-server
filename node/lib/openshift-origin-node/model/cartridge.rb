@@ -13,7 +13,9 @@ module OpenShift::Runtime
 		def initialize(manifest = {})
 			@name = manifest["Name"]
 			@namespace = manifest["Namespace"]
-			@endpoints = parse_endpoints(manifest["Endpoints"])
+      endpoint_strings = manifest["Endpoints"] ||= []
+
+      @endpoints = parse_endpoints(endpoint_strings)
 		end
 
 		# Convenience method which returns an array containing only

@@ -246,7 +246,7 @@ module OpenShift
     end
 
     def configure()
-      exitcode, output = @gear.container.add_cart(@name)
+      output = @gear.container.configure(@name)
 
       # Sanitize the command output. For now, the only major problem we're aware
       # of is colorized output containing escape characters. The sanitization should
@@ -254,45 +254,27 @@ module OpenShift
       # those at present.
       output = output.gsub(/\e\[(\d+)m/, '')
 
-      raise "Error (#{exitcode}) during add_cart: #{output}" unless exitcode == 0
-
-      notify_listeners "configure_hook_completed", { :cart => self, :exitcode => exitcode, :output => output}
-      exitcode
+      notify_listeners "configure_hook_completed", { :cart => self, :output => output}
     end
 
     def deconfigure()
-      exitcode, output = @gear.container.remove_cart(@name)
-      raise "Error (#{exitcode}) during remove_cart: #{output}" unless exitcode == 0
-
-      exitcode
+      @gear.container.deconfigure(@name)
     end
 
     def start()
-      exitcode, output = @gear.container.start(@name)
-      raise "Error (#{exitcode}) during start: #{output}" unless exitcode == 0
-
-      exitcode
+      @gear.container.start(@name)
     end
 
     def stop()
-      exitcode, output = @gear.container.stop(@name)
-      raise "Error (#{exitcode}) during stop: #{output}" unless exitcode == 0
-
-      exitcode
+      @gear.container.stop(@name)
     end
 
     def status()
-      exitcode, output = @gear.container.status(@name)
-      raise "Error (#{exitcode}) during status: #{output}" unless exitcode == 0
-
-      exitcode
+      @gear.container.status(@name)
     end
 
     def restart()
-      exitcode, output = @gear.container.restart(@name)
-      raise "Error (#{exitcode}) during restart: #{output}" unless exitcode == 0
-
-      exitcode
+      @gear.container.restart(@name)
     end
 
     # Notify cart listeners of an event
