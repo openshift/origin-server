@@ -3,12 +3,21 @@ require "openshift-origin-common"
 module OpenShift
   module Controller
     require 'controller_engine' if defined?(Rails) && Rails::VERSION::MAJOR == 3
+
+    autoload :ActionLog,               'openshift/controller/action_log'
   end
+
+  module Auth
+  end
+
+  autoload :ApplicationContainerProxy, 'openshift/application_container_proxy'
+
+  autoload :AuthService,               'openshift/auth_service'
+  autoload :DnsService,                'openshift/dns_service'
+  autoload :DataStore,                 'openshift/data_store'
+  autoload :MongoDataStore,            'openshift/mongo_data_store'
+
+  autoload :UserActionLog,             'openshift/user_action_log'
 end
 
-#require "cloud_user"
-require "openshift/application_container_proxy"
-require "openshift/auth_service"
-require "openshift/dns_service"
-require "openshift/data_store"
 require "openshift/exceptions"
