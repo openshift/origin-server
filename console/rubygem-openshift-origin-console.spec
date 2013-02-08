@@ -88,7 +88,7 @@ chmod 0666 %{buildroot}%{_var}/log/openshift/console/production.log
 pushd test/rails_app/
 CONSOLE_CONFIG_FILE=../../conf/console.conf.example \
   RAILS_ENV=production \
-  RAILS_LOG_PATH=%{buildroot}%{_var}/log/openshift/console/production.log
+  RAILS_LOG_PATH=%{buildroot}%{_var}/log/openshift/console/production.log \
   RAILS_RELATIVE_URL_ROOT=/console bundle exec rake assets:precompile assets:public_pages
 
 rm -rf tmp/cache/*
