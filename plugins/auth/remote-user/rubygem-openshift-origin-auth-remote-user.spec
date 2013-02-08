@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,15 @@ then
 fi
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
+- Merge pull request #1289 from
+  smarterclayton/isolate_api_behavior_from_base_controller
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'improve_action_logging' into
+  isolate_api_behavior_from_base_controller (ccoleman@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- Remove legacy login() method on authservice (ccoleman@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
 - bump_minor_versions for sprint 24 (admiller@redhat.com)
 
