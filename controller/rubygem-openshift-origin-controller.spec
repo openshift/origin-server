@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.8
+Version: 1.4.9
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 07 2013 Dan McPherson <dmcphers@redhat.com> 1.4.9-1
+- use a sparse index on gear uuid (dmcphers@redhat.com)
+
 * Thu Feb 07 2013 Dan McPherson <dmcphers@redhat.com> 1.4.8-1
 - deep copy the group overrides so that a software cache of cartridges does not
   suffer changes (rchopra@redhat.com)
