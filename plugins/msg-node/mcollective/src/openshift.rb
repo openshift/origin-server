@@ -178,7 +178,6 @@ module MCollective
         key_type = args['--with-ssh-key-type']
         comment = args['--with-ssh-key-comment']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.add_ssh_key(ssh_key, key_type, comment)
@@ -187,7 +186,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -195,7 +194,6 @@ module MCollective
         ssh_key = args['--with-ssh-key']
         comment = args['--with-ssh-comment']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.remove_ssh_key(ssh_key, comment)
@@ -204,7 +202,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -212,7 +210,6 @@ module MCollective
         iv = args['--with-iv']
         token = args['--with-token']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.add_broker_auth(iv, token)
@@ -221,12 +218,11 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
       def oo_broker_auth_key_remove(args)
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.remove_broker_auth
@@ -235,7 +231,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -243,7 +239,6 @@ module MCollective
         key = args['--with-key']
         value = args['--with-value']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.add_env_var(key, value)
@@ -252,14 +247,13 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
       def oo_env_var_remove(args)
         key = args['--with-key']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.user.remove_env_var(key)
@@ -268,7 +262,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -341,7 +335,6 @@ module MCollective
         container_uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
         
-        output = ""
         begin
           container = get_app_container_from_args(args)
           container.force_stop
@@ -350,7 +343,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -414,7 +407,6 @@ module MCollective
         passphrase    = args['--with-passphrase']
         server_alias  = args['--with-alias-name']
 
-        output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid,
                                                        container_name, namespace)
@@ -427,7 +419,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -438,7 +430,6 @@ module MCollective
 
         server_alias  = args['--with-alias-name']
 
-        output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid,
                                                        container_name, namespace)
@@ -448,7 +439,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, output
+          return 0, ""
         end
       end
 
@@ -612,45 +603,48 @@ module MCollective
         cart_name = args['--cart-name']
         idle = args['--idle']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.move(cart_name, idle)
+          output = container.move(cart_name, idle)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
       def oo_pre_move(args)
         cart_name = args['--cart-name']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.pre_move(cart_name)
+          output = container.pre_move(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
       def oo_post_move(args)
         cart_name = args['--cart-name']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.post_move(cart_name)
+          output = container.post_move(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
@@ -732,6 +726,7 @@ module MCollective
       def oo_status(args)
         cart_name = args['--cart-name']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
           output = container.status(cart_name)
@@ -747,15 +742,16 @@ module MCollective
       def oo_threaddump(args)
         cart_name = args['--cart-name']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.threaddump(cart_name)
+          output = container.threaddump(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
