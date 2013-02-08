@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.1
-Release:       2%{?dist}
+Version:       1.5.2
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -118,6 +118,19 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
+- Merge pull request #1343 from nhr/BZ885194_fixed_account_upgrade_validations
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1339 from tdawson/tdawson/cleanup-spec-headers
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1342 from sg00dwin/bug-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 885194 - Corrected form handler to suppress submit on form errors
+  (hripps@redhat.com)
+- Add function for placeholder on create app form include jquery_placeholder
+  for ie9 and older (sgoodwin@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-2
 - bump for chainbuild
 
