@@ -118,7 +118,7 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
-* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> - 1.5.2-2
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-2
 - bump for chainbuild
 
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
