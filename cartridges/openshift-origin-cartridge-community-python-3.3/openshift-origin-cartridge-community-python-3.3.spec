@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version:       0.2.1
+Version:       0.2.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 0.2.2-1
+- change %%define to %%global (tdawson@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 0.2.1-1
 - bump_minor_versions for sprint 24 (admiller@redhat.com)
 
