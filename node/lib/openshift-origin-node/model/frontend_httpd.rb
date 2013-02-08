@@ -22,6 +22,7 @@ require 'fileutils'
 require 'openssl'
 require 'fcntl'
 require 'json'
+require 'tmpdir'
 
 module OpenShift
   
@@ -131,13 +132,13 @@ module OpenShift
 
       @cloud_domain = @config.get("CLOUD_DOMAIN")
 
-      @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
-      if @basedir.nil?
-        t_basedir = @config.get("GEAR_BASE_DIR")
-        if t_basedir.nil?
-          t_basedir = "/etc/httpd/conf.d/openshift"
+      [ @config.get("OPENSHIFT_HTTP_CONF_DIR").to_s,
+        File.join(@config.get("GEAR_BASE_DIR").to_s, ".httpd.d"),
+        '/etc/httpd/conf.d/openshift' ].each do |p|
+        @basedir = p
+        if File.directory?(@basedir)
+          break
         end
-        @basedir = File.join(t_basedir, ".httpd.d")
       end
 
       @fqdn = clean_server_name("#{@container_name}-#{@namespace}.#{@cloud_domain}")
@@ -782,9 +783,13 @@ module OpenShift
       end
 
       @config = OpenShift::Config.new
-      basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
-      if basedir.nil?
-        basedir = File.join(@config.get("GEAR_BASE_DIR"), ".httpd.d")
+      [ @config.get("OPENSHIFT_HTTP_CONF_DIR").to_s,
+        File.join(@config.get("GEAR_BASE_DIR").to_s, ".httpd.d"),
+        '/etc/httpd/conf.d/openshift' ].each do |p|
+        @basedir = p
+        if File.directory?(@basedir)
+          break
+        end
       end
 
       @mode = 0640
@@ -795,7 +800,7 @@ module OpenShift
         @flags = flags
       end
 
-      @filename = File.join(basedir, self.MAPNAME)
+      @filename = File.join(@basedir, self.MAPNAME)
 
       @lockfile = @@LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
 
@@ -860,15 +865,21 @@ module OpenShift
     end
 
     def callout
-      # Use Berkeley DB so that there's no race condition between multiple file moves
-      FileUtils.rm(@filename + '.db-', :force=>true)
-      cmd = %{/usr/sbin/httxt2dbm -f DB -i #{@filename}#{self.SUFFIX} -o #{@filename}.db-}
-      out,err,rc = shellCmd(cmd)
-      if rc == 0
-        Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
-        FileUtils.mv(@filename + '.db-', @filename + '.db', :force=>true)
-      else
-        Syslog.alert("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
+      # Use Berkeley DB so that there's no race condition between
+      # multiple file moves.  The Berkeley DB implementation creates a
+      # scratch working file under certain circumstances.  Use a
+      # scratch dir to protect it.
+      Dir.mktmpdir(@filename + '.db-') do |wd|
+        tmpdb = File.join(wd, 'new.db')
+
+        cmd = %{/usr/sbin/httxt2dbm -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
+        out,err,rc = shellCmd(cmd)
+        if rc == 0
+          Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
+          FileUtils.mv(tmpdb, @filename + '.db', :force=>true)
+        else
+          Syslog.alert("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
+        end
       end
     end
 
