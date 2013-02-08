@@ -110,7 +110,7 @@ class ApplicationsController < BaseController
     end
     application.user_agent= request.headers['User-Agent']
     
-    current_ip = "TODO" #application.group_instances.first.gears.first.get_public_ip_address
+    current_ip = application.group_instances.first.gears.first.get_public_ip_address rescue nil
     include_cartridges = (params[:include] == "cartridges")
     
     app = get_rest_application(application, include_cartridges)
