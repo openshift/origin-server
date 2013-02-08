@@ -1,7 +1,6 @@
 class ApplicationsController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
   include RestModelHelper
+
   # GET /domains/[domain id]/applications
   def index
     domain_id = params[:domain_id]
@@ -114,7 +113,7 @@ class ApplicationsController < BaseController
     include_cartridges = (params[:include] == "cartridges")
     
     app = get_rest_application(application, include_cartridges)
-    reply = RestReply.new(:created, "application", app)
+    reply = new_rest_reply(:created, "application", app)
   
     messages = []
     log_msg = "Application #{application.name} was created."
