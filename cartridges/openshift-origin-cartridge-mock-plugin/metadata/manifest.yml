@@ -1,0 +1,19 @@
+Name: mock-plugin
+Namespace: MOCK_PLUGIN
+Display-Name: Mock
+Description: "A mock plugin cartridge for development use only."
+Version: 0.1
+License: "None"
+Vendor: Red Hat
+Categories:
+  - service
+Provides:
+  - mock-plugin
+Scaling:
+  Min: 1
+  Max: -1
+Group-Overrides:
+  - components:
+    - mock-plugin
+Endpoints:
+  - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"

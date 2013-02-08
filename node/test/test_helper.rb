@@ -20,3 +20,18 @@ require File.expand_path('../coverage_helper.rb', __FILE__)
 require 'rubygems'
 require 'test/unit'
 require 'mocha'
+
+require 'openshift-origin-node/utils/node_logger'
+
+module OpenShift
+  module NodeLogger
+
+    def logger
+      NodeLogger.logger
+    end
+
+    def self.logger
+      Logger.new(STDOUT)
+    end
+  end
+end

@@ -1,0 +1,4 @@
+.pearrc
+php/configuration/
+php/metadata/
+php/env

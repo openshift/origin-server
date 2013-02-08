@@ -1,0 +1,33 @@
+#!/bin/bash -e
+
+# Mock cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+source ~/.env/*
+
+source /usr/libexec/openshift/cartridges/v2/mock-plugin/mock-plugin.conf
+
+PATH=/bin/:/usr/bin:$PATH
+
+echo "PATH = $PATH"
+
+rm -rf $MOCK_STATE/
+mkdir $MOCK_STATE
+touch $MOCK_STATE/setup_called
+
+function error_exit {
+  echo -e "$1\nexit $2" >$MOCK_STATE/setup_failure
+  echo -e $1 1>&2
+  exit $2
+}
+
+echo "OPENSHIFT_DATA_DIR: $OPENSHIFT_DATA_DIR"
+
+version=0.1
+
+echo "Version: $version" >$MOCK_STATE/setup_version
+echo "export OPENSHIFT_MOCK_VERSION=\'$version\'" > mock/env/OPENSHIFT_MOCK_VERSION
+
+touch $MOCK_STATE/setup_succeed
+
+exit 0
