@@ -1,0 +1,25 @@
+#!/bin/bash -e
+set -u
+
+PATH=/bin:/usr/bin:$PATH
+
+version=5.3
+echo "export OPENSHIFT_PHP_VERSION=\'$version\'" > "$OPENSHIFT_HOMEDIR/php/.env/OPENSHIFT_PHP_VERSION"
+
+# Copy the version specific files upto php directory
+OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/php"
+mkdir -p $OPENSHIFT_PHP_DIR/configuration
+mkdir -p $OPENSHIFT_PHP_DIR/metadata
+cp -r $OPENSHIFT_PHP_DIR/versions/$version/configuration/* $OPENSHIFT_PHP_DIR/configuration
+cp -r $OPENSHIFT_PHP_DIR/versions/$version/metadata/* $OPENSHIFT_PHP_DIR/metadata
+
+# Create additional directories required by PHP
+mkdir $OPENSHIFT_PHP_DIR/sessions
+mkdir -p $OPENSHIFT_PHP_DIR/phplib/pear/{docs,ext,php,cache,cfg,data,download,temp,tests,www}
+ln -s /usr/lib64/httpd/modules $OPENSHIFT_PHP_DIR/modules
+ln -s /etc/httpd/conf/magic $OPENSHIFT_PHP_DIR/conf/magic
+
+# Pear setup
+pear config-create "$PHPCART_INSTANCE_DIR"/phplib/pear/ "$APP_HOME"/.pearrc > /dev/null 2>&1
+pear -c "$APP_HOME"/.pearrc config-set php_ini "$PHPCART_INSTANCE_DIR"/conf/php.ini > /dev/null 2>&1
+pear -c "$APP_HOME"/.pearrc config-set auto_discover 1 > /dev/null 2>&1

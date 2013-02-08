@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
+
+function start() {
+    echo "Starting PHP cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+}
+
+function stop() {
+    echo "Stopping PHP cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+}
+
+function restart() {
+   echo "Restarting PHP cart"
+    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+}
+
+function status() {
+   echo "PHP cart status"
+}
+
+function reload() {
+    echo "Reloading PHP cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying PHP cart"
+}
+
+case "$1" in
+  start)     start ;;
+  stop)      stop ;;
+  restart)   restart ;;
+  status)    status ;;
+  reload)    reload ;;
+  tidy)      tidy ;;
+  *)         exit 0
+esac

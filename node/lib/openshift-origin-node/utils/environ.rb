@@ -24,7 +24,17 @@ module OpenShift
       # @param [String] gear_dir       Home directory of the gear
       # @return [Hash<String,String>]  hash[Environment Variable] = Value
       def self.for_gear(gear_dir)
-        load("/etc/openshift/env", File.join(gear_dir, '.env'), File.join(gear_dir, '*', 'env'))
+        load("/etc/openshift/env",
+             File.join(gear_dir, '.env'),
+             File.join(gear_dir, '*-*', 'env'))
+      end
+
+      # @param [String] cartridge_dir       Home directory of the gear
+      # @return [Hash<String,String>]  hash[Environment Variable] = Value
+      def self.for_cartridge(cartridge_dir)
+        load("/etc/openshift/env",
+             File.join(Pathname.new(cartridge_dir).parent.to_path, '.env'),
+             File.join(cartridge_dir, 'env'))
       end
 
       # Read a Gear's + n number cartridge environment variables into a environ(7) hash
@@ -40,14 +50,20 @@ module OpenShift
           # Find, read and load environment variables into a hash
           Dir[env_dir].each { |file|
             next if file.end_with? '.erb'
-            next if not File.file? file
+            next unless File.file? file
 
             contents = nil
             File.open(file) { |input|
-              contents = input.read.chomp
-              index    = contents.index('=')
-              contents = contents[(index + 1)..-1]
-              contents.gsub!(/\A["']|["']\Z/, '')
+              begin
+                contents = input.read.chomp
+                next if contents.empty?
+
+                index    = contents.index('=')
+                contents = contents[(index + 1)..-1]
+                contents.gsub!(/\A["']|["']\Z/, '')
+              rescue Exception => e
+                puts "Failed to process: #{file} [#{input}]: #{e.message}"
+              end
             }
             env[File.basename(file)] = contents
           }

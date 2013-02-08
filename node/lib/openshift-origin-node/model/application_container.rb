@@ -37,7 +37,6 @@ module OpenShift
 
     attr_reader :uuid, :application_uuid, :user, :state, :container_name, :cartridge_model
 
-
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, logger = nil)
 
@@ -50,13 +49,25 @@ module OpenShift
                                        app_name, container_name, namespace, quota_blocks, quota_files)
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
 
-      # TODO: When v2 is the default cartridge format change this default...
-      build_model       = :v1
-      if @user.homedir && File.exist?(@user.homedir)
-        build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(@user.homedir)
+      build_model = self.class.get_build_model(@user, @config)
+      
+      # When v2 is the default cartridge format flip the test...
+      if build_model == :v1
+        @cartridge_model = V1CartridgeModel.new(@config, @user)
       else
-        v1_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v1_cartridge_format'))
-        v2_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v2_cartridge_format'))
+        @cartridge_model = V2CartridgeModel.new(@config, @user)
+      end
+    end
+
+    def self.get_build_model(user, config)
+      # TODO: When v2 is the default cartridge format change this default...
+      build_model = :v1
+
+      if user.homedir && File.exist?(user.homedir)
+        build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(user.homedir)
+      else
+        v1_marker_exist = File.exist?(File.join(config.get('GEAR_BASE_DIR'), '.settings', 'v1_cartridge_format'))
+        v2_marker_exist = File.exist?(File.join(config.get('GEAR_BASE_DIR'), '.settings', 'v2_cartridge_format'))
 
         if  v1_marker_exist and v2_marker_exist
           raise 'Node cannot create both v1 and v2 formatted cartridges. Delete one of the cartridge format marker files'
@@ -66,30 +77,11 @@ module OpenShift
         build_model = :v2 if v2_marker_exist
       end
 
-      # When v2 is the default cartridge format flip the test...
-      @cartridge_model = if :v1 == build_model
-                           V1CartridgeModel.new(@config, @user, self, @logger)
-                         else
-                           V2CartridgeModel.new(@config, @user, self, @logger)
-                         end
-    end
+      build_model
+    end    
 
     def name
       @uuid
-    end
-
-    # Loads a cartridge from manifest for the given name.
-    #
-    # TODO: Caching?
-    def get_cartridge(cart_name)
-      begin
-        manifest_path = @cartridge_model.get_cart_manifest_path(cart_name)
-        manifest = YAML.load_file(manifest_path)
-        return OpenShift::Runtime::Cartridge.new(manifest)
-      rescue => e
-        @logger.error(e.backtrace)
-        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@uuid}: #{e.message}"
-      end
     end
 
     # Add cartridge to gear.  This method establishes the cartridge model
@@ -157,7 +149,7 @@ module OpenShift
     # are considered fatal.
     def create_public_endpoints(cart_name)
       env = Utils::Environ::for_gear(@user.homedir)
-      cart = get_cartridge(cart_name)
+      cart = @cartridge_model.get_cartridge(cart_name)
 
       proxy = OpenShift::FrontendProxyServer.new(@logger)
 
@@ -189,7 +181,7 @@ module OpenShift
     # and skipped.
     def delete_public_endpoints(cart_name)
       env = Utils::Environ::for_gear(@user.homedir)
-      cart = get_cartridge(cart_name)
+      cart = @cartridge_model.get_cartridge(cart_name)
 
       proxy = OpenShift::FrontendProxyServer.new(@logger)
 

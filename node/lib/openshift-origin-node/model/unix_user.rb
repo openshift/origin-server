@@ -677,12 +677,25 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       keys
     end
 
-    # private: Determine the MCS label for a given uid
+    # Set ownership and selinux context for file or tree of files
+    def self.match_ownership(source, target)
+      recurse = '-R' if File.directory? target
+
+      # FIXME: review restorecon with rmillner, see set_selinux_context below
+      Utils.oo_spawn(%Q{chown #{recurse} --reference=#{source} #{target}; \
+                        chcon #{recurse} --reference=#{source} #{target}},
+                     expected_exitstatus: 0)
+    end
+    # Determine the MCS label for a given uid
     #
     # @param [Integer] The user ID
     # @return [String] The SELinux MCS label
     def get_mcs_label(uid)
-      if ((uid.to_i < 0) || (uid.to_i>523776))
+      UnixUser.get_mcs_label(uid)
+    end
+
+    def self.get_mcs_label(uid)
+      if (uid.to_i < 0) || (uid.to_i>523776)
         raise ArgumentError, "Supplied UID must be between 0 and 523776."
       end
 

@@ -1,0 +1,17 @@
+#!/bin/bash -e
+
+PATH=/bin/:/usr/bin:$PATH
+
+source /usr/libexec/openshift/cartridges/v2/mock-plugin/mock-plugin.conf
+
+case "$1" in
+  start)     touch $MOCK_STATE/control_start ;;
+  stop)      touch $MOCK_STATE/control_stop ;;
+  restart)   touch $MOCK_STATE/control_restart ;;
+  status)    touch $MOCK_STATE/control_status ;;
+  reload)    touch $MOCK_STATE/control_reload ;;
+  tidy)      touch $MOCK_STATE/contol_tidy ;;
+  *)         exit 0
+esac
+
+exit 0

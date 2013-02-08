@@ -21,7 +21,7 @@ require "openshift-origin-node/utils/shell_exec"
 module OpenShift
   class UtilsSpawnFunctionalTest < Test::Unit::TestCase
     def test_run_as
-      skip "run_as tests require root permissions" if 0 != Process.uid
+      skip 'run_as tests require root permissions' if 0 != Process.uid
 
       uid          = 1000
       out, err, rc = Utils.oo_spawn("touch #{Process.pid}.b",
@@ -44,7 +44,6 @@ module OpenShift
 
       uid          = 1000
       out, err, rc = Utils.oo_spawn("echo Hello, World",
-                                    chdir: "/tmp",
                                     uid:   uid)
       assert_equal 0, rc
       assert_empty err

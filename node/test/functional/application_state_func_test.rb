@@ -27,7 +27,8 @@ module OpenShift
   class ApplicationStateFunctionalTest < Test::Unit::TestCase
 
     def setup
-      skip "run_as tests require root permissions"  if 0 != Process.uid
+      #skip "run_as tests require root permissions"  if 0 != Process.uid
+      #File.chmod(0777, 'test/coverage')
 
       @uid = 1000
       @uuid = `uuidgen -r |sed -e s/-//g`.chomp
