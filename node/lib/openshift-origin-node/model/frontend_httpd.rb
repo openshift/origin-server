@@ -19,7 +19,10 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fileutils'
-require 'systemu'
+require 'openssl'
+require 'fcntl'
+require 'json'
+require 'tmpdir'
 
 module OpenShift
   
@@ -42,6 +45,25 @@ module OpenShift
     end
 
   end
+
+  class FrontendHttpServerExecException < FrontendHttpServerException
+    attr_reader :rc, :stdout, :stderr
+
+    def initialize(msg=nil, container_uuid=nil, container_name=nil, namespace=nil, rc=-1, stdout=nil, stderr=nil)
+      @rc=rc
+      @stdout=stdout
+      @stderr=stderr
+      super(msg, container_uuid, container_name, namespace)
+    end
+
+    def to_s
+      m = super
+      m+= ": rc=#{@rc}"         if rc != -1
+      m+= ": stdout=#{@stdout}" if not @stdout.nil?
+      m+= ": stderr=#{@stderr}" if not @stderr.nil?
+    end
+  end
+
 
   class FrontendHttpServerNameException < FrontendHttpServerException
     attr_reader :server_name
@@ -85,35 +107,57 @@ module OpenShift
     include OpenShift::Utils::ShellExec
 
     attr_reader :container_uuid, :container_name
-    attr_reader :namespace
+    attr_reader :namespace, :fqdn
 
-    def initialize(container_uuid, container_name, namespace)
+    def initialize(container_uuid, container_name=nil, namespace=nil)
       Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
 
       @config = OpenShift::Config.new
+
       @container_uuid = container_uuid
       @container_name = container_name
       @namespace = namespace
+
+      if (@container_name.to_s == "") or (@namespace.to_s == "")
+        begin
+          ContainerInfoDB.open(ContainerInfoDB::READER) do |d|
+            @container_name = d.fetch(@container_uuid)["container_name"]
+            @namespace = d.fetch(@container_uuid)["namespace"]
+          end
+        rescue
+          raise FrontendHttpServerException.new("Name not specified and could not retreive from ContainerInfoDB",
+                                                @container_uuid, @container_name, @namespace)
+        end
+      end
+
       @cloud_domain = @config.get("CLOUD_DOMAIN")
+
+      [ @config.get("OPENSHIFT_HTTP_CONF_DIR").to_s,
+        File.join(@config.get("GEAR_BASE_DIR").to_s, ".httpd.d"),
+        '/etc/httpd/conf.d/openshift' ].each do |p|
+        @basedir = p
+        if File.directory?(@basedir)
+          break
+        end
+      end
+
+      @fqdn = clean_server_name("#{@container_name}-#{@namespace}.#{@cloud_domain}")
     end
 
-    # Public: Initialize an empty configuration for this gear
+    # Public: Initialize a new configuration for this gear
     #
     # Examples
     #
     #    create
     #    # => nil
-    #    # directory for httpd configuration.
     #
     # Returns nil on Success or raises on Failure
     def create
-      basedir = @config.get("GEAR_BASE_DIR")
-
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, ".httpd.d", token)
-
-      FileUtils.rm_rf(path) if File.exist?(path)
-      FileUtils.mkdir_p(path)      
+      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) do |d|
+        d.store(@container_uuid, 
+                { "container_name" => @container_name, 
+                  "namespace" => @namespace })
+      end
     end
 
     # Public: Remove the frontend httpd configuration for a gear.
@@ -124,42 +168,354 @@ module OpenShift
     #    # => nil
     #
     # Returns nil on Success or raises on Failure
-    def destroy(async=true)
-      basedir = @config.get("GEAR_BASE_DIR")
+    def destroy
+      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) { |d| d.delete(@container_uuid) }
+      ApacheDBNodes.open(ApacheDBNodes::WRCREAT)     { |d| d.delete_if { |k, v| k.split('/')[0] == @fqdn } }
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) { |d| d.delete_if { |k, v| v == @fqdn } }
+      ApacheDBIdler.open(ApacheDBIdler::WRCREAT)     { |d| d.delete(@fqdn) }
+      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT)   { |d| d.delete_if { |k, v| (k == @fqdn) or (v["alias"] == @fqdn) } }
 
-      path = File.join(basedir, ".httpd.d", "#{container_uuid}_*")
-      FileUtils.rm_rf(Dir.glob(path))
+      # Clean up SSL certs and legacy node configuration
+      paths = Dir.glob(File.join(@basedir, "#{container_uuid}_*"))
+      FileUtils.rm_rf(paths)
+      paths.each do |p|
+         if p =~ /\.conf$/
+           begin
+             reload_httpd
+           rescue
+           end
+           break
+         end
+      end
 
-      reload_all(async)
     end
 
-    # Public: Connect a path element to a back-end URI for this namespace.
+    # Public: extract hash version of complete data for this gear
+    def attributes
+      {
+        "container_uuid" => @container_uuid,
+        "container_name" => @container_name,
+        "namespace"      => @namespace,
+        "connections"    => connections,
+        "aliases"        => aliases,
+        "ssl_certs"      => ssl_certs,
+        "idle"           => idle?
+      }
+    end
+
+    def to_hash
+      attributes
+    end
+
+    # Public: Generate json
+    def to_json(*args)
+      {
+        'json_class' => self.class.name,
+        'data'       => self.attributes
+      }.to_json(*args)
+    end
+
+    # Public: Load from json
+    def self.json_create(obj)
+      data = obj['data']
+      new_obj = new(dat['container_uuid'],
+                 dat['container_name'],
+                 dat['namespace'])
+      new_obj.create
+
+      if data.has_key?("connections")
+        new_obj.connect(data["connections"])
+      end
+
+      if data.has_key?("aliases")
+        data["aliases"].each do |a|
+          new_obj.add_alias(a)
+        end
+      end
+
+      if data.has_key?("ssl_certs")
+        data["ssl_certs"].each do |a, c, k|
+          new_obj.add_ssl_cert(a, c, k)
+        end
+      end
+
+      if data.has_key?("idle")
+        if data["idle"]
+          new_obj.idle
+        else
+          new_obj.unidle
+        end
+      end
+
+      new_obj
+    end
+
+
+    # Public: Update identifier to the new names
+    def update(container_name, namespace)
+      new_fqdn = clean_server_name("#{container_name}-#{namespace}.#{@cloud_domain}")
+
+      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) do |d|
+        d.store(@container_uuid, 
+                { "container_name" => container_name, 
+                  "namespace" => namespace })
+      end
+
+      ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
+        d.update_block do |deletions, updates, k, v|
+          if k.split('/')[0] == @fqdn
+            deletions << k
+            updates[k.sub(@fqdn, new_fqdn)] = v
+          end
+        end
+      end
+
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
+        d.update_block do |deletions, updates, k, v|
+          if v == @fqdn
+            updates[k]=new_fqdn
+          end
+        end
+      end
+
+      ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
+        d.update_block do |deletions, updates, k, v|
+          if k == @fqdn
+            deletions << k
+            updates[new_fqdn] = v
+          end
+        end
+      end
+
+      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+        d.update_block do |deletions, updates, k, v|
+          if k == @fqdn
+            deletions << k
+            updates[new_fqdn] = v
+          end
+        end
+      end
+
+      @container_name = container_name
+      @namespace = namespace
+      @fqdn = new_fqdn
+    end
+
+    def update_name(container_name)
+      update(container_name, @namespace)
+    end
+
+    def update_namespace(namespace)
+      update(@container_name, namespace)
+    end
+
+
+    # Public: Connect path elements to a back-end URI for this namespace.
     #
     # Examples
     #
-    #     connect('/', 'http://127.0.250.1:8080/')
-    #     connect('/phpmyadmin, ''http://127.0.250.2:8080/')
-    #     connect('/socket, 'http://127.0.250.3:8080/', {:websocket=>1}
+    #     connect('', '127.0.250.1:8080')
+    #     connect('/', '127.0.250.1:8080/')
+    #     connect('/phpmyadmin', '127.0.250.2:8080/')
+    #     connect('/socket, '127.0.250.3:8080/', {"websocket"=>1}
     #
+    #         Options:
+    #             websocket      Enable web sockets on a particular path
+    #             gone           Mark the path as gone (uri is ignored)
+    #             forbidden      Mark the path as forbidden (uri is ignored)
+    #             noproxy        Mark the path as not proxied (uri is ignored)
+    #             redirect       Use redirection to uri instead of proxy (uri must be a path)
+    #             file           Ignore request and load file path contained in uri (must be path)
+    #             tohttps        Redirect request to https and use the path contained in the uri (must be path)
+    #         While more than one option is allowed, the above options conflict with each other.
+    #         Additional options may be provided which are target specific.
     #     # => nil
     #
     # Returns nil on Success or raises on Failure
-    def connect(path, uri, options={})
-      raise NotImplementedError
+    def connect(*elements)
+
+      ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
+
+        elements.flatten.enum_for(:each_slice, 3).each do |path, uri, options|
+
+          if options["gone"]
+            map_dest = "GONE"
+          elsif options["forbidden"]
+            map_dest = "FORBIDDEN"
+          elsif options["noproxy"]
+            map_dest = "NOPROXY"
+          elsif options["redirect"]
+            map_dest = "REDIRECT:#{uri}"
+          elsif options["file"]
+            map_dest = "FILE:#{uri}"
+          elsif options["tohttps"]
+            map_dest = "TOHTTPS:#{uri}"
+          else
+            map_dest = uri
+          end
+
+          if options["websocket"]
+            connect_websocket(path, uri, options)
+          else
+            disconnect_websocket(path) # We could be changing a path
+          end
+
+          d.store(@fqdn + path.to_s, map_dest)
+        end
+      end
+
+    end
+
+    def connect_websocket(path, uri, options)
+
+      if path != ""
+        raise FrontendHttpServerException.new("Path must be empty for a websocket: #{path}",
+                                              @container_uuid, @container_name, @namespace)
+
+      end
+
+      connections = options["connections"]
+      if connections.nil?
+        connections = 5
+      end
+
+      bandwidth = options["bandwidth"]
+      if bandwidth.nil?
+        bandwidth = 100
+      end
+
+      routes_ent = {
+        "endpoints" => [ uri ],
+        "limits"    => {
+          "connections" => connections,
+          "bandwidth"   => bandwidth
+        }
+      }
+
+      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+        d.store(@fqdn, routes_ent)
+      end
+
+    end
+
+    # Public: List connections
+    # Returns [ [path, uri, options], [path, uri, options], ...]
+    def connections
+      ApacheDBNodes.open(ApacheDBNodes::READER) { |d|
+        d.select { |k, v|
+          k.split('/')[0] == @fqdn
+        }.map { |k, v|
+          entry = [ k.sub(@fqdn, ""), "", {} ]
+
+          if entry[0] == ""
+            begin
+              NodeJSDBRoutes.open(NodeJSDBRoutes::READER) do |d|
+                routes_ent = d.fetch(@fqdn)
+                entry[2].merge!(routes_ent["limits"])
+                entry[2]["websocket"]=1
+              end
+            rescue
+            end
+          end
+
+          if v =~ "^(GONE|FORBIDDEN|NOPROXY)$"
+            entry[2][$~[1].downcase] = 1
+          elsif v =~ /^(REDIRECT|FILE|TOHTTPS):(.*)$/
+            entry[2][$~[1].downcase] = 1
+            entry[1] = $~[2]
+          else
+            entry[1] = v
+          end
+
+          entry
+        }
+      }
     end
 
     # Public: Disconnect a path element from this namespace
     #
     # Examples
     #
+    #     disconnect('')
     #     disconnect('/')
     #     disconnect('/phpmyadmin)
+    #     disconnect('/a', '/b', '/c')
     #
     #     # => nil
     #
     # Returns nil on Success or raises on Failure
-    def disconnect(path)
-      raise NotImplementedError
+    def disconnect(*paths)
+      ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
+        paths.each do |p|
+          d.delete(@fqdn + p.to_s)
+        end
+      end
+      disconnect_websocket(*paths)
+    end
+
+    def disconnect_websocket(*paths)
+      if paths.include?("")
+        NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+          d.delete(@fqdn)
+        end
+      end
+    end
+
+    # Public: Mark a gear as idled
+    #
+    # Examples
+    #
+    #     idle()
+    #
+    #     # => nil()
+    #
+    # Returns nil on Success or raises on Failure
+    def idle
+      ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
+        d.store(@fqdn, @container_uuid)
+      end
+    end
+
+    # Public: Unmark a gear as idled
+    #
+    # Examples
+    #
+    #     unidle()
+    #
+    #     # => nil()
+    #
+    # Returns nil on Success or raises on Failure
+    def unidle
+      ApacheDBIdler.open(ApacheDBIdler::WRCREAT) do |d|
+        d.delete(@fqdn)
+      end
+    end
+
+    # Public: Determine whether the gear is idle
+    #
+    # Examples
+    #
+    #     idle?
+    #
+    #     # => true or false
+    # Returns true if the gear is idled
+    def idle?
+      ApacheDBIdler.open(ApacheDBIdler::READER) do |d|
+        return d.has_key?(@fqdn)
+      end
+    end
+
+
+    # Public: List aliases for this gear
+    #
+    # Examples
+    #
+    #     aliases
+    #     # => ["foo.example.com", "bar.example.com"]
+    def aliases
+      ApacheDBAliases.open(ApacheDBIdler::READER) do |d|
+        return d.select { |k, v| v == @fqdn }.map { |k, v| k }
+      end
     end
 
     # Public: Add an alias to this namespace
@@ -172,23 +528,21 @@ module OpenShift
     # Returns nil on Success or raises on Failure
     def add_alias(name)
       dname = clean_server_name(name)
-      path = server_alias_path(dname)
 
-      # Aliases must be globally unique across all gears.
-      existing = server_alias_search(dname, true)
-      if not existing.empty?
-        raise FrontendHttpServerAliasException.new("Already exists", @container_uuid, \
-                                                   @container_name, @namespace, dname )
+      # Broker checks for global uniqueness
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
+        d.store(dname, @fqdn)
       end
 
-      File.open(path, "w") do |f|
-        f.write("ServerAlias #{dname}")
-        f.flush
+      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+        routes_ent = d.fetch(@fqdn)
+        if not routes_ent.nil?
+          alias_ent = routes_ent.clone
+          alias_ent["alias"] = @fqdn
+          d.store(name, alias_ent)
+        end
       end
 
-      create_routes_alias(dname)
-
-      reload_all
     end
 
     # Public: Removes an alias from this namespace
@@ -201,118 +555,102 @@ module OpenShift
     # Returns nil on Success or raises on Failure
     def remove_alias(name)
       dname = clean_server_name(name)
-      routes_file_path = server_routes_alias_path(dname)
 
-      FileUtils.rm_f(routes_file_path) if File.exist?(routes_file_path)
-
-      server_alias_search(dname, false).each do |path|
-        FileUtils.rm_f(path)
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
+        d.delete(dname)
       end
 
-      #
-      # Cleanup for alias specific configuration
-      # 
-      basedir = @config.get("GEAR_BASE_DIR")
-      alias_token = "#{@container_uuid}_#{@namespace}_#{dname}"
+      NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
+        d.delete(dname)
+      end
 
-      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
-      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
+      remove_ssl_cert(dname)
+    end
 
-      # Remove alias specific configuration and certs on the gear
-      FileUtils.rm_f(alias_conf_file_path)
-      FileUtils.rm_rf(alias_conf_dir_path)
+    # Public: List aliases with SSL certs and unencrypted private keys
+    def ssl_certs
+      aliases.map { |a|
+        alias_token = "#{@container_uuid}_#{@namespace}_#{a}"
+        alias_conf_dir_path = File.join(@basedir, alias_token)
+        ssl_cert_file_path = File.join(alias_conf_dir_path, a + ".crt")
+        priv_key_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".key")
 
-      reload_all
+        begin
+          ssl_cert = File.read(ssl_cert_file_path)
+          priv_key = File.read(priv_key_file_path)
+        rescue
+          ssl_cert = nil
+          priv_key = nil
+        end
+
+        [ ssl_cert, priv_key, a ]
+      }.select { |e| e[0] != nil }
     end
 
     # Public: Adds a ssl certificate for an alias
     def add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase='')
-      basedir = @config.get("GEAR_BASE_DIR")
+      server_alias_clean = clean_server_name(server_alias)
 
-      ssl_cert_name = clean_server_name(server_alias) + ".crt"
-      priv_key_name = clean_server_name(server_alias) + ".key"
+      ApacheDBAliases.open(ApacheDBAliases::WRCREAT) do |d|
+        if not (d.has_key? server_alias_clean)
+          raise FrontendHttpServerException.new("Specified alias #{server_alias_clean} does not exist for the app",
+                                                @container_uuid, @container_name,
+                                                @namespace)
+        end
+      end
 
-      app_token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias}"
-
-      app_conf_dir_path = File.join(basedir, ".httpd.d", app_token)
-      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
-      ssl_cert_file_path = File.join(alias_conf_dir_path, ssl_cert_name)
-      priv_key_file_path = File.join(alias_conf_dir_path, priv_key_name)
-
-      # Check if the specified alias has been created for the app
-      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
-      
-      unless File.exists? (server_alias_conf_file_path)
-        raise FrontendHttpServerException.new("Specified alias #{server_alias} does not exist for the app",
+      begin
+        priv_key_clean = OpenSSL::PKey.read(priv_key, passphrase)
+        ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_cert)
+      rescue AttributeError
+        raise FrontendHttpServerException.new("Invalid Private Key or Passphrase",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      rescue OpenSSL::X509::CertificateError
+        raise FrontendHttpServerException.new("Invalid X509 Certificate",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      rescue => e
+        raise FrontendHttpServerException.new("Other key/cert error: #{e}",
                                               @container_uuid, @container_name,
                                               @namespace)
       end
 
-      # Make sure that the private key is not encrypted
-      if priv_key.include? "ENCRYPTED"
-        raise FrontendHttpServerException.new("Private key is encrypted",
+      if not ssl_cert_clean.check_private_key(priv_key_clean)
+        raise FrontendHttpServerException.new("Key/cert mismatch",
                                               @container_uuid, @container_name,
                                               @namespace)
       end
+
+      if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
+        raise FrontendHttpServerException.new("Key must be RSA or DSA for Apache mod_ssl",
+                                              @container_uuid, @container_name,
+                                              @namespace)
+      end
+
 
       # Create a new directory for the alias and copy the certificates
+      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias_clean}"
+      alias_conf_dir_path = File.join(@basedir, alias_token)
+      ssl_cert_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".crt")
+      priv_key_file_path = File.join(alias_conf_dir_path, server_alias_clean + ".key")
       FileUtils.mkdir_p(alias_conf_dir_path)
-      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert) }
-      File.open(priv_key_file_path, 'w') { |f| f.write(priv_key) }
+      File.open(ssl_cert_file_path, 'w') { |f| f.write(ssl_cert_clean.to_pem) }
+      File.open(priv_key_file_path, 'w') { |f| f.write(priv_key_clean.to_pem) }
 
-      # Verify the cert and the key
-      rc, out, errout = systemu "openssl rsa -in #{priv_key_file_path}"
-      if rc != 0
-        FileUtils.rm_f(ssl_cert_file_path)
-        FileUtils.rm_f(priv_key_file_path)
-        FileUtils.rm_f(alias_conf_dir_path)
-        raise FrontendHttpServerException.new("Invalid private key",
-                                              @container_uuid, @container_name,
-                                              @namespace)
-      end
-
-      rc, out, errout = systemu "openssl x509 -in #{ssl_cert_file_path} -text -noout"
-      if rc != 0
-        FileUtils.rm_f(ssl_cert_file_path)
-        FileUtils.rm_f(priv_key_file_path)
-        FileUtils.rm_f(alias_conf_dir_path)
-        raise FrontendHttpServerException.new("Invalid ssl certificate",
-                                              @container_uuid, @container_name,
-                                              @namespace)
-      end
 
       #
       # Create configuration for the alias
       #
 
-      # Create 00000_default.conf for the alias
-      default_conf_contents = <<-DEFAULT_ENTRY
-ServerName #{server_alias}
-ServerAdmin openshift-bofh@redhat.com
-DocumentRoot /var/www/html
-DefaultType None
-      DEFAULT_ENTRY
-
-      default_conf_file_path = File.join(alias_conf_dir_path, "00000_default.conf")
-      File.open(default_conf_file_path, 'w') { |f| f.write(default_conf_contents) }
-
-      # Copy zzzzz_proxy.conf for the alias
-      proxy_conf_file_src_path = File.join(app_conf_dir_path, "zzzzz_proxy.conf")
-      FileUtils.cp(proxy_conf_file_src_path, alias_conf_dir_path)
-
       # Create top level config file for the alias
       alias_conf_contents = <<-ALIAS_CONF_ENTRY
-<VirtualHost *:80>
-  RequestHeader append X-Forwarded-Proto "http"
-
-  Include #{alias_conf_dir_path}/*.conf
-</VirtualHost>
-
 <VirtualHost *:443>
-  RequestHeader append X-Forwarded-Proto "https"
+  ServerName #{server_alias_clean}
+  ServerAdmin openshift-bofh@redhat.com
+  DocumentRoot /var/www/html
+  DefaultType None
 
-# This file gets inserted into every httpd.conf ssl section
   SSLEngine on
   
   SSLCertificateFile #{ssl_cert_file_path}
@@ -325,17 +663,17 @@ DefaultType None
   # optional_no_ca.
   SSLVerifyClient optional_no_ca
 
+  RequestHeader set X-Forwarded-Proto "https"
   RequestHeader set X-Forwarded-SSL-Client-Cert %{SSL_CLIENT_CERT}e
 
-  Include #{alias_conf_dir_path}/*.conf
+  RewriteEngine On
+  include conf.d/openshift_route.include
+
 </VirtualHost>
       ALIAS_CONF_ENTRY
 
-      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
+      alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
       File.open(alias_conf_file_path, 'w') { |f| f.write(alias_conf_contents) }
-
-      # Remove original server alias conf file
-      FileUtils.rm_f(server_alias_conf_file_path)
 
       # Reload httpd to pick up the new configuration
       reload_httpd
@@ -343,37 +681,24 @@ DefaultType None
 
     # Public: Removes ssl certificate/private key associated with an alias
     def remove_ssl_cert(server_alias)
-      basedir = @config.get("GEAR_BASE_DIR")
-      ssl_cert_name = clean_server_name(server_alias)
-      priv_key_name = clean_server_name(server_alias)
+      server_alias_clean = clean_server_name(server_alias)
 
       #
       # Remove the alias specific configuration
       #
-      app_token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias}"
+      alias_token = "#{@container_uuid}_#{@namespace}_#{server_alias_clean}"
 
-      app_conf_dir_path = File.join(basedir, ".httpd.d", app_token)
-      alias_conf_dir_path = File.join(basedir, ".httpd.d", alias_token)
-      #ssl_cert_file_path = File.join(alias_conf_dir_path, ssl_cert_name)
-      #priv_key_file_path = File.join(alias_conf_dir_path, priv_key_name)
-      alias_conf_file_path = File.join(basedir, ".httpd.d", "#{alias_token}.conf")
+      alias_conf_dir_path = File.join(@basedir, alias_token)
+      alias_conf_file_path = File.join(@basedir, "#{alias_token}.conf")
 
-      #FileUtils.rm_rf(ssl_cert_file_path)
-      #FileUtils.rm_rf(priv_key_file_path)
-      FileUtils.rm_rf(alias_conf_file_path)
-      FileUtils.rm_rf(alias_conf_dir_path)
+      if File.exists?(alias_conf_file_path) or File.exists?(alias_conf_dir_path)
 
-      # Re-create original server alias conf file
-      server_alias_conf_contents = <<-SERVER_ALIAS_ENTRY
-ServerAlias #{server_alias}
-      SERVER_ALIAS_ENTRY
+        FileUtils.rm_rf(alias_conf_file_path)
+        FileUtils.rm_rf(alias_conf_dir_path)
 
-      server_alias_conf_file_path = File.join(app_conf_dir_path, "server_alias-#{server_alias}.conf")
-      File.open(server_alias_conf_file_path, 'w') { |f| f.write(server_alias_conf_contents) }
-
-      # Reload httpd to pick up the configuration changes
-      reload_httpd
+        # Reload httpd to pick up the configuration changes
+        reload_httpd
+      end
     end
 
     # Private: Validate the server name
@@ -407,105 +732,278 @@ ServerAlias #{server_alias}
       return dname
     end
 
-    # Private: Return path to alias file
-    def server_alias_path(name)
-      dname = clean_server_name(name)
-
-      basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, '.httpd.d', token, "server_alias-#{dname}.conf")
-    end
-
-    # Private: Return path to routes alias file name used by ws proxy server
-    def server_routes_alias_path(name)
-      dname = clean_server_name(name)
-
-      basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      path = File.join(basedir, '.httpd.d', token, "routes_alias-#{dname}.json")
-    end
-
-    # Get path to the default routes.json file created for the node web proxy
-    def default_routes_path
-      basedir = @config.get("GEAR_BASE_DIR")
-      token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
-      File.join(basedir, '.httpd.d', token, "routes.json")
-    end
-
-    # Create an alias routing file for the node web proxy server
-    def create_routes_alias(alias_name)
-      route_file = default_routes_path
-      alias_file = File.join(File.dirname(route_file), "routes_alias-#{alias_name}.json")
-
-      begin
-        File.open(route_file, 'r') do |fin|
-          File.open(alias_file, 'w') do |fout|
-            fout.write(fin.read.gsub("#{@container_name}-#{@namespace}.#{@cloud_domain}", "#{alias_name}"))
-          end
-        end
-      rescue => e
-        Syslog.alert("ERROR: Failure trying to create routes alias json file: #{@uuid} Exception: #{e.inspect}")
-      end
-    end
-
-    # Reload both Apache and the proxy server and combine output/return
-    def reload_all(async=false)
-      output = ''
-      errout = ''
-      retc = 0
-
-      out, err, rc = reload_node_web_proxy
-      output << out
-      errout << err
-      retc = rc if rc != 0
-
-      out, err, rc = reload_httpd(async)
-      output << out
-      errout << err
-      retc = rc if rc != 0
-
-      return output, errout, retc
-    end
-
     # Reload the Apache configuration
     def reload_httpd(async=false)
       async_opt="-b" if async
-      out, err, rc = shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful")
-      Syslog.alert("ERROR: failure from oo-httpd-singular(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
-      return out, err, rc
-    end
-
-    # Reload the configuration of the node web proxy server
-    def reload_node_web_proxy
-      out, err, rc = shellCmd("service openshift-node-web-proxy reload")
-      Syslog.alert("ERROR: failure from openshift-node-web-proxy(#{rc}): #{@uuid} stdout: #{out} stderr:#{err}") unless rc == 0
-      return out, err, rc
-    end
-
-    # Private: Search for matching alias files
-    # Previously, case sensitive matches were used
-    # checking for a duplicate and there are mixed
-    # case aliases in use.
-    def server_alias_search(name, all_gears=false)
-      dname = clean_server_name(name)
-      resp = []
-
-      basedir = @config.get("GEAR_BASE_DIR")
-      if all_gears
-        token = "*"
-      else
-        token = "#{@container_uuid}_#{@namespace}_#{@container_name}"
+      begin
+        shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful", "/", false)
+      rescue OpenShift::Utils::ShellExecutionException => e
+        Syslog.alert("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
+        raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)
       end
-      srch = File.join(basedir, ".httpd.d", token, "server_alias-*.conf")
-      Dir.glob(srch).each do |fn|
-        cmpname = fn.sub(/^.*\/server_alias-(.*)\.conf$/, '\\1')
-        if cmpname.casecmp(dname) == 0
-          resp << fn
+    end
+
+  end
+
+
+  # Present an API to Apache's DB files for mod_rewrite.
+  #
+  # This is a bit complicated since there don't appear to be a DB file
+  # format common to ruby and Apache that does not have corruption
+  # issues.  The only format they can agree on is text, which is slow
+  # for 10's of thousands of entries.  Unfortunately, that means we
+  # have to go through a convoluted process to populate the final
+  # Apache DB.
+  #
+  # This locks down to one thread for safety.  You MUST ensure that
+  # close is called to release all locks.  Close also syncs changes to
+  # Apache if data was modified.
+  #
+  class ApacheDB < Hash
+    include OpenShift::Utils::ShellExec
+
+    # The locks and lockfiles are based on the file name
+    @@LOCKS = Hash.new { |h, k| h[k] = Mutex.new }
+    @@LOCKFILEBASE = "/var/run/openshift/ApacheDB"
+
+    READER  = Fcntl::O_RDONLY
+    WRITER  = Fcntl::O_RDWR
+    WRCREAT = Fcntl::O_RDWR | Fcntl::O_CREAT
+    NEWDB   = Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC
+
+    class_attribute :MAPNAME
+    self.MAPNAME = nil
+
+    class_attribute :SUFFIX
+    self.SUFFIX = ".txt"
+
+    def initialize(flags=nil)
+      if self.MAPNAME.nil?
+        raise NotImplementedError.new("Must subclass with proper map name.")
+      end
+
+      @config = OpenShift::Config.new
+      [ @config.get("OPENSHIFT_HTTP_CONF_DIR").to_s,
+        File.join(@config.get("GEAR_BASE_DIR").to_s, ".httpd.d"),
+        '/etc/httpd/conf.d/openshift' ].each do |p|
+        @basedir = p
+        if File.directory?(@basedir)
+          break
         end
       end
-      resp
+
+      @mode = 0640
+
+      if flags.nil?
+        @flags = READER
+      else
+        @flags = flags
+      end
+
+      @filename = File.join(@basedir, self.MAPNAME)
+
+      @lockfile = @@LOCKFILEBASE + '.' + self.MAPNAME + self.SUFFIX + '.lock'
+
+      super()
+
+      # Each filename needs its own mutex and lockfile
+      @@LOCKS[@lockfile].lock
+
+      begin
+        @lfd = File.new(@lockfile, Fcntl::O_RDWR | Fcntl::O_CREAT, 0640)
+
+        if writable?
+          @lfd.flock(File::LOCK_EX)
+        else
+          @lfd.flock(File::LOCK_SH)
+        end
+
+        if @flags != NEWDB
+          reload
+        end
+
+      rescue
+        begin
+          if not @lfd.nil?
+            @lfd.close()
+          end
+        ensure
+          @@LOCKS[@lockfile].unlock
+        end
+        raise
+      end
+
     end
 
+    def decode_contents(f)
+      f.each do |l|
+        path, dest = l.strip.split
+        self.store(path, dest)
+      end
+    end
+
+    def encode_contents(f)
+      self.each do |k, v|
+        f.write([k, v].join(' ') + "\n")
+      end
+    end
+
+    def reload
+      begin
+        File.open(@filename + self.SUFFIX, Fcntl::O_RDONLY) do |f|
+          decode_contents(f)
+        end
+      rescue Errno::ENOENT
+        if not [WRCREAT, NEWDB].include?(@flags)
+          raise
+        end
+      end
+    end
+
+    def writable?
+      [WRITER, WRCREAT, NEWDB].include?(@flags)
+    end
+
+    def callout
+      # Use Berkeley DB so that there's no race condition between
+      # multiple file moves.  The Berkeley DB implementation creates a
+      # scratch working file under certain circumstances.  Use a
+      # scratch dir to protect it.
+      Dir.mktmpdir(@filename + '.db-') do |wd|
+        tmpdb = File.join(wd, 'new.db')
+
+        cmd = %{/usr/sbin/httxt2dbm -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
+        out,err,rc = shellCmd(cmd)
+        if rc == 0
+          Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
+          FileUtils.mv(tmpdb, @filename + '.db', :force=>true)
+        else
+          Syslog.alert("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
+        end
+      end
+    end
+
+    def flush
+      if writable?
+        File.open(@filename + self.SUFFIX + '-', Fcntl::O_RDWR | Fcntl::O_CREAT | Fcntl::O_TRUNC, 0640) do |f|
+          encode_contents(f)
+        end
+
+        # Ruby 1.9 Hash preserves order, compare files to see if anything changed
+        if FileUtils.compare_file(@filename + self.SUFFIX + '-', @filename + self.SUFFIX)
+          FileUtils.rm(@filename + self.SUFFIX + '-', :force=>true)
+        else
+          FileUtils.mv(@filename + self.SUFFIX + '-', @filename + self.SUFFIX, :force=>true)
+          callout
+        end
+      end
+    end
+
+    def close
+      begin
+        begin
+          self.flush
+        ensure
+          @lfd.close()
+        end
+      ensure
+        @@LOCKS[@lockfile].unlock
+      end
+    end
+
+    # Preferred method of access is to feed a block to open so we can
+    # guarantee the close.
+    def self.open(flags=nil)
+      inst = new(flags)
+      if block_given?
+        begin
+          r = yield(inst)
+        rescue
+          @flags = nil # Disable flush
+          raise
+        ensure
+          inst.close
+        end
+        return r
+      else
+        return inst
+      end
+    end
+
+    # Public, update using a block
+    # The block is called for each key, value pair of the hash
+    # and uses the following parameters:
+    #    deletions   Array of keys to delete
+    #    updates     Hash of key->value pairs to add/update
+    #    k, v        Key and value of this iteration
+    def update_block
+      deletions = []
+      updates = {}
+      self.each do |k, v|
+        yield(deletions, updates, k, v)
+      end
+      self.delete_if { |k, v| deletions.include?(k) }
+      self.update(updates)
+    end
+
+  end
+
+  class ApacheDBNodes < ApacheDB
+    self.MAPNAME = "nodes"
+  end
+
+  class ApacheDBAliases < ApacheDB
+    self.MAPNAME = "aliases"
+  end
+
+  class ApacheDBIdler < ApacheDB
+    self.MAPNAME = "idler"
+  end
+
+
+  # Manage the nodejs route file via the same API as Apache
+  class ApacheDBJSON < ApacheDB
+    self.SUFFIX = ".json"
+
+    def decode_contents(f)
+      begin
+        self.replace(JSON.load(f))
+      rescue TypeError, JSON::ParserError
+      end
+    end
+
+    def encode_contents(f)
+      f.write(JSON.generate(self.to_hash))
+    end
+
+    def callout
+    end
+  end
+
+  class NodeJSDB < ApacheDBJSON
+
+    def callout
+      begin
+        shellCmd("service openshift-node-web-proxy reload", "/", false)
+      rescue OpenShift::Utils::ShellExecutionException => e
+        Syslog.alert("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
+      end
+    end
+
+  end
+
+  class NodeJSDBRoutes < NodeJSDB
+    self.MAPNAME = "routes"
+  end
+
+  # Store container info so that we can obtain
+  # the rest of the parameters from just the UUID
+  class ContainerInfoDB < ApacheDBJSON
+    self.MAPNAME = "containers"
+  end
+
+  # TODO: Manage SNI Certificate and alias store
+  class ApacheSNIDB
   end
 
 end

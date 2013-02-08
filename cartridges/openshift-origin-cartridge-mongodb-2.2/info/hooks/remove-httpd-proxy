@@ -35,5 +35,9 @@ cartridge_type="mongodb-2.2"
 
 # Only do this for an "standalone" mongodb gear.
 if only_cart_on_gear $cartridge_type; then
-    rm -rf "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf" "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}"
+    oo-frontend-connect \
+        --with-container-uuid "$uuid" \
+        --with-container-name "$application" \
+        --with-namespace "$namespace" \
+        --path "" --path "/health"
 fi

@@ -107,7 +107,5 @@ export CART_INFO_DIR
 import_env_vars
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-restart_httpd_graceful
-
 client_result "Disclaimer: This is an community cartridge pod that provides a way to use/run community supported cartridges on Openshift."
 enable_cgroups

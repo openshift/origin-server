@@ -817,8 +817,7 @@ function send_stopped_status {
       *)
           if [ -f $APP_DIR/run/stop_lock ]
           then
-              HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
-              if [ -f $HTTP_DIR/0000000000000_disabled.conf ]
+              if oo-frontend-check-idle --with-container-uuid "$uuid"
               then
                   send_attr "status=ALREADY_IDLED"
               else

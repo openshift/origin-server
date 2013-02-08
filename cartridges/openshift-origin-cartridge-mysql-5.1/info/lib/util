@@ -40,6 +40,5 @@ function prepare_gear_for_standalone_mysql() {
 
     disable_stale_detection
 
-    restart_httpd_graceful
 }
 

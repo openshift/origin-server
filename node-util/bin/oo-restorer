@@ -54,9 +54,8 @@ primary_framework_cart=${framework_carts[0]}
 
 stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
 state=`cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state`
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
 
-idled_proxy=`grep -q ' #ProxyPass' $HTTP_DIR/*.conf 2>/dev/null ; echo $?`
+idled_proxy=`oo-frontend-check-idle --with-container-uuid $uuid ; echo $?`
 if [ -f "$stop_lock_file" -o 'idled' = "$state" -o 0 -eq "$idled_proxy" ]
 then
     rm -f "$stop_lock_file"
@@ -71,9 +70,6 @@ runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/ru
 /usr/bin/timeout -s USR1 120s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
 
 # Enable proxy setup
-sed -i "s/#ProxyPass/ProxyPass/g" $HTTP_DIR/*.conf
+oo-frontend-unidle --with-container-uuid $uuid
 
-rm -f $HTTP_DIR/0000000000000_disabled.conf
-
-service httpd graceful
 /usr/bin/logger -p local0.notice -t oo_restorer "Restored: ${uuid}"

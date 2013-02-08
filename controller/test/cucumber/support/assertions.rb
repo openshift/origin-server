@@ -50,3 +50,17 @@ def assert_file_not_exists(filename, msg = nil)
   end
 end
 
+def assert_includes(container, key, msg = nil)
+  full_message = build_message(msg, "Key ? should have been found.", key)
+  assert_block(full_message) do
+    container.include?(key)
+  end
+end
+
+def assert_not_includes(container, key, msg = nil)
+  full_message = build_message(msg, "Key ? should not have been found.", key)
+  assert_block(full_message) do
+    ! container.include?(key)
+  end
+end
+
