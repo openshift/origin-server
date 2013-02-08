@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.4.1
+Version:       1.4.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.4.2-1
+- change %%define to %%global (tdawson@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.4.1-1
 - bump_minor_versions for sprint 24 (admiller@redhat.com)
 
