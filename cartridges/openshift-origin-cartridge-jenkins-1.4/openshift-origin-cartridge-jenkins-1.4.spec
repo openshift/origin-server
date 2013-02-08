@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins-1.4
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,9 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
+- change %%define to %%global (tdawson@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
 - Merge pull request #1334 from kraman/f18_fixes
   (dmcphers+openshiftbot@redhat.com)
