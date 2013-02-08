@@ -734,13 +734,13 @@ module MCollective
 
         begin
           container = get_app_container_from_args(args)
-          container.status(cart_name)
+          output = container.status(cart_name)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
