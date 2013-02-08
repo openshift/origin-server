@@ -49,7 +49,7 @@ class DomainsController < BaseController
 
     @domain_name = domain.namespace
     begin
-      domain.save
+      domain.save!
     rescue Exception => e
       return render_exception(e, "ADD_DOMAIN") 
     end
@@ -92,7 +92,7 @@ class DomainsController < BaseController
 
     begin
       domain.update_namespace(new_namespace)
-      domain.save
+      domain.save!
     rescue Exception => e
       return render_exception(e, "UPDATE_DOMAIN") 
     end

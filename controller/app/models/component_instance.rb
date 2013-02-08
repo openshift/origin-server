@@ -41,7 +41,7 @@ class ComponentInstance
       result_io.properties["component-properties"].each do |gear_id, properties|
         self.component_properties = self.component_properties.merge properties
       end
-      self.save
+      self.save!
     end
   end
 

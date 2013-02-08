@@ -72,7 +72,7 @@ class PendingAppOpGroup
         when :init_gear
           gear = get_gear_for_rollback(op)
           gear.delete
-          application.save
+          application.save!
         when :reserve_uid
           gear = get_gear_for_rollback(op)
           gear.unreserve_uid
@@ -94,7 +94,7 @@ class PendingAppOpGroup
           gear.deregister_dns
         when :set_group_overrides
           application.group_overrides=op.saved_values["group_overrides"]
-          application.save
+          application.save!
         when :set_connections
           application.set_connections(op.saved_values["connections"])
         when :execute_connections
@@ -121,7 +121,7 @@ class PendingAppOpGroup
       if parallel_job_ops.length > 0
         RemoteJob.execute_parallel_jobs(handle)
         parallel_job_ops.each{ |op| op.state = :rolledback }
-        self.application.save
+        self.application.save!
       end
     end
   end
@@ -154,7 +154,7 @@ class PendingAppOpGroup
             application.group_instances.push(GroupInstance.new(custom_id: op.args["group_instance_id"]))
           when :init_gear
             group_instance.gears.push(Gear.new(custom_id: op.args["gear_id"], group_instance: group_instance, host_singletons: op.args["host_singletons"], app_dns: op.args["app_dns"]))
-            application.save
+            application.save!
           when :delete_gear
             gear.delete
             self.inc(:num_gears_destroyed, 1)
@@ -216,7 +216,7 @@ class PendingAppOpGroup
             component_instance.complete_update_namespace(op.args)
           when :set_group_overrides
             application.group_overrides=op.args["group_overrides"]
-            application.save
+            application.save!
           when :set_connections
             application.set_connections(op.args["connections"])
           when :execute_connections
@@ -227,11 +227,11 @@ class PendingAppOpGroup
           when :add_alias
             result_io.append gear.add_alias(op.args["fqdn"])
             self.application.aliases.push(op.args["fqdn"])
-            self.application.save
+            self.application.save!
           when :remove_alias
             result_io.append gear.remove_alias(op.args["fqdn"])
             self.application.aliases.delete(op.args["fqdn"])
-            self.application.save
+            self.application.save!
           end
           
           if use_parallel_job 
@@ -257,7 +257,7 @@ class PendingAppOpGroup
             end
           end
           parallel_job_ops.each{ |op| op.set(:state, :completed) }
-          self.application.save
+          self.application.save!
         end
       end
       unless self.parent_op_id.nil?

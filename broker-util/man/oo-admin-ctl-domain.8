@@ -8,7 +8,7 @@
 .fam C
 \fBoo-admin-ctl-domain\fP [\fB-h\fP|\fB--help\fP] [\fB-l\fP|\fB--login\fP \fIlogin_name\fP] 
 [\fB-n\fP|\fB--namespace\fP \fIname_space\fP] [\fB-c\fP|\fB--command\fP \fIcmd\fP] [\fB-s\fP|\fB--ssh_key\fP \fIsshkey\fP]
-[\fB-t\fP|\fB--key_type\fP \fIsshkey_type\fP] [\fB-k\fP|\fB--key_name\fP \fIsshkey_name\fP]
+[\fB-t\fP|\fB--key_type\fP \fIsshkey_type\fP] [\fB-k\fP|\fB--key_name\fP \fIsshkey_name\fP] [\fB-b\fP|\fB--bypass_blacklist\fP]
 
 .fam T
 .fi
@@ -49,6 +49,9 @@ ecdsa-sha2-nistp256, ecdsa-sha2-nistp384, ecdsa-sha2-nistp521
 .PP
 \fB-k\fP|\fB--key_name\fP \fIsshkey_name\fP
 User's SSH key name.
+.PP
+\fB-b\fP|\fB--bypass_blacklist\fP
+Bypass blacklist validation.
 .SH EXAMPLE
 
 $ \fBoo-admin-ctl-domain\fP \fB-l\fP mylogin \fB-n\fP mynamespace \fB-c\fP update \fB-s\fP $ssh_key 

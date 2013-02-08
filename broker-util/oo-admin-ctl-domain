@@ -25,6 +25,8 @@ Options:
     User's SSH key type (ssh-rsa|ssh-dss|ecdsa-sha2-nistp256-cert-v01@openssh.com|ecdsa-sha2-nistp384-cert-v01@openssh.com|ecdsa-sha2-nistp521-cert-v01@openssh.com|ssh-rsa-cert-v01@openssh.com|ssh-dss-cert-v01@openssh.com|ssh-rsa-cert-v00@openssh.com|ssh-dss-cert-v00@openssh.com|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)
 -k|--key_name <ssh key name>
     User's SSH key name
+-b|--bypass_blacklist
+    Skip blacklist validation
 -h|--help:
     Show Usage info
 USAGE
@@ -38,6 +40,7 @@ opts = GetoptLong.new(
     ["--ssh_key",          "-s", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_type",         "-t", GetoptLong::REQUIRED_ARGUMENT],
     ["--key_name",         "-k", GetoptLong::REQUIRED_ARGUMENT],
+    ["--bypass_blacklist", "-b", GetoptLong::NO_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -53,6 +56,7 @@ ssh_key = args["--ssh_key"]
 ssh_type = args["--key_type"]
 ssh_name = args["--key_name"]
 namespace = args["--namespace"]
+bypass_blacklist = args["--bypass_blacklist"]
 
 if login.nil? or args["--help"]
   usage
@@ -61,6 +65,15 @@ end
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
+
+def set_skip_blacklist_flag(obj)
+  obj[:skip_blacklist] = true
+end
+
+def unset_skip_blacklist_flag(obj)
+  obj.remove_attribute(:skip_blacklist)
+  obj.save(validate: false)
+end
 
 reply = ResultIO.new
 case args["--command"]
@@ -91,7 +104,9 @@ when "create"
   reply.resultIO << "Successfully created user.\n"
 
   domain = Domain.new(namespace: namespace, owner: user)
+  set_skip_blacklist_flag(domain) if bypass_blacklist
   domain.save!
+  unset_skip_blacklist_flag(domain) if bypass_blacklist
   reply.resultIO << "Successfully created domain.\n"  
 when "update"
   user = nil
@@ -104,46 +119,28 @@ when "update"
     exit 1
   end
   
-  if namespace
-    if namespace.empty?
-      puts "Namespace cannot be blank."
-      exit 1
-    else
-      d = nil
-      if user.domains.empty?
-        d = Domain.new(namespace: namespace, owner: user)
-        if not d.valid?
-          puts "Namespace is not valid"
-          exit 1
-        end
-        d.save!
-        reply.resultIO << "Successfully added domain.\n"
-      else
-        d = user.domains.first
-        unless d.canonical_namespace == namespace.downcase
-          begin
-            Domain.find_by(canonical_namespace: namespace.downcase)
-            puts "Domain #{namespace.downcase} already exists.  Please choose another."
-            exit 1
-          rescue Mongoid::Errors::DocumentNotFound
-          end
-
-          # Validate the namespace being updated
-          orig_namespace = d.namespace
-          d.namespace = namespace
-          if not d.valid?
-            puts "Namespace is not valid"
-            exit 1
-          end
-
-          # reset the original namespace back for updating
-          d.namespace = orig_namespace
-          d.update_namespace(namespace)
-          d.save!
-          reply.resultIO << "Successfully updated domain.\n"
-        end
+  d = nil
+  if user.domains.empty?
+    d = Domain.new(namespace: namespace, owner: user)
+    set_skip_blacklist_flag(d) if bypass_blacklist
+    d.save!
+    unset_skip_blacklist_flag(d) if bypass_blacklist
+    reply.resultIO << "Successfully added domain.\n"
+  else
+    d = user.domains.first
+    unless d.canonical_namespace == namespace.downcase
+      begin
+        Domain.find_by(canonical_namespace: namespace.downcase)
+        puts "Domain #{namespace.downcase} already exists.  Please choose another."
+        exit 1
+      rescue Mongoid::Errors::DocumentNotFound
       end
+      set_skip_blacklist_flag(d) if bypass_blacklist
+      d.update_namespace(namespace)
+      d.save!
+      unset_skip_blacklist_flag(d) if bypass_blacklist
     end
+    reply.resultIO << "Successfully updated domain.\n"
   end
   
   unless ssh_key.nil?
