@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   scope "/rest" do
-    resource :api, :only => [:show], :controller => :base
+    resource :api, :only => :show, :controller => :api
     resource :environment, :only => [:show], :controller => :environment
     resource :user, :only => [:show, :destroy], :controller => :user do
       resources :keys, :controller => :keys, :constraints => { :id => /[\w]+/ } 
@@ -24,5 +24,6 @@ Rails.application.routes.draw do
         resource :dns_resolvable, :only => [:show], :controller => :dns_resolvable
       end
     end
+    root as: 'rest', to: redirect{ |params, request| "#{request.script_name}/rest/api" }
   end
 end

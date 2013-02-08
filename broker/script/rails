@@ -4,35 +4,37 @@
 # Note, you need to have mod_ssl installed. Also, you will need
 # to run this script as sudo to bind to 443
 #
-require 'rubygems'
-require 'rails/commands/server'
-require 'rack'
-require 'webrick'
-require 'webrick/https'
-require 'openshift-origin-common'
+unless ENV['NO_SSL']
+  require 'rubygems'
+  require 'rails/commands/server'
+  require 'rack'
+  require 'webrick'
+  require 'webrick/https'
+  require 'openshift-origin-common'
 
-module Rails
-    class Server < ::Rack::Server
-        def default_options
-	    is_dev = File.exist? File.join(OpenShift::Config::CONF_DIR, 'development')
-            super.merge({
-                :Port => 443,
-                :environment => is_dev ? 'development' : 'production',
-                :daemonize => false,
-                :debugger => false,
-                :pid => File.expand_path("tmp/pids/server.pid"),
-                :config => File.expand_path("config.ru"),
-                :SSLEnable => true,
-                :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
-                :SSLPrivateKey => OpenSSL::PKey::RSA.new(
-                       File.open("/etc/pki/tls/private/localhost.key").read),
-                :SSLCertificate => OpenSSL::X509::Certificate.new(
-                       File.open("/etc/pki/tls/certs/localhost.crt").read),
-                :SSLCertName => [["CN", WEBrick::Utils::getservername]]
-            })
-        end
-    end
-end unless ENV['NO_SSL']
+  module Rails
+      class Server < ::Rack::Server
+          def default_options
+        is_dev = File.exist? File.join(OpenShift::Config::CONF_DIR, 'development')
+              super.merge({
+                  :Port => 443,
+                  :environment => is_dev ? 'development' : 'production',
+                  :daemonize => false,
+                  :debugger => false,
+                  :pid => File.expand_path("tmp/pids/server.pid"),
+                  :config => File.expand_path("config.ru"),
+                  :SSLEnable => true,
+                  :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
+                  :SSLPrivateKey => OpenSSL::PKey::RSA.new(
+                         File.open("/etc/pki/tls/private/localhost.key").read),
+                  :SSLCertificate => OpenSSL::X509::Certificate.new(
+                         File.open("/etc/pki/tls/certs/localhost.crt").read),
+                  :SSLCertName => [["CN", WEBrick::Utils::getservername]]
+              })
+          end
+      end
+  end
+end
 
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
 require File.expand_path('../../config/boot',  __FILE__)

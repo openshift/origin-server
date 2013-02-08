@@ -2,14 +2,12 @@ require 'rubygems'
 require 'dnsruby'
 
 class DnsResolvableController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
-  
+
   # GET /domains/[domain_id]/applications/<id>/dns_resolvable
   def show
     domain_id = params[:domain_id]
     id = params[:application_id]
-    
+
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: domain_id.downcase)
       @domain_name = domain.namespace
@@ -21,13 +19,13 @@ class DnsResolvableController < BaseController
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
-    rescue Mongoid::Errors::DocumentNotFound      
+    rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found", 101, "DNS_RESOLVABLE")
     end
-                        
+
     name = "#{application.name}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}" 
-    nameservers = NameServerCache.get_name_servers             
-    
+    nameservers = NameServerCache.get_name_servers
+
     dns = Dnsruby::Resolver.new(:nameserver => nameservers[rand(nameservers.length)])
     begin
       dns.query(name, Dnsruby::Types.A)

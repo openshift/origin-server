@@ -1,6 +1,4 @@
 class DomainsController < BaseController
-  respond_to :xml, :json
-  before_filter :authenticate, :check_version
 
   # GET /domains
   def index
@@ -129,15 +127,14 @@ class DomainsController < BaseController
       return render_exception(e, "DELETE_DOMAIN") 
     end
   end
-  
+
   private
-  
+
   def get_rest_domain(domain)
-    if $requested_api_version == 1.0
-      domain = RestDomain10.new(domain, get_url, nolinks)
+    if requested_api_version == 1.0
+      RestDomain10.new(domain, get_url, nolinks)
     else
-      domain = RestDomain.new(domain, get_url, nolinks)
+      RestDomain.new(domain, get_url, nolinks)
     end
-    domain
   end
 end
