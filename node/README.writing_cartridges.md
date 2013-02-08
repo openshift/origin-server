@@ -28,6 +28,8 @@ OpenShift. You may have additional directories or files.
      |  +- setup                   (required)
      |  +- teardown                (optional)
      |  +- control                 (required)
+     |- hooks                      (required)
+     |  +- set-db-connection-info  (optional)
      +- versions                   (discretionary)
      |  +- `cartridge name`-`software version`
      |  |  +- bin
@@ -715,3 +717,43 @@ PassengerUseGlobalQueue off
   BandWidthError <%= ENV['OPENSHIFT_APACHE_BANDWIDTH_ERROR']%>
 </IfModule>
 ```
+
+## Cartridge publish/subscribe mechanism
+
+Cartridges may need to act when some other cartridge is added/removed from an application.
+This functionality is supported using Publish/Subscribe connectors in the manifest.yml.
+
+Consider a simple example of a php cartridge that wants to know when mysql is added to
+an application, so that it can set environment variables on the gear to be able to connect
+to the newly added mysql cartridge on a different gear.
+
+This requires a Subscribes section in the PHP cartridge manifest.yml:
+```
+Subscribes:
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+```
+
+And a Publishes section in the MySQL cartridge manifest.yml
+```
+Publishes:
+  publish-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+```
+
+Now, to make this work, we add a hook file named set-mysql-connection-info to php
+cartridge and a hook called publish-mysql-connection-info to mysql cartridge.
+
+These hook files must be created under the hooks directory in cartridge directory structure.
+
+These two hooks are matched up on the basis of the string value in Type i.e. "NET_TCP:db:mysql"
+
+The hook publish-mysql-connection-info could output host, port, password to connect to mysql
+and it will be fed as input to the set-mysql-connection-info php hook when MySQL is
+added to an application that has PHP installed.
+
+The PHP hook could choose to write out the connection variables in the environment so that
+application could use the variables to be able to connect to the MySQL server.
+
+
+  
