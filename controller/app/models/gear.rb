@@ -166,6 +166,13 @@ class Gear
     get_proxy.get_public_hostname
   end
   
+  # Gets the public IP address for the Node this gear is hosted on
+  # == Returns:
+  # @return [String] Public IP address of the node the gear is hosted on.
+  def get_public_ip_address
+    get_proxy.get_public_ip_address
+  end
+  
   # Given a set of gears, retrieve the state of the gear
   #
   # == Parameters:
