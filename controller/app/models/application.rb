@@ -62,9 +62,9 @@ class Application
   embeds_many :group_instances, class_name: GroupInstance.name
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
   
-  index({'group_instances.gears.uuid' => 1}, {:unique => true})
+  index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
   create_indexes
-    
+
   attr_accessor :user_agent
 
   validates :name,
