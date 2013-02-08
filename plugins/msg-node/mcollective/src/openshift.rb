@@ -500,15 +500,16 @@ module MCollective
         hook_name = args['--hook-name']
         input_args = args['--input-args']
         
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.connector_execute(cart_name, hook_name, input_args)
+          output = container.connector_execute(cart_name, hook_name, input_args)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
