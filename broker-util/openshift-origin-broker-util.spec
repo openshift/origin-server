@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.9
+Version:        1.4.10
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Feb 08 2013 Dan McPherson <dmcphers@redhat.com> 1.4.10-1
+- force destroy means use force (rchopra@redhat.com)
+
 * Thu Feb 07 2013 Dan McPherson <dmcphers@redhat.com> 1.4.9-1
 - Fixing domain update in oo-admin-ctl-domain script (abhgupta@redhat.com)
 
