@@ -122,7 +122,19 @@ begin
       check_user_response
     end
     
-    app.destroy_app
+    if command=="destroy"
+      app.destroy_app
+    elsif command=="force-destroy"
+      puts "Force destroying application #{app.name}.. user's consumed_gear count may get skewed"
+      # gather all gears and destroy, then delete app
+      app.group_instances.each { |gi| 
+        gi.gears.each { |g| 
+          g.deregister_dns rescue nil
+          g.destroy_gear rescue nil 
+        } if gi.gears
+      } if app.group_instances
+      app.delete
+    end
     reply.resultIO << "Successfully destroyed application: #{app.name}" if reply.resultIO.string.empty?
   when "remove-cartridge"
     unless cartridge
