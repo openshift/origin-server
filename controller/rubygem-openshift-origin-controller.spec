@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.1
+Version:       1.5.2
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,48 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
+- Merge pull request #1346 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1289 from
+  smarterclayton/isolate_api_behavior_from_base_controller
+  (dmcphers+openshiftbot@redhat.com)
+- use a sparse index on gear uuid (dmcphers@redhat.com)
+- Merge pull request #1288 from smarterclayton/improve_action_logging
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1339 from tdawson/tdawson/cleanup-spec-headers
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1344 from kraman/f18_fixes (dmcphers@redhat.com)
+- Disable trap user quota access check for F18, since fedora selinux policy is
+  blocking it at the moment (kraman@gmail.com)
+- Cut and paste error (ccoleman@redhat.com)
+- Merge branch 'improve_action_logging' into
+  isolate_api_behavior_from_base_controller (ccoleman@redhat.com)
+- deep copy the group overrides so that a software cache of cartridges does not
+  suffer changes (rchopra@redhat.com)
+- Merge remote-tracking branch 'origin/master' into improve_action_logging
+  (ccoleman@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- Bug 908825 Create gear uuid index in the right place (dmcphers@redhat.com)
+- Remove legacy login() method on authservice (ccoleman@redhat.com)
+- All controllers should inherit the standard filters, except where they are
+  bypassed (ccoleman@redhat.com)
+- Move authentication logic to a new controller mixin (ccoleman@redhat.com)
+- Ensure lib directory is in the autoload path, do not require rubygems when
+  developing from source (ccoleman@redhat.com)
+- Move the API document handler to its own controller (ccoleman@redhat.com)
+- Do not use a global variable to initialize a RestReply - use a controller
+  helper method. (ccoleman@redhat.com)
+- Remove global references to $requested_api_version (ccoleman@redhat.com)
+- Separate API behavior into its own model Make the base url mechanism relative
+  to the Rails root (ccoleman@redhat.com)
+- Extract API response behavior to a controller mixin (ccoleman@redhat.com)
+- Remove gen_req_uuid and get_cloud_user_info, no longer used
+  (ccoleman@redhat.com)
+- Move ActionLog to a controller mixin, make core user_action_log independent
+  of controller so it can be used in models Make user logging stateful to the
+  thread Remove unnecessary duplicate log statement in domains controller
+  Remove @request_id (ccoleman@redhat.com)
+
 * Thu Feb 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
 - Merge pull request #1334 from kraman/f18_fixes
   (dmcphers+openshiftbot@redhat.com)
