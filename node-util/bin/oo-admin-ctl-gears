@@ -103,7 +103,7 @@ function startgear() {
         export uuid=$1
         export OPENSHIFT_HOMEDIR=$APP_HOME
         setup_user_vars
-        start_app >>$OUTFILE 2>&1
+        start_app 2>&1 | cat - >>$OUTFILE
 
         RETVAL=$?
         print_column -n 59 "    $1"
@@ -136,7 +136,7 @@ function stopgear() {
       export OPENSHIFT_HOMEDIR=$APP_HOME
       export uuid=$1
       setup_user_vars
-      stop_app >>$OUTFILE 2>&1
+      stop_app 2>&1 | cat - >>$OUTFILE
 
       RETVAL=$?
       print_column -n 59 "    $1"
