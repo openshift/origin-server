@@ -100,11 +100,11 @@ jenkins_rsync ~/app-root/data/ceylon/repo/ $UPSTREAM_SSH:~/app-root/data/ceylon/
 jenkins_rsync ~/$WORKSPACE/.openshift/ $UPSTREAM_SSH:~/app-root/repo/.openshift/
   
 # Configure / start app
-$GIT_SSH UPSTREAM_SSH deploy.sh
+#$GIT_SSH UPSTREAM_SSH deploy.sh
 
 jenkins_start_app UPSTREAM_SSH
 
-$GIT_SSH UPSTREAM_SSH post_deploy.sh
+#$GIT_SSH UPSTREAM_SSH post_deploy.sh
       </command>
     </hudson.tasks.Shell>
   </builders>

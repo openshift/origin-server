@@ -23,7 +23,7 @@ APP_LOG_PATH=${CART_DIR}/log/ceylon.log
 
 APP_BIN_DIR="$CEYLON_HOME"/bin
 
-export CEYLON_PID_FILE="${CART_DIR}/run/ceylon.pid"
+CEYLON_PID_FILE="${CART_DIR}/run/ceylon.pid"
 
 # Kill the process given by $1 and its children
 killtree() {
@@ -101,8 +101,10 @@ function start_app() {
 			echo "Starting Ceylon module: ${run_module_id}. Using repos: ${ceylon_repos}"
 
             # Start
-            export LAUNCH_CEYLON_IN_BACKGROUND="true"
             $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} >> ${APP_LOG_PATH} 2>&1 &
+			CEYLON_PID=$!
+			echo $CEYLON_PID > CEYLON_PID_FILE
+
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
                 exit 1
