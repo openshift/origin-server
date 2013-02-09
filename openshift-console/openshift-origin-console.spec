@@ -1,6 +1,6 @@
-%global htmldir %{_localstatedir}/www/html
-%global openshiftconfigdir %{_localstatedir}/www/.openshift
-%global consoledir %{_localstatedir}/www/openshift/console
+%global htmldir %{_var}/www/html
+%global openshiftconfigdir %{_var}/www/.openshift
+%global consoledir %{_var}/www/openshift/console
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
@@ -63,10 +63,8 @@ mkdir -p %{buildroot}%{htmldir}
 mkdir -p %{buildroot}%{consoledir}
 mkdir -p %{buildroot}%{consoledir}/httpd/root
 mkdir -p %{buildroot}%{consoledir}/httpd/run
-mkdir -p %{buildroot}%{consoledir}/httpd/logs
 mkdir -p %{buildroot}%{consoledir}/httpd/conf
 mkdir -p %{buildroot}%{consoledir}/httpd/conf.d
-mkdir -p %{buildroot}%{consoledir}/log
 mkdir -p %{buildroot}%{consoledir}/tmp
 mkdir -p %{buildroot}%{consoledir}/tmp/cache
 mkdir -p %{buildroot}%{consoledir}/tmp/pids
@@ -124,8 +122,8 @@ fi
 %files
 %defattr(0640,apache,apache,0750)
 %{openshiftconfigdir}
-%attr(0644,-,-) %ghost %{consoledir}/log/production.log
-%attr(0644,-,-) %ghost %{consoledir}/log/development.log
+%attr(0644,-,-) %ghost %{_var}/log/openshift/console/production.log
+%attr(0644,-,-) %ghost %{_var}/log/openshift/console/development.log
 %attr(0750,-,-) %{consoledir}/script
 %attr(0750,-,-) %{consoledir}/tmp
 %attr(0750,-,-) %{consoledir}/tmp/cache
@@ -151,8 +149,8 @@ fi
 %endif
 
 %post
-/bin/touch %{consoledir}/httpd/logs/error_log
-/bin/touch %{consoledir}/httpd/logs/access_log
+/bin/touch %{_var}/log/openshift/console/httpd/error_log
+/bin/touch %{_var}/log/openshift/console/access_log
 
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
