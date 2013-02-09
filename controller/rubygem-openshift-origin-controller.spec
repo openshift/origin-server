@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.9
+Version: 1.4.10
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Feb 09 2013 Dan McPherson <dmcphers@redhat.com> 1.4.10-1
+- Fix current ip address during app creation (rpenta@redhat.com)
+
 * Thu Feb 07 2013 Dan McPherson <dmcphers@redhat.com> 1.4.9-1
 - use a sparse index on gear uuid (dmcphers@redhat.com)
 
