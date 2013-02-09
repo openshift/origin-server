@@ -22,6 +22,8 @@ end
 
 desc "Functional tests"
 Rake::TestTask.new(:func_test) do |t|
+  FileUtils.chmod_R(0777, 'test/coverage/')
+
   t.libs << File.expand_path('../lib', __FILE__)
   t.libs << File.expand_path('../test', __FILE__)
   t.libs << File.expand_path('../test/unit', __FILE__)
