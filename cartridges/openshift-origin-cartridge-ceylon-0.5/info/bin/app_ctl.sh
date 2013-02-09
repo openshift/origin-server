@@ -103,7 +103,7 @@ function start_app() {
             # Start
             $APP_BIN_DIR/ceylon run ${run_module_id} ${ceylon_repos} >> ${APP_LOG_PATH} 2>&1 &
 			CEYLON_PID=$!
-			echo $CEYLON_PID > CEYLON_PID_FILE
+			echo $CEYLON_PID > $CEYLON_PID_FILE
 
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
