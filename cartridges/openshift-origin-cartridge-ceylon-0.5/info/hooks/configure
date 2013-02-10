@@ -54,17 +54,11 @@ popd > /dev/null
 #
 IP=`find_open_ip $uid $uuid`
 
-#TODO
-#$CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $IP
-
 populate_repo_dir
 
 secure_app_dir
 
 secure_cart_instance_dir
-
-#TODO
-#secure_conf_dirs
 
 observe_setup_app_and_git_dirs
 

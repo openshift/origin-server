@@ -27,6 +27,3 @@ ceylon_repos="${ceylon_repos} --rep ${OPENSHIFT_REPO_DIR}.openshift/config/modul
 compile_files=`find ${OPENSHIFT_REPO_DIR}/source/ -name *\.ceylon -o -name *\.java`
 printf "Compiling files:\n$compile_files\n"
 ${CEYLON_HOME}/bin/ceylon compile --src ${OPENSHIFT_REPO_DIR}/source --out ${CEYLON_USER_REPO} ${ceylon_repos} ${compile_files}
-        
-# Run user build
-user_build.sh

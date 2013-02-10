@@ -77,7 +77,7 @@ function start_app() {
         if isrunning; then
             echo "Application is already running" 1>&2
         else
-            src_user_hook pre_start_${cartridge_type}
+            src_user_hook pre_start_ceylon
             set_app_state started
 
 			JAVA_OPTS="-Dhttpd.bind.host=${OPENSHIFT_INTERNAL_IP}"
@@ -109,7 +109,7 @@ function start_app() {
                 echo "Timed out waiting for http listening port"
                 exit 1
             fi
-            run_user_hook post_start_${cartridge_type}
+            run_user_hook post_start_ceylon
         fi
     fi
 }
@@ -119,12 +119,12 @@ function stop_app() {
     if ! isrunning; then
         echo "Application is already stopped" 1>&2
     elif [ -f "$CEYLON_PID_FILE" ]; then
-        src_user_hook pre_stop_${cartridge_type}
+        src_user_hook pre_stop_ceylon
         pid=$(cat $CEYLON_PID_FILE);
         echo "Sending SIGTERM to ceylon:$pid ..." 1>&2
         killtree $pid
         wait_for_stop $pid
-        run_user_hook post_stop_${cartridge_type}
+        run_user_hook post_stop_ceylon
     else 
         echo "Failed to locate Ceylon PID File" 1>&2
     fi
