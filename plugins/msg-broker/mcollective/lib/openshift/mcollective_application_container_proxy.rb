@@ -963,7 +963,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "start", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "start", args)
       end
 
       #
@@ -987,7 +987,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "stop", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "stop", args)
       end
       
       # 
@@ -1032,7 +1032,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         
-        run_cartridge_command(cart, app, gear, "restart", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "restart", args)
       end
       
 
@@ -1057,7 +1057,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "reload", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "reload", args)
       end
  
       #
@@ -1080,7 +1080,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "status", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "status", args)
       end
  
       #
@@ -1124,7 +1124,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "threaddump", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "threaddump", args)
       end
 
       #
@@ -1147,7 +1147,7 @@ module OpenShift
         args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
 
-        run_cartridge_command(cart, app, gear, "system-messages", args)
+        run_cartridge_command_ignore_components(cart, app, gear, "system-messages", args)
       end
 
       #
@@ -2633,6 +2633,26 @@ module OpenShift
         end
       end
       
+      # For some current cartridge operations, the broker will sometimes send a cartridge name, and
+      # send a component name in other cases. There are some functions here which are meant to execute
+      # only when a cartridge name is sent, and any component names sent should result in a no-op.
+      # For example, the start, stop, and restart functions expect this behavior.
+      #
+      # This method wraps run_cartridge_command to acknowledge and consistently support the behavior
+      # until cartridges and components are handled as distinct concepts within the runtime.
+      #
+      # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
+      # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
+      def run_cartridge_command_ignore_components(cart, app, gear, command, arguments, allow_move=true)
+        result = ResultIO.new
+       
+        if framework_carts.include?(cart) || embedded_carts.include?(cart)
+          result = run_cartridge_command(cart, app, gear, command, arguments, allow_move)
+        end
+
+        result
+      end
+
       #
       # Execute a cartridge hook command in a gear
       #
