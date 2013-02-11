@@ -86,7 +86,7 @@ ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
-mkdir -p %{buildroot}%{_var}/log/openshift
+mkdir -p %{buildroot}%{_var}/log/openshift/broker
 touch %{buildroot}%{_var}/log/openshift/user_action.log
 touch %{buildroot}%{_var}/log/openshift/broker/production.log
 touch %{buildroot}%{_var}/log/openshift/broker/development.log
