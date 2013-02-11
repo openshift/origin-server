@@ -60,7 +60,6 @@ mkdir -p %{buildroot}%{htmldir}
 mkdir -p %{buildroot}%{brokerdir}
 mkdir -p %{buildroot}%{brokerdir}/httpd/root
 mkdir -p %{buildroot}%{brokerdir}/httpd/run
-mkdir -p %{buildroot}%{brokerdir}/httpd/logs
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf
 mkdir -p %{buildroot}%{brokerdir}/httpd/conf.d
 mkdir -p %{buildroot}%{brokerdir}/run
@@ -86,7 +85,7 @@ ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
-mkdir -p %{buildroot}%{_var}/log/openshift/broker
+mkdir -p %{buildroot}%{_var}/log/openshift/broker/httpd
 touch %{buildroot}%{_var}/log/openshift/user_action.log
 touch %{buildroot}%{_var}/log/openshift/broker/production.log
 touch %{buildroot}%{_var}/log/openshift/broker/development.log
@@ -112,6 +111,8 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 
 %files
 %defattr(0640,apache,apache,0750)
+%attr(0750,-,-) %{_var}/log/openshift/broker
+%attr(0750,-,-) %{_var}/log/openshift/broker/httpd
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/production.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/broker/development.log
 %attr(0640,-,-) %ghost %{_var}/log/openshift/user_action.log
