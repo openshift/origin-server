@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.1.2
+Version:       1.1.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,28 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Mon Feb 11 2013 Krishna Raman <kraman@gmail.com> 1.1.3-1
+- Merge pull request #1289 from
+  smarterclayton/isolate_api_behavior_from_base_controller
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'improve_action_logging' into
+  isolate_api_behavior_from_base_controller (ccoleman@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Remove legacy login() method on authservice (ccoleman@redhat.com)
+- All controllers should inherit the standard filters, except where they are
+  bypassed (ccoleman@redhat.com)
+
 * Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.1.2-1
 - 875575 (dmcphers@redhat.com)
 - Fix mongo auth plugin (rpenta@redhat.com)
