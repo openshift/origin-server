@@ -114,12 +114,10 @@ Requires:      libxslt
 Requires:      libxslt-devel
 Requires:      gcc-c++
 Requires:      js
-%if 0%{?rhel}
-Requires:      %{?scl:%scl_prefix}nokogiri
+%if 0%{?rhel} && ! %{scl}
+Requires:      ruby-nokogiri
 %endif
-%if 0%{?fedora}
 Requires:      %{?scl:%scl_prefix}rubygem-nokogiri
-%endif
 # Deps for users
 Requires:      ImageMagick-devel
 Requires:      %{?scl:%scl_prefix}ruby-RMagick
