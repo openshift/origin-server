@@ -23,7 +23,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      httpd
 Requires:      bind
 Requires:      mod_ssl
-Requires:      mod_passenger
+Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      mongodb-server
 Requires:      policycoreutils-python
 Requires:      %{?scl:%scl_prefix}rubygem(rails)
