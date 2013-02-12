@@ -25,7 +25,7 @@ Then /^I record the active capacity( after idling)?$/ do |negate|
 end
 
 Then /^the active capacity has been (reduced|increased)$/ do |change|
-  @active_capacity = `facter active_capacity`.split("\n").last.to_f
+  current_capacity = `facter active_capacity`.split("\n").last.to_f
   current_capacity.should be >= 0.0
 
   case change
