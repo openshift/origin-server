@@ -334,7 +334,6 @@ else
 end
 
 $log.info "Enabling CGroups"
-find_and_replace("/etc/systemd/system.conf", /^(#?)JoinControllers=.*$/, "JoinControllers=cpu,cpuacct,memory,freezer,net_cls") if use_systemd
 FileUtils.mkdir_p "/cgroup"
 run "/bin/cp -r /usr/share/doc/rubygem-openshift-origin-node-*/cgconfig.conf /etc/cgconfig.conf"
 
@@ -354,6 +353,9 @@ $log.info "Restore SELinux default security contexts."
 run "/sbin/restorecon /var/lib/openshift || :"
 run "/sbin/restorecon /var/lib/openshift/.httpd.d/ || :"
 
+$log.info "Enable pam_cgroup on sshd"
+insert_if_not_exist("/etc/pam.d/sshd", "pam_cgroup.so", "session\t\optional\tpam_cgroup.so\n")
+                                   
 $log.info "Set pam-openshift and polyinstantiation"
 find_and_replace("/etc/pam.d/sshd", "pam_selinux", "pam_openshift")
 ["runuser", "runuser-l", "sshd", "su", "system-auth-ac"].each do |pamf|
