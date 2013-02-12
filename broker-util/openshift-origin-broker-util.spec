@@ -46,6 +46,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
 %attr(0750,-,-) %{_sbindir}/oo-admin-move
+%attr(0750,-,-) %{_sbindir}/oo-admin-usage
 %attr(0750,-,-) %{_sbindir}/oo-register-dns
 %attr(0750,-,-) %{_sbindir}/oo-setup-bind
 %attr(0750,-,-) %{_sbindir}/oo-setup-broker
