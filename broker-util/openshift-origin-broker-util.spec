@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
 Version:       1.5.2
@@ -6,7 +11,7 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      ruby(abi) >= 1.8
+Requires:      %{?scl:%scl_prefix}ruby(abi) >= 1.8
 Requires:      openshift-origin-broker
 # For oo-register-dns
 Requires:      bind-utils
@@ -15,9 +20,9 @@ Requires:      rng-tools
 # For oo-setup-broker
 Requires:      openssl
 %if 0%{?fedora} >= 17
-BuildRequires: rubygems-devel
+BuildRequires: %{?scl:%scl_prefix}rubygems-devel
 %else
-BuildRequires: rubygems
+BuildRequires: %{?scl:%scl_prefix}rubygems
 %endif
 BuildArch:     noarch
 
