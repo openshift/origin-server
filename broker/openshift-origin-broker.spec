@@ -33,7 +33,7 @@ Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
-Requires:      %{?scl:%scl_prefix}rubygem(openshift-origin-controller)
+Requires:      rubygem(openshift-origin-controller)
 Requires:      %{?scl:%scl_prefix}rubygem(passenger)
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
