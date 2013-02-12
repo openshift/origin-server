@@ -1,10 +1,17 @@
 %global htmldir %{_var}/www/html
 %global brokerdir %{_var}/www/openshift/broker
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+%{!?scl:%global pkg_name %{name}}
 
 %if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
 %global with_systemd 1
+%global gemdir /usr/share/rubygems/gems
 %else
 %global with_systemd 0
+%global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
 %endif
 
 Summary:       OpenShift Origin broker components
@@ -16,22 +23,33 @@ License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      httpd
+# TODO
 Requires:      bind
+# TODO
 Requires:      mod_ssl
 Requires:      mod_passenger
+# TODO
 Requires:      mongodb-server
+%if 0%{?scl:1}
+Requires:      openshift-origin-util-scl
+%else
+Requires:      openshift-origin-util
+%endif
 Requires:      policycoreutils-python
-Requires:      rubygem(rails)
-Requires:      rubygem(xml-simple)
-Requires:      rubygem(bson_ext)
-Requires:      rubygem(rest-client)
-Requires:      rubygem(parseconfig)
-Requires:      rubygem(cucumber)
-Requires:      rubygem(json)
+# TODO
 Requires:      rubygem(openshift-origin-controller)
-Requires:      rubygem(passenger)
-Requires:      rubygem-passenger-native
-Requires:      rubygem-passenger-native-libs
+Requires:      %{?scl:%scl_prefix}mod_passenger
+Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
+# TODO
+#Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
+Requires:      %{?scl:%scl_prefix}rubygem-passenger
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
+Requires:      %{?scl:%scl_prefix}rubygem(xml-simple)
 %if %{with_systemd}
 Requires:      systemd-units
 BuildRequires: systemd-units
@@ -101,11 +119,10 @@ mv %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-2.3 %{buildroot}%{brokerdir}
 %endif
 rm %{buildroot}%{brokerdir}/httpd/httpd.conf.apache-*
 
-%if 0%{?rhel}%{?fedora} <= 6
+%if 0%{?scl:1}
 rm %{buildroot}%{brokerdir}/httpd/broker.conf
 mv %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf %{buildroot}%{brokerdir}/httpd/broker.conf
-%endif
-%if 0%{?fedora} >= 17
+%else
 rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %endif
 
