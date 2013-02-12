@@ -19,7 +19,7 @@ Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%
 Requires:      %{?scl:%scl_prefix}rubygems
 Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      %{?scl:%scl_prefix}rubygem-json
-Requires:      %{?scl:%scl_prefix}rubygem-openshift-origin-node
+Requires:      rubygem-openshift-origin-node
 Requires:      mcollective
 Requires:      facter
 %if 0%{?fedora}%{?rhel} <= 6
