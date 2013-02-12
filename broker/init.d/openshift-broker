@@ -34,6 +34,8 @@ RETVAL=0
 
 OPTIONS="-C 'Include $osdir/httpd/broker.conf' -f $osdir/httpd/httpd.conf"
 
+BUNDLE_CMD="/usr/bin/oo-ruby /usr/bin/bundle install --local"
+
 # The semantics of these two functions differ from the way apachectl does
 # things -- attempting to start while running is a failure, and shutdown
 # when not running is also a failure.  So we just do it the way init scripts
@@ -42,12 +44,12 @@ start() {
         echo -n $"Starting $prog: "
         pushd $osdir > /dev/null
           rm -rf Gemfile.lock
-          bundle install --local > /dev/null
+          $BUNDLE_CMD > /dev/null
           RETVAL=$?
         popd > /dev/null
         if [ $RETVAL != 0 ]; then
           echo $"Bundle failed"
-          echo "Run 'bundle install --local' in $osdir to see the problem."
+          echo "Run \"$BUNDLE_CMD\" in $osdir to see the problem."
 	  return $RETVAL
 	fi
         LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
