@@ -43,7 +43,10 @@ Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
 Requires:      %{?scl:%scl_prefix}rubygem(minitest)
 Requires:      %{?scl:%scl_prefix}rubygem(mongo)
+# The mongoid gem doesn't exist in Fedora yet
+%if 0%{?scl:1}
 Requires:      %{?scl:%scl_prefix}rubygem(mongoid)
+%endif
 Requires:      %{?scl:%scl_prefix}rubygem(open4)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem-passenger
