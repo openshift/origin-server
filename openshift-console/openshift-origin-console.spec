@@ -73,6 +73,7 @@ mkdir -p %{buildroot}%{consoledir}/tmp/sockets
 mkdir -p %{buildroot}%{consoledir}/run
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
+mkdir -p %{buildroot}%{_var}/log/openshift/console/httpd
 
 cp -r . %{buildroot}%{consoledir}
 %if %{with_systemd}
@@ -122,6 +123,7 @@ fi
 %files
 %defattr(0640,apache,apache,0750)
 %{openshiftconfigdir}
+%attr(0750,-,-) %{_var}/log/openshift/console/httpd
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/production.log
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/development.log
 %attr(0750,-,-) %{consoledir}/script
@@ -150,7 +152,7 @@ fi
 
 %post
 /bin/touch %{_var}/log/openshift/console/httpd/error_log
-/bin/touch %{_var}/log/openshift/console/access_log
+/bin/touch %{_var}/log/openshift/console/httpd/access_log
 
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload
