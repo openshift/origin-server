@@ -7,6 +7,11 @@
 %global with_systemd 0
 %endif
 
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
 Version:       1.1.2
@@ -21,17 +26,17 @@ Requires:      mod_ssl
 Requires:      mod_passenger
 Requires:      mongodb-server
 Requires:      policycoreutils-python
-Requires:      rubygem(rails)
-Requires:      rubygem(xml-simple)
-Requires:      rubygem(bson_ext)
-Requires:      rubygem(rest-client)
-Requires:      rubygem(parseconfig)
-Requires:      rubygem(cucumber)
-Requires:      rubygem(json)
-Requires:      rubygem(openshift-origin-controller)
-Requires:      rubygem(passenger)
-Requires:      rubygem-passenger-native
-Requires:      rubygem-passenger-native-libs
+Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(xml-simple)
+Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
+Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
+Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
+Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
+Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(openshift-origin-controller)
+Requires:      %{?scl:%scl_prefix}rubygem(passenger)
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
+Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 %if %{with_systemd}
 Requires:      systemd-units
 BuildRequires: systemd-units
@@ -181,16 +186,16 @@ _EOF
 chcon -R -t httpd_log_t %{_var}/log/openshift/broker
 chcon -R -t httpd_tmp_t %{brokerdir}/httpd/run
 chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 #/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
 /sbin/restorecon -v '%{_var}/log/openshift/user_action.log'
 
 %postun
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 
 %changelog
