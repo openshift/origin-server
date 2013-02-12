@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 %global cartdir %{_libexecdir}/openshift/cartridges
 
 Summary:       OpenShift common cartridge components
@@ -15,9 +20,9 @@ Requires:      mod_ssl
 # abstract/info/connection-hooks/publish-http-url
 Requires:      python
 # abstract/info/bin/jenkins_build
-Requires:      ruby
-Requires:      rubygems
-Requires:      rubygem(json)
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem(json)
 # abstract/info/bin/open_ports.sh
 Requires:      socat
 # abstract/info/bin/nurture_app_push.sh

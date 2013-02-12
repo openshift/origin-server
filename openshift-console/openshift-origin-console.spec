@@ -4,16 +4,13 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global with_systemd 0
+    %global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
+%else
+    %global with_systemd 1
+    %global gemdir /usr/share/rubygems/gems
 %endif
 %{!?scl:%global pkg_name %{name}}
-
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%global with_systemd 1
-%global gemdir /usr/share/rubygems/gems
-%else
-%global with_systemd 0
-%global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
-%endif
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
