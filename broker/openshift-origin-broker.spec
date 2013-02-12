@@ -23,12 +23,11 @@ License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      httpd
-# TODO
+# TODO: We need to audit these requirements.  Some of these are likely not hard
+# requirements.
 Requires:      bind
-# TODO
 Requires:      mod_ssl
 Requires:      mod_passenger
-# TODO
 Requires:      mongodb-server
 %if 0%{?scl:1}
 Requires:      openshift-origin-util-scl
@@ -36,19 +35,25 @@ Requires:      openshift-origin-util-scl
 Requires:      openshift-origin-util
 %endif
 Requires:      policycoreutils-python
-# TODO
 Requires:      rubygem(openshift-origin-controller)
 Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      %{?scl:%scl_prefix}rubygem(bson_ext)
-# TODO
-#Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
+Requires:      %{?scl:%scl_prefix}rubygem(cucumber)
+Requires:      %{?scl:%scl_prefix}rubygem(dnsruby)
 Requires:      %{?scl:%scl_prefix}rubygem(json)
+Requires:      %{?scl:%scl_prefix}rubygem(minitest)
+Requires:      %{?scl:%scl_prefix}rubygem(mongo)
+Requires:      %{?scl:%scl_prefix}rubygem(mongoid)
+Requires:      %{?scl:%scl_prefix}rubygem(open4)
 Requires:      %{?scl:%scl_prefix}rubygem(parseconfig)
 Requires:      %{?scl:%scl_prefix}rubygem-passenger
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native
 Requires:      %{?scl:%scl_prefix}rubygem-passenger-native-libs
 Requires:      %{?scl:%scl_prefix}rubygem(rails)
+Requires:      %{?scl:%scl_prefix}rubygem(regin)
 Requires:      %{?scl:%scl_prefix}rubygem(rest-client)
+Requires:      %{?scl:%scl_prefix}rubygem(simplecov)
+Requires:      %{?scl:%scl_prefix}rubygem(systemu)
 Requires:      %{?scl:%scl_prefix}rubygem(xml-simple)
 %if %{with_systemd}
 Requires:      systemd-units
