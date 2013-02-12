@@ -75,6 +75,17 @@ class Usage
     end
   end
   
+  def self.find_by_filter(login, gear_id=nil, app_name=nil, begin_time=nil, end_time=nil)
+    # Construct the query criteria
+    condition = where(login: login)
+    condition = condition.where(gear_id: gear_id) unless gear_id.nil?
+    condition = condition.where(app_name: app_name) unless app_name.nil?
+    condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => begin_time}]) unless begin_time.nil?
+    condition = condition.where(:begin_time.lte => end_time) unless end_time.nil?
+    
+    return get_list(condition)
+  end
+
   def self.find_latest_by_user_gear(login, gear_id, usage_type)
     where(:login => login, :gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
   end
@@ -103,7 +114,11 @@ class Usage
   def self.delete_by_gear(gear_id)
     where(gear_id: gear_id).delete
   end
-
+  
+  def get_usage_rate(plan_id)
+    nil
+  end
+  
   private
 
   def self.get_list(cond)
