@@ -114,7 +114,7 @@ Requires:      libxslt
 Requires:      libxslt-devel
 Requires:      gcc-c++
 Requires:      js
-%if 0%{?rhel} && ! %{scl}
+%if ! (0%{?fedora}%{?rhel} <= 6)
 Requires:      ruby-nokogiri
 %endif
 Requires:      %{?scl:%scl_prefix}rubygem-nokogiri
