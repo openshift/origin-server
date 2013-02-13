@@ -240,7 +240,7 @@ module OpenShift
       #
       # <<attribute setter>>
       #
-      # Set blocks hard limit and inodes ihard limit for uuid.
+      # Set blocks hard limit and inodes hard limit for uuid.
       # Effects disk quotas on Gear on Node
       # 
       # INPUT:
@@ -2632,24 +2632,18 @@ module OpenShift
           end
         end
       end
-      
-      # For some current cartridge operations, the broker will sometimes send a cartridge name, and
-      # send a component name in other cases. There are some functions here which are meant to execute
-      # only when a cartridge name is sent, and any component names sent should result in a no-op.
-      # For example, the start, stop, and restart functions expect this behavior.
-      #
+
       # This method wraps run_cartridge_command to acknowledge and consistently support the behavior
       # until cartridges and components are handled as distinct concepts within the runtime.
       #
       # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
       # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
-      def run_cartridge_command_ignore_components(cart, app, gear, command, arguments, allow_move=true)
-        result = ResultIO.new
-       
+      def run_cartridge_command_ignore_components(cart, app, gear, command, arguments, allow_move=true)       
         if framework_carts.include?(cart) || embedded_carts.include?(cart)
           result = run_cartridge_command(cart, app, gear, command, arguments, allow_move)
+        else
+          result = ResultIO.new
         end
-
         result
       end
 
