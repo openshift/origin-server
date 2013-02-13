@@ -20,9 +20,9 @@ Options:
     The user application to filter the usage data 
 -g|--gear
     The gear uuid to filter the usage data 
---start
+-s|--start
     The start time (seconds since epoch) to filter the usage data
---end
+-e|--end
     The end time (seconds since epoch) to filter the usage data
 -h|--help
     Show Usage info
@@ -83,8 +83,8 @@ opts = GetoptLong.new(
     ["--login", "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--gear",  "-g", GetoptLong::REQUIRED_ARGUMENT],
     ["--app",   "-a", GetoptLong::REQUIRED_ARGUMENT],
-    ["--start",       GetoptLong::REQUIRED_ARGUMENT],
-    ["--end",         GetoptLong::REQUIRED_ARGUMENT],
+    ["--start", "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--end",   "-e", GetoptLong::REQUIRED_ARGUMENT],
     ["--help",  "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -147,7 +147,8 @@ end
 puts "Usage for #{login} (Plan: #{user.plan_id})"
 puts "------------------------------------------"
 
-usage_data = Usage.find_by_filter(login, gear, app, start_timeframe, end_timeframe)
+filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe, "end_time" => end_timeframe}
+usage_data = Usage.find_by_filter(login, filter)
 if usage_data.count > 0
   usage_data.each_with_index do |usage, index|
     if usage.end_time.nil?
@@ -176,10 +177,10 @@ if usage_data.count > 0
 
     # print out the user's usage data
     puts "##{index + 1}"
-    puts "Usage Type: #{usage.usage_type} (#{usage_qualifier})"
-    puts " Gear UUID: #{usage.gear_id} (#{usage.app_name})"
-    puts "  Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
-    puts "      Cost: #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
+    puts " Usage Type: #{usage.usage_type} (#{usage_qualifier})"
+    puts "  Gear UUID: #{usage.gear_id} (#{usage.app_name})"
+    puts "   Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
+    puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
     puts 
   end
 else

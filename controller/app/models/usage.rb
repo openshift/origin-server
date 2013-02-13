@@ -75,13 +75,13 @@ class Usage
     end
   end
   
-  def self.find_by_filter(login, gear_id=nil, app_name=nil, begin_time=nil, end_time=nil)
+  def self.find_by_filter(login, filter = {})
     # Construct the query criteria
     condition = where(login: login)
-    condition = condition.where(gear_id: gear_id) unless gear_id.nil?
-    condition = condition.where(app_name: app_name) unless app_name.nil?
-    condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => begin_time}]) unless begin_time.nil?
-    condition = condition.where(:begin_time.lte => end_time) unless end_time.nil?
+    condition = condition.where(gear_id: filter["gear_id"]) unless filter["gear_id"].nil?
+    condition = condition.where(app_name: filter["app_name"]) unless filter["app_name"].nil?
+    condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => filter["begin_time"]}]) unless filter["begin_time"].nil?
+    condition = condition.where(:begin_time.lte => filter["end_time"]) unless filter["end_time"].nil?
     
     return get_list(condition)
   end
