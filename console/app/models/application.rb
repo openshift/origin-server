@@ -24,6 +24,7 @@ class Application < RestApi::Base
   has_many :cartridges
   has_many :gears
   has_many :gear_groups
+  has_one  :embedded, :class_name => 'rest_api/base/attribute_hash'
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
@@ -32,24 +33,26 @@ class Application < RestApi::Base
   end
 
   def cartridges
-    persisted? ? (@cartridges ||= Cartridge.find(:all, child_options)) : []
+    attributes[:cartridges] ||= persisted? ? Cartridge.find(:all, child_options) : []
   end
-  def cartridges=(arr)
-    attributes[:cartridges] = Array(arr).map do |a|
-      if a.is_a?(String)
-        a
-      elsif a.respond_to?(:[])
-        a[:name] || a['name']
-      else
-        a.name
-      end
-    end
-  end
+  #def cartridges=(arr)
+  #  attributes[:cartridges] = Array(arr)
+  #end
 
   def cartridge_names
     persisted? ? cartridges.map(&:name) : Array(attributes[:cartridges])
   end
-  alias_method :cartridge_names=, :cartridges=
+  def cartridge_names=(arr)
+    attributes[:cartridges] = Array(arr).map do |o|
+      if String === o
+        o
+      elsif o.respond_to?(:[])
+        o[:name]
+      else
+        o.name
+      end
+    end
+  end
 
   def gears
     Gear.find :all, child_options
