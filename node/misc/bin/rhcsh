@@ -7,6 +7,11 @@
 source /etc/init.d/functions 2> /dev/null
 
 # Import Environment Variables
+for f in ~/*-*/env/*
+do
+    . $f
+done
+
 for f in ~/.env/*
 do
     . $f

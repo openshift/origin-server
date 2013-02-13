@@ -1,0 +1,22 @@
+Name: mock
+Namespace: MOCK
+Display-Name: Mock
+Description: "A mock cartridge for development use only."
+Version: 0.1
+License: "None"
+Vendor: Red Hat
+Categories:
+  - service
+Provides:
+  - mock
+Scaling:
+  Min: 1
+  Max: -1
+Group-Overrides:
+  - components:
+    - mock
+Endpoints:
+  - "EXAMPLE_IP1:EXAMPLE_PORT1(8080):EXAMPLE_PUBLIC_PORT1"
+  - "EXAMPLE_IP1:EXAMPLE_PORT2(8081):EXAMPLE_PUBLIC_PORT2"
+  - "EXAMPLE_IP1:EXAMPLE_PORT3(8082):EXAMPLE_PUBLIC_PORT3"
+  - "EXAMPLE_IP2:EXAMPLE_PORT4(9090)"
