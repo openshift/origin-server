@@ -35,9 +35,6 @@ Requires:      php-pgsql
 Requires:      gdal
 Requires:      postgis
 Requires:      python-psycopg2
-%if ! (0%{?fedora}%{?rhel} <= 6)
-Requires:      ruby-postgres
-%endif
 Requires:      %{?scl:%scl_prefix}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql

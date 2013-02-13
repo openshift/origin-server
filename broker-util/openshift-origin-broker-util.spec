@@ -2,6 +2,7 @@
     %global scl ruby193
     %global scl_prefix ruby193-
 %endif
+%global rubyabi 1.9.1
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
@@ -11,7 +12,7 @@ Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      %{?scl:%scl_prefix}ruby(abi) >= 1.8
+Requires:      %{?scl:%scl_prefix}ruby(abi) >= %{rubyabi}
 Requires:      openshift-origin-broker
 # For oo-register-dns
 Requires:      bind-utils
