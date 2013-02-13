@@ -99,7 +99,15 @@ domain_hash = {}
 OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
   owner_id = domain["owner_id"]
   domain_hash[domain["_id"]] = owner_id
-  user_hash[owner_id]["domains"][domain["_id"]] = 0
+  if !user_hash[owner_id]
+    OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
+      user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
+                                "domains" => {},
+                                "login" => user["login"] } 
+    end
+  end
+
+  user_hash[owner_id]["domains"][domain["_id"]] = 0 if user_hash[owner_id]
 } 
 
 OpenShift::DataStore.find(:applications, query, selection) do |app|
