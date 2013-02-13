@@ -20,9 +20,6 @@ Requires:      sqlite-devel
 Requires:      libev
 Requires:      libev-devel
 Requires:      %{?scl:%scl_prefix}rubygems
-%if %{scl}
-Requires:      %{scl}
-%endif
 Requires:      %{?scl:%scl_prefix}js
 Requires:      %{?scl:%scl_prefix}js-devel
 Requires:      %{?scl:%scl_prefix}libyaml
@@ -107,20 +104,15 @@ Requires:      %{?scl:%scl_prefix}ruby-mysql
 Requires:      %{?scl:%scl_prefix}rubygem-pg
 Requires:      %{?scl:%scl_prefix}rubygem-open4
 Requires:      mysql-devel
-Requires:      ruby-devel
 Requires:      libxml2
 Requires:      libxml2-devel
 Requires:      libxslt
 Requires:      libxslt-devel
 Requires:      gcc-c++
 Requires:      js
-%if ! (0%{?fedora}%{?rhel} <= 6)
-Requires:      ruby-nokogiri
-%endif
-Requires:      %{?scl:%scl_prefix}rubygem-nokogiri
 # Deps for users
 Requires:      ImageMagick-devel
-Requires:      %{?scl:%scl_prefix}ruby-RMagick
+Requires:      ruby-RMagick
 BuildRequires: git
 BuildArch:     noarch
 Obsoletes:     cartridge-ruby-1.9
