@@ -33,6 +33,8 @@ def usage
 Options:
 -v|--verbose
     Print information about each check being performed
+-l|--level [0,1]
+    Level '0' is default, with level '1' extra checks are performed such as integrity of consumed_gears count
 -h|--help
     Show Usage info
 USAGE
@@ -43,6 +45,7 @@ args = {}
 begin
   opts = GetoptLong.new(
     ["--verbose",          "-v", GetoptLong::NO_ARGUMENT],
+    ["--level",            "-l", GetoptLong::REQUIRED_ARGUMENT],
     ["--help",             "-h", GetoptLong::NO_ARGUMENT]
   )
   opts.each{ |k,v| args[k]=v }
@@ -50,6 +53,7 @@ rescue GetoptLong::Error => e
   usage
 end
 
+level = args["--level"].to_i || 0
 verbose = args["--verbose"]
 usage if args["--help"]
 
@@ -88,26 +92,39 @@ selection = {:fields => ["name",
 ret = []
 
 user_hash = {}
-OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
-  user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
-                            "domains" => {},
-                            "login" => user["login"] } 
-end
-
-
 domain_hash = {}
-OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
-  owner_id = domain["owner_id"]
-  domain_hash[domain["_id"]] = owner_id
-  user_hash[owner_id]["domains"][domain["_id"]] = 0
-} 
+if level==1
+  OpenShift::DataStore.find(:cloud_users, {}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
+    user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
+                              "domains" => {},
+                              "login" => user["login"] } 
+  end
+
+  OpenShift::DataStore.find(:domains, {}, {:fields => ["owner_id"], :timeout => false}) { |domain|
+    owner_id = domain["owner_id"]
+    domain_hash[domain["_id"]] = owner_id
+    if !user_hash[owner_id]
+      OpenShift::DataStore.find(:cloud_users, {"_id" => owner_id.to_s}, {:fields => ["consumed_gears", "login"], :timeout => false}) do |user|
+        user_hash[user["_id"]] = {"consumed_gears" => user["consumed_gears"],
+                                  "domains" => {},
+                                  "login" => user["login"] } 
+      end
+    end
+
+    user_hash[owner_id]["domains"][domain["_id"]] = 0 if user_hash[owner_id]
+  } 
+end
 
 OpenShift::DataStore.find(:applications, query, selection) do |app|
     gear_count = 0
+    owner_id = nil
+    login = nil
     creation_time = app['created_at']
     domain_id = app['domain_id']
-    owner_id = domain_hash[domain_id]
-    login = user_hash[owner_id]["login"]
+    if level==1
+      owner_id = domain_hash[domain_id]
+      login = user_hash[owner_id]["login"]
+    end
     if app['group_instances']
       app['group_instances'].each { |gi|
         if gi['gears']
@@ -120,7 +137,7 @@ OpenShift::DataStore.find(:applications, query, selection) do |app|
           no_error = false
         end
       }
-      user_hash[owner_id]["domains"][domain_id] += gear_count
+      user_hash[owner_id]["domains"][domain_id] += gear_count if level==1
     else
       puts "ERROR: Application: '#{app['name']}/#{app['uuid']}' doesn't have any group instances"
       no_error = false
@@ -131,17 +148,19 @@ total_time = (Time.now.to_f * 1000).to_i - start_time
 puts "Time to fetch mongo data: #{total_time.to_f/1000}s"
 puts "Total gears found in mongo: #{datastore_hash.length}"
 
-user_hash.each do |owner_id, owner_hash|
-  total_gears = 0
-  owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
- 
-  if owner_hash['consumed_gears'] != total_gears
-    msg = "FAIL - user #{owner_hash['login']} has a mismatch in consumed gears (#{owner_hash['consumed_gears']}) and actual gears (#{total_gears})!"
-    puts msg if verbose
-    summary << msg
-    no_error = false
-  else
-    puts "OK - user #{owner_hash['login']} has consumed_gears equal to actual gears (#{total_gears})!" if verbose
+if level==1
+  user_hash.each do |owner_id, owner_hash|
+    total_gears = 0
+    owner_hash["domains"].each { |dom_id, domain_gear_count| total_gears += domain_gear_count }
+   
+    if owner_hash['consumed_gears'] != total_gears
+      msg = "FAIL - user #{owner_hash['login']} has a mismatch in consumed gears (#{owner_hash['consumed_gears']}) and actual gears (#{total_gears})!"
+      puts msg if verbose
+      summary << msg
+      no_error = false
+    else
+      puts "OK - user #{owner_hash['login']} has consumed_gears equal to actual gears (#{total_gears})!" if verbose
+    end
   end
 end
 
