@@ -276,14 +276,6 @@ def check_cgroup_config
         do_fail("lscgroup /openshift path does not exist")
         $CGROUP_PASS=false
     end
-
-    ["/cgroup", "/cgroup/all", "/cgroup/all/openshift"].each { |path|
-        verbose("checking presence of #{path}")
-        next if File.exists? path
-        do_fail("cgroup root /cgroup directory does not exist")
-        $CGROUP_PASS=false
-        break
-    }
 end
 
 #
@@ -335,7 +327,6 @@ end
 def check_users
     verbose("checking #{users.length} user accounts")
     conf_dir_templ = "#{$LIMITS_CONF_DIR}/84-%s.conf"
-    user_cgroup="/cgroup/all/openshift/%s"
     users.each do |user|
         username,password,uid,gid,gecos,home_dir,shell = user.split(":")
         $ALL_USERS << username #store it so we can use it later
@@ -343,7 +334,7 @@ def check_users
         do_fail("user #{username} does not have a home directory #{home_dir}") unless File.exists? home_dir
         do_fail("user #{username} does not have a PAM limits file") unless File.exists?(conf_dir_templ % username)
         if $CGROUP_PASS
-            do_fail("user #{username} does not have a cgroup directory") unless File.exists?(user_cgroup % username)
+          check_user_cgroups username
         end
         if $TC_CHECK && $TC_PASS
             hex_uid = uid.to_i.to_s(16)
@@ -358,6 +349,26 @@ def check_users
             do_fail("user #{username} does not have quotas imposed")
         end
     end
+
+end
+
+# Verify that the user has a cgroup in all subsystems and no others
+def check_user_cgroups(username)
+  user_cgroup="/openshift/#{username}"
+  test_subsystems = ['cpu', 'cpuacct', 'memory', 'freezer', 'net_cls'].sort
+
+  # Create the list of cgroups to query
+  cmd =  "lscgroup " + test_subsystems.map {|s| "#{s}:#{user_cgroup}"}.join(' ')
+  reply = %x[#{cmd}]
+
+  # This is a horrible bit of cleverness
+  # each group is on one line.  split the lines to an array
+  # extract the subsystem list (before the colon) for each group
+  # split the subsystems on commas (in case there are joined subsystems)
+  # then flatten the list sort and remove duplicates
+  actual = reply.split.map {|s| s[/([^:]+)/,1] }.map {|g| g.split(',')}.flatten.uniq.sort
+
+  do_fail("user #{username} must have all cgroup subsystems") if not (actual == test_subsystems)
 
 end
 

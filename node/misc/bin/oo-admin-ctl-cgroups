@@ -49,7 +49,7 @@ function classid() {
 
 function set_net_cls() {
     # USERNAME=$1
-    CGPATH=openshift/$1
+    CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
     USERID=`uid $1`
     USERCLASSID=`classid $USERID`
     cgset -r net_cls.classid=$USERCLASSID $CGPATH
@@ -61,7 +61,7 @@ function set_net_cls() {
 CPUVARS="cfs_period_us cfs_quota_us rt_period_us rt_runtime_us shares"
 function set_cpu() {
     # USERNAME=$1
-    CGPATH=openshift/$1
+    CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
 
     for VARNAME in $CPUVARS
     do
@@ -82,7 +82,7 @@ function set_cpu() {
 MEMVARS="limit_in_bytes memsw.limit_in_bytes soft_limit_in_bytes swappiness"
 function set_memory() {
     # USERNAME=$1
-    CGPATH=openshift/$1
+    CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
 
     # for each var get and set the value
     for VARNAME in $MEMVARS
@@ -104,7 +104,7 @@ function set_memory() {
 BLKIOVARS="weight weight_device"
 function set_blkio() {
     # USERNAME=$1
-    CGPATH=/$1
+    CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
 
     # for each var get and set the value
     for VARNAME in $BLKIOVARS
@@ -192,10 +192,11 @@ delete_cgroup_rule() {
 #
 collect_tasks() {
     # USERNAME=$1
+    CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
 
     # add existing processes to the group
     for PID in $(ps -opid= -u $1) ; do
-	echo $PID > /cgroup/all/${OPENSHIFT_CGROUP_ROOT}/$1/tasks
+	cgclassify -g ${OPENSHIFT_CGROUP_SUBSYSTEMS}:${CGPATH} $PID
     done
 }
 

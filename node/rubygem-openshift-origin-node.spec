@@ -34,8 +34,10 @@ Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
 %endif
+Requires:      libcgroup-pam
 Requires:      pam_openshift
 Requires:      quota
+
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
@@ -161,11 +163,26 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %post
 echo "/usr/bin/oo-trap-user" >> /etc/shells
 
+# Enable cgroups on ssh logins
+if [ -f /etc/pam.d/sshd ] ; then
+   if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
+     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
+   else
+     logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
+   fi
+else
+   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
+fi
+
 # copying this file in the post hook so that this file can be replaced by rhc-node
 # copy this file only if it doesn't already exist
 if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
+
+%preun
+# disable cgroups on sshd logins
+sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1

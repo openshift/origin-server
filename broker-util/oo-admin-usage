@@ -1,0 +1,190 @@
+#!/usr/bin/env oo-ruby
+
+require 'rubygems'
+require 'getoptlong'
+
+def show_usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-usage: List the usage data for a user
+
+== Usage
+
+oo-admin-usage OPTIONS
+
+Options:
+-l|--login
+    The user login whose usage data is to be displayed (required)
+-a|--app
+    The user application to filter the usage data 
+-g|--gear
+    The gear uuid to filter the usage data 
+-s|--start
+    The start time (seconds since epoch) to filter the usage data
+-e|--end
+    The end time (seconds since epoch) to filter the usage data
+-h|--help
+    Show Usage info
+USAGE
+  exit 255
+end
+
+def calculate_usage_cost(usage_rate, duration)
+  cost = nil
+  
+  unless usage_rate.nil?
+    if usage_rate[:duration] == :hour
+      duration_in_hr =  duration / (60 * 60)
+      cost = duration_in_hr * usage_rate[:usd]
+    elsif usage_rate[:duration] == :day
+      duration_in_day =  duration / (60 * 60 * 24)
+      cost = duration_in_day * usage_rate[:usd]
+    elsif usage_rate[:duration] == :month
+      duration_in_month =  duration / (60 * 60 * 24 * 30)
+      cost = duration_in_month * usage_rate[:usd]
+    end
+  end
+  cost
+end
+
+def pretty_duration(duration)
+  secs  = duration.to_int
+  mins  = secs / 60
+  hours = mins / 60
+  days  = hours / 24
+
+  if days > 0
+    "#{days} days and #{hours % 24} hours"
+  elsif hours > 0
+    "#{hours} hours and #{mins % 60} minutes"
+  elsif mins > 0
+    "#{mins} minutes and #{secs % 60} seconds"
+  elsif secs >= 0
+    "#{secs} seconds"
+  end
+end
+
+def formatted_number(n, options={})
+  options = {
+    :precision => 2,
+    :separator => '.',
+    :delimiter => ',',
+    :format => "$%s"
+  }.merge(options)
+
+  a,b = sprintf("%0.#{options[:precision]}f", n).split('.')
+  a.gsub!(/(\d)(?=(\d{3})+(?!\d))/, "\\1#{options[:delimiter]}")
+  sprintf(options[:format], "#{a}#{options[:separator]}#{b}")
+end
+
+
+opts = GetoptLong.new(
+    ["--login", "-l", GetoptLong::REQUIRED_ARGUMENT],
+    ["--gear",  "-g", GetoptLong::REQUIRED_ARGUMENT],
+    ["--app",   "-a", GetoptLong::REQUIRED_ARGUMENT],
+    ["--start", "-s", GetoptLong::REQUIRED_ARGUMENT],
+    ["--end",   "-e", GetoptLong::REQUIRED_ARGUMENT],
+    ["--help",  "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  show_usage
+end
+
+if args["--help"]
+  show_usage
+end
+login = args["--login"]
+app = args["--app"]
+gear = args["--gear"]
+start_timeframe = args["--start"]
+end_timeframe = args["--end"]
+
+unless login
+  puts "You must specify the user in order to display the usage details"
+  show_usage
+end
+
+unless start_timeframe.nil?
+  begin
+    start_timeframe = Integer(start_timeframe)
+  rescue Exception => ex
+    puts "Please specify the start time as the number of seconds since epoch"
+    show_usage
+  end
+end
+
+unless end_timeframe.nil?
+  begin
+    end_timeframe = Integer(end_timeframe)
+  rescue Exception => ex
+    puts "Please specify the end time as the number of seconds since epoch"
+    show_usage
+  end
+end
+
+if start_timeframe && end_timeframe && start_timeframe > end_timeframe
+  puts "The start time must be less than the end time"
+  show_usage
+end
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+puts
+
+begin
+  user = CloudUser::find_by(login: login)
+rescue Mongoid::Errors::DocumentNotFound
+  puts "Error: User '#{login}' not found"
+  exit 5
+end
+
+puts "Usage for #{login} (Plan: #{user.plan_id})"
+puts "------------------------------------------"
+
+filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe, "end_time" => end_timeframe}
+usage_data = Usage.find_by_filter(login, filter)
+if usage_data.count > 0
+  usage_data.each_with_index do |usage, index|
+    if usage.end_time.nil?
+      end_time = Time.now
+      end_time_str = "PRESENT"
+    else
+      end_time = usage.end_time
+      end_time_str = end_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
+    end
+    
+    begin_time_str = usage.begin_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
+    duration = end_time - usage.begin_time
+    duration_str = pretty_duration(duration)
+
+    # calculate the usage cost
+    usage_rate = usage.get_usage_rate(user.plan_id)
+    usage_cost = calculate_usage_cost(usage_rate, duration)
+
+    if usage.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]
+      usage_qualifier = usage.gear_size
+    elsif usage.usage_type == UsageRecord::USAGE_TYPES[:addtl_fs_gb]
+      usage_qualifier = usage.addtl_fs_gb
+    elsif usage.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]
+      usage_qualifier = usage.cart_name
+    end
+
+    # print out the user's usage data
+    puts "##{index + 1}"
+    puts " Usage Type: #{usage.usage_type} (#{usage_qualifier})"
+    puts "  Gear UUID: #{usage.gear_id} (#{usage.app_name})"
+    puts "   Duration: #{duration_str} (#{begin_time_str} - #{end_time_str})"
+    puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
+    puts 
+  end
+else
+  puts "No usage data found"
+  puts
+end
+

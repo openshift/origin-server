@@ -1016,14 +1016,15 @@ function run_user_hook {
 
 function enable_cgroups {
     if [ $ENABLE_CGROUPS -eq 1 ]; then
-      echo $cfs_quota > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
+      cgset -r cpu.cfs_quota_us=$cfs_quota /openshift/$uuid
     fi
 }
 
 function disable_cgroups {
     if [ $ENABLE_CGROUPS -eq 1 ]; then
-      export cfs_quota=$(cat "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us")
-      cat /cgroup/all/openshift/$uuid/cpu.cfs_period_us  > "/cgroup/all/openshift/$uuid/cpu.cfs_quota_us"
+      export cfs_quota=$(cgget -n -v -r cpu.cfs_quota_us /openshift/${uuid})
+      cfs_period=$(cgget -n -v -r cpu.cfs_period_us /openshift/${uuid})
+      cgset -r cpu.cfs_quota_us=${cfs_period} /openshift/${uuid}
     fi
 }
 

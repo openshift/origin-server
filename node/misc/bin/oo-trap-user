@@ -9,6 +9,7 @@ import base64
 import commands
 import re
 import selinux
+import subprocess
 
 EXT_LIB = "/usr/libexec/openshift/lib/util"
 
@@ -35,6 +36,9 @@ commands_map = {
 }
 
 comment_re = re.compile("#.*$")
+
+# These should come from somewhere, not be hard coded - MAL
+openshift_cgroup_subsystems="cpu,cpuacct,memory,net_cls,freezer"
 
 #
 # Read in uservars variables.
@@ -99,38 +103,22 @@ def join_cgroup():
     """
 
     username = pwd.getpwuid(os.getuid())[0]
+    cgpath = "/openshift/%s" % username
     pid = os.getpid()
 
-    # this should come from /etc/openshift/node.conf:OPENSHIFT_CGROUP_ROOT
-    cgroup_root = "/cgroup/all/openshift"
-    cgroup_user = os.path.join(cgroup_root, username)
-    cgroup_tasks = os.path.join(cgroup_user, "tasks")
+    cmd_template = "cgclassify -g %s:%s %d"
+    cmd = cmd_template % (openshift_cgroup_subsystems, cgpath, pid)
+    syslog.syslog("user %s: putting process %d in cgroups %s" % (username, pid, openshift_cgroup_subsystems))
 
-    syslog.syslog("user %s: putting process %d in cgroup %s" % (username, pid, cgroup_root))
+    retval = subprocess.call(cmd.split())
+    if retval != 0:
+        syslog.syslog("user %s: cgroup classification failed: retval = %d" % (username, retval))
 
-    if not os.path.isdir(cgroup_root):
-        # raise an exception
-        return
-
-    if not os.path.isdir(cgroup_user):
-        # raise an exception
-        return
-
-    if not os.path.isfile(cgroup_tasks):
-        # raise an exception
-        return 
-
-    # try:
-    taskfile = open(cgroup_tasks, 'w')
-    taskfile.write(str(pid) + "\n")
-    taskfile.flush()
-    taskfile.close()
-    # except IOError, e:
-    #    write "can't join cgroup" message
+    # should raise an exception? MAL
 
 if __name__ == '__main__':
     # first self-apply restrictions
-    join_cgroup()
+    # join_cgroup()
     read_env_vars()
     config = read_config()
 
@@ -236,7 +224,7 @@ if __name__ == '__main__':
     target_context = 'unconfined_u:system_r:openshift_t:%s' % mcs_level
     actual_context = selinux.getcon()[1]
     if target_context != actual_context:
-        print "Invalid context"
+        print "Invalid context: %s, expected %s\n" % (actual_context, target_context)
         sys.exit(40)
         # This else is left in because at the time of writing this statement
         # We have a patched ssh running.  Remove the exit above and it should
