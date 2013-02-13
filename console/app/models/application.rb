@@ -2,8 +2,6 @@
 # The REST API model object representing an application instance.
 #
 class Application < RestApi::Base
-  include AsyncAware
-
   schema do
     string :name, :creation_time
     string :uuid, :domain_id
@@ -61,15 +59,6 @@ class Application < RestApi::Base
   end
   def cartridge_gear_groups
     @cartridge_gear_groups ||= GearGroup.infer(cartridges, self)
-  end
-
-  def gear_groups_with_state
-    async{ @_gear_groups = cartridge_gear_groups }
-    async{ @_gear_groups_with_state = gear_groups }
-    join!(30)
-
-    @_gear_groups.each{ |g| g.merge_gears(@_gear_groups_with_state) }
-    @_gear_groups
   end
 
   def restart!
