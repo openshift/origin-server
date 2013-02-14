@@ -2,7 +2,7 @@ Name: jbossas-7
 Namespace: JBOSSAS
 Display-Name: JBoss Application Server 7.1
 Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
-Version: 7.1.0
+Version: 7
 License: ASL 2.0
 Vendor:  jboss.org
 Categories:
