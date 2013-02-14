@@ -4,6 +4,7 @@
 
 require 'optparse'
 require 'etc'
+require 'rubygems'
 require 'open4'
 
 # each value begins with the subsystem name and a dot (.)
