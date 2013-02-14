@@ -45,7 +45,7 @@ class District
 
   def self.find_available(gear_size=nil)
     gear_size = gear_size ? gear_size : 'small'
-    valid_district = District.where(:available_capacity.gte => 0, :gear_size => gear_size, :active_server_identities_size.gte => 0).sort(:available_capacity.desc).first
+    valid_district = District.where(:available_capacity.gt => 0, :gear_size => gear_size, :active_server_identities_size.gt => 0).desc(:available_capacity).first
     valid_district
   end
   
