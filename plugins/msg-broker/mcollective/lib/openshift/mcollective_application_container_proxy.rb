@@ -2853,7 +2853,7 @@ module OpenShift
             server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
             server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
             server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
-            server_infos = server_infos.first(8)
+            server_infos = server_infos.last(8)
           end
         end
         current_district = nil
