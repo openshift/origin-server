@@ -1,4 +1,5 @@
 Name: mysql-5.1
+Namespace: MYSQL
 Version: 5.1
 Architecture: noarch
 Display-Name: MySQL Database 5.1
@@ -40,4 +41,4 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "HOST:PORT(3306):DB_PROXY_PORT"
+  - "DB_HOST:DB_PORT(3306):DB_PROXY_PORT"
