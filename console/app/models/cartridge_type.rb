@@ -127,7 +127,7 @@ class CartridgeType < RestApi::Base
 
   protected
     def self.find_single(scope, options)
-      all(options).find{ |t| t.to_param == scope } or new(:name => scope, :as => options[:as])
+      all(options).find{ |t| t.to_param == scope } or raise RestApi::ResourceNotFound.new(CartridgeType.name, scope)
     end
 
     def self.type_map

@@ -44,7 +44,7 @@ class ApplicationsController < BaseController
   def create
     domain_id = params[:domain_id]
     app_name = params[:name]
-    features = Array(params[:cartridges] || params[:cartridge])
+    features = Array(params[:cartridges] || params[:cartridge]).map{ |c| c.is_a?(Hash) ? c[:name] : c }
     scalable = get_bool(params[:scale])
     init_git_url = params[:initial_git_url]
     default_gear_size = params[:gear_profile]
