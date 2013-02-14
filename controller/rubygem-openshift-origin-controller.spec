@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.10
+Version: 1.4.11
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 14 2013 Dan McPherson <dmcphers@redhat.com> 1.4.11-1
+- correction in node selection algorithm (dmcphers@redhat.com)
+
 * Sat Feb 09 2013 Dan McPherson <dmcphers@redhat.com> 1.4.10-1
 - Fix current ip address during app creation (rpenta@redhat.com)
 
