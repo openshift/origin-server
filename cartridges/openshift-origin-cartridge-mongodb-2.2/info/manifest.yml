@@ -46,4 +46,4 @@ Scaling:
   Min: 1
   Max: 1
 Endpoints:
-  - "IP:PORT(27017):DB_PROXY_PORT"
+  - "DB_HOST:DB_PORT(27017):DB_PROXY_PORT"
