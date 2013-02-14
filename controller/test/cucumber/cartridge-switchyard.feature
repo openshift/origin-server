@@ -1,6 +1,7 @@
 @runtime
 @runtime4
 @rhel-only
+@jboss
 Feature: SwitchYard Application Sub-Cartridge
   
   Scenario: Create Delete one EAP application with embedded SwitchYard

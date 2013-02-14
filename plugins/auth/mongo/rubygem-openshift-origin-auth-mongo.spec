@@ -75,7 +75,8 @@ cp -a .%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 # If there were programs installed:
 mkdir -p %{buildroot}/usr/bin
-cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+#cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+cp -a bin/oo-register-user %{buildroot}/usr/bin
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{buildroot}/etc/openshift/plugins.d/

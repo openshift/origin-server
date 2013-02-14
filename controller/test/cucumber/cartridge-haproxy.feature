@@ -22,11 +22,15 @@ Feature: HAProxy Application Sub-Cartridge
     Scenarios: Create Delete Application With haproxy Scenarios - RHEL
       | type         | proc_name |
       | ruby-1.8     | httpd     |
-      | jbossas-7    | java      |
-      | jbosseap-6.0 | java      |
       | php-5.3      | httpd     |
       | perl-5.10    | httpd     |
       | python-2.6   | httpd     |
+
+    @jboss
+    Scenarios: Create Delete Application With haproxy Scenarios - Fedora 18
+      | type         | proc_name |
+      | jbossas-7    | java      |
+      | jbosseap-6.0 | java      |
 
     @fedora-only
     Scenarios: Create Delete Application With haproxy Scenarios - Fedora 18

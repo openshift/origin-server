@@ -260,15 +260,6 @@ startall() {
         return $GROUP_RETVAL
     fi
 
-    # don't start if not configured for openshift
-    if [ ! -d /cgroup/all ]
-    then
-        echo "cgconfig not set for Openshift: /cgconfig/all does not exist"
-        RETVAL=1
-        GROUP_RETVAL=3
-        return $GROUP_RETVAL
-    fi
-
     # create the root of the openshift user control group
     add_cgroup # defaults to creating the root group
     RETVAL=$?
@@ -374,13 +365,6 @@ restartall() {
 
 status() {
     echo "Checking Openshift Services: "
-
-    # don't start if not configured for openshift
-    if [ ! -d /cgroup/all ]
-    then
-        echo "Openshift cgroups not configured: /cgconfig/all does not exist"
-        return 1
-    fi
 
     lscgroup | grep -e  ":${OPENSHIFT_CGROUP_ROOT}\$" >/dev/null 2>&1
     if [ $? -ne 0 ]

@@ -10,7 +10,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers["Accept"] = "application/json"
     
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-      `/bin/oo-register-user -l admin -p admin --username #{@username} --userpass password`
+      `oo-register-user -l admin -p admin --username #{@username} --userpass password`
     end
   end
 
@@ -55,7 +55,7 @@ class SubUserTest < ActionDispatch::IntegrationTest
     @headers2["HTTP_AUTHORIZATION"] = "Basic " + Base64.encode64("#{@username}x:password")
     @headers2["Accept"] = "application/json"
     if File.exist?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-      `/bin/oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
+      `oo-register-user -l admin -p admin --username "#{@username}x" --userpass password`
     end
     
     get "rest/domains.json", nil, @headers2
