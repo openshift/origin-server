@@ -1,4 +1,5 @@
 Name: phpmyadmin-3.4
+Namespace: PHPMYADMIN
 Display-Name: phpMyAdmin 3.4
 Description: "Web based MySQL admin tool. Requires the MySQL cartridge to be installed first."
 Version: 1.1.0
@@ -30,4 +31,4 @@ Configure-Order:
   - mysql
   - phpmyadmin
 Endpoints:
-  - PROXY_PORT: 8080
+  - "IP:PORT(8080):PROXY_PORT"

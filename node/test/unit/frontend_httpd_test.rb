@@ -1,6 +1,6 @@
 #!/usr/bin/env oo-ruby
 #--
-# Copyright 2012 Red Hat, Inc.
+# Copyright 2013 Red Hat, Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,15 +17,13 @@
 #
 # Test the OpenShift frontend_httpd model
 #
+require 'test_helper'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'test/unit'
 require 'fileutils'
 require 'mocha'
 
-
-# Run unit test manually
-# ruby -Iopenshift/node/lib/:openshift/common/lib/ openshift/node/test/unit/frontend_httpd_test.rb 
-class TestFrontendHttpServerModel < Test::Unit::TestCase
+class FrontendHttpServerModelTest < Test::Unit::TestCase
 
   def setup
     @container_uuid = '0123456789abcdef'

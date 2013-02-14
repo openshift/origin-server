@@ -240,7 +240,7 @@ module OpenShift
       #
       # <<attribute setter>>
       #
-      # Set blocks hard limit and inodes ihard limit for uuid.
+      # Set blocks hard limit and inodes hard limit for uuid.
       # Effects disk quotas on Gear on Node
       # 
       # INPUT:
@@ -363,6 +363,19 @@ module OpenShift
         end
       end
       
+      def build_base_gear_args(app, gear, quota_blocks=nil, quota_files=nil)
+        args = Hash.new
+        args['--with-app-uuid'] = app.uuid
+        args['--with-app-name'] = app.name
+        args['--with-container-uuid'] = gear.uuid
+        args['--with-container-name'] = gear.name
+        args['--with-quota-blocks'] = quota_blocks if quota_blocks
+        args['--with-quota-files'] = quota_files if quota_files
+        args['--with-namespace'] = app.domain.namespace
+        args['--with-uid'] = gear.uid if gear.uid
+        args
+      end
+
       #
       # <<instance method>>
       # 
@@ -388,15 +401,7 @@ module OpenShift
       def create(app, gear, quota_blocks=nil, quota_files=nil)
         result = nil
         (1..10).each do |i|                    
-          args = Hash.new
-          args['--with-app-uuid'] = app.uuid
-          args['--with-app-name'] = app.name
-          args['--with-container-uuid'] = gear.uuid
-          args['--with-container-name'] = gear.name
-          args['--with-quota-blocks'] = quota_blocks if quota_blocks
-          args['--with-quota-files'] = quota_files if quota_files
-          args['--with-namespace'] = app.domain.namespace
-          args['--with-uid'] = gear.uid if gear.uid
+          args = build_base_gear_args(app, gear, quota_blocks, quota_files)
           mcoll_reply = execute_direct(@@C_CONTROLLER, 'app-create', args)
           result = parse_result(mcoll_reply, app, gear)
           if result.exitcode == 129 && has_uid_or_gid?(gear.uid) # Code to indicate uid already taken
@@ -429,12 +434,7 @@ module OpenShift
       # * uses execute_direct
       #
       def destroy(app, gear, keep_uid=false, uid=nil, skip_hooks=false)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-app-name'] = app.name
-        args['--with-container-uuid'] = gear.uuid
-        args['--with-container-name'] = gear.name
-        args['--with-namespace'] = app.domain.namespace
+        args = build_base_gear_args(app, gear)
         args['--skip-hooks'] = true if skip_hooks
         result = execute_direct(@@C_CONTROLLER, 'app-destroy', args)
         result_io = parse_result(result, app, gear)
@@ -464,10 +464,7 @@ module OpenShift
       # * calls node script oo-ssl-cert-add
       #
       def add_ssl_cert(app, gear, ssl_cert, priv_key, server_alias, passphrase='')
-        args = Hash.new
-        args['--with-app-uuid']       = app.uuid
-        args['--with-container-uuid'] = gear.uuid
-        args['--with-namespace']      = app.domain.namespace
+        args = build_base_gear_args(app, gear)
         args['--with-ssl-cert']       = ssl_cert
         args['--with-priv-key']       = priv_key
         args['--with-alias-name']     = server_alias
@@ -490,10 +487,7 @@ module OpenShift
       # * calls node script oo-ssl-cert-remove
       #
       def remove_ssl_cert(app, gear, server_alias)
-        args = Hash.new
-        args['--with-app-uuid']       = app.uuid
-        args['--with-container-uuid'] = gear.uuid
-        args['--with-namespace']      = app.domain.namespace
+        args = build_base_gear_args(app, gear)
         args['--with-alias-name']     = server_alias
         result = execute_direct(@@C_CONTROLLER, 'ssl-cert-remove', args)
         parse_result(result)
@@ -518,9 +512,7 @@ module OpenShift
       # * calls oo-authorized-ssh-key-add on the node
       #
       def add_authorized_ssh_key(app, gear, ssh_key, key_type=nil, comment=nil)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
@@ -546,9 +538,7 @@ module OpenShift
       # * calls oo-authorized-ssh-key-remove on the node
       #
       def remove_authorized_ssh_key(app, gear, ssh_key, comment=nil)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         result = execute_direct(@@C_CONTROLLER, 'authorized-ssh-key-remove', args)
@@ -575,9 +565,7 @@ module OpenShift
       # * Should be a method on Gear?
       #
       def add_env_var(app, gear, key, value)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-key'] = key
         args['--with-value'] = value
         result = execute_direct(@@C_CONTROLLER, 'env-var-add', args)
@@ -600,9 +588,7 @@ module OpenShift
       # * calls oo-env-var-remove on the node
       #      
       def remove_env_var(app, gear, key)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-key'] = key
         result = execute_direct(@@C_CONTROLLER, 'env-var-remove', args)
         parse_result(result, app , gear)
@@ -626,9 +612,7 @@ module OpenShift
       # * calls oo-broker-auth-key-add
       #
       def add_broker_auth_key(app, gear, iv, token)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-iv'] = iv
         args['--with-token'] = token
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-add', args)
@@ -651,9 +635,7 @@ module OpenShift
       # * calls oo-broker-auth-key-remove
       #    
       def remove_broker_auth_key(app, gear)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         result = execute_direct(@@C_CONTROLLER, 'broker-auth-key-remove', args)
         parse_result(result, app , gear)
       end
@@ -675,9 +657,7 @@ module OpenShift
       # * Should be a method on Gear object
       #
       def show_state(app, gear)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         result = execute_direct(@@C_CONTROLLER, 'app-state-show', args)
         parse_result(result, app , gear)
       end
@@ -722,9 +702,13 @@ module OpenShift
       def configure_cartridge(app, gear, cart, template_git_url=nil)
         result_io = ResultIO.new
         cart_data = nil
-                  
+        
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+        args['--with-template-git-url'] = template_git_url
+
         if framework_carts.include? cart
-          result_io = run_cartridge_command(cart, app, gear, "configure", template_git_url)
+          result_io = run_cartridge_command(cart, app, gear, "configure", args)
         elsif embedded_carts.include? cart
           result_io, cart_data = add_component(app,gear,cart)
         else
@@ -753,8 +737,11 @@ module OpenShift
       # * should raise an exception for invalid gear?
       # 
       def deconfigure_cartridge(app, gear, cart)
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
         if framework_carts.include? cart
-          run_cartridge_command(cart, app, gear, "deconfigure")
+          run_cartridge_command(cart, app, gear, "deconfigure", args)
         elsif embedded_carts.include? cart
           remove_component(app,gear,cart)
         else
@@ -942,8 +929,7 @@ module OpenShift
       # * uses execute_direct
       #
       def execute_connector(app, gear, cart, connector_name, input_args)
-        args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
@@ -974,13 +960,10 @@ module OpenShift
       # * should be a method on Gear?
       #
       def start(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "start")
-        elsif embedded_carts.include? cart
-          start_component(app, gear, cart)
-        else
-          ResultIO.new
-        end
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "start", args)
       end
 
       #
@@ -1001,13 +984,10 @@ module OpenShift
       # * should be a method on Gear?
       #      
       def stop(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "stop")
-        elsif embedded_carts.include? cart
-          stop_component(app, gear, cart)
-        else
-          ResultIO.new          
-        end
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "stop", args)
       end
       
       # 
@@ -1027,9 +1007,7 @@ module OpenShift
       # * method on Node?
       #
       def force_stop(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         result = execute_direct(@@C_CONTROLLER, 'force-stop', args)
         parse_result(result)
       end
@@ -1051,13 +1029,10 @@ module OpenShift
       # * method on Gear?
       #
       def restart(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "restart")
-        elsif embedded_carts.include? cart
-          restart_component(app, gear, cart)
-        else
-          ResultIO.new                  
-        end
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+        
+        run_cartridge_command_ignore_components(cart, app, gear, "restart", args)
       end
       
 
@@ -1079,13 +1054,10 @@ module OpenShift
       # * method on Gear?
       #      
       def reload(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "reload")
-        elsif embedded_carts.include? cart
-          reload_component(app, gear, cart)
-        else
-          ResultIO.new          
-        end
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "reload", args)
       end
  
       #
@@ -1105,13 +1077,10 @@ module OpenShift
       # * component_status
       #
       def status(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "status")
-        elsif embedded_carts.include? cart
-          component_status(app, gear, cart)
-        else
-          ResultIO.new          
-        end
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "status", args)
       end
  
       #
@@ -1131,9 +1100,7 @@ module OpenShift
       # * calls execute_direct
       #
       def tidy(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         result = execute_direct(@@C_CONTROLLER, 'tidy', args)
         parse_result(result)
       end
@@ -1154,11 +1121,10 @@ module OpenShift
       # * method on Gear or Cart?
       #
       def threaddump(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "threaddump")
-        else
-          ResultIO.new
-        end          
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "threaddump", args)
       end
 
       #
@@ -1178,11 +1144,10 @@ module OpenShift
       # * only applies to the "framework" services
       #      
       def system_messages(app, gear, cart)
-        if framework_carts.include?(cart)
-          run_cartridge_command(cart, app, gear, "system-messages")
-        else
-          ResultIO.new
-        end          
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+
+        run_cartridge_command_ignore_components(cart, app, gear, "system-messages", args)
       end
 
       #
@@ -1202,33 +1167,25 @@ module OpenShift
       # * method on Gear or Cart?
       #            
       def get_expose_port_job(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         RemoteJob.new('openshift-origin-node', 'expose-port', args)
       end
       
       def get_conceal_port_job(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         RemoteJob.new('openshift-origin-node', 'conceal-port', args)
       end
       
       def get_show_port_job(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         RemoteJob.new('openshift-origin-node', 'show-port', args)
       end
       
       def expose_port(app, gear, cart)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         result = execute_direct(@@C_CONTROLLER, 'expose-port', args)
         parse_result(result)
@@ -1252,7 +1209,10 @@ module OpenShift
       #            
       # Deprecated: remove from the REST API and then delete this.
       def conceal_port(app, gear, cart)
-        ResultIO.new
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = cart
+        result = execute_direct(@@C_CONTROLLER, 'conceal-port', args)
+        parse_result(result)
       end
 
       #
@@ -1293,10 +1253,7 @@ module OpenShift
       # * method on Gear?
       #
       def add_alias(app, gear, server_alias)
-        args = Hash.new
-        args['--with-container-uuid']=gear.uuid
-        args['--with-container-name']=gear.name
-        args['--with-namespace']=app.domain.namespace
+        args = build_base_gear_args(app, gear)
         args['--with-alias-name']=server_alias
         result = execute_direct(@@C_CONTROLLER, 'add-alias', args)
         parse_result(result)
@@ -1319,10 +1276,7 @@ module OpenShift
       # * method on Gear?
       #
       def remove_alias(app, gear, server_alias)
-        args = Hash.new
-        args['--with-container-uuid']=gear.uuid
-        args['--with-container-name']=gear.name
-        args['--with-namespace']=app.domain.namespace
+        args = build_base_gear_args(app, gear)
         args['--with-alias-name']=server_alias
         result = execute_direct(@@C_CONTROLLER, 'remove-alias', args)
         parse_result(result)        
@@ -1348,7 +1302,11 @@ module OpenShift
       #
       #
       def update_namespace(app, gear, cart, new_ns, old_ns)
-        mcoll_reply = execute_direct(cart, 'update-namespace', "#{gear.name} #{new_ns} #{old_ns} #{gear.uuid}")
+        args = build_base_gear_args(app, gear)
+        args['--cart-name']=cart
+        args['--with-new-namespace']=new_ns
+        args['--with-old-namespace']=old_ns
+        mcoll_reply = execute_direct(cart, 'update-namespace', args)
         parse_result(mcoll_reply, app , gear)
       end
 
@@ -1368,9 +1326,7 @@ module OpenShift
       # * uses RemoteJob
       # 
       def get_env_var_add_job(app, gear, key, value)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-key'] = key
         args['--with-value'] = value
         job = RemoteJob.new('openshift-origin-node', 'env-var-add', args)
@@ -1393,9 +1349,7 @@ module OpenShift
       # * uses RemoteJob
       # 
       def get_env_var_remove_job(app, gear, key)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-key'] = key
         job = RemoteJob.new('openshift-origin-node', 'env-var-remove', args)
         job
@@ -1418,9 +1372,7 @@ module OpenShift
       # * uses RemoteJob
       # 
       def get_add_authorized_ssh_key_job(app, gear, ssh_key, key_type=nil, comment=nil)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-key-type'] = key_type if key_type
         args['--with-ssh-key-comment'] = comment if comment
@@ -1444,9 +1396,7 @@ module OpenShift
       # * uses RemoteJob
       #       
       def get_remove_authorized_ssh_key_job(app, gear, ssh_key, comment=nil)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-ssh-key'] = ssh_key
         args['--with-ssh-comment'] = comment if comment
         job = RemoteJob.new('openshift-origin-node', 'authorized-ssh-key-remove', args)
@@ -1469,9 +1419,7 @@ module OpenShift
       # * uses RemoteJob
       #       
       def get_broker_auth_key_add_job(app, gear, iv, token)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--with-iv'] = iv
         args['--with-token'] = token
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-add', args)
@@ -1492,9 +1440,7 @@ module OpenShift
       # * uses RemoteJob
       #         
       def get_broker_auth_key_remove_job(app, gear)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         job = RemoteJob.new('openshift-origin-node', 'broker-auth-key-remove', args)
         job
       end
@@ -1516,8 +1462,7 @@ module OpenShift
       # * uses RemoteJob
       #         
       def get_execute_connector_job(app, gear, cart, connector_name, input_args)
-        args = Hash.new
-        args['--gear-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         args['--cart-name'] = cart
         args['--hook-name'] = connector_name
         args['--input-args'] = input_args.join(" ")
@@ -1539,9 +1484,7 @@ module OpenShift
       # * uses RemoteJob
       #         
       def get_show_state_job(app, gear)
-        args = Hash.new
-        args['--with-app-uuid'] = app.uuid
-        args['--with-container-uuid'] = gear.uuid
+        args = build_base_gear_args(app, gear)
         job = RemoteJob.new('openshift-origin-node', 'app-state-show', args)
         job
       end
@@ -1562,7 +1505,7 @@ module OpenShift
       # * uses RemoteJob
       #         
       def get_status_job(app, gear, cart)
-        args = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
+        args = build_base_gear_args(app, gear)
         job = RemoteJob.new(cart, 'status', args)
         job
       end
@@ -1639,7 +1582,9 @@ module OpenShift
           idle, leave_stopped = state_map[cart]
           unless leave_stopped
             log_debug "DEBUG: Starting cartridge '#{cart}' in '#{app.name}' after move on #{destination_container.id}"
-            reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "start", nil, false)
+            args = build_base_gear_args(app, gear)
+            args['--cart-name'] = cart
+            reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "start", args, false)
           end
         end
 
@@ -1712,7 +1657,9 @@ module OpenShift
           if embedded_carts.include? cart and not keep_uid
             if (app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy") or not app.scalable
               log_debug "DEBUG: Performing cartridge level pre-move for embedded #{cart} for '#{app.name}' on #{source_container.id}"
-              reply.append source_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "pre-move", nil, false)
+              args = build_base_gear_args(app, gear)
+              args['--cart-name'] = cart
+              reply.append source_container.send(:run_cartridge_command, cart, app, gear, "pre-move", args, false)
             end
           end
         }
@@ -1797,25 +1744,35 @@ module OpenShift
               if keep_uid
                 if framework_carts.include?(cart)
                   log_debug "DEBUG: Restarting httpd proxy for '#{cart}' on #{destination_container.id}"
-                  reply.append destination_container.send(:run_cartridge_command, 'abstract', app, gear, "restart-httpd-proxy", nil, false)
+                  args = build_base_gear_args(app, gear)
+                  args['--cart-name'] = cart
+                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "restart-httpd-proxy", args, false)
                 end
               else
                 if embedded_carts.include?(cart)
                   if app.scalable and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                     log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
-                    reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+                    args = build_base_gear_args(app, gear)
+                    args['--cart-name'] = cart
+                    args['--idle'] = idle
+                    reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", args, false)
                   else
                     log_debug "DEBUG: Performing cartridge level move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
-                    embedded_reply = destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "move", nil, false)
+                    args = build_base_gear_args(app, gear)
+                    args['--cart-name'] = cart
+                    embedded_reply = destination_container.send(:run_cartridge_command, cart, app, gear, "move", args, false)
                     cinst.process_properties(embedded_reply)
                     reply.append embedded_reply
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{destination_container.id}"
-                    reply.append destination_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
+                    reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "post-move", args, false)
                   end
                 end
                 if framework_carts.include?(cart)
                   log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"
-                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", idle ? '--idle' : nil, false)
+                  args = build_base_gear_args(app, gear)
+                  args['--cart-name'] = cart
+                  args['--idle'] = idle
+                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "move", args, false)
                 end
               end
               if app.scalable and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
@@ -1860,7 +1817,9 @@ module OpenShift
               cart = cinst.cartridge_name
               if framework_carts.include? cart
                 begin
-                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "remove-httpd-proxy", nil, false)
+                  args = build_base_gear_args(app, gear)
+                  args['--cart-name'] = cart
+                  reply.append destination_container.send(:run_cartridge_command, cart, app, gear, "remove-httpd-proxy", args, false)
                 rescue Exception => e
                   log_debug "DEBUG: Remove httpd proxy with cart '#{cart}' failed on '#{destination_container.id}'  - gear: '#{gear.name}', app: '#{app.name}'"
                 end
@@ -1881,7 +1840,9 @@ module OpenShift
                 if embedded_carts.include? cart and not CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                   begin
                     log_debug "DEBUG: Performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{source_container.id}"
-                    reply.append source_container.send(:run_cartridge_command, "embedded/" + cart, app, gear, "post-move", nil, false)
+                    args = build_base_gear_args(app, gear)
+                    args['--cart-name'] = cart
+                    reply.append source_container.send(:run_cartridge_command, cart, app, gear, "post-move", args, false)
                   rescue Exception => e
                     log_error "ERROR: Error performing cartridge level post-move for embedded #{cart} for '#{app.name}' on #{source_container.id}: #{e.message}"
                   end
@@ -1894,7 +1855,9 @@ module OpenShift
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
               if not leave_stopped
-                reply.append source_container.run_cartridge_command(cart, app, gear, "start", nil, false) if framework_carts.include? cart
+                args = build_base_gear_args(app, gear)
+                args['--cart-name'] = cart
+                reply.append source_container.run_cartridge_command(cart, app, gear, "start", args, false) if framework_carts.include? cart
               end
             end
           ensure
@@ -2311,13 +2274,17 @@ module OpenShift
       #
       def add_component(app, gear, component)
         reply = ResultIO.new
+
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+        
         begin
-          reply.append run_cartridge_command('embedded/' + component, app, gear, 'configure')
+          reply.append run_cartridge_command(component, app, gear, 'configure', args)
         rescue Exception => e
           begin
             Rails.logger.debug "DEBUG: Failed to embed '#{component}' in '#{app.name}' for user '#{app.domain.owner.login}'"
             reply.debugIO << "Failed to embed '#{component} in '#{app.name}'"
-            reply.append run_cartridge_command('embedded/' + component, app, gear, 'deconfigure')
+            reply.append run_cartridge_command(component, app, gear, 'deconfigure', args)
           ensure
             raise
           end
@@ -2343,8 +2310,11 @@ module OpenShift
       # * method on gear?
       # 
       def remove_component(app, gear, component)
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
         Rails.logger.debug "DEBUG: Deconfiguring embedded application '#{component}' in application '#{app.name}' on node '#{@id}'"
-        return run_cartridge_command('embedded/' + component, app, gear, 'deconfigure')
+        return run_cartridge_command(component, app, gear, 'deconfigure', args)
       end
 
       #
@@ -2362,7 +2332,10 @@ module OpenShift
       # * method on gear?
       #       
       def start_component(app, gear, component)
-        run_cartridge_command('embedded/' + component, app, gear, "start")
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
+        run_cartridge_command(component, app, gear, "start", args)
       end
 
       #
@@ -2380,7 +2353,10 @@ module OpenShift
       # * method on gear?
       #             
       def stop_component(app, gear, component)
-        run_cartridge_command('embedded/' + component, app, gear, "stop")
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
+        run_cartridge_command(component, app, gear, "stop", args)
       end
 
       #
@@ -2398,7 +2374,10 @@ module OpenShift
       # * method on gear?
       #                   
       def restart_component(app, gear, component)
-        run_cartridge_command('embedded/' + component, app, gear, "restart")    
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
+        run_cartridge_command(component, app, gear, "restart", args)
       end
       
       #
@@ -2416,7 +2395,10 @@ module OpenShift
       # * method on gear?
       #                   
       def reload_component(app, gear, component)
-        run_cartridge_command('embedded/' + component, app, gear, "reload")    
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
+        run_cartridge_command(component, app, gear, "reload", args)
       end
 
       #
@@ -2434,7 +2416,10 @@ module OpenShift
       # * method on gear?
       #                         
       def component_status(app, gear, component)
-        run_cartridge_command('embedded/' + component, app, gear, "status")    
+        args = build_base_gear_args(app, gear)
+        args['--cart-name'] = component
+
+        run_cartridge_command(component, app, gear, "status", args)
       end
 
       #
@@ -2476,6 +2461,10 @@ module OpenShift
       # * the real switches are the cartridge and action arguments
       #
       def execute_direct(cartridge, action, args, log_debug_output=true)
+          if not args.has_key?('--cart-name')
+            args['--cart-name'] = cartridge
+          end
+
           mc_args = { :cartridge => cartridge,
                       :action => action,
                       :args => args }
@@ -2486,6 +2475,9 @@ module OpenShift
             Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
             result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
             Rails.logger.debug "DEBUG: #{result.inspect}" if log_debug_output
+          rescue => e
+            Rails.logger.error("Error processing custom_request for action #{action}")
+            Rails.logger.error(e.backtrace)
           ensure
             rpc_client.disconnect
           end
@@ -2640,7 +2632,21 @@ module OpenShift
           end
         end
       end
-      
+
+      # This method wraps run_cartridge_command to acknowledge and consistently support the behavior
+      # until cartridges and components are handled as distinct concepts within the runtime.
+      #
+      # If the cart specified is in the framework_carts or embedded_carts list, the arguments will pass
+      # through to run_cartridge_command. Otherwise, a new ResultIO will be returned.
+      def run_cartridge_command_ignore_components(cart, app, gear, command, arguments, allow_move=true)       
+        if framework_carts.include?(cart) || embedded_carts.include?(cart)
+          result = run_cartridge_command(cart, app, gear, command, arguments, allow_move)
+        else
+          result = ResultIO.new
+        end
+        result
+      end
+
       #
       # Execute a cartridge hook command in a gear
       #
@@ -2664,11 +2670,8 @@ module OpenShift
       # NOTES:
       # * uses execute_direct
       #
-      def run_cartridge_command(framework, app, gear, command, arg=nil, allow_move=true)
+      def run_cartridge_command(framework, app, gear, command, arguments, allow_move=true)
         resultIO = nil
-
-        arguments = "'#{gear.name}' '#{app.domain.namespace}' '#{gear.uuid}'"
-        arguments += " '#{arg}'" if arg
 
         result = execute_direct(framework, command, arguments)
 

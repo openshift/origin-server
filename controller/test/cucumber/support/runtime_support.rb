@@ -169,39 +169,27 @@ module OpenShift
     def create()
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
       
-      outbuf = []
-      cmd = "oo-app-create -a #{@app.uuid} -c #{@uuid} --with-app-name #{@app.name} --with-namespace #{@app.account.domain}"
-      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
-      if exit_code != 0
-        $logger.error(outbuf)
-        raise Exception.new(outbuf)
-      end
-
       # Create the container object for use in the event listener later
-      @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil)
+      @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil, $logger)
+      @container.create
     end
 
     # Destroys the gear via ApplicationContainer
     def destroy()
       $logger.info("Destroying gear #{@uuid} of application #{@app.name}")
 
-      outbuf = []
-      cmd = "oo-app-destroy -a #{@app.uuid} -c #{@uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name} --skip-hooks"
-      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
-      if exit_code != 0
-        $logger.error(outbuf)
-        raise Exception.new(outbuf)
-      end
+      @container.destroy(true)
     end
 
     # Adds an alias to the gear
     def add_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
+      
+      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      out, err, rc = frontend.add_alias(alias_name)
 
-      outbuf = []
-      cmd = "oo-add-alias --with-container-uuid #{@uuid} --with-container-name #{@app.name} --with-namespace #{@app.account.domain} --with-alias-name #{alias_name}"
-      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
-      if exit_code != 0
+      outbuf = "Stdout: #{out}, Stderr: #{err}"
+      if rc != 0
         $logger.error(outbuf)
         raise Exception.new(outbuf)
       end
@@ -212,10 +200,11 @@ module OpenShift
     def remove_alias(alias_name)
       $logger.info("Adding alias #{alias_name} to gear #{@uuid} of application #{@app.name}")
 
-      outbuf = []
-      cmd = "oo-remove-alias --with-container-uuid #{@uuid} --with-container-name #{@app.name} --with-namespace #{@app.account.domain} --with-alias-name #{alias_name}"
-      exit_code = runcon(cmd, $selinux_user, $selinux_role, $selinux_type, outbuf)
-      if exit_code != 0
+      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      out, err, rc = frontend.remove_alias(alias_name)
+
+      outbuf = "Stdout: #{out}, Stderr: #{err}"
+      if rc != 0
         $logger.error(outbuf)
         raise Exception.new(outbuf)
       end
@@ -225,8 +214,8 @@ module OpenShift
     #
     # NOTE: The cartridge is instantiated, but no hooks (such as 
     # configure) are executed. 
-    def add_cartridge(cart_name, type = TestCartridge::Standard)
-      cart = OpenShift::TestCartridge.new(cart_name, self, type)
+    def add_cartridge(cart_name)
+      cart = OpenShift::TestCartridge.new(cart_name, self)
       @carts[cart.name] = cart
       cart
     end
@@ -242,24 +231,13 @@ module OpenShift
   class TestCartridge
     include CommandHelper
 
-    attr_reader :name, :gear, :path, :type, :metadata
+    attr_reader :name, :gear, :path, :metadata
 
-    # We need to differentiate between non/embedded carts, as they have
-    # different root paths on the node filesystem.
-    Standard = 0
-    Embedded = 1
-
-    def initialize(name, gear, type = Standard)
+    def initialize(name, gear)
       @name = name
       @gear = gear
-      @type = type
 
       @metadata = {} # a place for cart specific helpers to put stuff
-
-      local_root = (@type == Standard) ? $cartridge_root : $embedded_cartridge_root
-
-      @cart_path = "#{local_root}/#{@name}"
-      @hooks_path = "#{@cart_path}/info/hooks"
 
       # Add new listener classes here for now
       @listeners = [ OpenShift::TestCartridgeListeners::ConfigureCartListener.new,
@@ -267,61 +245,36 @@ module OpenShift
                    ]
     end
 
-    # Convenience wrapper to invoke the configure hook.
     def configure()
-      run_hook "configure"
-    end
-
-    # Convenience wrapper to invoke the deconfigure hook.
-    def deconfigure()
-      run_hook "deconfigure"
-    end
-
-    # Convenience wrapper to invoke the start hook.
-    def start()
-      run_hook "start"
-    end
-
-    # Convenience wrapper to invoke the stop hook.
-    def stop()
-      run_hook "stop"
-    end
-
-    # Convenience wrapper to invoke the status hook.
-    def status()
-      run_hook "status"
-    end
-
-    # Invokes an arbitrary hook on the cartridge, passing through
-    # any extra arguments specified by extra_args (if present). An
-    # exception will be raised if the exit code of the hook does 
-    # not match expected_exitcode (which is 0 by default). The
-    # hook is executed in the selinux context of the user and role
-    # defined in the global constants provided in 00_setup_helper.
-    def run_hook(hook, expected_exitcode=0, extra_args=[])
-      exitcode, output = run_hook_output(hook, expected_exitcode, extra_args)
-      exitcode
-    end
-
-    def run_hook_output(hook, expected_exitcode=0, extra_args=[])
-      $logger.info("Running #{hook} hook for cartridge #{@name} in gear #{@gear.uuid} for application #{@gear.app.name}")
-      
-      cmd = %Q{#{@hooks_path}/#{hook} '#{@gear.app.name}' '#{@gear.app.account.domain}' #{@gear.uuid} #{extra_args.join(" ")}}
-
-      output = Array.new
-      exitcode = runcon cmd, $selinux_user, $selinux_role, $selinux_type, output, TIMEOUT
+      output = @gear.container.configure(@name)
 
       # Sanitize the command output. For now, the only major problem we're aware
       # of is colorized output containing escape characters. The sanitization should
       # really be taken care of in downstream formatters, but we have no control over
       # those at present.
-      output = output.collect {|s| s.gsub(/\e\[(\d+)m/, '')}
+      output = output.gsub(/\e\[(\d+)m/, '')
 
-      raise %Q{Error (#{exitcode}) running #{cmd}: #{output.join("\n")}} unless exitcode == expected_exitcode
+      notify_listeners "configure_hook_completed", { :cart => self, :output => output}
+    end
 
-      notify_listeners "#{hook}_hook_completed", { :cart => self, :exitcode => exitcode, :output => output}
+    def deconfigure()
+      @gear.container.deconfigure(@name)
+    end
 
-      [exitcode, output]
+    def start()
+      @gear.container.start(@name)
+    end
+
+    def stop()
+      @gear.container.stop(@name)
+    end
+
+    def status()
+      @gear.container.status(@name)
+    end
+
+    def restart()
+      @gear.container.restart(@name)
     end
 
     # Notify cart listeners of an event
@@ -358,7 +311,7 @@ module OpenShift
         if args.key?(:output) && ! args[:output].empty?
           homedir = args[:cart].gear.container.user.homedir
  
-          args[:output].first.split(/\n/).each { |line|
+          args[:output].split(/\n/).each { |line|
             case line
               when /^ENV_VAR_ADD: .*/
                 key, value = line['ENV_VAR_ADD: '.length..-1].chomp.split('=')
@@ -404,7 +357,7 @@ module OpenShift
 
         db = DbConnection.new
 
-        output.each do |line|
+        output.split(/\n/).each do |line|
           if line.match(my_username_pattern)
             db.username = $1
           end

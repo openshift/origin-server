@@ -1,0 +1,56 @@
+#!/bin/bash -e
+
+# Mock cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+source mock-0.1/mock.conf
+
+rm -rf $MOCK_STATE
+mkdir $MOCK_STATE
+touch $MOCK_STATE/setup_called
+
+function error_exit {
+  echo -e "$1\nexit $2" >$MOCK_STATE/setup_failure
+  echo -e $1 1>&2
+  exit $2
+}
+
+if [ ! -d 'mock-0.0' ]; then
+  error_exit "Cartridge directory mock-0.0 is missing" 78
+fi
+
+if [ 'root' = "$(whoami)" ]; then
+  error_exit "Setup should never be run as root"
+fi
+
+expected_variables="HISTFILE OPENSHIFT_APP_DNS OPENSHIFT_APP_NAME
+    OPENSHIFT_APP_UUID OPENSHIFT_DATA_DIR OPENSHIFT_GEAR_DNS OPENSHIFT_GEAR_NAME
+    OPENSHIFT_GEAR_UUID OPENSHIFT_HOMEDIR 
+    OPENSHIFT_MOCK_IP OPENSHIFT_MOCK_PORT
+    OPENSHIFT_REPO_DIR OPENSHIFT_TMP_DIR"
+
+for e in $expected_variables; do
+  if ${!e}; then
+    msg="${msg}Required environment variable $e is missing or empty\n"
+  fi
+done
+
+if [ -n "$msg" ]; then
+  error_exit "$msg" 78
+fi
+
+if [ $# -gt 1 ]; then
+  error_exit "Illegal command line options: $*" 64
+fi
+
+version=1.2.3
+case $1 in
+  --version=*) version=${1:10} ;;
+           "") ;;
+            *) error_exit "Illegal command line option: $1" 64 ;;
+esac
+echo "Version: $version" >$MOCK_STATE/setup_version
+echo "export OPENSHIFT_MOCK_VERSION=\'$version\'" >mock-0.1/env/OPENSHIFT_MOCK_VERSION
+
+touch $MOCK_STATE/setup_succeed
+exit 0

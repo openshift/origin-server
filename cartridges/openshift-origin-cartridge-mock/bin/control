@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+source mock-0.1/mock.conf
+
+case "$1" in
+  start)     touch $MOCK_STATE/control_start ;;
+  stop)      touch $MOCK_STATE/control_stop ;;
+  restart)   touch $MOCK_STATE/control_restart ;;
+  status)    touch $MOCK_STATE/control_status ;;
+  reload)    touch $MOCK_STATE/control_reload ;;
+  tidy)      touch $MOCK_STATE/contol_tidy ;;
+  *)         exit 0
+esac
+
+exit 0
