@@ -114,7 +114,7 @@ class UsageRecord
 
   def self.untrack_usage(login, gear_id, event, usage_type)
     if Rails.configuration.usage_tracking[:datastore_enabled]
-      usage_record = where(:login => login, :gear_id => gear_id, :event => event, :usage_type => usage_type).sort(:time.desc).first
+      usage_record = where(:login => login, :gear_id => gear_id, :event => event, :usage_type => usage_type).desc(:time).first
       usage_record.delete if usage_record
 
       usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
