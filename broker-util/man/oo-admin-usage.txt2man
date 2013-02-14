@@ -1,0 +1,53 @@
+NAME
+  oo-admin-usage
+  
+SYNOPSIS
+  oo-admin-usage [-h|--help] [-l|--login login_name] 
+  [-a|--app app_name] [-g|--gear gear_uuid] 
+  [-s|--start start_timeframe] [-e|--end end_timeframe]
+
+DESCRIPTION
+  This is a utility to list the usage for a particular user on OpenShift Origin.
+  The usage can be filtered by application name, gear uuid, as well as a timeframe.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+
+  -l|--login login_name  
+    Login name of the user whose usage data is to be displayed (required).
+
+  -a|--app app_name  
+    The application name to filter the usage data.
+
+  -g|--gear gear_uuid  
+    The gear uuid to filter the usage data.
+
+  -s|--start start_timeframe
+    The start time (seconds since epoch) to filter the usage data.
+
+  -e|--end end_timeframe
+    The end time (seconds since epoch) to filter the usage data.
+
+EXAMPLE
+
+  List the usage for the specified user:
+
+    $ oo-admin-usage -l bob@redhat.com
+
+  List the usage for the user for a specified application and gear uuid:
+  
+    $ oo-admin-usage -l bob@redhat.com -a app1 -g 123456789012345678901234
+  
+  List the usage for the user within a specified timeframe:
+  
+    $ oo-admin-usage -l bob@redhat.com -s 1360790232 -e 1360793832
+  
+SEE ALSO
+  oo-admin-ctl-district(8), oo-setup-broker(8), oo-admin-move(8),
+  oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-domain(8), oo-setup-bind(8), 
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 
