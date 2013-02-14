@@ -823,6 +823,16 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise(RestApi::ResourceNotFound) { domain.find_application 'app3' }
   end
 
+  def test_app_create_includes_cartridges
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains/foo/applications.json', json_header(true), {:id => 'bar', :cartridges => [{:name => 'php-5.3', :display_name => 'PHP 5.3'}]}.to_json
+    end
+
+    app = Application.new :name => 'app', :domain_id => 'foo', :include => :cartridges, :as => @user
+    assert app.save
+    assert app.attributes[:cartridges].first.is_a?(Cartridge)
+  end
+
   def test_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges/embedded', json_header
