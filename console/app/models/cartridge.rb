@@ -112,7 +112,7 @@ class Cartridge < RestApi::Base
   end
 
   def cartridge_type
-    @cartridge_type ||= CartridgeType.cached.find(name)
+    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(:name => name))
   end
 end
 
