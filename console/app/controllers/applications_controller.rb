@@ -69,6 +69,7 @@ class ApplicationsFilter
 end
 
 class ApplicationsController < ConsoleController
+  include AsyncAware
 
   def index
     # replace domains with Applications.find :all, :as => current_user
@@ -158,12 +159,17 @@ class ApplicationsController < ConsoleController
   end
 
   def show
-    user_default_domain
-    @user = User.find :one, :as => current_user
-    @application = @domain.find_application params[:id]
-    @gear_groups = @application.gear_groups_with_state
+    @domain = user_default_domain
+    app_id = params[:id].to_s
 
-    sshkey_uploaded?
+    async{ @application = Application.find(app_id, :as => current_user, :params => {:include => :cartridges, :domain_id => @domain.id}) }
+    async{ @gear_groups_with_state = GearGroup.all(:as => current_user, :params => {:application_name => app_id, :domain_id => @domain.id}) }
+    async{ sshkey_uploaded? }
+
+    join!(30)
+
+    @gear_groups = @application.cartridge_gear_groups
+    @gear_groups.each{ |g| g.merge_gears(@gear_groups_with_state) }
   end
 
   def get_started
