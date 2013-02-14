@@ -1,6 +1,6 @@
 Summary:        Utility scripts for the OpenShift Origin broker
 Name:           openshift-origin-broker-util
-Version:        1.4.11
+Version:        1.4.12
 Release:        1%{?dist}
 Group:          Network/Daemons
 License:        ASL 2.0
@@ -69,6 +69,10 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Feb 14 2013 Dan McPherson <dmcphers@redhat.com> 1.4.12-1
+- bz910577 - recheck on race condition, consumed_gear is check is optional
+  (rchopra@redhat.com)
+
 * Fri Feb 08 2013 Dan McPherson <dmcphers@redhat.com> 1.4.11-1
 - 
 
