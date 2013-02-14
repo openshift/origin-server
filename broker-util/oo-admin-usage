@@ -17,7 +17,7 @@ Options:
 -l|--login
     The user login whose usage data is to be displayed (required)
 -a|--app
-    The user application to filter the usage data 
+    The application name to filter the usage data 
 -g|--gear
     The gear uuid to filter the usage data 
 -s|--start
