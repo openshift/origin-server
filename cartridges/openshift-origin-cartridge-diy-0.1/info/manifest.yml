@@ -1,7 +1,8 @@
 Name: diy-0.1
+Namespace: DIY
 Display-Name: Do-It-Yourself
 Description: "The Do-It-Yourself (DIY) application type is a blank slate for trying unsupported languages, frameworks, and middleware on OpenShift. See the community site for examples of bringing your favorite framework to OpenShift."
-Version: 1.0.0
+Version: 0.1
 License: "ASL 2.0"
 License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
 Categories:

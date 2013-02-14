@@ -1,7 +1,8 @@
 Name: python-2.6
+Namespace: PYTHON
 Display-Name: Python 2.6
 Description: "Python is a general-purpose, high-level programming language whose design philosophy emphasizes code readability. Popular development frameworks include: Django, Bottle, Pylons, Zope and TurboGears."
-Version: 1.0.0
+Version: 2.6
 License: Python License
 License-Url: http://docs.python.org/license.html
 Vendor: Python Software Foundation
@@ -56,4 +57,4 @@ Subscribes:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
 Endpoints:
-  - PROXY_PORT: 8080
+  - "IP:PORT(8080):PROXY_PORT"

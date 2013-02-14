@@ -105,15 +105,14 @@ end
 # Calls configure on the embedded cartridge.
 When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate, cart_name |
   record_measure("Runtime Benchmark: Configure #{cart_name} cartridge in cartridge #{@cart.name}") do
-    cart = @gear.add_cartridge(cart_name, OpenShift::TestCartridge::Embedded)
+    cart = @gear.add_cartridge(cart_name)
 
     if negate
-      assert_raise(RuntimeError) do
+      assert_raise(OpenShift::Utils::ShellExecutionException) do
         exit_code = cart.configure
       end
     else
-      exit_code = cart.configure
-      assert_equal 0, exit_code
+      cart.configure
     end
   end
 end
@@ -127,8 +126,7 @@ When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
 
     embedded_cart = @gear.carts[cart_name]
 
-    exit_code = embedded_cart.deconfigure
-    assert_equal 0, exit_code
+    embedded_cart.deconfigure
   end
 end
 
@@ -285,7 +283,7 @@ end
 When /^I (start|stop|status|restart) the application$/ do |action|
   OpenShift::timeout(60) do
     record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
-      @cart.run_hook(action)
+      @cart.send(action)
     end
   end
 end
@@ -295,7 +293,7 @@ end
 # The same comments from the similar matcher apply.
 When /^I (start|stop|status|restart) the ([^ ]+) cartridge$/ do |action, cart_name|
   record_measure("Runtime Benchmark: Hook #{action} on cart #{@cart.name}") do
-    @gear.carts[cart_name].run_hook(action)
+    @gear.carts[cart_name].send(action)
   end
 end
 

@@ -89,14 +89,8 @@ module OpenShift
       return categories.include?('premium')
     end
 
-    def usage_rate(currency)
-      rate = 0
-      if self.is_premium?
-        data = {:cart => self.name}
-        self.class.notify_observers(:get_cart_usage_rate, data)
-        rate = data[:rate][currency] if data[:rate]
-      end
-      rate
+    def usage_rates
+      []
     end
  
     def from_descriptor(spec_hash={})

@@ -130,5 +130,10 @@ module OpenShift
       raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
     end
 
+    def self.find_system_messages(pattern)
+      regex = Regexp.new(pattern)
+      open('/var/log/messages') { |f| f.grep(regex) }.join("\n")
+    end
+
   end
 end

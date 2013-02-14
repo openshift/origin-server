@@ -21,26 +21,6 @@
         %strong @
         = link_to @application.web_url, @application.web_url
 
--#
-  .emblem.span
-    %img{:src => '/app/images/console/gear-bars.png'}
-    .span
-      -# placeholder for gear info
-  .emblem.span
-    %img{:src => '/app/images/console/bolt.png'}
-    .span
-      -# placeholder for bolt info
-  .emblem.span
-    %img{:src => '/app/images/console/mark.png'}
-    .span
-      -# placeholder for mark info
-  .emblem.span
-    %img{:src => '/app/images/console/warning.png'}
-    .span
-      -# placeholder for warning info
-  .total-cost
-    -# cost placeholder
-
 %section#app-specifics
 %section#app-cartridges.span9
   %header.clearfix
@@ -50,33 +30,6 @@
         Add Cartridge
         %span.sprite
 
-  -#.cartridge-block
-    .row
-      .span4
-        %h2.indent-left= @application.framework_name
-      .span5
-        %ul.unstyled-flat.bits.indent-right
-          %li
-            %h6 Created
-            %span.data
-              #{time_ago_in_words(@application.creation_time)} ago
-          -#
-            %li
-              %h6 Status
-              %span.data
-                normal
-          -#%li
-            %h6 Type
-            %span.data= @application.framework_name
-          -#
-            %li
-              %img{:src => "/app/images/console/gear-sm.png"}
-    .row
-      .span9
-        .indent-left.indent-right
-          %h6 Git Repository
-          %pre.command-line.git_url
-            = @application.git_url
   - @gear_groups.each_with_index do |group,g|
     .gear-group
       - group.cartridges.each_with_index do |cartridge,c|
@@ -95,7 +48,7 @@
                     %li
                       %h6 Storage
                       %span.data{:style => "text-transform: none"}
-                        = link_to cartridge_storage(cartridge), application_storage_path(cartridge.application)
+                        = link_to cartridge_storage(cartridge), application_storage_path(@application)
                   - else
                     %li
                       %h6 Gears

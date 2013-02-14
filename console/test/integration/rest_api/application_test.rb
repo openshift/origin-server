@@ -63,10 +63,10 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:cartridges => ['ruby-1.9','mysql-5.1']}, "Simple cartridges list") do |app|
+    assert_create_app({:include => :cartridges, :cartridges => ['ruby-1.9','mysql-5.1']}, "Simple cartridges list") do |app|
       assert_equal ['ruby-1.9', 'mysql-5.1'].sort, app.cartridges.map(&:name).sort
     end
-    assert_create_app({:cartridges => [{:name => 'ruby-1.9'},'mysql-5.1']}, "Mixed objects list") do |app|
+    assert_create_app({:include => :cartridges, :cartridges => [{:name => 'ruby-1.9'},'mysql-5.1']}, "Mixed objects list") do |app|
       assert_equal ['ruby-1.9', 'mysql-5.1'].sort, app.cartridges.map(&:name).sort
     end
   end
@@ -75,7 +75,7 @@ class RestApiApplicationTest < ActiveSupport::TestCase
     with_configured_user
     setup_domain
 
-    assert_create_app({:initial_git_url => 'https://github.com/openshift/wordpress-example', :cartridges => ['php-5.3']}, "Set initial git URL") do |app|
+    assert_create_app({:include => :cartridges, :initial_git_url => 'https://github.com/openshift/wordpress-example', :cartridges => ['php-5.3']}, "Set initial git URL") do |app|
       assert_equal ['php-5.3'], app.cartridges.map(&:name)
       loaded_app = Application.find(app.name, :params => {:domain_id => @domain.id}, :as => @user)
       omit("No initial_git_url returned") unless loaded_app.initial_git_url

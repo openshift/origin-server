@@ -20,10 +20,11 @@ class Cartridge < RestApi::Base
   attr_reader :gears
 
   belongs_to :application
-  has_one :cartridge_type
-  has_many :collocated_with, :class_name => 'string'
-  has_many :properties, :class_name => 'rest_api/base/attribute_hash'
-  has_one  :help_topics, :class_name => 'rest_api/base/attribute_hash'
+  has_one    :cartridge_type
+  has_many   :collocated_with, :class_name => 'string'
+  has_many   :properties, :class_name => 'rest_api/base/attribute_hash'
+  has_one    :help_topics, :class_name => 'rest_api/base/attribute_hash'
+  has_one    :links, :class_name => 'rest_api/base/attribute_hash'
 
   delegate :display_name, :tags, :priority, :to => :cartridge_type, :allow_nil => false
 
@@ -111,7 +112,7 @@ class Cartridge < RestApi::Base
   end
 
   def cartridge_type
-    @cartridge_type ||= CartridgeType.cached.find(name)
+    @cartridge_type ||= (CartridgeType.cached.find(name) rescue CartridgeType.new(:name => name))
   end
 end
 

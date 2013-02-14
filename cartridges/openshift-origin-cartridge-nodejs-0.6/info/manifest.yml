@@ -1,7 +1,8 @@
 Name: nodejs-0.6
+Namespace: NODEJS
 Display-Name: Node.js 0.6
 Description: "Node.js is a platform built on Chrome's JavaScript runtime for easily building fast, scalable network applications. Node.js is perfect for data-intensive real-time applications that run across distributed devices."
-Version: 0.6.10
+Version: 0.6
 License: ASL 2.0
 Vendor: www.nodejs.org
 Website: "http://www.nodejs.org/"
@@ -79,4 +80,4 @@ Group-Overrides:
     - nodejs-0.6
     - web_proxy
 Endpoints:
-  - PROXY_PORT: 8080
+  - "IP:PORT(8080):PROXY_PORT"

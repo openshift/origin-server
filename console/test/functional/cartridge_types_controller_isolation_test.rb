@@ -10,8 +10,10 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
   def domain
     {:id => 'test'}
   end
-  def app
-    {:name => 'test', :framework => 'php-5.3'}
+  def app(with_carts=false)
+    {:name => 'test', :framework => 'php-5.3'}.tap do |o|
+      o[:cartridges] = [{:name => 'php-5.3'}] if with_carts
+    end
   end
 
   def mock_app
@@ -20,7 +22,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     ActiveResource::HttpMock.respond_to({},true) do |mock|
       mock.get '/broker/rest/domains.json', json_header, [domain].to_json
       mock.get '/broker/rest/domains/test/applications/test.json', json_header, app.to_json
-      mock.get '/broker/rest/domains/test/applications/test/cartridges.json', json_header, [].to_json
+      mock.get '/broker/rest/domains/test/applications/test.json?include=cartridges', json_header, app(true).to_json
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [{:name => 'fake-cart-1', :type => :embedded}].to_json
     end
     app
@@ -51,7 +53,7 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     assert cached.all? {|t| (t.tags & [:installed, :inactive, 'inactive']).empty? }, cached.pretty_inspect
   end
 
-  test "should show a new server cart with no metadata" do
+  test "should not show a new server cart with no metadata" do
     mock_app
     get :show, :application_id => 'test', :id => 'fake_cart_1'
     assert_response :success
@@ -61,8 +63,21 @@ class CartridgeTypesIsolationControllerTest < ActionController::TestCase
     assert d = assigns(:domain)
     assert_equal domain[:id], d.id
 
-    assert type = assigns(:cartridge_type)
-    assert_equal 'fake_cart_1', type.name
-    assert assigns(:cartridge)
+    assert_nil assigns(:cartridge_type)
+    assert_not_found_page(/Cartridge Type 'fake_cart_1' does not exist/)
+  end
+
+  test "should show a new server cart with no metadata" do
+    mock_app
+    get :show, :application_id => 'test', :id => 'fake-cart-1'
+    assert_response :success
+
+    assert a = assigns(:application)
+    assert_equal app[:name], a.name
+    assert d = assigns(:domain)
+    assert_equal domain[:id], d.id
+
+    assert cart = assigns(:cartridge_type)
+    assert_equal 'fake-cart-1', cart.name
   end
 end

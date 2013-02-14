@@ -823,6 +823,16 @@ class RestApiTest < ActiveSupport::TestCase
     assert_raise(RestApi::ResourceNotFound) { domain.find_application 'app3' }
   end
 
+  def test_app_create_includes_cartridges
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.post '/broker/rest/domains/foo/applications.json', json_header(true), {:id => 'bar', :cartridges => [{:name => 'php-5.3', :display_name => 'PHP 5.3'}]}.to_json
+    end
+
+    app = Application.new :name => 'app', :domain_id => 'foo', :include => :cartridges, :as => @user
+    assert app.save
+    assert app.attributes[:cartridges].first.is_a?(Cartridge)
+  end
+
   def test_cartridges
     ActiveResource::HttpMock.respond_to do |mock|
       mock.get '/broker/rest/cartridges/embedded', json_header
@@ -852,7 +862,7 @@ class RestApiTest < ActiveSupport::TestCase
     app.cartridges = ['foo']
     assert_equal ['foo'], app.attributes[:cartridges]
     assert_equal ['foo'], app.cartridge_names
-    assert_equal [], app.cartridges
+    assert_equal ['foo'], app.cartridges
     app.cartridge_names = ['bar']
     assert_equal ['bar'], app.attributes[:cartridges]
     assert_equal ['bar'], app.cartridge_names
@@ -864,10 +874,10 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal ['c','d'], app.attributes[:cartridges]
 
     app = Application.new({:name => 'a', :domain_name => 'b'}, true)
-    Cartridge.expects(:find).once.with(:all, :as => nil, :params => {:application_name => 'a', :domain_id => 'b'}).returns([Cartridge.new(:name => 'test')])
+    Cartridge.expects(:find).once.with(:all, :as => nil, :params => {:application_name => 'a', :domain_id => 'b'}).returns([Cartridge.new({:name => 'test'}, true)])
     carts = app.cartridges
-    assert_equal [Cartridge.new(:name => 'test')], carts
-    assert_same carts, app.cartridges
+    assert_equal [Cartridge.new({:name => 'test'}, true)], carts
+    assert_same carts.first, app.cartridges.first
     assert_equal ['test'], app.cartridge_names
   end
 

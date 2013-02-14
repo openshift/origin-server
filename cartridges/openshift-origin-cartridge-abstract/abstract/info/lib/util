@@ -193,7 +193,7 @@ function get_gear_start_order {
 # TODO: Replace with reading from start/stop order files when implemented
 #
 function get_component_order {
-    (cd $APP_HOME; ls -dU {10gen-mms-agent-0.1,cron-1.4,jenkins-client-1.4,metrics-0.1,phpmyadmin-3.4,phpmyadmin-3.5,rockmongo-1.1,community-pod-0.1,diy-0.1,jbossas-7,jbosseap-6.0,jbossews-1.0,jbossews-2.0,jenkins-1.4,nodejs-0.6,perl-5.10,perl-5.16,php-5.3,php-5.4,python-2.6,python-2.7,python-3.3,ruby-1.8,ruby-1.9,zend-5.6,haproxy-1.4} 2>/dev/null) | $1
+    (cd $APP_HOME; ls -dU {10gen-mms-agent-0.1,cron-1.4,jenkins-client-1.4,metrics-0.1,phpmyadmin-3.4,phpmyadmin-3.5,rockmongo-1.1,diy-0.1,jbossas-7,jbosseap-6.0,jbossews-1.0,jbossews-2.0,jenkins-1.4,nodejs-0.6,perl-5.10,perl-5.16,php-5.3,php-5.4,python-2.6,python-2.7,python-3.3,ruby-1.8,ruby-1.9,zend-5.6,haproxy-1.4} 2>/dev/null) | $1
 }
 
 # Get the start order from installed carts
@@ -208,7 +208,7 @@ function get_stop_order {
 
 function get_installed_framework_carts {
     local carts
-    carts=`(cd $OPENSHIFT_HOMEDIR; ls -d {community-pod-0.1,diy-0.1,jbossas-7,jbosseap-6.0,jbossews-1.0,jbossews-2.0,jenkins-1.4,nodejs-0.6,perl-5.10,perl-5.16,php-5.3,php-5.4,python-2.6,python-2.7,python-3.3,ruby-1.8,ruby-1.9,zend-5.6} 2>/dev/null)`
+    carts=`(cd $OPENSHIFT_HOMEDIR; ls -d {diy-0.1,jbossas-7,jbosseap-6.0,jbossews-1.0,jbossews-2.0,jenkins-1.4,nodejs-0.6,perl-5.10,perl-5.16,php-5.3,php-5.4,python-2.6,python-2.7,python-3.3,ruby-1.8,ruby-1.9,zend-5.6} 2>/dev/null)`
     echo "${carts[@]}"
 }
 
