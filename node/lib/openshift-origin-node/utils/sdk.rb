@@ -2,7 +2,7 @@ module OpenShift
   module Utils
     class Sdk
       MARKER = 'CARTRIDGE_VERSION_2'
-      V1_CARTRIDGES = %w(10gen-mms-agent-0.1 community-pod-0.1 
+      V1_CARTRIDGES = %w(10gen-mms-agent-0.1  
            cron-1.4 diy-0.1 haproxy-1.4  
            jbossas-7 jbosseap-6.0 jbossews-1.0 jbossews-2.0 
            jenkins-1.4 jenkins-client-1.4 mongodb-2.2 mysql-5.1 

@@ -341,7 +341,7 @@ module OpenShift
       
       #
       # A District object accessor method
-      # It uses the datastore to query persistant storage
+      # It uses the datastore to query persistent storage
       # 
       # INPUTS:
       # * district_uuid: a lookup handle for a district in the datastore
