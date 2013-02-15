@@ -373,6 +373,7 @@ module OpenShift
         args['--with-quota-files'] = quota_files if quota_files
         args['--with-namespace'] = app.domain.namespace
         args['--with-uid'] = gear.uid if gear.uid
+        args['--with-request-id'] = Thread.current[:user_action_log_uuid]
         args
       end
 

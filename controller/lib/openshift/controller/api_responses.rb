@@ -77,7 +77,7 @@ module OpenShift
           render_error(status, message, error_code, log_tag, nil, nil, nil, internal_error)
         end
 
-        # Renders a REST response with for a succesful request.
+        # Renders a REST response with for a successful request.
         #
         # == Parameters:
         #  status::
@@ -89,7 +89,7 @@ module OpenShift
         #  log_tag::
         #    Tag used in action logs
         #  log_msg::
-        #    Message to be logges in action logs
+        #    Message to be logged in action logs
         #  publish_msg::
         #    If true, adds a message object to the REST response with type=>msg_type and message=>log_msg
         #  msg_type::
