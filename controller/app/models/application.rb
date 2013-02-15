@@ -470,16 +470,17 @@ class Application
   end
 
   # Returns the fully qualified domain name where the application can be accessed
-  def fqdn
-    "#{self.name}-#{self.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+  def fqdn(domain=nil)
+    domain = domain || self.domain
+    "#{self.name}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
   # Returns the ssh URL to access the gear hosting the web_proxy component
-  def ssh_uri
+  def ssh_uri(domain=nil)
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
         gear = group_instance.gears.find_by(app_dns: true)
-        return "#{gear.uuid}@#{fqdn}"
+        return "#{gear.uuid}@#{fqdn(domain)}"
       end
     end
     ""
