@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.11
+Version: 1.4.12
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Feb 15 2013 Dan McPherson <dmcphers@redhat.com> 1.4.12-1
+- Optimize rest api fetching of data from mongo (dmcphers@redhat.com)
+
 * Thu Feb 14 2013 Dan McPherson <dmcphers@redhat.com> 1.4.11-1
 - correction in node selection algorithm (dmcphers@redhat.com)
 
