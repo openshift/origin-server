@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.0.4
+Version:       1.4.0
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -31,6 +31,9 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+- Update to version 1.4.0
+
 * Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.0.4-1
 - Merge pull request #1132 from tdawson/tdawson/fed-update/util-1.0.3
   (dmcphers+openshiftbot@redhat.com)
