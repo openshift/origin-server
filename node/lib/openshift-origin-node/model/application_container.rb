@@ -280,7 +280,7 @@ module OpenShift
       # TODO: remove shell command
       begin
         # Stop the gear. If this fails, consider the tidy a failure.
-        out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
+        out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
         @logger.debug("Stopped gear #{@uuid}. Output:\n#{out}")
       rescue OpenShift::Utils::ShellExecutionException => e
         @logger.error(%Q{
@@ -297,7 +297,7 @@ module OpenShift
       begin
         # Start the gear, and if that fails raise an exception, as the app is now
         # in a bad state.
-        out, err, rc = shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
+        out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
         @logger.debug("Started gear #{@uuid}. Output:\n#{out}")
       rescue OpenShift::Utils::ShellExecutionException => e
         @logger.error(%Q{
@@ -312,14 +312,14 @@ module OpenShift
     def gear_level_tidy(gear_repo_dir, gear_tmp_dir)
       # Git pruning
       tidy_action do
-        run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
-        @logger.debug("Pruned git directory at #{gear_repo_dir}. Output:\n#{out}")
+        OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
+        @logger.debug("Pruned git directory at #{gear_repo_dir}")
       end
 
       # Git GC
       tidy_action do
         OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
-        @logger.debug("Executed git gc for repo #{gear_repo_dir}. Output:\n#{out}")
+        @logger.debug("Executed git gc for repo #{gear_repo_dir}")
       end
 
       # Temp dir cleanup
