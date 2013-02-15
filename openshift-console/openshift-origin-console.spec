@@ -4,16 +4,13 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
+    %global with_systemd 0
+    %global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
+%else
+    %global with_systemd 1
+    %global gemdir /usr/share/rubygems/gems
 %endif
 %{!?scl:%global pkg_name %{name}}
-
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%global with_systemd 1
-%global gemdir /usr/share/rubygems/gems
-%else
-%global with_systemd 0
-%global gemdir /opt/rh/ruby193/root/usr/share/gems/gems
-%endif
 
 Summary:       The OpenShift Management Console
 Name:          openshift-origin-console
@@ -73,6 +70,7 @@ mkdir -p %{buildroot}%{consoledir}/tmp/sockets
 mkdir -p %{buildroot}%{consoledir}/run
 mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 mkdir -p %{buildroot}%{_sysconfdir}/openshift
+mkdir -p %{buildroot}%{_var}/log/openshift/console/httpd
 
 cp -r . %{buildroot}%{consoledir}
 %if %{with_systemd}
@@ -122,6 +120,7 @@ fi
 %files
 %defattr(0640,apache,apache,0750)
 %{openshiftconfigdir}
+%attr(0750,-,-) %{_var}/log/openshift/console/httpd
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/production.log
 %attr(0644,-,-) %ghost %{_var}/log/openshift/console/development.log
 %attr(0750,-,-) %{consoledir}/script
@@ -150,7 +149,7 @@ fi
 
 %post
 /bin/touch %{_var}/log/openshift/console/httpd/error_log
-/bin/touch %{_var}/log/openshift/console/access_log
+/bin/touch %{_var}/log/openshift/console/httpd/access_log
 
 %if %{with_systemd}
 /bin/systemctl --system daemon-reload

@@ -26,7 +26,7 @@ Requires:      openshift-origin-broker
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
+BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
