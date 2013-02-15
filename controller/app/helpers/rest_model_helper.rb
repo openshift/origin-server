@@ -1,30 +1,30 @@
 module RestModelHelper
-  def get_rest_application(application, include_cartridges)
+  def get_rest_application(application, domain, include_cartridges, applications=nil)
     app = if requested_api_version == 1.0
-        RestApplication10.new(application, get_url, nolinks)
+        RestApplication10.new(application, domain, get_url, nolinks, applications)
       else
-        RestApplication.new(application, get_url, nolinks)
+        RestApplication.new(application, domain, get_url, nolinks, applications)
       end
     if include_cartridges
-      app.cartridges = get_application_rest_cartridges(application)
+      app.cartridges = get_application_rest_cartridges(application, domain)
     end
     app
   end
 
-  def get_application_rest_cartridges(application)
+  def get_application_rest_cartridges(application, domain)
     group_instances = application.group_instances_with_scale
 
     cartridges = []
     group_instances.each do |group_instance|
       component_instances = group_instance.all_component_instances
       component_instances.each do |component_instance|
-        cartridges << get_rest_cartridge(application, component_instance, group_instances, application.group_overrides)
+        cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides)
       end
     end
     cartridges
   end
 
-  def get_rest_cartridge(application, component_instance, group_instances_with_scale, group_overrides, include_status_messages=false)
+  def get_rest_cartridge(application, domain, component_instance, group_instances_with_scale, group_overrides, include_status_messages=false)
     group_instance = group_instances_with_scale.select{ |go| go.all_component_instances.include? component_instance }[0]
     group_component_instances = group_instance.all_component_instances
     colocated_instances = group_component_instances - [component_instance]
@@ -39,9 +39,9 @@ module RestModelHelper
     cart = CartridgeCache.find_cartridge(component_instance.cartridge_name)
     comp = cart.get_component(component_instance.component_name)
     if requested_api_version == 1.0
-      RestEmbeddedCartridge10.new(cart, application, component_instance, get_url, messages, nolinks)
+      RestEmbeddedCartridge10.new(cart, application, domain, component_instance, get_url, messages, nolinks)
     else
-      RestEmbeddedCartridge.new(cart, comp, application, component_instance, colocated_instances, scale, get_url, messages, nolinks)
+      RestEmbeddedCartridge.new(cart, comp, application, domain, component_instance, colocated_instances, scale, get_url, messages, nolinks)
     end
   end
 end

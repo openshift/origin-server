@@ -17,7 +17,7 @@ class EmbCartController < BaseController
       application = Application.find_by(domain: domain, canonical_name: id.downcase)
       @application_name = application.name
       @application_uuid = application.uuid
-      cartridges = get_application_rest_cartridges(application) if application
+      cartridges = get_application_rest_cartridges(application, domain) if application
 
       render_success(:ok, "cartridges", cartridges, "LIST_APP_CARTRIDGES", "Listing cartridges for application #{id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
@@ -49,7 +49,7 @@ class EmbCartController < BaseController
 
     begin
       component_instance = application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides, status_messages)
+      cartridge = get_rest_cartridge(application, domain, component_instance, application.group_instances_with_scale, application.group_overrides, status_messages)
       return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Cartridge '#{id}' not found for application '#{application_id}'", 129, "SHOW_APP_CARTRIDGE")
@@ -137,7 +137,7 @@ class EmbCartController < BaseController
       cart_create_reply = application.add_features([name], group_overrides)
 
       component_instance = application.component_instances.find_by(cartridge_name: cart.name, component_name: comp.name)
-      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
+      cartridge = get_rest_cartridge(application, domain, component_instance, application.group_instances_with_scale, application.group_overrides)
 
       messages = []
       log_msg = "Added #{name} to application #{id}"
@@ -179,9 +179,9 @@ class EmbCartController < BaseController
       application.remove_features([feature])
 
       app = if requested_api_version == 1.0
-          RestApplication10.new(application, get_url, nolinks)
+          RestApplication10.new(application, domain, get_url, nolinks)
         else
-          RestApplication.new(application, get_url, nolinks)
+          RestApplication.new(application, domain, get_url, nolinks)
         end
 
       render_success(:ok, "application", app, "REMOVE_CARTRIDGE", "Removed #{cartridge} from application #{id}", true)
@@ -268,7 +268,7 @@ class EmbCartController < BaseController
       application.update_component_limits(component_instance, scales_from, scales_to, additional_storage)
 
       component_instance = application.component_instances.find_by(cartridge_name: id)
-      cartridge = get_rest_cartridge(application, component_instance, application.group_instances_with_scale, application.group_overrides)
+      cartridge = get_rest_cartridge(application, domain, component_instance, application.group_instances_with_scale, application.group_overrides)
       return render_success(:ok, "cartridge", cartridge, "SHOW_APP_CARTRIDGE", "Showing cartridge #{id} for application #{application_id} under domain #{domain_id}")
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, "Application is currently busy performing another operation. Please try again in a minute.", e.code, "PATCH_APP_CARTRIDGE")

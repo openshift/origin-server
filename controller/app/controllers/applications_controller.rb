@@ -12,8 +12,9 @@ class ApplicationsController < BaseController
     end
 
     include_cartridges = (params[:include] == "cartridges")
-    apps = domain.applications.map! { |application| get_rest_application(application, include_cartridges) }
-    render_success(:ok, "applications", apps, "LIST_APPLICATIONS", "Found #{apps.length} applications for domain '#{domain_id}'")
+    apps = domain.applications
+    rest_apps = apps.map! { |application| get_rest_application(application, domain, include_cartridges, apps) }
+    render_success(:ok, "applications", rest_apps, "LIST_APPLICATIONS", "Found #{rest_apps.length} applications for domain '#{domain_id}'")
   end
   
   # GET /domains/[domain_id]/applications/<id>
@@ -34,7 +35,7 @@ class ApplicationsController < BaseController
       
       @application_name = application.name
       @application_uuid = application.uuid
-      render_success(:ok, "application", get_rest_application(application, include_cartridges), "SHOW_APPLICATION", "Application '#{id}' found")
+      render_success(:ok, "application", get_rest_application(application, domain, include_cartridges), "SHOW_APPLICATION", "Application '#{id}' found")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found", 101, "SHOW_APPLICATION")
     end
@@ -112,7 +113,7 @@ class ApplicationsController < BaseController
     current_ip = application.group_instances.first.gears.first.get_public_ip_address rescue nil
     include_cartridges = (params[:include] == "cartridges")
     
-    app = get_rest_application(application, include_cartridges)
+    app = get_rest_application(application, domain, include_cartridges)
     reply = new_rest_reply(:created, "application", app)
   
     messages = []
