@@ -12,6 +12,9 @@ class Lock
   field :locked, type: Boolean, default: false
   field :timeout, type: Integer, default: 0
   field :app_ids, type: Hash, default: {}
+    
+  index({:user_id => 1})
+  create_indexes
 
   # Attempts to lock the {CloudUser}. Once locked, no other threads can obtain a lock on the {CloudUser} or any owned {Application}s.
   # This lock is denied if any of the {Application}s owned by the {CloudUser} are currently locked.
