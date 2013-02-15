@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.4.0
+Version:       1.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,9 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- Add request id to mco requests (dmcphers@redhat.com)
+
 * Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
 - Update to version 1.4.0
 
