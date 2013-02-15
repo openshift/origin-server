@@ -93,7 +93,7 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
-* Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
 - Update to version 1.4.0
 
 * Mon Feb 11 2013 Krishna Raman <kraman@gmail.com> 1.1.3-1
