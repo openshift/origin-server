@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for BIND service
 Name:          rubygem-%{gem_name}
-Version:       1.4.0
+Version:       1.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,13 @@ cp %{buildroot}%{gem_dir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpname
 
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- change %%define to %%global (tdawson@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- 875575 (dmcphers@redhat.com)
+- removing txt records (dmcphers@redhat.com)
+
 * Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
 - Update to version 1.4.0
 
