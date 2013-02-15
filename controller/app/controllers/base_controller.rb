@@ -1,4 +1,5 @@
 class BaseController < ActionController::Base
+  protect_from_forgery
   respond_to :json, :xml
   before_filter :check_version, :only => :show
   before_filter :check_nolinks
@@ -371,4 +372,21 @@ class BaseController < ActionController::Base
     end
     respond_with reply, :status => reply.status
   end
+
+	def has_unguessable_auth?
+	  request.cookies[Rails.configuration.auth_cookie_name].nil?
+	end
+
+	def verified_request?
+	  !protect_against_forgery? || has_unguessable_auth? ||
+	  form_authenticity_token == params[request_forgery_protection_token] ||
+	  form_authenticity_token == request.headers['X-CSRF-Token'] ||
+	  !Rails.configuration.auth[:integrated]
+	end
+
+	def handle_unverified_request
+	  reset_session
+	  request_http_basic_authentication
+	end
+
 end
