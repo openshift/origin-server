@@ -99,7 +99,7 @@ end
 acc = Account.new(:username => opt['username'], :password => opt['userpass'])
 
 if acc.save
-  print "User created succesfully\n"
+  print "User created successfully\n"
 else
   errors = acc.read_errors
   if errors.nil? || errors.empty?
