@@ -1,7 +1,7 @@
 class RestEmbeddedCartridge10 < OpenShift::Model
   attr_accessor :type, :name, :links, :properties, :status_messages
 
-  def initialize(cart, app, cinst, url, status_messages, nolinks=false)
+  def initialize(cart, app, domain, cinst, url, status_messages, nolinks=false)
     self.name = cart.name
     self.type = "standalone"
     self.type = "embedded" if cart.categories.include? "embedded"
@@ -11,7 +11,7 @@ class RestEmbeddedCartridge10 < OpenShift::Model
     if app
       self.properties = cinst.component_properties
       
-      domain_id = app.domain.namespace
+      domain_id = domain.namespace
       app_id = app.name
       if type == "embedded" and not app_id.nil? and not domain_id.nil?
         self.links = {
