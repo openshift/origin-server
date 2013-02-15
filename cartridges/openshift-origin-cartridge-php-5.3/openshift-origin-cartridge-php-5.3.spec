@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 %global cartridgedir %{_libexecdir}/openshift/cartridges/php-5.3
 
 Summary:       Provides php-5.3 support
@@ -15,7 +20,7 @@ Requires:      php < 5.4
 Requires:      httpd < 2.4
 Requires:      php
 Requires:      mod_bw
-Requires:      rubygem-builder
+Requires:      %{?scl:%scl_prefix}rubygem-builder
 Requires:      php-devel
 Requires:      php-pdo
 Requires:      php-gd

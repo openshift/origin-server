@@ -1,14 +1,11 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
-%endif
-%if 0%{?fedora}
+    %global vendor_ruby /opt/rh/%{scl}/root/usr/share/ruby/vendor_ruby/
+    %global mco_agent_root /opt/rh/%{scl}/root/usr/libexec/mcollective/mcollective/agent/
+%else
     %global vendor_ruby /usr/share/ruby/vendor_ruby/
     %global mco_agent_root /usr/libexec/mcollective/mcollective/agent/
-%endif
-%if 0%{?rhel}
-    %global vendor_ruby /opt/rh/ruby193/root/usr/share/ruby/vendor_ruby/
-    %global mco_agent_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/agent/
 %endif
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
@@ -19,9 +16,9 @@ Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
-Requires:      rubygems
-Requires:      rubygem-open4
-Requires:      rubygem-json
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem-open4
+Requires:      %{?scl:%scl_prefix}rubygem-json
 Requires:      rubygem-openshift-origin-node
 Requires:      mcollective
 Requires:      facter

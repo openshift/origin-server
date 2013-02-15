@@ -42,7 +42,7 @@ start() {
         echo -n $"Starting $prog: "
         pushd $osdir > /dev/null
           rm -rf Gemfile.lock
-          bundle install --local > /dev/null
+          scl enable ruby193 "bundle install --local > /dev/null"
           RETVAL=$?
         popd > /dev/null
         if [ $RETVAL != 0 ]; then

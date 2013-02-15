@@ -27,7 +27,7 @@ Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      openssl
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
+BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
@@ -75,7 +75,8 @@ cp -a .%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 # If there were programs installed:
 mkdir -p %{buildroot}/usr/bin
-cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+#cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+cp -a bin/oo-register-user %{buildroot}/usr/bin
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{buildroot}/etc/openshift/plugins.d/
