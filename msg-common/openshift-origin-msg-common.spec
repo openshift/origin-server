@@ -1,13 +1,9 @@
 %if 0%{?fedora}%{?rhel} <= 6
     %global scl ruby193
     %global scl_prefix ruby193-
-%endif
-
-%if 0%{?fedora}
-    %global mco_root /usr/libexec/mcollective/mcollective/
-%endif
-%if 0%{?rhel}
     %global mco_root /opt/rh/ruby193/root/usr/libexec/mcollective/mcollective/
+%else
+    %global mco_root /usr/libexec/mcollective/mcollective/
 %endif
 
 Summary:       Common dependencies of the msg components for OpenShift server and node

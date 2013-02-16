@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/jenkins-client-1.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/jenkins-client-1.4
 
@@ -18,8 +23,8 @@ Requires:      java-1.6.0-openjdk
 %else
 Requires:      java-1.7.0-openjdk
 %endif
-Requires:      rubygems
-Requires:      rubygem-json
+Requires:      %{?scl:%scl_prefix}rubygems
+Requires:      %{?scl:%scl_prefix}rubygem-json
 BuildArch:     noarch
 Obsoletes:     cartridge-jenkins-client-1.4
 
