@@ -426,7 +426,7 @@ module OpenShift
       cart_model.do_control("status", cart_name)
     end
 
-    def thread_dump(cart_name)
+    def threaddump(cart_name)
       cart_model.do_control("threaddump", cart_name)
     end
   end
