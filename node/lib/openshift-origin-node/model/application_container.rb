@@ -44,15 +44,26 @@ module OpenShift
 
       @config = OpenShift::Config.new
 
-      @uuid = container_uuid
+      @uuid             = container_uuid
       @application_uuid = application_uuid
-      @container_name = container_name
-      @user = UnixUser.new(application_uuid, container_uuid, user_uid,
-        app_name, container_name, namespace, quota_blocks, quota_files)
-      @state = OpenShift::Utils::ApplicationState.new(container_uuid)
+      @container_name   = container_name
+      @user             = UnixUser.new(application_uuid, container_uuid, user_uid,
+                                       app_name, container_name, namespace, quota_blocks, quota_files)
+      @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
 
-      # smells
-      @cart_model = nil
+      v1_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v1_cartridge_format'))
+      v2_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v2_cartridge_format'))
+
+      if  v1_marker_exist and v2_marker_exist
+        raise 'Node cannot create both v1 and v2 formatted cartridges. Delete one of the cartridge format marker files'
+      end
+
+      # When v2 is the default cartridge format flip the test...
+      @cart_model = if v2_marker_exist
+                      V2CartridgeModel.new(@config, @user, self, @logger)
+                    else
+                      V1CartridgeModel.new(@config, @user, self, @logger)
+                    end
     end
 
     def name
