@@ -52,9 +52,7 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %{mco_agent_root}openshift.rb
 %{vendor_ruby}facter/openshift_facts.rb
 %attr(0700,-,-) /usr/libexec/mcollective/update_yaml.rb
-%attr(0700,-,-) /etc/cron.minutely/openshift-facts
-/etc/cron.minutely/openshift-facts
-
+%attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
