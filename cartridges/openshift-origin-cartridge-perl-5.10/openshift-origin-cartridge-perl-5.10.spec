@@ -22,6 +22,7 @@ Requires:      perl-CPANPLUS
 Requires:      rpm-build
 Requires:      expat-devel
 Requires:      perl-IO-Socket-SSL
+Requires:      gdbm-devel
 Requires:      httpd < 2.4
 BuildRequires: git
 BuildArch:     noarch
