@@ -68,7 +68,7 @@ if job_available?
     if cancelled == nil
       puts ""
       puts "**BUILD FAILED/CANCELLED**"
-      puts "Please see the Jenkins log for more details via rhc-tail-files"
+      puts "Please see the Jenkins log for more details via 'rhc tail'"
       exit 1
     end
     sleep 1
