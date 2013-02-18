@@ -35,7 +35,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @config = mock('OpenShift::Config')
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
 
-    OpenShift::Utils::Sdk.stubs(:is_new_sdk_app).returns(true)
+    OpenShift::Utils::Sdk.stubs(:new_sdk_app?).returns(true)
 
     script_dir = File.expand_path(File.dirname(__FILE__))
     cart_base_path = File.join(script_dir, '..', '..', '..', 'cartridges')
