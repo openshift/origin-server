@@ -64,10 +64,13 @@ rm -rf $HAPROXY_DIR/.ssh
 rm_cartridge_instance_dir "$cartridge_type"
 
 rm -rf ${APP_HOME}/.openshift
-rm -f /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/000000_haproxy.conf
 
 if [ "$application" != "$OPENSHIFT_APP_NAME" ]; then
-   rm -rf "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}.conf" "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${OPENSHIFT_APP_NAME}"
+    oo-frontend-disconnect \
+        --with-container-uuid "$uuid" \
+        --with-container-name "$application" \
+        --with-namespace "$namespace" \
+        --path "" --path "/health" --path "/haproxy-status"
 fi
 
 $CART_INFO_DIR/hooks/pre-destroy "$@"

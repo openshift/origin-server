@@ -1,3 +1,8 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 %global cartridgedir %{_libexecdir}/openshift/cartridges/embedded/postgresql-8.4
 %global frameworkdir %{_libexecdir}/openshift/cartridges/postgresql-8.4
 
@@ -30,10 +35,7 @@ Requires:      php-pgsql
 Requires:      gdal
 Requires:      postgis
 Requires:      python-psycopg2
-%if 0%{?rhel} <= 6 && 0%{?fedora} <=16
-Requires:      ruby-postgres
-%endif
-Requires:      rubygem-pg
+Requires:      %{?scl:%scl_prefix}rubygem-pg
 Requires:      rhdb-utils
 Requires:      uuid-pgsql
 BuildRequires: git

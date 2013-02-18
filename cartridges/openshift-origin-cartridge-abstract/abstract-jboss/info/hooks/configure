@@ -245,5 +245,4 @@ fi
 
 $JBOSS_CARTRIDGE_ROOT/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-restart_httpd_graceful
 enable_cgroups

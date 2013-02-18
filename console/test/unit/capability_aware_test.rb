@@ -2,8 +2,8 @@ require File.expand_path('../../test_helper', __FILE__)
 
 class CapabilityAwareTest < ActiveSupport::TestCase
 
-  def obj
-    @test_obj ||= Class.new(Object) do
+  def obj_class
+    Class.new(Object) do
       def self.around_filter(*args); end
       attr_accessor :current_user
       def session
@@ -11,7 +11,10 @@ class CapabilityAwareTest < ActiveSupport::TestCase
       end
 
       include CapabilityAware
-    end.new
+    end
+  end
+  def obj
+    @test_obj ||= obj_class.new
   end
 
   def session_defaults(*args)

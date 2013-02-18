@@ -16,7 +16,7 @@
 
 Summary:       OpenShift Origin broker components
 Name:          openshift-origin-broker
-Version:       1.1.2
+Version:       1.4.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -27,7 +27,7 @@ Requires:      httpd
 # requirements.
 Requires:      bind
 Requires:      mod_ssl
-Requires:      mod_passenger
+Requires:      %{?scl:%scl_prefix}mod_passenger
 Requires:      mongodb-server
 %if 0%{?scl:1}
 Requires:      openshift-origin-util-scl
@@ -206,19 +206,93 @@ _EOF
 chcon -R -t httpd_log_t %{_var}/log/openshift/broker
 chcon -R -t httpd_tmp_t %{brokerdir}/httpd/run
 chcon -R -t httpd_var_run_t %{brokerdir}/httpd/run
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 #/sbin/restorecon -rv %{_datarootdir}/rubygems/gems/passenger-*
 /sbin/restorecon -rv %{brokerdir}/tmp
 /sbin/restorecon -v '%{_var}/log/openshift/user_action.log'
 
 %postun
-/sbin/fixfiles -R rubygem-passenger restore
-/sbin/fixfiles -R mod_passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}rubygem-passenger restore
+/sbin/fixfiles -R %{?scl:%scl_prefix}mod_passenger restore
 /sbin/restorecon -R -v /var/run
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- Bump up version (tdawson@redhat.com)
+- Added missing create for broker httpd logs dir. Updated owner of broker and
+  broker httpd logs to apache:apache. (kraman@gmail.com)
+- Fixing bad merge (kraman@gmail.com)
+- Fixing bad merge (kraman@gmail.com)
+- move logs to a more standard location (admiller@redhat.com)
+- Merge pull request #1289 from
+  smarterclayton/isolate_api_behavior_from_base_controller
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1288 from smarterclayton/improve_action_logging
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1339 from tdawson/tdawson/cleanup-spec-headers
+  (dmcphers+openshiftbot@redhat.com)
+- Merge branch 'improve_action_logging' into
+  isolate_api_behavior_from_base_controller (ccoleman@redhat.com)
+- Merge remote-tracking branch 'origin/master' into improve_action_logging
+  (ccoleman@redhat.com)
+- change %%define to %%global (tdawson@redhat.com)
+- Bug 884934 (asari.ruby@gmail.com)
+- Merge pull request #1334 from kraman/f18_fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Reading hostname from node.conf file instead of relying on localhost
+  Splitting test features into common, rhel only and fedora only sections
+  (kraman@gmail.com)
+- Setting namespace and canonical_namespace for the domain together and doing
+  the same for the application (abhgupta@redhat.com)
+- Fixing init-quota to allow for tabs in fstab file Added entries in abstract
+  for php-5.4, perl-5.16 Updated python-2.6,php-5.3,perl-5.10 cart so that it
+  wont build on F18 Fixed mongo broker auth Relaxed version requirements for
+  acegi-security and commons-codec when generating hashed password for jenkins
+  Added Apache 2.4 configs for console on F18 Added httpd 2.4 specific restart
+  helper (kraman@gmail.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- move rest api tests to functionals (dmcphers@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- Improving coverage tooling (dmcphers@redhat.com)
+- Merge pull request #1303 from pravisankar/dev/ravi/app-lock-timeout
+  (dmcphers+openshiftbot@redhat.com)
+- fix issue with reserve given not taking the valid uid (dmcphers@redhat.com)
+- - Added Application Lock Timeout (default: 10 mins) - Unit tests for Lock
+  model (rpenta@redhat.com)
+- Ensure lib directory is in the autoload path, do not require rubygems when
+  developing from source (ccoleman@redhat.com)
+- Do not use a global variable to initialize a RestReply - use a controller
+  helper method. (ccoleman@redhat.com)
+- netrc should only be loaded in source mode (test env loads it via a patched
+  gem) (ccoleman@redhat.com)
+- Allow broker to be started using source directly (ccoleman@redhat.com)
+- working on testing coverage (dmcphers@redhat.com)
+- Handle numbers for users and passwords (dmcphers@redhat.com)
+- US2626 changes based on feedback - Add application name in Usage and
+  UsageRecord models - Change 'price' to 'usage_rate_usd' in rest cartridge
+  model - Change 'charges' to 'usage_rates' in rails configuration - Rails
+  configuration stores usage_rates for different currencies (currently only
+  have usd) (rpenta@redhat.com)
+- Merge pull request #1260 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for bug 906266, bug 906230, and bug 906233 (abhgupta@redhat.com)
+- US3350 - Expose a plan_upgrade_enabled capability that indicates whether
+  users can select a plan (ccoleman@redhat.com)
+- Merge pull request #1230 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1232 from pravisankar/dev/ravi/fix-broker-extended-tests
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1233 from danmcp/master (dmcphers@redhat.com)
+- Fix Broker extended tests, Don't call observers for cloud user model if the
+  record is already persisted. (rpenta@redhat.com)
+- remove consumed_gear_sizes (dmcphers@redhat.com)
+- removing legacy broker rest api (abhgupta@redhat.com)
+
+* Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+- Update to version 1.4.0
+
 * Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.1.2-1
 - Merge pull request #1212 from brenton/misc5
   (dmcphers+openshiftbot@redhat.com)

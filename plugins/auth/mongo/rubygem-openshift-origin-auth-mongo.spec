@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mongo auth service
 Name:          rubygem-%{gem_name}
-Version:       1.1.3
+Version:       1.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -27,7 +27,7 @@ Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 Requires:      openssl
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
+BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
@@ -75,7 +75,8 @@ cp -a .%{gem_dir}/* %{buildroot}%{gem_dir}/
 
 # If there were programs installed:
 mkdir -p %{buildroot}/usr/bin
-cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+#cp -a ./%{_bindir}/* %{buildroot}/usr/bin
+cp -a bin/oo-register-user %{buildroot}/usr/bin
 
 mkdir -p %{buildroot}/etc/openshift/plugins.d
 cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{buildroot}/etc/openshift/plugins.d/
@@ -93,6 +94,12 @@ cp %{buildroot}/%{gem_instdir}/conf/openshift-origin-auth-mongo.conf.example %{b
 %doc %{gem_docdir}
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- Add request id to mco requests (dmcphers@redhat.com)
+
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+- Update to version 1.4.0
+
 * Mon Feb 11 2013 Krishna Raman <kraman@gmail.com> 1.1.3-1
 - Merge pull request #1289 from
   smarterclayton/isolate_api_behavior_from_base_controller

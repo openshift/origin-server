@@ -1,7 +1,8 @@
 Name: jbossas-7
+Namespace: JBOSSAS
 Display-Name: JBoss Application Server 7.1
 Description: "The leading open source Java EE6 application server for enterprise Java applications. Popular development frameworks include Seam, CDI, Weld, and Spring."
-Version: 7.1.0
+Version: 7
 License: ASL 2.0
 Vendor:  jboss.org
 Categories:
@@ -82,8 +83,8 @@ Subscribes:
   set_jboss_remoting:
     Type: "NET_TCP:jboss-remoting-info"
 Endpoints:
-  - PROXY_PORT: 8080
-  - CLUSTER_PROXY_PORT: 7600
-  - MESSAGING_PORT: 5445
-  - MESSAGING_THROUGHPUT_PORT: 5455
-  - REMOTING_PORT: 4447
+  - "IP:PORT(8080):PROXY_PORT"
+  - "IP:CLUSTER_PORT(7600):CLUSTER_PROXY_PORT"
+  - "IP:MESSAGING_PORT(5445):MESSAGING_PROXY_PORT"
+  - "IP:MESSAGING_THROUGHPUT_PORT(5455):MESSAGING_THROUGHPUT_PROXY_PORT"
+  - "IP:REMOTING_PORT(4447):REMOTING_PROXY_PORT"

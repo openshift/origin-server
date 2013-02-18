@@ -63,6 +63,7 @@ class Application
   embeds_many :app_ssh_keys, class_name: ApplicationSshKey.name
   
   index({'group_instances.gears.uuid' => 1}, {:unique => true, :sparse => true})
+  index({'domain_id' => 1})
   create_indexes
 
   attr_accessor :user_agent
@@ -143,7 +144,7 @@ class Application
     self.save
   end
 
-  # Setter for applicaton name - sets the name and the canonical_name
+  # Setter for application name - sets the name and the canonical_name
   def name=(app_name)
     self.canonical_name = app_name.downcase
     super
@@ -159,7 +160,7 @@ class Application
   #   The pending domain operation that this update is part of.
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   def update_namespace(old_namespace, new_namespace, parent_op=nil)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
@@ -191,7 +192,7 @@ class Application
   #   The pending domain operation that this update is part of.
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   def remove_namespace(old_namespace, parent_op=nil)
     Application.run_in_application_lock(self) do
       result_io = ResultIO.new
@@ -206,14 +207,14 @@ class Application
   #
   # == Parameters:
   # user_id::
-  #   The ID of the user assoicated with the keys. If the user ID is nil, then the key is assumed to be a system generated key.
+  #   The ID of the user associated with the keys. If the user ID is nil, then the key is assumed to be a system generated key.
   # keys::
   #   Array of keys to add to the application.
   # parent_op::
   #   {PendingDomainOps} object used to track this operation at a domain level.
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   def add_ssh_keys(user_id, keys, parent_op)
     return if keys.empty?
     key_attrs = get_updated_ssh_keys(user_id, keys)
@@ -231,14 +232,14 @@ class Application
   #
   # == Parameters:
   # user_id::
-  #   The ID of the user assoicated with the keys. Update to system keys is not supported.
+  #   The ID of the user associated with the keys. Update to system keys is not supported.
   # keys_attrs::
   #   Array of keys attributes to remove from the application. The name of the key is used to match existing keys.
   # parent_op::
   #   {PendingDomainOps} object used to track this operation at a domain level.
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   def remove_ssh_keys(user_id, keys_attrs, parent_op=nil)
     return if keys_attrs.empty?
     key_attrs = get_updated_ssh_keys(user_id, keys_attrs)
@@ -470,16 +471,17 @@ class Application
   end
 
   # Returns the fully qualified domain name where the application can be accessed
-  def fqdn
-    "#{self.name}-#{self.domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
+  def fqdn(domain=nil)
+    domain = domain || self.domain
+    "#{self.name}-#{domain.namespace}.#{Rails.configuration.openshift[:domain_suffix]}"
   end
 
   # Returns the ssh URL to access the gear hosting the web_proxy component
-  def ssh_uri
+  def ssh_uri(domain=nil)
     self.group_instances.each do |group_instance|
       if group_instance.gears.where(app_dns: true).count > 0
         gear = group_instance.gears.find_by(app_dns: true)
-        return "#{gear.uuid}@#{fqdn}"
+        return "#{gear.uuid}@#{fqdn(domain)}"
       end
     end
     ""
@@ -675,7 +677,7 @@ class Application
   #   Fully qualified domain name of the alias to associate with this application
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   #
   # == Raises:
   # OpenShift::UserException if the alias is already been associated with an application.
@@ -712,7 +714,7 @@ class Application
   #   Fully qualified domain name of the alias to remove from this application
   #
   # == Returns:
-  # {PendingAppOps} object which tracks the progess of the operation.
+  # {PendingAppOps} object which tracks the progress of the operation.
   def remove_alias(fqdn)
     fqdn = fqdn.downcase
     

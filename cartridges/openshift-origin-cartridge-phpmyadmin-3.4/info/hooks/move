@@ -37,5 +37,3 @@ PHPMYADMIN_IP=`embedded_find_open_ip $uid $APP_HOME`
 echo "export OPENSHIFT_PHPMYADMIN_IP='$PHPMYADMIN_IP'" > $APP_HOME/.env/OPENSHIFT_PHPMYADMIN_IP
 $CART_INFO_DIR/bin/deploy_httpd_config.sh $application $uuid $PHPMYADMIN_IP
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $PHPMYADMIN_IP
-
-restart_httpd_graceful

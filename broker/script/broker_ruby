@@ -1,0 +1,5 @@
+export LD_LIBRARY_PATH=/opt/rh/ruby193/root/usr/local/lib64:/opt/rh/ruby193/root/usr/lib64
+export GEM_HOME=/opt/rh/ruby193/root/usr/share/gems
+export GEM_PATH=/opt/rh/ruby193/root/usr/local/share/gems:/opt/rh/ruby193/root/usr/share/gems
+
+ruby193-ruby $@

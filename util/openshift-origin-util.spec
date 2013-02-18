@@ -1,13 +1,18 @@
+%if 0%{?fedora}%{?rhel} <= 6
+    %global scl ruby193
+    %global scl_prefix ruby193-
+%endif
+
 Summary:       Utility scripts for the OpenShift Origin broker and node
 Name:          openshift-origin-util
-Version:       1.0.4
+Version:       1.4.1
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      bind-utils
-Requires:      ruby
-Requires:      rubygems
+Requires:      %{?scl:%scl_prefix}ruby
+Requires:      %{?scl:%scl_prefix}rubygems
 BuildArch:     noarch
 
 %description
@@ -31,6 +36,29 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- change %%define to %%global (tdawson@redhat.com)
+- <oo-diagnostics> many minor fixes, notices about bzs 893884+849558+892871,
+  check for services enabled (lmeyer@redhat.com)
+- move rest api tests to functionals (dmcphers@redhat.com)
+- <oo-stats, oo-diagnostics> allow -w .5, improve options errmsg
+  (lmeyer@redhat.com)
+- Merge pull request #1247 from tdawson/tdawson/openshift-origin-console-0.4.1
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1133 from mscherer/fix_oodiag_regexp
+  (dmcphers+openshiftbot@redhat.com)
+- finishing touches of move from openshift-console to openshift-origin-console
+  (tdawson@redhat.com)
+- be more precise with locate, as the current shell command also match :
+  /var/lib/mock/epel-6-x86_64/root/builddir/.rpmmacros
+  /home/misc/checkout/git/config/modules/pgsql/manifests/monitor/.rpms.swp
+  (misc@zarb.org)
+- use a more precise match, since using grep would also result into matching
+  mlocate-debuginfo, or anything with mlocate in the name (misc@zarb.org)
+
+* Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+- Update to version 1.4.0
+
 * Mon Jan 28 2013 Krishna Raman <kraman@gmail.com> 1.0.4-1
 - Merge pull request #1132 from tdawson/tdawson/fed-update/util-1.0.3
   (dmcphers+openshiftbot@redhat.com)

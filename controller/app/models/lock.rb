@@ -12,6 +12,9 @@ class Lock
   field :locked, type: Boolean, default: false
   field :timeout, type: Integer, default: 0
   field :app_ids, type: Hash, default: {}
+    
+  index({:user_id => 1})
+  create_indexes
 
   # Attempts to lock the {CloudUser}. Once locked, no other threads can obtain a lock on the {CloudUser} or any owned {Application}s.
   # This lock is denied if any of the {Application}s owned by the {CloudUser} are currently locked.
@@ -21,7 +24,7 @@ class Lock
   #   The {CloudUser} to attempt to lock
   #
   # == Returns:
-  # True if the lock was succesful.
+  # True if the lock was successful.
   
   def self.create_lock(user)
     lock = Lock.with(consistency: :strong).find_or_create_by( :user_id => user._id )
@@ -53,7 +56,7 @@ class Lock
   #   The {CloudUser} to attempt to unlock
   #
   # == Returns:
-  # True if the unlock was succesful.
+  # True if the unlock was successful.
   def self.unlock_user(user, app)
     begin
       query = {:user_id => user._id, :locked => true, "app_ids.#{app._id}" => { "$exists" => true }}
@@ -73,7 +76,7 @@ class Lock
   #   The {Application} to attempt to lock
   #
   # == Returns:
-  # True if the lock was succesful.
+  # True if the lock was successful.
   def self.lock_application(application, timeout=600)
     begin
       user_id = application.domain.owner_id
@@ -96,7 +99,7 @@ class Lock
   #   The {Application} to attempt to unlock
   #
   # == Returns:
-  # True if the unlock was succesful.
+  # True if the unlock was successful.
   def self.unlock_application(application)
     begin
       user_id = application.domain.owner_id

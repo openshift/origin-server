@@ -45,9 +45,6 @@ then
     exit 137
 fi
 
-# check that the proxy pass include directory exists
-[ -d "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}" ] || error "httpd conf dir not available" 136
-
 #
 # Create the core of the application
 #
@@ -106,8 +103,6 @@ run_as_user "${CART_INFO_DIR}/bin/app_ctl.sh start" || error "Failed to start ${
 # Create virtualhost definition for apache
 #
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
-
-restart_httpd_graceful
 
 
 # Grab the env vars so we can print them

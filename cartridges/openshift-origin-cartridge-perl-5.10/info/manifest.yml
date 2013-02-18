@@ -1,7 +1,8 @@
 Name: perl-5.10
+Namespace: PERL
 Display-Name: Perl 5.10
 Description: "Perl is a high-level, general-purpose, interpreted, dynamic programming language. Dynamic content produced by Perl scripts can be served in response to incoming web requests."
-Version: 1.0.0
+Version: 5.10
 License: ASL 2.0
 Categories:
   - service
@@ -78,4 +79,4 @@ Group-Overrides:
     - perl-5.10
     - web_proxy
 Endpoints:
-  - PROXY_PORT: 8080
+  - "IP:PORT(8080):PROXY_PORT"

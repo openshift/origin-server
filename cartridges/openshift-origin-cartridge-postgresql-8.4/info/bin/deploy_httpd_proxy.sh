@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Create virtualhost definition for apache
+# Create Frontend Routes
 #
 # node_ssl_template.conf gets copied in unaltered and should contain
 # all of the configuration bits required for ssl to work including key location
@@ -23,34 +23,12 @@ IP=$4
 cartridge_type="postgresql-8.4"
 
 source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/$cartridge_type/info
 
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/postgresql-8.4.conf"
-  Alias /health $CART_INFO_DIR/configuration/health.html
-  Alias / $CART_INFO_DIR/configuration/index.html
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/00000_default.conf"
-  ServerName ${application}-${namespace}.${CLOUD_DOMAIN}
-  ServerAdmin mmcgrath@redhat.com
-  DocumentRoot /var/www/html
-  DefaultType None
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}.conf"
-<VirtualHost *:80>
-  RequestHeader append X-Forwarded-Proto "http"
-
-  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
-</VirtualHost>
-
-<VirtualHost *:443>
-  RequestHeader append X-Forwarded-Proto "https"
-
-$(/bin/cat $CART_INFO_DIR/configuration/node_ssl_template.conf)
-
-  Include /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/*.conf
-</VirtualHost>
-EOF
+oo-frontend-connect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path "" --target "$CART_INFO_DIR/configuration/index.html" --file \
+    --path "/health" --target "$CART_INFO_DIR/configuration/index.html" --file

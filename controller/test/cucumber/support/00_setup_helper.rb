@@ -25,7 +25,7 @@ $selinux_type = "openshift_initrc_t"
 # User registration flag and script
 $registration_required = true
 if File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-mongo.conf")
-  $user_register_script_format = "/usr/bin/oo-register-user -l admin -p admin --username %s --userpass %s"
+  $user_register_script_format = "oo-register-user -l admin -p admin --username %s --userpass %s"
 elsif File.exists?("/etc/openshift/plugins.d/openshift-origin-auth-remote-user.conf")
   $user_register_script_format = "/usr/bin/htpasswd -b /etc/openshift/htpasswd %s %s"
 end

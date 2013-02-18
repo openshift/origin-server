@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for BIND service
 Name:          rubygem-%{gem_name}
-Version:       1.1.1
+Version:       1.4.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -27,7 +27,7 @@ Requires:      openshift-origin-broker
 Requires:      selinux-policy-targeted
 Requires:      policycoreutils-python
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
+BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
@@ -89,6 +89,16 @@ cp %{buildroot}%{gem_dir}/gems/openshift-origin-dns-bind-*/doc/examples/dhcpname
 
 
 %changelog
+* Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
+- change %%define to %%global (tdawson@redhat.com)
+- remove BuildRoot: (tdawson@redhat.com)
+- make Source line uniform among all spec files (tdawson@redhat.com)
+- 875575 (dmcphers@redhat.com)
+- removing txt records (dmcphers@redhat.com)
+
+* Fri Feb 08 2013 Troy Dawson <tdawson@redhat.com> 1.4.0-1
+- Update to version 1.4.0
+
 * Fri Jan 11 2013 Troy Dawson <tdawson@redhat.com> 1.1.1-1
 - updated gemspecs so they work with scl rpm spec files. (tdawson@redhat.com)
 - F18 compatibility fixes   - apache 2.4   - mongo journaling   - JDK 7   -

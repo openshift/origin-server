@@ -34,6 +34,8 @@ class Domain
   embeds_many :pending_ops, class_name: PendingDomainOps.name
   
   index({:canonical_namespace => 1}, {:unique => true})
+  index({:owner_id => 1})
+  index({:user_ids => 1})
   create_indexes
   
   validates :namespace,

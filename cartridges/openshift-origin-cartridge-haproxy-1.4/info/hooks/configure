@@ -118,5 +118,4 @@ echo "export OPENSHIFT_HAPROXY_LOG_DIR='$HAPROXY_DIR/logs/'" > $APP_HOME/.env/OP
 #
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-restart_httpd_graceful
 enable_cgroups

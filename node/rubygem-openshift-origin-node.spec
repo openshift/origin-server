@@ -39,7 +39,7 @@ Requires:      pam_openshift
 Requires:      quota
 
 %if 0%{?fedora}%{?rhel} <= 6
-BuildRequires: ruby193-build
+BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
@@ -117,6 +117,7 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{na
 %endif
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
+mv httpd/openshift_route.include %{buildroot}/etc/httpd/conf.d/
 
 #%if 0%{?fedora}%{?rhel} <= 6
 mkdir -p %{buildroot}/etc/rc.d/init.d/
@@ -144,6 +145,7 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %attr(0750,-,-) /etc/httpd/conf.d/openshift
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node.conf
 %config(noreplace) /etc/httpd/conf.d/000001_openshift_origin_node_servername.conf
+%config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %attr(0755,-,-) %{appdir}
 %attr(0750,root,apache) %{appdir}/.httpd.d
 
@@ -179,6 +181,20 @@ fi
 if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
+
+# Create route database files if missing
+for map in nodes aliases idler sts
+do
+    mapf="/etc/httpd/conf.d/openshift/${map}"
+    touch "${mapf}.txt"
+    /usr/sbin/httxt2dbm -f DB -i "${mapf}.txt" -o "${mapf}.db"
+done
+
+for map in containers routes
+do
+    mapf="/etc/httpd/conf.d/openshift/${map}"
+    touch "${mapf}.json"
+done
 
 %preun
 # disable cgroups on sshd logins

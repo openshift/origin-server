@@ -72,22 +72,45 @@ def hosted?
   status == 0
 end
 
-def http_call(api)
+def http_call(api, internal_test=false)
   timeout = api.request_timeout || $default_timeout
-  headers = {}
-  headers["Authorization"] = "Basic #{$credentials}"
-  if api.version
-    headers["Accept"] = "application/json; version=" + api.version
+
+  if internal_test
+    method = nil
+    if api.method=="GET"
+      method = :get
+    elsif api.method=="POST"
+      method = :post
+    elsif api.method=="PUT"
+      method = :put
+    elsif api.method=="DELETE"
+      method = :delete
+    end
+    if method
+      headers = {}
+      headers["HTTP_ACCEPT"] = "application/json" + (api.version ? "; version=#{api.version}" : "")
+      headers["HTTP_AUTHORIZATION"] = "Basic #{$credentials}"
+      request_via_redirect(method, "/rest" + api.uri, api.request, headers)
+      return @response.body.strip
+    end
   else
-    headers["Accept"] = "application/json"
+    headers = {}
+    headers["Authorization"] = "Basic #{$credentials}"
+    if api.version
+      headers["Accept"] = "application/json; version=" + api.version
+    else
+      headers["Accept"] = "application/json"
+    end
+    request = RestClient::Request.new(:url => ($end_point + api.uri), :method => api.method, 
+                                      :headers => headers, :payload => api.request, :timeout => timeout)
+    begin
+      response = request.execute
+    rescue RestClient::ExceptionWithResponse => e
+      puts e.response
+      raise e
+    end
+    return response
   end
-  request = RestClient::Request.new(:url => ($end_point + api.uri), :method => api.method, 
-                                    :headers => headers, :payload => api.request, :timeout => timeout)
-  begin
-    response = request.execute
-  rescue RestClient::ExceptionWithResponse => e
-    puts e.response
-    raise e
-  end
-  response
+  
+  return  nil
 end

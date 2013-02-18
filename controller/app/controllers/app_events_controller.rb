@@ -72,9 +72,9 @@ class AppEventsController < BaseController
           #TODO: We need to reconsider how we are reporting messages to the client
           message = Message.new(:result, msg, 0)
           app = if requested_api_version == 1.0
-              RestApplication10.new(application, get_url, nolinks)
+              RestApplication10.new(application, domain, get_url, nolinks)
             else
-              RestApplication.new(application, get_url, nolinks)
+              RestApplication.new(application, domain, get_url, nolinks)
             end
           return render_success(:ok, "application", app, "#{event.sub('-', '_').upcase}_APPLICATION", "Application event '#{event}' successful", true, nil, [message])
         when 'tidy'
@@ -99,9 +99,9 @@ class AppEventsController < BaseController
 
     application = Application.find_by(domain: domain, canonical_name: id.downcase)
     app = if requested_api_version == 1.0
-        RestApplication10.new(application, get_url, nolinks)
+        RestApplication10.new(application, domain, get_url, nolinks)
       else
-        RestApplication.new(application, get_url, nolinks)
+        RestApplication.new(application, domain, get_url, nolinks)
       end
     @reply = new_rest_reply(:ok, "application", app)
     message = Message.new("INFO", msg)

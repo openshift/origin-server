@@ -43,9 +43,9 @@ class EmbCartEventsController < BaseController
     end
 
     app = if requested_api_version == 1.0
-        RestApplication10.new(application, get_url, nolinks)
+        RestApplication10.new(application, domain, get_url, nolinks)
       else
-        RestApplication.new(application, get_url, nolinks)
+        RestApplication.new(application, domain, get_url, nolinks)
       end
     render_success(:ok, "application", app, "CARTRIDGE_EVENT", "Added #{event} on #{cartridge} for application #{id}", true) 
   end

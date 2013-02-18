@@ -3,9 +3,9 @@ class RestEmbeddedCartridge < OpenShift::Model
     :help_topics, :links, :properties, :display_name, :description, :scales_from,
     :scales_to, :current_scale, :supported_scales_from, :supported_scales_to,
     :scales_with, :base_gear_storage, :additional_gear_storage, :gear_profile, :collocated_with, 
-    :status_messages, :usage_rate_usd
+    :status_messages, :usage_rates
                    
-  def initialize(cart, comp, app, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
+  def initialize(cart, comp, app, domain, cinst, colocated_cinsts, scale, url, status_messages, nolinks=false)
     self.name = cart.name
     self.status_messages = status_messages
     self.version = cart.version
@@ -17,7 +17,7 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.website = cart.website
     self.type = "standalone"
     self.type = "embedded" if cart.is_embeddable?
-    self.usage_rate_usd = cart.usage_rate(:usd)
+    self.usage_rates = cart.usage_rates
 
     unless scale.nil?
       self.scales_from = scale[:min]
@@ -68,7 +68,7 @@ class RestEmbeddedCartridge < OpenShift::Model
     self.help_topics = cart.help_topics
 
     if app and !nolinks
-      domain_id = app.domain.namespace
+      domain_id = domain.namespace
       app_id = app.name
       if not app_id.nil? and not domain_id.nil?
         self.links = {

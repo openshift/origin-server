@@ -82,12 +82,15 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  out, err, rc = frontend.add_alias(alias_name)
+  frontend.add_alias(alias_name)
+rescue OpenShift::FrontendHttpServerExecException => e
+  $stderr.puts(e.message + e.stdout + e.stderr)
+  exit e.rc
+rescue OpenShift::FrontendHttpServerException => e
+  $stderr.puts(e.message)
+  exit 129
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
-else
-  $stdout.puts(out) if out != ""
-  $stderr.puts(err) if err != ""
-  exit rc
 end
+exit 0

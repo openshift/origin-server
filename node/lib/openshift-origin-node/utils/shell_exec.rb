@@ -1,5 +1,5 @@
 #--
-# Copyright 2010 Red Hat, Inc.
+# Copyright 2010-2013 Red Hat, Inc.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,138 @@ module OpenShift
         self.rc = rc 
         self.stdout = stdout
         self.stderr = stderr
+      end
+    end
+
+    # Exception used to signal command overran it's timeout in seconds
+    class TimeoutExceeded < RuntimeError
+      attr_reader :seconds
+
+      # seconds - integer of maximum seconds to wait on command
+      def initialize(seconds)
+        super 'Timeout exceeded'
+        @seconds = seconds
+      end
+
+      def to_s
+        super + " duration of #@seconds seconds"
+      end
+    end
+
+    # oo_spawn(command, [, options]) -> [stdout, stderr, exit status]
+    #
+    # spawn executes specified command and return its stdout, stderr and exit status.
+    # Or, raise exceptions if certain conditions are not met.
+    #
+    # command: command line string which is passed to the standard shell
+    #
+    # options: hash
+    #   :env: hash
+    #     name => val : set the environment variable
+    #     name => nil : unset the environment variable
+    #   :unsetenv_others => true   : clear environment variables except specified by :env
+    #   :chdir => path             : set current directory when running command
+    #   :expected_exitstatus       : An Integer value for the expected return code of command
+    #                              : If not set spawn() returns exitstatus from command otherwise
+    #                              : raise an error if exitstatus is not expected_exitstatus
+    #   :timeout                   : Maximum number of seconds to wait for command to finish. default: 3600
+    #   :uid                       : fork and spawn command as given user, :expected_exitstatus is not supported.
+    #   :gid                       : fork and spawn command as given user's group, defaults to uid
+    def self.oo_spawn(command, options = {})
+      opts                   = {}
+      opts[:chdir]           = (options[:chdir] ||= '.')
+      opts[:unsetenv_others] = options[:unsetenv_others] ||= false
+      opts[:close_others]    = true
+      options[:env]          ||= {}
+      options[:gid]          ||= options[:uid]
+      options[:timeout]      ||= 3600
+      options[:buffer_size]  ||= 32768
+
+      IO.pipe { |read_stderr, write_stderr|
+        IO.pipe { |read_stdout, write_stdout|
+          opts[:in]    = :close
+          opts[:out]   = write_stdout
+          opts[:err]   = write_stderr
+
+          fork_pid = nil
+          pid      = 0
+          if options[:uid]
+            mcs_level, _, _ = oo_spawn("/usr/bin/oo-get-mcs-level #{options[:uid]}",
+                                    :expected_exitstatus => 0,
+                                    :timeout             => 3600)
+            cmd             = "/usr/bin/runcon -r system_r -t openshift_t -l #{mcs_level.chomp} #{command}"
+
+            fork_pid = fork {
+              Process::GID.change_privilege(options[:gid].to_i)
+              Process::UID.change_privilege(options[:uid].to_i)
+              pid = Kernel.spawn(options[:env], cmd, opts)
+            }
+          else
+            pid = Kernel.spawn(options[:env], command, opts)
+            unless pid
+              raise OpenShift::Utils::ShellExecutionException.new(
+                        "Shell command '#{command}' fork failed in spawn().")
+            end
+          end
+
+          begin
+            write_stdout.close
+            write_stderr.close
+            out, err  = read_results(read_stdout, read_stderr, options)
+            _, status = Process.wait2 pid
+
+            exit status.exitstatus if options[:uid] && fork_pid.nil?
+
+            if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
+              raise OpenShift::Utils::ShellExecutionException.new(
+                        "Shell command '#{command}' returned an error. rc=#{status.exitstatus}",
+                        status.exitstatus, out, err)
+            end
+
+            return [out, err, status.exitstatus]
+          rescue TimeoutExceeded => e
+            ShellExec.kill_process_tree(pid)
+            raise OpenShift::Utils::ShellExecutionException.new(
+                      "Shell command '#{command}'' exceeded timeout of #{e.seconds}", -1, out, err)
+          end
+        }
+      }
+    end
+
+    private
+    # read_results(stdout pipe, stderr pipe, options) -> [*standard out, *standard error]
+    #
+    # read stdout and stderr from spawned command until timeout
+    #
+    # options: hash
+    #   :timeout     => seconds to wait for command to finish. Default: 3600
+    #   :buffer_size => how many bytes to read from pipe per iteration. Default: 32768
+    def self.read_results(stdout, stderr, options)
+      out                   = ''
+      err                   = ''
+      readers               = [stdout, stderr]
+
+      begin
+        Timeout::timeout(options[:timeout]) do
+          while readers.any?
+            ready = IO.select(readers, nil, nil, options[:timeout])
+            raise TimeoutError if ready.nil?
+
+            ready[0].each do |fd|
+              buffer = (fd == stdout) ? out : err
+              begin
+                buffer << fd.readpartial(options[:buffer_size])
+              rescue Errno::EAGAIN, Errno::EINTR
+              rescue EOFError
+                readers.delete(fd)
+                fd.close
+              end
+            end
+          end
+          [out, err]
+        end
+      rescue Timeout::Error
+        raise TimeoutExceeded, options[:timeout]
       end
     end
   end
@@ -76,14 +208,9 @@ module OpenShift::Utils
             end
           end
         rescue Timeout::Error
-          pstree = Hash.new{|a,b| a[b]=[b]}
-          pppids = Hash[*`ps -e -opid,ppid --no-headers`.map{|p| p.to_i}]
-          pppids.each do |l_pid, l_ppid|
-            pstree[l_ppid] << pstree[l_pid]
-          end
-          Process.kill("KILL", *(pstree[pid].flatten))
-          raise OpenShift::Utils::ShellExecutionException.new(
-            "Shell command '#{cmd}'' timed out (timeout is #{timeout})", -1. out, err)
+          kill_process_tree(pid)
+          raise ShellExecutionException.new(
+                    "Shell command '#{cmd}'' timed out (timeout is #{timeout})", -1, out, err)
         ensure
           stdout.close
           stderr.close  
@@ -99,6 +226,20 @@ module OpenShift::Utils
           "Shell command '#{cmd}' returned an error. rc=#{rc}", rc, out, err)
       end
       return [out, err, rc]
+    end
+
+    # kill_process_tree 2199 -> fixnum
+    #
+    # Given a pid find it and KILL it and all it's children
+    def self.kill_process_tree(pid)
+      ps_results = `ps -e -opid,ppid --no-headers`.split("\n")
+
+      ps_tree = Hash.new {|h, k| h[k] = [k]}
+      ps_results.each { |pair|
+        p, pp = pair.split(' ')
+        ps_tree[pp.to_i] << p.to_i
+      }
+      Process.kill("KILL", *(ps_tree[pid].flatten))
     end
 
     def self.run_as(uid, gid, cmd, pwd = ".", ignore_err = true, expected_rc = 0, timeout = 3600)

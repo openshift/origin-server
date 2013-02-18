@@ -5,9 +5,34 @@ class DistrictTest < ActiveSupport::TestCase
     super
   end
 
+  def stubber
+    container = OpenShift::ApplicationContainerProxy.instance("node_dns")
+    OpenShift::ApplicationContainerProxy.stubs(:instance).returns(container)
+    container.stubs(:get_capacity).returns(0)
+    container.stubs(:get_node_profile).returns("small")
+    container.stubs(:set_district)
+  end
+
   test "create and find and delete district" do
     orig_d = get_district_obj
     orig_d.save!
+    d = District.find_by(uuid: orig_d.uuid)
+    assert_equal(orig_d, d)
+    d.destroy
+    assert(District.where(uuid: orig_d.uuid).count == 0)
+  end
+
+  test "add and remove node from district" do
+
+    orig_d = get_district_obj
+    orig_d.save!
+
+    stubber
+    orig_d.add_node("abcd")
+    orig_d.deactivate_node("abcd")
+    orig_d.remove_node("abcd")
+    Mocha::Mockery.instance.stubba.unstub_all
+   
     d = District.find_by(uuid: orig_d.uuid)
     assert_equal(orig_d, d)
     d.destroy

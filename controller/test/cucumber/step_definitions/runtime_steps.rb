@@ -12,7 +12,7 @@ require 'fileutils'
 Given /^a new ([^ ]+) application, verify it using ([^ ]+)$/ do |cart_name, proc_name|
   steps %Q{
     Given a new #{cart_name} type application
-    Then the application http proxy file will exist
+    Then the http proxy will exist
     And a #{proc_name} process will be running
     And the application git repo will exist
     And the application source tree will exist
@@ -26,7 +26,7 @@ Given /^a new ([^ ]+) application, verify it using ([^ ]+)$/ do |cart_name, proc
     When I restart the application
     Then a #{proc_name} process will be running
     When I destroy the application
-    Then the application http proxy file will not exist
+    Then the http proxy will not exist
     And a #{proc_name} process will not be running
     And the application git repo will not exist
     And the application source tree will not exist
@@ -36,13 +36,13 @@ end
 Given /^a new ([^ ]+) application, verify create and delete using ([^ ]+)$/ do |cart_name, proc_name|
   steps %Q{
     Given a new #{cart_name} type application
-    Then the application http proxy file will exist
+    Then the http proxy will exist
     And a #{proc_name} process will be running
     And the application git repo will exist
     And the application source tree will exist
     And the application log files will exist
     When I destroy the application
-    Then the application http proxy file will not exist
+    Then the http proxy will not exist
     And a #{proc_name} process will not be running
     And the application git repo will not exist
     And the application source tree will not exist
@@ -62,7 +62,7 @@ Given /^a new ([^ ]+) application, verify start, stop, restart using ([^ ]+)$/ d
     When I restart the application
     Then a #{proc_name} process will be running
     When I destroy the application
-    Then the application http proxy file will not exist
+    Then the http proxy will not exist
     And a #{proc_name} process will not be running
   }
 end
@@ -105,15 +105,14 @@ end
 # Calls configure on the embedded cartridge.
 When /^I (fail to )?embed a ([^ ]+) cartridge into the application$/ do | negate, cart_name |
   record_measure("Runtime Benchmark: Configure #{cart_name} cartridge in cartridge #{@cart.name}") do
-    cart = @gear.add_cartridge(cart_name, OpenShift::TestCartridge::Embedded)
+    cart = @gear.add_cartridge(cart_name)
 
     if negate
-      assert_raise(RuntimeError) do
+      assert_raise(OpenShift::Utils::ShellExecutionException) do
         exit_code = cart.configure
       end
     else
-      exit_code = cart.configure
-      assert_equal 0, exit_code
+      cart.configure
     end
   end
 end
@@ -127,41 +126,26 @@ When /^I remove the ([^ ]+) cartridge from the application$/ do | cart_name |
 
     embedded_cart = @gear.carts[cart_name]
 
-    exit_code = embedded_cart.deconfigure
-    assert_equal 0, exit_code
+    embedded_cart.deconfigure
   end
 end
 
 
-# Verifies the existence of httpd proxy files associated with
-# the current application.
-Then /^the application http proxy file will( not)? exist$/ do | negate |
-  conf_file_name = "#{@gear.uuid}_#{@account.domain}_#{@app.name}.conf"
-  conf_file_path = "#{$libra_httpd_conf_d}/#{conf_file_name}"
+# Verifies the existence of the httpd proxy
+Then /^the http proxy ?([^ ]+)? will( not)? exist$/ do | path, negate |
+  paths = @gear.list_http_proxy_paths
 
-  $logger.info("Checking for #{negate} proxy file at #{conf_file_path}")
+  if path == nil
+    path = ""
+  end
+
+  $logger.info("Checking for #{negate} proxy #{path}")
   if negate
-    assert_file_not_exists conf_file_path
+    assert_not_includes(paths, path)
   else
-    assert_file_exists conf_file_path
+    assert_includes(paths, path)
   end
 end
-
-
-# Verifies the existence of an httpd proxy file for the given embedded
-# cartridge associated with the current application.
-Then /^the embedded ([^ ]+) cartridge http proxy file will( not)? exist$/ do | cart_name, negate |
-  conf_file_name = "#{@gear.uuid}_#{@account.domain}_#{@app.name}/#{cart_name}.conf"
-  conf_file_path = "#{$libra_httpd_conf_d}/#{conf_file_name}"
-
-  $logger.info("Checking for #{negate} embedded cartridge proxy file at #{conf_file_path}")
-  if negate
-    assert_file_not_exists conf_file_path
-  else
-    assert_file_exists conf_file_path
-  end
-end
-
 
 # Verifies the existence of a git repo associated with the current
 # application.
@@ -285,7 +269,7 @@ end
 When /^I (start|stop|status|restart) the application$/ do |action|
   OpenShift::timeout(60) do
     record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
-      @cart.run_hook(action)
+      @cart.send(action)
     end
   end
 end
@@ -295,7 +279,7 @@ end
 # The same comments from the similar matcher apply.
 When /^I (start|stop|status|restart) the ([^ ]+) cartridge$/ do |action, cart_name|
   record_measure("Runtime Benchmark: Hook #{action} on cart #{@cart.name}") do
-    @gear.carts[cart_name].run_hook(action)
+    @gear.carts[cart_name].send(action)
   end
 end
 
@@ -519,13 +503,8 @@ Then /^the tracked application cartridge PIDs should( not)? be changed$/ do |neg
 end
 
 Then /^the web console for the ([^ ]+)\-([\d\.]+) cartridge at ([^ ]+) is( not)? accessible$/ do |cart_type, version, uri, negate|
-  conf_file = File.join($libra_httpd_conf_d,
-                       "#{@gear.uuid}_#{@account.domain}_#{@app.name}",
-                       "#{cart_type}-#{version}.conf")
 
-  # The URL segment for the cart lives in the proxy conf
-  cart_path = `/bin/awk '/ProxyPassReverse/ {printf "%s", $2;}' #{conf_file}`
-  url = "https://127.0.0.1#{cart_path}#{uri}"
+  url = "https://127.0.0.1#{uri}"
 
   finished = negate ? lambda { |s| s == "503" } : lambda { |s| s == "200"}
   cmd = "curl -L -k -w %{http_code} -s -o /dev/null -H 'Host: #{@app.name}-#{@account.domain}.#{$domain}' #{url}"

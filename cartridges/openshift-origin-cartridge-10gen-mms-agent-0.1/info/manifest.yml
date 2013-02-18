@@ -1,7 +1,8 @@
 Name: 10gen-mms-agent-0.1
+Namespace: 10GENMMSAGENT
 Display-Name: 10gen Mongo Monitoring Service Agent 0.1
 Description: "MongoDB Monitoring Service (MMS) instruments MongoDB and provides information about current and historical operational metrics of your system."
-Version: 1.3.7
+Version: 0.1
 License-Url: https://mms.10gen.com/links/terms-of-service
 Vendor: 10gen.com
 Categories:
@@ -27,4 +28,4 @@ Configure-Order:
   - mongodb
   - 10gen-mms-agent-0.1
 Endpoints:
-  - PROXY_PORT: 8080
+  - "IP:PORT(8080):PROXY_PORT"

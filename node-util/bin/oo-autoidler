@@ -39,12 +39,6 @@ print_stats "Before"
 for user in `get_appids_to_idle`
 do
     /usr/sbin/oo-idler -n -u $user > /dev/null 2>&1
-    httpd_restart="TRUE"
 done
-
-if [ ! -z "$httpd_restart" ]
-then
-    service httpd graceful
-fi
 
 print_stats "After"
