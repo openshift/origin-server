@@ -668,16 +668,16 @@ module OpenShift
       begin
         priv_key_clean = OpenSSL::PKey.read(priv_key, passphrase)
         ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_cert)
-      rescue AttributeError
-        raise FrontendHttpServerException.new("Invalid Private Key or Passphrase",
+      rescue OpenSSL::X509::AttributeError => e
+        raise FrontendHttpServerException.new("Invalid Private Key or Passphrase: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
-      rescue OpenSSL::X509::CertificateError
-        raise FrontendHttpServerException.new("Invalid X509 Certificate",
+      rescue OpenSSL::X509::CertificateError => e
+        raise FrontendHttpServerException.new("Invalid X509 Certificate: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
       rescue => e
-        raise FrontendHttpServerException.new("Other key/cert error: #{e}",
+        raise FrontendHttpServerException.new("Other key/cert error: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
       end
