@@ -115,7 +115,7 @@ module OpenShift
             @homedir = File.join(basedir,@uuid)
           end
 
-          cmd = %{useradd -u #{@uid} \
+          cmd = %{/usr/sbin/useradd -u #{@uid} \
                   -d #{@homedir} \
                   -s #{shell} \
                   -c '#{gecos}' \
