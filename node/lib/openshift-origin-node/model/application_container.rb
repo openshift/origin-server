@@ -1,12 +1,12 @@
 #--
 # Copyright 2010 Red Hat, Inc.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #    http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
 
-    attr_reader :uuid, :application_uuid, :user, :state, :container_name
+    attr_reader :uuid, :application_uuid, :user, :state, :container_name, :cartridge_model
 
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
@@ -51,7 +51,7 @@ module OpenShift
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
 
       # TODO: When v2 is the default cartridge format change this default...
-      build_model = :v1
+      build_model       = :v1
       if @user.homedir && File.exist?(@user.homedir)
         build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(@user.homedir)
       else
@@ -67,11 +67,11 @@ module OpenShift
       end
 
       # When v2 is the default cartridge format flip the test...
-      @cart_model = if :v1 == build_model
-                      V1CartridgeModel.new(@config, @user, self, @logger)
-                    else
-                      V2CartridgeModel.new(@config, @user, self, @logger)
-                    end
+      @cartridge_model = if :v1 == build_model
+                           V1CartridgeModel.new(@config, @user, self, @logger)
+                         else
+                           V2CartridgeModel.new(@config, @user, self, @logger)
+                         end
     end
 
     def name
@@ -83,7 +83,7 @@ module OpenShift
     # TODO: Caching?
     def get_cartridge(cart_name)
       begin
-        manifest_path = @cart_model.get_cart_manifest_path(cart_name)
+        manifest_path = @cartridge_model.get_cart_manifest_path(cart_name)
         manifest = YAML.load_file(manifest_path)
         return OpenShift::Runtime::Cartridge.new(manifest)
       rescue => e
@@ -96,14 +96,14 @@ module OpenShift
     # to use, but does not mark the application.  Marking the application
     # is the responsibility of the cart model.
     #
-    # This method does not enforce constraints on whether the cartridge 
-    # being added is compatible with other installed cartridges.  That 
+    # This method does not enforce constraints on whether the cartridge
+    # being added is compatible with other installed cartridges.  That
     # is the responsibility of the broker.
     #
     # context: root -> gear user -> root
     # @param cart_name   cartridge name
     def configure(cart_name, template_git_url=nil)
-      @cart_model.configure(cart_name, template_git_url)
+      @cartridge_model.configure(cart_name, template_git_url)
     end
 
     # Remove cartridge from gear
@@ -111,7 +111,7 @@ module OpenShift
     # context: root -> gear user -> root
     # @param cart_name   cartridge name
     def deconfigure(cart_name)
-      @cart_model.deconfigure(cart_name)
+      @cartridge_model.deconfigure(cart_name)
     end
 
     # create gear
@@ -133,7 +133,7 @@ module OpenShift
       notify_observers(:before_container_destroy)
 
       # possible mismatch across cart model versions
-      output, errout, retcode = @cart_model.destroy(skip_hooks)
+      output, errout, retcode = @cartridge_model.destroy(skip_hooks)
 
       notify_observers(:after_container_destroy)
 
@@ -256,7 +256,7 @@ module OpenShift
         gear_level_tidy(gear_repo_dir, gear_tmp_dir)
 
         # Delegate to cartridge model to perform cart-level tidy operations for all installed carts.
-        @cart_model.tidy
+        @cartridge_model.tidy
       rescue Exception => e
         @logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
       ensure
@@ -334,35 +334,35 @@ module OpenShift
     end
 
     def update_namespace(cart_name, old_namespace, new_namespace)
-      @cart_model.update_namespace(cart_name, old_namespace, new_namespace)
+      @cartridge_model.update_namespace(cart_name, old_namespace, new_namespace)
     end
 
     def connector_execute(cart_name, connector, args)
-      @cart_model.connector_execute(cart_name, connector, args)
+      @cartridge_model.connector_execute(cart_name, connector, args)
     end
 
     def deploy_httpd_proxy(cart_name)
-      @cart_model.deploy_httpd_proxy(cart_name)
+      @cartridge_model.deploy_httpd_proxy(cart_name)
     end
 
     def remove_httpd_proxy(cart_name)
-      @cart_model.remove_httpd_proxy(cart_name)
+      @cartridge_model.remove_httpd_proxy(cart_name)
     end
 
     def restart_httpd_proxy(cart_name)
-      @cart_model.restart_httpd_proxy(cart_name)
+      @cartridge_model.restart_httpd_proxy(cart_name)
     end
 
     def move(cart_name, idle)
-      @cart_model.move(cart_name, idle)
+      @cartridge_model.move(cart_name, idle)
     end
 
     def pre_move(cart_name)
-      @cart_model.pre_move(cart_name)
+      @cartridge_model.pre_move(cart_name)
     end
 
     def post_move(cart_name)
-      @cart_model.post_move(cart_name)
+      @cartridge_model.post_move(cart_name)
     end
 
     # === Cartridge control methods
@@ -371,35 +371,35 @@ module OpenShift
     # Throws ShellExecutionException on failure
     def start(cart_name)
       @state.value = OpenShift::State::STARTED
-      @cart_model.do_control("start", cart_name)
+      @cartridge_model.do_control("start", cart_name)
     end
 
     # stop gear
     def stop(cart_name)
       @state.value = OpenShift::State::STOPPED
-      @cart_model.do_control("stop", cart_name)
+      @cartridge_model.do_control("stop", cart_name)
     end
 
     # build application
     def build(cart_name)
       @state.value = OpenShift::State::BUILDING
-      @cart_model.do_control("build", cart_name)
+      @cartridge_model.do_control("build", cart_name)
     end
 
     # deploy application
     def deploy(cart_name)
       @state.value = OpenShift::State::DEPLOYING
-      @cart_model.do_control("deploy", cart_name)
+      @cartridge_model.do_control("deploy", cart_name)
     end
 
     # restart gear as supported by cartridges
     def restart(cart_name)
-      @cart_model.do_control("restart", cart_name)
+      @cartridge_model.do_control("restart", cart_name)
     end
 
     # reload gear as supported by cartridges
     def reload(cart_name)
-      @cart_model.do_control("reload", cart_name)
+      @cartridge_model.do_control("reload", cart_name)
     end
 
     # restore gear from tar ball
@@ -413,11 +413,11 @@ module OpenShift
     end
 
     def status(cart_name)
-      @cart_model.do_control("status", cart_name)
+      @cartridge_model.do_control("status", cart_name)
     end
 
     def threaddump(cart_name)
-      @cart_model.do_control("threaddump", cart_name)
+      @cartridge_model.do_control("threaddump", cart_name)
     end
   end
 end
