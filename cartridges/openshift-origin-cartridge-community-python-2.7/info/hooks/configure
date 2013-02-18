@@ -104,7 +104,5 @@ export CART_INFO_DIR
 import_env_vars
 ${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
-restart_httpd_graceful
-
 client_result "Disclaimer: This is a community supported Python cartridge that provides a way to use/run Python 2.7 on Openshift."
 enable_cgroups

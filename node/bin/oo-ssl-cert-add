@@ -93,15 +93,22 @@ unless container_uuid
 end
 
 begin
-  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
-                                               namespace)
   ssl_cert_contents = File.open(ssl_cert, 'r') { |f| f.read }
   priv_key_contents = File.open(priv_key, 'r') { |f| f.read }
 
   passphrase='' if passphrase.nil?
 
+  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
+                                               namespace)
   frontend.add_ssl_cert(ssl_cert_contents, priv_key_contents, server_alias, passphrase)
+rescue OpenShift::FrontendHttpServerExecException => e
+  $stderr.puts(e.message + e.stdout + e.stderr)
+  exit e.rc
+rescue OpenShift::FrontendHttpServerException => e
+  $stderr.puts(e.message)
+  exit 129
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
 end
+exit 0

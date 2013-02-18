@@ -45,4 +45,3 @@ CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/phpmyadmin-3.4/info
 #
 $CART_INFO_DIR/bin/deploy_httpd_proxy.sh $application $namespace $uuid $OPENSHIFT_PHPMYADMIN_IP
 
-restart_httpd_graceful

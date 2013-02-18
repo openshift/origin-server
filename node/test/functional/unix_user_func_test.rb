@@ -43,7 +43,13 @@ class UnixUserModelFunctionalTest < Test::Unit::TestCase
     @config = mock('OpenShift::Config')
     @config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
     @config.stubs(:get).with("CLOUD_DOMAIN").returns("rhcloud.com")
+    @config.stubs(:get).with("OPENSHIFT_HTTP_CONF_DIR").returns("/tmp")
     OpenShift::Config.stubs(:new).returns(@config)
+
+    @frontend = mock('OpenShift::FrontendHttpServer')
+    @frontend.stubs(:create)
+    @frontend.stubs(:destroy)
+    OpenShift::FrontendHttpServer.stubs(:new).returns(@frontend)
   end
 
   def test_initialize

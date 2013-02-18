@@ -10,7 +10,7 @@ Feature: PHP Application
     When I remove an alias from the application
     Then the php application will not be aliased 
     When I destroy the application
-    Then the application http proxy file will not exist
+    Then the http proxy will not exist
 
     @fedora-only
     Scenario: Fedora 18

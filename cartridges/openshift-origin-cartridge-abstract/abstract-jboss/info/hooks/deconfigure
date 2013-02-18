@@ -68,4 +68,8 @@ runcon -l s0-s0:c0.c1023 rm -rf "$JAVA_PREFS_DIR"
 #
 # Remove virtualhost definition for apache
 #
-rm_httpd_proxy $uuid $namespace $application
+oo-frontend-disconnect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path "" --path "/swydws"

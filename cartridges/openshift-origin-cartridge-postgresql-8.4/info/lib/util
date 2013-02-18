@@ -53,5 +53,4 @@ function prepare_gear_for_standalone_postgresql() {
 
     disable_stale_detection
 
-    restart_httpd_graceful
 }

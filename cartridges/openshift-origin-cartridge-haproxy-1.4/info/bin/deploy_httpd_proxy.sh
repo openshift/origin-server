@@ -1,10 +1,7 @@
 #!/bin/bash
 
 #
-# Create virtualhost definition for apache
-#
-# node_ssl_template.conf gets copied in unaltered and should contain
-# all of the configuration bits required for ssl to work including key location
+# Create Frontend Routes
 #
 function print_help {
     echo "Usage: $0 app-name namespace uuid IP"
@@ -29,31 +26,10 @@ setup_user_vars
 
 export CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/embedded/haproxy-1.4/info
 
-vhost="${OPENSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}.conf"
-if [ ! -f "$vhost" ]; then
-   ${CARTRIDGE_BASE_PATH}/abstract/info/bin/deploy_httpd_proxy.sh "$@"
-fi
-
-#  Already have a vhost - just add haproxy routing to it.
-cat <<EOF > "${OPENSHIFT_HTTP_CONF_DIR}/${uuid}_${namespace}_${application}/000000_haproxy.conf"
-  ProxyPass /health !
-  Alias /health ${CART_INFO_DIR}/configuration/health.html
-  ProxyPass /haproxy-status/ http://$IP2:8080/ status=I
-  ProxyPassReverse /haproxy-status/ http://$IP2:8080/
-  ProxyPass / http://$IP:8080/ status=I
-  ProxyPassReverse / http://$IP:8080/
-EOF
-
-cat <<EOF > "/etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/routes.json"
-{
-  "${application}-${namespace}.${CLOUD_DOMAIN}": {
-    "endpoints": [ "$IP:8080" ],
-    "limits"   :  {
-      "connections": -1,
-      "bandwidth"  : 100
-    }
-  }
-}
-EOF
-
-service openshift-node-web-proxy reload
+oo-frontend-connect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path "" --target "$IP:8080" --websocket -o "connections=-1" \
+    --path "/health" --target "${CART_INFO_DIR}/configuration/health.html" --file \
+    --path "/haproxy-status" --target "$IP2:8080/"

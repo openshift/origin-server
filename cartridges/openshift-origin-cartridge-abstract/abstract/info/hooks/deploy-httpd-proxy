@@ -34,13 +34,6 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-
-mkdir -p /etc/httpd/conf.d/openshift/${uuid}_${namespace}_${application}/
-
-#if [ -f "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf ]; then
-#  exit 0
-#fi
-
 APP_HOME="$GEAR_BASE_DIR/$uuid"
 
 cartridge_type=$(get_cartridge_name_from_path)
@@ -50,8 +43,7 @@ CART_INFO_DIR=$CARTRIDGE_BASE_PATH/${cartridge_type}/info
 . $APP_HOME/.env/OPENSHIFT_INTERNAL_IP
 
 idle=false
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
-if [ -f $HTTP_DIR/0000000000000_disabled.conf ]
+if oo-frontend-check-idle --with-container-uuid "$uuid" --with-container-name "$application" --with-namespace "$namespace"
 then
   idle=true
 fi
@@ -71,5 +63,3 @@ if $idle
 then
   oo-idler -u $uuid
 fi
-
-restart_httpd_graceful

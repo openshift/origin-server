@@ -62,6 +62,10 @@ fi
 #
 # Remove virtualhost definition for apache
 #
-rm_httpd_proxy $uuid $namespace $application
+oo-frontend-disconnect \
+    --with-container-uuid "$uuid" \
+    --with-container-name "$application" \
+    --with-namespace "$namespace" \
+    --path "" --path "/health"
 
 $CART_INFO_DIR/hooks/pre-destroy "$@"
