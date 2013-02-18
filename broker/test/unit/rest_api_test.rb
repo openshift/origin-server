@@ -4,7 +4,7 @@ require 'helpers/rest/api'
 require 'json'
 require 'mocha'
 
-class RestApiTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
+class RestApiUnitTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCase
   def setup
     https!
     stubber
