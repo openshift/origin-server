@@ -577,15 +577,16 @@ module MCollective
         old_ns = args['--with-old-namespace']
         new_ns = args['--with-new-namespace']
 
+        output = ""
         begin
           container = get_app_container_from_args(args)
-          container.update_namespace(cart_name, old_ns, new_ns)
+          output = container.update_namespace(cart_name, old_ns, new_ns)
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
         end
       end
 
