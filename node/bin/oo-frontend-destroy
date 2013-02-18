@@ -19,14 +19,14 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: Completely destroy the front-end connection for a gear.
   This command must be run as root.
 
 == Usage
 
 #{$0} --with-container-uuid UUID \\
                --with-container-name NAME \\
-               --with-namespace NAMESPACE \\
+               --with-namespace NAMESPACE
 
 == List of arguments
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
@@ -40,10 +40,6 @@ def usage
 USAGE
   exit 255
 end
-
-require 'json'
-require 'zlib'
-require 'base64'
 
 require 'rubygems'
 require 'openshift-origin-node'
@@ -87,13 +83,14 @@ rescue GetoptLong::Error => e
   usage
 end
 
-unless container_uuid
+if container_uuid.nil?
   usage
 end
 
+
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  frontend.destroy
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc

@@ -19,7 +19,7 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: Return 0 (true) if an app is idle and 1 (false) if an app is not idle.
   This command must be run as root.
 
 == Usage
@@ -41,10 +41,6 @@ USAGE
   exit 255
 end
 
-require 'json'
-require 'zlib'
-require 'base64'
-
 require 'rubygems'
 require 'openshift-origin-node'
 opts = GetoptLong.new(
@@ -56,6 +52,7 @@ opts = GetoptLong.new(
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
+
 
 
 container_uuid = nil
@@ -93,7 +90,14 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  max_age = frontend.get_sts
+  if $porcelain
+    $stdout.puts max_age.to_json
+  elsif max_age.nil?
+    exit 1
+  else
+    $stdout.puts "#{max_age}"
+  end
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
