@@ -73,13 +73,13 @@ class Gear
   end
   
   def create_gear
-    result_io = get_proxy.create(app,self)
+    result_io = get_proxy.create(self)
     app.process_commands(result_io)
     result_io
   end
   
   def destroy_gear
-    result_io = get_proxy.destroy(app,self)
+    result_io = get_proxy.destroy(self)
     app.process_commands(result_io)
     result_io
   end
@@ -119,7 +119,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def add_component(component, init_git_url=nil)
-    result_io = get_proxy.configure_cartridge(app, self, component.cartridge_name, init_git_url)
+    result_io = get_proxy.configure_cartridge(self, component.cartridge_name, init_git_url)
     component.process_properties(result_io)
     app.process_commands(result_io)
     raise OpenShift::NodeException.new("Unable to add component #{component.cartridge_name}::#{component.component_name}", result_io.exitcode, result_io) if result_io.exitcode != 0
@@ -137,7 +137,7 @@ class Gear
   #   success = 0
   # @raise [OpenShift::NodeException] on failure
   def remove_component(component)
-    result_io = get_proxy.deconfigure_cartridge(app, self, component.cartridge_name)
+    result_io = get_proxy.deconfigure_cartridge(self, component.cartridge_name)
     app.process_commands(result_io)
     result_io
   end
@@ -154,7 +154,7 @@ class Gear
   # @see http://www.ruby-doc.org/core-1.9.3/BasicObject.html
   def method_missing(sym, *args, &block)
     sym = :reload if sym == :reload_config
-    new_args = args.dup.unshift(app, self)
+    new_args = args.dup.unshift(self)
     return get_proxy.send(sym, *new_args) if get_proxy.respond_to?(sym, false)
     super(sym, *args, &block)
   end
@@ -186,7 +186,7 @@ class Gear
     tag = ""
     handle = RemoteJob.create_parallel_job
     RemoteJob.run_parallel_on_gears(gears, handle) { |exec_handle, gear|
-      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear.app, gear))
+      RemoteJob.add_parallel_job(exec_handle, tag, gear, gear.get_proxy.get_show_state_job(gear))
     }
     RemoteJob.get_parallel_run_results(handle) { |tag, gear, output, status|
       if status != 0
@@ -220,11 +220,11 @@ class Gear
     remove_envs = args["remove_env_vars"]
     tag = ""
     
-    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(app, self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
-    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(app, self, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
+    add_keys.each     { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_add_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["type"], ssh_key["name"])) } unless add_keys.nil?      
+    remove_keys.each  { |ssh_key| RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_remove_authorized_ssh_key_job(self, ssh_key["content"], ssh_key["name"])) } unless remove_keys.nil?                 
                                                                                            
-    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(app, self, env["key"],env["value"]))} unless add_envs.nil?                                                   
-    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(app, self, env["key"]))} unless remove_envs.nil?
+    add_envs.each     {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_add_job(self, env["key"],env["value"]))} unless add_envs.nil?                                                   
+    remove_envs.each  {|env|      RemoteJob.add_parallel_job(remote_job_handle, tag, self, get_proxy.get_env_var_remove_job(self, env["key"]))} unless remove_envs.nil?
   end
 
   # Convenience method to get the {Application}
@@ -252,7 +252,7 @@ class Gear
     end  
 
     result = ResultIO.new
-    result.append get_proxy.update_namespace(self.app, self, cart, new_ns, old_ns)
+    result.append get_proxy.update_namespace(self, cart, new_ns, old_ns)
     self.app.process_commands(result)
   end
   

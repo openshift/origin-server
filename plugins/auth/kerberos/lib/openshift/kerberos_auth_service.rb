@@ -94,7 +94,7 @@ module OpenShift
         # get the default realm
         default_realm = krb5.get_default_realm
         Rails.logger.debug "Default realm is: " + default_realm
-        # try to cache non-existant data (this should fail and throw an exception)
+        # try to cache non-existent data (this should fail and throw an exception)
         begin
           krb5.cache
           rescue Krb5Auth::Krb5::Exception
