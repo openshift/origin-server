@@ -3,9 +3,6 @@
 #
 # Create virtualhost definition for apache
 #
-# node_ssl_template.conf gets copied in unaltered and should contain
-# all of the configuration bits required for ssl to work including key location
-#
 function print_help {
     echo "Usage: $0 app-name namespace uuid"
 
