@@ -110,8 +110,13 @@
 						<password>${env.OPENSHIFT_MYSQL_DB_PASSWORD}</password>
 					</security>
 					<validation>
-                      <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                    	<check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                    	<background-validation>true</background-validation>
                 	</validation>
+                	<pool>
+						<flush-strategy>IdleConnections</flush-strategy>
+						<allow-multiple-users/>
+					</pool>
 				</datasource>
 				<datasource jndi-name="java:jboss/datasources/PostgreSQLDS"
 					enabled="${postgresql.enabled}" use-java-context="true" pool-name="PostgreSQLDS"
@@ -124,8 +129,13 @@
 						<password>${env.OPENSHIFT_POSTGRESQL_DB_PASSWORD}</password>
 					</security>
 					<validation>
-                      <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                    	<check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
+                    	<background-validation>true</background-validation>
                 	</validation>
+                	<pool>
+						<flush-strategy>IdleConnections</flush-strategy>
+						<allow-multiple-users/>
+					</pool>
 				</datasource>
 				<drivers>
 					<driver name="h2" module="com.h2database.h2">
