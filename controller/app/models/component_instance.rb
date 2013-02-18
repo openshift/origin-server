@@ -26,6 +26,11 @@ class ComponentInstance
     cart.is_plugin?
   end
   
+  def is_web_proxy?
+    cart = CartridgeCache.find_cartridge(cartridge_name)
+    cart.is_web_proxy?
+  end
+  
   def is_embeddable?
     cart = CartridgeCache.find_cartridge(cartridge_name)
     cart.is_embeddable?
