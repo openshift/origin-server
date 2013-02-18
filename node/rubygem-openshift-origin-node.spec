@@ -113,7 +113,10 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{na
 
 %if 0%{?fedora} >= 18
   #patch for apache 2.4
-  sed -i 's/include/IncludeOptional/g' httpd/000001_openshift_origin_node.conf
+  sed -i '' -E 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
+  sed -i '' -E 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
+  sed -i '' -E 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
+  sed -i '' -E 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
 %endif
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
