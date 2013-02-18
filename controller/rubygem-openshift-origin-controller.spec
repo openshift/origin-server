@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.12
+Version: 1.4.13
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,13 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 18 2013 Dan McPherson <dmcphers@redhat.com> 1.4.13-1
+- Bug 911322 (lnader@redhat.com)
+- Merge pull request #1352 from fabianofranz/stage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 894248 - Console and broker must share a session for CSRF token checking
+  to work (ffranz@redhat.com)
+
 * Fri Feb 15 2013 Dan McPherson <dmcphers@redhat.com> 1.4.12-1
 - Optimize rest api fetching of data from mongo (dmcphers@redhat.com)
 
