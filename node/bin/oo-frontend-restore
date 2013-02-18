@@ -19,22 +19,16 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Add a frontend httpd alias to a gear.
+#{$0}: Extract a backup of this configuration
   This command must be run as root.
 
 == Usage
 
-#{$0} --with-container-uuid UUID \\
-               --with-container-name NAME \\
-               --with-namespace NAMESPACE \\
-               --with-alias-name ALIAS
+#{$0} --file [filename]
 
 == List of arguments
-  -a|--with-alias-name      alias       Alias to add to the gear
-  -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
-    |--with-namespace       namespace   Namespace of the application (required)
-    |--with-container-name  gear_name   Name of the gear
-  -n|--dry-run                          Don't make changes, just do a dry run.
+  -f|--file                 filename    File containing backup (stdin if not specified)
+  -n|--dry-run                          Don't make changes, just do a dry run
   -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
   -h|--help                             Print this message
@@ -43,46 +37,53 @@ USAGE
   exit 255
 end
 
+require 'json'
+require 'zlib'
+require 'base64'
+
 require 'rubygems'
 require 'openshift-origin-node'
 opts = GetoptLong.new(
-    ["--with-alias-name",     "-a", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
-    ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
+    ["--file",                "-f", GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
 
-args = {}
+filename = nil
 begin
-  opts.each{ |k,v| args[k]=v }
+  opts.each do |k, v|
+    case k
+    when '--help'
+      usage
+    when '--file'
+      filename = v
+    when '--dry-run'
+      $dry_run = true
+    when '--debug'
+      $oo_debug = true
+    when '--porcelain'
+      $porcelain = true
+    else
+      usage
+    end
+  end
 rescue GetoptLong::Error => e
   usage
 end
 
-if args["--help"]
-  usage
-end
 
-alias_name = args['--with-alias-name']
-container_uuid = args['--with-container-uuid']
-container_name = args['--with-container-name']
-namespace = args['--with-namespace']
-
-$dry_run = true if args['--dry-run']
-$oo_debug = true if args['--debug']
-$porcelain = args['--porcelain'] ? true : false
-
-unless container_uuid
-  usage
+if filename.nil? or (filename == "") or (filename == "-")
+  blob = $stdin.read
+else
+  File.open(filename, 'r') do |f|
+    blob = f.read
+  end
 end
 
 begin
-  frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  frontend.add_alias(alias_name)
+  JSON.parse(Zlib::Inflate.inflate(Base64.decode64(blob)))
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc

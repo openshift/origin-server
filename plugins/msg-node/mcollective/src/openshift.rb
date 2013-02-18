@@ -2,6 +2,8 @@ require 'rubygems'
 require 'open4'
 require 'pp'
 require 'json'
+require 'zlib'
+require 'base64'
 require 'openshift-origin-node'
 require 'shellwords'
 require 'facter'
@@ -353,10 +355,13 @@ module MCollective
         namespace = args['--with-namespace']
         alias_name = args['--with-alias-name']
 
-        output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          out, err, rc = frontend.add_alias(alias_name)
+          frontend.add_alias(alias_name)
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
         rescue OpenShift::FrontendHttpServerException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -366,9 +371,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          output << out
-          output << err
-          return rc, output
+          return 0, ""
         end
       end
 
@@ -378,10 +381,13 @@ module MCollective
         namespace = args['--with-namespace']
         alias_name = args['--with-alias-name']
 
-        output = ""
         begin
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          out, err, rc = frontend.remove_alias(alias_name)
+          frontend.remove_alias(alias_name)
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
         rescue OpenShift::FrontendHttpServerException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -391,9 +397,7 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          output << out
-          output << err
-          return rc, output
+          return 0, ""
         end
       end
 
@@ -404,16 +408,20 @@ module MCollective
 
         ssl_cert      = args['--with-ssl-cert']
         priv_key      = args['--with-priv-key']
-        passphrase    = args['--with-passphrase']
         server_alias  = args['--with-alias-name']
+        passprase     = args['--with-passphrase']
 
         begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid,
-                                                       container_name, namespace)
-          out, err, rc = frontend.add_ssl_cert(ssl_cert,
-                                               priv_key,
-                                               server_alias,
-                                               passphrase)
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          frontend.add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase)
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -431,9 +439,69 @@ module MCollective
         server_alias  = args['--with-alias-name']
 
         begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid,
-                                                       container_name, namespace)
-          out, err, rc = frontend.remove_ssl_cert(server_alias)
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          frontend.remove_ssl_cert(server_alias)
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
+      def oo_frontend_backup
+        Log.instance.info "COMMAND: #{cmd}"
+
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace      = args['--with-namespace']
+
+        output = ""
+        begin
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          output = "CLIENT_RESULT: " + Base64.encode64(Zlib::Deflate.deflate(JSON.encode(frontend), Zlib::BEST_COMPRESSION))
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
+        rescue Exception => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return -1, e.message
+        else
+          return 0, output
+        end
+      end
+
+      def oo_frontend_restore
+        Log.instance.info "COMMAND: #{cmd}"
+
+        backup         = args['--with-backup']
+
+        output = ""
+        begin
+          JSON.parse(Zlib::Inflate.inflate(Base64.decode64(backup)))
+        rescue OpenShift::FrontendHttpServerExecException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return e.rc, e.message + e.stdout + e.stderr
+        rescue OpenShift::FrontendHttpServerException => e
+          Log.instance.info e.message
+          Log.instance.info e.backtrace
+          return 129, e.message
         rescue Exception => e
           Log.instance.info e.message
           Log.instance.info e.backtrace

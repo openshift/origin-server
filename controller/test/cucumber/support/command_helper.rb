@@ -408,7 +408,7 @@ module CommandHelper
     begin
       if File.exists?("/etc/openshift/node.conf")
         config = ParseConfig.new("/etc/openshift/node.conf")
-        val = config.get_value("PUBLIC_HOSTNAME").gsub!(/[ \t]*#[^\n]*/,"")
+        val = config.get_value("PUBLIC_HOSTNAME").gsub(/[ \t]*#[^\n]*/,"")
         val = val[1..-2] if val.start_with? "\""
         hostname = val
       end

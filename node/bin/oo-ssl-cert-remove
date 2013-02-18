@@ -89,7 +89,14 @@ begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name,
                                                namespace)
   frontend.remove_ssl_cert(server_alias)
+rescue OpenShift::FrontendHttpServerExecException => e
+  $stderr.puts(e.message + e.stdout + e.stderr)
+  exit e.rc
+rescue OpenShift::FrontendHttpServerException => e
+  $stderr.puts(e.message)
+  exit 129
 rescue Exception => e
   $stderr.puts(e.message)
   exit -1
 end
+exit 0

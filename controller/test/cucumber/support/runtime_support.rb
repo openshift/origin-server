@@ -16,7 +16,6 @@ require 'timeout'
 # Some constants which might be misplaced here. Perhaps they should
 # go in 00_setup_helper.rb?
 $home_root ||= "/var/lib/openshift"
-$libra_httpd_conf_d ||= "/etc/httpd/conf.d/openshift"
 $cartridge_root ||= "/usr/libexec/openshift/cartridges"
 $embedded_cartridge_root ||= "/usr/libexec/openshift/cartridges/embedded"
 
@@ -208,6 +207,13 @@ module OpenShift
         $logger.error(outbuf)
         raise Exception.new(outbuf)
       end
+    end
+
+    # List FrontendHttpServer proxy for the gear
+    def list_http_proxy_paths
+      $logger.info("Checking routes for gear #{@uuid} of application #{@app.name}")
+      frontend = OpenShift::FrontendHttpServer.new(@uuid, @app.name, @app.account.domain)
+      Hash[*frontend.connections.map { |path, uri, opts| [path, [uri, opts ] ] }.flatten(1)]
     end
 
     # Creates a new TestCartridge and associates it with this gear.

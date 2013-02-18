@@ -50,26 +50,13 @@ function print_idled {
 }
 
 function get_state {
-    source "/var/lib/openshift/$1/.env/OPENSHIFT_HOMEDIR"
+    source "${GEAR_BASE_DIR}/$1/.env/OPENSHIFT_HOMEDIR"
     cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state
 }
 
 function is_idled {
     appid=$1
-
-    HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${appid}"*/00000_default.conf`
-    if ! grep -q ' #ProxyPass' $HTTP_DIR/*.conf 2>/dev/null
-    then
-        return $FALSE
-    fi
-
-    if [ ! -f $HTTP_DIR/0000000000000_disabled.conf ]
-    then
-        return $FALSE
-    fi
-
-    _test=`get_state $appid`
-    return `test idle = "$_test"`
+    oo-frontend-check-idle --with-container-uuid $appid
 }
 
 function is_stopped {
@@ -99,7 +86,7 @@ then
     exit 0
 fi
 
-if [ -z "$uuid" ] || ! [ -d "/var/lib/openshift/$uuid" ]
+if [ -z "$uuid" ] || ! [ -d "${GEAR_BASE_DIR}/$uuid" ]
 then
     echo "Unknown gear UUID: $uuid"
     print_help
@@ -109,7 +96,7 @@ source /usr/libexec/openshift/cartridges/abstract/info/lib/util
 
 # Get the libra_server
 source /etc/openshift/node.conf
-source "/var/lib/openshift/${uuid}/.env/OPENSHIFT_HOMEDIR"
+source "${GEAR_BASE_DIR}/${uuid}/.env/OPENSHIFT_HOMEDIR"
 
 # If moving an idled scaled application the haproxy cartridge will report to be
 #   already "idled" but the associate httpd conf is not
@@ -117,18 +104,7 @@ if `is_stopped "$uuid"` ; then
     exit 0 # app is already stopped, nothing to do
 fi
 
-HTTP_DIR=`dirname "/etc/httpd/conf.d/openshift/${uuid}"*/00000_default.conf`
-sed -i "s/ ProxyPass/ #ProxyPass/g" $HTTP_DIR/*.conf
-
-
-cat > $HTTP_DIR/0000000000000_disabled.conf <<EOF
-Alias / /var/www/html/restorer.php/${uuid}/
-EOF
-
-if [ -z "$no_httpd_restart" ]
-then
-    service httpd graceful
-fi
+oo-frontend-idle --with-container-uuid $uuid
 
 # timeout taken from oo-admin-ctl-gears
 /usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"

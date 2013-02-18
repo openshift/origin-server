@@ -1,0 +1,151 @@
+#
+# OpenShift route to gears
+#
+# This replaces having a virtual host per gear for efficiency.
+#
+
+RewriteEngine              On
+
+ProxyPassInterpolateEnv On
+
+# Set RewriteLogLevel to 6 for debugging
+RewriteLog logs/rewrite_log
+RewriteLogLevel 0
+
+# Maps
+RewriteMap    lowercase int:tolower
+RewriteMap      openshift-nodes   dbm=db:/etc/httpd/conf.d/openshift/nodes.db
+RewriteMap      openshift-aliases dbm=db:/etc/httpd/conf.d/openshift/aliases.db
+RewriteMap      openshift-idler   dbm=db:/etc/httpd/conf.d/openshift/idler.db
+RewriteMap      openshift-sts     dbm=db:/etc/httpd/conf.d/openshift/sts.db
+
+# Resolve aliases
+RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
+RewriteCond ${openshift-aliases:%1} ^(.+)$    [OR]
+RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
+RewriteRule ^.*$ - [E=V_MATCH_HOST:%1,NS]
+
+
+# Call the unidler and redirect back to the original request.
+# www.example.com => uuid
+RewriteCond ${openshift-idler:%{ENV:V_MATCH_HOST}} ^(.+)$
+RewriteRule ^/(.*)$ /var/www/html/restorer.php/%1/$1 [NS,L]
+
+# If STS is set then this domain will always force https.
+# Redirect to https or set the STS header if already on https.
+RewriteCond %{openshift-sts::%{ENV:V_MATCH_HOST}} ^(.+)$
+RewriteRule ^(.*)$ - [E=FORCEHTTPS:%1,NS]
+
+RewriteCond %{HTTPS} =off
+RewriteCond %{ENV:FORCEHTTPS} ^(.+)$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]
+
+RewriteCond %{HTTPS} =on
+RewriteCond %{ENV:FORCEHTTPS} ^(.+)$
+RewriteRule ^(.*)$ - [E=STSHEADER:%1,NS]
+
+Header set Strict-Transport-Security "max-age=%{STSHEADER}e" env=STSHEADER
+
+
+# Route resolution.
+#
+# Attempt to pull out up to a set number of path elements
+# and populate the following variables:
+# 1. V_MATCH_PATH: The part of the path included in the match/route
+# 2. V_PATH:       The remainder of the path
+# 3. V_ROUTE:      The matched route
+#
+# A path element is a word with a starting slash (Apache normalizes
+# before we see it).  Note, we never include the trailing slash in
+# the match, its always passed through.
+#
+# Most specific match wins.  Since there's no loops, the search must be
+# unrolled in source and we only do three deep.
+#
+# Example table entries
+# www.example.com             => 127.0.250.1:8181
+# www.example.com/foo         => 127.0.250.1:8181/bar
+# www.example.com/health      => NOPROXY
+# www.example.com/bar         => REDIRECT:/baz
+# www.example.com/a/b/c       => GONE
+
+
+# Just match the host
+RewriteRule ^(.*)$ - [E=V_TMP_PATH:$1,E=V_TMP_LVL:0,NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =0
+RewriteCond %{ENV:V_MATCH_HOST} ^(.+)$
+RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:/,E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
+# One path element (/a)
+RewriteRule ^(/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:1,NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =1
+RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
+RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
+# Two path elements (/a/b)
+RewriteRule ^(/[^/]+/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:2,NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =2
+RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
+RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
+# Three path elements (/a/b/c)
+RewriteRule ^(/[^/]+/[^/]+/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:3,NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =3
+RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
+RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
+# Route based on the populated variables,
+
+# Return 410 Gone
+RewriteCond %{ENV:V_ROUTE} =GONE
+RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,G]
+
+# Return 403 Forbidden
+RewriteCond %{ENV:V_ROUTE} =FORBIDDEN
+RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,F]
+
+# Do not proxy
+RewriteCond %{ENV:V_ROUTE} =NOPROXY
+RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
+
+# Issue a redirect
+RewriteCond %{ENV:V_ROUTE} ^REDIRECT:(.*)$
+RewriteRule ^(.*)$ %1%{ENV:V_PATH} [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},R,NS,L]
+
+# Discard original request and load a file
+RewriteCond %{ENV:V_ROUTE} ^FILE:(.*)$
+RewriteRule ^(.*)$ %1 [E=V_ROUTE:127.0.0.1%{ENV:V_MATCH_PATH},NS,L]
+
+# Redirect the original request to https, target is final route
+RewriteCond %{ENV:V_ROUTE} ^TOHTTPS:(.*)$
+RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=TOHTTPS:1,NS]
+
+RewriteCond %{ENV:TOHTTPS} =1
+RewriteCond %{HTTPS} =off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R,NS,L]
+
+# By default, attempt to proxy to the match
+RewriteCond %{ENV:V_ROUTE} ^.+$
+RewriteRule ^(.*)$ http://%{ENV:V_ROUTE}%{ENV:V_PATH} [P,NS]
+
+# No route, set ProxyPassReverse with valid but useless data
+RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
+
+
+# Set X-Client-IP to the node which contacted the front-end
+RequestHeader set X-Client-IP %{REMOTE_HOST}e
+
+
+#
+# Configure reverse proxy based on set variable
+#
+ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
+ProxyPassReverseCookiePath ${V_MATCH_PATH} http://${V_ROUTE} interpolate
