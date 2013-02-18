@@ -1,0 +1,85 @@
+- breadcrumb_for_application @application, 'New Alias'
+- content_for :page_title, 'New Alias'
+
+%h1= "New Alias"
+=flashes
+
+%section
+  = semantic_form_for @alias, :url => application_aliases_path(@application), :html => {:method => :post, :class => 'form-horizontal', :multipart => true} do |f|
+
+    %p
+      Aliases allow you to use your own domain names for your apps on OpenShift. To set up your own domain name for app 
+      %strong= @application.name
+    %ol
+      %li 
+        = link_to('Set up the CNAME record with your DNS provider', alias_docs_url)
+      %li Tell us about your alias using the form on this page
+
+    = f.semantic_errors
+
+    = f.inputs do
+      .control-group
+        %label.control-label Application URL
+        .controls
+          %h3= "#{URI::parse(@application.web_url).host}"
+          %p.help-block The current application URL. Set up a CNAME record with your DNS provider pointing to this URL.
+      = f.input :id, :label => 'Domain name', :required => true, :input_html => {:placeholder => 'example.com'}, :hint => 'Enter your custom domain name. e.g. www.example.com or something.example.com'
+
+      .well
+
+        %h2 SSL Certificate
+
+        - if !@private_ssl_certificates_supported
+          .alert.alert-warning
+            Your account does not allow custom SSL certificates.
+            = link_to 'View your account →', account_path
+        - else 
+          %p
+            Optionally upload a SSL certificate for your custom domain alias to allow secure HTTPS communication with your app.
+
+        .file.optional.control-group
+          %label.control-label{:for => 'certificate_file'} 
+            SSL Certificate
+            %abbr{:title => 'required'} *
+          .controls
+            = f.file_field :certificate_file, :id => 'certificate_file', :disabled => !@private_ssl_certificates_supported 
+            %p.help-block Certificate files must be Base64 PEM-encoded and tipically have a .crt or .pem extension. You may combine multiple certificates and certificate chains in a single file, but the RSA or DSA private key must always be provided in a separate file.
+
+        .file.optional.control-group
+          %label.control-label{:for => 'certificate_chain_file'} 
+            SSL Certificate Chain
+          .controls
+            = f.file_field :certificate_chain_file, :id => 'certificate_chain_file', :disabled => !@private_ssl_certificates_supported 
+            %p.help-block  Optionally you can provide a certificate chain in a separate PEM-encoded file.
+
+        .file.optional.control-group
+          %label.control-label{:for => 'certificate_private_key_file'} 
+            Certificate Private Key
+            %abbr{:title => 'required'} *
+          .controls
+            = f.file_field :certificate_private_key_file, :id => 'certificate_private_key_file', :disabled => !@private_ssl_certificates_supported 
+            %p.help-block RSA or DSA private key file for the root certificate in PEM-encoded format.
+
+        .string.optional.control-group
+          %label.control-label{:for => 'certificate_pass_phrase'} 
+            Private Key Pass Phrase
+          .controls
+            = f.text_field :certificate_pass_phrase, :id => 'certificate_pass_phrase', :disabled => !@private_ssl_certificates_supported 
+            %p.help-block Pass phrase for the certificate private key, required if the provided private key is encrypted.
+
+    = f.buttons do
+      = link_to "Cancel", application_path(@application), :class => 'btn'
+      = f.commit_button :label => 'Save'
+      = f.loading
+
+  - content_for :javascripts do
+    :javascript
+      $('.delete-certificate').popover({
+        content: function() { return $(this).next('.popover-delete-certificate').html(); }
+      }).click(function() { return false; });
+
+      $('.cancel-delete-certificate').live('click', function() { 
+        $(this).closest('.popover').prev('.delete-certificate').popover('hide');
+        return false; 
+      });
+

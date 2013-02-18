@@ -18,6 +18,9 @@ module ActionDispatch::Routing
         resources :application_types, :only => [:show, :index], :id => /[^\/]+/
         resources :applications do
           resources :cartridges, :only => [:show, :create, :index], :id => /[^\/]+/
+          resources :aliases, :only => [:show, :create, :index, :destroy, :update], :id => /[^\/]+/ do
+            get :delete
+          end
           resources :cartridge_types, :only => [:show, :index], :id => /[^\/]+/
           resource :restart, :only => [:show, :update], :id => /[^\/]+/
 

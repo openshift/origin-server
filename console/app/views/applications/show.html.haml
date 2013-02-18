@@ -115,18 +115,30 @@
       %i.icon-add
 
 %aside#app-unique-info.span3
-  %section#app-unique-info
+  %section#aliases
     -#%h5 Visibility
     -#%ul.unstyled
       %li External
-    %h5 Aliases
+    .pull-right
+      = link_to 'add alias', application_aliases_path(@application)
+    %h5 
+      Aliases
     %ul.unstyled
       - if @application.aliases.empty?
-        %li No alias set
+        %li 
+          No aliases set.
+          = link_to('Set one now', application_aliases_path(@application))
       - else
         - alias_scheme = @application.web_url.split(':').first
-        - @application.aliases.each do |a|
-          %li= link_to a, "#{alias_scheme}://#{a}"
+        - @application.aliases.sort.each do |a|
+          %li
+            - if a.has_private_ssl_certificate?
+              %span.icon-lock.font-icon-size-12.font-icon-white{'aria-hidden' => true, :title => 'SSL certificate attached'}
+            - else
+              %span.icon-unlock.font-icon-size-12.font-icon-grey{'aria-hidden' => true, :title => 'No SSL certificate'}
+            = link_to a.name, application_alias_path(@application, a)
+            .pull-right
+              = link_to 'edit', application_alias_path(@application, a)
 
     - if @application.initial_git_url.present?
       %h5 Based On
@@ -162,7 +174,6 @@
     }).click(function() {
       $('#restart-link').toggleClass('highlight');
       $('#restart-container').activateForms();
-
       return false;
     });
 
@@ -172,4 +183,3 @@
     }).on('submit', 'form', function() {
       $('#restart-container .btn').hide();
     });
-
