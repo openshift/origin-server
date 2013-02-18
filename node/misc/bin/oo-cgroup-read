@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env oo-ruby
 
 # BZ 901449: SELinux failure prevent using "/usr/bin/env ruby".
 
