@@ -109,6 +109,13 @@ class PendingAppOpGroup
         when :remove_alias
           gear = get_gear_for_rollback(op)
           result_io.append gear.add_alias("abstract", op.args["fqdn"])
+        when :add_ssl_cert
+          gear = get_gear_for_rollback(op)
+          result_io.append gear.remove_ssl_cert("abstract", op.args["fqdn"])
+        when :remove_ssl_cert
+          gear = get_gear_for_rollback(op)
+          #TODO: Can't be undone since we do not store certificate info we cannot add it back in
+          #result_io.append gear.add_ssl_cert("abstract", op.args["fqdn"])
         end
         
         if use_parallel_job 
@@ -227,11 +234,22 @@ class PendingAppOpGroup
             use_parallel_job = true
           when :add_alias
             result_io.append gear.add_alias(op.args["fqdn"])
-            self.application.aliases.push(op.args["fqdn"])
+            self.application.aliases.push(Alias.new(fqdn: op.args["fqdn"]))
             self.application.save
           when :remove_alias
             result_io.append gear.remove_alias(op.args["fqdn"])
-            self.application.aliases.delete(op.args["fqdn"])
+            a = self.application.aliases.find_by(fqdn: op.args["fqdn"])
+            self.application.aliases.delete(a)
+            self.application.save
+          when :add_ssl_cert
+            result_io.append gear.add_ssl_cert(op.args["ssl_certificate"], op.args["private_key"], op.args["fqdn"], op.args["pass_phrase"])
+            a = self.application.aliases.find_by(fqdn: op.args["fqdn"])
+            a.has_private_certificate = true
+            self.application.save
+          when :remove_ssl_cert
+            result_io.append gear.remove_ssl_cert(op.args["fqdn"])
+            a = self.application.aliases.find_by(fqdn: op.args["fqdn"])
+            a.has_private_certificate = false
             self.application.save
           end
           
