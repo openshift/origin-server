@@ -9,7 +9,8 @@ module OpenShift
            mongodb-2.2 nodejs-0.6 perl-5.10 php-5.3 postgresql-8.4 python-2.6
            phpmyadmin-3.4 
            ruby-1.8 ruby-1.9 switchyard-0.6
-           metrics-0.1 rockmongo-1.1 zend-5.6)
+           metrics-0.1 rockmongo-1.1 zend-5.6
+           php-5.4 perl-5.16 phpmyadmin-3.5 postgresql-9.2)
            # todo, figure out how to load extensions to this list if 
            # we keep this mechanism around - last 3 carts are from
            # internal repo
