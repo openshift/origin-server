@@ -39,10 +39,14 @@ module MCollective
         validate :action, :shellsafe
         cartridge = request[:cartridge]
         action = request[:action]
-        args = request[:args] ||= []
+        args = request[:args] ||= {}
         pid, stdin, stdout, stderr = nil, nil, nil, nil
         rc = nil
         output = ""
+
+        args = args.each_with_object({}) do |e, memo|
+          memo[e[0]] = e[1].to_s
+        end
 
         # Do the action execution
         exitcode, output = execute_action(action, args)
@@ -94,20 +98,20 @@ module MCollective
       # results are embedded).
       #
       # BZ 876942: Disable threading until we can explore proper concurrency management
-      def execute_parallel_action        
+      def execute_parallel_action
         Log.instance.info("execute_parallel_action call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
 
         joblist = request[config.identity]
 
         joblist.each do |parallel_job|
           job = parallel_job[:job]
-          
+
           cartridge = job[:cartridge]
           action = job[:action]
           args = job[:args]
 
           exitcode, output = execute_action(action, args)
-          
+
           parallel_job[:result_exit_code] = exitcode
           parallel_job[:result_stdout] = output
         end
@@ -136,7 +140,7 @@ module MCollective
         quota_files = nil if quota_files && quota_files.to_s.empty?
         uid = nil if uid && uid.empty?
 
-        OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name, 
+        OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
           namespace, quota_blocks, quota_files, Log.instance)
       end
 
@@ -179,7 +183,7 @@ module MCollective
         ssh_key = args['--with-ssh-key']
         key_type = args['--with-ssh-key-type']
         comment = args['--with-ssh-key-comment']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.user.add_ssh_key(ssh_key, key_type, comment)
@@ -195,7 +199,7 @@ module MCollective
       def oo_authorized_ssh_key_remove(args)
         ssh_key = args['--with-ssh-key']
         comment = args['--with-ssh-comment']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.user.remove_ssh_key(ssh_key, comment)
@@ -211,7 +215,7 @@ module MCollective
       def oo_broker_auth_key_add(args)
         iv = args['--with-iv']
         token = args['--with-token']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.user.add_broker_auth(iv, token)
@@ -240,7 +244,7 @@ module MCollective
       def oo_env_var_add(args)
         key = args['--with-key']
         value = args['--with-value']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.user.add_env_var(key, value)
@@ -255,7 +259,7 @@ module MCollective
 
       def oo_env_var_remove(args)
         key = args['--with-key']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.user.remove_env_var(key)
@@ -286,8 +290,8 @@ module MCollective
 
       def oo_app_state_show(args)
         container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']        
-        
+        app_uuid = args['--with-app-uuid']
+
         output = ""
         begin
           container = get_app_container_from_args(args)
@@ -336,7 +340,7 @@ module MCollective
       def oo_force_stop(args)
         container_uuid = args['--with-container-uuid']
         app_uuid = args['--with-app-uuid']
-        
+
         begin
           container = get_app_container_from_args(args)
           container.force_stop
@@ -372,7 +376,7 @@ module MCollective
           return -1, e.message
         else
           return 0, output
-        end          
+        end
       end
 
       def with_frontend_from_args(args)
@@ -433,7 +437,7 @@ module MCollective
         path_target_options = args['--with-path-target-options']
         with_frontend_from_args(args) do |f, o|
           f.connect(*path_target_options)
-        end        
+        end
       end
 
       #
@@ -605,7 +609,7 @@ module MCollective
         cart_name = args['--cart-name']
         hook_name = args['--hook-name']
         input_args = args['--input-args']
-        
+
         output = ""
         begin
           container = get_app_container_from_args(args)
@@ -900,7 +904,7 @@ module MCollective
         rescue Exception => e
           reply[:output] = e.message
           reply[:exitcode] = 255
-          reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}" 
+          reply.fail! "set_district failed #{reply[:exitcode]}.  Output #{reply[:output]}"
         end
 
         Log.instance.info("set_district (#{reply[:exitcode]})\n------\n#{reply[:output]}\n------)")
@@ -921,7 +925,7 @@ module MCollective
         end
         reply[:exitcode] = 0
       end
-      
+
       #
       # Returns whether an embedded app is on a server
       #
@@ -937,7 +941,7 @@ module MCollective
         end
         reply[:exitcode] = 0
       end
-      
+
       #
       # Returns whether a uid or gid is already reserved on the system
       #
@@ -963,13 +967,13 @@ module MCollective
         gear_map = {}
 
         uid_map = {}
-        uids = IO.readlines("/etc/passwd").map{ |line| 
+        uids = IO.readlines("/etc/passwd").map{ |line|
           uid = line.split(":")[2]
           username = line.split(":")[0]
           uid_map[username] = uid
         }
         dir = "/var/lib/openshift/"
-        filelist = Dir.foreach(dir) { |file| 
+        filelist = Dir.foreach(dir) { |file|
           if File.directory?(dir+file) and not File.symlink?(dir+file) and not file[0]=='.'
             if uid_map.has_key?(file)
               gear_map[file] = uid_map[file]
