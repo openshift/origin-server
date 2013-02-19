@@ -8,7 +8,7 @@
 
 Summary:       Common dependencies of the msg components for OpenShift server and node
 Name:          openshift-origin-msg-common
-Version:       1.3.2
+Version:       1.3.3
 Release:       1%{?dist}
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -37,6 +37,13 @@ chmod 644 %{buildroot}%{mco_root}validator/*
 %{mco_root}validator/*
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Commands and mcollective calls for each FrontendHttpServer API.
+  (rmillner@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Fixes for ruby193 (john@ibiblio.org)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
