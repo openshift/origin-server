@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -55,6 +55,24 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Commands and mcollective calls for each FrontendHttpServer API.
+  (rmillner@redhat.com)
+- Bug 912292: Return namespace update output on reply (ironcladlou@gmail.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Bug 842991 - Do not replace /etc/cron.minutely/openshift-facts when
+  installing new rpm. (jhonce@redhat.com)
+- Fix mcollective plugin rubygem dependency (john@ibiblio.org)
+- Fixes for ruby193 (john@ibiblio.org)
+- Audit oo_* return value in agent (pmorie@gmail.com)
+- Return output from oo_status in agent (pmorie@gmail.com)
+- Return connector execution output on the MCol reply (ironcladlou@gmail.com)
+- Refactor agent and proxy, move all v1 code to v1 model
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
