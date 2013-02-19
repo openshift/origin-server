@@ -9,8 +9,6 @@ module OpenShift
     include OpenShift::Utils::ShellExec
     include NodeLogger
 
-    attr_reader :logger
-
     def initialize(config, user)
       @config = config
       @user = user

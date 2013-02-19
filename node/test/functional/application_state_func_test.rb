@@ -25,31 +25,34 @@ require "openshift-origin-node/utils/shell_exec"
 
 module OpenShift
   class ApplicationStateFunctionalTest < Test::Unit::TestCase
-
     def setup
-      #skip "run_as tests require root permissions"  if 0 != Process.uid
-      #File.chmod(0777, 'test/coverage')
+      @uid     = 1002
+      @homedir = "/tmp/tests/#@uid"
+      @runtime_dir = File.join(@homedir, %w{app-root runtime})
 
-      @uid = 1000
-      @uuid = `uuidgen -r |sed -e s/-//g`.chomp
-      @runtime_dir = File.join("/tmp", @uuid, %w{app-root runtime})
-      Utils.oo_spawn("mkdir -p #@runtime_dir",
-                  :uid => @uid)
+      # polyinstantiation makes creating the homedir a pain...
+      FileUtils.rm_r @homedir if File.exist?(@homedir)
+      FileUtils.mkpath(@runtime_dir)
+      %x{useradd -u #@uid -d #@homedir #@uid 1>/dev/null 2>&1}
+      %x{chown -R #@uid:#@uid #@homedir}
+      FileUtils.mkpath(File.join(@homedir, '.tmp', @uid.to_s))
+      FileUtils.chmod(0, File.join(@homedir, '.tmp'))
     end
 
     def teardown
-      FileUtils.rm_rf(File.join("/tmp", @uuid))
+      %x{userdel #@uid 1>/dev/null}
+      %x{rm -rf #@homedir}
     end
 
     def test_set_get
-      skip "run_as tests require root permissions"  if 0 != Process.uid
+      skip "#{__method__} requires root permissions"  if 0 != Process.uid
 
       config = mock('OpenShift::Config')
-      config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp")
+      config.stubs(:get).with("GEAR_BASE_DIR").returns("/tmp/tests")
       OpenShift::Config.stubs(:new).returns(config)
 
       # .state file is missing
-      state = OpenShift::Utils::ApplicationState.new(@uuid)
+      state = OpenShift::Utils::ApplicationState.new(@uid.to_s)
       assert_equal State::UNKNOWN, state.value
 
       # .state file is created

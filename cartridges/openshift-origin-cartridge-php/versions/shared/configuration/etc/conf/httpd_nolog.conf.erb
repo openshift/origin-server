@@ -77,7 +77,7 @@ UseCanonicalName Off
     Allow from all
 </Directory>
 DirectoryIndex index.html index.html.var
-AccessFileName .htaccess
+#AccessFileName .htaccess
 <Files ~ "^\.ht">
     Order allow,deny
     Deny from all
@@ -91,13 +91,13 @@ DefaultType text/plain
 HostnameLookups Off
 #EnableMMAP off
 #EnableSendfile off
-ErrorLog logs/error_log
+#ErrorLog logs/error_log
 LogLevel error
 LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
 LogFormat "%{Referer}i -> %U" referer
 LogFormat "%{User-agent}i" agent
-CustomLog logs/access_log combined
+#CustomLog logs/access_log combined
 ServerSignature On
 # BZ840030 (addendum to BZ785050): Alias /icons/ "/var/www/icons/"
 
@@ -256,4 +256,4 @@ ExtendedStatus On
 #    Allow from .example.com
 #</Location>
 
-include ../conf.d/php.conf
+include <%= "#{ENV['OPENSHIFT_PHP_DIR']}/configuration/etc/conf.d/php.conf" %>

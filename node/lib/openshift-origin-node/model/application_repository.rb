@@ -34,9 +34,12 @@ module OpenShift
     #
     # +user+ is of type +UnixUser+
     def initialize(user)
-      @user   = user
-      @path   = File.join(@user.homedir, 'git', "#{@user.app_name}.git")
-      @config = OpenShift::Config.new
+      @user = user
+      @path = File.join(@user.homedir, 'git', "#{@user.app_name}.git")
+    end
+
+    def exists?
+      File.directory?(@path)
     end
 
     ##
@@ -47,16 +50,15 @@ module OpenShift
     # If the directory +template.git+ exists it will be cloned as the application's repository.
     #
     def populate_from_cartridge(cartridge_name)
+      return nil if exists?
+
       FileUtils.mkpath(File.join(@user.homedir, 'git'))
 
       cartridge_template     = File.join(@user.homedir, cartridge_name, 'template')
       cartridge_template_git = File.join(@user.homedir, cartridge_name, 'template.git')
 
       have_template = (File.exist? cartridge_template or File.exist? cartridge_template_git)
-
-      raise ArgumentError.new(
-                "No template for application git repository found"
-            ) unless have_template
+      return nil unless have_template
 
       # TODO: Support tar balls etc...
       raise NotImplementedError.new(
@@ -66,9 +68,10 @@ module OpenShift
       # expose variables for ERB processing
       @application_name = @user.app_name
       @cartridge_name   = cartridge_name
+      @user_homedir     = @user.homedir
 
       # FIXME: See below
-      @broker_host      = @config.get('BROKER_HOST')
+      @broker_host      = OpenShift::Config.new.get('BROKER_HOST')
 
       case
         when File.exists?(cartridge_template)
@@ -103,16 +106,28 @@ module OpenShift
                        chdir:               git_path,
                        expected_exitstatus: 0)
       rescue ShellExecutionException => e
-        FileUtils.rm_r(@path) if File.exits? @path
+        FileUtils.rm_r(@path) if File.exist? @path
 
         raise ShellExecutionException.new(
                   'Failed to clone application git repository from template repository',
                   e.rc, e.stdout, e.stderr)
-      else
-        configure_repository()
       ensure
         FileUtils.rm_r(template)
       end
+    end
+
+    def deploy_repository
+      # expose variables for ERB processing
+      @application_name = @user.app_name
+      @user_homedir     = @user.homedir
+
+      # FIXME: See below
+      @broker_host      = OpenShift::Config.new.get('BROKER_HOST')
+
+      Utils.oo_spawn(ERB.new(GIT_DEPLOY).result(binding),
+                     chdir:               @path,
+                     uid:                 @user.uid,
+                     expected_exitstatus: 0)
     end
 
     ##
@@ -144,13 +159,19 @@ git init;
 git config user.email "builder@example.com";
 git config user.name "Template builder";
 git add -f .;
-git </dev/null commit -a -m "Creating template"
+git commit -a -m "Creating template"
 }
 
     GIT_LOCAL_CLONE = %Q{\
 set -xe;
-git </dev/null clone --bare --no-hardlinks template <%= @application_name %>.git;
+git clone --bare --no-hardlinks template <%= @application_name %>.git;
 GIT_DIR="./<%= @application_name %>.git" git repack
+}
+
+    # TODO: submodule support
+    GIT_DEPLOY      = %Q{\
+set -xe;
+git archive --format=tar HEAD | (cd <%= @user_homedir %>/app-root/runtime/repo && tar --warning=no-timestamp -xf -);
 }
 
     GIT_DESCRIPTION = %Q{\
@@ -166,7 +187,7 @@ GIT_DIR="./<%= @application_name %>.git" git repack
 
     LOAD_ENV = %Q{\
 # Import Environment Variables
-for f in /etc/openshift/env/* ~/.env/* ~/*-*/env/*
+for f in /etc/openshift/env/* ~/.env/* ~/*/env/*
 do
   [ -f $f ] && . $f
 done

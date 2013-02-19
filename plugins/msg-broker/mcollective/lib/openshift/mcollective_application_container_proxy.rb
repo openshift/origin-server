@@ -696,7 +696,10 @@ module OpenShift
         
         args = build_base_gear_args(gear)
         args['--cart-name'] = cart
-        args['--with-template-git-url'] = template_git_url
+        
+        if !template_git_url.nil?  && !template_git_url.empty?
+          args['--with-template-git-url'] = template_git_url
+        end
 
         if framework_carts.include? cart
           result_io = run_cartridge_command(cart, gear, "configure", args)

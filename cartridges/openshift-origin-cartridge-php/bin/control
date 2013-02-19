@@ -1,24 +1,31 @@
 #!/bin/bash -e
 
 HTTPD_CFG_FILE=$OPENSHIFT_PHP_DIR/configuration/etc/conf/httpd_nolog.conf
+HTTPD_CFG_DIR=$OPENSHIFT_PHP_DIR/configuration/etc/conf.d
 
 function start() {
     echo "Starting PHP cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k start
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k start
 }
 
 function stop() {
     echo "Stopping PHP cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k stop
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k stop
 }
 
 function restart() {
    echo "Restarting PHP cart"
-    /usr/sbin/httpd -C "Include $OPENSHIFT_PHP_DIR/conf.d/*.conf" -f $HTTPD_CFG_FILE -k restart
+    /usr/sbin/httpd -C "Include $HTTPD_CFG_DIR/*.conf" -f $HTTPD_CFG_FILE -k restart
 }
 
 function status() {
-   echo "PHP cart status"
+   if output=$(curl http://$OPENSHIFT_PHP_IP:$OPENSHIFT_PHP_PORT/server-status?auto 2>&1 )
+   then
+      echo "Application is running"
+      echo $output
+   else
+      echo "Application is either stopped or inaccessible"
+   fi
 }
 
 function reload() {

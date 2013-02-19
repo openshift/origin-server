@@ -16,8 +16,8 @@
 
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'
-require 'syslog'
 require 'fileutils'
 require 'openssl'
 require 'fcntl'
@@ -105,13 +105,12 @@ module OpenShift
   #
   class FrontendHttpServer < Model
     include OpenShift::Utils::ShellExec
+    include NodeLogger
 
     attr_reader :container_uuid, :container_name
     attr_reader :namespace, :fqdn
 
     def initialize(container_uuid, container_name=nil, namespace=nil)
-      Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
-
       @config = OpenShift::Config.new
 
       @container_uuid = container_uuid
@@ -804,7 +803,7 @@ module OpenShift
       begin
         shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful", "/", false)
       rescue OpenShift::Utils::ShellExecutionException => e
-        Syslog.alert("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
+        logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
         raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)
       end
     end
@@ -827,6 +826,7 @@ module OpenShift
   #
   class ApacheDB < Hash
     include OpenShift::Utils::ShellExec
+    include NodeLogger
 
     # The locks and lockfiles are based on the file name
     @@LOCKS = Hash.new { |h, k| h[k] = Mutex.new }
@@ -935,14 +935,14 @@ module OpenShift
 
         httxt2dbm = ["/usr/bin","/usr/sbin","/bin","/sbin"].map {|d| File.join(d, "httxt2dbm")}.select {|p| File.exists?(p)}.pop
         if httxt2dbm.nil?
-          Syslog.alert("WARNING: no httxt2dbm command found, relying on PATH")
+          logger.warn("WARNING: no httxt2dbm command found, relying on PATH")
           httxt2dbm="httxt2dbm"
         end
 
         cmd = %{#{httxt2dbm} -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
         out,err,rc = shellCmd(cmd)
         if rc == 0
-          Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
+          logger.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
           begin
             oldstat = File.stat(@filename + '.db')
             File.chown(oldstat.uid, oldstat.gid, tmpdb)
@@ -951,7 +951,7 @@ module OpenShift
           end
           FileUtils.mv(tmpdb, @filename + '.db', :force=>true)
         else
-          Syslog.alert("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
+          logger.error("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
         end
       end
     end
@@ -1070,12 +1070,13 @@ module OpenShift
   end
 
   class NodeJSDB < ApacheDBJSON
+    include NodeLogger
 
     def callout
       begin
         shellCmd("service openshift-node-web-proxy reload", "/", false)
       rescue OpenShift::Utils::ShellExecutionException => e
-        Syslog.alert("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
+        logger.error("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
       end
     end
 
