@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -212,6 +212,52 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Merge pull request #1405 from rmillner/US3143
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1379 from markllama/bugs/cgroup-start
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1376 from markllama/bug/oo-cgroup-read
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1404 from kraman/master
+  (dmcphers+openshiftbot@redhat.com)
+- Fedora 18 moved the httxt2dbm command. (rmillner@redhat.com)
+- Fixing sed expression which transforms 000001_openshift_origin_node.conf for
+  Apache 2.4 Revert "Adding path to resolve useradd"   This reverts commit
+  31d41d77df658b1bb134a9d2cba7cd8ee28cfe64. (kraman@gmail.com)
+- Commands and mcollective calls for each FrontendHttpServer API.
+  (rmillner@redhat.com)
+- Bug 912215: Use oo-ruby for interpreter (ironcladlou@gmail.com)
+- Merge pull request #1391 from rmillner/US3143
+  (dmcphers+openshiftbot@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Add existing community carts to v1 cart list (kraman@gmail.com)
+- Adding path to resolve useradd (kraman@gmail.com)
+- add check for systemd based os (markllama@gmail.com)
+- Merge pull request #1387 from jwhonce/dev/threaddump
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 911956 - Fixed miss-spelled method name (jhonce@redhat.com)
+- Bug 906740 - Update error message (jhonce@redhat.com)
+- Fixes to get builds and tests running on RHEL: (kraman@gmail.com)
+- Fixes for ruby193 (john@ibiblio.org)
+- Bug 868427: Fix tidy for v1 carts (ironcladlou@gmail.com)
+- open4 is a rubygem (mlamouri@redhat.com)
+- remove community pod (dmcphers@redhat.com)
+- minor cleanup (dmcphers@redhat.com)
+- Patch node coverage file permissions to work with oo_spawn tests
+  (jhonce@redhat.com)
+- Fix embed.feature (pmorie@gmail.com)
+- Initial write-up of pub/sub hooks (mrunal@me.com)
+- Refactor agent and proxy, move all v1 code to v1 model
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- Bug [906687] - Lacking usage info of oo-cgroup-read command
+  (mlamouri@redhat.com)
+- remove use of filesystem cgroup countrol (mlamouri@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
