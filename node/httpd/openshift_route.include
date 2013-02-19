@@ -12,6 +12,9 @@ ProxyPassInterpolateEnv On
 RewriteLog logs/rewrite_log
 RewriteLogLevel 0
 
+# Apache 2.4
+#LogLevel alert rewrite:trace3
+
 # Maps
 RewriteMap    lowercase int:tolower
 RewriteMap      openshift-nodes   dbm=db:/etc/httpd/conf.d/openshift/nodes.db
