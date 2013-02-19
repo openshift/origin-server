@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.5
+Version: 1.4.6
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -171,6 +171,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Feb 19 2013 Dan McPherson <dmcphers@redhat.com> 1.4.6-1
+- Bug 912803 - oo_chown/oo_chown_R wrappers for FileUtils.chown/chown_R
+  (jhonce@redhat.com)
+
 * Wed Feb 06 2013 Adam Miller <admiller@redhat.com> 1.4.5-1
 - remove BuildRoot: (tdawson@redhat.com)
 - move rest api tests to functionals (dmcphers@redhat.com)
