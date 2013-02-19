@@ -8,6 +8,11 @@
 %global rubyabi 1.9.1
 %global appdir %{_var}/lib/openshift
 %global apprundir %{_var}/run/openshift
+%if 0%{?fedora} <= 18
+    %global httxt2dbm /usr/sbin/httxt2dbm
+%else
+    %global httxt2dbm /usr/bin/httxt2dbm
+%endif
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
@@ -33,6 +38,9 @@ Requires:      httpd
 Requires:      libcgroup
 %else
 Requires:      libcgroup-tools
+%endif
+%if 0%{?fedora} >= 18
+Requires:       httpd-tools
 %endif
 Requires:      libcgroup-pam
 Requires:      pam_openshift
@@ -187,7 +195,7 @@ for map in nodes aliases idler sts
 do
     mapf="/etc/httpd/conf.d/openshift/${map}"
     touch "${mapf}.txt"
-    /usr/sbin/httxt2dbm -f DB -i "${mapf}.txt" -o "${mapf}.db"
+    %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
 done
 
 for map in containers routes
