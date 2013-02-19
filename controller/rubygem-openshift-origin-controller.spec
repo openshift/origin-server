@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.3
+Version:       1.5.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- Bug 912601 (dmcphers@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Bug 910616 Order web frameworks before other carts (dmcphers@redhat.com)
 - stop passing extra app object (dmcphers@redhat.com)
