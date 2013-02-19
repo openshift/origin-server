@@ -8,10 +8,10 @@
 %global rubyabi 1.9.1
 %global appdir %{_var}/lib/openshift
 %global apprundir %{_var}/run/openshift
-%if 0%{?fedora} <= 18
-    %global httxt2dbm /usr/sbin/httxt2dbm
-%else
+%if 0%{?fedora} >= 18
     %global httxt2dbm /usr/bin/httxt2dbm
+%else
+    %global httxt2dbm /usr/sbin/httxt2dbm
 %endif
 
 Summary:       Cloud Development Node
@@ -111,9 +111,8 @@ mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
 %if 0%{?fedora} >= 15
 mkdir -p %{buildroot}/etc/tmpfiles.d
 mv %{buildroot}%{gem_instdir}/misc/etc/openshift-run.conf %{buildroot}/etc/tmpfiles.d
-%else
-mkdir -p %{buildroot}%{apprundir}
 %endif
+mkdir -p %{buildroot}%{apprundir}
 
 # place an example file
 mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/
@@ -121,10 +120,10 @@ mv %{buildroot}%{gem_instdir}/misc/doc/cgconfig.conf %{buildroot}%{_docdir}/%{na
 
 %if 0%{?fedora} >= 18
   #patch for apache 2.4
-  sed -i '' -E 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
-  sed -i '' -E 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
-  sed -i '' -E 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
-  sed -i '' -E 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
+  sed -i 's/include /IncludeOptional /g' httpd/000001_openshift_origin_node.conf
+  sed -i 's/^RewriteLog/#RewriteLog/g' httpd/openshift_route.include
+  sed -i 's/^RewriteLogLevel/#RewriteLogLevel/g' httpd/openshift_route.include
+  sed -i 's/^#LogLevel/LogLevel/g' httpd/openshift_route.include
 %endif
 mv httpd/000001_openshift_origin_node.conf %{buildroot}/etc/httpd/conf.d/
 mv httpd/000001_openshift_origin_node_servername.conf %{buildroot}/etc/httpd/conf.d/
@@ -168,10 +167,9 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 
 %if 0%{?fedora} >= 15
 /etc/tmpfiles.d/openshift-run.conf
-%else
+%endif
 # upstart files
 %attr(0755,-,-) %{_var}/run/openshift
-%endif
 
 %post
 echo "/usr/bin/oo-trap-user" >> /etc/shells
