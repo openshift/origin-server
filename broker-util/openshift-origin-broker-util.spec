@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -77,6 +77,21 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- showiing usage duration and cost based on timeframe specified
+  (abhgupta@redhat.com)
+- stop passing extra app object (dmcphers@redhat.com)
+- Apply changes from comments. Fix diffs from brenton/origin-server.
+  (john@ibiblio.org)
+- Broker and broker-util spec files (john@ibiblio.org)
+- bz910577 - recheck on race condition, consumed_gear is check is optional
+  (rchopra@redhat.com)
+- Adding man page for oo-admin-usage (abhgupta@redhat.com)
+- read from primary - bz910610 (rchopra@redhat.com)
+- making usage filter a generic hash (abhgupta@redhat.com)
+- added new admin script to list usage for a user (abhgupta@redhat.com)
+- force destroy means use force (rchopra@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
