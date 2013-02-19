@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version:       0.6.2
+Version:       0.6.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,10 @@ fi
 %doc README
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 0.6.3-1
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 0.6.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
