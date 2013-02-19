@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.2
-Release:       2%{?dist}
+Version:       1.5.3
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -128,6 +128,29 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Fixes for ruby193 (john@ibiblio.org)
+- Merge pull request #1372 from
+  smarterclayton/bug_907647_remove_calls_to_extend
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1368 from smarterclayton/bug_908546_restrict_cart_types
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1361 from
+  smarterclayton/bug_908607_fix_app_overview_in_devenv
+  (dmcphers+openshiftbot@redhat.com)
+- Remove test case usage of Object#extend (ccoleman@redhat.com)
+- Properly deserialize nested cartridges when a relation exists and no method
+  setter (ccoleman@redhat.com)
+- Merge pull request #1290 from Coolhand/dev/niharvey/bug/903733
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 908546 - Disallow injected cart values (ccoleman@redhat.com)
+- Bug 908607 - Make application overview page faster (ccoleman@redhat.com)
+- Revert "Moved async_aware into the models" (ccoleman@redhat.com)
+- altered the messaging to reflect the suggestions given.
+  (nickharveyonline@gmail.com)
+- missed trailing backslash (admiller@redhat.com)
+- move logs to a more standard location (admiller@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-2
 - bump for chainbuild
 
