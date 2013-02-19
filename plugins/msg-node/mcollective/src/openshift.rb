@@ -349,15 +349,15 @@ module MCollective
         end
       end
 
-      def oo_add_alias(args)
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace = args['--with-namespace']
-        alias_name = args['--with-alias-name']
 
+      #
+      # Instantiate the front-end class from the given arguments and
+      # follow proper exception handling pattern.
+      #
+      def with_frontend_rescue_pattern
+        output = ""
         begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          frontend.add_alias(alias_name)
+          yield(output)
         rescue OpenShift::FrontendHttpServerExecException => e
           Log.instance.info e.message
           Log.instance.info e.backtrace
@@ -371,143 +371,190 @@ module MCollective
           Log.instance.info e.backtrace
           return -1, e.message
         else
-          return 0, ""
+          return 0, output
+        end          
+      end
+
+      def with_frontend_from_args(args)
+        container_uuid = args['--with-container-uuid']
+        container_name = args['--with-container-name']
+        namespace = args['--with-namespace']
+
+        with_frontend_rescue_pattern do |o|
+          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
+          yield(frontend, o)
+        end
+      end
+
+      def with_frontend_returns_data(args)
+        with_frontend_from_args(args) do |f, o|
+          r = yield(f, o)
+          o << "CLIENT_RESULT: " + r.to_json + "\n"
+        end
+      end
+
+      #
+      # A frontend must be created before any other manipulations are
+      # performed on it.
+      #
+      def oo_frontend_create(args)
+        with_frontend_from_args(args) do |f, o|
+          f.create
+        end
+      end
+
+      def oo_frontend_destroy(args)
+        with_frontend_from_args(args) do |f, o|
+          f.destroy
+        end
+      end
+
+      def oo_frontend_update_name(args)
+        new_container_name = args['--with-new-container-name']
+        with_frontend_from_args(args) do |f, o|
+          f.update_name(new_container_name)
+        end
+      end
+
+      def oo_frontend_update_namespace(args)
+        new_namespace = args['--with-new-namespace']
+        with_frontend_from_args(args) do |f, o|
+          f.update_namespace(new_namespace)
+        end
+      end
+
+      #
+      # The path-target-option is an array of the path, target and
+      # options.  Multiple arrays may be specified and they are in
+      # the form of: [ path(String), target(String), options(Hash) ]
+      # ex: [ "", "127.0.250.1:8080", { "websocket" => 1 } ], ...
+      #
+      def oo_frontend_connect(args)
+        path_target_options = args['--with-path-target-options']
+        with_frontend_from_args(args) do |f, o|
+          f.connect(*path_target_options)
+        end        
+      end
+
+      #
+      # The paths are an array of the paths to remove.
+      # ex: [ "", "/health", ... ]
+      def oo_frontend_disconnect(args)
+        paths = args['--with-paths']
+        with_frontend_from_args(args) do |f, o|
+          f.disconnect(*paths)
+        end
+      end
+
+      def oo_frontend_connections(args)
+        with_frontend_returns_data(args) do |f, o|
+          f.connections.to_json
+        end
+      end
+
+      def oo_frontend_idle(args)
+        with_frontend_from_args(args) do |f, o|
+          f.idle
+        end
+      end
+
+      def oo_frontend_unidle(args)
+        with_frontend_from_args(args) do |f, o|
+          f.unidle
+        end
+      end
+
+      def oo_frontend_check_idle(args)
+        with_frontend_returns_data(args) do |f, o|
+          f.idle?
+        end
+      end
+
+      def oo_frontend_sts(args)
+        max_age = args['--with-max-age']
+        with_frontend_from_args(args) do |f, o|
+          f.sts(max_age)
+        end
+      end
+
+      def oo_frontend_no_sts(args)
+        with_frontend_from_args(args) do |f, o|
+          f.no_sts
+        end
+      end
+
+      def oo_frontend_get_sts(args)
+        with_frontend_returns_data(args) do |f, o|
+          f.get_sts
+        end
+      end
+
+      def oo_add_alias(args)
+        alias_name = args['--with-alias-name']
+        with_frontend_from_args(args) do |f, o|
+          f.add_alias(alias_name)
         end
       end
 
       def oo_remove_alias(args)
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace = args['--with-namespace']
         alias_name = args['--with-alias-name']
+        with_frontend_from_args(args) do |f, o|
+          f.remove_alias(alias_name)
+        end
+      end
 
-        begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          frontend.remove_alias(alias_name)
-        rescue OpenShift::FrontendHttpServerExecException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return -1, e.message
-        else
-          return 0, ""
+      def oo_aliases(args)
+        with_frontend_returns_data(args) do |f, o|
+          f.aliases(alias_name)
         end
       end
 
       def oo_ssl_cert_add(args)
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace      = args['--with-namespace']
-
         ssl_cert      = args['--with-ssl-cert']
         priv_key      = args['--with-priv-key']
         server_alias  = args['--with-alias-name']
         passprase     = args['--with-passphrase']
-
-        begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          frontend.add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase)
-        rescue OpenShift::FrontendHttpServerExecException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return -1, e.message
-        else
-          return 0, ""
+        with_frontend_from_args(args) do |f, o|
+          f.add_ssl_cert(ssl_cert, priv_key, server_alias, passphrase)
         end
       end
 
       def oo_ssl_cert_remove(args)
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace      = args['--with-namespace']
-
         server_alias  = args['--with-alias-name']
-
-        begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          frontend.remove_ssl_cert(server_alias)
-        rescue OpenShift::FrontendHttpServerExecException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return -1, e.message
-        else
-          return 0, output
+        with_frontend_from_args(args) do |f, o|
+          f.remove_ssl_cert(server_alias)
         end
       end
 
-      def oo_frontend_backup
-        Log.instance.info "COMMAND: #{cmd}"
-
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace      = args['--with-namespace']
-
-        output = ""
-        begin
-          frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-          output = "CLIENT_RESULT: " + Base64.encode64(Zlib::Deflate.deflate(JSON.encode(frontend), Zlib::BEST_COMPRESSION))
-        rescue OpenShift::FrontendHttpServerExecException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return -1, e.message
-        else
-          return 0, output
+      def oo_ssl_certs(args)
+        with_frontend_returns_data do |f, o|
+          f.ssl_certs
         end
       end
 
-      def oo_frontend_restore
-        Log.instance.info "COMMAND: #{cmd}"
+      def oo_frontend_to_hash(args)
+        with_frontend_returns_data(args) do |f, o|
+          f.to_hash
+        end
+      end
 
+      # The backup is just a JSON encoded string
+      #
+      # TODO: Determine if its necessary to base64 encode
+      # the output to protect from interpretation.
+      #
+      def oo_frontend_backup(args)
+        Log.instance.info "COMMAND: #{cmd}"
+        oo_frontend_to_hash(args)
+      end
+
+      # Does an implicit instantiation of the FrontendHttpServer class.
+      def oo_frontend_restore(args)
+        Log.instance.info "COMMAND: #{cmd}"
         backup         = args['--with-backup']
 
-        output = ""
-        begin
-          JSON.parse(Zlib::Inflate.inflate(Base64.decode64(backup)))
-        rescue OpenShift::FrontendHttpServerExecException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return e.rc, e.message + e.stdout + e.stderr
-        rescue OpenShift::FrontendHttpServerException => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return 129, e.message
-        rescue Exception => e
-          Log.instance.info e.message
-          Log.instance.info e.backtrace
-          return -1, e.message
-        else
-          return 0, ""
+        with_frontend_rescue_pattern do |o|
+          JSON.parse(backup)
         end
       end
 

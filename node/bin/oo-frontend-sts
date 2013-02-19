@@ -19,7 +19,7 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: Idle a frontend connection
   This command must be run as root.
 
 == Usage
@@ -32,6 +32,7 @@ def usage
   -c|--with-container-uuid  gear_uuid   Unique identifier for the gear(required)
     |--with-namespace       namespace   Namespace of the application (required)
     |--with-container-name  gear_name   Name of the gear
+    |--with-max-age         max_age     Life span of the STS header
   -n|--dry-run                          Don't make changes, just do a dry run
   -q|--porcelain                        TODO: what does this do?
   -d|--debug                            Enable debug mode
@@ -41,16 +42,13 @@ USAGE
   exit 255
 end
 
-require 'json'
-require 'zlib'
-require 'base64'
-
 require 'rubygems'
 require 'openshift-origin-node'
 opts = GetoptLong.new(
     ["--with-container-uuid", "-c", GetoptLong::REQUIRED_ARGUMENT],
     ["--with-namespace",            GetoptLong::REQUIRED_ARGUMENT],
     ["--with-container-name",       GetoptLong::REQUIRED_ARGUMENT],
+    ["--with-max-age",              GetoptLong::REQUIRED_ARGUMENT],
     ["--dry-run",             "-n", GetoptLong::NO_ARGUMENT],
     ["--porcelain",           "-q", GetoptLong::NO_ARGUMENT],
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
@@ -61,6 +59,7 @@ opts = GetoptLong.new(
 container_uuid = nil
 container_name = nil
 namespace = nil
+max_age = 15768000
 
 begin
   opts.each do |k, v|
@@ -73,6 +72,8 @@ begin
       container_name = v
     when '--with-namespace'
       namespace = v
+    when '--with-max-age'
+      max_age = v.to_i
     when '--dry-run'
       $dry_run = true
     when '--debug'
@@ -93,7 +94,7 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  frontend.sts(max_age)
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
