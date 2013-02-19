@@ -70,7 +70,7 @@ class District
           if capacity == 0 or capacity == 0.0
             container_node_profile = container.get_node_profile
             if container_node_profile == gear_size
-              container.set_district("#{_id}", true)
+              container.set_district("#{uuid}", true)
               self.active_server_identities_size += 1
               self.server_identities << { "name" => server_identity, "active" => true}
               self.save!
@@ -107,16 +107,16 @@ class District
           container.set_district('NONE', false)
           server_identities.delete({ "name" => server_identity, "active" => false} )
           if not self.save
-            raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{_id}")
+            raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid}")
           end
         else
-          raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{_id} because it still has apps on it")
+          raise OpenShift::OOException.new("Node with server identity: #{server_identity} could not be removed from district: #{uuid} because it still has apps on it")
         end
       else
-        raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{_id} must be deactivated before it can be removed")
+        raise OpenShift::OOException.new("Node with server identity: #{server_identity} from district: #{uuid} must be deactivated before it can be removed")
       end
     else
-      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{_id}")
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
   end
   
@@ -133,12 +133,12 @@ class District
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
         self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{_id}", false)
+        container.set_district("#{uuid}", false)
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already deactivated")
       end
     else
-      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{_id}")
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
   end
   
@@ -149,12 +149,12 @@ class District
         District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
         self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
-        container.set_district("#{_id}", true)
+        container.set_district("#{uuid}", true)
       else
         raise OpenShift::OOException.new("Node with server identity: #{server_identity} is already active")
       end
     else
-      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{_id}")
+      raise OpenShift::OOException.new("Node with server identity: #{server_identity} doesn't belong to district: #{uuid}")
     end
   end
 
