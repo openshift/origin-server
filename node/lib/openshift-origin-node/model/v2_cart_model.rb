@@ -39,7 +39,7 @@ module OpenShift
       # TODO: introduce better implementation using Cartridge model class
       Dir.entries(@user.homedir).each do |gear_subdir|
         tidy_script = File.join(@config.get('CARTRIDGE_BASE_PATH'), cart, 'bin', 'control') + ' tidy'
-          
+
         next unless File.exists?(tidy_script)
 
         begin
@@ -62,7 +62,7 @@ module OpenShift
       # Setup gear git repo (add to unix user?)
       # Populate gear git repo if cartridge provides template.
       # Process cart ERB templates (still necessary?)
-      
+
     end
 
     def remove_cart(cart)
@@ -105,7 +105,7 @@ module OpenShift
         end
 
         @user.add_env_var(endpoint.private_port_name, endpoint.private_port)
-        
+
         @logger.info("Created private endpoint for cart #{cart.name} in gear #{@gear.uuid}: "\
           "[#{endpoint.private_ip_name}=#{private_ip}, #{endpoint.private_port_name}=#{endpoint.private_port}]")
       end
@@ -138,7 +138,7 @@ module OpenShift
 
         # Check to ensure the IP/port is not currently bound to another process
         next if address_bound?(candidate_ip, port)
-        
+
         open_ip = candidate_ip
         break
       end
@@ -162,7 +162,7 @@ module OpenShift
       allocated_ips = []
 
       # Collect all existing endpoint IP allocations
-      @cart_model.process_cartridges do |cart_path|
+      process_cartridges do |cart_path|
         cart_name = File.basename(cart_path)
         cart = get_cartridge(cart_name)
 
@@ -205,7 +205,7 @@ module OpenShift
         buffer << out
       end
 
-      @cart_model.process_cartridges { |path|
+      process_cartridges { |path|
         cartridge_env = gear_env.merge(Utils::Environ.load(File.join(path, "env")))
 
         control = Files.join(path, %w{bin control})
