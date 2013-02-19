@@ -327,7 +327,7 @@ class Application
       if self.scalable && !(cart.is_plugin? || cart.is_service?)
         raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
       end
-      
+
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?
@@ -1386,7 +1386,7 @@ class Application
     end
 
     component_ops = {}
-    # Create group instances and gears in preperation formove or add component operations
+    # Create group instances and gears in preparation for move or add component operations
     create_ginst_changes = changes.select{ |change| change[:from].nil? }
     create_ginst_changes.each do |change|
       ginst_scale = change[:to_scale][:current] || 1
@@ -1609,7 +1609,7 @@ class Application
     [changes, moves]
   end
 
-  # Persists change operation only if the additonal number of gears requested are available on the domain owner
+  # Persists change operation only if the additional number of gears requested are available on the domain owner
   #
   # == Parameters:
   # num_gears::
@@ -1720,7 +1720,20 @@ class Application
 
   def merge_group_overrides(first, second)
     return_go = { }
-    return_go["components"] = (first["components"] + second["components"]).uniq
+
+    framework_carts = CartridgeCache.cartridge_names("web_framework")
+    first_has_web_framework = false
+    first["components"].each do |components|
+      if framework_carts.include?(components['cart'])
+        first_has_web_framework = true
+        break
+      end
+    end
+    if first_has_web_framework
+      return_go["components"] = (first["components"] + second["components"]).uniq
+    else
+      return_go["components"] = (second["components"] + first["components"]).uniq
+    end
     return_go["min_gears"] = [first["min_gears"]||1, second["min_gears"]||1].max if first["min_gears"] or second["min_gears"]
     return_go["additional_filesystem_gb"] = [first["additional_filesystem_gb"]||0, second["additional_filesystem_gb"]||0].max if first["additional_filesystem_gb"] or second["additional_filesystem_gb"]
     fmax = (first["max_gears"].nil? or first["max_gears"]==-1) ? 10000 : first["max_gears"]
@@ -1834,7 +1847,7 @@ class Application
       group_instance[:scale][:gear_size] = ( go["gear_size"] || GEAR_SIZES[0] )
       group_instance[:scale][:additional_filesystem_gb] ||= 0
       group_instance[:scale][:additional_filesystem_gb] += (go["additional_filesystem_gb"] || 0)
-      group_instance[:_id] =Moped::BSON::ObjectId.new
+      group_instance[:_id] = Moped::BSON::ObjectId.new
       group_instance
     }
     [connections, group_instances, cleaned_overrides]
