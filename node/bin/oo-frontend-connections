@@ -19,7 +19,7 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: List the frontend connections
   This command must be run as root.
 
 == Usage
@@ -42,8 +42,6 @@ USAGE
 end
 
 require 'json'
-require 'zlib'
-require 'base64'
 
 require 'rubygems'
 require 'openshift-origin-node'
@@ -56,7 +54,6 @@ opts = GetoptLong.new(
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
-
 
 container_uuid = nil
 container_name = nil
@@ -93,7 +90,18 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  connections = frontend.connections
+  if $porcelain
+    $stdout.puts connections.to_json
+  else
+    connections.each do |path, target, options|
+      $stderr.write "--path \"#{path}\" --target \"#{target}\""
+      options.each do |opt, val|
+        $stderr.write " --option \"#{opt}=#{val}\""
+      end
+      $stderr.write "\n"
+    end
+  end
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc

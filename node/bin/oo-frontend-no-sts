@@ -19,7 +19,7 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: Idle a frontend connection
   This command must be run as root.
 
 == Usage
@@ -40,10 +40,6 @@ def usage
 USAGE
   exit 255
 end
-
-require 'json'
-require 'zlib'
-require 'base64'
 
 require 'rubygems'
 require 'openshift-origin-node'
@@ -93,7 +89,7 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  frontend.no_sts
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc

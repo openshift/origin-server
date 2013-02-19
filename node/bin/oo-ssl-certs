@@ -19,7 +19,7 @@ def usage
   puts <<USAGE
 == Synopsis
 
-#{$0}: Extract a backup of this configuration
+#{$0}: List the SSL certificates
   This command must be run as root.
 
 == Usage
@@ -42,8 +42,6 @@ USAGE
 end
 
 require 'json'
-require 'zlib'
-require 'base64'
 
 require 'rubygems'
 require 'openshift-origin-node'
@@ -56,7 +54,6 @@ opts = GetoptLong.new(
     ["--debug",               "-d", GetoptLong::NO_ARGUMENT],
     ["--help",                "-?", GetoptLong::NO_ARGUMENT]
 )
-
 
 container_uuid = nil
 container_name = nil
@@ -93,7 +90,16 @@ end
 
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  $stdout.write(frontend.to_json)
+  ssl_certs = frontend.ssl_certs
+  if $porcelain
+    $stdout.puts ssl_certs.to_json
+  else
+    ssl_certs.each do |ssl_cert, priv_key, server_alias|
+      $stdout.write "Alias: #{server_alias}\n"
+      $stdout.write "#{ssl_cert}\n"
+      $stdout.write "#{priv_key}\n"
+    end
+  end
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc

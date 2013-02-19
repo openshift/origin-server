@@ -83,7 +83,7 @@ else
 end
 
 begin
-  JSON.parse(Zlib::Inflate.inflate(Base64.decode64(blob)))
+  JSON.parse(blob)
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
