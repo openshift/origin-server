@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb-2.2
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -76,6 +76,14 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{c
 
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Audit of remaining front-end Apache touch points. (rmillner@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Fix endpoint manifest entries in database cartridges (ironcladlou@gmail.com)
+- Bug 903530 Set version to framework version (dmcphers@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
