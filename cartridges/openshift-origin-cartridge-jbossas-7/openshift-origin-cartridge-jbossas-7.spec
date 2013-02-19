@@ -142,7 +142,7 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 %config(noreplace) %{cartridgedir}/info/configuration/
-
+%config(noreplace) %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
