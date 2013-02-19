@@ -24,49 +24,61 @@ require 'pathname'
 
 module OpenShift
   class V2CartridgeModelFuncTest < Test::Unit::TestCase
+           MockUser = Struct.new(:gid, :uid, :homedir) do
+         def get_mcs_label(uid)
+           's0:c0,c1000'
+         end
+       end
     # Called before every test method runs. Can be used
     # to set up fixture information.
     def setup
       @uuid    = `uuidgen -r |sed -e s/-//g`.chomp
       @homedir = "/tmp/tests/#@uuid"
+      FileUtils.mkpath(File.join(@homedir, 'mock', 'metadata'))
 
-      @files = %w{/tmp/a /tmp/b/}
+      @files = [File.join(@homedir, 'mock/a'), File.join(@homedir, '.mocking_bird')]
+      @dirs = [File.join(@homedir, 'mock/b/')]
 
-      @user = mock('MockUser') do
-        stubs(:get_mcs_label).returns('c0,c1000')
-        stubs(:gid).returns(1000)
-        stubs(:uid).returns(1000)
-      end
-
-      @model = V2CartridgeModel.new(nil, @user)
+      user = MockUser.new(1000, 1000, @homedir.to_s)
+      @model = V2CartridgeModel.new(nil, user)
     end
 
     def teardown
-      FileUtils.rm_rf(@files)
       FileUtils.rm_rf(@homedir)
     end
 
     def test_do_unlock_gear
-      @model.do_unlock_gear(@files)
+      @model.do_unlock(@files + @dirs)
 
-      assert File.file?('/tmp/a'), 'Unlock failed to create file'
-      assert File.directory?('/tmp/b'), 'Unlock failed to create directory'
+      @files.each do |f|
+        assert File.file?(f), "Unlock failed to create file #{f}"
+      end
+
+      @dirs.each do |d|
+        assert File.directory?(d), "Unlock failed to create directory #{d}"
+      end
     end
 
     def test_do_lock_gear
-      FileUtils.touch('/tmp/a')
-      FileUtils.mkpath('/tmp/b')
+      @files.each do |f|
+        FileUtils.touch(f)
+      end
+      @dirs.each do |d|
+        FileUtils.mkpath(d)
+      end
 
-      @model.do_lock_gear(@files)
+      @model.do_lock(@files + @dirs)
 
-      assert File.file?('/tmp/a'), 'Lock failed to create file'
-      assert File.directory?('/tmp/b'), 'Lock failed to create directory'
+      @files.each do |f|
+        assert File.file?(f), "Lock deleted file #{f}"
+      end
+
+      @dirs.each do |d|
+        assert File.directory?(d), "Lock deleted directory #{d}"
+      end
     end
 
     def test_lock_files
-      @user.stubs(:homedir).returns(@homedir)
-      FileUtils.mkpath(File.join(@homedir, 'mock', 'metadata'))
-
       Dir.chdir(@homedir) do
         File.open('mock/metadata/locked_files.txt', 'w') do |f|
           f.write("\nmock/c\nmock/d/\n")
@@ -75,16 +87,12 @@ module OpenShift
 
         files = @model.lock_files('mock')
 
-        assert_equal(
-            [File.join(@homedir, 'mock/c'), File.join(@homedir, 'mock/d/')],
-            files)
+        expected = [File.join(@homedir, 'mock/c'), File.join(@homedir, 'mock/d/')]
+        assert_equal(expected, files)
       end
     end
 
     def test_unlock_gear
-      @user.stubs(:homedir).returns(@homedir)
-      FileUtils.mkpath(File.join(@homedir, 'mock', 'metadata'))
-
       Dir.chdir(@homedir) do
         File.open('mock/metadata/locked_files.txt', 'w') do |f|
           f.write("\nmock/c\nmock/d/\n")

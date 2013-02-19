@@ -22,6 +22,38 @@ require 'mocha'
 class ApplicationRepositoryFuncTest < Test::Unit::TestCase
   User = Struct.new(:homedir, :uid, :app_name)
 
+  def setup
+    @uuid           = `uuidgen -r |sed -e s/-//g`.chomp
+    @uid            = 1001
+    @homedir        = "/tmp/tests/#@uuid"
+    @cartridge_name = 'mock-0.0'
+    @user           = User.new("/tmp/tests/#@uuid", @uid, 'mocking')
+
+    # polyinstantiation makes creating the homedir a pain...
+    FileUtils.rm_r @homedir if File.exist?(@homedir)
+    FileUtils.mkpath(@homedir)
+    %x{useradd -u #@uid -d #@homedir #@uuid}
+    %x{chown -R #@uid:#@uid #@homedir}
+    FileUtils.mkpath(File.join(@homedir, '.tmp', @uid.to_s))
+    FileUtils.chmod(0, File.join(@homedir, '.tmp'))
+
+    # UnixUser tasks...
+    FileUtils.mkpath(File.join(@user.homedir, %w{app-root runtime repo}))
+    FileUtils.mkpath(File.join(@user.homedir, %w{app-root data}))
+    File.chown(@user.uid, @user.uid, @user.homedir)
+
+    `chcon -R -r object_r -t openshift_var_lib_t -l s0:c0,c#{@user.uid} #{@user.homedir}`
+
+    @config = mock('OpenShift::Config')
+    @config.stubs(:get).with("BROKER_HOST").returns("localhost")
+    OpenShift::Config.stubs(:new).returns(@config)
+  end
+
+  def teardown
+    %x{userdel #@uid 1>/dev/null}
+    %x{rm -rf #@homedir}
+  end
+
   # FIXME: I cannot get assert_path_exist method to resolve/bind. :-(
   def assert_path_exist(path, message=nil)
     failure_message = build_message(message,
@@ -63,30 +95,6 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     assert_equal 0, stat.uid, 'Error: Git hook post-receive not owned by root'
   end
 
-  # Called before every test method runs. Can be used
-  # to set up fixture information.
-  def setup
-    @uuid           = `uuidgen -r |sed -e s/-//g`.chomp
-    @cartridge_name = 'mock-0.0'
-    @user           = User.new("/tmp/tests/#@uuid", 1000, 'mocking')
-
-    # UnixUser tasks...
-    FileUtils.mkpath(File.join(@user.homedir, %w{app-root runtime repo}))
-    FileUtils.mkpath(File.join(@user.homedir, %w{app-root data}))
-    File.chown(@user.uid, @user.uid, @user.homedir)
-
-    `chcon -R -r object_r -t openshift_var_lib_t -l s0:c0,c#{@user.uid} #{@user.homedir}`
-
-    @config = mock('OpenShift::Config')
-    @config.stubs(:get).with("BROKER_HOST").returns("localhost")
-    OpenShift::Config.stubs(:new).returns(@config)
-  end
-
-  # Called after every test method runs. Can be used to tear
-  # down fixture information.
-  def teardown
-    FileUtils.rm_rf(@user.homedir)
-  end
 
   def test_new
     repo = OpenShift::ApplicationRepository.new(@user)
@@ -175,7 +183,7 @@ EOF
   def create_bare
     template = File.join(@user.homedir, @cartridge_name, 'template')
     Dir.chdir(Pathname.new(template).parent.to_path) do
-    output = %x{set -xe;
+      output = %x{set -xe;
 pushd #{template}
 git init;
 git config user.email "mocker@example.com";
@@ -185,9 +193,9 @@ git </dev/null commit -a -m "Creating mocking template" 2>&1;
 popd;
 git </dev/null clone --bare --no-hardlinks template template.git 2>&1;
 }
-    #puts "\ncreate_bare: #{output}"
+      #puts "\ncreate_bare: #{output}"
 
-    FileUtils.rm_r(template)
-      end
+      FileUtils.rm_r(template)
+    end
   end
 end

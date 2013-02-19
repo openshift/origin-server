@@ -31,7 +31,23 @@ module OpenShift
     end
 
     def self.logger
-      Logger.new(STDOUT)
+      @logger ||= begin
+        logger = Logger.new(STDOUT)
+        logger.level = Logger::DEBUG
+        logger
+      end
+    end
+
+    def trace_logger
+      NodeLogger.trace_logger
+    end
+
+    def self.trace_logger
+      @trace_logger ||= begin
+        logger = Logger.new(STDOUT)
+        logger.level = Logger::INFO
+        logger
+      end
     end
   end
 end

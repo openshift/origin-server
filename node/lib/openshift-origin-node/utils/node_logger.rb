@@ -18,27 +18,78 @@ require 'logger'
 
 module OpenShift
   module NodeLogger
+    PROFILES = {
+        :standard => {
+            file_config:   'PLATFORM_LOG_FILE',
+            level_config:  'PLATFORM_LOG_LEVEL',
+            default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform.log}),
+            default_level: Logger::DEBUG
+        },
+        :trace    => {
+            file_config:   'PLATFORM_TRACE_LOG_FILE',
+            level_config:  'PLATFORM_TRACE_LOG_LEVEL',
+            default_file:  File.join(File::SEPARATOR, %w{var log openshift node platform-trace.log}),
+            default_level: Logger::INFO
+        }
+    }
+
+    def self.build_logger(profile)
+      begin
+        # Use defaults
+        log_file  = profile[:default_file]
+        log_level = profile[:default_level]
+
+        # Override defaults with configs if possible
+        begin
+          config           = OpenShift::Config.new
+          config_log_file  = config.get(profile[:file_config])
+          config_log_level = config.get(profile[:level_config])
+
+          if config_log_level && Logger::Severity.const_defined?(config_log_level)
+            log_level = Logger::Severity.const_get(config_log_level)
+          end
+
+          if config_log_file
+            log_file = config_log_file
+          end
+        rescue => e
+          # just use the defaults
+          Logger.new(STDERR).error { "Failed to apply logging configuration #{profile}: #{e.message}" }
+        end
+
+        FileUtils.mkpath(File.dirname(log_file)) unless File.exist? File.dirname(log_file)
+
+        file = if File.exist?(log_file)
+                 File.open(log_file, File::WRONLY | File::APPEND)
+               else
+                 File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0644)
+               end
+
+        logger       = Logger.new(file, 5, 10 * 1024 * 1024)
+        logger.level = log_level
+        logger
+      rescue Exception => e
+        # If all else fails, use a STDOUT logger
+        Logger.new(STDERR).error { "Failed to create logger; falling back to STDOUT: #{e.message}" }
+        Logger.new(STDOUT)
+      end
+    end
 
     def logger
       NodeLogger.logger
     end
 
     def self.logger
-      @logger ||= begin
-        path = File.join(File::SEPARATOR, %w{var log openshift node})
-        FileUtils.mkpath(path)
-
-        log_file = File.join(path, 'platform.log')
-        file     = if File.exist?(log_file)
-                     File.open(log_file, File::WRONLY | File::APPEND)
-                   else
-                     File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0644)
-                   end
-        Logger.new(file, 5, 10 * 1024 * 1024)
-      rescue Exception => e
-        Logger.new(STDERR).error { "Failed with #{e.message}" }
-        Logger.new(STDOUT)
-      end
+      @logger ||= self.build_logger(PROFILES[:standard])
     end
+
+    def trace_logger
+      NodeLogger.trace_logger
+    end
+
+    def self.trace_logger
+      @trace_logger ||= self.build_logger(PROFILES[:trace])
+    end
+
   end
 end
