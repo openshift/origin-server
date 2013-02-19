@@ -9,6 +9,9 @@ SYNOPSIS
 DESCRIPTION
   This is a utility to list the usage for a particular user on OpenShift Origin.
   The usage can be filtered by application name, gear uuid, as well as a timeframe.
+  The usage cost displayed is based on the usage duration and the usage rate. 
+  It does not take into account any unbilled usage such as the 3 free gears for 
+  the MegaShift plan. 
 
 OPTIONS
   -h|--help  
@@ -24,10 +27,10 @@ OPTIONS
     The gear uuid to filter the usage data.
 
   -s|--start start_timeframe
-    The start time (seconds since epoch) to filter the usage data.
+    The start time (yyyy-mm-dd) to filter the usage data (defaults to start of current month).
 
   -e|--end end_timeframe
-    The end time (seconds since epoch) to filter the usage data.
+    The end time (yyyy-mm-dd) to filter the usage data (defaults to the current time).
 
 EXAMPLE
 
