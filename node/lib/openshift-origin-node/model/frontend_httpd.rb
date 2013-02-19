@@ -930,7 +930,13 @@ module OpenShift
       Dir.mktmpdir([File.basename(@filename) + ".db-", ""], File.dirname(@filename)) do |wd|
         tmpdb = File.join(wd, 'new.db')
 
-        cmd = %{/usr/sbin/httxt2dbm -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
+        httxt2dbm = ["/usr/bin","/usr/sbin","/bin","/sbin"].map {|d| File.join(d, "httxt2dbm")}.select {|p| File.exists?(p)}.pop
+        if httxt2dbm.nil?
+          Syslog.alert("WARNING: no httxt2dbm command found, relying on PATH")
+          httxt2dbm="httxt2dbm"
+        end
+
+        cmd = %{#{httxt2dbm} -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
         out,err,rc = shellCmd(cmd)
         if rc == 0
           Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
