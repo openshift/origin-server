@@ -20,6 +20,7 @@ require 'openshift-origin-node/model/frontend_httpd.rb'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fcntl'
+require 'etc'
 require 'active_model'
 
 module OpenShift
@@ -35,7 +36,7 @@ module OpenShift
   class UnixUser
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
-    
+
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files,
         :container_name
@@ -127,7 +128,7 @@ module OpenShift
                   "ERROR: unable to create user account(#{rc}): #{cmd.squeeze(" ")} stdout: #{out} stderr: #{err}"
                   ) unless rc == 0
 
-          FileUtils.chown("root", @uuid, @homedir)
+          oo_chown("root", @uuid, @homedir)
           FileUtils.chmod 0o0750, @homedir
 
           if @config.get("CREATE_APP_SYMLINKS").to_i == 1
@@ -177,7 +178,7 @@ module OpenShift
         lock.flock(File::LOCK_EX)
 
         # These calls and their order is designed to release pam_namespace's
-        #   locks on .tmp and .sandbox. Change then at your peril. 
+        #   locks on .tmp and .sandbox. Change then at your peril.
         #
         # 1. Kill off the easy processes
         # 2. Lock down the user from creating new processes (cgroups freeze, nprocs 0)
@@ -389,7 +390,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         file.write token
       end
 
-      FileUtils.chown_R("root", @uuid,broker_auth_dir)
+      oo_chown_R("root", @uuid,broker_auth_dir)
       FileUtils.chmod(0o0750, broker_auth_dir)
       FileUtils.chmod(0o0640, Dir.glob("#{broker_auth_dir}/*"))
     end
@@ -449,12 +450,12 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       env_dir = File.join(homedir, ".env")
       FileUtils.mkdir_p(env_dir)
       FileUtils.chmod(0o0750, env_dir)
-      FileUtils.chown(nil, @uuid, env_dir)
+      oo_chown(nil, @uuid, env_dir)
 
       ssh_dir = File.join(homedir, ".ssh")
       FileUtils.mkdir_p(ssh_dir)
       FileUtils.chmod(0o0750, ssh_dir)
-      FileUtils.chown(nil, @uuid, ssh_dir)
+      oo_chown(nil, @uuid, ssh_dir)
 
       geardir = File.join(homedir, @container_name, "/")
       gearappdir = File.join(homedir, "app-root", "/")
@@ -477,7 +478,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 #          Your changes may cause your application to fail.
 }
       }
-      FileUtils.chown(@uuid, @uuid, profile, :verbose => @debug)
+      oo_chown(@uuid, @uuid, profile, :verbose => @debug)
 
 
       add_env_var("GEAR_DNS",
@@ -507,16 +508,16 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       # Update all directory entries ~/app-root/*
       Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|
         FileUtils.chmod_R(0o0750, e, :verbose => @debug)
-        FileUtils.chown_R(@uuid, @uuid, e, :verbose => @debug)
+        oo_chown_R(@uuid, @uuid, e, :verbose => @debug)
       }
-      FileUtils.chown(nil, @uuid, gearappdir, :verbose => @debug)
+      oo_chown(nil, @uuid, gearappdir, :verbose => @debug)
       raise "Failed to instantiate gear: missing application directory (#{gearappdir})" unless File.exist?(gearappdir)
 
       state_file = File.join(gearappdir, "runtime", ".state")
       File.open(state_file, File::WRONLY|File::TRUNC|File::CREAT, 0o0660) {|file|
         file.write "new\n"
       }
-      FileUtils.chown(@uuid, @uuid, state_file, :verbose => @debug)
+      oo_chown(@uuid, @uuid, state_file, :verbose => @debug)
 
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
@@ -654,7 +655,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         file.write(keys.values.join("\n"))
         file.write("\n")
       end
-      FileUtils.chown_R('root', @uuid, authorized_keys_file)
+      oo_chown_R('root', @uuid, authorized_keys_file)
       set_selinux_context(authorized_keys_file)
 
       keys
@@ -671,7 +672,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
           options, key_type, key, comment = line.split
           keys[comment] = line.chomp
         end
-        FileUtils.chown_R('root', @uuid, authorized_keys_file)
+        oo_chown_R('root', @uuid, authorized_keys_file)
       end
       keys
     end
@@ -713,6 +714,28 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       Syslog.err(
                 "ERROR: unable to chcon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                 ) unless 0 == rc
+    end
+
+    ##
+    # Method oo_chown wrapper for FileUtils.chown.
+    #
+    # Created because an error in FileUtils.chown where an all digit user or group name is assumed
+    # to be a uid or a gid.  Mongoids can be all numeric.
+    def oo_chown(user, group, list, options = {})
+      user = Etc.getpwnam(user).uid if user
+      group = Etc.getgrnam(group).gid if group
+      FileUtils.chown(user, group, list, options)
+    end
+
+    ##
+    # Method oo_chown_R wrapper for FileUtils.chown_R.
+    #
+    # Created because an error in FileUtils.chown where an all digit user or group name is assumed
+    # to be a uid or a gid.  Mongoids can be all numeric.
+    def oo_chown_R(user, group, list, options = {})
+      user = Etc.getpwnam(user).uid if user
+      group = Etc.getgrnam(group).gid if group
+      FileUtils.chown_R(user, group, list, options)
     end
   end
 end
