@@ -16,7 +16,7 @@ Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
-Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{gem_name}/rubygem-%{gem_name}-%{version}.tar.gz
+Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/rubygem-%{gem_name}-%{version}.tar.gz
 Requires:      %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 Requires:      %{?scl:%scl_prefix}ruby
 Requires:      %{?scl:%scl_prefix}rubygems
