@@ -10,7 +10,7 @@ ProxyPassInterpolateEnv On
 
 # Set RewriteLogLevel to 6 for debugging
 RewriteLog logs/rewrite_log
-RewriteLogLevel 0
+RewriteLogLevel 6
 
 # Apache 2.4
 #LogLevel alert rewrite:trace3
@@ -36,7 +36,7 @@ RewriteRule ^/(.*)$ /var/www/html/restorer.php/%1/$1 [NS,L]
 
 # If STS is set then this domain will always force https.
 # Redirect to https or set the STS header if already on https.
-RewriteCond %{openshift-sts::%{ENV:V_MATCH_HOST}} ^(.+)$
+RewriteCond %{openshift-sts:%{ENV:V_MATCH_HOST}} ^(.+)$
 RewriteRule ^(.*)$ - [E=FORCEHTTPS:%1,NS]
 
 RewriteCond %{HTTPS} =off
@@ -74,36 +74,57 @@ Header set Strict-Transport-Security "max-age=%{STSHEADER}e" env=STSHEADER
 
 
 # Just match the host
-RewriteRule ^(.*)$ - [E=V_TMP_PATH:$1,E=V_TMP_LVL:0,NS]
+RewriteRule ^(.*)$ - [E=V_TMP_MATCH_PATH:,E=V_TMP_PATH:$1,E=V_TMP_LVL:0,NS]
 
 RewriteCond %{ENV:V_TMP_LVL} =0
-RewriteCond %{ENV:V_MATCH_HOST} ^(.+)$
-RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_MATCH_NODE_LOOKUP:%{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH},E=V_MATCH_NODE_DEFAULT:__default__%{ENV:V_TMP_MATCH_PATH},NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =0
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:/,E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
 
 # One path element (/a)
 RewriteRule ^(/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:1,NS]
 
 RewriteCond %{ENV:V_TMP_LVL} =1
 RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
-RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_MATCH_NODE_LOOKUP:%{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH},E=V_MATCH_NODE_DEFAULT:__default__%{ENV:V_TMP_MATCH_PATH},NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =1
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
 
 # Two path elements (/a/b)
 RewriteRule ^(/[^/]+/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:2,NS]
 
 RewriteCond %{ENV:V_TMP_LVL} =2
 RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
-RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_MATCH_NODE_LOOKUP:%{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH},E=V_MATCH_NODE_DEFAULT:__default__%{ENV:V_TMP_MATCH_PATH},NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =2
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
 
 # Three path elements (/a/b/c)
 RewriteRule ^(/[^/]+/[^/]+/[^/]+)(.*)$ - [E=V_TMP_MATCH_PATH:$1,E=V_TMP_PATH:$2,E=V_TMP_LVL:3,NS]
 
 RewriteCond %{ENV:V_TMP_LVL} =3
 RewriteCond %{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH} ^(.+)$
-RewriteCond ${openshift-nodes:%1} ^(.+)$
+RewriteRule ^(.*)$ - [E=V_MATCH_NODE_LOOKUP:%{ENV:V_MATCH_HOST}%{ENV:V_TMP_MATCH_PATH},E=V_MATCH_NODE_DEFAULT:__default__%{ENV:V_TMP_MATCH_PATH},NS]
+
+RewriteCond %{ENV:V_TMP_LVL} =3
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_LOOKUP}} ^(.+)$ [OR]
+RewriteCond ${openshift-nodes:%{ENV:V_MATCH_NODE_DEFAULT}} ^(.+)$
 RewriteRule ^(.*)$ - [E=V_ROUTE:%1,E=V_MATCH_PATH:%{ENV:V_TMP_MATCH_PATH},E=V_PATH:%{ENV:V_TMP_PATH},NS]
+
+
 
 # Route based on the populated variables,
 

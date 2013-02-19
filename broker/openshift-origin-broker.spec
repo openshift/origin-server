@@ -108,8 +108,8 @@ ln -s %{brokerdir}/public %{buildroot}%{htmldir}/broker
 ln -s %{brokerdir}/public %{buildroot}%{brokerdir}/httpd/root/broker
 ln -sf /usr/lib64/httpd/modules %{buildroot}%{brokerdir}/httpd/modules
 ln -sf /etc/httpd/conf/magic %{buildroot}%{brokerdir}/httpd/conf/magic
-mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
-mv %{buildroot}%{brokerdir}/httpd/000000_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_proxy.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
+mv %{buildroot}%{brokerdir}/httpd/000002_openshift_origin_broker_servername.conf %{buildroot}%{_sysconfdir}/httpd/conf.d/
 
 mkdir -p %{buildroot}%{_var}/log/openshift/broker/httpd
 touch %{buildroot}%{_var}/log/openshift/user_action.log
@@ -152,8 +152,8 @@ rm %{buildroot}%{brokerdir}/httpd/broker-scl-ruby193.conf
 %{htmldir}/broker
 %config %{brokerdir}/config/environments/production.rb
 %config %{brokerdir}/config/environments/development.rb
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_proxy.conf
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/000000_openshift_origin_broker_servername.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_proxy.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/000002_openshift_origin_broker_servername.conf
 %config(noreplace) %{_sysconfdir}/openshift/broker.conf
 %config(noreplace) %{_sysconfdir}/openshift/quickstarts.json
 %{_sysconfdir}/openshift/broker-dev.conf

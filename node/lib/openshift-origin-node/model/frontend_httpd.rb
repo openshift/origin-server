@@ -940,6 +940,12 @@ module OpenShift
         out,err,rc = shellCmd(cmd)
         if rc == 0
           Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
+          begin
+            oldstat = File.stat(@filename + '.db')
+            FileUtils.chown(oldstat.uid, oldstat.gid, tmpdb)
+            FileUtils.chmod(oldstat.mode & 0777, tmpdb)
+          rescue Errno::ENOENT
+          end
           FileUtils.mv(tmpdb, @filename + '.db', :force=>true)
         else
           Syslog.alert("ERROR: failure httxt2dbm #{@filename}: #{rc}: stdout: #{out} stderr:#{err}") unless rc == 0
@@ -957,6 +963,12 @@ module OpenShift
         if FileUtils.compare_file(@filename + self.SUFFIX + '-', @filename + self.SUFFIX)
           FileUtils.rm(@filename + self.SUFFIX + '-', :force=>true)
         else
+          begin
+            oldstat = File.stat(@filename + self.SUFFIX)
+            FileUtils.chown(oldstat.uid, oldstat.gid, @filename + self.SUFFIX + '-')
+            FileUtils.chmod(oldstat.mode & 0777, @filename + self.SUFFIX + '-')
+          rescue Errno::ENOENT
+          end
           FileUtils.mv(@filename + self.SUFFIX + '-', @filename + self.SUFFIX, :force=>true)
           callout
         end
