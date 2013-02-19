@@ -214,6 +214,7 @@ class PendingAppOpGroup
             use_parallel_job = true
           when :complete_update_namespace
             component_instance.complete_update_namespace(op.args)
+            self.application.save
           when :set_group_overrides
             application.group_overrides=op.args["group_overrides"]
             application.save
