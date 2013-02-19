@@ -8,7 +8,7 @@
 
 Summary:       Provides embedded PostgreSQL support
 Name:          openshift-origin-cartridge-postgresql-8.4
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -97,6 +97,18 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{c
 
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Audit of remaining front-end Apache touch points. (rmillner@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Apply changes from comments. Fix diffs from brenton/origin-server.
+  (john@ibiblio.org)
+- Dependency fix for postgres cartridge (john@ibiblio.org)
+- Drop dependency on ruby-postgres (john@ibiblio.org)
+- Fixes for ruby193 (john@ibiblio.org)
+- Fix endpoint manifest entries in database cartridges (ironcladlou@gmail.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
