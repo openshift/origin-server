@@ -3,11 +3,15 @@
 require 'rubygems'
 require 'getoptlong'
 
+TIME_FORMAT_REGEX = /^\d{4}\-\d{1,2}\-\d{1,2}$/
+
 def show_usage
     puts <<USAGE
 == Synopsis
 
-oo-admin-usage: List the usage data for a user
+oo-admin-usage: List the usage data for a user. 
+Note: The usage cost displayed is based on the usage duration and the usage rate. 
+It does not take into account any unbilled usage such as the 3 free gears for the MegaShift plan. 
 
 == Usage
 
@@ -21,9 +25,9 @@ Options:
 -g|--gear
     The gear uuid to filter the usage data 
 -s|--start
-    The start time (seconds since epoch) to filter the usage data
+    The start date (yyyy-mm-dd) to filter the usage data (defaults to start of current month)
 -e|--end
-    The end time (seconds since epoch) to filter the usage data
+    The end date (yyyy-mm-dd) to filter the usage data (defaults to the current time)
 -h|--help
     Show Usage info
 USAGE
@@ -109,30 +113,49 @@ unless login
   show_usage
 end
 
+# load the rails environment
+require "/var/www/openshift/broker/config/environment"
+
+# record current time so that it remains constant throughout the execution of the script
+current_time = Time.now
+
 unless start_timeframe.nil?
   begin
-    start_timeframe = Integer(start_timeframe)
+    raise unless start_timeframe =~ TIME_FORMAT_REGEX
+    start_timeframe = Time.parse(start_timeframe).to_i
   rescue Exception => ex
-    puts "Please specify the start time as the number of seconds since epoch"
+    puts "Please specify the start time as yyyy-mm-dd"
     show_usage
   end
 end
 
 unless end_timeframe.nil?
   begin
-    end_timeframe = Integer(end_timeframe)
+    raise unless end_timeframe =~ TIME_FORMAT_REGEX
+    end_timeframe = Time.parse(end_timeframe).to_i
+    if end_timeframe > current_time.to_i
+      puts "End timeframe specified is greater than the current time. Defaulting to current time..."
+      end_timeframe = current_time.to_i
+    end
   rescue Exception => ex
-    puts "Please specify the end time as the number of seconds since epoch"
+    puts "Please specify the end time as yyyy-mm-dd"
     show_usage
   end
 end
 
+# default start timeframe to start of current month if, 
+# start timeframe is not specified 
+# and end timeframe is specified
+# and end timeframe is earlier than the start of the current month   
+if start_timeframe.nil? && end_timeframe && end_timeframe > current_time.at_beginning_of_month.to_i
+  start_timeframe = current_time.at_beginning_of_month.to_i
+end
+
 if start_timeframe && end_timeframe && start_timeframe > end_timeframe
-  puts "The start time must be less than the end time"
+  puts "The end time cannot be greater than the start time"
   show_usage
 end
 
-require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 puts
@@ -151,17 +174,33 @@ filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe,
 usage_data = Usage.find_by_filter(login, filter)
 if usage_data.count > 0
   usage_data.each_with_index do |usage, index|
-    if usage.end_time.nil?
-      end_time = Time.now
-      end_time_str = "PRESENT"
+    # calculate the usage start time
+    if start_timeframe.nil?
+      begin_time = usage.begin_time
     else
-      end_time = usage.end_time
-      end_time_str = end_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
+      begin_time = [usage.begin_time, Time.at(start_timeframe)].max
     end
     
-    begin_time_str = usage.begin_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
-    duration = end_time - usage.begin_time
+    # calculate the usage end time
+    if end_timeframe.nil?
+      if usage.end_time.nil?
+        end_time = current_time
+        end_time_str = "PRESENT"
+      else
+        end_time = usage.end_time
+      end
+    else
+      if usage.end_time.nil?
+        end_time = Time.at(end_timeframe)
+      else
+        end_time = [usage.end_time, Time.at(end_timeframe)].min
+      end
+    end
+
+    duration = end_time - begin_time
     duration_str = pretty_duration(duration)
+    begin_time_str = begin_time.localtime.strftime('%Y-%m-%d %H:%M:%S')
+    end_time_str = end_time.localtime.strftime('%Y-%m-%d %H:%M:%S') unless end_time_str == "PRESENT" 
 
     # calculate the usage cost
     usage_rate = usage.get_usage_rate(user.plan_id)
@@ -183,6 +222,10 @@ if usage_data.count > 0
     puts "Cost (Est.): #{formatted_number(usage_cost)} ($#{usage_rate[:usd]}/#{usage_rate[:duration].to_s})" unless usage_rate.nil?
     puts 
   end
+
+  puts "Note: The cost displayed is based on the usage duration and the usage rate." \
+  "It does not take into account any unbilled usage such as the 3 free gears on the MegaShift plan."
+  puts 
 else
   puts "No usage data found"
   puts
