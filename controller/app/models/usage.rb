@@ -39,6 +39,9 @@ class Usage
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
   validates :cart_name, :presence => true, :if => :validate_cart_name?
 
+  index({'login' => 1})
+  create_indexes
+
   def validate_gear_size?
     (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage]) ? true : false
   end
