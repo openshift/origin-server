@@ -2,7 +2,7 @@
 
 Summary:       Provides jenkins-1.4 support
 Name:          openshift-origin-cartridge-jenkins-1.4
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -81,6 +81,14 @@ ln -s %{cartridgedir}/../abstract/info/hooks/system-messages %{buildroot}%{cartr
 
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Bug 903530 Set version to framework version (dmcphers@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- Fixing jenkins commons-codec dependency version (upstream jenkins-1.501)
+  (kraman@gmail.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
