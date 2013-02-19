@@ -3,7 +3,7 @@ Rails.application.routes.draw do
     resource :api, :only => :show, :controller => :api
     resource :environment, :only => [:show], :controller => :environment
     resource :user, :only => [:show, :destroy], :controller => :user do
-      resources :keys, :controller => :keys, :constraints => { :id => /[\w]+/ } 
+      resources :keys, :controller => :keys, :constraints => { :id => /[\w\.\-@+]+?(?=(\.(xml|json|yml|yaml|xhtml))?\z)/ }
     end
     resources :cartridges, :only => [:index, :show], :constraints => { :id => /standalone|embedded/ }
     resources :quickstarts, :only => [:index, :show]
