@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,39 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Bug 910616 Order web frameworks before other carts (dmcphers@redhat.com)
+- stop passing extra app object (dmcphers@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- broker unit testcases (rchopra@redhat.com)
+- Fixes to get builds and tests running on RHEL: (kraman@gmail.com)
+- Fixes for ruby193 (john@ibiblio.org)
+- Adding more indexes based on prod performance (dmcphers@redhat.com)
+- Add index on domain_id (dmcphers@redhat.com)
+- Add request id to mco requests (dmcphers@redhat.com)
+- Performance fixes around retrieving apps and domains (dmcphers@redhat.com)
+- use correct sort syntax (dmcphers@redhat.com)
+- correction in node selection algorithm (dmcphers@redhat.com)
+- Merge pull request #1368 from smarterclayton/bug_908546_restrict_cart_types
+  (dmcphers+openshiftbot@redhat.com)
+- Properly deserialize nested cartridges when a relation exists and no method
+  setter (ccoleman@redhat.com)
+- remove community pod (dmcphers@redhat.com)
+- Merge pull request #1366 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- providing stub for usage_rates and changing rest response field to
+  usage_rates from usage_rate_usd (abhgupta@redhat.com)
+- Refactor agent and proxy, move all v1 code to v1 model
+  (ironcladlou@gmail.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- making usage filter a generic hash (abhgupta@redhat.com)
+- added new admin script to list usage for a user (abhgupta@redhat.com)
+- Fix broken idler test (kraman@gmail.com)
+- Updating idler tests to ignore warnings from facter (kraman@gmail.com)
+- Fix current ip address during app creation (rpenta@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - Merge pull request #1346 from danmcp/master (dmcphers@redhat.com)
 - Merge pull request #1289 from
