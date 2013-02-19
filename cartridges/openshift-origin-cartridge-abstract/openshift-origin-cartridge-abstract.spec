@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.5.2
+Version:       1.5.3
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -89,6 +89,15 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
 
 %changelog
+* Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
+- Audit of remaining front-end Apache touch points. (rmillner@redhat.com)
+- Switch from VirtualHosts to mod_rewrite based routing to support high
+  density. (rmillner@redhat.com)
+- Bug 906740 - Update error message (jhonce@redhat.com)
+- Fixes for ruby193 (john@ibiblio.org)
+- remove community pod (dmcphers@redhat.com)
+- remove use of filesystem cgroup countrol (mlamouri@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.5.2-1
 - change %%define to %%global (tdawson@redhat.com)
 
