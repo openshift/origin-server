@@ -676,7 +676,7 @@ class OODiag
     d_profile_active = Hash.new
     d_nodes_with_profile = Hash.new {|h,k| h[k] = []}
     districts.each do |district|
-      profile = district.methods.include?(:node_profile) ? district.node_profile : district.gear_size
+      profile = district.attributes.has_key?('node_profile') ? district.node_profile : district.gear_size
                             # model refactor renamed :node_profile => :gear_size
       verbose "district '#{district.name}' has profile '#{profile}'"
       if district.server_identities.empty?
@@ -1113,7 +1113,7 @@ class OODiag
     %w{ 2.2.22-14.ep6.el6 2.2.17-15.4.ep5.el6 }.include? version and do_fail <<-BORKED
       httpd-#{version} is installed. This version includes serious known issues that
       impact OpenShift operations.  Please upgrade or downgrade httpd accordingly.
-      For details see: https://bugzilla.redhat.com/show_bug.cgi?id=893884
+      For details see: https://access.redhat.com/knowledge/articles/311023
       BORKED
   end
 
