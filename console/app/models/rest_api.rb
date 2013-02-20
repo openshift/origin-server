@@ -1,4 +1,8 @@
 module RestApi
+
+  # The client API version
+  API_VERSION = '1.3'
+
   #
   # An Authorization object should expose:
   #
