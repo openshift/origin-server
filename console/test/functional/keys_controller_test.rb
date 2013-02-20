@@ -121,7 +121,7 @@ class KeysControllerTest < ActionController::TestCase
   end
 
   test "should assign errors on invalid name" do
-    post :create, {:key => get_post_form.merge(:name => '@@@@')}
+    post :create, {:key => get_post_form.merge(:name => '%%%%')}
 
     assert_response :success
     assert_template :new
