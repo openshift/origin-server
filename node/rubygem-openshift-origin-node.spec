@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.3
+Version:       1.5.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -225,6 +225,22 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- Merge pull request #1417 from jwhonce/dev/wip_master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 912899 - mcollective changing all numeric mongoid to BigInt
+  (jhonce@redhat.com)
+- Allow for a __default__ target which matches hosts not otherwise matched.
+  (rmillner@redhat.com)
+- Fix permissions for db files. (rmillner@redhat.com)
+- Merge pull request #1409 from tdawson/tdawson/fix_rubygem_sources
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1408 from jwhonce/format_markers
+  (dmcphers+openshiftbot@redhat.com)
+- fix rubygem sources (tdawson@redhat.com)
+- WIP Cartridge Refactor (jhonce@redhat.com)
+- Fixing sed script for F18 config updates (kraman@gmail.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Merge pull request #1405 from rmillner/US3143
   (dmcphers+openshiftbot@redhat.com)
