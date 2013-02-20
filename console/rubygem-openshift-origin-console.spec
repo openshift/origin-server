@@ -9,8 +9,8 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.4
-Release:       2%{?dist}
+Version:       1.5.5
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -128,6 +128,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Merge pull request #1419 from smarterclayton/console_should_send_api_version
+  (dmcphers+openshiftbot@redhat.com)
+- The console should send a locked API version (ccoleman@redhat.com)
+- Relaxing restrictions on ssh key names (abhgupta@redhat.com)
+- fix rubygem sources (tdawson@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
 - bump for chainbuild
 
