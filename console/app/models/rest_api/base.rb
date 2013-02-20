@@ -116,6 +116,10 @@ module RestApi
     def root_attributes(hash)
       hash.slice('messages', *@root_attrs)
     end
+
+    def mime_type
+      "application/json;version=#{RestApi::API_VERSION}"
+    end
   end
 
   class Base < ActiveResource::Base
