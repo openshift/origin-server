@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,15 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Tests for node web proxy. (mrunalp@gmail.com)
+- Relaxing restrictions on ssh key names (abhgupta@redhat.com)
+- Merge pull request #1409 from tdawson/tdawson/fix_rubygem_sources
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 912798 (dmcphers@redhat.com)
+- fix rubygem sources (tdawson@redhat.com)
+- Bug 912292 (dmcphers@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Bug 912601 (dmcphers@redhat.com)
 
