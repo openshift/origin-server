@@ -251,32 +251,23 @@ startall() {
     if ! is_systemd
     then
 
-	if !(service cgconfig status >/dev/null)
-	then
-            RETVAL=1
-            GROUP_RETVAL=3
-            echo "cgconfig service not running. attempting to start it"
-            service cgconfig start
-            return $GROUP_RETVAL
-	fi
-
-	if !(service cgconfig status >/dev/null)
-	then
-            RETVAL=1
-            GROUP_RETVAL=3
-            echo "cgconfig service not running."
-	    
-            return $GROUP_RETVAL
-	fi
-
-        # don't start if not configured for openshift
-	if [ ! -d /cgroup/all ]
-	then
-            echo "cgconfig not set for Openshift: /cgconfig/all does not exist"
-            RETVAL=1
-            GROUP_RETVAL=3
-            return $GROUP_RETVAL
-	fi
+  	if !(service cgconfig status >/dev/null)
+  	then
+              RETVAL=1
+              GROUP_RETVAL=3
+              echo "cgconfig service not running. attempting to start it"
+              service cgconfig start
+              return $GROUP_RETVAL
+  	fi
+  
+  	if !(service cgconfig status >/dev/null)
+  	then
+              RETVAL=1
+              GROUP_RETVAL=3
+              echo "cgconfig service not running."
+  	    
+              return $GROUP_RETVAL
+  	fi
 
     fi
 
@@ -388,15 +379,6 @@ restartall() {
 
 status() {
     echo "Checking Openshift Services: "
-
-    if ! is_systemd
-    then
-	if ! [ -d /cgroup/all ]
-        then
-	    echo "Openshift cgroups not configured: /cgconfig/all does not exist"
-            return 1
-        fi
-    fi
 
     lscgroup | grep -e  ":${OPENSHIFT_CGROUP_ROOT}\$" >/dev/null 2>&1
     if [ $? -ne 0 ]
