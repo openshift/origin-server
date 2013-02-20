@@ -746,7 +746,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       return nil unless user
       case user
         when Integer
-          user <  4294967296 ? user : Etc.getpwnam(user.to_s)
+          user <  4294967296 ? user : Etc.getpwnam(user.to_s).uid
         when /\A\d{1,10}\z/
           user.to_i
         else
@@ -759,7 +759,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
       case group
         when Integer
-          group <  4294967296 ? group : Etc.getgrnam(group.to_s)
+          group <  4294967296 ? group : Etc.getgrnam(group.to_s).gid
         when /\A\d{1,10}\z/
           group.to_i
         else
