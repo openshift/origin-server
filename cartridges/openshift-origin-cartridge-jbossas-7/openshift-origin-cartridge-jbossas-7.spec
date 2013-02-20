@@ -51,6 +51,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
+cp jbossas7.md %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
@@ -140,6 +141,7 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%doc %{cartridgedir}/jbossas7.md
 %config(noreplace) %{cartridgedir}/info/configuration/
 %config(noreplace) %{cartridgedir}/info/bin/standalone.conf
 
