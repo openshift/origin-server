@@ -197,8 +197,8 @@ module Console::HelpHelper
     "http://git-scm.com/"
   end
 
-  def pricing_url
-    community_base_url 'developers/pricing'
+  def pricing_url(opts = nil)
+    community_base_url 'developers/pricing', opts
   end
 
   def legal_url
