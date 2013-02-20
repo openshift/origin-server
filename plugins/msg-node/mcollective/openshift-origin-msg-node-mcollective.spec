@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version:       1.5.3
+Version:       1.5.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -55,6 +55,10 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- Bug 912899 - mcollective changing all numeric mongoid to BigInt
+  (jhonce@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Commands and mcollective calls for each FrontendHttpServer API.
   (rmillner@redhat.com)
