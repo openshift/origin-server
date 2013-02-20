@@ -10,7 +10,7 @@
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
 Version:       1.5.5
-Release:       1%{?dist}
+Release:       2%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           https://openshift.redhat.com
@@ -128,6 +128,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> - 1.5.5-2
+- bump for chainbuild
+
 * Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - Merge pull request #1419 from smarterclayton/console_should_send_api_version
   (dmcphers+openshiftbot@redhat.com)
