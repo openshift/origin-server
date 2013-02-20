@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version:       1.5.3
+Version:       1.5.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- fix rubygem sources (tdawson@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - stop passing extra app object (dmcphers@redhat.com)
 - Switch from VirtualHosts to mod_rewrite based routing to support high
