@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Common
 Name:          rubygem-%{gem_name}
-Version:       1.4.3
+Version:       1.4.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -89,6 +89,9 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %doc %{gem_docdir}
 
 %changelog
+* Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- fix rubygem sources (tdawson@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Fixes for ruby193 (john@ibiblio.org)
 - providing stub for usage_rates and changing rest response field to
