@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.6
+Version: 1.4.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -171,6 +171,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Tue Feb 19 2013 Dan McPherson <dmcphers@redhat.com> 1.4.7-1
+- Bug 912803 - Hard code uid/gid for tests (jhonce@redhat.com)
+- Bug 912803 - mongoid being confused with unix uid (jhonce@redhat.com)
+
 * Tue Feb 19 2013 Dan McPherson <dmcphers@redhat.com> 1.4.6-1
 - Bug 912803 - oo_chown/oo_chown_R wrappers for FileUtils.chown/chown_R
   (jhonce@redhat.com)
