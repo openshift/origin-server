@@ -142,7 +142,7 @@ if __name__ == '__main__':
         if len(allargs) > 1 and allargs[1] == 'INCLUDE_GIT':
             include_git = True
 
-        allargs = ['restore.sh'] 
+        allargs = ['restore.sh']
         if include_git:
             allargs.append('INCLUDE_GIT')
     elif basecmd in ('rhcsh',):
@@ -159,7 +159,7 @@ if __name__ == '__main__':
         allargs = ['-c', str]
     elif basecmd in ('tail',):
         files = []
-        
+
         files_start_index = 1
         args = []
         add_follow = True
@@ -209,14 +209,14 @@ if __name__ == '__main__':
             sys.exit(3)
 
         if not os.path.isdir(realpath):
-            syslog.syslog("Invalid repository %s (%s)" % 
+            syslog.syslog("Invalid repository %s (%s)" %
                           (thearg, realpath))
             print "Invalid repository %s: not a directory" % thearg
             sys.exit(3)
         allargs = [thearg]
 
     elif basecmd in ('quota',):
-        allargs = []
+        allargs = ['--always-resolve']
 
     runcon = '/usr/bin/runcon'
     mcs_level = get_mcs_level(os.getuid())
