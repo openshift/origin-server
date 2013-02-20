@@ -722,8 +722,9 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     # Created because an error in FileUtils.chown where an all digit user or group name is assumed
     # to be a uid or a gid.  Mongoids can be all numeric.
     def oo_chown(user, group, list, options = {})
-      user = Etc.getpwnam(user).uid if user
-      group = Etc.getgrnam(group).gid if group
+      user = get_uid(user)
+      group = get_gid(group)
+
       FileUtils.chown(user, group, list, options)
     end
 
@@ -733,9 +734,37 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     # Created because an error in FileUtils.chown where an all digit user or group name is assumed
     # to be a uid or a gid.  Mongoids can be all numeric.
     def oo_chown_R(user, group, list, options = {})
-      user = Etc.getpwnam(user).uid if user
-      group = Etc.getgrnam(group).gid if group
+      user = get_uid(user)
+      group = get_gid(group)
+
       FileUtils.chown_R(user, group, list, options)
+    end
+
+    private
+
+    def get_uid(user)
+      return nil unless user
+      case user
+        when Integer
+          user <  4294967296 ? user : Etc.getpwnam(user.to_s).uid
+        when /\A\d{1,10}\z/
+          user.to_i
+        else
+          Etc.getpwnam(user).uid
+      end
+    end
+
+    def get_gid(group)
+      return nil unless group
+
+      case group
+        when Integer
+          group <  4294967296 ? group : Etc.getgrnam(group.to_s).gid
+        when /\A\d{1,10}\z/
+          group.to_i
+        else
+          Etc.getgrnam(group).gid
+      end
     end
   end
 end
