@@ -42,7 +42,7 @@ class RestApiKeyTest < ActiveSupport::TestCase
 
   def test_invalid_key_create
     assert_difference('Key.find(:all, :as => @user).length', 0) do
-      key = Key.new :type => 'ssh-rsa', :name => "invalid_name#{uuid}", :content => uuid, :as => @user
+      key = Key.new :type => 'ssh-rsa', :name => "invalid%name#{uuid}", :content => uuid, :as => @user
       assert !key.save
     end
   end

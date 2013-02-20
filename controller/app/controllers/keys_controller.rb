@@ -63,6 +63,13 @@ class KeysController < BaseController
     content = params[:content]
     type = params[:type]
     
+    # if the id has a dot, rails breaks up the actual intended id into :id and :format 
+    unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
+      id += "." + params[:format]
+      # set the default format
+      request.format = "json" 
+    end
+     
     Rails.logger.debug "Updating key name:#{id} type:#{type} for user #{@login}"
     key = UserSshKey.new(name: id, type: type, content: content)
     if key.invalid?
@@ -101,6 +108,14 @@ class KeysController < BaseController
   #DELETE /user/keys/<id>
   def destroy
     id = params[:id]
+    
+    # if the id has a dot, rails breaks up the actual intended id into :id and :format 
+    unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
+      id += "." + params[:format]
+      # set the default format
+      request.format = "json"
+    end
+     
     if @cloud_user.ssh_keys.where(name: id).count == 0
       return render_error(:not_found, "SSH key '#{id}' not found", 118, "DELETE_KEY")
     end
