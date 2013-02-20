@@ -7,6 +7,7 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     And an accepted node
     When 1 <php_version> applications are created
     Then the applications should be accessible
+    Then the applications should be accessible via node-web-proxy
     
     @rhel-only
     Scenarios: RHEL scenarios
@@ -161,6 +162,7 @@ Feature: Cartridge Lifecycle PHP Verification Tests
     Given an existing <php_version> application
     When the application is destroyed
     Then the application should not be accessible
+    Then the application should not be accessible via node-web-proxy
     
     @rhel-only
     Scenarios: RHEL scenarios

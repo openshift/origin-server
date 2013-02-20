@@ -168,9 +168,13 @@ jenkins_build = #{@jenkins_build}
       `curl -w %{http_code} --output /dev/null --insecure -s --head --max-time 30 #{auth} #{host} #{url}`
     end
 
-    def is_inaccessible?(max_retries=60)
+    def is_inaccessible?(max_retries=60, port=nil)
       max_retries.times do |i|
-        if !curl_head_success?("http://#{hostname}")
+        url = "http://#{hostname}"
+        if port
+          url = "http://#{hostname}:#{port}"
+        end
+        if !curl_head_success?(url)
           return true
         else
           $logger.info("Connection still accessible / retry #{i} of #{max_tries} / #{hostname}")
@@ -181,9 +185,13 @@ jenkins_build = #{@jenkins_build}
     end
 
     # Host is for the host header
-    def is_accessible?(use_https=false, max_retries=120, host=nil)
+    def is_accessible?(use_https=false, max_retries=120, host=nil, port=nil)
       prefix = use_https ? "https://" : "http://"
       url = prefix + hostname
+
+      if port
+         url = url + ":" + port.to_s
+      end
 
       max_retries.times do |i|
         if curl_head_success?(url, host)
