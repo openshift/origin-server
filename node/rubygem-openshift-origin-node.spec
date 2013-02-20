@@ -195,14 +195,29 @@ fi
 for map in nodes aliases idler sts
 do
     mapf="/etc/httpd/conf.d/openshift/${map}"
-    touch "${mapf}.txt"
-    %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
+    if ! [ -e "${mapf}.txt" ]
+    then
+        touch "${mapf}.txt"
+        chown root:apache "${mapf}.txt"
+        chmod 640 "${mapf}.txt"
+    fi
+    if ! [ -e "${mapf}.db" ]
+    then
+        %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
+        chown root:apache "${mapf}.db"
+        chmod 750 "${mapf}.db"
+    fi
 done
 
 for map in containers routes
 do
     mapf="/etc/httpd/conf.d/openshift/${map}"
-    touch "${mapf}.json"
+    if ! [ -e "${mapf}.json" ]
+    then
+        echo '{}' > "${mapf}.json"
+        chown root:apache "${mapf}.json"
+        chmod 640 "${mapf}.json"
+    fi
 done
 
 %preun
