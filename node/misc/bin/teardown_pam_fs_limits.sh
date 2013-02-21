@@ -49,7 +49,7 @@ function remove_fs_quotas {
     USERNAME=$1
     if quotas_enabled $GEAR_BASE_DIR
     then
-        setquota $1 0 0 0 0 `get_mountpoint $GEAR_BASE_DIR`
+        setquota --always-resolve $1 0 0 0 0 `get_mountpoint $GEAR_BASE_DIR`
     else
         echo "WARNING: quotas not enabled on $GEAR_BASE_DIR" >&2
     fi

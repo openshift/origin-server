@@ -200,7 +200,7 @@ collect_tasks() {
     CGPATH=${OPENSHIFT_CGROUP_ROOT}/$1
 
     # add existing processes to the group
-    for PID in $(ps -opid= -u $1) ; do
+    for PID in $(ps -opid= -u $(id -u $1)) ; do
 	cgclassify -g ${OPENSHIFT_CGROUP_SUBSYSTEMS}:${CGPATH} $PID
     done
 }
@@ -304,15 +304,15 @@ stopuser() {
     echo -n "stopping cgroups for $DELUSER..."
 
     # kill any processes owned by these users
-    #pkill -u $DELUSER
-    
+    #pkill -u $(id -u $DELUSER)
+
     # remove the user's cgroup
     delete_cgroup $DELUSER
     if [ $? != 0 ]
     then
 	RETVAL=$?
     fi
-    
+
     # remove the user's cgroup binding rule
     delete_cgroup_rule $DELUSER
     if [ $? != 0 ]
@@ -389,7 +389,7 @@ status() {
     else
 	echo "Openshift cgroups initialized"
     fi
-    
+
     if [ -z "$1" ]
     then
 	USERLIST=`openshift_users`
@@ -434,7 +434,7 @@ case "$1" in
     startall
     ;;
 
-  stopall) 
+  stopall)
     stopall
     ;;
 
