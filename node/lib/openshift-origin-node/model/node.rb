@@ -109,7 +109,7 @@ module OpenShift
     end
 
     def self.get_quota(uuid)
-      cmd = %&quota -w #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
+      cmd = %&quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1":"$2":"$3":"$4":"$5":"$6":"$7}'; exit ${PIPESTATUS[0]}&
       st, out, errout = systemu cmd
       if st.exitstatus == 0 || st.exitstatus == 1
         arr = out.strip.split(":")
@@ -123,9 +123,9 @@ module OpenShift
     def self.set_quota(uuid, blocksmax, inodemax)
       cur_quota = get_quota(uuid)
       inodemax = cur_quota[6] if inodemax.to_s.empty?
-      
-      mountpoint = %x[quota -w #{uuid} | awk '/^.*\\/dev/ {print $1}']
-      cmd = "setquota -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
+
+      mountpoint = %x[quota --always-resolve -w #{uuid} | awk '/^.*\\/dev/ {print $1}']
+      cmd = "setquota --always-resolve -u #{uuid} 0 #{blocksmax} 0 #{inodemax} -a #{mountpoint}"
       st, out, errout = systemu cmd
       raise NodeCommandException.new "Error: #{errout} executing command #{cmd}" unless st.exitstatus == 0
     end
