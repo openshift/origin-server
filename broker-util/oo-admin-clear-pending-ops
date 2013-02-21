@@ -1,0 +1,136 @@
+#!/usr/bin/env oo-ruby
+
+#--
+# Copyright 2012 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+require 'rubygems'
+require 'getoptlong'
+require 'time'
+
+def usage
+  puts <<USAGE
+== Synopsis
+
+#{$0}: Check all user applications and delete all pending_op_groups that were created before a given time
+
+== Usage
+
+#{$0} OPTIONS
+
+Options:
+-t|--time
+    Time in hours where the pending ops older than this age will get deleted (default 1)
+-u|--uuid
+    Specific app's uuid where the pruning operation will be done - if not given all apps, domains and users will be screened
+-h|--help
+    Show Usage info
+USAGE
+  exit 255
+end
+
+args = {}
+begin
+  opts = GetoptLong.new(
+    ["--time",             "-t", GetoptLong::REQUIRED_ARGUMENT],
+    ["--uuid",             "-u", GetoptLong::REQUIRED_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+  )
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+usage if args["--help"]
+
+require "/var/www/openshift/broker/config/environment"
+
+$count = 0
+def clean_app(a)
+  $count += 1
+  a.pending_op_groups.each { |op| 
+    if op.created_at < $t 
+      puts
+      puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
+      Application.run_in_application_lock(a) do
+        begin
+          op.execute 
+          op.delete
+        rescue Exception => e
+        end
+      end
+    end
+  } 
+  a.save
+  a.pending_op_groups.each { |op| 
+    if op.created_at < $t 
+      puts
+      puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
+    end
+  } 
+  a.save
+end
+
+$domain_count = 0
+def clean_domain(d)
+  $domain_count += 1
+  d.run_jobs rescue nil
+  d.with(consistency: :strong).reload
+  d.pending_ops.each { |op|
+    if op.created_at < $t 
+      puts
+      if op.completed?
+        puts "Clearing op for domain (#{d.namespace}) - #{op.inspect} "
+        op.delete 
+      else
+        puts "Failed to clear op for domain (#{d.namespace}) - #{op.inspect} "
+      end
+    end
+  }
+end
+
+$user_count = 0
+def clean_user(u)
+  $user_count += 1
+  u.run_jobs rescue nil
+  u.with(consistency: :strong).reload
+  u.pending_ops.each { |op|
+    if op.created_at < $t 
+      puts
+      if op.completed?
+        puts "Clearing op for user (#{u.login}) - #{op.inspect} "
+        op.delete 
+      else
+        puts "Failed to clear op for user (#{u.login}) - #{op.inspect} "
+      end
+    end
+  }
+end
+
+hours = args["--time"] || 1
+hours = hours.to_i
+$t = Time.now - hours*60*60
+uuid = args["--uuid"]
+
+if uuid.nil?
+  Application.lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
+  Domain.lt("pending_ops.created_at" => $t).each { |d| clean_domain(d) }
+  CloudUser.lt("pending_ops.created_at" => $t).each { |u| clean_user(u) }
+else
+  Application.where(:uuid => uuid).lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
+end
+
+puts "#{$count} applications were cleaned up. #{$user_count} users were cleaned up. #{$domain_count} domains were cleaned up."
+exit 0
