@@ -172,4 +172,3 @@ RequestHeader set X-Client-IP %{REMOTE_HOST}e
 # Configure reverse proxy based on set variable
 #
 ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
-ProxyPassReverseCookiePath ${V_MATCH_PATH} http://${V_ROUTE} interpolate
