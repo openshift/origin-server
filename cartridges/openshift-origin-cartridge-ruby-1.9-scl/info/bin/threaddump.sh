@@ -15,7 +15,7 @@ fi
 cart_instance_dir=$OPENSHIFT_HOMEDIR/ruby-1.9
 ruby_tmp_dir=$cart_instance_dir/tmp
 
-PID=`ps -u $2 -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}'`
+PID=$(ps -u $(id -u $2) -o pid,command | grep -v grep | grep 'Rack:.*'$2 | awk 'BEGIN {FS=" "}{print $1}')
 
 if [ "$PID" = "" ]; then
     _state_file=${OPENSHIFT_HOMEDIR}/app-root/runtime/.state
@@ -30,7 +30,7 @@ if [ "$PID" = "" ]; then
         # idle = "$_state"
         echo "Application is inactive. Ruby/Rack applications must be accessed by their URL (http://${OPENSHIFT_GEAR_DNS}) before you can take a thread dump."
     fi
-else 
+else
     if ! kill -3 $PID; then
       echo "Failed to signal application. Please retry after restarting application and access it by its URL (http://${OPENSHIFT_GEAR_DNS})"
     fi
