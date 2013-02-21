@@ -942,8 +942,8 @@ module OpenShift
           Syslog.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
           begin
             oldstat = File.stat(@filename + '.db')
-            FileUtils.chown(oldstat.uid, oldstat.gid, tmpdb)
-            FileUtils.chmod(oldstat.mode & 0777, tmpdb)
+            File.chown(oldstat.uid, oldstat.gid, tmpdb)
+            File.chmod(oldstat.mode & 0777, tmpdb)
           rescue Errno::ENOENT
           end
           FileUtils.mv(tmpdb, @filename + '.db', :force=>true)
