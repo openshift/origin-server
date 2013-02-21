@@ -47,6 +47,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 
 %files
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
+%attr(0750,-,-) %{_sbindir}/oo-admin-clear-pending-ops
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-district
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
