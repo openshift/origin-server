@@ -684,7 +684,7 @@ class Application
   #
   # == Raises:
   # OpenShift::UserException if the alias is already been associated with an application.
-  def add_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase=nil)
+  def add_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
     # Server aliases validate as DNS host names in accordance with RFC
     # 1123 and RFC 952.  Additionally, OpenShift does not allow an
     # Alias to be an IP address or a host in the service domain.
@@ -703,12 +703,10 @@ class Application
     raise OpenShift::UserException.new("Privte key is required", 172) if ssl_certificate and private_key.nil? 
     
     Application.run_in_application_lock(self) do
-      Rails.logger.debug "This is  server_alias #{server_alias}"
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where("aliases.fqdn" => server_alias).count > 0
       op_group = PendingAppOpGroup.new(op_type: :add_alias, args: {"fqdn" => server_alias}, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       if ssl_certificate and !ssl_certificate.empty?
-        pass_phrase = '' if pass_phrase.nil?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => server_alias, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
@@ -745,7 +743,7 @@ class Application
     end
   end
   
-  def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase=nil)
+  def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
     
     raise OpenShift::UserException.new("Privte key is required", 172) if ssl_certificate and private_key.nil? 
     
@@ -763,7 +761,6 @@ class Application
       end
       #add new certificate
       if ssl_certificate and !ssl_certificate.empty?
-        pass_phrase = '' if pass_phrase.nil?
         op_group = PendingAppOpGroup.new(op_type: :add_ssl_cert, args: {"fqdn" => fqdn, "ssl_certificate" => ssl_certificate, "private_key" => private_key, "pass_phrase" => pass_phrase}, user_agent: self.user_agent)
         self.pending_op_groups.push op_group
       end
