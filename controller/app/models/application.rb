@@ -1391,7 +1391,7 @@ class Application
     create_ginst_changes.each do |change|
       ginst_scale = change[:to_scale][:current] || 1
       ginst_id    = change[:to]
-      gear_size = change[:to_scale][:gear_size] || "small"
+      gear_size = change[:to_scale][:gear_size] || self.default_gear_size
       additional_filesystem_gb = change[:to_scale][:additional_filesystem_gb] || 0
       add_gears   += ginst_scale if ginst_scale > 0
 
@@ -1568,7 +1568,7 @@ class Application
       from_id = nil
       from_comp_insts = []
       to_comp_insts   = []
-      from_scale      = {min: 1, max: MAX_SCALE, current: 0, additional_filesystem_gb: 0, gear_size: "small"}
+      from_scale      = {min: 1, max: MAX_SCALE, current: 0, additional_filesystem_gb: 0, gear_size: self.default_gear_size}
       to_scale        = {min: 1, max: MAX_SCALE}
 
       unless current_group_instances[from].nil?
@@ -1844,7 +1844,7 @@ class Application
       group_instance[:scale] = {}
       group_instance[:scale][:min] = ( go["min_gears"] || 1 )
       group_instance[:scale][:max] = ( go["max_gears"] || -1 )
-      group_instance[:scale][:gear_size] = ( go["gear_size"] || GEAR_SIZES[0] )
+      group_instance[:scale][:gear_size] = ( go["gear_size"] || self.default_gear_size )
       group_instance[:scale][:additional_filesystem_gb] ||= 0
       group_instance[:scale][:additional_filesystem_gb] += (go["additional_filesystem_gb"] || 0)
       group_instance[:_id] = Moped::BSON::ObjectId.new
