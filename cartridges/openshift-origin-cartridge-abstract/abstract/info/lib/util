@@ -8,7 +8,7 @@ function post_start_app () {
 
     openshift_origin_broker_server=$1
 
-    restart_on_add=${2-false}                   
+    restart_on_add=${2-false}
     echo "restart_on_add=$restart_on_add"
 
 	if [ -z $OPENSHIFT_SKIP_GIT_HOOKS ]
@@ -27,24 +27,24 @@ function post_start_app () {
 	            echo "Continuing with local build/deployment."
 	            echo "!!!!!!!!"
 	        fi
-	
+
 	        set_app_state building
-	
+
 	        # Do any cleanup before the next build
 	        pre_build.sh
-	
+
 	        # Lay down new code, run internal build steps, then user build
 	        build.sh
-	
+
 	        set_app_state deploying
-	
+
 	        # Deploy new build, run internal deploy steps, then user deploy
 	        deploy.sh
-	        
+
 	        hot_deploy_added=false
-	        
+
 	        if $restart_on_add ; then
-	  
+
 		        while read old_sha1 new_sha1 refname ; do
 		          # Detect the addition of the marker
 		          if commit_contains_file_with_status "$new_sha1" ".openshift/markers/hot_deploy" "A"; then
@@ -53,9 +53,9 @@ function post_start_app () {
 		          fi
 		        done
 		    fi
-	
+
 	        echo "hot_deploy_added=${hot_deploy_added}"
-	        
+
 	        # Start the app
 	        if hot_deploy_marker_is_present && ! $hot_deploy_added ; then
 	            echo "App will not be started due to presence of hot_deploy marker"
@@ -63,11 +63,11 @@ function post_start_app () {
 	        else
 	            start_app.sh
 	        fi
-	
+
 	        # Run any steps required after startup
 	        post_deploy.sh
 	    fi
-	
+
 	    # Not running inside a build
 	    nurture_app_push.sh $openshift_origin_broker_server
 	fi
@@ -76,9 +76,9 @@ function post_start_app () {
 # Stops the app (or not), taking into account the hot_deploy marker.
 function pre_stop_app () {
 
-  restart_on_add=${1-false}                   
+  restart_on_add=${1-false}
   echo "restart_on_add=$restart_on_add"
-  
+
     # And finally...
   if is_stop_required $restart_on_add; then
     stop_app.sh
@@ -90,7 +90,7 @@ function pre_stop_app () {
 function is_stop_required () {
 
   restart_on_add=$1
-   
+
   # We ONLY want to disable this if the hot deploy marker will be present
   # following the commit application.
   stop_required=true
@@ -133,7 +133,7 @@ function is_stop_required () {
   # 1. The marker is being added and was not present in the first place
   if ! $hot_deploy_preexists && $hot_deploy_added; then
     echo "Will add new hot deploy marker"
-    
+
     if $restart_on_add ; then
       stop_required=true
     else
@@ -623,7 +623,7 @@ function setup_configure {
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/git
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/network
     source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/apache
-	
+
     CART_INFO_DIR=$CARTRIDGE_BASE_PATH/$cartridge_type/info
     CART_CONF_DIR=$CART_INFO_DIR/configuration/etc/conf
 
@@ -804,7 +804,7 @@ function print_user_running_processes {
     echo ""
     echo "Running Processes:"
     echo ""
-    ps -FCvx -U ${myuserid}
+    ps -FCvx -U `id -u ${myuserid}`
     echo ""
 }
 
@@ -830,7 +830,7 @@ function send_stopped_status {
 }
 
 function send_quotas {
-    q=`quota -w -u ${uuid} | tail -n1`
+    q=$(quota --always-resolve -w -u ${uuid} | tail -n1)
     quota_blocks=`echo $q | gawk '{print $4}'`
     send_attr "quota_blocks=$quota_blocks"
     quota_files=`echo $q | gawk '{print $7}'`
@@ -968,7 +968,7 @@ function set_cartridge_state {
     chown --reference="$1" "$_state_file"
     chcon --reference="$1" "$_state_file"
     chmod 640 "$_state_file"
-  fi  
+  fi
 }
 
 function test_app_state {
