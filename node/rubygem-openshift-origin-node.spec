@@ -12,7 +12,7 @@
 
 Summary:        Cloud Development Node
 Name:           rubygem-%{gem_name}
-Version: 1.4.7
+Version: 1.4.8
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -171,6 +171,10 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
 fi
 
 %changelog
+* Thu Feb 21 2013 Adam Miller <admiller@redhat.com> 1.4.8-1
+- Disable unix_user_test pending refactor (jhonce@redhat.com)
+- Bug 913288 - Numeric login effected additional commands (jhonce@redhat.com)
+
 * Tue Feb 19 2013 Dan McPherson <dmcphers@redhat.com> 1.4.7-1
 - Bug 912803 - Hard code uid/gid for tests (jhonce@redhat.com)
 - Bug 912803 - mongoid being confused with unix uid (jhonce@redhat.com)
