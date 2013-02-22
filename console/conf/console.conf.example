@@ -16,6 +16,13 @@ BROKER_URL=https://localhost/broker/rest
 #
 # BROKER_PROXY_URL=
 
+#
+# The base URL of the community wiki site.
+#
+# Optional
+#
+# COMMUNITY_URL=https://www.openshift.com
+
 
 #
 # SSL settings for the connection between the console and broker.
