@@ -25,7 +25,7 @@ module Console::HelpHelper
   def add_domains_user_guide_topic_url
     user_guide_topic_url 'sect-OpenShift-User_Guide-Working_With_Domains.html'
   end
-  
+
   def cartridge_list_url
     community_base_url 'developers/technologies'
   end
@@ -33,7 +33,7 @@ module Console::HelpHelper
   def get_involved_url
     community_base_url 'get-involved'
   end
-  
+
   def suggest_features_url
     community_base_url 'ideas'
   end
@@ -49,7 +49,7 @@ module Console::HelpHelper
   def get_involved_developers_url
     community_base_url 'developers/get-involved'
   end
-  
+
   def partners_url
     community_base_url 'partners'
   end
@@ -93,7 +93,7 @@ module Console::HelpHelper
   def events_url
     community_base_url 'events/'
   end
-  
+
   def jenkins_help_url
     community_base_url 'jenkins'
   end
@@ -258,7 +258,7 @@ module Console::HelpHelper
     [
       {:href => community_base_url('faq/how-do-i-start-a-new-forum-discussion'),
        :name => 'How do I start a new Forum discussion?'},
-      {:href => community_base_url('faq/how-do-i-install-the-rhc-client-tools-on-windows'), 
+      {:href => community_base_url('faq/how-do-i-install-the-rhc-client-tools-on-windows'),
        :name => 'How do I install the rhc client tools on Windows?'}
     ]
   end
@@ -280,7 +280,10 @@ module Console::HelpHelper
   end
 
   private
-    def community_base_url(path, opts=nil)
-      "https://openshift.redhat.com/community/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
-    end
+
+  def community_base_url(path, opts=nil)
+    host = Console.config.community_url || "#{request.scheme}://#{request.host}:8118"
+
+    "#{host}/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
+  end
 end
