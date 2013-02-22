@@ -35,6 +35,8 @@ $test_appname = ENV['AWS_ROUTE53_TEST_APPNAME'] || "pluginapp1"
 $test_nodename = ENV['AWS_ROUTE53_TEST_NODENAME'] || "pluginnode1.#{$hosted_zone}"
 
 if ! $hosted_zone or ! $hosted_zone_id then
+  puts "Missing envvars: AWS_ROUTE53_HOSTED_ZONE and/or AWS_ROUTE53_HOSTED_ZONE_ID"
+  exit
   raise Exception.new("Missing required AWS Route 53 Configuration: hosted_zone or hosted_zone_id")
 end
 
