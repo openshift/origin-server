@@ -775,17 +775,19 @@ $cartridgeBorderWidth: 10px;
   	padding-left:8px;
   	padding-right:0;
     border-radius: 3px;
-    // width:83%;
-    // width: -moz-available;
+    &:focus + .search {background-color: $grayLighter;}
   }
   > .search {
     position: absolute;
-    top: 1px;
-    right: 3px;
-    height: 25px;
-    width: 23px;
-    background: transparent image-url("sprite-vert.png") 2px -293px no-repeat;
+    height: 22px;
+    line-height: inherit;
+    position: absolute;
+    right: 1px;
+    top: 4px;
+    width: 26px;
+    color: #333;
     border: 0;
+    background-color: transparent;
   }
 }
 
