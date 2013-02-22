@@ -139,5 +139,12 @@ class ActiveSupport::TestCase
       end
     end
   end
+
+  def community_url
+    'https://www.openshift.com/'
+  end
+  def community_base_url(path='')
+    "#{community_url}#{path}"
+  end
 end
 

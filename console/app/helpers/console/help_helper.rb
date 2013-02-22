@@ -263,27 +263,11 @@ module Console::HelpHelper
     ]
   end
 
-  def community_path
-    community_base_url('')
-  end
-
-  def community_url
-    community_path
-  end
-
   def enterprise_evaluation_request_url
     community_base_url 'page/openshift-enterprise-online-evaluation-request'
   end
 
   def resource_request_url
     community_base_url 'page/resource-request-form'
-  end
-
-  private
-
-  def community_base_url(path, opts=nil)
-    host = Console.config.community_url || "#{request.scheme}://#{request.host}:8118"
-
-    "#{host}/#{path}#{opts && opts[:anchor] ? "##{opts[:anchor]}" : ""}"
   end
 end
