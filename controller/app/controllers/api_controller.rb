@@ -26,7 +26,7 @@ class ApiController < BaseController
         }
         links.merge! quickstart_links
       else
-        base_url = URI.join(get_url, base_url).to_s
+        base_url = URI.join(get_url, base_url.gsub(/\{host\}/, request.host)).to_s
         quickstart_links = {
           "LIST_QUICKSTARTS"   => Link.new("List quickstarts", "GET", URI::join(base_url, "v1/quickstarts/promoted.json")),
           "SHOW_QUICKSTART"    => Link.new("Retrieve quickstart with :id", "GET", URI::join(base_url, "v1/quickstarts/:id"), [
