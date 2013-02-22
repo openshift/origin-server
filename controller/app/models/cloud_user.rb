@@ -181,17 +181,33 @@ class CloudUser
   # True on success or false on failure
   def run_jobs
     begin
-      ops = pending_ops.where(state: :init)
-      ops.each do |op|
-        #set the op state to :queued
-        op.set(:state, :queued)
+      while self.pending_ops.where(state: :init).count > 0
+        op = self.pending_ops.where(state: :init).first
+
+        # get the op based on _id so that a reload does not replace it with another one based on position
+        op = self.pending_ops.find_by(_id: op._id)
+
+        # try to do an update on the pending_op state and continue ONLY if successful
+        op_index = self.pending_ops.index(op)
+        retval = CloudUser.with(consistency: :strong).where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        unless retval["updatedExisting"]
+          self.with(consistency: :strong).reload
+          next
+        end
+
         case op.op_type
         when :add_ssh_key
           op.pending_domains.each { |domain| domain.add_ssh_key(self._id, op.arguments, op) }
         when :delete_ssh_key
           op.pending_domains.each { |domain| domain.remove_ssh_key(self._id, op.arguments, op) }
         end
-        op.with(consistency: :strong).reload
+
+        # reloading the op reloads the cloud_user and then incorrectly reloads (potentially)
+        # the op based on its position within the pending_ops list
+        # hence, reloading the cloud_user, and then fetching the op using the _id
+        self.with(consistency: :strong).reload
+        op = self.pending_ops.find_by(_id: op._id)
+        
         op.close_op
         op.delete if op.completed?
       end
