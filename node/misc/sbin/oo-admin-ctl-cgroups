@@ -441,6 +441,14 @@ status() {
     return $GROUP_RETVAL
 }
 
+# Check to see if cgroups are disabled: default enabled
+if [ "$ENABLE_CGROUPS" -eq 0 ]
+then
+    logger -p user.warning -t openshift "cgroups disabled: $0 $1 $2"
+    echo "cgroups disabled"
+    exit 0
+fi 
+
 case "$1" in
   startall)
     startall
