@@ -25,8 +25,6 @@ require 'openshift-origin-node/utils/environ'
 module OpenShift
   module Application
     class TrapUser
-      CGROUPS_CONTROLLERS = "cpu,cpuacct,memory,net_cls,freezer"
-      CGROUPS_PATH_PREFIX = "/openshift/"
 
       def initialize
         Syslog.open($0, Syslog::LOG_PID | Syslog::LOG_CONS, Syslog::LOG_USER) unless Syslog.opened?
@@ -54,19 +52,7 @@ module OpenShift
         }
       end
 
-      # join current process to openshift cgoups if possible
-      #
-      # cgclassify -g cpu,cpuacct,memory,net_cls,freezer:/openshift/510fe9db6b61de4618000005 30608
-      def join_cgroups
-        name          = Etc.getpwuid(Process.uid).name
-        pid           = Process.spawn("cgclassify", "-g", "#{CGROUPS_CONTROLLERS}:#{CGROUPS_PATH_PREFIX}/#{name} #{Process.pid}")
-        _, exitstatus = Process.wait2(pid)
-        Syslog.warning("user #{name}: cgroup classification failed: exitstatus = #{exitstatus}") if 0 != exitstatus
-      end
-
       def apply
-        join_cgroups
-
         config       = OpenShift::Config.new
         env          = OpenShift::Utils::Environ.for_gear("~")
         command_line = ENV['SSH_ORIGINAL_COMMAND'] || "rhcsh"

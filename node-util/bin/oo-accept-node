@@ -272,6 +272,11 @@ end
 def check_cgroup_config
     verbose("checking cgroups configuration")
 
+    if ENV['ENABLE_CGROUPS'] = "0"
+      eputs "WARNING: check_cgroup_config - cgroups are disabled in node.conf"
+      return
+    end
+
     if %x[lscgroup cpu,cpuacct,memory,freezer,net_cls:/openshift 2>/dev/null | wc -l].strip.to_i < 1
         do_fail("lscgroup /openshift path does not exist")
         $CGROUP_PASS=false
@@ -333,7 +338,7 @@ def check_users
         #Test home dir
         do_fail("user #{username} does not have a home directory #{home_dir}") unless File.exists? home_dir
         do_fail("user #{username} does not have a PAM limits file") unless File.exists?(conf_dir_templ % username)
-        if $CGROUP_PASS
+        if $CGROUP_PASS and not ENV['ENABLE_CGROUPS'] == 0
           check_user_cgroups username
         end
         if $TC_CHECK && $TC_PASS
@@ -354,6 +359,13 @@ end
 
 # Verify that the user has a cgroup in all subsystems and no others
 def check_user_cgroups(username)
+
+  if ENV['ENABLE_CGROUPS'] == "0"
+    #eputs "WARNING: check_user_cgroups - cgroups disabled in node.conf"
+    eputs "WARNING: check_user_cgroups - cgroups disabled in node.conf"
+    return
+  end
+
   user_cgroup="/openshift/#{username}"
   test_subsystems = ['cpu', 'cpuacct', 'memory', 'freezer', 'net_cls'].sort
 
