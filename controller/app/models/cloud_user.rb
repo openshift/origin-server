@@ -140,7 +140,7 @@ class CloudUser
   def default_capabilities
     {
       "subaccounts" => false,
-      "gear_sizes" => [Rails.application.config.openshift[:default_gear_size]],
+      "gear_sizes" => Rails.application.config.openshift[:default_gear_size],
       "max_gears" => Rails.application.config.openshift[:default_max_gears],
     }
   end
