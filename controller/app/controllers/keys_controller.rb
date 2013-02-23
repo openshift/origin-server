@@ -55,7 +55,6 @@ class KeysController < BaseController
       return render_error(:service_unavailable, e.message, e.code, "ADD_KEY")
     rescue Exception => e
       return render_exception(e, "ADD_KEY")
-    return
     end
   end
 

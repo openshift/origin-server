@@ -117,7 +117,7 @@ class CloudUser
     remove_ssh_key(key.name)
     add_ssh_key(key)
   end
-  
+
   # Used to remove an ssh-key from the user. Use this instead of ssh_keys= so that the key removal can be propagated to the
   # domains/application that the user has access to.
   def remove_ssh_key(name)
@@ -130,7 +130,6 @@ class CloudUser
       self.run_jobs      
     else
       key.delete
-      self.ssh_keys.delete_if {|ssh_key| ssh_key.name == name}
     end
   end
 
