@@ -13,9 +13,6 @@ def usage
 
   *** WARNING *** WARNING *** WARNING *** WARNING ***
 
-  Cloud SDK currently has an odd behavior that makes
-  this script somewhat dangerous.
-
   DO NOT USE THIS SCRIPT TO MODIFY A LOT OF USERS AT ONCE!
 
   *** WARNING *** WARNING *** WARNING *** WARNING ***
