@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.14
+Version: 1.4.15
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Sat Feb 23 2013 Dan McPherson <dmcphers@redhat.com> 1.4.15-1
+- Bug 914639 (dmcphers@redhat.com)
+
 * Tue Feb 19 2013 Dan McPherson <dmcphers@redhat.com> 1.4.14-1
 - Bug 912798 (dmcphers@redhat.com)
 
