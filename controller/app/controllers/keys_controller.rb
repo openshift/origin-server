@@ -53,7 +53,6 @@ class KeysController < BaseController
       return render_error(:service_unavailable, e.message, e.code, "ADD_KEY")
     rescue Exception => e
       return render_exception(e, "ADD_KEY")
-    return
     end
   end
 
@@ -63,7 +62,7 @@ class KeysController < BaseController
     content = params[:content]
     type = params[:type]
     
-    # if the id has a dot, rails breaks up the actual intended id into :id and :format 
+    # if the id has a dot, rails breaks up the actual intended id into :id and :format
     unless params[:format].nil? or params[:format].empty? or["xml", "json", "yml", "yaml", "xhtml"].include? params[:format] 
       id += "." + params[:format]
       # set the default format
