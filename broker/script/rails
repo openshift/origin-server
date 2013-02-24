@@ -38,4 +38,17 @@ end
 
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
 require File.expand_path('../../config/boot',  __FILE__)
+
+#
+# LogTailer doesn't use the configured rails path
+#
+require 'rails/commands/server'
+module Rails
+  class Server
+    def log_path
+      Rails.configuration.paths['log'].first
+    end
+  end
+end
+
 require 'rails/commands'
