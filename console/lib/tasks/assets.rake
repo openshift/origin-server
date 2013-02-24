@@ -33,6 +33,7 @@ class GenerateConsoleViewTask < Rake::TaskLib
       view.class_eval do
         include routes.url_helpers
 
+        include Console::CommunityAware
         include Console::LayoutHelper
         include Console::HelpHelper
         include Console::Html5BoilerplateHelper
