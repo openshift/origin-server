@@ -1,5 +1,3 @@
-require 'digest/md5'
-
 module OpenShift
   class AuthService
     @oo_auth_provider = OpenShift::AuthService
@@ -12,88 +10,44 @@ module OpenShift
       @oo_auth_provider.new
     end
 
-    def initialize(auth_info = nil)
-      # This is useful for testing
-      @auth_info = auth_info
-
-      if @auth_info.nil?
-        @auth_info = Rails.application.config.auth
-      end
-
-      @salt           = @auth_info[:salt]
-      @privkeyfile    = @auth_info[:privkeyfile]
-      @privkeypass    = @auth_info[:privkeypass]
-      @pubkeyfile     = @auth_info[:pubkeyfile]
-
-      @token_login_key = @auth_info[:token_login_key] || :login
+    #
+    # The 3 argument version of this method authenticate(request,login,password) is 
+    # deprecated.
+    #
+    # Authenticate a user/password pair. Returns:
+    #
+    #  nil/false if the authentication info is invalid
+    #  A Hash containing the following keys if the info is valid:
+    #
+    #    :user - An instance of CloudUser (retrieved via the model)
+    #
+    #  OR
+    #
+    #    :username - the unique identifier of this user
+    #    :provider (optional) - a scope under which this username is unique
+    #
+    #  If user is nil or username is blank or nil, authentication will
+    #  be denied.
+    #
+    def authenticate(login, password)
+      {:username => login}
     end
 
-    # Be careful overriding this method in a subclass.  Doing so incorrectly
-    # can break node->broker authentication when swapping plugins.
-    def generate_broker_key(app)
-      cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")
-      cipher.encrypt
-      cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
-      cipher.iv = iv = cipher.random_iv
-      token = {:app_name => app.name,
-               @token_login_key => app.domain.owner.login,
-               :creation_time => app.created_at}
-      encrypted_token = cipher.update(token.to_json)
-      encrypted_token << cipher.final
-      public_key = OpenSSL::PKey::RSA.new(File.read(@pubkeyfile), @privkeypass)
-      encrypted_iv = public_key.public_encrypt(iv)
-
-      # Base64 encode the iv and token
-      encoded_iv = Base64::encode64(encrypted_iv)
-      encoded_token = Base64::encode64(encrypted_token)
-
-      [encoded_iv, encoded_token]
-    end
-
-    # Be careful overriding this method in a subclass.  Doing so incorrectly
-    # can break node->broker authentication when swapping plugins.
-    def validate_broker_key(iv, key)
-      key = key.gsub(" ", "+")
-      iv = iv.gsub(" ", "+")
-      begin
-        encrypted_token = Base64::decode64(key)
-        cipher = OpenSSL::Cipher::Cipher.new("aes-256-cbc")
-        cipher.decrypt
-        cipher.key = OpenSSL::Digest::SHA512.new(@salt).digest
-        private_key = OpenSSL::PKey::RSA.new(File.read(@privkeyfile), @privkeypass)
-        cipher.iv =  private_key.private_decrypt(Base64::decode64(iv))
-        json_token = cipher.update(encrypted_token)
-        json_token << cipher.final
-      rescue => e
-        $stderr.puts e.message
-        $stderr.puts e.backtrace
-        Rails.logger.debug "Broker key authentication failed. #{e.backtrace.inspect}"
-        raise OpenShift::AccessDeniedException.new
-      end
-
-      token = JSON.parse(json_token)
-      username = token[@token_login_key.to_s]
-      app_name = token['app_name']
-      
-      begin
-        creation_time = Time.zone.parse(token['creation_time'])
-      rescue
-        raise OpenShift::AccessDeniedException.new
-      end
-      
-      begin
-        user = CloudUser.find_by(login: username)
-      rescue Mongoid::Errors::DocumentNotFound
-        raise OpenShift::AccessDeniedException.new
-      end
-
-      app = Application.find(user, app_name)
-      raise OpenShift::AccessDeniedException.new if app.nil? or creation_time.to_i !=  app.created_at.to_i
-      return {:username => username, :auth_method => :broker_auth}
-    end
-
-    def authenticate(request, login, password)
-      return {:username => login, :auth_method => :login}
-    end
+    #
+    # The authenticate_request method MAY be implemented.  Use this method 
+    # if you need access to the Rails request to determine authentication,
+    # such as the ability to read a cookie.
+    #
+    # NOTE: If you implement cookie support, you must ALSO enable CSRF
+    # protection in the console and the broker. By default the broker
+    # requires no forgery protection.
+    #
+    # Implementors may write to the response to signal to a client that the 
+    # request has failed, in which case authentication will be denied.
+    #
+    # Same return values as #authenticate(login,password)
+    #
+    # def authenticate_request(controller)
+    # end
   end
 end

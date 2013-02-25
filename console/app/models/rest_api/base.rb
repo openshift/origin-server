@@ -118,7 +118,7 @@ module RestApi
     end
 
     def mime_type
-      "application/json;version=#{RestApi::API_VERSION}"
+      "application/json;nolinks;version=#{RestApi::API_VERSION}"
     end
   end
 
@@ -288,6 +288,9 @@ module RestApi
         end
       end
 
+    rescue ActiveResource::ForbiddenAccess, ActiveResource::UnauthorizedAccess
+      # Aggressively raise the error - TODO, parse codes or specialize
+      raise
     rescue ActiveResource::ConnectionError => error
       # if the server returns a body that has messages, filter them through
       # the error handler.  If one or more errors were set, assume that the message

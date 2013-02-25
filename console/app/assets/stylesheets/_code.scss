@@ -49,12 +49,6 @@ pre {
   }
 }
 
-pre.cli {
-	color: $cliText;
-	background-color: $cliBackground;
-	border: 1px solid #000;
-}
-
 // Enable scrollable blocks of code
 .pre-scrollable {
   max-height: 340px;
@@ -82,5 +76,3 @@ pre.pre-scrollable-horizontal {
     border: 1px solid rgba(0,0,0,.15);
   }
 }
-
-

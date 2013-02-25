@@ -40,7 +40,7 @@ module OpenShift
             reply.messages.push(Message.new(msg_type, msg, err_code, field)) if msg
             log_action(log_tag, !internal_error, msg, get_extra_log_args) if log_tag
           end
-          respond_with reply, :status => reply.status
+          respond_with reply
         end
 
         # Renders a REST response for an exception.
@@ -56,6 +56,8 @@ module OpenShift
           message = ex.message
           if ex.kind_of? OpenShift::UserException
             status = :unprocessable_entity
+          elsif ex.kind_of? OpenShift::AccessDeniedException
+            status = :forbidden
           elsif ex.kind_of? OpenShift::DNSException
             status = :service_unavailable
           elsif ex.kind_of? OpenShift::NodeException
@@ -97,7 +99,7 @@ module OpenShift
         #  messages::
         #    Array of message objects. If provided, it will log all messages in the action log and will add them to the REST response.
         #    publish_msg, log_msg, and msg_type will be ignored.
-        def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil)
+        def render_success(status, type, data, log_tag, log_msg=nil, publish_msg=false, msg_type=nil, messages=nil, extra_log_args=get_extra_log_args)
           reply = new_rest_reply(status, type, data)
           if messages.present?
             reply.messages.concat(messages)
@@ -107,9 +109,9 @@ module OpenShift
           else
             msg_type = :info unless msg_type
             reply.messages.push(Message.new(msg_type, log_msg)) if publish_msg && log_msg
-            log_action(log_tag, true, log_msg, get_extra_log_args) if log_tag
+            log_action(log_tag, true, log_msg, extra_log_args) if log_tag
           end
-          respond_with reply, :status => reply.status
+          respond_with reply
         end
 
         # Process all validation errors on a model and returns an array of message objects.

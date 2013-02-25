@@ -845,7 +845,7 @@ class Application
       when "ENV_VAR_REMOVE"
         self.domain.env_vars.each {|env_var| domain_env_vars_to_rm << env_var if env_var["key"] == command_item[:args][0]}
       when "BROKER_KEY_ADD"
-        iv, token = OpenShift::AuthService.instance.generate_broker_key(self)
+        iv, token = OpenShift::Auth::BrokerKey.new.generate_broker_key(self)
         pending_op = PendingAppOpGroup.new(op_type: :add_broker_auth_key, args: { "iv" => iv, "token" => token }, user_agent: self.user_agent)
         Application.where(_id: self._id).update_all({ "$push" => { pending_op_groups: pending_op.serializable_hash } })
       when "BROKER_KEY_REMOVE"

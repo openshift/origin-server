@@ -24,3 +24,13 @@ h1,h2,h3,h4,h5,h6 {
 		}
 a {color:#76B6C6;}
 a:hover,a:active {color:#6ec1d5;}
+
+// Code
+// ----------------------------------------
+
+code, pre {
+	background-color: $preBackground;
+	border: 1px solid $preBorder;
+  border-radius: 0 0 0 0;
+  color: $preColor;
+  }

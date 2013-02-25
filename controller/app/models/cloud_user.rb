@@ -21,7 +21,7 @@ class CloudUser
   include Mongoid::Timestamps
   include UtilHelper
   alias_method :mongoid_save, :save
-  
+
   DEFAULT_SSH_KEY_NAME = "default"
 
   field :login, type: String
@@ -34,36 +34,51 @@ class CloudUser
   field :consumed_gears, type: Integer, default: 0
   embeds_many :ssh_keys, class_name: SshKey.name
   embeds_many :pending_ops, class_name: PendingUserOps.name
+  # embeds_many :identities, class_name: Identity.name, cascade_callbacks: true
   has_many :domains, class_name: Domain.name, dependent: :restrict
-  
+  has_many :authorizations, class_name: Authorization.name, dependent: :restrict
+
   validates :login, presence: true, login: true
   validates :capabilities, presence: true, capabilities: true
- 
+
   scope :with_plan, any_of({:plan_id.ne => nil}, {:pending_plan_id.ne => nil}) 
   index({:login => 1}, {:unique => true})
+
+  scope :with_identity_id, lambda{ |id| where(login: id) }
+  scope :with_identity, lambda{ |provider, uid| with_identity_id(uid) }
+  # Will become as follows when identities are present
+  #
+  #  index({:'identities._id' => 1}, {:unique => true})
+  #  scope :with_identity_id, lambda{ |id| where(:'identities._id' => id) }
+  #  scope :with_identity, lambda{ |provider, uid| with_identity_id(Identity.id_for(provider, uid)) }
+  #  validate{ errors.add(:base, "CloudUser must have one or more identities") if identities.empty? }
+
   create_indexes
-  
+
   # Returns a map of field to error code for validation failures.
   def self.validation_map
     {login: 107, capabilities: 107}
   end
-  
-  # Auth method can either be :login or :broker_auth. :login represents a normal authentication with user/pass.
-  # :broker_auth is used when the applciation needs to make a request to the broker on behalf of the user (eg: scale-up)
-  def auth_method=(m)
-    @auth_method = m
-  end
-  
-  # @see #auth_method=
-  def auth_method
-    @auth_method
-  end
-  
-  # Convenience method to get/set the max_gears capability
+
+  # Auth method can either be :login or :broker_auth. :login represents a normal 
+  # authentication with user/pass. :broker_auth is used when the applciation needs 
+  # to make a request to the broker on behalf of the user (eg: scale-up)
+  #
+  # This is a transient attribute and is not persisted
+  attr_accessor :auth_method
+
+  # Identity support will add the following:
+  #
+  # # This is a transient attribute and is not persisted
+  # attr_accessor :current_identity
+  # def current_identity!(provider, uid)
+  #  self.current_identity = identities.select{ |i| i.provider == provider && i.uid == uid }.first
+  # end
+
+  # Convenience method to get the max_gears capability
   def max_gears
     get_capabilities["max_gears"]
   end
-
   def max_gears=(m)
     user_capabilities = get_capabilities
     user_capabilities["max_gears"] = m
@@ -90,6 +105,52 @@ class CloudUser
       notify_observers(:after_cloud_user_create) if notify
     end
     res
+  end
+
+  #
+  # Identity support will introduce a provider attribute that must be
+  # passed to this method. Use the two argument form:
+  #
+  #   find_by_identity(nil, login)
+  #
+  # to locate a user.
+  #
+  def self.find_by_identity(*arguments)
+    if arguments.length == 2
+      with_identity(*arguments)
+    else
+      with_identity_id(arguments[0])
+    end.find_by
+  end
+
+  #
+  # Identity support will introduce a provider attribute that is used to 
+  # identify the source of a particular login.  Until then, users are only 
+  # identified by their login and provider is ignored.
+  #
+  def self.find_or_create_by_identity(provider, login, create_attributes={}, &block)
+    login = login.to_s
+    provider = provider.to_s if provider
+    user = find_by_identity(nil, login)
+    #identity = user.current_identity!(provider, login)
+    yield user, login if block_given?
+    user
+  rescue Mongoid::Errors::DocumentNotFound
+    user = new(create_attributes)
+    #user.current_identity = user.identities.build(provider: provider, uid: login)
+    #user.login = user.current_identity.id
+    user.login = login
+    begin
+      user.with(safe: true).save
+      Lock.create_lock(user)
+      OpenShift::UserActionLog.action("CREATE_USER", true, "Creating user", 'USER' => user.id, 'LOGIN' => login, 'PROVIDER' => provider)
+      user
+    rescue Moped::Errors::OperationFailure
+      user = find_by_identity(nil, login)
+      raise unless user
+      yield user, login if block_given?
+      user
+    end
   end
 
   # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propagated to the

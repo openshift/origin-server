@@ -183,12 +183,11 @@ class ActiveSupport::TestCase
     h
   end
 
-  def json_header(is_post=false)
+  def json_header(is_post=false, nolinks=true)
     anonymous_json_header(is_post).merge!(auth_headers)
   end
 
-  def anonymous_json_header(is_post=false)
-    {(is_post ? 'Content-Type' : 'Accept') => 'application/json;version=1.3', 'User-Agent' => Console.config.api[:user_agent]}
+  def anonymous_json_header(is_post=false, nolinks=true)
+    {(is_post ? 'Content-Type' : 'Accept') => "application/json#{nolinks ? ';nolinks' : ''};version=1.3", 'User-Agent' => Console.config.api[:user_agent]}
   end
-
 end

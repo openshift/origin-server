@@ -48,9 +48,15 @@ module ActionDispatch::Routing
                  :only => [:show]
 
         scope 'account' do
-          resource :domain, :only => [:new, :create, :edit, :update]
-          resources :keys, :only => [:new, :create, :destroy]
+          openshift_account_resource_routes
         end
+      end
+
+      def openshift_account_resource_routes
+        resource :domain, :only => [:new, :create, :edit, :update]
+        resources :keys, :only => [:new, :create, :destroy]
+        resources :authorizations, :except => [:index]
+        match 'authorizations' => 'authorizations#destroy_all', :via => :delete
       end
   end
 end

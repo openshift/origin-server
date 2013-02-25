@@ -11,6 +11,7 @@ gem 'systemu'
 gem 'mongoid'
 gem 'bson'
 gem 'bson_ext'
+gem 'pry', :require => 'pry' if ENV['PRY']
 gem 'minitest', '3.2.0'
 
 if ENV['SOURCE']

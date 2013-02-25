@@ -164,7 +164,7 @@ def add_sub_account(user, subaccount_login)
     end
 
     begin
-        child_user = CloudUser::find_by(login: subaccount_login)
+        child_user = CloudUser::find_by_identity(subaccount_login)
     rescue Mongoid::Errors::DocumentNotFound
         child_user = nil
     end
@@ -200,7 +200,7 @@ def remove_sub_account(user, subaccount_login)
     end
 
 	  begin
-        child_user = CloudUser::find_by(login: subaccount_login)
+        child_user = CloudUser::find_by_identity(subaccount_login)
     rescue Mongoid::Errors::DocumentNotFound
         puts "Error: Sub Account User '#{subaccount_login}' not found"
         exit 5
@@ -355,7 +355,7 @@ puts
 puts
 
 begin
-    user = CloudUser::find_by(login: login)
+    user = CloudUser.find_by_identity(login)
 rescue Mongoid::Errors::DocumentNotFound
     puts "Error: User '#{login}' not found"
     exit 5
@@ -417,7 +417,7 @@ end
 
 if changed_user
     # reload user with new settings
-    user = CloudUser::find_by(login: login)
+    user = CloudUser.find_by_identity(login)
     puts
     puts
 end
