@@ -51,11 +51,9 @@ module Console
     Builtin = {
       :openshift => {
         :url => 'https://openshift.redhat.com/broker/rest',
-        :suffix => 'rhcloud.com'
       },
       :local => {
         :url => 'https://localhost/broker/rest',
-        :suffix => 'dev.rhcloud.com'
       }
     }
     Builtin.freeze
@@ -163,7 +161,6 @@ module Console
         end.merge({
           :url    => config[:BROKER_URL],
           :proxy  => config[:BROKER_PROXY_URL],
-          :suffix => config[:DOMAIN_SUFFIX]
         })
       end
 
