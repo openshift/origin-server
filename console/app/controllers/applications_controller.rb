@@ -1,5 +1,3 @@
-require 'uri'
-
 class ApplicationsFilter
   extend ActiveModel::Naming
   include ActiveModel::Serialization
@@ -70,6 +68,8 @@ end
 
 class ApplicationsController < ConsoleController
   include AsyncAware
+
+  require_dependency 'gear_group'
 
   def index
     # replace domains with Applications.find :all, :as => current_user

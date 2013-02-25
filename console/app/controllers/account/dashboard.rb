@@ -6,7 +6,8 @@ module Account
     def show
       @user = current_user
       user_default_domain rescue nil
-      @keys = Key.find :all, :as => @user
+      @keys = Key.all :as => @user
+      @authorizations = Authorization.all :as => @user
     end
   end
 end

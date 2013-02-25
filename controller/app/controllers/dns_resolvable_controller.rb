@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'dnsruby'
 
 class DnsResolvableController < BaseController

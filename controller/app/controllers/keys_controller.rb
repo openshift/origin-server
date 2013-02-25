@@ -48,7 +48,7 @@ class KeysController < BaseController
     begin
       @cloud_user.add_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
-      render_success(:created, "key", ssh_key, "ADD_KEY", "Created SSH key #{name}", true)
+      render_success(:created, "key", ssh_key, "ADD_KEY", "Created SSH key #{name}", true, nil, nil, 'IP' => request.remote_ip)
     rescue OpenShift::LockUnavailableException => e
       return render_error(:service_unavailable, e.message, e.code, "ADD_KEY")
     rescue Exception => e
@@ -87,7 +87,7 @@ class KeysController < BaseController
     begin
       @cloud_user.update_ssh_key(key)
       ssh_key = RestKey.new(key, get_url, nolinks)
-      log_action("UPDATE_KEY", true, "Updated SSH key #{id}")
+      log_action("UPDATE_KEY", true, "Updated SSH key #{id}", 'IP' => request.remote_ip)
       @reply = new_rest_reply(:ok, "key", ssh_key)
       @reply.messages.push(Message.new(:info, "Updated SSH key with name #{id} for user #{@login}"))
       respond_with @reply, :status => @reply.status

@@ -23,6 +23,7 @@ class CartridgeType < RestApi::Base
   attr_accessor :priority
 
   has_many :properties, :class_name => 'rest_api/base/attribute_hash'
+  has_many :usage_rate, :class_name => 'rest_api/base/attribute_hash'
 
   self.element_name = 'cartridges'
 

@@ -249,7 +249,8 @@ a.external img[alt="external"] {
 }
 
 
-p.larger { 
+p.larger,
+pre.larger { 
   font-size: $baseFontSize + 1;
   line-height: 21px;
 }

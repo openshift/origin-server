@@ -1,2 +1,6 @@
+- content_for :title, "Add a public key"
+- breadcrumb_for_account 'Add a public key'
 %h1 Add a public key
+=flashes
+
 = render :partial => 'keys/form', :locals => {:key => @key, :first => @first}

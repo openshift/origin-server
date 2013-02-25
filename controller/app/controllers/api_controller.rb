@@ -1,6 +1,6 @@
 class ApiController < BaseController
 
-  skip_before_filter :authenticate
+  skip_before_filter :authenticate_user!, :check_controller_scopes!, :only => :show
 
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
@@ -13,8 +13,20 @@ class ApiController < BaseController
         "ADD_DOMAIN" => Link.new("Create new domain", "POST", URI::join(get_url, "domains"), [
           Param.new("id", "string", "Name of the domain",nil,blacklisted_words)
         ]),
-        "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges"))
+        "LIST_CARTRIDGES" => Link.new("List cartridges", "GET", URI::join(get_url, "cartridges")),
       }
+      links.merge!({
+        "LIST_AUTHORIZATIONS" => Link.new("List authorizations", "GET", URI::join(get_url, "user/authorizations")),
+        "SHOW_AUTHORIZATION"  => Link.new("Retrieve authorization :id", "GET", URI::join(get_url, "user/authorizations/:id"), [
+          Param.new(":id", "string", "Unique identifier of the authorization", nil, [])
+        ]),
+        "ADD_AUTHORIZATION" => Link.new("Add new authorization", "POST", URI::join(get_url, "user/authorizations"), [], [
+          OptionalParam.new("scope", "string", scope_message, Scope.describe_all.map{ |arr| arr.first }, Scope.default || nil),
+          OptionalParam.new("note", "string", "A description to remind you what this authorization is for."),
+          OptionalParam.new("expires_in", "integer", "The number of seconds before this authorization expires. Out of range values will be set to the maximum allowed time.", nil, -1),
+          OptionalParam.new("reuse", "boolean", "Attempt to locate and reuse an authorization that matches the scope and note and has not yet expired.", [true, false], false),
+        ]),
+      }) if requested_api_version >= 1.2
 
       base_url = Rails.application.config.openshift[:community_quickstarts_url]
       if base_url.nil?
@@ -43,4 +55,13 @@ class ApiController < BaseController
     @reply = new_rest_reply(:ok, "links", links)
     respond_with @reply, :status => @reply.status
   end
+
+  protected
+    include ActionView::Helpers::DateHelper
+    def scope_message
+      "Select one or more scopes that this authorization will grant access to:\n\n#{Scope.describe_all.map{ |n, m, defe, maxe| "*  #{n}\n   #{m}#{scope_expires_message(defe,maxe)}"}.join("\n")}"
+    end
+    def scope_expires_message(default_exp, maximum_exp)
+      " Valid for #{distance_of_time_in_words(default_exp, 0)}."
+    end
 end

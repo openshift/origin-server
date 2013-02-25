@@ -82,7 +82,7 @@ module RestApiAuth
   # without any session information.
   #
   def with_simple_unique_user
-    @user = RestApi::Authorization.new "rest-api-test-#{uuid}@test1.com"
+    @user = RestApi::Credentials.new "rest-api-test-#{uuid}@test1.com"
     @with_unique_user = true
   end
 end
@@ -101,6 +101,10 @@ class ActionController::TestCase
   #
   def with_configured_user
     set_user(super)
+  end
+
+  def user_to_session(user, ses={})
+    ses
   end
 
   def mock_controller_user(extends=nil)

@@ -15,8 +15,7 @@ class OptionalParam < OpenShift::Model
     self.name = name
     self.type = type
     self.description = description
-    valid_options = [valid_options] unless valid_options.kind_of?(Array)
-    self.valid_options = valid_options || Array.new
+    self.valid_options = Array(valid_options)
     self.default_value = default_value
   end
 end
