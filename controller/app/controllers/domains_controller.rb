@@ -6,7 +6,7 @@ class DomainsController < BaseController
     Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
     domains = Domain.where(owner: @cloud_user)
     domains.each do |domain|
-      rest_domains.push get_rest_domain(domain)
+      rest_domains.push get_rest_domain(domain, @cloud_user)
     end
     render_success(:ok, "domains", rest_domains, "LIST_DOMAINS")
   end
@@ -18,7 +18,7 @@ class DomainsController < BaseController
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       @domain_name = domain.namespace
-      return render_success(:ok, "domain", get_rest_domain(domain), "SHOW_DOMAIN", "Found domain #{id}")
+      return render_success(:ok, "domain", get_rest_domain(domain, @cloud_user), "SHOW_DOMAIN", "Found domain #{id}")
     rescue Mongoid::Errors::DocumentNotFound
       render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
     end
@@ -54,7 +54,7 @@ class DomainsController < BaseController
       return render_exception(e, "ADD_DOMAIN") 
     end
 
-    render_success(:created, "domain", get_rest_domain(domain), "ADD_DOMAIN", "Created domain with namespace #{namespace}")
+    render_success(:created, "domain", get_rest_domain(domain, @cloud_user), "ADD_DOMAIN", "Created domain with namespace #{namespace}")
   end
 
   # PUT /domains/<existing_id>
@@ -97,7 +97,7 @@ class DomainsController < BaseController
       return render_exception(e, "UPDATE_DOMAIN") 
     end
     
-    render_success(:ok, "domain", get_rest_domain(domain), "UPDATE_DOMAIN", "Updated domain #{id} to #{new_namespace}")
+    render_success(:ok, "domain", get_rest_domain(domain, @cloud_user), "UPDATE_DOMAIN", "Updated domain #{id} to #{new_namespace}")
   end
 
   # DELETE /domains/<id>
@@ -130,11 +130,11 @@ class DomainsController < BaseController
 
   private
 
-  def get_rest_domain(domain)
+  def get_rest_domain(domain, owner)
     if requested_api_version == 1.0
-      RestDomain10.new(domain, get_url, nolinks)
+      RestDomain10.new(domain, owner, get_url, nolinks)
     else
-      RestDomain.new(domain, get_url, nolinks)
+      RestDomain.new(domain, owner, get_url, nolinks)
     end
   end
 end
