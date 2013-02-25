@@ -126,8 +126,6 @@ module OpenShift
                                                $test_namespace,
                                                $test_nodename)
 
-      puts "add reply\n#{reply}"
-
       message = reply[:change_info]
       message[:status].should be == "PENDING"
       message[:id].should match(/\/change\/[A-Z]+/)
@@ -162,14 +160,18 @@ module OpenShift
       # should call list_test_record_set
       # with structure = 
 
+      dns_service = Route53Plugin.new()
+      reply = dns_service.modify_application(
+        $test_appname, 
+        $test_namespace,
+        $test_nodename
+        )
+
       # should recieve response:
+      message = reply[:change_info]
+      message[:status].should be == "PENDING"
+      message[:id].should match(/\/change\/[A-Z]+/)
 
-      # should call change_test_record_set
-      # with structure = 
-
-      # should recieve response: 
-
-      pending "not defined"
     end
 
     it "can retrieve application records from Route53" do
