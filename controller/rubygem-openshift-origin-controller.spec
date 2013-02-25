@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.6-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - avoiding unnecessary mongoid calls (abhgupta@redhat.com)
 - Merge pull request #1438 from
