@@ -78,6 +78,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - bug 915228 - <oo-admin-ctl-user> validate gear size before adding
   https://bugzilla.redhat.com/show_bug.cgi?id=915228 Adding an invalid gear
