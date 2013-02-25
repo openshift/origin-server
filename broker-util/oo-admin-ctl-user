@@ -37,7 +37,7 @@ Options:
   --removesubaccount <subaccount login>
     The sub account to remove from the login parent account
   --allowsubaccounts (true|false)
-    Add / Remove the capability to manage sub accounts 
+    Add / Remove the capability to manage sub accounts
   --allowplanupgrade (true|false)
     Add / Remove the capability to upgrade your plan.
   --addgearsize <gearsize>
@@ -224,8 +224,14 @@ end
 def add_gear_size(user, gear_size)
     user_capabilities = user.get_capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
-    gear_sizes = Array(user_capabilities['gear_sizes'])
 
+    available_sizes = Rails.configuration.openshift[:gear_sizes]
+    if ! available_sizes.include? gear_size
+      puts "Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}."
+      exit 1
+    end
+
+    gear_sizes = Array(user_capabilities['gear_sizes'])
     if gear_sizes.include?(gear_size)
         puts "User #{user.login} already has gear size #{gear_size} in its capabilities."
         return
