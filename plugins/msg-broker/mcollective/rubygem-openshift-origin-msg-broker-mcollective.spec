@@ -9,7 +9,7 @@
 
 Summary:        OpenShift plugin for mcollective service
 Name:           rubygem-%{gem_name}
-Version: 1.4.6
+Version: 1.4.7
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -80,6 +80,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Mon Feb 25 2013 Dan McPherson <dmcphers@redhat.com> 1.4.7-1
+- Bug 915478 (dmcphers@redhat.com)
+
 * Thu Feb 14 2013 Dan McPherson <dmcphers@redhat.com> 1.4.6-1
 - correction in node selection algorithm (dmcphers@redhat.com)
 
