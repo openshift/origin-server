@@ -225,6 +225,9 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.5-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - fix typo (dmcphers@redhat.com)
 - Bug 913423 - Incorrect syntax for ReverseCookiePath, and the way the node
