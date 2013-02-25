@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -225,6 +225,19 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- fix typo (dmcphers@redhat.com)
+- Bug 913423 - Incorrect syntax for ReverseCookiePath, and the way the node
+  table lookup works we do not have the information broken out in a way that
+  supports the correct syntax. (rmillner@redhat.com)
+- Use File.chown/chmod. (rmillner@redhat.com)
+- Merge pull request #1429 from jwhonce/dev/wip_master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1420 from kraman/master
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 913288 - Numeric login effected additional commands (jhonce@redhat.com)
+- Removing references to cgconfig/all (kraman@gmail.com)
+
 * Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Merge pull request #1417 from jwhonce/dev/wip_master
   (dmcphers+openshiftbot@redhat.com)
