@@ -1,3 +1,25 @@
+##
+# @api REST
+# Describes an Domain (namespace)
+# @version 1.1
+# @see RestApplication
+# @see RestDomain10
+#
+# Example:
+#   ```
+#   <domain>
+#     <id>localns</id>
+#     <suffix>example.com</suffix>
+#     <links>
+#        ...
+#     </links>
+#   </domain>
+#   ```
+#
+# @!attribute [r] id
+#   @return [String] namespace for this domain
+# @!attribute [r] suffix
+#   @return [String] DNS suffix under which the application is created. Eg: rhcloud.com
 class RestDomain < OpenShift::Model
   attr_accessor :id, :suffix, :links
   

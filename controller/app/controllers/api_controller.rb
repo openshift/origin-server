@@ -1,7 +1,21 @@
+##
+# Entry point for the Broker REST API
+# @api REST
 class ApiController < BaseController
-
   skip_before_filter :authenticate_user!, :check_controller_scopes!, :only => :show
 
+  ##
+  # Returns an array of {http://en.wikipedia.org/wiki/HATEOAS HATEOAS} links describing the REST API. All REST replies
+  # are wrappen in a [RestReply] object which provides information about the API version, request success or failure,
+  # and returned object type.
+  #
+  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.
+  # 
+  # URL: /api
+  #
+  # Action: GET
+  # 
+  # @return [RestReply<Array<Link>>] Array of links for the rest of the REST API.
   def show
     blacklisted_words = OpenShift::ApplicationContainerProxy.get_blacklisted
     unless nolinks

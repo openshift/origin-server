@@ -1,4 +1,26 @@
-# Represents a link in the REST reply
+##
+# @api REST
+# Represents a REST API link
+#
+# Example:
+#   ```
+#   <link>
+#     <rel>Retrieve quickstart with :id</rel>
+#     <method>GET</method>
+#     <href>https://broker.example.com/broker/rest/quickstarts/:id</href>
+#     <required-params>
+#       <param>
+#         <name>:id</name>
+#         <type>string</type>
+#         <description>Unique identifier of the quickstart</description>
+#         <valid-options/>
+#         <invalid-options/>
+#       </param>
+#     </required-params>
+#     <optional-params/>
+#   </link>
+#   ```
+#
 # @!attribute [r] rel
 #   @return [String] Description of the operation
 # @!attribute [r] method
