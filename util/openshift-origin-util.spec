@@ -36,6 +36,12 @@ chmod 0755 %{buildroot}%{_bindir}/*
 
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.4.1-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+- <oo-diagnostics> fix bug in District methods, redirect httpd broken version
+  to kbase (lmeyer@redhat.com)
+- Fixes for ruby193 (john@ibiblio.org)
+
 * Fri Feb 15 2013 Troy Dawson <tdawson@redhat.com> 1.4.1-1
 - change %%define to %%global (tdawson@redhat.com)
 - <oo-diagnostics> many minor fixes, notices about bzs 893884+849558+892871,
