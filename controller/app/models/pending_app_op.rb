@@ -45,7 +45,7 @@ class PendingAppOp
   # Marks the operation as completed on the parent operation.
   def completed
     self.state = :completed
-    self.save
+    self.save!
     parent_op.child_completed(application) unless parent_op_id.nil?
   end
 end

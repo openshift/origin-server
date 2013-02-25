@@ -96,6 +96,7 @@ class Application
     app.user_agent = user_agent
     features << "web_proxy" if scalable
     if app.valid?
+      app.save!
       begin
         add_feature_result = app.add_features(features, group_overrides, init_git_url)
         result_io.append add_feature_result
@@ -141,7 +142,6 @@ class Application
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     self.app_ssh_keys = []
     self.pending_op_groups = []
-    self.save
   end
 
   # Setter for application name - sets the name and the canonical_name
@@ -177,7 +177,7 @@ class Application
       op_group = PendingAppOpGroup.new(op_type: :complete_update_namespace, args: {"old_namespace" => old_namespace, "new_namespace" => new_namespace}, parent_op: parent_op, user_agent: self.user_agent)
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
-      self.save
+      self.save!
       result_io
     end
   end
@@ -424,7 +424,7 @@ class Application
     Application.run_in_application_lock(self) do    
       pending_op = PendingAppOpGroup.new(op_type: :add_features, args: {"features" => [], "group_overrides" => group_overrides}, created_at: Time.new, user_agent: self.user_agent)
       pending_op_groups.push pending_op
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -440,7 +440,7 @@ class Application
     Application.run_in_application_lock(self) do    
       pending_op = PendingAppOpGroup.new(op_type: :update_component_limits, args: {"comp_spec" => component_instance.to_hash, "min"=>scale_from, "max"=>scale_to, "additional_filesystem_gb"=>additional_filesystem_gb}, created_at: Time.new, user_agent: self.user_agent)
       pending_op_groups.push pending_op
-      self.save
+      self.save!
       result_io = ResultIO.new
       self.run_jobs(result_io)
       result_io
@@ -1633,8 +1633,8 @@ class Application
       op_group.pending_ops.push ops
       op_group.num_gears_added = num_gears_added
       op_group.num_gears_removed = num_gears_removed
-      op_group.save
-      owner.save
+      op_group.save!
+      owner.save!
     ensure
       Lock.unlock_user(owner, self)
     end
@@ -1649,7 +1649,7 @@ class Application
       end
       owner.with(consistency: :strong).reload
       owner.consumed_gears -= num_gears_removed
-      owner.save
+      owner.save!
     ensure
       Lock.unlock_user(owner, self)
     end

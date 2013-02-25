@@ -43,6 +43,7 @@ class Domain
     format:   {with: /\A[A-Za-z0-9]+\z/, message: "Invalid namespace. Namespace must only contain alphanumeric characters."},
     length:   {maximum: NAMESPACE_MAX_LENGTH, minimum: NAMESPACE_MIN_LENGTH, message: "Must be a minimum of #{NAMESPACE_MIN_LENGTH} and maximum of #{NAMESPACE_MAX_LENGTH} characters."},
     blacklisted: {message: "Namespace is not allowed.  Please choose another."}
+
   def self.validation_map
     {namespace: 106}
   end
@@ -72,7 +73,7 @@ class Domain
   def update_namespace(new_namespace)
     old_ns = namespace
     self.namespace = new_namespace
-    self.save
+    self.save!
     pending_op = PendingDomainOps.new(op_type: :update_namespace, arguments: {"old_ns" => old_ns, "new_ns" => new_namespace}, parent_op: nil, on_apps: applications, on_completion_method: :complete_namespace_update, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs

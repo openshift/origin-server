@@ -4,7 +4,7 @@ NAME
 SYNOPSIS
   oo-admin-ctl-domain [-h|--help] [-l|--login login_name] 
   [-n|--namespace name_space] [-c|--command cmd] [-s|--ssh_key sshkey]
-  [-t|--key_type sshkey_type] [-k|--key_name sshkey_name]
+  [-t|--key_type sshkey_type] [-k|--key_name sshkey_name] [-b|--bypass_blacklist]
 
 DESCRIPTION
   This is an utility for all district operations on OpenShift Origin.
@@ -37,6 +37,9 @@ OPTIONS
 
   -k|--key_name sshkey_name
     User's SSH key name.
+
+  -b|--bypass_blacklist
+    Bypass blacklist validation.
 
 EXAMPLE
 

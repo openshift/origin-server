@@ -82,7 +82,7 @@ module OpenShift
 
         def init_user
           begin
-            @cloud_user.save
+            @cloud_user.save!
             Lock.create_lock(@cloud_user)
           rescue Moped::Errors::OperationFailure => e
             cu = CloudUser.find_by(login: @cloud_user.login)
