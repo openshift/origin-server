@@ -82,7 +82,7 @@ class Quickstart < RestApi::Base
     end
 
     def site
-      api_links[:site] or RestApi::Info.site
+      api_links[:site] or Console.config.community_url 
     end
     def prefix_parameters
       {}
