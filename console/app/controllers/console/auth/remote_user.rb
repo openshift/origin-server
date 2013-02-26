@@ -7,7 +7,7 @@
 module Console::Auth::RemoteUser
   extend ActiveSupport::Concern
 
-  class RemoteUser < RestApi::Authorization
+  class RemoteUser < RestApi::Credentials
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 

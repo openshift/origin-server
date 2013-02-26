@@ -1,6 +1,6 @@
 class CartridgesController < BaseController
 
-  skip_before_filter :authenticate
+  skip_before_filter :authenticate_user!
 
   # FIXME: Should not do this
   def show

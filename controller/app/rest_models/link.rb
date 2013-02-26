@@ -16,7 +16,7 @@ class Link < OpenShift::Model
     self.rel = rel
     self.method = method
     self.href = href.to_s
-    self.required_params = required_params || Array.new
-    self.optional_params = optional_params || Array.new
+    self.required_params = Array(required_params)
+    self.optional_params = Array(optional_params)
   end
 end

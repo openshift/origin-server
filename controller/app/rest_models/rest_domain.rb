@@ -18,7 +18,7 @@ class RestDomain < OpenShift::Model
           [OptionalParam.new("cartridges", "array", "Array of one or more cartridge names. i.e. [\"php-5.3\", \"mongodb-2.2\"]", carts),
           OptionalParam.new("scale", "boolean", "Mark application as scalable", [true, false], false),
           OptionalParam.new("gear_profile", "string", "The size of the gear", valid_sizes, valid_sizes[0]),
-          OptionalParam.new("init_git_url", "string", "Initial git URL"),
+          OptionalParam.new("initial_git_url", "string", "A URL to a Git source code repository that will be the basis for this application."),
         ]),
         "UPDATE" => Link.new("Update domain", "PUT", URI::join(url, "domains/#{id}"),[
           Param.new("id", "string", "Name of the domain")

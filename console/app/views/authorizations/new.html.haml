@@ -1,0 +1,47 @@
+- content_for :title, "Add an Authorization"
+- breadcrumb_for_account 'Add an Authorization'
+%h1 Add Authorization
+= flashes
+
+= semantic_form_for @authorization, :html => {:class => 'form'} do |f|
+  = f.semantic_errors :except => :scope
+  = f.inputs do
+
+    .control-group{:class => @authorization.errors[:scope].present? ? 'error' : ''}
+      .controls
+        %p Select which rights you want to allow clients to have. You may select multiple scopes, or if you select none the server will choose a default scope.
+        - field = 'authorization[scopes][]'
+        - unmatched_scopes = @authorization.scopes - @simple_scopes.map{ |s| s[:id] }
+        = hidden_field_tag field, ''
+        %table.table
+          %tbody
+            - @simple_scopes.each do |scope|
+              %tr
+                %td
+                  %label.checkbox
+                    = check_box_tag field, scope[:id], @authorization.scopes.include?(scope[:id]), :id => sanitize_to_id("#{field}#{scope[:id]}")
+                    = scope[:name]
+                    - if scope[:default]
+                      %span.small (default)
+                %td= scope[:description]
+        - if @parameter_scopes.present?
+          %p Or, you can enter scopes directly for those that require a parameter.  Separate multiple scopes with a space or comma.
+          %table.table
+            %tbody
+              - @parameter_scopes.each do |scope|
+                %tr
+                  %td= scope[:id]
+                  %td= scope[:description]
+
+          = text_field_tag field, unmatched_scopes.join(' '), :class => 'span6'
+          = f.inline_errors_for :scope
+
+    %p If you select several scopes, you'll be able to perform actions that any of your scopes allow, but your token will expire after the shortest scope expires.
+
+    = f.input :note, :as => :text, :label => 'Add a reminder about what this authorization is for', :input_html => {:class => 'span6', :rows => 2}
+
+  = f.buttons do
+    = link_to "Cancel", account_path, :class => 'btn'
+    = f.commit_button :label => 'Create'
+    = f.loading
+

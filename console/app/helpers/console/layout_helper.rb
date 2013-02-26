@@ -215,6 +215,12 @@ module Console::LayoutHelper
     ] + args
   end
 
+  def breadcrumb_for_account(*args)
+    breadcrumbs_for_each [
+      link_to('My Account', :account, :action => :show),
+    ] + args
+  end
+
   def take_action(link, text, *args)
     options = args.extract_options!
     link_to link, {:class => (['action-call'] << options[:class]).join(' ')}.reverse_merge!(options) do

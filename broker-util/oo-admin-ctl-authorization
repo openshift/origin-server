@@ -1,0 +1,60 @@
+#!/usr/bin/env oo-ruby
+
+require 'optparse'
+require 'ostruct'
+
+PATH = '/var/www/openshift/broker/config/environment'
+
+class Command
+  def expire(options)
+    env!(options)
+    c = Authorization.expired.count
+    Authorization.expired.delete
+    puts "Deleted expired authorizations: #{c}"
+    0
+  end
+
+  def revoke_all(options)
+    env!(options)
+    c = Authorization.count
+    Authorization.delete_all
+    puts "Deleted all authorizations: #{c}"
+    0
+  end
+
+  protected
+    def env!(options)
+      require options.broker || PATH
+    end
+end
+
+methods = (Command.instance_methods(false) & Command.new.public_methods).sort
+options = OpenStruct.new
+p = OptionParser.new do |opts|
+  opts.banner = "Usage: oo-admin-ctl-authorization -c (#{methods.join('|')})"
+
+  opts.separator ''
+  opts.on('-c', '--command COMMAND',
+          methods.map(&:to_s),
+          [],
+          "A command to execute") do |command|
+    options.command = command
+  end
+
+  opts.on('--broker PATH', "The path to the broker",
+          " (default #{PATH})") do |path|
+    options.broker = path
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit 0
+  end
+end
+p.parse!(ARGV)
+
+if options.command.nil?
+  puts p
+  exit 0
+end
+exit Command.new.send(options.command.downcase.gsub(/[\-]/,'_'), options)

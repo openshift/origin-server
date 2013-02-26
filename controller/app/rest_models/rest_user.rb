@@ -1,14 +1,12 @@
 class RestUser < OpenShift::Model
-  attr_accessor :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :max_gears
+  attr_accessor :id, :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :max_gears, :created_at
 
-  def initialize(cloud_user, url, nolinks=false)    
-    self.login = cloud_user.login
-    self.consumed_gears = cloud_user.consumed_gears
+  def initialize(cloud_user, url, nolinks=false)
+    [:id, :login, :consumed_gears, :plan_id, :usage_account_id, :created_at].each{ |sym| self.send("#{sym}=", cloud_user.send(sym)) }
+
     self.capabilities = cloud_user.get_capabilities
     self.max_gears = capabilities["max_gears"]
     self.capabilities.delete("max_gears")
-    self.plan_id = cloud_user.plan_id
-    self.usage_account_id = cloud_user.usage_account_id
 
     unless nolinks
       @links = {
@@ -24,7 +22,7 @@ class RestUser < OpenShift::Model
       ]) if cloud_user.parent_user_id
     end
   end
-  
+
   def to_xml(options={})
     options[:tag_name] = "user"
     super(options)
