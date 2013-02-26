@@ -21,7 +21,7 @@ class RestCartridge < OpenShift::Model
     end
     self.current_scale = 0
     scaling_cart = CartridgeCache.find_cartridge_by_category("scales")[0]
-    self.scales_with = scaling_cart.name
+    self.scales_with = scaling_cart.name unless scaling_cart.nil?
     self.help_topics = cart.help_topics
     self.usage_rates = cart.usage_rates
   end
