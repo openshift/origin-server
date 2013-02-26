@@ -16,8 +16,8 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.5
-Release:       2%{?dist}
+Version:       1.5.6
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -225,6 +225,12 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
+- Turn route logging off. (rmillner@redhat.com)
+- Fetch returns KeyError. (rmillner@redhat.com)
+- Bug 913351 - Cannot create application successfully when district is added
+  (jhonce@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.5-2
 - bump Release for fixed build target rebuild (admiller@redhat.com)
 
