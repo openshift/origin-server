@@ -91,6 +91,18 @@ class AliasTest < ActiveSupport::TestCase
     #no private key
     server_alias = "as#{@random}"
     assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate)}
+    
+    #bad private key
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, "abcd")}
+    
+    #wrong private key
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.add_alias(server_alias, @ssl_certificate, @private_key2)}
+    
+    #bad certificate
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.add_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
   
   test "update alias with bad inputs" do
@@ -100,6 +112,18 @@ class AliasTest < ActiveSupport::TestCase
     #no private key
     @app.add_alias(server_alias)
     assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate)}
+    
+    #bad private key
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, "abcd")}
+    
+    #wrong private key
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.update_alias(server_alias, @ssl_certificate, @private_key2)}
+    
+    #bad certificate
+    server_alias = "as#{@random}"
+    assert_raise(OpenShift::UserException){@app.update_alias(server_alias, "ABCDEFG", @private_key, @pass_phrase)}
   end
   
   test "remove alias with bad inputs" do
@@ -215,5 +239,32 @@ D2bHKKZgmYlTgJrxD45Er9agC5jclJO35QRU/OfGf3GcnABkBI7vlvUKADAo65Sq
 weZkdJnbrIadcvLOHOzkKC9m+rxFTC9VoN1dwK2zwYvUXfa1VJA=
 -----END RSA PRIVATE KEY-----"
     @pass_phrase = "abcd"
+    @private_key2 = "-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA0zGEHEVxvDZCvktXlEUXZp2/xbdI+bggJccB3Rw4ipzYpLw7
+xiRbM/k8OwQIO/6Vpp41fQPZ39NKGu1Mhdo56/36mrloLfmYD1Nya/3N3PC3SRyx
+UH0ZoMAddALPuQ/ff+4hA2yd1I4hXjKlJXV1n3wtR5o6EYRrOjeAfwxhCmgOQMZg
+IzeLH6zzfRfzP14nveddgMqffCvJ0U8xLOfBr3ccBwGFFxvCLmlz0CLPOjbVeUJW
+qxQmfLGXEaXSGbJkVMSD4BJrCvn11i9rWVX3z7AF3cU22pU4gMrdhN+3uD0dCRxa
+dTfZM4bvslAmuITEkAqnVI5dhVGJT7TkSTEI/wIDAQABAoIBAQCfHiJ8LnInrPYS
+a697fabI4LeZHqOzyd8mt06XKekLvmqXi165xbCVcwXHLR2LHh/gXjjMjPc9ZPLj
+YMCT5LxZKo0CwAhXA0Nm4KdH5/yPpylgw2ZwzyBc9gH64xdgRi5NM7vZ2Z78g21u
+jFfS5jGNzMBMv01a31rujNyaXFhMvoQUu6uHD7arIZ22jy0ru/G3rAwDnpLTWuNp
+fRegVzbVMxw3f4SP54OHAWlcEeFMhv/a6XmpPr3PfCrRlSdMC0aFDYFqqzjYZWks
+Jx6Q2/OKt49+980rBWfOpLkJSl4rNzR48+dtC6+97uIM3gyHNx5iDIxlJrBW+Gzj
+wc2rhyL5AoGBAPo4KOTuno+UKJozd0olXeOU58TYwmIU68w30PTUbOGc8jfxJ6Rc
+iC6ndDmdXL18iDBYJ/8hTlkCtS1g3dum3gOiUf5E9Ba4wsK/UFWzffHW54odTO5L
+kiA0pAhSDiTQqgBJFUM0JYI/cRW3f08fqRbzIW0OP2EB/zCBdn5tu6sbAoGBANgS
+jNZczDfdCcUkVdfODnGcP4TVCrXqHwHlShKnbT0njaaZGG4DHSMUtIgxZgchkoWT
+h85+vjD9EX8+heVdQOYbAUsA5OBMBh0vyX9SCYtnhpIK+eh5LpQ8Li0FN858+N8/
+42s4E2X+9u+QhUZKyPlmil4t92Z/kw0qo90Mq/PtAoGABRvEafgdMJ07vvoyA0eE
+BTNzD+fFAC+hKMgy8eysVGbZ4x5/SrHA7gLpMovt6shyF1qVZnYNnW+at1R08xkT
+C0vzFJffy971yvgQ8c76UUer7nvuqCbO0u2AM9NJCqNf9SWI05hq85/L9T+Lz9e7
+ogZQtmNGE/rwdNMP0kD3ReUCgYEAk6QRQgREssNBgsiyM3SkH/NA39XmrKjeKSBw
+fdCTbx8Qxk6EB9/uz+K8/PasHaFOCiHlwS6PbM/vXb/uI+yVhOXc+1AQFEc+QkE9
+8NawmOXTaQVBAB2Vu0pnzvFq0ZhJQdrY3ZGCh8YxGz7oIkDFlM0BLRtBmnL/mxaQ
+w2F+OX0CgYBJw4ruBVw+EcFfT3/0zCrJIxLLeJjFuz+HYXApkFsBQLGtnYz97Oww
+av6o/wufvVqGc81SPDmEMsEasXgeMyL7MTsShh26yFzrDoGN2djn5uT+f8Y1WdFN
+xJFFvCG76BmKcC1VJCbRByY7Ju3kpDEX6sYkmDytrZsVHK/iW5MM6A==
+-----END RSA PRIVATE KEY-----"
   end
 end

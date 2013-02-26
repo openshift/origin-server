@@ -24,6 +24,8 @@ class AliasController < BaseController
       render_success(:ok, "aliases", rest_aliases, "LIST_APP_ALIASES", "Listing aliases for application #{id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Application '#{id}' not found for domain '#{domain_id}'", 101, "LIST_APP_ALIASES")
+    rescue Exception => e
+      return render_error(:internal_server_error, "Failed to get aliases for application #{id} due to: #{e.message}", 1, "LIST_APP_ALIASES")
     end
   end
   
@@ -53,6 +55,8 @@ class AliasController < BaseController
       render_success(:ok, "alias", get_rest_alias(application, domain, al1as), "SHOW_APP_ALIAS", "Showing alias #{id} for application #{application_id} under domain #{domain_id}")
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Alias #{id} not found for application '#{application_id}'", 173, "SHOW_APP_ALIAS")
+    rescue Exception => e
+      return render_error(:internal_server_error, "Failed to get alias #{server_alias} due to: #{e.message}", 1, "SHOW_APP_ALIAS")
     end
   end
   
@@ -90,8 +94,9 @@ class AliasController < BaseController
       messages.push(Message.new(:info, reply.resultIO.string, 0, :result))
       return render_success(:created, "alias", rest_alias, "ADD_ALIAS", "Added #{server_alias} to application #{id}", nil, nil, messages)
     rescue OpenShift::UserException => e
-      Rails.logger.debug "Error while adding alias: #{e.message} #{e.backtrace}"
-      return render_error(:unprocessable_entity, "Error while adding alias: #{e.message} ", e.code, "ADD_ALIAS", "id")
+      return render_error(:unprocessable_entity, e.message, e.code, "ADD_ALIAS", e.field)
+    rescue Exception => e
+      return render_error(:internal_server_error, "Failed to add alias #{server_alias} due to: #{e.message}", 1, "ADD_ALIAS")
     end
   end
   
@@ -134,7 +139,9 @@ class AliasController < BaseController
       messages.push(Message.new(:info, reply.resultIO.string, 0, :result))
       return render_success(:ok, "alias", rest_alias, "UPDATE_ALIAS", log_msg, nil, nil, messages)
     rescue OpenShift::UserException => e
-      return render_error(:unprocessable_entity, "Error updating alias: #{e.message}", e.code, "UPDATE_ALIAS")
+      return render_error(:unprocessable_entity, e.message, e.code, "UPDATE_ALIAS", e.field)
+    rescue Exception => e
+      return render_error(:internal_server_error, "Failed to update alias #{server_alias} due to: #{e.message}", 1, "UPDATE_ALIAS")
     end
   end
   
@@ -162,6 +169,8 @@ class AliasController < BaseController
       application.remove_alias(server_alias)
     rescue Mongoid::Errors::DocumentNotFound
       return render_error(:not_found, "Alias #{server_alias} not found for application #{application_id}", 173, "DELETE_ALIAS")
+    rescue OpenShift::UserException => e
+      return render_error(:unprocessable_entity, e.message, e.code, "DELETE_ALIAS", e.field)
     rescue Exception => e
       return render_error(:internal_server_error, "Failed to delete alias #{server_alias} due to: #{e.message}", 1, "DELETE_ALIAS")
     end

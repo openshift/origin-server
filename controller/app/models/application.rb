@@ -698,9 +698,7 @@ class Application
         (server_alias =~ /^\d+\.\d+\.\d+\.\d+$/)
       raise OpenShift::UserException.new("Invalid Server Alias '#{server_alias}' specified", 105)
     end
-    
-    
-    raise OpenShift::UserException.new("Privte key is required", 172) if ssl_certificate and private_key.nil? 
+    validate_certificate(ssl_certificate, private_key, pass_phrase)
     
     Application.run_in_application_lock(self) do
       raise OpenShift::UserException.new("Alias #{server_alias} is already registered", 140) if Application.where("aliases.fqdn" => server_alias).count > 0
@@ -745,7 +743,7 @@ class Application
   
   def update_alias(fqdn, ssl_certificate=nil, private_key=nil, pass_phrase="")
     
-    raise OpenShift::UserException.new("Privte key is required", 172) if ssl_certificate and private_key.nil? 
+    validate_certificate(ssl_certificate, private_key, pass_phrase)
     
     fqdn = fqdn.downcase
     begin
@@ -2121,4 +2119,31 @@ class Application
     end
     web_cart
   end  
+  
+  def validate_certificate(ssl_certificate, private_key, pass_phrase)
+    if ssl_certificate and !ssl_certificate.empty?
+      raise OpenShift::UserException.new("Privte key is required", 172, nil, "private_key") if private_key.nil? 
+      #validate certificate
+      begin
+        ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_certificate.strip)
+      rescue Exception => e
+        raise OpenShift::UserException.new("Invalid certificate: #{e.message}", 174, nil, "ssl_certificate")
+      end
+      #validate private key
+      begin
+        pass_phrase = '' if pass_phrase.nil?
+        priv_key_clean = OpenSSL::PKey.read(private_key.strip, pass_phrase.strip)
+      rescue Exception => e
+        raise OpenShift::UserException.new("Invalid private key or pass phrase: #{e.message}", 172, nil, "private_key")
+      end
+      if not ssl_cert_clean.check_private_key(priv_key_clean)
+        raise OpenShift::UserException.new("Key/cert mismatch", 172, nil, "private_key")
+      end
+
+      if not [OpenSSL::PKey::RSA, OpenSSL::PKey::DSA].include?(priv_key_clean.class)
+        raise OpenShift::UserException.new("Key must be RSA or DSA for Apache mod_ssl",172, nil, "private_key")
+      end
+    end
+  end
+  
 end
