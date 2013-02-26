@@ -173,3 +173,9 @@ RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
 # Configure reverse proxy based on set variable
 #
 ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
+
+#
+# Log custom format for OpenShift parsing.
+# Log format is:
+LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
+CustomLog logs/openshift_log openshift env=V_PATH
