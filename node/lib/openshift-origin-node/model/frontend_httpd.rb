@@ -598,11 +598,14 @@ module OpenShift
       end
 
       NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-        routes_ent = d.fetch(@fqdn)
-        if not routes_ent.nil?
-          alias_ent = routes_ent.clone
-          alias_ent["alias"] = @fqdn
-          d.store(name, alias_ent)
+        begin
+          routes_ent = d.fetch(@fqdn)
+          if not routes_ent.nil?
+            alias_ent = routes_ent.clone
+            alias_ent["alias"] = @fqdn
+            d.store(name, alias_ent)
+          end
+        rescue KeyError
         end
       end
 

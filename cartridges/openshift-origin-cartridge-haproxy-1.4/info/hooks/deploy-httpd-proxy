@@ -38,10 +38,14 @@ APP_HOME="${GEAR_BASE_DIR}/$uuid"
 
 CART_INFO_DIR=${CARTRIDGE_BASE_PATH}/haproxy-1.4/info
 
+. $APP_HOME/.env/OPENSHIFT_HAPROXY_INTERNAL_IP
 . $APP_HOME/.env/OPENSHIFT_HAPROXY_STATUS_IP
+
+export IP="$OPENSHIFT_HAPROXY_INTERNAL_IP"
+export IP2="$OPENSHIFT_HAPROXY_STATUS_IP"
 
 #
 # Create virtualhost definition for apache
 #
-${CART_INFO_DIR}/bin/deploy_httpd_proxy.sh $application $namespace $uuid $OPENSHIFT_HAPROXY_STATUS_IP
+${CART_INFO_DIR}/bin/deploy_httpd_proxy.sh $application $namespace $uuid $IP
 
