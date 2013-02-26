@@ -44,10 +44,6 @@ module MCollective
         rc = nil
         output = ""
 
-        args = args.each_with_object({}) do |e, memo|
-          memo[e[0]] = e[1].to_s
-        end
-
         # Do the action execution
         exitcode, output = execute_action(action, args)
 
@@ -127,21 +123,21 @@ module MCollective
       #
       # Use this to get a new ApplicationContainer instance in all cases.
       def get_app_container_from_args(args)
-        app_uuid = args['--with-app-uuid']
-        app_name = args['--with-app-name']
-        gear_uuid = args['--with-container-uuid']
-        gear_name = args['--with-container-name']
-        namespace = args['--with-namespace']
+        app_uuid     = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
+        app_name     = args['--with-app-name'].to_s       if args['--with-app-name']
+        gear_uuid    = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        gear_name    = args['--with-container-name'].to_s if args['--with-container-name']
+        namespace    = args['--with-namespace'].to_s      if args['--with-namespace']
         quota_blocks = args['--with-quota-blocks']
-        quota_files = args['--with-quota-files']
-        uid = args['--with-uid']
+        quota_files  = args['--with-quota-files']
+        uid          = args['--with-uid']
 
         quota_blocks = nil if quota_blocks && quota_blocks.to_s.empty?
-        quota_files = nil if quota_files && quota_files.to_s.empty?
-        uid = nil if uid && uid.empty?
+        quota_files  = nil if quota_files && quota_files.to_s.empty?
+        uid          = nil if uid && uid.to_s.empty?
 
         OpenShift::ApplicationContainer.new(app_uuid, gear_uuid, uid, app_name, gear_name,
-          namespace, quota_blocks, quota_files, Log.instance)
+                                            namespace, quota_blocks, quota_files, Log.instance)
       end
 
       def oo_app_create(args)
@@ -289,8 +285,8 @@ module MCollective
       end
 
       def oo_app_state_show(args)
-        container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+        container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        app_uuid       = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
 
         output = ""
         begin
@@ -306,7 +302,7 @@ module MCollective
       end
 
       def oo_get_quota(args)
-        uuid = args['--uuid']
+        uuid = args['--uuid'].to_s if args['--uuid']
 
         output = ""
         begin
@@ -321,7 +317,7 @@ module MCollective
       end
 
       def oo_set_quota(args)
-        uuid   = args['--uuid']
+        uuid   = args['--uuid'].to_s if args['--uuid']
         blocks = args['--blocks']
         inodes = args['--inodes']
 
@@ -338,8 +334,8 @@ module MCollective
       end
 
       def oo_force_stop(args)
-        container_uuid = args['--with-container-uuid']
-        app_uuid = args['--with-app-uuid']
+        container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        app_uuid       = args['--with-app-uuid'].to_s       if args['--with-app-uuid']
 
         begin
           container = get_app_container_from_args(args)
@@ -380,9 +376,9 @@ module MCollective
       end
 
       def with_frontend_from_args(args)
-        container_uuid = args['--with-container-uuid']
-        container_name = args['--with-container-name']
-        namespace = args['--with-namespace']
+        container_uuid = args['--with-container-uuid'].to_s if args['--with-container-uuid']
+        container_name = args['--with-container-name'].to_s if args['--with-container-name']
+        namespace      = args['--with-namespace'].to_s      if args['--with-namespace']
 
         with_frontend_rescue_pattern do |o|
           frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
@@ -881,7 +877,7 @@ module MCollective
       def set_district_action
         Log.instance.info("set_district call / action: #{request.action}, agent=#{request.agent}, data=#{request.data.pretty_inspect}")
         validate :uuid, /^[a-zA-Z0-9]+$/
-        uuid = request[:uuid]
+        uuid   = request[:uuid].to_s if request[:uuid]
         active = request[:active]
 
         begin
@@ -916,7 +912,7 @@ module MCollective
       def has_app_action
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :application, /^[a-zA-Z0-9]+$/
-        uuid = request[:uuid]
+        uuid     = request[:uuid].to_s if request[:uuid]
         app_name = request[:application]
         if File.exist?("/var/lib/openshift/#{uuid}/#{app_name}")
           reply[:output] = true
@@ -932,7 +928,7 @@ module MCollective
       def has_embedded_app_action
         validate :uuid, /^[a-zA-Z0-9]+$/
         validate :embedded_type, /^.+$/
-        uuid = request[:uuid]
+        uuid          = request[:uuid].to_s if request[:uuid]
         embedded_type = request[:embedded_type]
         if File.exist?("/var/lib/openshift/#{uuid}/#{embedded_type}")
           reply[:output] = true
@@ -949,6 +945,7 @@ module MCollective
         validate :uid, /^[0-9]+$/
         uid = request[:uid].to_i
 
+        # FIXME: Etc.getpwuid() and Etc.getgrgid() would be much faster
         uids = IO.readlines("/etc/passwd").map{ |line| line.split(":")[2].to_i }
         gids = IO.readlines("/etc/group").map{ |line| line.split(":")[2].to_i }
 
