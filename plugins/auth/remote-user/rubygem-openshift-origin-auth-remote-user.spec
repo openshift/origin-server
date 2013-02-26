@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,9 @@ then
 fi
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Implement authorization support in the broker (ccoleman@redhat.com)
+
 * Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - fix rubygem sources (tdawson@redhat.com)
 
