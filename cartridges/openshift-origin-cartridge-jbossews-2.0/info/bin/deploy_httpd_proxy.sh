@@ -18,9 +18,11 @@ namespace=`basename $2`
 uuid=$3
 IP=$4
 
+source "/etc/openshift/node.conf"
+
 oo-frontend-connect \
     --with-container-uuid "$uuid" \
     --with-container-name "$application" \
     --with-namespace "$namespace" \
     --path "" --target "$IP:8080" --websocket \
-    --path "/swydws" --target "$IP:18001/swydws"
+    --path "/health" --target "${CARTRIDGE_BASE_PATH}/jbossews-2.0/info/configuration/health.html" --file
