@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.6
+Version:       1.5.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
+- Merge pull request #1447 from smarterclayton/community_url_not_available
+  (dmcphers+openshiftbot@redhat.com)
+- Implement authorization support in the broker (ccoleman@redhat.com)
+- The community URL is not available for some operations - use the default
+  config if that is true (ccoleman@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - Merge pull request #1443 from
   smarterclayton/bug_913816_work_around_bad_logtailer
