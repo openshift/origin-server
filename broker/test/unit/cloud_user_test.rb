@@ -116,9 +116,39 @@ class CloudUserTest < ActiveSupport::TestCase
       end
     end
     
+    assert !found_key
+    
     user = CloudUser.find_by(login: @login)
     
+    # Make sure everything works with a domain
+    domain = Domain.new(namespace: user._id.to_s[0..15], owner: user)
+    domain.save!
+    
+    user.add_ssh_key(UserSshKey.new(name: 'keyname', content: 'key'))
+    user = CloudUser.find_by(login: @login)
+    found_key = false
+    user.ssh_keys.each do |key|
+      if key.name == 'keyname' && key.content == 'key'
+        found_key = true
+        break
+      end
+    end
+    assert found_key
+
+    user.remove_ssh_key('keyname')
+    
+    found_key = false
+    user.ssh_keys.each do |key|
+      if key.name == 'keyname' && key.content == 'key'
+        found_key = true
+        break
+      end
+    end
+    
     assert !found_key
+    
+    # Make sure the user is still there
+    CloudUser.find_by(login: @login)
   end
   
   def teardown

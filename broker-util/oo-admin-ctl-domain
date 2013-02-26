@@ -147,7 +147,18 @@ when "update"
   end
   
   unless ssh_key.nil?
-    user.update_ssh_key(ssh_key, ssh_type, ssh_name)
+    has_key = false
+    user.ssh_keys.each do |key|
+      if key.name == ssh_name
+        has_key = true
+        break
+      end
+    end
+    if has_key 
+      user.update_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
+    else
+      user.add_ssh_key(UserSshKey.new(name: ssh_name, content: ssh_key, type: ssh_type))
+    end
     user.save!
     reply.resultIO << "Successfully updated user.\n"
   end
@@ -202,8 +213,8 @@ else
     reply.resultIO << "Namespace: #{user.domains.first.namespace}\n"
   end
   reply.resultIO << "SSH keys:\n"
-  user.ssh_keys.each do |name,key|
-    reply.resultIO << "\t#{name}:\n#{key}\n\n"
+  user.ssh_keys.each do |key|
+    reply.resultIO << "\t#{key.name}:\n#{key.content}\n\n"
   end unless user.ssh_keys.nil?
   reply.resultIO << "Applications:\n"
   user.domains.each do |dom|
