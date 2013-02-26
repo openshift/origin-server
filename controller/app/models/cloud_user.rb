@@ -2,9 +2,9 @@
 # @!attribute [r] login
 #   @return [String] Login name for the user.
 # @!attribute [r] capabilities
-#   @return [Hash] Hash representing the capabilities of the user. It is updated using the ss-admin-user-ctl scripts or when a plan changes.
+#   @return [Hash] Hash representing the capabilities of the user. It is updated using the oo-admin-user-ctl scripts or when a plan changes.
 # @!attribute [r] parent_user_id
-#   @return [Moped::BSON::ObjectId] ID of the parent user object if this object prepresents a sub-account.
+#   @return [Moped::BSON::ObjectId] ID of the parent user object if this object rrepresents a sub-account.
 # @!attribute [rw] plan_id
 # @!attribute [rw] pending_plan_id
 # @!attribute [rw] pending_plan_uptime
