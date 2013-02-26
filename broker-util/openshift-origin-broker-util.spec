@@ -6,8 +6,8 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.4
-Release:       2%{?dist}
+Version:       1.5.5
+Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -79,6 +79,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Implement authorization support in the broker (ccoleman@redhat.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
 - bump Release for fixed build target rebuild (admiller@redhat.com)
 
