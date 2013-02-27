@@ -84,6 +84,13 @@ class RestApiAuthorizationTest < ActiveSupport::TestCase
     assert auth.token.present?
   end
 
+  test 'authorizations list does not show expired tokens' do
+    auth = Authorization.create :expires_in => 1, :as => @user
+    sleep(2)
+    auths = Authorization.all(:as => @user)
+    assert !auths.find{ |a| a.id == auth.id }, auths.inspect
+  end
+
   test 'read scope rejects modifications and access to auth list' do
     assert auth = Authorization.create(:scopes => 'read', :as => @user)
     assert_equal ['read'], auth.scopes

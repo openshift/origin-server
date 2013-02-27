@@ -41,6 +41,7 @@ class Authorization
     q
   }
   scope :expired, lambda{ where(:expires_at.lt => DateTime.now) }
+  scope :not_expired, lambda{ where(:expires_at.gt => DateTime.now, :revoked_at => nil) }
 
   def self.authenticate(token)
     where(token: token).first
@@ -82,7 +83,7 @@ class Authorization
 
   # Maps to Doorkeeper::Models::Expirable
   def expired?
-    expires_in && Time.now > expired_time
+    expires_in && (expires_in < 1 || Time.now > expired_time)
   end
 
   def expired_time
