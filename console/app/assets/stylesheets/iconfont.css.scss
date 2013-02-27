@@ -1,0 +1,40 @@
+.font-icon {
+  display: inline-block;
+  position: absolute;
+}
+.font-icon-link {
+  color: inherit !important;
+}
+.gear-number { 
+  color: white;
+  position: absolute;
+}
+.gear-number.gear-lg {
+  left: 47%;
+  top: 51%;
+  font-size: 0.36em;
+  line-height: 1.35em;
+}
+
+.gear-number.gear-sm {
+  left: 46%;
+  top: 50%;
+  font-size: 0.36em;
+  line-height: 1.45em;
+}
+
+.font-icon-red          {color: #ea0011;}
+.font-icon-green        {color: #73D216;}
+.font-icon-orange       {color:#ffc10a;}
+.font-icon-blue         {color:#6DB3C7;}
+.font-icon-grey         {color:#8a8b8c;}
+.font-icon-white        {color:#fefefe;}
+
+.font-icon-size-10      {font-size: 10px;}
+.font-icon-size-12      {font-size: 12px;}
+.font-icon-size-16      {font-size: 16px;}
+.font-icon-size-18      {font-size: 18px;}
+.font-icon-size-24      {font-size: 24px;}
+.font-icon-size-34      {font-size: 34px;}
+
+ 
