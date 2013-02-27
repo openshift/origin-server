@@ -1075,7 +1075,9 @@ class Application
     connections, new_group_instances, cleaned_group_overrides = elaborate(features, group_overrides)
     current_group_instance = self.group_instances.map { |gi| gi.to_hash }
     changes, moves = compute_diffs(current_group_instance, new_group_instances)
-    
+    if moves.size > 0
+      raise OpenShift::UserException.new("Requested operation is not supported")
+    end
     calculate_ops(changes, moves, connections, cleaned_group_overrides,init_git_url)
   end
 
@@ -1692,6 +1694,7 @@ class Application
       
       cleaned_override["min_gears"] = group_override["min_gears"] if group_override.has_key?("min_gears")
       cleaned_override["max_gears"] = group_override["max_gears"] if group_override.has_key?("max_gears")
+      cleaned_override["gear_size"] = group_override["gear_size"] if group_override.has_key?("gear_size")      
       cleaned_override["additional_filesystem_gb"] = group_override["additional_filesystem_gb"] if group_override.has_key?("additional_filesystem_gb")
       cleaned_overrides << cleaned_override if group_override["components"] and group_override["components"].count > 0
     end
