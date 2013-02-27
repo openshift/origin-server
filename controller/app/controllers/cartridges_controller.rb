@@ -1,13 +1,31 @@
+##
+# Cartridge list API
+# @api REST
 class CartridgesController < BaseController
-
   skip_before_filter :authenticate_user!
 
-  # FIXME: Should not do this
+  ##
+  # Retrieve details for specific cartridge
+  # 
+  # URL: /cartridges/:id
+  #
+  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.  
+  #
+  # Action: GET
+  # @return [RestReply<RestCartridge>] Cartridge Object
   def show
     index
   end
 
-  # GET /cartridges
+  ##
+  # Retrieve details for all available cartridge
+  # 
+  # URL: /cartridges
+  #
+  # @note This method may or may not require authenticated access depending on the authentication plugin that is configured.  
+  #
+  # Action: GET
+  # @return [RestReply<Array<RestCartridge>>] Array of cartridge objects
   def index
     type = params[:id]
     if type.nil?

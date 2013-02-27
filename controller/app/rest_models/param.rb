@@ -1,3 +1,27 @@
+##
+# @api REST
+# Describes an required parameter for a REST API endpoint
+# @see Link
+#
+# Example:
+#   ```
+#   <link>
+#     <rel>Update domain</rel>
+#     <method>PUT</method>
+#     <href>https://broker.example.com/broker/rest/domains/localns</href>
+#     <required-params>
+#       <param>
+#         <name>id</name>
+#         <type>string</type>
+#         <description>Name of the domain</description>
+#         <valid-options/>
+#         <invalid-options/>
+#       </param>
+#     </required-params>
+#     <optional-params/>
+#   </link>
+#   ```
+#
 # @!attribute [r] name
 #   @return [String] Parameter name
 # @!attribute [r] type
@@ -5,9 +29,9 @@
 # @!attribute [r] description
 #   @return [String] Parameter desctiption
 # @!attribute [r] valid_options
-#   @return [Array[String]] List of valid options
+#   @return [Array<String>] List of valid options
 # @!attribute [r] invalid_options
-#   @return [Array[String]] List of options that are not valid
+#   @return [Array<String>] List of options that are not valid
 class Param < OpenShift::Model
   attr_accessor :name, :type, :description, :valid_options, :invalid_options
 

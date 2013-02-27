@@ -1,3 +1,39 @@
+##
+# @api REST
+# Describes a User
+#
+# Example:
+#   ```
+#   <user>
+#     <login>admin</login>
+#     <consumed-gears>4</consumed-gears>
+#     <max-gears>100</max-gears>
+#     <capabilities>
+#       <subaccounts>false</subaccounts>
+#       <gear-sizes>
+#         <gear-size>small</gear-size>
+#       </gear-sizes>
+#     </capabilities>
+#     <plan-id nil="true"/>
+#     <usage-account-id nil="true"/>
+#     <links>
+#     ...
+#     </links>
+#   </user>
+#   ```
+#
+# @!attribute [r] login
+#   @return [String] The login name of the user
+# @!attribute [r] consumed_gears
+#   @return [Integer] Number of gears currently being used in applications
+# @!attribute [r] max_gears
+#   @return [Integer] Maximum number of gears avaiable to the user
+# @!attribute [r] capabilities
+#   @return [Hash] Map of user capabilities
+# @!attribute [r] plan_id
+#   @return [String] Plan ID
+# @!attribute [r] usage_account_id
+#   @return [String] Account ID
 class RestUser < OpenShift::Model
   attr_accessor :id, :login, :consumed_gears, :capabilities, :plan_id, :usage_account_id, :links, :max_gears, :created_at
 
