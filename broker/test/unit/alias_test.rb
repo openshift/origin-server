@@ -33,6 +33,9 @@ class AliasTest < ActiveSupport::TestCase
     as = @app.aliases.find_by(fqdn: server_alias)
     assert_equal(server_alias, as.fqdn)
     assert_equal(false, as.has_private_certificate)
+    h = as.to_hash
+    assert_equal(server_alias, h["fqdn"])
+    assert_equal(false, h["has_private_certificate"])
   
     @app.update_alias(server_alias, @ssl_certificate, @private_key, @pass_phrase)
     as = @app.aliases.find_by(fqdn: server_alias)
