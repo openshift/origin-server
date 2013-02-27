@@ -149,10 +149,15 @@ class DomainsController < BaseController
     end
 
     if force
-      domain.applications.each do |app|
-        app.destroy_app
+      apps = domain.with(consistency: :strong).applications
+      while apps.count > 0
+        apps.each do |app|
+          app.destroy_app
+        end
+        domain.with(consistency: :strong).reload
+        apps = domain.with(consistency: :strong).applications
       end
-    elsif not domain.applications.empty?
+    elsif not domain.with(consistency: :strong).applications.empty?
       return render_error(:bad_request, "Domain contains applications. Delete applications first or set force to true.", 128, "DELETE_DOMAIN")
     end
 
