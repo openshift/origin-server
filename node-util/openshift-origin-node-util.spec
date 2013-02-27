@@ -1,6 +1,6 @@
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-node-util
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -109,6 +109,11 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 /sbin/restorecon /usr/sbin/oo-restorer* || :
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Merge pull request #1477 from ironcladlou/dev/cartridge_refactor
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor (pmorie@gmail.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Use an openshift specific log for last_access. (rmillner@redhat.com)
 
