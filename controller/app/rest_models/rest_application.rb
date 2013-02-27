@@ -69,7 +69,7 @@
 # @!attribute [r] initial_git_url
 #   @return [String] URI which was used to initialize the GIT repository for this application
 # @!attribute [r] cartridges
-#   @return [Array<RestCartridge>] List of cartridges in applicaiton. Used only when requesting application and included cartridges.
+#   @return [Array<RestCartridge>] List of cartridges in application. Used only when requesting application and included cartridges.
 #   @see [ApplicationsController#index]
 class RestApplication < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,

@@ -121,7 +121,7 @@ class District
   end
   
   def reserve_given_uid(uid)
-    District.where(:uuid => self.uuid, :available_uids => uid).find_and_modify( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
+    District.where(:uuid => self.uuid, :available_uids => uid).update( {"$pull" => { "available_uids" => uid }, "$inc" => { "available_capacity" => -1 }})
     self.with(consistency: :strong).reload
     self.available_uids.include? uid
   end
@@ -130,7 +130,7 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       if server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } }, new: true)
+        District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => false }, "$inc" => { "active_server_identities_size" => -1 } })
         self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{uuid}", false)
@@ -146,7 +146,7 @@ class District
     server_map = server_identities_hash
     if server_map.has_key?(server_identity)
       unless server_map[server_identity]["active"]
-        District.where("_id" => self._id, "server_identities.name" => server_identity ).find_and_modify({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } }, new: true)
+        District.where("_id" => self._id, "server_identities.name" => server_identity ).update({ "$set" => { "server_identities.$.active" => true}, "$inc" => { "active_server_identities_size" => 1 } })
         self.with(consistency: :strong).reload
         container = OpenShift::ApplicationContainerProxy.instance(server_identity)
         container.set_district("#{uuid}", true)
@@ -165,7 +165,7 @@ class District
   end
 
   def self.unreserve_uid(uuid, uid)
-    District.where(:uuid => uuid, :available_uids.nin => [uid]).find_and_modify({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
+    District.where(:uuid => uuid, :available_uids.nin => [uid]).update({"$push" => { "available_uids" => uid}, "$inc" => { "available_capacity" => 1 }})
   end
   
   def add_capacity(num_uids)
@@ -213,7 +213,7 @@ class District
   end
 
   def self.inc_externally_reserved_uids_size(uuid)
-    District.where("uuid" => uuid).find_and_modify({ "$inc" => { "externally_reserved_uids_size" => 1} })
+    District.where("uuid" => uuid).update({ "$inc" => { "externally_reserved_uids_size" => 1} })
   end
   
 end

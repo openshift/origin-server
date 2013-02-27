@@ -45,7 +45,9 @@ then
       job=$(basename $job_path)
       config_url="http://$OPENSHIFT_JENKINS_IP:$OPENSHIFT_JENKINS_PORT/job/$job/config.xml"
       config_file=$jobs_path/$job/config.xml
-      curl -X POST --user $JENKINS_USERNAME:$JENKINS_PASSWORD --data-binary @${config_file} $config_url > /dev/null 2>&1
+      set +e
+      curl -X POST --connect-timeout 2 --max-time 2 --user $JENKINS_USERNAME:$JENKINS_PASSWORD --data-binary @${config_file} $config_url > /dev/null 2>&1
+      set -e
     done
 fi
 
