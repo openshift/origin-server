@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #++
+
+require_relative '../../misc/bin/oo-trap-user'
+
 require 'test_helper'
 require "test/unit"
 require "mocha"
 require "base64"
-require File.expand_path("../node/misc/bin/oo-trap-user.rb")
 
 module OpenShift
   class TrapUserFunctionalTest < Test::Unit::TestCase

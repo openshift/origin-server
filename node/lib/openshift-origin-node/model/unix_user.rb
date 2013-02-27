@@ -18,8 +18,8 @@ require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/path_utils'
 require 'openshift-origin-node/model/frontend_httpd.rb'
+require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'
-require 'syslog'
 require 'fcntl'
 require 'active_model'
 
@@ -36,6 +36,7 @@ module OpenShift
   class UnixUser
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
+    include NodeLogger
 
     attr_reader :uuid, :uid, :gid, :gecos, :homedir, :application_uuid,
         :container_uuid, :app_name, :namespace, :quota_blocks, :quota_files,
@@ -46,8 +47,6 @@ module OpenShift
 
     def initialize(application_uuid, container_uuid, user_uid=nil,
         app_name=nil, container_name=nil, namespace=nil, quota_blocks=nil, quota_files=nil, debug=false)
-      Syslog.open('openshift-origin-node', Syslog::LOG_PID, Syslog::LOG_LOCAL0) unless Syslog.opened?
-
       @config = OpenShift::Config.new
 
       @container_uuid = container_uuid
@@ -215,7 +214,7 @@ module OpenShift
         FileUtils.rm_rf(@homedir)
         if File.exists?(@homedir)
           # Ops likes the verbose verbage
-          Syslog.alert %Q{
+          logger.warn %Q{
 1st attempt to remove \'#{@homedir}\' from filesystem failed.
 Dir(before)   #{@uuid}/#{@uid} => #{dirs}
 Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
@@ -229,7 +228,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         if File.exists?(@homedir)
           sleep(5)                    # don't fear the reaper
           FileUtils.rm_rf(@homedir)   # This is our last chance to nuke the polyinstantiated directories
-          Syslog.alert "2nd attempt to remove \'#{@homedir}\' from filesystem failed." if File.exists?(@homedir)
+          logger.warn("2nd attempt to remove \'#{@homedir}\' from filesystem failed.") if File.exists?(@homedir)
         end
 
         lock.flock(File::LOCK_UN)
@@ -490,7 +489,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       add_env_var("HOMEDIR", homedir, true)
 
       add_env_var("PATH",
-                  "#{cart_basedir}abstract-httpd/info/bin/:#{cart_basedir}abstract/info/bin/:$PATH",
+                  "#{cart_basedir}/abstract-httpd/info/bin/:#{cart_basedir}/abstract/info/bin/:/bin:/sbin:/usr/bin:/usr/sbin:/$PATH",
                   false)
 
       add_env_var("REPO_DIR", File.join(gearappdir, "runtime", "repo", "/"), true) {|v|
@@ -522,7 +521,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
       # Fix SELinux context
-      set_selinux_homedir_context(homedir)
+      set_selinux_context(homedir)
 
       notify_observers(:after_initialize_homedir)
     end
@@ -600,14 +599,14 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd(%{/usr/bin/pgrep -u #{id}})
         break unless 0 == rc
 
-        Syslog.alert "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
+        NodeLogger.logger.error "ERROR: attempt #{i}/10 there are running \"killed\" processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
         sleep 0.5
       end
 
       # looks backwards but 0 implies processes still existed
       if 0 == rc
         out,err,rc = OpenShift::Utils::ShellExec.shellCmd("ps -u #{@uid} -o state,pid,ppid,cmd")
-        Syslog.alert "ERROR: failed to kill all processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
+        NodeLogger.logger.error "ERROR: failed to kill all processes for #{id}(#{rc}): stdout: #{out} stderr: #{err}"
       end
     end
 
@@ -677,12 +676,25 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       keys
     end
 
-    # private: Determine the MCS label for a given uid
+    # Set ownership and selinux context for file or tree of files
+    def self.match_ownership(source, target)
+      recurse = '-R' if File.directory? target
+
+      # FIXME: review restorecon with rmillner, see set_selinux_context below
+      Utils.oo_spawn(%Q{chown #{recurse} --reference=#{source} #{target}; \
+                        chcon #{recurse} --reference=#{source} #{target}},
+                     expected_exitstatus: 0)
+    end
+    # Determine the MCS label for a given uid
     #
     # @param [Integer] The user ID
     # @return [String] The SELinux MCS label
     def get_mcs_label(uid)
-      if ((uid.to_i < 0) || (uid.to_i>523776))
+      UnixUser.get_mcs_label(uid)
+    end
+
+    def self.get_mcs_label(uid)
+      if (uid.to_i < 0) || (uid.to_i>523776)
         raise ArgumentError, "Supplied UID must be between 0 and 523776."
       end
 
@@ -700,20 +712,27 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
     # private: Set the SELinux context the gear home directory.
     #    Note: This is specific to the home dir structure.
     #
+    # If target is a directory, operation will be recursive.
+    #
     # @param [Integer] The user ID
-    def set_selinux_homedir_context(path)
+    def set_selinux_context(target)
       mcs_label=get_mcs_label(@uid)
 
-      cmd = "restorecon -R #{path}"
+      recurse = '-R' if File.directory?(target)
+
+      cmd = "restorecon #{recurse} #{target}"
       out, err, rc = shellCmd(cmd)
-      Syslog.err(
-                "ERROR: unable to restorecon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+      logger.error(
+                "ERROR: unable to restorecon #{target} (#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                 ) unless 0 == rc
-      cmd = "chcon -R -l #{mcs_label} #{path}/*"
+
+      chcon_target = File.directory?(target) ? File.join(target, "*") : target
+
+      cmd = "chcon #{recurse} -l #{mcs_label} #{chcon_target}"
 
       out, err, rc = shellCmd(cmd)
-      Syslog.err(
-                "ERROR: unable to chcon user homedir(#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
+      logger.error(
+                "ERROR: unable to chcon #{chcon_target} (#{rc}): #{cmd} stdout: #{out} stderr: #{err}"
                 ) unless 0 == rc
     end
 

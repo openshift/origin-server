@@ -74,13 +74,11 @@ module OpenShift
       #
       # @return [String] application state or State::UNKNOWN on failure
       def value
-        if File.exists?(@state_file)
-          app_state = nil
-          File.open(@state_file) { |input| app_state = input.read.chomp }
-        else
-          app_state = State::UNKNOWN
+        begin
+          File.open(@state_file) { |input| input.read.chomp }
+        rescue
+          State::UNKNOWN
         end
-        app_state
       end
     end
   end

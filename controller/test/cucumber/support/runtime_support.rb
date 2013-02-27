@@ -251,8 +251,12 @@ module OpenShift
                    ]
     end
 
-    def configure()
-      output = @gear.container.configure(@name)
+    def configure
+      output = ""
+
+      with_ex_handling do
+        output = @gear.container.configure(@name)
+      end
 
       # Sanitize the command output. For now, the only major problem we're aware
       # of is colorized output containing escape characters. The sanitization should
@@ -263,24 +267,45 @@ module OpenShift
       notify_listeners "configure_hook_completed", { :cart => self, :output => output}
     end
 
-    def deconfigure()
-      @gear.container.deconfigure(@name)
+    def deconfigure
+      with_ex_handling do
+        @gear.container.deconfigure(@name)
+      end
     end
 
-    def start()
-      @gear.container.start(@name)
+    def start
+      with_ex_handling do
+        @gear.container.start(@name)
+      end
     end
 
-    def stop()
-      @gear.container.stop(@name)
+    def stop
+      with_ex_handling do
+        @gear.container.stop(@name)
+      end
     end
 
     def status()
-      @gear.container.status(@name)
+      with_ex_handling do
+        @gear.container.status(@name)
+      end
     end
 
     def restart()
-      @gear.container.restart(@name)
+      with_ex_handling do
+        @gear.container.restart(@name)
+      end
+    end
+
+    def with_ex_handling
+      begin
+        yield
+      rescue Utils::ShellExecutionException => e
+        $logger.error("Caught ShellExecutionException (#{e.rc}): #{e.message}; output: #{e.stdout} #{e.stderr}")
+        raise
+      rescue Exception => e
+        raise
+      end
     end
 
     # Notify cart listeners of an event
