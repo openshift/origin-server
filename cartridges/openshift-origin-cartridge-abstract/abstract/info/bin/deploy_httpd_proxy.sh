@@ -18,8 +18,14 @@ namespace=`basename $2`
 uuid=$3
 IP=$4
 
+source "/etc/openshift/node.conf"
+source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+
+cartridge_type=$(get_cartridge_name_from_path)
+
 oo-frontend-connect \
     --with-container-uuid "$uuid" \
     --with-container-name "$application" \
     --with-namespace "$namespace" \
-    --path "" --target "$IP:8080" --websocket
+    --path "" --target "$IP:8080" --websocket \
+    --path "/health" --target "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/health.html" --file
