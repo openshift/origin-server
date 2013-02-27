@@ -18,11 +18,14 @@ class AliasTest < ActiveSupport::TestCase
   end
   
   def teardown
-    @domain.applications.each do |app|
-      app.delete
+    begin
+      @domain.applications.each do |app|
+        app.delete
+      end
+      @domain.delete
+      @user.delete
+    rescue
     end
-    @domain.delete
-    @user.delete
   end
   
   test "create and find and and update and delete alias" do

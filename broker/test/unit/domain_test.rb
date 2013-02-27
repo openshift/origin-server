@@ -11,12 +11,13 @@ class DomainTest < ActiveSupport::TestCase
   end
   
   def teardown
-    if @domain 
+    begin
       @domain.applications.each do |app|
         app.delete
-      end if @domain.applications
+      end
       @domain.delete
       @user.delete
+    rescue
     end
   end
   
