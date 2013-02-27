@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews-2.0
-Version:       1.2.3
+Version:       1.2.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -121,6 +121,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.2.4-1
+- Bug 895507 (bdecoste@gmail.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.2.3-1
 - Switch from VirtualHosts to mod_rewrite based routing to support high
   density. (rmillner@redhat.com)
