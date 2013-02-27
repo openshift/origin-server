@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version:       1.5.5
+Version:       1.5.6
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
+- US2448 (lnader@redhat.com)
+- Add debug timings for external operations (dmcphers@redhat.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - fix typo (dmcphers@redhat.com)
 - Bug 915478 (dmcphers@redhat.com)
