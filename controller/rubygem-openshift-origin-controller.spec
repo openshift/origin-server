@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.7
+Version:       1.5.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,31 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
+- Merge pull request #1475 from abhgupta/abhgupta-ssh-keys
+  (dmcphers+openshiftbot@redhat.com)
+- Added certificate_added_at to alias (lnader@redhat.com)
+- Added validation for SSL certificate and private key (lnader@redhat.com)
+- Added unit tests for alias and domain (lnader@redhat.com)
+- US2448 (lnader@redhat.com)
+- fix comment (dmcphers@redhat.com)
+- send domain creates and updates to nuture (dmcphers@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- Should be using uuid for gear name (dmcphers@redhat.com)
+- Merge pull request #1453 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- fix for bug 915571 - blocking haproxy from being added to app
+  (abhgupta@redhat.com)
+- Merge pull request #1445 from kraman/gen_docs
+  (dmcphers+openshiftbot@redhat.com)
+- avoiding unnecessary mongo queries and fixing routes constraints
+  (abhgupta@redhat.com)
+- Documentation (kraman@gmail.com)
+- Bug 914639 (dmcphers@redhat.com)
+- Merge pull request #1451 from pmorie/bugs/915502
+  (dmcphers+openshiftbot@redhat.com)
+- Fix bug 915502 (pmorie@gmail.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
 - Implement authorization support in the broker (ccoleman@redhat.com)
 
