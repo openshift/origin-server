@@ -14,7 +14,7 @@ OpenShift node platforms provide the interface for the broker to command a gear 
 This is the structure to which gears are expected to conform when written
 to disk. 
 
-    .../`uuid`
+    .../`uuid`/cartridges/
     +- `cartridge name`-`cartridge version`
     |   +-... (See README.writing_cartridges.md for cartridge details.)
     +- `cartridge name`-`cartridge version`
@@ -34,7 +34,7 @@ to disk.
 ## Cartridge Locking
 
 Cartridge instances within a gear will be either `locked` or `unlocked`
-at any given time.  Unlocking a cartridge allows the cartridge scripts
+at any given time.  Locking a cartridge allows the cartridge author scripts
 to have additional access to the gear's files and directories. Other
 scripts and hooks written by the application developer will not be able
 to override decisions made by the cartridge author.
@@ -80,18 +80,18 @@ bits correctly.
 
 To install any php cartridge:
 
-     # cp -ad ./php-5.3 ~UUID/                 - Run as root
-     # (setup ~UUID/git repository)            - Run as root
-     # stickshift/unlock.rb UUID php-5.3       - Run as root
-     $ ~/php-5.3/setup --version php-5.3       - Bulk of work, run as user, from ~UUID
-     # stickshift/lock.rb UUID php-5.3         - Run as root
-     $ ~/php-5.3/control start                 - Run as user
+     # cp -ad ./php-5.3 ~UUID/cartridges/php-5.3 - Run as root
+     # (setup ~UUID/git repository)              - Run as root
+     # stickshift/unlock.rb UUID php-5.3         - Run as root
+     $ ~/cartridges/php-5.3/setup --version 5.3  - Bulk of work, run as user, from ~UUID
+     # stickshift/lock.rb UUID php-5.3           - Run as root
+     $ ~/php-5.3/control start                   - Run as user
 
 To remove a php cartridge:
 
-     $ ~/php-5.3/control stop                  - Run as user
+     $ ~cartridges/php-5.3/control stop        - Run as user
      # stickshift/unlock.rb UUID php-5.3       - Run as root
-     $ ~/php-5.3/teardown                      - run as user, from ~UUID
+     $ ~/cartridge/php-5.3/teardown            - Run as user, from ~UUID
      # stickshift/lock.rb UUID php-5.3         - Run as root
 
 
@@ -156,6 +156,7 @@ about how lower-level operations are orchestrated / invoked.
  * `OPENSHIFT_REPO_DIR`       the directory where the developer's application is archived to, and run from
  * `OPENSHIFT_TMP_DIR`        the directory where a cartridge may store temporary data
   * Default: /tmp
+ * `OPENSHIFT_{CartridgeShortName}_DIR`  `CartridgeShortName` from manifest points to cartridge root directory
 * Install default gear httpd conf
 * Bounce node httpd
 
