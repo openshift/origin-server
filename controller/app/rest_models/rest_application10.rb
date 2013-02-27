@@ -9,7 +9,7 @@ class RestApplication10 < OpenShift::Model
       if cart.categories.include? "web_framework"
         self.framework = cart.name
       else
-        self.embedded[cart.name] = {info: {}}
+        self.embedded[cart.name] = {info: ""}
       end
     end
 
@@ -40,10 +40,23 @@ class RestApplication10 < OpenShift::Model
 
     app.component_instances.each do |component_instance|
       cart = CartridgeCache::find_cartridge(component_instance.cartridge_name)
+      # add the builder properties if this is a builder component
       if cart.categories.include?("ci_builder")
         self.building_with = cart.name
         self.build_job_url = component_instance.component_properties["job_url"]
-        break
+
+        # adding the job_url and "info" property for backward compatibility
+        self.embedded[cart.name] = component_instance.component_properties
+        self.embedded[cart.name]["info"] = "Job URL: #{component_instance.component_properties['job_url']}"
+      else
+        unless cart.categories.include? "web_framework"
+          self.embedded[cart.name] = component_instance.component_properties
+          
+          # if the component has a connection_url property, add it as "info" for backward compatibility
+          if component_instance.component_properties.has_key?("connection_url")
+            self.embedded[cart.name]["info"] = "Connection URL: #{component_instance.component_properties['connection_url']}"
+          end
+        end
       end
     end
 
