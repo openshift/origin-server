@@ -88,11 +88,10 @@ unless container_uuid
   usage
 end
 
+isidle = false
 begin
   frontend = OpenShift::FrontendHttpServer.new(container_uuid, container_name, namespace)
-  if frontend.idle?
-    exit 0 # App is idle
-  end
+  isidle = frontend.idle?
 rescue OpenShift::FrontendHttpServerExecException => e
   $stderr.puts(e.message + e.stdout + e.stderr)
   exit e.rc
@@ -103,4 +102,10 @@ rescue Exception => e
   $stderr.puts(e.message)
   exit -1
 end
-exit 1 # App is not idle
+
+if isidle
+  exit 0
+else
+  exit 1
+end
+
