@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.6
+Version:       1.5.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -225,6 +225,21 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
+- US2448 (lnader@redhat.com)
+- Merge pull request #1465 from rmillner/BZ912238
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1462 from rmillner/BZ915471
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1459 from rmillner/US3143
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 912238 - The last rescue was catching exit. (rmillner@redhat.com)
+- Bug 915471 - The set_selinux_context function was being used in the wrong
+  place. (rmillner@redhat.com)
+- WIP Cartridge Refactor - Update cartridge author's guide (jhonce@redhat.com)
+- Use an openshift specific log for last_access. (rmillner@redhat.com)
+- Fix X-Client-IP. (rmillner@redhat.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - Turn route logging off. (rmillner@redhat.com)
 - Fetch returns KeyError. (rmillner@redhat.com)
