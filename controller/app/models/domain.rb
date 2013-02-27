@@ -23,6 +23,7 @@ class Domain
   
   include Mongoid::Document
   include Mongoid::Timestamps
+  alias_method :mongoid_save, :save
 
   field :namespace, type: String
   field :canonical_namespace, type: String
@@ -50,6 +51,13 @@ class Domain
   def initialize(attrs = nil, options = nil)
     super
     self.user_ids << owner._id if owner
+  end
+  
+  def save(options = {})
+    notify = !self.persisted?
+    res = mongoid_save(options)
+    notify_observers(:domain_create_success) if notify
+    res
   end
 
   # Setter for domain namespace - sets the namespace and the canonical_namespace
@@ -90,6 +98,7 @@ class Domain
     pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {"old_ns" => op.arguments["old_ns"], "new_ns" => op.arguments["new_ns"]}, parent_op: nil, on_apps: op.on_apps, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
+    notify_observers(:domain_update_success)
   end
   
   # Adds a user to the access list for this domain.
