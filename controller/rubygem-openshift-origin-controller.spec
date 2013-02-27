@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Merge pull request #1477 from ironcladlou/dev/cartridge_refactor
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor (pmorie@gmail.com)
+- WIP Cartridge Refactor (pmorie@gmail.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - Merge pull request #1475 from abhgupta/abhgupta-ssh-keys
   (dmcphers+openshiftbot@redhat.com)
