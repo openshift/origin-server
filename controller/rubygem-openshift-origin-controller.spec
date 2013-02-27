@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.18
+Version: 1.4.19
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,9 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Feb 27 2013 Dan McPherson <dmcphers@redhat.com> 1.4.19-1
+- Bug 916323 (dmcphers@redhat.com)
+
 * Wed Feb 27 2013 Dan McPherson <dmcphers@redhat.com> 1.4.18-1
 - send domain creates and updates to nuture (dmcphers@redhat.com)
 
