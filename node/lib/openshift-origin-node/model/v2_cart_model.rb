@@ -74,41 +74,8 @@ module OpenShift
     #
     # /usr/libexec/openshift/cartridges
     #
-    # Currently, the version information for a cart is parsed from the
-    # name sent by the broker, which is of the form:
-    #
-    # cart_name-version, viz: ruby-1.9
-    #
-    # In this WIP, we will parse the cartridge name from this format
-    # and use it to construct the path on disk.  For example:
-    #
-    # ruby-1.9 -> /usr/libexec/openshift/cartridges/v2/ruby
-    #
-    # In the future, it is expected that the version will be a notion which
-    # is more fundamental to the platform and will be reflected in the
-    # Cartridge class itself.
     def get_system_cartridge_path(cart_name)
-      index            = cart_name.rindex(/-[\d\.]+$/)
-      system_cart_name = cart_name
-
-      if index
-        system_cart_name = cart_name.slice(0...index)
-      end
-
-      File.join(@config.get('CARTRIDGE_BASE_PATH'), 'v2', system_cart_name)
-    end
-
-    # Get the argument to pass as the version to the setup script
-    # for the given cartridge name.  See the comment for get_system_cartridge_path
-    # for WIP version semantics.
-    def get_cartridge_version_argument(cartridge_name)
-      index = cartridge_name.rindex(/-[\d\.]+$/)
-
-      if index
-        cartridge_name.slice(index+1...cartridge_name.size)
-      else
-        nil
-      end
+      File.join(@config.get('CARTRIDGE_BASE_PATH'), 'v2', cart_name)
     end
 
     # destroy() -> nil
@@ -321,7 +288,7 @@ module OpenShift
       logger.info("Creating cartridge directory for #{cartridge_name}")
       # TODO: resolve correct location of v2 carts
       source = get_system_cartridge_path(cartridge_name)
-      raise "Cartridge #{cartridge_name} is not installed on system. #{source}" unless File.exist? source
+      raise "Cartridge #{cartridge_name} is not installed on system." unless File.exist? source
 
       entries = Dir.glob(source + '/*')
       entries.delete_if { |e| e.end_with?('/opt') }
@@ -378,7 +345,7 @@ module OpenShift
       render_erbs(env, File.join(@user.homedir, cartridge_name, '**'))
     end
 
-    #  cartridge_setup(cartridge_name, version=nil) -> buffer
+    #  cartridge_setup(cartridge_name) -> buffer
     #
     #  Returns the results from calling the cartridge's setup script.
     #  Includes <code>--version</code> if provided.
@@ -398,10 +365,7 @@ module OpenShift
       render_erbs(cartridge_env, cartridge_env_home)
       cartridge_env = gear_env.merge(Utils::Environ.load(cartridge_env_home))
 
-      version = get_cartridge_version_argument(cartridge_name)
-
       setup = File.join(cartridge_home, 'bin', 'setup')
-      setup << " --version #{version}" if version
 
       out, _, _ = Utils.oo_spawn(setup,
                                  env:                 cartridge_env,
