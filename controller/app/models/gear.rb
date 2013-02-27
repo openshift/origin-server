@@ -32,7 +32,7 @@ class Gear
     if app_dns
       self.name = group_instance.application.name
     else
-      self.name = self._id.to_s[0..9]
+      self.name = self.uuid.to_s[0..9]
     end
   end
 
