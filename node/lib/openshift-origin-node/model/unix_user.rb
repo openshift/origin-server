@@ -522,7 +522,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       OpenShift::FrontendHttpServer.new(@container_uuid,@container_name,@namespace).create
 
       # Fix SELinux context
-      set_selinux_context(homedir)
+      set_selinux_homedir_context(homedir)
 
       notify_observers(:after_initialize_homedir)
     end
@@ -656,7 +656,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         file.write("\n")
       end
       PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
-      set_selinux_context(authorized_keys_file)
+      OpenShift::Utils.oo_spawn("restorecon #{authorized_keys_file}")
 
       keys
     end
@@ -697,10 +697,11 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       "s0:c#{tier},c#{ord + tier}"
     end
 
-    # private: Set the SELinux context on a file or directory
+    # private: Set the SELinux context the gear home directory.
+    #    Note: This is specific to the home dir structure.
     #
     # @param [Integer] The user ID
-    def set_selinux_context(path)
+    def set_selinux_homedir_context(path)
       mcs_label=get_mcs_label(@uid)
 
       cmd = "restorecon -R #{path}"
