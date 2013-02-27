@@ -328,6 +328,11 @@ class Application
         raise OpenShift::UserException.new("#{feature_name} cannot be embedded in scalable app '#{name}'.", 108)  
       end
 
+      # prevent a proxy from being added to a non-scalable (single-gear) application
+      if cart.is_web_proxy? and !self.scalable
+        raise OpenShift::UserException.new("#{feature_name} cannot be added to existing applications. It is automatically added when you create a scaling application.", 137)
+      end
+      
       # Validate that this feature either does not have the domain_scope category
       # or if it does, then no other application within the domain has this feature already
       if cart.is_domain_scoped?
