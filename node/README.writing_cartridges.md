@@ -1,7 +1,6 @@
 TODO:
 
 - [ ] Gear log design. Read access.
-- [ ] Template git repo needs to be controlled by setup and then promoted by node platform
 
 # How To Write An OpenShift Origin Cartridge 2.0
 
@@ -14,24 +13,26 @@ current list of [Red Hat](https://openshift.redhat.com) and [OpenShift
 Community](https://openshift.redhat.com/community) provided cartridges.
 
 Cartridge configuration and setup is convention based, with an emphasis
-on minimizing external dependencies in the cartridge code.
+on minimizing external dependencies in your cartridge code.
 
 ## Cartridge Directory Structure
 
 This is an example structure to which your cartridge is expected to
 conform when written to disk. Failure to meet these expectations will
 cause your cartridge to not function when either installed or used on
-OpenShift. You may have additional directories or files.
+OpenShift. You may have additional directories or files as required to meet
+the needs of the software you are packaging and the application developers
+using your cartridge.
 
     `cartridge name`-`cartridge version`
      +- bin                        (required)
      |  +- setup                   (required)
      |  +- teardown                (optional)
      |  +- control                 (required)
-     |- hooks                      (required)
-     |  +- set-db-connection-info  (optional)
+     |- hooks                      (optional)
+     |  +- set-db-connection-info  (discretionary)
      +- versions                   (discretionary)
-     |  +- `cartridge name`-`software version`
+     |  +- `software version`
      |  |  +- bin
      |  |     +- ...
      |  |  +- data
@@ -50,18 +51,22 @@ OpenShift. You may have additional directories or files.
      +  +- ... (bare git repository)
      +- opt                        (optional)
      |  +- ...
-     +- metadata
-     |  +- manifest.yml
+     +- metadata                   (required)
+     |  +- manifest.yml            (required)
      |  +- locked_files.txt        (optional)
      |  +- snapshot_exclusions.txt (optional)
      |  +- snapshot_transforms.txt (optional)
-     +- httpd.d                    (discretionary)
-     |  +- `cartridge name`-`cartridge version`.conf.erb
-     |  +- ...
      +- conf.d                     (discretionary)
      |  +- openshift.conf.erb
      +- conf                       (discretionary)
      |  +- magic
+
+Items marked:
+  * `required` must exist for minimal OpenShift support of your cartridge
+  * `optional` exist to support additional functionality
+  * `discretionary` should be considered best practices for your cartridge and work. E.g.,
+    `conf.d` is the usual name for where a web framework would install it's `httpd` configuration.
+
 
 To support multiple software versions within one cartridge,
 you may create symlinks between the bin/control and the setup
@@ -73,7 +78,7 @@ When creating an instance of your cartridge for use by a gear, OpenShift
 will copy the files, links and directories from the cartridge library
 with the exclusion of the opt directory. The opt directory will be
 sym-linked into the gear's cartridge instance. This allows for sharing
-of libraries and other data across cartridge instances.
+of libraries and other data across all cartridge instances.
 
 Later (see Cartridge Locking) we'll describe how, as the cartridge author,
 you can customize a cartridge instance.
@@ -88,36 +93,35 @@ user about your cartridge.
 An example `manifest.yml` file:
 
 ```yaml
-Name: diy-0.1
-Namespace: DIY
-Display-Name: diy v1.0.0 (noarch)
-Namespace: DIY
-Description: "Experimental cartridge providing a way to try unsupported languages, frameworks, and middleware on OpenShift"
-Version: 1.0.0
-License: "ASL 2.0"
-License-Url: http://www.apache.org/licenses/LICENSE-2.0.txt
-Vendor:
+Name: PHP
+CartridgeShortName: PHP
+CartridgeVersion: 1.0.1
+CartridgeVersions: [1.0.1]
+Display-Name: PHP 5.3
+Description: "PHP is a general-purpose server-side scripting language...
+Version: 5.3
+Versions: [5.3]
+License: "The PHP License, version 3.0"
+License-Url: http://www.php.net/license/3_0.txt
+Vendor: php.net
 Categories:
-  - cartridge
-  - web-framework
-Website:
+  - service
+  - php
+  - web_framework
+Website: http://www.php.net
 Help-Topics:
-  "Getting Started": https://www.openshift.com/community/videos/getting-started-with-diy-applications-on-openshift
+  "Developer Center": https://openshift.redhat.com/community/developers
 Cart-Data:
   - Key: OPENSHIFT_...
     Type: environment
     Description: "How environment variable should be used"
-Suggests:
-
 Provides:
-  - "diy-0.1"
-Requires:
-Conflicts:
-Native-Requires:
-Architecture: noarch
+  - php-5.3
+  - "php"
+  - "php(version) = 5.3.2"
 Publishes:
-  get-doc-root:
-    Type: "FILESYSTEM:doc-root"
+  get-php-ini:
+    Type: "FILESYSTEM:php-ini"
   publish-http-url:
     Type: "NET_TCP:httpd-proxy-info"
   publish-gear-endpoint:
@@ -129,22 +133,84 @@ Subscribes:
   set-nosql-db-connection-info:
     Type: "NET_TCP:nosqldb:connection-info"
     Required: false
-Endpoints:
-  - "HTTP_IP:WEB_PORT(8080):WEB_PROXY_PORT"
-  ...
-Reservations:
-  - MEM >= 10MB
+  set-mysql-connection-info:
+    Type: "NET_TCP:db:mysql"
+    Required : false
+  set-postgres-connection-info:
+    Type: "NET_TCP:db:postgres"
+    Required : false
+  set-doc-url:
+    Type: "STRING:urlpath"
+    Required : false
 Scaling:
   Min: 1
   Max: -1
+Group-Overrides:
+  - components:
+    - php-5.3
+    - web_proxy
+Endpoints:
+  - "IP:PORT(8080):PROXY_PORT"
 ```
 
-*jwh: How do we want to cover the manifest.yml features?*
+### CartridgeShortName Element
+
+OpenShift creates a number of environment variables for you, when installing your cartridge.
+This shorten name is used when creating those variables.
+For example, using the example manifest the following environment variables would be created:
+
+    OPENSHIFT_PHP_DIR
+    OPENSHIFT_PHP_IP
+    OPENSHIFT_PHP_PORT
+    OPENSHIFT_PHP_PROXY_PORT
+
+
+### CartridgeVersion Element
+
+The `CartridgeVersion` element is a version number identifying a release of your cartridge to OpenShift.
+The value follows the format:
+
+    <number>[.<number>[.<number>[...]]]
+
+When you publish new versions of your cartridge to OpenShift, this number will be used to determine what
+is necessary to upgrade the application developer's application.
+
+### CartridgeVersions Element
+
+`CartridgeVersions` is a list of past cartridge versions that are **compatible** with this version.
+To be **compatible** with a previous version, the code changes you made in this version do not require
+the cartridge to be re-started or the application developer's application to be restarted.
+
+    CartridgeVersions: [1.0.1]
+
+By not requiring a restart, you improve the application user's experience since no downtime will
+be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
+the cartridge will be stopped, the new code will be installed, `setup` will be run, and the cartridge
+started.
+
+Today this is a simple list and string matching is used to determine compatible versions.
+If this list proves to be unmanageable, future versions of OpenShift may implement maven dependency range style checking.
+
+### Version Element
+
+The `Version` element is the default or only version of the software packaged by this cartridge.
+
+    Version: 5.3
+
+### Versions Element
+
+`Versions` is the list of the versions of the software packaged by this cartridge.
+    Versions: [5.3]
+
+### Endpoints Element
+See below.
+
+*jwh: How do we want to cover the other manifest.yml features?*
 
 ## Cartridge Locking
 
 Cartridge instances within a gear will be either `locked` or `unlocked`
-at any given time.  Unlocking a cartridge allows the cartridge scripts
+at any given time. Locking a cartridge allows the cartridge scripts
 to have additional access to the gear's files and directories. Other
 scripts and hooks written by the application developer will not be able to
 override decisions you make as the cartridge author.
@@ -153,13 +219,13 @@ The lock state is controlled by OpenShift. Cartridges are locked and
 unlocked at various points in the cartridge lifecycle.
 
 If you fail to provide a `metadata/locked_files.txt` file or the file
-is empty, your cartridge will remain always locked. For a very simple cartridges
+is empty, your cartridge will remain always unlocked. For a very simple cartridges
 this may be sufficient.
 
 **Note on security:** Cartridge file locking is not intended to be a
 security measure. It is a mechanism to help prevent application developers
 from inadvertently breaking their application by modifying files reserved
-for use by the cartridge author.
+for use by you, the cartridge author.
 
 ### Lock configuration ###
 
@@ -169,7 +235,7 @@ access while the cartridge is unlocked, but only read access to the
 application developer while the cartridge is locked.
 
 Any non-existent files that are included in the list will be created
-when the cartridge is unlocked.  Any missing parent directories will be
+before your `setup` script is called.  Any missing parent directories will be
 created as needed. The list is anchored at the gear's home directory.
 An entry ending in slash is processed as a directory.  Entries ending
 in asterisk are a list of files.  Entries ending in an other character
@@ -186,16 +252,16 @@ Here is a `locked_files.txt` for a PHP cartridge:
     php-5.3/conf/*
 
 In the above list:
-  * the file `.pearrc` will be created, if it does not exists, and be made editable.
-  * the directory `php-5.3/bin` is unlocked but not the files it contains. So you can add files.
-  * the files in `php-5.3/conf` are unlocked but the directory itself is not.
-    So you can edit files but not add files.
+  * the file `.pearrc` will be created, if it does not exists, and be made editable by you.
+  * the directory `php-5.3/bin` is locked but not the files it contains. While you can add files, both you
+    and the application developer can edit any files contained.
+  * the files in `php-5.3/conf` are locked but the directory itself is not.
+    So you or the application developer can add files, but only you can edit them.
 
 Directories like `.node-gyp` and `.npm` in nodejs are **NOT** candidates
-to be created in this manner as they require the gear to have read
+to be created in this manner as they require the application developer to have read
 and write access while the application is deploying and running. These
-directories would need to be created by the nodejs `setup` script which
-is run while the gear is unlocked.
+directories would need to be created by the nodejs `setup` script.
 
 The following list is reserved by OpenShift in the the gear's home
 directory:
@@ -212,10 +278,10 @@ cartridge is unlocked.
 
 ## template vs template.git (for language cartridges)
 
-`template` or `template.git` directory provides an minimal example of a web application
-written in the language/framework your cartridge is providing.
+`template` or `template.git` directory should provide an minimal example of an application
+written in the language/framework your cartridge is packaging.
 Your application should welcome the application developer to
-your cartridge and let them see that your cartridge has indeed been installed.
+your cartridge and let them see that your cartridge has indeed been installed and operating.
 If you provide a `template` directory, OpenShift will transform it into a bare git repository
 for use by the application developer. If you provide a `template.git` directory, OpenShift will
 copy the directory for use by the application developer. Your `setup` script should assume that
@@ -231,12 +297,17 @@ a `config.ru` file to define the web application.
     |  +- config.ru
     |  +- public
     |  |  +- .gitignore
+    |  .openshift
+    |  +- markers
+    |  |- ...
 
 Note that .gitignore should be placed in empty directories to ensure they survive when the file tree
 is loaded into a git repository.
 
-The sub-directory `markers` may contain files created by the application developer
-that denote behaviour you are expected to honor in your cartridges lifecycle. Current
+### Application Developer Action Hooks
+
+The sub-directory `.openshift/markers` may contain example files for the application developer.
+These files denote behaviour you are expected to honor in your cartridges lifecycle. Current
 examples from a Ruby 1.8 cartridge include:
 
     force_clean_build     Previous output from bundle install --deployment will be
@@ -251,9 +322,8 @@ examples from a Ruby 1.8 cartridge include:
 You may add additional markers to allow an application developer to control aspects
 of your cartridge.
 
-The sub-directory `.openshift` should contain the sub-directory `action_hooks` which
-will contain code the application developer wishes run during lifecycle changes.
-Examples would be:
+The sub-directory `.openshift/action_hooks` will contain code the application developer
+wishes run during lifecycle changes. Examples would be:
 
     pre_start_`cartridge name`-`software version`
     post_start_`cartridge name`-`software version`
@@ -268,7 +338,7 @@ document.
 As a cartridge author you do not need to execute the default `action_hooks`.
 OpenShift will call them during lifecycle changes based on the actions given to the
 `control` script. If you wish to add additional hooks, you are expected to document them
-and you will need to run them explicately in your `control` script.
+and you will need to run them explicitly in your `control` script.
 
 ## Exposing Services / TCP Endpoints
 
@@ -278,7 +348,8 @@ variable names to describe:
 
   * Any IP addresses necessary for binding
   * The gear-local ports to which the cartridge services will bind
-  * (Optional) Publicly proxied ports which expose gear-local ports for use outside OpenShift or across application gears
+  * (Optional) Publicly proxied ports which expose gear-local ports for use by the
+    application's users or across application gears
 
 These declarations represent "Endpoints," and are defined in the cartridge
 `manifest.yml` in the `Endpoints` section using the following syntax:
@@ -302,13 +373,12 @@ names of these variables are prefixed with OpenShift namespacing information in 
 follow the format:
 
 ```
-OPENSHIFT_{cart namespace}_{name of IP variable} => <assigned internal IP>
-OPENSHIFT_{cart namespace}_{name of port variable} => <endpoint specified port>
-OPENSHIFT_{cart namespace}_{name of public port variable} => <assigned external port>
+OPENSHIFT_{CartridgeShortName}_{name of IP variable} => <assigned internal IP>
+OPENSHIFT_{CartridgeShortName}_{name of port variable} => <endpoint specified port>
+OPENSHIFT_{CartridgeShortName}_{name of public port variable} => <assigned external port>
 ```
 
-The `cart namespace` portion of the variables is defined by the `Namespace` entry
-in the cartridge manifest.
+`CartridgeShortName` is the `CartridgeShortName` element from the cartridge manifest file. See above.
 
 ### Endpoint Example
 
@@ -316,7 +386,7 @@ Given a cartridge named `CustomCart` and the following entry in `manifest.yml`:
 
 ```
 Name: CustomCart
-Namespace: CUSTOMCART
+CartridgeShortName: CUSTOMCART
 
 ...
 
@@ -418,17 +488,17 @@ is fatal to your cartridge.
 ##### Options
 
 * `--version=<version>`: Selects which version of cartridge to install. If no version is provided,
-the default from `manifest.yml` will be installed.
-* `--homedir` provides the parent directory where your cartridge is installed.
-If no homedir is provided, the default is OPENSHIFT_HOMEDIR.
+the version denoted by the `Version` element from `manifest.yml` will be installed.
 
 ##### Description
 
 The `setup` script is responsible for creating and/or configuring the
-files that were copied from the cartridge library into the gear's
-directory. If you have used ERB templates for software configuration
-this is where you would processes those files.  An example would be
-PHP's php.ini file:
+files that were copied from the cartridge repository into the gear's
+directory.
+
+If you have used ERB templates for software configuration those files will be
+processed for environment variable substitution after `setup` is run.  An
+example would be PHP's php.ini file:
 
     upload_tmp_dir = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php-5.3/tmp/"
     session.save_path = "<%= ENV['OPENSHIFT_HOMEDIR'] %>php-5.3/sessions/"
@@ -437,7 +507,7 @@ Other candidates for templates are httpd configuration files for
 `includes`, configuring database to store persistent data in the
 OPENSHIFT_DATA_DIR, and setting the application name in the pom.xml file.
 
-`setup` may substitute a version dependent git_template.git repository.
+`setup` may substitute a version dependent of the `template` or `template.git` directories.
 
 Lock context: `unlocked`
 
@@ -481,9 +551,9 @@ the Safe](http://www.ruby-doc.org/docs/ProgrammingRuby/html/taint.html).
 ##### Description
 
 The `teardown` script prepares the gear for the cartridge to be
-removed. This is not called when the gear is destroyed.  The `teardown`
+removed. This script will not called when the gear is destroyed.  The `teardown`
 script is only run when a cartridge is to be removed from the gear.
-The gear will continue to operate minus the functionality of this
+The gear is expected to continue to operate minus the functionality of your cartridge
 cartridge.
 
 Lock context: `unlocked`
@@ -514,20 +584,24 @@ writing to stdout the following message(s):
 
 The `control` script allows OpenShift or user to control the state of the cartridge.
 
-The actions that must be supported:
+The list of operations your cartridge may be called to perform:
 
    * `build` is called when building the developers application and by default
-     from the git respository post-receive hook. The application is built in app-root/runtime/repo.
-   * `deploy` is called after a successful `build`
+     from the git respository post-receive hook. The application is built in `app-root/runtime/repo`.
+   * `deploy` is called to activate the developer's application in `app-root/runtime/repo` usually
+     after a successful `build`
    * `start` start the software your cartridge controls
    * `stop` stop the software your cartridge controls
    * `status` return an 0 exit status if your cartridge code is running.
-   * `reload` your cartridge and it's controlled code needs to re-read their
-      configuration information. Depending on the software your cartridge is controlling
-      this may equate to a restart.
-   * `restart` stop current process and start a new one for the code your cartridge controls
+   * `reload` your cartridge and the packaged software needs to re-read their
+      configuration information. Depending on the features of the software your
+      cartridge has packaged this may equate to a restart.
+   * `restart` stop current process and start a new one for the code your cartridge packages
+   * `threaddump` if applicable, your cartridge should signal the packaged software to perform a thread dump.
+     An exit status of `69` signals OpenShift that your cartridge or packaged software does not support this
+     operation.
    * `tidy` all unused resources should be released. It is at your discretion to
-      determine what should be released. Be frugal, on some systems resources may be
+      determine what should be done. Be frugal, on some systems resources may be
       very limited. Some possible behaviors:
 ```
     rm .../logs/log.[0-9]
@@ -542,7 +616,7 @@ Lock context: `locked`
 ###### `status` Action
 
 For a number of reasons the application developer will want to be a
-to query whether the software your cartridge controls is running and
+to query whether the software your cartridge packages is running and
 behaving as expected.  A `0` exit status implies that the software is
 running correctly. 
 
@@ -551,7 +625,7 @@ to stdout.  Errors may be return on stderr with an non-zero exit status.
 
 OpenShift maintains the expected state of the gear/application in
 `~/app-root/runtime/.state`. You may not use this to determine the
-status of the software you are controlling.  That software may have
+status of the software you are packaging.  That software may have
 crashed so you would be returning invalid status if you used this file's
 value. Future versions of OpenShift may combine the results from the
 `status` action and the value of the `.state` file to automatically
@@ -566,14 +640,12 @@ restart failed applications. For completeness, `.state` values:
 
 ## Environment Variables
 
-Environment variables are use to communicate setup information between
+Environment variables are use to communicate information between
 this cartridge and others, and to OpenShift.  The cartridge controlled
 variables are stored in the env directory and will be loaded after
 system provided environment variables but before your code is called.
 OpenShift provided environment variables will be loaded and available
 to be used for all cartridge entry points.
-
-*jwh: ruby 1.9 makes providing environments when executing commands very easy. We should exploit that.*
 
 ### System Provided Variables (Read Only) ###
  * `HISTFILE` bash history file
@@ -589,16 +661,9 @@ to be used for all cartridge entry points.
  * `OPENSHIFT_REPO_DIR` the directory where the developer's application is "archived" to and will be run from.
  * `OPENSHIFT_TMP_DIR` the directory where your cartridge may store temporary data
 
-#### When writing the ERB for your openshift.conf configuration. These are set when OpenShift is installed.
- * `OPENSHIFT_APACHE_BANDWIDTH`              (Default: "all 500000")
- * `OPENSHIFT_APACHE_MAX_CONNECTION`         (Default: "all 20")
- * `OPENSHIFT_APACHE_BANDWIDTH_ERROR`        (Default: "510")
- * `OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL`    (Default: 86400)
- * `OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX`      (Default: "-%Y%m%d-%H%M%S-%Z"
-
 ### Examples of Cartridge Provided Variables ###
 
-*jwh: Is this true? or should the manifest call these out and the node do the work? Or, are these ERB candidates?*
+You may provide these files in your cartridge's `env` directory or choose to create them in your `setup` script.
 
  * `OPENSHIFT_MYSQL_DB_HOST`                  Backwards capatibility (ERB populated from `OPENSHIFT_MYSQL_DB_IP`)
  * `OPENSHIFT_MYSQL_DB_LOG_DIR`
@@ -608,21 +673,23 @@ to be used for all cartridge entry points.
  * `OPENSHIFT_MYSQL_DB_URL`
  * `OPENSHIFT_MYSQL_DB_USERNAME`
  * `OPENSHIFT_PHP_LOG_DIR`
+ * `OPENSHIFT_PHP_DIR`
 
-*jwh: now these are very cartridge dependent*
+Some variable may be dictated by the software you are packaging:
 
- * JENKINS_URL
- * JENKINS_USERNAME
- * JENKINS_PASSWORD
+ * `JENKINS_URL`
+ * `JENKINS_USERNAME`
+ * `JENKINS_PASSWORD`
 
 Your environment variables should be prefixed with
-`OPENSHIFT_{cartridge name}_` to prevent overwriting other cartridge
-variables in the process environment space. By convention, an environment
-variable whos value is a directory should have a name that ends in
-_DIR and the value should have a trailing slash. The software you are
-controlling may require environment variables of it's own, for example:
-`JENKINS_URL`. Those you would add to your `env` directory or include
-in shim code in your `bin` scripts.
+`OPENSHIFT_{cartridge short name}_` to prevent overwriting other cartridge
+variables in the packaged software's process environment space.
+
+By convention, an environment variable who's value is a directory should have a
+name that ends in `_DIR` and the value should have a trailing slash.
+The software you are packaging may have environment variable requirements of it's own,
+for example: `JENKINS_URL`.
+Those you would add to your `env` directory or include in shim code in your `bin` scripts.
 
 Cartridge provided environment variables are not validated by the
 system. Your cartridge may fail to function if you write invalid data
@@ -639,7 +706,7 @@ which would then be rendered as `env/JENKINS_URL`:
 
 Or, `env/OPENSHIFT_MONGODB_DB_LOG_DIR.erb`:
 
-    export OPENSHIFT_MONGODB_DB_LOG_DIR='<% ENV['OPENSHIFT_HOMEDIR'] %>/mongodb-2.2/log/'
+    export OPENSHIFT_MONGODB_DB_LOG_DIR='<% ENV['OPENSHIFT_HOMEDIR'] + "/mongodb-2.2/log/" %>'
 
 renders as `env/OPENSHIFT_MONGODB_DB_LOG_DIR`:
 
@@ -648,10 +715,11 @@ renders as `env/OPENSHIFT_MONGODB_DB_LOG_DIR`:
 Your templates will be rendered at `safe_level 2`.  [Locking Ruby in
 the Safe](http://www.ruby-doc.org/docs/ProgrammingRuby/html/taint.html).
 
-You may assume the
-`PATH=$OPENSHIFT_HOMEDIR/{cartridge name}-{cartridge version}/bin:/bin:/usr/bin/`
+You may assume the PATH variable will be:
+     PATH=/bin:/usr/bin/
+
 when your code is executed. Any additional directories your code requires
-will need to be added in your shim code.
+will need to be added in your cartridge's `env` variable.
 
 ## Backing up and Restoring your cartridge
 
@@ -686,36 +754,23 @@ app-root/data/.bash_history
 ## Sample `conf.d/openshift.conf.erb`
 
 ```
-ServerRoot "<%= ENV['OPENSHIFT_HOMEDIR']%>/ruby-1.8"
-DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR']%>/public"
-Listen <%= ENV['OPENSHIFT_RUBY_IP']%>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>
+ServerRoot "<%= ENV['OPENSHIFT_HOMEDIR'] + "/ruby-1.8" %>"
+DocumentRoot "<%= ENV['OPENSHIFT_REPO_DIR'] + "/public" %>"
+Listen <%= ENV['OPENSHIFT_RUBY_IP'] + ':' + ENV['OPENSHIFT_RUBY_PORT'] %>
 User <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 Group <%= ENV['OPENSHIFT_GEAR_UUID'] %>
 
-ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/ruby-1.8/logs/error_log<%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX']%> <%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL'%>"
-CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/logs/access_log<%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_SUFFIX']%> <%= ENV['OPENSHIFT_APACHE_LOG_ROTATE_INTERVAL'%>" combined
+ErrorLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/ruby-1.8/logs/error_log-%Y%m%d-%H%M%S-%Z 86400"
+CustomLog "|/usr/sbin/rotatelogs <%= ENV['OPENSHIFT_HOMEDIR']%>/logs/access_log-%Y%m%d-%H%M%S-%Z 86400" combined
 
 PassengerUser <%= ENV['OPENSHIFT_GEAR_UUID'] %>
-PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] %>:<%= ENV['OPENSHIFT_RUBY_PORT'] %>/
+PassengerPreStart http://<%= ENV['OPENSHIFT_RUBY_IP'] + ':' + ENV['OPENSHIFT_RUBY_PORT'] %>/
 PassengerSpawnIPAddress <%= ENV['OPENSHIFT_RUBY_IP'] %>
 PassengerUseGlobalQueue off
 <Directory <%= ENV['OPENSHIFT_REPO_DIR]%>/public>
   AllowOverride all
   Options -MultiViews
 </Directory>
-
-# TODO: Adjust from ALL to more conservative values
-<IfModule !mod_bw.c>
-    LoadModule bw_module    modules/mod_bw.so
-</IfModule>
-
-<ifModule mod_bw.c>
-  BandWidthModule On
-  ForceBandWidthModule On
-  BandWidth <%= ENV['OPENSHIFT_APACHE_BANDWIDTH']%>
-  MaxConnection <%= ENV['OPENSHIFT_APACHE_MAX_CONNECTION']%>
-  BandWidthError <%= ENV['OPENSHIFT_APACHE_BANDWIDTH_ERROR']%>
-</IfModule>
 ```
 
 ## Cartridge publish/subscribe mechanism
