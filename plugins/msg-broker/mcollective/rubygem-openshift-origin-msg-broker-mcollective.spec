@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version:       1.5.6
+Version:       1.5.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,11 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
+- Merge pull request #1477 from ironcladlou/dev/cartridge_refactor
+  (dmcphers@redhat.com)
+- WIP Cartridge Refactor (pmorie@gmail.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - US2448 (lnader@redhat.com)
 - Add debug timings for external operations (dmcphers@redhat.com)
