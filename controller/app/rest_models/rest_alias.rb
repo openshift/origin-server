@@ -1,9 +1,10 @@
 class RestAlias < OpenShift::Model
-  attr_accessor :id, :has_private_certificate, :links
+  attr_accessor :id, :has_private_certificate, :certificate_added_at, :links
   
   def initialize(app, domain, al1as, url, nolinks=false)
     self.id = al1as.fqdn
     self.has_private_certificate = al1as["has_private_certificate"]
+    self.certificate_added_at = al1as["certificate_added_at"]
     domain_id = domain.namespace
     app_id = app.name
     unless nolinks      

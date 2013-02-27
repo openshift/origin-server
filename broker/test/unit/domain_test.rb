@@ -66,6 +66,10 @@ class DomainTest < ActiveSupport::TestCase
     @domain = Domain.new(namespace: namespace, owner:@user)
     @domain.save
     
+    @app_name = "app#{@random}"
+    @app = Application.create_app(@app_name, ["php-5.3"], @domain, "small")
+    @app.save
+    
     login1 = "user1#{@random}"
     user1 = CloudUser.new(login: login1)
     user1.save
