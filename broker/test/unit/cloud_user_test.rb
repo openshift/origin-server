@@ -134,6 +134,8 @@ class CloudUserTest < ActiveSupport::TestCase
       end
     end
     assert found_key
+    
+    domain.delete
 
     user.remove_ssh_key('keyname')
     
