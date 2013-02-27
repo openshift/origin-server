@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.16
+Version: 1.4.17
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,10 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 26 2013 Dan McPherson <dmcphers@redhat.com> 1.4.17-1
+- Bug 914639 (dmcphers@redhat.com)
+- Should be using uuid for gear name (dmcphers@redhat.com)
+
 * Tue Feb 26 2013 Dan McPherson <dmcphers@redhat.com> 1.4.16-1
 - Bug 914639 (dmcphers@redhat.com)
 
