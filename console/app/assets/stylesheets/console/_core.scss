@@ -406,7 +406,10 @@ a.cap-link {
 }
 
 .btn-console-header {
-  padding: 6px;
+  height: 36px;
+  padding: 2px;
+  position: relative;
+  width: 33px;
   border: 1px solid transparent;
   opacity: .75;
   &:hover, &.highlight {
