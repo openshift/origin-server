@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 0.0.7-2
+- fixing tags, will bring in lost changelog later
+
 * Wed Feb 27 2013 Dan Mace <ironcladlou@gmail.com> 0.0.7-1
 - Automatic commit of package [openshift-origin-cartridge-mock-plugin] release
   [0.0.6-1]. (ironcladlou@gmail.com)
