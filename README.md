@@ -41,6 +41,7 @@ Contributing
 Visit the [OpenShift Origin Open Source
 page](https://openshift.redhat.com/community/open-source) for more
 information on the community process and how you can get involved.
+Also see our [Contributor Guidelines](CONTRIBUTING.md).
 
 
 Copyright
