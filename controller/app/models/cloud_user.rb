@@ -35,7 +35,7 @@ class CloudUser
   embeds_many :ssh_keys, class_name: SshKey.name
   embeds_many :pending_ops, class_name: PendingUserOps.name
   # embeds_many :identities, class_name: Identity.name, cascade_callbacks: true
-  has_many :domains, class_name: Domain.name, dependent: :restrict
+  has_many :domains, class_name: Domain.name, dependent: :restrict, :foreign_key => 'owner_id'
   has_many :authorizations, class_name: Authorization.name, dependent: :restrict
 
   validates :login, presence: true, login: true
@@ -156,9 +156,8 @@ class CloudUser
   # Used to add an ssh-key to the user. Use this instead of ssh_keys= so that the key can be propagated to the
   # domains/application that the user has access to.
   def add_ssh_key(key)
-    domains = self.domains
-    if domains.count > 0
-      pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
+    if self.domains.count > 0
+      pending_op = PendingUserOps.new(op_type: :add_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash , ssh_keys: key.serializable_hash }})
       self.with(consistency: :strong).reload
       self.run_jobs
@@ -183,19 +182,14 @@ class CloudUser
   # domains/application that the user has access to.
   def remove_ssh_key(name)
     key = self.ssh_keys.find_by(name: name)
-    domains = self.domains
-    if domains.count > 0
-      pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: domains.map{|d|d._id.to_s}, created_at: Time.new)
+    if self.domains.count > 0
+      pending_op = PendingUserOps.new(op_type: :delete_ssh_key, arguments: key.attributes.dup, state: :init, on_domain_ids: self.domains.map{|d|d._id.to_s}, created_at: Time.new)
       CloudUser.where(_id: self.id).update_all({ "$push" => { pending_ops: pending_op.serializable_hash } , "$pull" => { ssh_keys: key.serializable_hash }})
       self.with(consistency: :strong).reload
       self.run_jobs      
     else
       key.delete
     end
-  end
-
-  def domains
-    (Domain.where(owner: self) + Domain.where(user_ids: self._id)).uniq
   end
 
   def default_capabilities
