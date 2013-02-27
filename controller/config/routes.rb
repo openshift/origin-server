@@ -14,7 +14,7 @@ Rails.application.routes.draw do
     # Allow restful update of the domain name via the standard id parameter
     match "domains/:existing_id" => "domains#update", :via => :put, :existing_id => /[A-Za-z0-9]+/
     resources :domains, :constraints => { :id => /[A-Za-z0-9]+/ } do
-      resources :applications, :constraints => { :id => /[\w]+/ } do
+      resources :applications, :constraints => { :id => /[A-Za-z0-9]+/ } do
         resource :descriptor, :only => :show
         resources :gear_groups, :constraints => { :id => /[A-Za-z0-9]+/ }, :only => [:index, :show]
         #added back the gears URL so we can return an appropriate message instead of a routing error
