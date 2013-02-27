@@ -73,6 +73,8 @@ mv services/openshift-gears.service %{buildroot}/etc/systemd/system/openshift-ge
 %attr(0750,-,-) %{_sbindir}/oo-setup-node
 %attr(0755,-,-) %{_sbindir}/rhc-list-ports
 %attr(0755,-,-) %{_sbindir}/oo-httpd-singular
+%attr(0750,-,-) %{_sbindir}/oo-su
+%attr(0750,-,-) %{_sbindir}/oo-cartridge
 
 %doc LICENSE
 %doc README-Idler.md

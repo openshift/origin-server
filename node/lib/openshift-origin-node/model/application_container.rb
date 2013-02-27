@@ -24,8 +24,8 @@ require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/application_state'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/utils/sdk'
+require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'
-require 'logger'
 require 'yaml'
 require 'active_model'
 
@@ -34,14 +34,13 @@ module OpenShift
   class ApplicationContainer
     include OpenShift::Utils::ShellExec
     include ActiveModel::Observing
+    include NodeLogger
 
     attr_reader :uuid, :application_uuid, :user, :state, :container_name, :cartridge_model
-
 
     def initialize(application_uuid, container_uuid, user_uid = nil,
         app_name = nil, container_name = nil, namespace = nil, quota_blocks = nil, quota_files = nil, logger = nil)
 
-      @logger           = logger ||= Logger.new(STDOUT)
       @config           = OpenShift::Config.new
       @uuid             = container_uuid
       @application_uuid = application_uuid
@@ -50,46 +49,33 @@ module OpenShift
                                        app_name, container_name, namespace, quota_blocks, quota_files)
       @state            = OpenShift::Utils::ApplicationState.new(container_uuid)
 
-      # TODO: When v2 is the default cartridge format change this default...
-      build_model       = :v1
-      if @user.homedir && File.exist?(@user.homedir)
-        build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(@user.homedir)
-      else
-        v1_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v1_cartridge_format'))
-        v2_marker_exist = File.exist?(File.join(@config.get('GEAR_BASE_DIR'), '.settings', 'v2_cartridge_format'))
-
-        if  v1_marker_exist and v2_marker_exist
-          raise 'Node cannot create both v1 and v2 formatted cartridges. Delete one of the cartridge format marker files'
-        end
-
-        # TODO: When v2 is the default cartridge format change this test...
-        build_model = :v2 if v2_marker_exist
-      end
+      build_model = self.class.get_build_model(@user, @config)
 
       # When v2 is the default cartridge format flip the test...
-      @cartridge_model = if :v1 == build_model
-                           V1CartridgeModel.new(@config, @user, self, @logger)
-                         else
-                           V2CartridgeModel.new(@config, @user, self, @logger)
-                         end
+      if build_model == :v1
+        @cartridge_model = V1CartridgeModel.new(@config, @user)
+      else
+        @cartridge_model = V2CartridgeModel.new(@config, @user)
+      end
+      NodeLogger.logger.debug("Creating #{build_model} model for #{container_uuid}: #{__callee__}")
+
+    end
+
+    def self.get_build_model(user, config)
+      # TODO: When v2 is the default cartridge format change this default...
+      build_model = :v1
+
+      if user.homedir && File.exist?(user.homedir)
+        build_model = :v2 if OpenShift::Utils::Sdk.new_sdk_app?(user.homedir)
+      else
+        build_model = OpenShift::Utils::Sdk.node_default_model(config)
+      end
+
+      build_model
     end
 
     def name
       @uuid
-    end
-
-    # Loads a cartridge from manifest for the given name.
-    #
-    # TODO: Caching?
-    def get_cartridge(cart_name)
-      begin
-        manifest_path = @cartridge_model.get_cart_manifest_path(cart_name)
-        manifest = YAML.load_file(manifest_path)
-        return OpenShift::Runtime::Cartridge.new(manifest)
-      rescue => e
-        @logger.error(e.backtrace)
-        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@uuid}: #{e.message}"
-      end
     end
 
     # Add cartridge to gear.  This method establishes the cartridge model
@@ -120,7 +106,12 @@ module OpenShift
     # context: root
     def create
       notify_observers(:before_container_create)
+
       @user.create
+      if :v2 == OpenShift::Utils::Sdk.node_default_model(@config)
+        Utils::Sdk.mark_new_sdk_app(@user.homedir)
+      end
+
       notify_observers(:after_container_create)
     end
 
@@ -156,10 +147,10 @@ module OpenShift
     # Returns nil on success, or raises an exception if any errors occur: all errors here
     # are considered fatal.
     def create_public_endpoints(cart_name)
-      env = Utils::Environ::for_gear(@user.homedir)
-      cart = get_cartridge(cart_name)
+      env  = Utils::Environ::for_gear(@user.homedir)
+      cart = @cartridge_model.get_cartridge(cart_name)
 
-      proxy = OpenShift::FrontendProxyServer.new(@logger)
+      proxy = OpenShift::FrontendProxyServer.new
 
       # TODO: better error handling
       cart.public_endpoints.each do |endpoint|
@@ -176,7 +167,7 @@ module OpenShift
 
         @user.add_env_var(endpoint.public_port_name, public_port)
 
-        @logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
+        logger.info("Created public endpoint for cart #{cart.name} in gear #{@uuid}: "\
           "[#{endpoint.public_port_name}=#{public_port}]")
       end
     end
@@ -188,12 +179,12 @@ module OpenShift
     # Returns nil on success. Failed public port delete operations are logged
     # and skipped.
     def delete_public_endpoints(cart_name)
-      env = Utils::Environ::for_gear(@user.homedir)
-      cart = get_cartridge(cart_name)
+      env  = Utils::Environ::for_gear(@user.homedir)
+      cart = @cartridge_model.get_cartridge(cart_name)
 
-      proxy = OpenShift::FrontendProxyServer.new(@logger)
+      proxy = OpenShift::FrontendProxyServer.new
 
-      public_ports = []
+      public_ports     = []
       public_port_vars = []
 
       cart.public_endpoints.each do |endpoint|
@@ -210,15 +201,15 @@ module OpenShift
       begin
         # Remove the proxy entries
         rc = proxy.delete_all(public_ports, true)
-        @logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
+        logger.info("Deleted all public endpoints for cart #{cart.name} in gear #{@uuid}\n"\
           "Endpoints: #{public_port_vars}\n"\
           "Public ports: #{public_ports}")
       rescue => e
-        @logger.warn(%Q{Couldn't delete all public endpoints for cart #{cart.name} in gear #{@uuid}: #{e.message}
+        logger.warn(%Q{Couldn't delete all public endpoints for cart #{cart.name} in gear #{@uuid}: #{e.message}
           Endpoints: #{public_port_vars}
           Public ports: #{public_ports}
-          #{e.backtrace}
-          })
+                    #{e.backtrace}
+                    })
       end
 
       # Clean up the environment variables
@@ -239,14 +230,14 @@ module OpenShift
     # Raises an Exception if an internal error occurs, and ignores
     # failed cartridge tidy hook executions.
     def tidy
-      @logger.debug("Starting tidy on gear #{@uuid}")
+      logger.debug("Starting tidy on gear #{@uuid}")
 
-      env = Utils::Environ::for_gear(@user.homedir)
+      env      = Utils::Environ::for_gear(@user.homedir)
       gear_dir = env['OPENSHIFT_HOMEDIR']
       app_name = env['OPENSHIFT_APP_NAME']
 
       gear_repo_dir = File.join(gear_dir, 'git', "#{app_name}.git")
-      gear_tmp_dir = File.join(gear_dir, '.tmp')
+      gear_tmp_dir  = File.join(gear_dir, '.tmp')
 
       stop_gear(gear_dir)
 
@@ -258,12 +249,12 @@ module OpenShift
         # Delegate to cartridge model to perform cart-level tidy operations for all installed carts.
         @cartridge_model.tidy
       rescue Exception => e
-        @logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
+        logger.warn("An unknown exception occured during tidy for gear #{@uuid}: #{e.message}\n#{e.backtrace}")
       ensure
         start_gear(gear_dir)
       end
 
-      @logger.debug("Completed tidy for gear #{@uuid}")
+      logger.debug("Completed tidy for gear #{@uuid}")
     end
 
     def stop_gear(gear_dir)
@@ -271,13 +262,13 @@ module OpenShift
       begin
         # Stop the gear. If this fails, consider the tidy a failure.
         out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears stopgear #{@user.uuid}", gear_dir, false, 0)
-        @logger.debug("Stopped gear #{@uuid}. Output:\n#{out}")
+        logger.debug("Stopped gear #{@uuid}. Output:\n#{out}")
       rescue OpenShift::Utils::ShellExecutionException => e
-        @logger.error(%Q{
+        logger.error(%Q{
           Couldn't stop gear #{@uuid} for tidy: #{e.message}
           --- stdout ---\n#{e.stdout}
           --- stderr ---\n#{e.stderr}
-          })
+                     })
         raise "Tidy failed on gear #{@uuid}; the gear couldn't be stopped successfully"
       end
     end
@@ -288,13 +279,13 @@ module OpenShift
         # Start the gear, and if that fails raise an exception, as the app is now
         # in a bad state.
         out, err, rc = OpenShift::Utils::ShellExec.shellCmd("/usr/sbin/oo-admin-ctl-gears startgear #{@user.uuid}", gear_dir)
-        @logger.debug("Started gear #{@uuid}. Output:\n#{out}")
+        logger.debug("Started gear #{@uuid}. Output:\n#{out}")
       rescue OpenShift::Utils::ShellExecutionException => e
-        @logger.error(%Q{
+        logger.error(%Q{
           Failed to restart gear #{@uuid} following tidy: #{e.message}
           --- stdout ---\n#{e.stdout}
           --- stderr ---\n#{e.stderr}
-          })
+                     })
         raise "Tidy of gear #{@uuid} failed, and the gear was not successfuly restarted"
       end
     end
@@ -303,19 +294,19 @@ module OpenShift
       # Git pruning
       tidy_action do
         OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git prune", gear_repo_dir, false, 0)
-        @logger.debug("Pruned git directory at #{gear_repo_dir}")
+        logger.debug("Pruned git directory at #{gear_repo_dir}")
       end
 
       # Git GC
       tidy_action do
         OpenShift::Utils::ShellExec.run_as(@user.uid, @user.gid, "git gc --aggressive", gear_repo_dir, false, 0)
-        @logger.debug("Executed git gc for repo #{gear_repo_dir}")
+        logger.debug("Executed git gc for repo #{gear_repo_dir}")
       end
 
       # Temp dir cleanup
       tidy_action do
         FileUtils.rm_rf(Dir.glob(File.join(gear_tmp_dir, "*")))
-        @logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
+        logger.debug("Cleaned gear temp dir at #{gear_tmp_dir}")
       end
     end
 
@@ -325,11 +316,11 @@ module OpenShift
       begin
         yield
       rescue OpenShift::Utils::ShellExecutionException => e
-        @logger.warn(%Q{
+        logger.warn(%Q{
           Tidy operation failed on gear #{@uuid}: #{e.message}
           --- stdout ---\n#{e.stdout}
           --- stderr ---\n#{e.stderr}
-          })
+                    })
       end
     end
 
@@ -404,12 +395,12 @@ module OpenShift
 
     # restore gear from tar ball
     def restore(cart_name)
-      raise NotImplementedError("restore")
+      raise NotImplementedError.new("restore")
     end
 
     # write gear to tar ball
     def snapshot(cart_name)
-      raise NotImplementedError("snapshot")
+      raise NotImplementedError.new("snapshot")
     end
 
     def status(cart_name)
