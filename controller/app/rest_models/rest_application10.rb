@@ -91,7 +91,10 @@ class RestApplication10 < OpenShift::Model
     self.name = app.name
     self.creation_time = app.created_at
     self.uuid = app.uuid
-    self.aliases = app.aliases
+    self.aliases = []
+    app.aliases.each do |a|
+      self.aliases << a.fqdn
+    end
     self.gear_count = app.num_gears
     self.domain_id = domain.namespace
 
