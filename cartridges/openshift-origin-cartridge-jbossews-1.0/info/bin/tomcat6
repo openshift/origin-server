@@ -105,7 +105,7 @@ if [ "$1" = "start" ]; then
     -Djava.endorsed.dirs="$JAVA_ENDORSED_DIRS" \
     -Djava.io.tmpdir="$CATALINA_TMPDIR" \
     org.apache.catalina.startup.Bootstrap start \
-    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 &
+    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
     if [ ! -z "$CATALINA_PID" ]; then
       echo $! > $CATALINA_PID
     fi
@@ -119,7 +119,7 @@ elif [ "$1" = "start-security" ]; then
     -Djava.security.manager \
     -Djava.security.policy=="${CATALINA_BASE}/conf/catalina.policy" \
     org.apache.catalina.startup.Bootstrap start \
-    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 &
+    >> ${CATALINA_BASE}/logs/catalina.out 2>&1 
     if [ ! -z "$CATALINA_PID" ]; then
       echo $! > $CATALINA_PID
     fi

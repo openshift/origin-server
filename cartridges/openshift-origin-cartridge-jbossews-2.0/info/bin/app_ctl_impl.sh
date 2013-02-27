@@ -85,8 +85,11 @@ function start_app() {
             export CATALINA_HOME=$APP_JBOSS
             export CATALINA_BASE=$APP_JBOSS
             export CATALINA_TMPDIR=$APP_JBOSS/tmp
-            ${CART_DIR}/jbossews-2.0/bin/tomcat7 start
-            PROCESS_ID=`ps -ef | grep tomcat | grep ${OPENSHIFT_GEAR_UUID} | grep java | grep jbossews-2.0 | awk '{print $2}'`
+            
+            [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=$OPENSHIFT_INTERNAL_IP:8787,server=y,suspend=n ${JAVA_OPTS}"
+            JAVA_OPTS="${jopts}" ${CART_DIR}/jbossews-2.0/bin/tomcat7 start > ${APP_JBOSS_TMP_DIR}/${cartridge_type}.log 2>&1 &
+            PROCESS_ID=$!
+            
             echo $PROCESS_ID > $JBOSS_PID_FILE
             if ! ishttpup; then
                 echo "Timed out waiting for http listening port"
