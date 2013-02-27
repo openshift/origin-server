@@ -30,6 +30,7 @@ def usage
 == List of arguments
        -a|--action                           One of <start|stop|build|deploy|restart|reload|restore|snapshot>
        -c|--with-container-uuid   gear_uuid  Unique identifier for the gear (default: running user)
+       -d|--debug                            enable additional output
        -h|--help                             Print this message
 USAGE
   exit 255
@@ -38,6 +39,7 @@ end
 require "rubygems"
 require 'openshift-origin-node'
 require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/path_utils'
 require "etc"
 
 opts = GetoptLong.new(
@@ -46,8 +48,8 @@ opts = GetoptLong.new(
     ['--help', '-h', GetoptLong::NO_ARGUMENT],
 )
 
-uuid   = nil
-command = nil
+uuid   = Etc.getlogin
+action = nil
 opts.each do |opt, arg|
   case opt
     when '--help'
@@ -55,36 +57,45 @@ opts.each do |opt, arg|
     when '--with-container-uuid'
       uuid = arg
     when '--action'
-      command = arg if %w(start stop restart reload restore snapshot).include? arg
+      action = arg if %w(start stop restart reload restore snapshot).include? arg
+    when '--debug'
+      $DEBUG = true
   end
 end
 
-if not uuid
-  uuid = Etc.getlogin
-end
-
-unless command && uuid && 0 == ARGV.length
+unless action && uuid && 0 == ARGV.length
   $stderr.puts "Invalid arguments\n"
   usage
 end
 
 
 begin
-  config = Config.new
-  stop_lock = File.join(config.get('GEAR_BASE_DIR'), uuid, %w{app-root runtime .stop_lock})
+  passwd    = Etc.getpwnam(uuid)
+  stop_lock = PathUtils.join(passwd.dir, %w{app-root runtime .stop_lock})
 
-  case command
-    when "start"
+  case action
+    when 'stop'
       FileUtils.touch stop_lock
-    when "stop"
+    when 'start'
       FileUtils.remove stop_lock
     else
-      env = Utils::Environ.for_gear(File.join(config.get('GEAR_BASE_DIR'), uuid))
-      $stderr.puts "Application is explicitly stopped!  Use 'rhc app start -a #{env['OPENSHIFT_APP_NAME']} to start back up."
+      if File.exist? stop_lock
+        env = Utils::Environ.for_gear(passwd.homedir)
+        $stderr.puts "Application is explicitly stopped!  Use 'rhc app start -a #{env['OPENSHIFT_APP_NAME']} to start back up."
+      end
   end
 
   container = OpenShift::ApplicationContainer.new(uuid, uuid)
-  container.send command.to_sym
+  container.send action.to_sym
+rescue OpenShift::Utils::ShellExecutionException => e
+  $stderr.puts "#{e.message}: rc(#{e.rc})"
+
+  if $DEBUG
+    $stderr.puts "stdout: #{e.stdout}\nstderr#{e.stderr}"
+    $stderr.puts e.backtrace.join("\n")
+  end
+
+  exit -1
 rescue Exception => e
   $stderr.puts e.message
   exit -1

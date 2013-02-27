@@ -16,10 +16,10 @@
 
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/node_logger'
 require 'openshift-origin-common'
 require 'syslog'
 require 'fileutils'
-require 'logger'
 
 module OpenShift
   class FrontendProxyServerException < StandardError
@@ -45,10 +45,9 @@ module OpenShift
   # Note: This is the HAProxy implementation; other implementations may vary.
   class FrontendProxyServer
     include OpenShift::Utils::ShellExec
+    include NodeLogger
 
-    def initialize(logger=nil)
-      @logger = logger ||= Logger.new(STDOUT)
-     
+    def initialize
       # Extract config values and compute the port range this proxy
       # instance should act upon, relative to the given container/user.
       config = OpenShift::Config.new
@@ -137,7 +136,7 @@ module OpenShift
       if (rc != 0)
         message = "System proxy delete of port(s) #{proxy_ports} failed(#{rc}): stdout: #{out} stderr: #{err}"
         if ignore_errors
-          @logger.warn(message)
+          logger.warn(message)
         else
           raise FrontendProxyServerException.new(message)
         end
