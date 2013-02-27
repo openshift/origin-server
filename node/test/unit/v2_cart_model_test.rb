@@ -103,12 +103,12 @@ class V2CartModelTest < Test::Unit::TestCase
   def test_get_system_cartridge_path
     scenarios = { 
       'mock' => '/path/v2/mock',
-      'mock-0.0' => '/path/v2/mock',
+      'mock-0.0' => '/path/v2/mock-0.0',
       'mock-plugin' => '/path/v2/mock-plugin',
-      'mock-plugin-0.0' => '/path/v2/mock-plugin',
+      'mock-plugin-0.0' => '/path/v2/mock-plugin-0.0',
       'mock-' => '/path/v2/mock-',
       'mock--' => '/path/v2/mock--',
-      'mock--0.0' => '/path/v2/mock-',
+      'mock--0.0' => '/path/v2/mock--0.0',
       'mock-0.0-' => '/path/v2/mock-0.0-'
     }
 
@@ -117,23 +117,6 @@ class V2CartModelTest < Test::Unit::TestCase
     scenarios.each do |cart_name, expected_path|
       res = @model.get_system_cartridge_path(cart_name)
       assert_equal expected_path, res
-    end
-  end
-
-  def test_get_cartridge_version_argument
-    scenarios = {
-      'mock' => nil,
-      'mock-0.0' => '0.0',
-      'mock-plugin' => nil,
-      'mock-plugin-0.0' => '0.0',
-      'mock-plugin-' => nil,
-      'mock-plugin--0.0' => '0.0',
-      'mock-plugin-0.0-' => nil
-    }
-
-    scenarios.each do |cart_name, expected_version|
-      res = @model.get_cartridge_version_argument(cart_name)
-      assert_equal expected_version, res
     end
   end
 
