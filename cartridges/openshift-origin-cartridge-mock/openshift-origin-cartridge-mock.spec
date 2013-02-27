@@ -58,6 +58,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 0.0.5-2
+- fix version and tag for build (admiller@redhat.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 0.0.5-1
 - WIP Cartridge Refactor (pmorie@gmail.com)
 - WIP Cartridge Refactor (pmorie@gmail.com)
