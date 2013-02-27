@@ -4,7 +4,7 @@
 # @!attribute [r] capabilities
 #   @return [Hash] Hash representing the capabilities of the user. It is updated using the oo-admin-user-ctl scripts or when a plan changes.
 # @!attribute [r] parent_user_id
-#   @return [Moped::BSON::ObjectId] ID of the parent user object if this object rrepresents a sub-account.
+#   @return [Moped::BSON::ObjectId] ID of the parent user object if this object represents a sub-account.
 # @!attribute [rw] plan_id
 # @!attribute [rw] pending_plan_id
 # @!attribute [rw] pending_plan_uptime
