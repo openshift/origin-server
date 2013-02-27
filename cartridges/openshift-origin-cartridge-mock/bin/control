@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
-source mock-0.1/mock.conf
+PATH=/bin/:/usr/bin:$PATH
+
+source /usr/libexec/openshift/cartridges/v2/mock/mock.conf
 
 case "$1" in
   start)     touch $MOCK_STATE/control_start ;;

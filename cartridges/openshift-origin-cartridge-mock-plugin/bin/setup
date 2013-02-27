@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+# Mock cartridge for testing and verifying node platform code. This is
+# not an example of how to write a well-formed cartridge.
+
+source ~/.env/*
+
+case "$1" in
+  -v|--version)
+    version="$2"
+esac
+
+cartridge_instance_dir=mock-plugin
+
+if [[ -n "$version" ]]; then
+  cartridge_instance_dir="$cartridge_instance_dir-$version"
+fi
+
+source $cartridge_instance_dir/mock-plugin.conf
+
+rm -rf $MOCK_STATE/
+mkdir $MOCK_STATE
+touch $MOCK_STATE/setup_called
+
+function error_exit {
+  echo -e "$1\nexit $2" >$MOCK_STATE/setup_failure
+  echo -e $1 1>&2
+  exit $2
+}
+
+if [[ -n "$version" ]]; then
+  echo "Creating version marker for $version"
+  echo "$version" > $MOCK_STATE/setup_version
+  echo "export OPENSHIFT_MOCK_PLUGIN_VERSION=\'$version\'" > $cartridge_instance_dir/env/OPENSHIFT_MOCK_PLUGIN_VERSION
+else
+  echo "Skipping version creation marker."
+fi
+
+touch $MOCK_STATE/setup_succeed
+
+exit 0

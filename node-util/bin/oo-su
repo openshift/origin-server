@@ -1,0 +1,85 @@
+#!/usr/bin/env oo-ruby
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain arg copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
+
+raise "Must be run as root" if 0 != Process.uid
+
+require 'rubygems'
+require 'openshift-origin-node'
+require 'openshift-origin-node/model/unix_user'
+require 'openshift-origin-node/utils/environ'
+require 'openshift-origin-node/utils/shell_exec'
+require 'etc'
+require 'optparse'
+require 'ostruct'
+
+uuid    = nil
+command = '/bin/bash -l'
+
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: [OPTION] USER [--command COMMAND [ARG]]'
+  opts.separator ''
+  opts.separator 'Options:'
+
+  opts.on('-c', '--command COMMAND', 'command to run in gear context') do |c|
+    command = c
+    opts.terminate
+  end
+
+  opts.on_tail('-d', '--debug', 'enable additional output') { $DEBUG = true }
+  # -h, --help implicate
+end
+
+begin
+  parser.order!(ARGV) do |arg|
+    case
+      when uuid.nil?
+        uuid = arg
+      else
+        $stderr.puts parser.help
+        exit 255
+    end
+  end
+rescue SystemExit
+  raise
+rescue Exception => e
+  $stderr.puts e.message
+  $stderr.puts parser.help
+  raise
+end
+
+# Gather remaining arguments
+command << ' ' << ARGV.join(' ') unless ARGV.empty?
+
+unless uuid && command
+  $stderr.puts "Missing arguments\n"
+  $stderr.puts parser.help
+  exit 255
+end
+
+# Obtain user context
+passwd         = Etc.getpwnam(uuid)
+env            = OpenShift::Utils::Environ.for_gear(passwd.dir)
+env['HOME']    = passwd.dir
+mcs            = OpenShift::UnixUser.get_mcs_label(passwd.uid)
+context        = %Q{unconfined_u:system_r:openshift_t:#{mcs}}
+
+command = %Q{/sbin/runuser -m -s /bin/sh #{passwd.name} -c "exec /usr/bin/runcon '#{context}' #{command}"}
+$stderr.puts "command: #{command}" if $DEBUG
+
+Kernel.exec(env, command,
+            close_others: false,
+            chdir:        passwd.dir)
