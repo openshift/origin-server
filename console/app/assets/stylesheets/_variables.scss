@@ -35,8 +35,10 @@ $openshiftLinkGray:             #909090; /* Used on the signup link */
 $openshiftBorderGray:           #b4b4b2; /* From screenshots */
 $genericLightGreen:             #d4e16b;
 
-$cliText:                       #D0E57B;
-$cliBackground:                 #222222;
+$preBackground:                 #222222;
+$preBorder:                     #000;
+$preColor:                      #babbbc;
+$cliColor:                      #D0E57B;
 
 $breadcrumbDividerColor:        $openshiftDarkRed;
 $breadcrumbTextColor:           $openshiftMediumBackgroundGray; 

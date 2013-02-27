@@ -10,7 +10,7 @@ ProxyPassInterpolateEnv On
 
 # Set RewriteLogLevel to 6 for debugging
 RewriteLog logs/rewrite_log
-RewriteLogLevel 6
+RewriteLogLevel 0
 
 # Apache 2.4
 #LogLevel alert rewrite:trace3
@@ -21,6 +21,12 @@ RewriteMap      openshift-nodes   dbm=db:/etc/httpd/conf.d/openshift/nodes.db
 RewriteMap      openshift-aliases dbm=db:/etc/httpd/conf.d/openshift/aliases.db
 RewriteMap      openshift-idler   dbm=db:/etc/httpd/conf.d/openshift/idler.db
 RewriteMap      openshift-sts     dbm=db:/etc/httpd/conf.d/openshift/sts.db
+
+# Set X-Client-IP to the node which contacted the front-end
+# This being Apache, you can't just use %{REMOTE_ADDR}e.
+RewriteCond %{REMOTE_ADDR} ^(.*)$
+RewriteRule ^.*$ - [E=X_CLIENT_IP:%1]
+RequestHeader set X-Client-IP %{X_CLIENT_IP}e
 
 # Resolve aliases
 RewriteCond ${lowercase:%{HTTP_HOST}} ^(.+)$
@@ -163,12 +169,13 @@ RewriteRule ^(.*)$ http://%{ENV:V_ROUTE}%{ENV:V_PATH} [P,NS]
 # No route, set ProxyPassReverse with valid but useless data
 RewriteRule ^(.*)$ - [E=V_ROUTE:127.0.0.1/,E=V_MATCH_PATH:/]
 
-
-# Set X-Client-IP to the node which contacted the front-end
-RequestHeader set X-Client-IP %{REMOTE_HOST}e
-
-
 #
 # Configure reverse proxy based on set variable
 #
 ProxyPassReverse ${V_MATCH_PATH} http://${V_ROUTE} interpolate
+
+#
+# Log custom format for OpenShift parsing.
+# Log format is:
+LogFormat "%h %{V_MATCH_HOST}e %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X %{V_ROUTE}e%{V_PATH}e" openshift
+CustomLog logs/openshift_log openshift env=V_PATH

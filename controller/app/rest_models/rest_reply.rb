@@ -1,3 +1,32 @@
+##
+# @api REST
+# Wrapper object for all REST API replies
+# Example:
+#   ```
+#   <response>
+#     <status>ok</status>
+#     <type>cartridges</type>
+#     <data>
+#       <cartridge>
+#       ...
+#       </cartridge>
+#     </data>
+#     <messages/>
+#     <version>1.0</version>
+#     <supported-api-versions>
+#       ...
+#       <supported-api-version>1.2</supported-api-version>
+#       <supported-api-version>1.3</supported-api-version>
+#     </supported-api-versions>
+#   </response>
+#
+# @attr [String] version The reply REST API version
+# @attr [String] status The HTTP reply status.
+#   @see {http://foo.com HTTP status codes}
+# @attr [String] type Object type embedded in this REST reply
+# @attr [Object] data The data being returned by this REST reply
+# @attr [Array<Message>] messages Messages and errors returned in the REST reply
+# @attr [Array<String>] supported_api_versions Other supported REST API versions
 class RestReply < OpenShift::Model
   attr_accessor :version, :status, :type, :data, :messages, :supported_api_versions
   
@@ -21,7 +50,7 @@ class RestReply < OpenShift::Model
   
   def to_xml(options={})
     options[:tag_name] = "response"
-    if not self.data.kind_of?Enumerable
+    unless self.data.kind_of? Enumerable
       new_data = self.data
       self.data = [new_data]
     end

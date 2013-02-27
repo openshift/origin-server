@@ -32,6 +32,31 @@ module RestApi
       data[name]['required_params'] if data[name]
     end
 
+    def scopes
+      @scopes ||= begin
+        scopes = data['ADD_AUTHORIZATION']['optional_params'].find{ |s| s['name'] == 'scope' }
+        descriptions = scopes['description'].scan(/(?!\n)\*(.*?)\n(.*?)(?:\n|\Z)/m).inject({}) do |h, (a, b)|
+          h[a.strip] = b.strip if a.present? && b.present?
+          h
+        end
+        scopes['valid_options'].map do |s|
+          h = {:id => s}
+          if s =~ /\:\w+/
+            h[:name] = s
+            h[:parameterized] = true
+          else
+            h[:name] = s.titleize
+          end
+          h[:default] = true if s == scopes['default_value']
+          h[:description] = descriptions[s]
+          h
+        end
+      rescue => e
+        Rails.logger.error "#{e.message} (#{e.class})\n  #{e.backtrace.join("\n  ")}"
+        []
+      end
+    end
+
     cache_find_method :one
   end
 end

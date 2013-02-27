@@ -389,7 +389,7 @@ module OpenShift
       # * quota_files: Integer - max files count
       # 
       # RETURNS:
-      # * Mcollective "result", stdout and exit code
+      # * MCollective "result", stdout and exit code
       #
       # NOTES:
       # * uses execute_direct
@@ -458,7 +458,7 @@ module OpenShift
       # * server_alias: String - the name of the server which will offer this key
       # * passphrase: String - the private key passphrase or '' if its unencrypted.
       # 
-      # RETURNS: a parsed Mcollective result
+      # RETURNS: a parsed MCollective result
       #
       # NOTES:
       # * calls node script oo-ssl-cert-add
@@ -480,7 +480,7 @@ module OpenShift
       # * gear: a Gear object
       # * server_alias: String - the name of the server which will offer this key
       # 
-      # RETURNS: a parsed Mcollective result
+      # RETURNS: a parsed MCollective result
       #
       # NOTES:
       # * calls node script oo-ssl-cert-remove
@@ -503,7 +503,7 @@ module OpenShift
       # * comment: String - identify the key
       #
       # RETURNS:
-      # * Mcollective result string: STDOUT from a command.
+      # * MCollective result string: STDOUT from a command.
       #
       # NOTES:
       # * uses execute_direct
@@ -528,7 +528,7 @@ module OpenShift
       # * comment: String - identify the key
       #
       # RETURNS:
-      # * Mcollective result string: STDOUT from a command.
+      # * MCollective result string: STDOUT from a command.
       #
       # NOTES:
       # * uses execute_direct
@@ -553,7 +553,7 @@ module OpenShift
       # * value: String - environment variable value
       #
       # RETURNS:
-      # * Mcollective result string: STDOUT from a command.
+      # * MCollective result string: STDOUT from a command.
       #
       # NOTES:
       # * uses execute_direct
@@ -576,7 +576,7 @@ module OpenShift
       # * key: String - environment variable name
       #
       # RETURNS:
-      # * Mcollective result string: STDOUT from a command.
+      # * MCollective result string: STDOUT from a command.
       #
       # NOTES:
       # * uses execute_direct
@@ -1880,7 +1880,7 @@ module OpenShift
 
         move_gear_destroy_old(gear, keep_uid, orig_uid, source_container, destination_container)
 
-        log_debug "Successfully moved '#{app.name}' with gear uuid '#{gear.uuid}' from '#{source_container.id}' to '#{destination_container.id}'"
+        log_debug "Successfully moved gear with uuid '#{gear.uuid}' of app '#{app.name}' from '#{source_container.id}' to '#{destination_container.id}'"
         reply
       end
 
@@ -2472,27 +2472,29 @@ module OpenShift
       # * the real switches are the cartridge and action arguments
       #
       def execute_direct(cartridge, action, args, log_debug_output=true)
-          if not args.has_key?('--cart-name')
-            args['--cart-name'] = cartridge
-          end
+        if not args.has_key?('--cart-name')
+          args['--cart-name'] = cartridge
+        end
 
-          mc_args = { :cartridge => cartridge,
-                      :action => action,
-                      :args => args }
-                      
-          rpc_client = rpc_exec_direct('openshift')
-          result = nil
-          begin
-            Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}})"
-            result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
-            Rails.logger.debug "DEBUG: #{result.inspect}" if log_debug_output
-          rescue => e
-            Rails.logger.error("Error processing custom_request for action #{action}")
-            Rails.logger.error(e.backtrace)
-          ensure
-            rpc_client.disconnect
-          end
-          result
+        mc_args = { :cartridge => cartridge,
+                    :action => action,
+                    :args => args }
+
+        start_time = Time.now
+        rpc_client = rpc_exec_direct('openshift')
+        result = nil
+        begin
+          Rails.logger.debug "DEBUG: rpc_client.custom_request('cartridge_do', #{mc_args.inspect}, #{@id}, {'identity' => #{@id}}) (Request ID: #{Thread.current[:user_action_log_uuid]})"
+          result = rpc_client.custom_request('cartridge_do', mc_args, @id, {'identity' => @id})
+          Rails.logger.debug "DEBUG: #{result.inspect} (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
+        rescue => e
+          Rails.logger.error("Error processing custom_request for action #{action}: #{e.message}")
+          Rails.logger.error(e.backtrace)
+        ensure
+          rpc_client.disconnect
+        end
+        Rails.logger.debug "DEBUG: MCollective Response Time (execute_direct: #{action}): #{Time.new - start_time}s  (Request ID: #{Thread.current[:user_action_log_uuid]})" if log_debug_output
+        result
       end
 
       #
@@ -2862,10 +2864,13 @@ module OpenShift
             end
           end
           unless server_infos.empty?
-            server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
-            server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
-            server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
-            server_infos = server_infos.last(8)
+            server_infos.delete_if { |server_info| server_info[2].available_capacity <= 1 } # leave 1 extra to somewhat avoid race condition.  Will get picked up by primary algorithm eventually.
+            unless server_infos.empty?
+              server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
+              server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
+              server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
+              server_infos = server_infos.last(8)
+            end
           end
         end
         current_district = nil
@@ -3157,6 +3162,7 @@ module OpenShift
       #
       def self.execute_parallel_jobs_impl(handle)
         if handle && !handle.empty?
+          start_time = Time.new
           begin
             options = MCollectiveApplicationContainerProxy.rpc_options
             rpc_client = rpcclient('openshift', :options => options)
@@ -3167,7 +3173,7 @@ module OpenShift
                 output = mcoll_reply.results[:data][:output]
                 exitcode = mcoll_reply.results[:data][:exitcode]
                 sender = mcoll_reply.results[:sender]
-                Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}")
+                Rails.logger.debug("DEBUG: Output of parallel execute: #{output}, exitcode: #{exitcode}, from: #{sender}  (Request ID: #{Thread.current[:user_action_log_uuid]})")
                 
                 handle[sender] = output if exitcode == 0
               end
@@ -3175,6 +3181,7 @@ module OpenShift
           ensure
             rpc_client.disconnect
           end
+          Rails.logger.debug "DEBUG: MCollective Response Time (execute_parallel): #{Time.new - start_time}s  (Request ID: #{Thread.current[:user_action_log_uuid]})"
         end
       end
     end

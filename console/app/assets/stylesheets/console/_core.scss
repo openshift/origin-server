@@ -14,7 +14,10 @@
 
 .error-reference { color: #606060 }
 
- 
+pre.cli {
+	color: $cliColor;
+}
+
 @media (max-width: 767px) {
   .form-horizontal .control-label {
     float: none;

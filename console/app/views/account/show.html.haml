@@ -8,8 +8,11 @@
       = render :partial => 'user', :locals => {:user => @user}
 
     %section
-      = render :partial => 'domain', :locals => {:domain => @domain}
+      = render :partial => @domain ? 'domains' : 'add_domain', :locals => {:domain => @domain}
 
   .span5
     %section
-      = render :partial => 'keys', :locals => {:keys => @keys}
+      = render :partial => 'authorizations', :locals => {:authorizations => @authorizations}
+
+    %section
+      = render :partial => @keys.present? ? 'keys' : 'add_key', :locals => {:keys => @keys}

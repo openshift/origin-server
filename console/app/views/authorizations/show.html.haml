@@ -1,0 +1,31 @@
+- content_for :title, "Authorization"
+- breadcrumb_for_account 'Authorization'
+
+%h1 Authorization Token
+= flashes
+
+= semantic_form_for @authorization, :html => {:class => 'form'} do |f|
+  = f.semantic_errors
+  = f.inputs do
+
+    %section
+      %pre.larger{:style => 'word-break: break-all;'}= @authorization.token
+
+      %p The token will allow clients to perform these operations on your behalf:
+      %table.table
+        %tbody
+          - @authorization.scopes.each do |s|
+            - if scope = @scope_definitions.find{ |scope| scope[:match] ? s.match(scope[:match]) : scope[:id].to_s == s.to_s }
+              %tr
+                %td= scope[:id]
+                %td= scope[:description]
+
+      %p
+        = @authorization.note || "<no description>"
+        = link_to "Edit", edit_authorization_path(@authorization), :class => 'btn btn-mini'
+      %p
+        Created on #{@authorization.created_at.to_s(:pretty_date)}, expires in #{distance_of_time_in_words(@authorization.expires_at, Time.now)}
+        = link_to "Delete", authorization_path(@authorization), :title => 'Revoke this authorization token permanently', :class => 'btn btn-danger btn-mini', :method => :delete, :confirm => 'Are you sure you want to revoke this authorization?'
+
+%section
+  = render :partial => 'usage', :locals => {:authorization => @authorization}

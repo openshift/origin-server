@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency "openshift-origin-common"
   s.add_dependency('state_machine')
   s.add_dependency('dnsruby')
-  s.add_dependency('mongoid')
+  s.add_dependency 'mongoid', '>= 3.0.17'
   s.add_development_dependency('rake', '>= 0.8.7', '<= 0.9.2.2')  
   s.add_development_dependency('rspec')
   s.add_development_dependency('bundler')

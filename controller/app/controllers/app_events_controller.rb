@@ -1,6 +1,28 @@
+##
+#@api REST
+# Application management APIs
 class AppEventsController < BaseController
-
-  # POST /domains/[domain_id]/applications/[application_id]/events
+  ##
+  # API to perform manage an application
+  # 
+  # URL: /domains/:domain_id/applications/:application_id/events
+  #
+  # Action: POST
+  # @param [String] event Appliction event to create. Supported types include
+  #   * start: Start all application cartridges
+  #   * stop: Stop all application cartridges
+  #   * force-stop: For all application cartridges to stop
+  #   * restart: Restart all application cartridges
+  #   * add-alias: Associate a new DNS alias with the application. Requires *alias* parameter
+  #   * remove-alias: Unassociate a DNS alias from the application. Requires *alias* parameter
+  #   * scale-up: Trigger a scale-up for the web framework cartridge
+  #   * scale-down: Trigger a scale-down for the web framework cartridge
+  #   * thread-dump: Retrieve a list of all threads running on all gears of the application
+  #   * tidy: Trigger garbage collection and cleanup of logs, git revisions
+  #   * reload: Restart all application cartridges
+  # @param [String] alias DNS alias for the application. Only applicable to add-alias and remove-alias events
+  # 
+  # @return [RestReply<RestApplication>] Application object on which the event operates and messages returned for the event.
   def create
     domain_id = params[:domain_id]
     id = params[:application_id]
@@ -51,7 +73,12 @@ class AppEventsController < BaseController
           msg = "Application #{id} has added alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "remove-alias"
-          r = application.remove_alias(server_alias)
+          begin
+            a = application.aliases.find_by(fqdn: server_alias)
+            r = application.remove_alias(server_alias)
+          rescue Mongoid::Errors::DocumentNotFound => ex
+             #do noting as was the convention in API version <= 1.3
+          end
           msg = "Application #{id} has removed alias"
           # msg += ": #{r.resultIO.string.chomp}" if !r.resultIO.string.empty?
         when "scale-up"

@@ -13,9 +13,6 @@ def usage
 
   *** WARNING *** WARNING *** WARNING *** WARNING ***
 
-  Cloud SDK currently has an odd behavior that makes
-  this script somewhat dangerous.
-
   DO NOT USE THIS SCRIPT TO MODIFY A LOT OF USERS AT ONCE!
 
   *** WARNING *** WARNING *** WARNING *** WARNING ***
@@ -40,7 +37,7 @@ Options:
   --removesubaccount <subaccount login>
     The sub account to remove from the login parent account
   --allowsubaccounts (true|false)
-    Add / Remove the capability to manage sub accounts 
+    Add / Remove the capability to manage sub accounts
   --allowplanupgrade (true|false)
     Add / Remove the capability to upgrade your plan.
   --addgearsize <gearsize>
@@ -167,7 +164,7 @@ def add_sub_account(user, subaccount_login)
     end
 
     begin
-        child_user = CloudUser::find_by(login: subaccount_login)
+        child_user = CloudUser::find_by_identity(subaccount_login)
     rescue Mongoid::Errors::DocumentNotFound
         child_user = nil
     end
@@ -203,7 +200,7 @@ def remove_sub_account(user, subaccount_login)
     end
 
 	  begin
-        child_user = CloudUser::find_by(login: subaccount_login)
+        child_user = CloudUser::find_by_identity(subaccount_login)
     rescue Mongoid::Errors::DocumentNotFound
         puts "Error: Sub Account User '#{subaccount_login}' not found"
         exit 5
@@ -227,8 +224,14 @@ end
 def add_gear_size(user, gear_size)
     user_capabilities = user.get_capabilities
     print "Adding gear size #{gear_size} for user #{user.login}... "
-    gear_sizes = Array(user_capabilities['gear_sizes'])
 
+    available_sizes = Rails.configuration.openshift[:gear_sizes]
+    if ! available_sizes.include? gear_size
+      puts "Size #{gear_size} is not defined. Defined sizes are: #{available_sizes.join ', '}."
+      exit 1
+    end
+
+    gear_sizes = Array(user_capabilities['gear_sizes'])
     if gear_sizes.include?(gear_size)
         puts "User #{user.login} already has gear size #{gear_size} in its capabilities."
         return
@@ -352,7 +355,7 @@ puts
 puts
 
 begin
-    user = CloudUser::find_by(login: login)
+    user = CloudUser.find_by_identity(login)
 rescue Mongoid::Errors::DocumentNotFound
     puts "Error: User '#{login}' not found"
     exit 5
@@ -414,7 +417,7 @@ end
 
 if changed_user
     # reload user with new settings
-    user = CloudUser::find_by(login: login)
+    user = CloudUser.find_by_identity(login)
     puts
     puts
 end

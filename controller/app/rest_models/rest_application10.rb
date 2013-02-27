@@ -1,3 +1,78 @@
+##
+# @api REST
+# Describes an Application
+# @version 1.0
+# @see RestApplication
+#
+# Example:
+#   ```
+#   <application>
+#     <embedded>
+#     </embedded>
+#     <framework>php-5.4</framework>
+#     <name>testapp</name>
+#     <creation-time>2013-02-20T08:29:49Z</creation-time>
+#     <uuid>5124897d6892dfe819000005</uuid>
+#     <aliases/>
+#     <gear-count>1</gear-count>
+#     <domain-id>localns</domain-id>
+#     <gear-profile>small</gear-profile>
+#     <scalable>false</scalable>
+#     <scale-min>1</scale-min>
+#     <scale-max>1</scale-max>
+#     <git-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com/~/git/testapp.git/</git-url>
+#     <app-url>http://testapp-localns.example.com/</app-url>
+#     <ssh-url>ssh://5124897d6892dfe819000005@testapp-localns.example.com</ssh-url>
+#     <health-check-path>health_check.php</health-check-path>
+#     <building-with nil="true"/>
+#     <building-app nil="true"/>
+#     <build-job-url nil="true"/>
+#     <links>
+#       ...
+#     </links>
+#   </applications>
+#   ```
+#
+# @!attribute [r] name
+#   @return [String] Application name
+# @!attribute [r] framework
+#   @return [String] Web framework that runs on this application
+# @!attribute [r] creation_time
+#   @return [DateTime] Date and time the application was created
+# @!attribute [r] uuid
+#   @return [String] UUID for this application
+# @!attribute [r] embedded
+#   @return [Array<RestEmbeddedCartridge10>] Array of support cartridges running in this application
+# @!attribute [r] aliases
+#   @return [Array<String>] Array of DNS aliases assocaited with this application
+# @!attribute [r] gear_count
+#   @return [Integer] Number of gears used by this application
+# @!attribute [r] domain_id
+#   @return [String] Namespace associated with this application
+# @!attribute [r] git_url
+#   @return [String] {http://git-scm.com/ Git} URL to access code for this application
+# @!attribute [r] app_url
+#   @return [String] The FQDN to access this application
+# @!attribute [r] ssh_url
+#   @return [String] username and FQDN that can be used to ssh into the primary application gear
+# @!attribute [r] gear_profile
+#   @return [String] The default gear profile that will be used to create gears for this application
+# @!attribute [r] scalable
+#   @return [Boolean] Indicates if the application is scalable (uses multiple gears) or not (all cartridges on the same gear)
+# @!attribute [r] health_check_path
+#   @return [String] HTTP URI which can be used to determine if the application is up and serving requests.
+# @!attribute [r] building_with
+#   @return [String] Name of cartridge used to initiate CI builds
+# @!attribute [r] building_app
+#   @return [String] Name of Application on which builds are run
+# @!attribute [r] build_job_url
+#   @return [String] URI on the CI server which represents the build job
+# @!attribute [r] initial_git_url
+#   @return [String] URI which was used to initialize the GIT repository for this application
+# @!attribute [r] scale_min
+#   @return [Integer] Minimum number of gears used by the web framework cartridge (Scalable applications only)
+# @!attribute [r] scale_max
+#   @return [Integer] Maximum number of gears used by the web framework cartridge (Scalable applications only)
 class RestApplication10 < OpenShift::Model
   attr_accessor :framework, :creation_time, :uuid, :embedded, :aliases, :name, :gear_count, :links, :domain_id, :git_url, :app_url, :ssh_url,
    :building_with, :building_app, :build_job_url, :gear_profile, :scalable, :health_check_path, :scale_min, :scale_max, :cartridges
@@ -16,7 +91,10 @@ class RestApplication10 < OpenShift::Model
     self.name = app.name
     self.creation_time = app.created_at
     self.uuid = app.uuid
-    self.aliases = app.aliases
+    self.aliases = []
+    app.aliases.each do |a|
+      self.aliases << a.fqdn
+    end
     self.gear_count = app.num_gears
     self.domain_id = domain.namespace
 

@@ -1,30 +1,52 @@
+# @api REST
 class DomainsController < BaseController
 
-  # GET /domains
+  # Retuns list of domains for the current user
+  # 
+  # URL: /domains
+  #
+  # Action: GET
+  # 
+  # @return [RestReply<Array<RestDomain>>] List of domains
   def index
     rest_domains = Array.new
     Rails.logger.debug "Getting domains for user #{@cloud_user.login}"
     domains = Domain.where(owner: @cloud_user)
     domains.each do |domain|
-      rest_domains.push get_rest_domain(domain)
+      rest_domains.push get_rest_domain(domain, @cloud_user)
     end
     render_success(:ok, "domains", rest_domains, "LIST_DOMAINS")
   end
 
-  # GET /domains/<id>
+  # Retuns domain for the current user that match the given parameters.
+  # 
+  # URL: /domains/:id
+  #
+  # Action: GET
+  # 
+  # @param [String] id The namespace of the domain
+  # @return [RestReply<RestDomain>] The requested domain
   def show
     id = params[:id]
     Rails.logger.debug "Getting domain #{id}"
     begin
       domain = Domain.find_by(owner: @cloud_user, canonical_namespace: id.downcase)
       @domain_name = domain.namespace
-      return render_success(:ok, "domain", get_rest_domain(domain), "SHOW_DOMAIN", "Found domain #{id}")
+      return render_success(:ok, "domain", get_rest_domain(domain, @cloud_user), "SHOW_DOMAIN", "Found domain #{id}")
     rescue Mongoid::Errors::DocumentNotFound
       render_error(:not_found, "Domain #{id} not found.", 127, "SHOW_DOMAIN")
     end
   end
 
-  # POST /domains
+  # Create a new domain for the user
+  # 
+  # URL: /domains
+  #
+  # Action: POST
+  #
+  # @param [String] id The namespace for the domain
+  # 
+  # @return [RestReply<RestDomain>] The new domain
   def create
     namespace = params[:id]
     Rails.logger.debug "Creating domain with namespace #{namespace}"
@@ -54,10 +76,19 @@ class DomainsController < BaseController
       return render_exception(e, "ADD_DOMAIN") 
     end
 
-    render_success(:created, "domain", get_rest_domain(domain), "ADD_DOMAIN", "Created domain with namespace #{namespace}")
+    render_success(:created, "domain", get_rest_domain(domain, @cloud_user), "ADD_DOMAIN", "Created domain with namespace #{namespace}")
   end
 
-  # PUT /domains/<existing_id>
+  # Create a new domain for the user
+  # 
+  # URL: /domains/:id
+  #
+  # Action: PUT
+  #
+  # @param [String] id The new namespace for the domain
+  # @param [String] existing_id The current namespace for the domain
+  # 
+  # @return [RestReply<RestDomain>] The updated domain
   def update
     id = params[:existing_id]
     new_namespace = params[:id]
@@ -97,10 +128,16 @@ class DomainsController < BaseController
       return render_exception(e, "UPDATE_DOMAIN") 
     end
     
-    render_success(:ok, "domain", get_rest_domain(domain), "UPDATE_DOMAIN", "Updated domain #{id} to #{new_namespace}")
+    render_success(:ok, "domain", get_rest_domain(domain, @cloud_user), "UPDATE_DOMAIN", "Updated domain #{id} to #{new_namespace}")
   end
 
-  # DELETE /domains/<id>
+  # Delete a domain for the user. Requires that domain be empty unless 'force' parameter is set.
+  # 
+  # URL: /domains/:id
+  #
+  # Action: DELETE
+  #
+  # @param [Boolean] force If true, broker will destroy all application within the domain and then destroy the domain
   def destroy
     id = params[:id]
     force = get_bool(params[:force])
@@ -130,11 +167,17 @@ class DomainsController < BaseController
 
   private
 
-  def get_rest_domain(domain)
+  # Creates a new [RestDomain] or [RestDomain10] based on the requested API version.
+  #
+  # @param [Domain] domain The Domain object
+  # @param [CloudUser] owner of the Domain
+  # @return [RestDomain] REST object for API version > 1.0
+  # @return [RestDomain10] REST object for API version == 1.0
+  def get_rest_domain(domain, owner)
     if requested_api_version == 1.0
-      RestDomain10.new(domain, get_url, nolinks)
+      RestDomain10.new(domain, owner, get_url, nolinks)
     else
-      RestDomain.new(domain, get_url, nolinks)
+      RestDomain.new(domain, owner, get_url, nolinks)
     end
   end
 end

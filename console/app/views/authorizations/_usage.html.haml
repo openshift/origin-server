@@ -1,0 +1,13 @@
+%h2 How to use your token
+
+%p To make a request to the OpenShift REST API, pass the token as an Authorization header
+%pre.code
+  Authorization: Bearer #{authorization.token}
+
+%p For example, from the command line program cURL use the <code>-H</code> option
+%pre.cli
+  curl #{RestApi.info.url}/user -H "Authorization: Bearer #{authorization.token}"
+
+%p You can pass this token directly to the <code>rhc</code> command with the <code>--token</code> option:
+%pre.cli
+  rhc apps --token #{authorization.token}

@@ -16,7 +16,7 @@ class RestApiTest < ActiveSupport::TestCase
 
     @ts = "#{Time.now.to_i}#{gen_small_uuid[0,6]}"
 
-    @user = RestApi::Authorization.new 'test1', '1234'
+    @user = RestApi::Credentials.new 'test1', '1234'
     @auth_headers = {'Cookie' => "rh_sso=1234", 'Authorization' => 'Basic dGVzdDE6'};
 
     ActiveSupport::XmlMini.backend = 'REXML'
@@ -373,15 +373,15 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_create_cookie
     base_connection = ActiveResource::PersistentConnection.new 'http://localhost', :xml
-    connection = RestApi::UserAwareConnection.new base_connection, RestApi::Authorization.new('test1', '1234')
+    connection = RestApi::UserAwareConnection.new base_connection, RestApi::Credentials.new('test1', '1234')
     headers = connection.authorization_header(:post, '/something')
     assert_equal 'rh_sso=1234', headers['Cookie']
   end
 
   def test_reuse_connection
     ActiveResource::HttpMock.enabled = false
-    auth1 = RestApi::Authorization.new('test1', '1234', 'pass1')
-    auth2 = RestApi::Authorization.new('test2', '12345', 'pass2')
+    auth1 = RestApi::Credentials.new('test1', '1234', 'pass1')
+    auth2 = RestApi::Credentials.new('test2', '12345', 'pass2')
 
     assert connection = RestApi::Base.connection(:as => auth1)
     assert connection1 = RestApi::Base.connection(:as => auth1)
@@ -549,7 +549,7 @@ class RestApiTest < ActiveSupport::TestCase
 
   def test_info_hits_server
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/api.json', anonymous_json_header, {:version => '1.0.0'}.to_json
+      mock.get '/broker/rest/api.json', anonymous_json_header(false, false), {:version => '1.0.0'}.to_json
     end
     info = RestApi.info
     assert info
@@ -1075,7 +1075,7 @@ class RestApiTest < ActiveSupport::TestCase
     assert_equal 2, CacheableRestApi.count
     cached.all :as => @user
     assert_equal 2, CacheableRestApi.count
-    cached.all :as => RestApi::Authorization.new('different')
+    cached.all :as => RestApi::Credentials.new('different')
     assert_equal 2, CacheableRestApi.count
   end
 
@@ -1397,7 +1397,7 @@ class RestApiTest < ActiveSupport::TestCase
     quickstart = a_quickstart(additional_tags)
 
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
+      mock.get '/broker/rest/api.json', anonymous_json_header(false,false), {:data => {
         'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
         'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
       }}.to_json
@@ -1409,7 +1409,7 @@ class RestApiTest < ActiveSupport::TestCase
   def mock_quickstart_search
     quickstart = a_quickstart
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {
+      mock.get '/broker/rest/api.json', anonymous_json_header(false,false), {:data => {
         'LIST_QUICKSTARTS' => {'href' => 'https://localhost/community/api/v1/quickstarts/promoted.json'},
         'SHOW_QUICKSTART' => {'href' => 'https://localhost/community/api/v1/quickstart/:id'},
         'SEARCH_QUICKSTARTS' => {'href' => 'https://localhost/arbitrary_url/search.json', :required_params => [:name => 'search']},
@@ -1469,7 +1469,7 @@ class RestApiTest < ActiveSupport::TestCase
     Quickstart.reset!
     RestApi.reset!
     ActiveResource::HttpMock.respond_to do |mock|
-      mock.get '/broker/rest/api.json', anonymous_json_header, {:data => {}}.to_json
+      mock.get '/broker/rest/api.json', anonymous_json_header(false, false), {:data => {}}.to_json
     end
   end
 

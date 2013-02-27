@@ -1,9 +1,16 @@
-require 'rubygems'
 require 'dnsruby'
 
+##
+# @api REST
 class DnsResolvableController < BaseController
-
-  # GET /domains/[domain_id]/applications/<id>/dns_resolvable
+  ##
+  # Support API to check if application DNS entry is available
+  #
+  # URL: /domains/:domain_id/applications/:application_id/dns_resolvable
+  #
+  # Action: GET
+  #
+  # @return [RestReply<Boolean>] Returns true when DNS entry is resolvable
   def show
     domain_id = params[:domain_id]
     id = params[:application_id]

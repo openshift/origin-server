@@ -1,3 +1,5 @@
+##
+# @api REST
 # Messages to return to the REST client
 # @!attribute [r] severity
 #   @return [String] Severity of the message (debug, info, error)

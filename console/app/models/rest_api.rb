@@ -4,7 +4,7 @@ module RestApi
   API_VERSION = '1.3'
 
   #
-  # An Authorization object should expose:
+  # An simple credential object exposes:
   #
   #  login - method returning an identifier for the user
   #
@@ -13,7 +13,7 @@ module RestApi
   #  ticket - the unique ticket for the session
   #  password - a user password
   #
-  class Authorization
+  class Credentials
     attr_reader :login, :ticket, :password
     def initialize(login,ticket=nil,password=nil)
       @login = login

@@ -598,11 +598,14 @@ module OpenShift
       end
 
       NodeJSDBRoutes.open(NodeJSDBRoutes::WRCREAT) do |d|
-        routes_ent = d.fetch(@fqdn)
-        if not routes_ent.nil?
-          alias_ent = routes_ent.clone
-          alias_ent["alias"] = @fqdn
-          d.store(name, alias_ent)
+        begin
+          routes_ent = d.fetch(@fqdn)
+          if not routes_ent.nil?
+            alias_ent = routes_ent.clone
+            alias_ent["alias"] = @fqdn
+            d.store(name, alias_ent)
+          end
+        rescue KeyError
         end
       end
 
@@ -665,16 +668,16 @@ module OpenShift
       begin
         priv_key_clean = OpenSSL::PKey.read(priv_key, passphrase)
         ssl_cert_clean = OpenSSL::X509::Certificate.new(ssl_cert)
-      rescue AttributeError
-        raise FrontendHttpServerException.new("Invalid Private Key or Passphrase",
+      rescue OpenSSL::X509::AttributeError => e
+        raise FrontendHttpServerException.new("Invalid Private Key or Passphrase: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
-      rescue OpenSSL::X509::CertificateError
-        raise FrontendHttpServerException.new("Invalid X509 Certificate",
+      rescue OpenSSL::X509::CertificateError => e
+        raise FrontendHttpServerException.new("Invalid X509 Certificate: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
       rescue => e
-        raise FrontendHttpServerException.new("Other key/cert error: #{e}",
+        raise FrontendHttpServerException.new("Other key/cert error: #{e.message}",
                                               @container_uuid, @container_name,
                                               @namespace)
       end

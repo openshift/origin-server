@@ -443,10 +443,49 @@ class OODiag
     require_rpm_minimum_version 'selinux-policy', "3.7.19", "155.el6_3.8"
   end
 
+  def test_selinux_enabled
+    case enforce = `getenforce`.chomp.downcase
+    when 'disabled'
+      do_fail <<-DISABLED
+      SELinux is DISABLED according to getenforce.
+      OpenShift will break in various ways without SELinux.
+      You need to at least enable SELinux, even if it is just in permissive mode.
+      To enable SELinux, edit /etc/selinux/config and set SELINUX=permissive
+      If this system was installed with SELinux disabled, you will probably have
+      broken contexts and be unable to run in enforcing mode.
+      DISABLED
+    when 'permissive'
+      do_warn <<-PERMISSIVE
+      SELinux is in permissive mode according to getenforce.
+      This means you are not getting any security benefit from SELinux.
+      If possible, edit /etc/selinux/config and set SELINUX=enforcing
+      and also run "setenforce 1" to enable enforcing mode.
+      PERMISSIVE
+    when 'enforcing'
+      # would like to test that major contexts are correct
+      broken = ""
+      #broken += `restorecon -Rnv /etc` # some of these are kind of spurious
+      broken += `restorecon -Rnv /var/www/openshift/` if @is_broker
+      broken += `restorecon -Rnv /usr/libexec/openshift/` if @is_node
+      do_warn <<-CONTEXT unless broken.empty?
+      The following changes should be made to SELinux file contexts. Incorrect contexts
+      are likely to cause problems with OpenShift operations. Please review and apply
+      the "restorecon" command to fix these as needed. \n#{broken}
+      CONTEXT
+    else
+      do_fail "Received unexpected status from getenforce: #{enforce}"
+    end
+  end
+
   def test_broker_cache_permissions
     skip_test unless @is_broker
-    if `find /var/www/openshift/broker/tmp/cache/* -user root`.length > 0
-      do_fail "broker application cache contains files belonging to root; please clear the cache"
+    if `find /var/www/openshift/broker/tmp/cache/* -user root 2> /dev/null`.length > 0
+      do_fail <<-PERMS
+        Broker application cache contains files belonging to root. This will probably
+        result in cache items that can't expire. Please clear the cache by executing:
+            # cd /var/www/openshift/broker
+            # bundle exec rake tmp:clear
+      PERMS
     else
       verbose "broker application cache permissions appear fine"
     end

@@ -2,7 +2,7 @@ class QuickstartsController < BaseController
   clear_respond_to
   respond_to :json
 
-  skip_before_filter :authenticate
+  skip_before_filter :authenticate_user!
 
   def index
     render_success(:ok, "quickstarts", quickstarts, "LIST_QUICKSTARTS", "Showing all quickstarts")

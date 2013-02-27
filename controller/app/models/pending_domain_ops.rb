@@ -40,7 +40,7 @@ class PendingDomainOps
   end
   
   def completed?
-    (self.state == :completed) || ((on_apps.length - completed_apps.length)==0)
+    (self.state == :completed) || ((on_apps.length - completed_apps.length) == 0)
   end
   
   def close_op
@@ -51,9 +51,30 @@ class PendingDomainOps
   end
 
   def child_completed(app)
-    completed_apps << app
-    if completed?
-      self.set(:state, :completed)
+    retries = 0
+    success = false
+
+    # find the op index and do an atomic update
+    op_index = self.domain.pending_ops.index(self) 
+    while retries < 5
+      retval = Domain.with(consistency: :strong).where({ "_id" => self.domain._id, "pending_ops.#{op_index}._id" => self._id }).update({"$addToSet" => { "pending_ops.#{op_index}.completed_app_ids" => app._id }})
+
+      # the op needs to be reloaded to either set the :state or to find the updated index
+      reloaded_domain = Domain.with(consistency: :strong).find_by(_id: self.domain._id)
+      current_op = reloaded_domain.pending_ops.find_by(_id: self._id)
+      if retval["updatedExisting"]
+        current_op.set(:state, :completed) if current_op.completed?
+        success = true
+        break
+      else
+        op_index = reloaded_domain.pending_ops.index(current_op)
+        retries += 1
+      end
     end
+    
+    # log the details in case we cannot update the pending_op
+    unless success
+      Rails.logger.error "Failed to add application #{app._id} to the completed_apps for pending_op #{self._id} for domain #{self.domain.namespace}"
+    end  
   end
 end

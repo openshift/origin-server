@@ -35,6 +35,8 @@ module Console
     config_accessor :cartridge_type_metadata
     config_accessor :include_helpers
 
+    config_accessor :community_url
+
     #
     # A class that represents the capabilities object
     #
@@ -49,11 +51,9 @@ module Console
     Builtin = {
       :openshift => {
         :url => 'https://openshift.redhat.com/broker/rest',
-        :suffix => 'rhcloud.com'
       },
       :local => {
         :url => 'https://localhost/broker/rest',
-        :suffix => 'dev.rhcloud.com'
       }
     }
     Builtin.freeze
@@ -82,7 +82,7 @@ module Console
           Valid symbols: #{Builtin.each_key.collect {|k| ":#{k}"}.concat([:external]).join(', ')}
           Valid api object:
             {
-              :url => '' # A URL pointing to the root of the REST API, e.g. 
+              :url => '' # A URL pointing to the root of the REST API, e.g.
                          # https://openshift.redhat.com/broker/rest
             }
         EXCEPTION
@@ -120,6 +120,8 @@ module Console
         raise InvalidConfiguration, "BROKER_URL not specified in #{file}" unless config[:BROKER_URL]
 
         freeze_api(api_config_from(config), file)
+
+        self.community_url = config[:COMMUNITY_URL]
 
         case config[:CONSOLE_SECURITY]
         when 'basic'
@@ -159,7 +161,6 @@ module Console
         end.merge({
           :url    => config[:BROKER_URL],
           :proxy  => config[:BROKER_PROXY_URL],
-          :suffix => config[:DOMAIN_SUFFIX],
         })
       end
 

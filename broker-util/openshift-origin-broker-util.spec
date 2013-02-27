@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.3
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -49,6 +49,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %attr(0750,-,-) %{_sbindir}/oo-admin-chk
 %attr(0750,-,-) %{_sbindir}/oo-admin-clear-pending-ops
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-app
+%attr(0750,-,-) %{_sbindir}/oo-admin-ctl-authorization
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-district
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-domain
 %attr(0750,-,-) %{_sbindir}/oo-admin-ctl-user
@@ -78,6 +79,20 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Implement authorization support in the broker (ccoleman@redhat.com)
+
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- bug 915228 - <oo-admin-ctl-user> validate gear size before adding
+  https://bugzilla.redhat.com/show_bug.cgi?id=915228 Adding an invalid gear
+  size shouldn't be successful. Check against configured gear sizes first.
+  (lmeyer@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- admin script to push clogged pending ops (rchopra@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - showiing usage duration and cost based on timeframe specified
   (abhgupta@redhat.com)

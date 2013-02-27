@@ -1,3 +1,26 @@
+##
+# @api REST
+# Describes an SSH Key assocaited with a user
+# @see RestUser
+#
+# Example:
+#   ```
+#   <key>
+#     <name>default</name>
+#     <content>AAAAB3Nz...SeRRcMw==</content>
+#     <type>ssh-rsa</type>
+#     <links>
+#     ...
+#     </links>
+#   </key>
+#   ```
+#
+# @!attribute [r] name
+#   @return [String] Name of the ssh key
+# @!attribute [r] content
+#   @return [String] Content of the SSH public key
+# @!attribute [r] type
+#   @return [String] Type of the ssh-key. Eg: ssh-rsa
 class RestKey < OpenShift::Model
   attr_accessor :name, :content, :type, :links
   

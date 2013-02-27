@@ -23,6 +23,7 @@ class Domain
   
   include Mongoid::Document
   include Mongoid::Timestamps
+  alias_method :mongoid_save, :save
 
   field :namespace, type: String
   field :canonical_namespace, type: String
@@ -50,6 +51,13 @@ class Domain
   def initialize(attrs = nil, options = nil)
     super
     self.user_ids << owner._id if owner
+  end
+  
+  def save(options = {})
+    notify = !self.persisted?
+    res = mongoid_save(options)
+    notify_observers(:domain_create_success) if notify
+    res
   end
 
   # Setter for domain namespace - sets the namespace and the canonical_namespace
@@ -90,6 +98,7 @@ class Domain
     pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {"old_ns" => op.arguments["old_ns"], "new_ns" => op.arguments["new_ns"]}, parent_op: nil, on_apps: op.on_apps, state: "init")
     self.pending_ops.push pending_op
     self.run_jobs
+    notify_observers(:domain_update_success)
   end
   
   # Adds a user to the access list for this domain.
@@ -214,6 +223,19 @@ class Domain
     begin
       while self.pending_ops.where(state: "init").count > 0
         op = self.pending_ops.where(state: "init").first
+        
+        # get the op based on _id so that a reload does not replace it with another one based on position
+        op = self.pending_ops.find_by(_id: op._id)
+        
+        # try to do an update on the pending_op state and continue ONLY if successful
+        op_index = self.pending_ops.index(op) 
+        retval = Domain.with(consistency: :strong).where({ "_id" => self._id, "pending_ops.#{op_index}._id" => op._id, "pending_ops.#{op_index}.state" => "init" }).update({"$set" => { "pending_ops.#{op_index}.state" => "queued" }})
+        
+        unless retval["updatedExisting"]
+          self.with(consistency: :strong).reload
+          next
+        end
+
         case op.op_type
         when :add_ssh_key
           op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
@@ -241,9 +263,6 @@ class Domain
         self.with(consistency: :strong).reload
         op = self.pending_ops.find_by(_id: op._id)
         
-        # set the op state to :queued if it is still in the :init state
-        op.set(:state, :queued) if op.state == :init
-
         op.close_op
         op.delete if op.completed?
       end

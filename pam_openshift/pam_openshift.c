@@ -183,24 +183,25 @@ static int is_on_list(char * const *list, const char *member)
 
 static int openshift_domain(pam_handle_t *pamh, struct passwd *pw) {
 	struct group *grp;
-        char *secontext;
+        security_context_t secontext;
+        context_t parsed_context;
+        char * comp_context = "openshift_var_lib_t";
         int selength;
+        int cmpval=0;
 
 	if (!pw->pw_uid) return 0;
 
         if (strlen(pw->pw_dir)!=0) {
-          secontext=(char *)malloc(ATTR_MAX_VALUELEN);
-          selength=ATTR_MAX_VALUELEN;
-          if (attr_get(pw->pw_dir, "selinux",
-                       secontext, &selength,
-                       ATTR_DONTFOLLOW | ATTR_SECURE) == 0) {
-            if(strncmp(secontext, "system_u:object_r:openshift_var_lib_t:s0",
-                       selength)!=0) {
-              free(secontext);
-              return 0;
-            }
+          selength = getfilecon(pw->pw_dir, & secontext);
+          if ( selength > 0) {
+            parsed_context = context_new(secontext);
+            cmpval = strcmp(context_type_get(parsed_context), comp_context);
+            context_free(parsed_context);
+            freecon(secontext);
           }
-          free(secontext);
+          if (cmpval != 0) {
+            return 0;
+          }
         }
 
 	if ((grp = pam_modutil_getgrnam (pamh, "wheel")) == NULL) {

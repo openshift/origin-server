@@ -1,6 +1,6 @@
 Summary:       Openshift PAM module
 Name:          pam_openshift
-Version:       1.3.2
+Version:       1.3.3
 Release:       1%{?dist}
 Group:         System Environment/Base
 License:       GPLv2
@@ -41,6 +41,12 @@ install -D -m 755 oo-namespace-init %{buildroot}/%{_sbindir}/oo-namespace-init
 %attr(0755,root,root) %{_sbindir}/oo-namespace-init
 
 %changelog
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.3.3-1
+- Configure is unused and .la should be generated when its needed.
+  (rmillner@redhat.com)
+- Inspect just the selinux type rather than the whole returned string.
+  (rmillner@redhat.com)
+
 * Fri Feb 08 2013 Adam Miller <admiller@redhat.com> 1.3.2-1
 - change %%define to %%global (tdawson@redhat.com)
 

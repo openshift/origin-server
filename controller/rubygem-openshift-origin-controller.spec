@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.5
+Version:       1.5.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,30 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
+- Implement authorization support in the broker (ccoleman@redhat.com)
+
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.6-2
+- bump Release for fixed build target rebuild (admiller@redhat.com)
+
+* Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
+- avoiding unnecessary mongoid calls (abhgupta@redhat.com)
+- Merge pull request #1438 from
+  smarterclayton/bug_912286_cleanup_robots_misc_for_split
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 914639 (dmcphers@redhat.com)
+- handling pending_ops correctly in run_jobs in case of multiple processes
+  running simultaneously (abhgupta@redhat.com)
+- Bug 912286 - Allow quickstart link to be server relative
+  (ccoleman@redhat.com)
+- Merge pull request #1428 from pravisankar/dev/ravi/bug912208
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 912208 - Fix app creation for medium gears (rpenta@redhat.com)
+- Merge pull request #1426 from fotioslindiakos/find_application
+  (dmcphers+openshiftbot@redhat.com)
+- Fixed rhc_ctl_destroy helper to look for correct exit code and run faster
+  (fotios@redhat.com)
+
 * Wed Feb 20 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
 - Tests for node web proxy. (mrunalp@gmail.com)
 - Relaxing restrictions on ssh key names (abhgupta@redhat.com)

@@ -3,7 +3,7 @@ require File.expand_path('../../test_helper', __FILE__)
 class HelpLinkTest < ActionDispatch::IntegrationTest
   class << self
     def urls_from_module(mod)
-      obj = Class.new { include mod }.new
+      obj = Class.new { include Console::CommunityAware; include mod }.new
 
       mod.public_instance_methods.collect do |name|
         mod.instance_method(name)

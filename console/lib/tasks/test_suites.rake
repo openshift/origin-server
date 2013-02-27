@@ -35,8 +35,6 @@ namespace :test do
       t.libs << 'test'
       covered.concat(t.test_files = FileList[
         'test/functional/applications_controller_sanity_test.rb',
-        'test/functional/applications_controller_test.rb',
-        'test/functional/application_types_controller_test.rb',
       ])
     end
 
@@ -51,6 +49,8 @@ namespace :test do
     Rake::TestTask.new :misc1 => ['test:prepare'] do |t|
       t.libs << 'test'
       covered.concat(t.test_files = FileList[
+        'test/functional/applications_controller_test.rb',
+        'test/functional/application_types_controller_test.rb',
         'test/functional/domains_controller_test.rb',
         'test/functional/scaling_controller_test.rb',
       ])
