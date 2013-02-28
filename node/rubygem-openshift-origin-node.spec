@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -225,6 +225,14 @@ done
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Merge pull request #1486 from lnader/revert_pull_request_1
+  (dmcphers@redhat.com)
+- reverted US2448 (lnader@redhat.com)
+- Bug 901424 - Hide the mco command. (rmillner@redhat.com)
+- Bug 901743 - Add the various other commonly used TMP variables.
+  (rmillner@redhat.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - Merge pull request #1477 from ironcladlou/dev/cartridge_refactor
   (dmcphers@redhat.com)
