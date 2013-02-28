@@ -2,7 +2,7 @@
 
 Summary:       Provides mod_perl support
 Name:          openshift-origin-cartridge-perl-5.10
-Version:       1.5.3
+Version:       1.5.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -102,6 +102,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
+- Bug 913217 (bdecoste@gmail.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.5.3-1
 - Switch from VirtualHosts to mod_rewrite based routing to support high
   density. (rmillner@redhat.com)
