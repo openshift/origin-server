@@ -264,6 +264,15 @@ class ApplicationsControllerTest < ActionController::TestCase
     assert_template :delete
   end
 
+  test 'application destroy should clear session and succeed' do
+    with_domain
+    app = Application.create(:name => 'delete1', :cartridge => 'php-5.3', :domain => @domain)
+    assert app.persisted?
+    delete :destroy, {:id => app.name}, user_to_session(@user, :caps => [3])
+    assert_redirected_to applications_path
+    assert_nil session[:caps]
+  end
+
   test 'should support the creation of scalable apps with medium gears for privileged users' do
     with_user_with_multiple_gear_sizes
     find_or_create_domain
