@@ -37,6 +37,7 @@ OpenShift Origin sources are arranged into 5 repositories:
   + [Control Groups in OpenShift](file.cgroups.html)
   + [How nodes act on behalf of the user](file.how_nodes_act_on_behalf_of_users.html)
   + [Scaling in OpenShift](file.scaling.html)
+  + [Guidelines for API documentation](file.api_documentation.html)
   + [Guidelines for supplimental documentation](file.doc_guidelines.html)
 
 ##Discussion Forums
