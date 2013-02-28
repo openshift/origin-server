@@ -297,6 +297,12 @@ module OpenShift
       end
     end
 
+    def tidy()
+      with_ex_handling do 
+        @gear.container.tidy
+      end
+    end
+
     def with_ex_handling
       begin
         yield

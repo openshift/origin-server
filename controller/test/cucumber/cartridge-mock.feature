@@ -37,13 +37,14 @@ Feature: V2 SDK Mock Cartridge
     And the mock control_deploy marker will exist
     And the mock control_start marker will exist
 
+    When I call tidy on the application
+    Then the mock control_tidy marker will exist
+
     When I destroy the application
     Then the application git repo will not exist
 
-  # Scenario: Update application
   # Scenario: Add cartridge w/ user-specified repo
   # Scenario: Move
-  # Scenario: Tidy
   # Scenario: Access via SSH
 
   # Client tools tests
