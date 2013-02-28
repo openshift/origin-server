@@ -9,7 +9,7 @@ done
 source "/etc/openshift/node.conf"
 source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
 
-JBOSS_DIR="$OPENSHIFT_HOMEDIR/jbossews-2.0/jbossews-2.0"
+JBOSS_DIR="$OPENSHIFT_HOMEDIR/jbossews-1.0/jbossews-1.0"
 
 # Clean up logs
 for logdir in `awk 'BEGIN {
