@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS1.0 support
 Name:          openshift-origin-cartridge-jbossews-1.0
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -123,6 +123,11 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Merge pull request #1474 from bdecoste/master (dmcphers@redhat.com)
+- Bug 913217 (bdecoste@gmail.com)
+- Bug 913217 (bdecoste@gmail.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Bug 895507 (bdecoste@gmail.com)
 
