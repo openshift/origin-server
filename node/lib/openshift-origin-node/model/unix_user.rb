@@ -503,6 +503,9 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
       }
 
       add_env_var("TMP_DIR", "/tmp/", true)
+      add_env_var("TMP_DIR", "/tmp/", false)
+      add_env_var("TMPDIR", "/tmp/", false)
+      add_env_var("TMP", "/tmp/", false)
 
       # Update all directory entries ~/app-root/*
       Dir[gearappdir + "/*"].entries.reject{|e| [".", ".."].include? e}.each {|e|

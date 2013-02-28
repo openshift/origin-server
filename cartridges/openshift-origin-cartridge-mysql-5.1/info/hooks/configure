@@ -119,7 +119,7 @@ fi
 client_result ""
 client_result "MySQL 5.1 database added.  Please make note of these credentials:"
 client_result ""
-client_result "   Root User: $username"
+client_result "       Root User: $username"
 client_result "   Root Password: $password"
 client_result "   Database Name: ${dbname}"
 client_result ""
