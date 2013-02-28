@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.6
+Version:       1.5.7
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,19 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
+- Merge pull request #1441 from pravisankar/dev/ravi/us3409
+  (dmcphers+openshiftbot@redhat.com)
+- fix oo-admin-clear-pending-ops with respect to rollbacks (rchopra@redhat.com)
+- Added index on 'login' for usage_record and usage mongoid models Added
+  separate usage audit log, /var/log/openshift/broker/usage.log instead of
+  syslog. Moved user action log from /var/log/openshift/user_action.log to
+  /var/log/openshift/broker/user_action.log Added Distributed lock used in oo-
+  admin-ctl-usage script Added Billing Service interface Added oo-admin-ctl-
+  usage script to list and sync usage records to billing vendor Added oo-admin-
+  ctl-usage to broker-util spec file Fixed distributed lock test Add billing
+  service to origin-controller Some more bug fixes (rpenta@redhat.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - Bug 914639 (dmcphers@redhat.com)
 
