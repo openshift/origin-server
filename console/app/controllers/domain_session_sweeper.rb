@@ -6,7 +6,10 @@ class DomainSessionSweeper < ActiveModel::Observer
     true
   end
   def self.after(controller)
-    controller.session[:domain] = nil if self.domain_changes?
+    if self.domain_changes?
+      controller.session[:domain] = nil
+      Rails.logger.debug "Session domain is reset"
+    end
   end
 
   def self.domain_changes?
