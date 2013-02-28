@@ -155,7 +155,7 @@ jenkins_build = #{@jenkins_build}
     def curl_head_success?(url, host=nil, http_code=200)
       response_code = curl_head(url, host)
       is_http = url.start_with?('http://')
-      if (is_http && response_code.to_i == 301)
+      if (is_http && (response_code.to_i == 301 || response_code.to_i == 302))
         url = "https://#{url[7..-1]}"
         response_code = curl_head(url, host)
       end
