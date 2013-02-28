@@ -142,10 +142,6 @@ class ApplicationsTest < ActionDispatch::IntegrationTest #ActiveSupport::TestCas
   end
 
   def teardown
-    @domain.reload
-    @domain.applications.each do |app|
-      app.delete
-    end
     @domain.reload.delete
     @user.reload.delete
     Mocha::Mockery.instance.stubba.unstub_all

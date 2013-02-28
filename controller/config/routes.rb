@@ -24,7 +24,6 @@ Rails.application.routes.draw do
         end
         resources :events, :controller => :app_events, :only => :create
         resource :dns_resolvable, :only => :show, :controller => :dns_resolvable
-        resources :aliases, :controller => :alias, :constraints => { :id => /[\w]+/ }
       end
     end
     root as: 'rest', to: redirect{ |params, request| "#{request.script_name}/rest/api" }
