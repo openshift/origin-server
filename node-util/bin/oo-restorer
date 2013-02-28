@@ -55,7 +55,7 @@ primary_framework_cart=${framework_carts[0]}
 stop_lock_file="${OPENSHIFT_HOMEDIR}/${primary_framework_cart}/run/stop_lock"
 state=`cat $OPENSHIFT_HOMEDIR/app-root/runtime/.state`
 
-idled_proxy=`oo-frontend-check-idle --with-container-uuid $uuid ; echo $?`
+idled_proxy=`oo-ruby /usr/bin/oo-frontend-check-idle --with-container-uuid $uuid ; echo $?`
 if [ -f "$stop_lock_file" -o 'idled' = "$state" -o 0 -eq "$idled_proxy" ]
 then
     rm -f "$stop_lock_file"
@@ -70,6 +70,6 @@ runuser --shell /bin/sh "$uuid" -c "echo started >$OPENSHIFT_HOMEDIR/app-root/ru
 /usr/bin/timeout -s USR1 120s /usr/sbin/oo-admin-ctl-gears startgear "${uuid}"
 
 # Enable proxy setup
-oo-frontend-unidle --with-container-uuid $uuid
+oo-ruby /usr/bin/oo-frontend-unidle --with-container-uuid $uuid
 
 /usr/bin/logger -p local0.notice -t oo_restorer "Restored: ${uuid}"
