@@ -6,15 +6,19 @@ module OpenShift::Runtime
 			attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name
 		end
 
-		attr_reader :name, :namespace, :endpoints
+		attr_reader :name, :namespace, :endpoints, :short_name, :vendor, :version
 
     @@ENDPOINT_PATTERN = /([A-Z_0-9]+):([A-Z_0-9]+)\((\d+)\):?([A-Z_0-9]+)?/
 
 		def initialize(manifest = {})
 			@name = manifest["Name"]
+      # FIXME: remove after element is renamed to CartridgeShortName
 			@namespace = manifest["Namespace"]
-      endpoint_strings = manifest["Endpoints"] ||= []
+			@short_name = manifest["CartridgeShortName"] ||= manifest["Namespace"]
+      @vendor = manifest['CartridgeVendor'] ||= "not_provided"
+      @version = manifest['CartridgeVersion']
 
+      endpoint_strings = manifest["Endpoints"] ||= []
       @endpoints = parse_endpoints(endpoint_strings)
 		end
 

@@ -285,21 +285,24 @@ module OpenShift
     #
     #   v2_cart_model.create_cartridge_directory('php-5.3')
     def create_cartridge_directory(cartridge_name)
-      logger.info("Creating cartridge directory for #{cartridge_name}")
+      logger.info("Creating cartridge directory for #{@user.uuid}/#{cartridge_name}")
       # TODO: resolve correct location of v2 carts
       source = get_system_cartridge_path(cartridge_name)
       raise "Cartridge #{cartridge_name} is not installed on system." unless File.exist? source
 
       entries = Dir.glob(source + '/*')
-      entries.delete_if { |e| e.end_with?('/opt') }
+      entries.delete_if { |e| e.end_with?('/usr') }
 
       target = File.join(@user.homedir, cartridge_name)
       Dir.mkdir target
       Utils.oo_spawn("/bin/cp -ad #{entries.join(' ')} #{target}",
                      expected_exitstatus: 0)
 
-      opt_path = File.join(source, 'opt')
-      FileUtils.symlink(opt_path, File.join(target, 'opt')) if File.exist? opt_path
+      manifest = get_cartridge(cartridge_name)
+      write_environment_variable(manifest, File.join(target, 'env'), dir: target)
+
+      usr_path = File.join(source, 'usr')
+      FileUtils.symlink(usr_path, File.join(target, 'usr')) if File.exist? usr_path
 
       mcs_label = @user.get_mcs_label(@user.uid)
       Utils.oo_spawn(
@@ -316,6 +319,20 @@ module OpenShift
       logger.info("Created cartridge directory #{cartridge_name} for #{@user.uuid}")
       nil
     end
+
+    ##
+    # Write out cartridge environment variables
+    def write_environment_variable(manifest, path, *hash)
+      FileUtils.mkpath(path) unless File.exist? path
+
+      hash.first.each_pair do |k, v|
+        name = "OPENSHIFT_#{manifest.short_name.upcase}_#{k.to_s.upcase}"
+        File.open(PathUtils.join(path, name), 'w', 0660) do |f|
+          f.write(%Q(export #{name}='#{v}'))
+        end
+      end
+    end
+
 
     def delete_cartridge_directory(cartridge_name)
       logger.info("Deleting cartridge directory for #{cartridge_name}")

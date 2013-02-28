@@ -18,34 +18,53 @@ require_relative '../../lib/openshift-origin-node/model/v2_cart_model'
 require_relative '../../lib/openshift-origin-node/model/cartridge'
 require_relative '../../lib/openshift-origin-node/utils/shell_exec'
 
+require 'pathname'
+require 'ostruct'
 require 'test/unit'
 require 'mocha'
-require 'pathname'
 
 module OpenShift
   class V2CartridgeModelFuncTest < Test::Unit::TestCase
-           MockUser = Struct.new(:gid, :uid, :homedir) do
-         def get_mcs_label(uid)
-           's0:c0,c1000'
-         end
-       end
+    MockUser = Struct.new(:gid, :uid, :homedir) do
+      def get_mcs_label(uid)
+        's0:c0,c1000'
+      end
+    end
     # Called before every test method runs. Can be used
     # to set up fixture information.
     def setup
       @uuid    = `uuidgen -r |sed -e s/-//g`.chomp
       @homedir = "/tmp/tests/#@uuid"
       FileUtils.mkpath(File.join(@homedir, 'mock', 'metadata'))
+      FileUtils.mkpath(File.join(@homedir, 'mock', 'env'))
 
       @files = [File.join(@homedir, 'mock/a'), File.join(@homedir, '.mocking_bird')]
-      @dirs = [File.join(@homedir, 'mock/b/')]
+      @dirs  = [File.join(@homedir, 'mock/b/')]
 
-      user = MockUser.new(1000, 1000, @homedir.to_s)
+      user   = MockUser.new(1000, 1000, @homedir.to_s)
       @model = V2CartridgeModel.new(nil, user)
     end
 
     def teardown
       FileUtils.rm_rf(@homedir)
     end
+
+    def test_environment_variable
+      cartridge_home = File.join(@homedir, 'mock-0.0')
+
+      manifest            = OpenStruct.new
+      manifest.short_name = 'MOCK'
+      @model.write_environment_variable(manifest,
+                                  File.join(cartridge_home, 'env'),
+                                  dir: cartridge_home)
+
+      expected = File.join(cartridge_home, 'env', 'OPENSHIFT_MOCK_DIR')
+      assert File.file?(expected), "#{expected} is missing"
+
+      path = File.read(File.join(cartridge_home, 'env', 'OPENSHIFT_MOCK_DIR'))
+      assert cartridge_home, path
+    end
+
 
     def test_do_unlock_gear
       @model.do_unlock(@files + @dirs)
