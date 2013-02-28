@@ -5,11 +5,10 @@ set -x
 PATH=/bin:/usr/bin:$PATH
 
 version=5.3
-OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/php"
-ls -lZa $OPENSHIFT_HOMEDIR/php
+OPENSHIFT_PHP_DIR="$OPENSHIFT_HOMEDIR/php-$version"
 ls -lZa
-echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_HOMEDIR/php/env/OPENSHIFT_PHP_VERSION"
-echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_HOMEDIR/php/env/OPENSHIFT_PHP_DIR"
+echo "export OPENSHIFT_PHP_VERSION='$version'" > "$OPENSHIFT_HOMEDIR/php-$version/env/OPENSHIFT_PHP_VERSION"
+echo "export OPENSHIFT_PHP_DIR='$OPENSHIFT_PHP_DIR'" > "$OPENSHIFT_HOMEDIR/php-$version/env/OPENSHIFT_PHP_DIR"
 id
 
 # Copy the version specific files upto php directory
