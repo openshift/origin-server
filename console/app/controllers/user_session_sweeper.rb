@@ -6,7 +6,10 @@ class UserSessionSweeper < ActiveModel::Observer
     true
   end
   def self.after(controller)
-    controller.session[:user_capabilities] = nil if self.user_changes?
+    if self.user_changes?
+      controller.session[:caps] = nil
+      Rails.logger.debug "Session capabilities are reset"
+    end
   end
 
   def self.user_changes?
