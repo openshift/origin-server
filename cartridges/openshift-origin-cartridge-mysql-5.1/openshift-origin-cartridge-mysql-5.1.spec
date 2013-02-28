@@ -3,7 +3,7 @@
 
 Summary:       Provides embedded mysql support
 Name:          openshift-origin-cartridge-mysql-5.1
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -72,6 +72,9 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{c
 
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Bug 901445 - Minor output tweak. (rmillner@redhat.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - None of the other db gears have this hook. (rmillner@redhat.com)
 
