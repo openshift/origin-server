@@ -65,11 +65,25 @@ def clean_app(a)
       puts
       puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
       Application.run_in_application_lock(a) do
+        success = false
         begin
           op.execute 
-          op.delete
+          a.unreserve_gears(op.num_gears_removed)
+          success = true
         rescue Exception => e
+          print "Execution failed. Rolling back.."
+          begin
+            op.execute_rollback
+            num_gears_recovered = op.num_gears_added - op.num_gears_created + op.num_gears_rolled_back + op.num_gears_destroyed
+            a.unreserve_gears(num_gears_recovered)
+            success = true
+            puts " complete."
+          rescue Exception=>ex
+            success = false
+            puts " failed again!"
+          end
         end
+        op.delete if success
       end
     end
   } 
