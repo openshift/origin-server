@@ -10,7 +10,9 @@ case "$1" in
   restart)   touch $MOCK_STATE/control_restart ;;
   status)    touch $MOCK_STATE/control_status ;;
   reload)    touch $MOCK_STATE/control_reload ;;
-  tidy)      touch $MOCK_STATE/contol_tidy ;;
+  tidy)      touch $MOCK_STATE/control_tidy ;;
+  build)     touch $MOCK_STATE/control_build;;
+  deploy)    touch $MOCK_STATE/control_deploy;;
   *)         exit 0
 esac
 
