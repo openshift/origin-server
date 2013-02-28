@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.7
+Version:       1.5.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,13 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
+- Merge pull request #1483 from
+  smarterclayton/bug_915527_session_caps_not_cleared (dmcphers@redhat.com)
+- Bug 915527 - Session capabilities not cleared when domain/app changed
+  (ccoleman@redhat.com)
+- Bug 916311 - Expired tokens should be hidden (ccoleman@redhat.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
 - Merge pull request #1447 from smarterclayton/community_url_not_available
   (dmcphers+openshiftbot@redhat.com)
