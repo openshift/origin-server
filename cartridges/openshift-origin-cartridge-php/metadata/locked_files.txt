@@ -1,0 +1,10 @@
+.pearrc
+php/
+php/configuration/
+php/metadata/
+php/env/
+php/sessions/
+php/tmp/
+php/phplib/
+php/conf/
+php/template/
