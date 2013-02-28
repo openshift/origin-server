@@ -21,10 +21,12 @@ module OpenShift
 
   autoload :AuthService,               'openshift/auth_service'
   autoload :DnsService,                'openshift/dns_service'
+  autoload :BillingService,            'openshift/billing_service'
   autoload :DataStore,                 'openshift/data_store'
-  autoload :MongoDataStore,            'openshift/mongo_data_store'
+  autoload :DistributedLock,           'openshift/distributed_lock'
 
   autoload :UserActionLog,             'openshift/user_action_log'
+  autoload :UsageAuditLog,             'openshift/usage_audit_log'
 end
 
 require "openshift/exceptions"

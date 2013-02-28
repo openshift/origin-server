@@ -46,8 +46,9 @@ Broker::Application.configure do
   }
 
   config.usage_tracking = {
-    :datastore_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_DATASTORE", "false"),
-    :syslog_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_SYSLOG", "false")
+    :datastore_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_DATASTORE", "true"),
+    :audit_log_enabled => conf.get_bool("ENABLE_USAGE_TRACKING_AUDIT_LOG", "true"),
+    :audit_log_filepath => conf.get_bool("USAGE_TRACKING_AUDIT_LOG_FILE", "/var/log/openshift/broker/usage.log")
   }
 
   config.analytics = {
@@ -56,7 +57,7 @@ Broker::Application.configure do
 
   config.user_action_logging = {
     :logging_enabled => conf.get_bool("ENABLE_USER_ACTION_LOG", "true"),
-    :log_filepath => conf.get("USER_ACTION_LOG_FILE", "/var/log/openshift/user_action.log")
+    :log_filepath => conf.get("USER_ACTION_LOG_FILE", "/var/log/openshift/broker/user_action.log")
   }
 
   config.openshift = {

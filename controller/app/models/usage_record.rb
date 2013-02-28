@@ -48,6 +48,9 @@ class UsageRecord
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
   validates :cart_name, :presence => true, :if => :validate_cart_name?
 
+  index({'login' => 1})
+  create_indexes
+
   def validate_gear_size?
     (self.usage_type == UsageRecord::USAGE_TYPES[:gear_usage] && self.event != UsageRecord::EVENTS[:end]) ? true : false
   end
@@ -94,16 +97,18 @@ class UsageRecord
       usage.save! if usage
     end
 
-    if Rails.configuration.usage_tracking[:syslog_enabled]
+    if OpenShift::UsageAuditLog.is_enabled?
       usage_string = "User: #{login}  Event: #{event}"
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
-        usage_string += "   Gear: #{gear_id}   Gear Size: #{gear_size}"
+        usage_string += "   Gear: #{gear_id} Gear Size: #{gear_size}"
       when UsageRecord::USAGE_TYPES[:addtl_fs_gb]
-        usage_string += "   Gear: #{gear_id}   Addtl File System GB: #{addtl_fs_gb}"
+        usage_string += "   Gear: #{gear_id} Addtl Storage GB: #{addtl_fs_gb}"
+      when UsageRecord::USAGE_TYPES[:premium_cart]
+        usage_string += "   Gear: #{gear_id} Catridge: #{cart_name}"
       end
       begin
-        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
+        OpenShift::UsageAuditLog.log(usage_string)
       rescue Exception => e
         # Can't fail because of a secondary logging error
         Rails.logger.error e.message
@@ -128,10 +133,10 @@ class UsageRecord
       end
     end
 
-    if Rails.configuration.usage_tracking[:syslog_enabled]
+    if OpenShift::UsageAuditLog.is_enabled?
       usage_string = "Rollback User: #{login} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
       begin
-        Syslog.open('openshift_usage', Syslog::LOG_PID) { |s| s.notice usage_string }
+        OpenShift::UsageAuditLog.log(usage_string)
       rescue Exception => e
         # Can't fail because of a secondary logging error
         Rails.logger.error e.message

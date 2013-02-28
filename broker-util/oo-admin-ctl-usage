@@ -1,0 +1,352 @@
+#!/usr/bin/env oo-ruby
+require 'rubygems'
+require 'getoptlong'
+require 'socket'
+
+$log_file = "/var/log/openshift/broker/usage-billing.log"
+
+def usage
+    puts <<USAGE
+== Synopsis
+
+oo-admin-ctl-usage: Control usage
+
+== Usage
+
+oo-admin-ctl-usage OPTIONS
+
+Options:
+--list
+    List usage available to be synced
+--sync
+    Sync usage with the billing vendor
+--remove-sync-lock
+    Remove existing sync lock
+--enable-logger
+    Print error/warning messages to log file '#{$log_file}' instead of terminal.
+-h|--help
+    Show Usage info
+USAGE
+  exit 255
+end
+
+opts = GetoptLong.new(
+    ["--list",             "-l", GetoptLong::NO_ARGUMENT],
+    ["--sync",             "-s", GetoptLong::NO_ARGUMENT],
+    ["--remove-sync-lock", "-r", GetoptLong::NO_ARGUMENT],
+    ["--enable-logger",    "-e", GetoptLong::NO_ARGUMENT],
+    ["--help",             "-h", GetoptLong::NO_ARGUMENT]
+)
+
+args = {}
+begin
+  opts.each{ |k,v| args[k]=v }
+rescue GetoptLong::Error => e
+  usage
+end
+
+$list = args["--list"]
+$sync = args["--sync"]
+$remove_sync_lock = args["--remove-sync-lock"]
+$enable_logger = args["--enable-logger"]
+
+if args["--help"]
+  usage
+end
+
+unless $list || $sync || $remove_sync_lock
+  puts "You must specify --list and/or --sync and/or --remove-sync-lock"
+  usage
+end
+
+
+require "/var/www/openshift/broker/config/environment"
+# Disable analytics for admin scripts
+Rails.configuration.analytics[:enabled] = false
+# Indicates how many records to gather for reporting usage in bulk.
+$bulk_recs_threshold = 25
+$billing_api = OpenShift::BillingService.instance
+# User -> billing account# cache
+$billing_acct_info = {}
+$session = nil
+$cur_time = nil
+if $enable_logger
+  $billing_api.set_logger($log_file)
+else
+  $billing_api.set_logger
+end
+
+def get_mongo_session
+  config = Mongoid::Config.sessions["default"]
+  session = Moped::Session.new(config["hosts"])
+  session.use config["database"]
+  session.login(config["username"], config["password"])
+  session
+end
+
+def release_mongo_session(session)
+  session.logout
+end
+
+# Get billing account# from cloud_users collection, if it fails get it from billing vendor.
+# Cache user->billing a/c# for subsequent requests.
+def get_billing_acct_no(user)
+  acct_no = nil
+  begin
+    if $billing_acct_info.has_key?(user)
+      acct_no = $billing_acct_info[user]
+    else
+      user_obj = $session[:cloud_users].find(login: user).select(usage_account_id: 1).first
+      if user_obj
+        acct_no = user_obj['usage_account_id']
+        $billing_acct_info[user] = acct_no
+      end
+    end 
+  rescue Exception => e
+    $billing_api.print_warning "Failed to retrieve billing a/c# for User: #{user} from cloud_users collection, Error: #{e.message}"
+    acct_no = $billing_api.get_billing_acct_no(user)
+    $billing_acct_info[user] = acct_no
+  end
+  acct_no
+end
+# Print usage to terminal
+$prev_login = nil
+def list_usage(user_srecs)
+  return if user_srecs.empty?
+  billing_provider_name = $billing_api.get_provider_name
+  if billing_provider_name
+    billing_provider_str = ", #{billing_provider_name}#: #{get_billing_acct_no(srec['login'])}"
+  else
+    billing_provider_str = ""
+  end
+  user_srecs.each do |srec|
+    if $prev_login != srec['login']
+      puts "User: #{srec['login']}" + billing_provider_str
+      $prev_login = srec['login']
+    end
+    puts "\tGear: #{srec['gear_id']}, UsageType: #{srec['usage_type']}, Usage: #{srec['usage']}"
+  end 
+end
+
+def sync_usage(user_srecs)
+  return if user_srecs.empty?
+  # Handle users with *NO* billing account
+  srecs = []
+  user_srecs.delete_if do |srec|
+    if get_billing_acct_no(srec['login'])
+      false
+    else
+      srecs << srec
+      true
+    end
+  end
+  $billing_api.delete_ended_urecs($session, srecs)
+
+  continue_user_ids = srecs.map {|rec| rec['_id'] unless rec['ended']}
+  update_query = {"$set" => {event: UsageRecord::EVENTS[:continue], time: $cur_time, sync_time: nil}}
+  $session[:usage_records].find({_id: {"$in" => continue_user_ids}}).update_all(update_query) unless continue_user_ids.empty?
+
+  # Handle users with billing account
+  $billing_api.sync_usage($session, user_srecs, $cur_time)
+end
+
+# Check basic validations and try to fix/delete incorrect records
+def sanitize_usage_records(urecs)
+  return if urecs.empty?
+  if urecs.length > 2
+    $billing_api.print_error "Found more than 2 usage records, We expect only begin/continue and end records."\
+                             "Ivestigate these records: #{urecs.inspect}"
+    end_rec = nil
+    continue_rec = nil
+    begin_rec = nil
+    # Pick first available begin and end record if present
+    # Pick last available continue record if present
+    urecs.each do |urec|
+      if !end_rec and (urec['event'] == UsageRecord::EVENTS[:end])
+        end_rec = urec
+      elsif !begin_rec and (urec['event'] == UsageRecord::EVENTS[:begin])
+        begin_rec = urec
+      elsif urec['event'] == UsageRecord::EVENTS[:continue]
+        continue_rec = urec
+      end
+    end
+    if continue_rec && end_rec
+      new_urecs = [continue_rec, end_rec]
+    elsif begin_rec && end_rec
+      new_urecs = [begin_rec, end_rec]
+    elsif continue_rec
+      new_urecs = [continue_rec]
+    elsif begin_rec
+      new_urecs = [begin_rec]
+    elsif end_rec
+      new_urecs = []
+    else
+      $billing_api.print_error "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+      urecs = []
+      return # Ignore processing these records
+    end
+    urec_ids = urecs.map {|rec| rec['_id']}
+    new_urec_ids = new_urecs.map{|rec| rec['_id']}
+    delete_user_ids = urec_ids - new_urec_ids
+    # Delete incorrect records that are not needed any more.
+    $session[:usage_records].find({_id: {"$in" => delete_user_ids}}).remove_all unless delete_user_ids.empty?
+    urecs = new_urecs
+    return sanitize_usage_records(urecs)
+  else
+    if (urecs.first['event'] == UsageRecord::EVENTS[:end]) or !urecs.first['time']
+      if !urecs.first['time']
+        $billing_api.print_error "Event time not set for begin/continue usage record."\
+                  "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+      else
+        $billing_api.print_error "Found usage records with no begin/continue marker. Ivestigate these records: #{urecs.inspect}"
+      end
+      # Delete this set of records
+      $session[:usage_records].find(_id: urecs.first['_id']).remove
+      $session[:usage_records].find(_id: urecs.last['_id']).remove if urecs.length == 2
+      urecs = []
+      return
+    end
+    return urecs.length == 1
+
+    if urecs.last['event'] != UsageRecord::EVENTS[:end]
+      $billing_api.print_error "Found 2 usage records with no end marker. Ivestigate these records: #{urecs.inspect}"
+      # Keep last continue or first begin and delete the other record.
+      if urecs.last['event'] == UsageRecord::EVENTS[:continue]
+        $session[:usage_records].find(_id: urecs.first['_id']).remove
+        urecs = [urecs.last]
+      elsif urecs.first['event'] == UsageRecord::EVENTS[:begin]
+        $session[:usage_records].find(_id: urecs.last['_id']).remove
+        urecs = [urecs.first]
+      else
+        # Ignore processing these records, needs investigation.
+        urecs = [] 
+      end
+      return sanitize_usage_records(urecs)
+    end
+    if !urecs.last['time']
+      $billing_api.print_error "Event time not set for end usage record."\
+                  "Unexpected behavior found. Ivestigate these records: #{urecs.inspect}"
+      urecs.last['time'] = urecs.first['time']
+    end
+    if urecs.last['time'] < urecs.first['time']
+      $billing_api.print_error "End time less than begin/continue time. Ivestigate these records: #{urecs.inspect}"
+      urecs.last['time'] = urecs.first['time']
+    end
+  end
+end
+
+# Generate usage summary for the given usage records
+def populate_user_summary_records(urecs)
+  return if urecs.empty?
+  begin
+    sanitize_usage_records(urecs)
+    return if urecs.empty?
+    urec = urecs.first
+    return if urec['ended']
+
+    begin_time = urec['time']
+    end_time = urecs.last['time'] if urecs.length == 2
+    end_time = $cur_time unless end_time
+
+    billing_acct_no = get_billing_acct_no(urec['login'])
+    urec['usage'] = $billing_api.get_usage_time(billing_acct_no, urec, begin_time, end_time)
+    urec['end_time'] = end_time
+    if urecs.length == 2
+      urec['ended'] = true
+      urec['end_id'] = urecs.last['_id']
+    end
+  rescue Exception => e
+    $billing_api.print_error(e.message, urecs.first)
+    $billing_api.log.error e.backtrace.inspect
+    # Ignore processing these records, needs investigation.
+    urecs = []
+  end
+end
+
+# Process given chunk of usage recrods
+def process_user_usage_records(user_urecs)
+  return if user_urecs.empty?
+  $cur_time = Time.now.utc
+
+  begin
+    user_srecs = [] # user usage summary records
+    utype_recs = [] # user usage type records
+    user_urecs.each do |urec|
+      if utype_recs.empty? or
+         ((utype_recs.first['login'] == urec['login']) &&
+          (utype_recs.first['gear_id'] == urec['gear_id']) &&
+          (utype_recs.first['usage_type'] == urec['usage_type']))
+        utype_recs << urec
+        next if urec['event'] != UsageRecord::EVENTS[:end]
+        populate_user_summary_records(utype_recs)
+        user_srecs << utype_recs.first unless utype_recs.empty?
+        utype_recs = []
+      else
+        populate_user_summary_records(utype_recs)
+        user_srecs << utype_recs.first unless utype_recs.empty?
+        utype_recs = [urec]
+      end
+    end
+    unless utype_recs.empty?
+      populate_user_summary_records(utype_recs)
+      user_srecs << utype_recs.first unless utype_recs.empty?
+    end
+    # List and/or Sync usage
+    list_usage(user_srecs) if $list
+    sync_usage(user_srecs) if $sync
+  rescue Exception => e
+    $billing_api.print_error e.message
+    $billing_api.log.error e.backtrace.inspect
+  ensure
+    # Clear billing info cache
+    $billing_acct_info = {}
+  end
+end
+
+# Get usage records from mongo and process them in small chunks
+def process_usage_records
+  user_urecs = []
+  cur_urec_count = 0
+
+  # usage_records collection is indexed by 'login' field
+  # we prefer to process records by 'login' so that we can leverage 'login'=>'billing account#' cache
+  $session[:usage_records].find.sort({:login => 1, :gear_id => 1, :usage_type => 1, :time => 1}).no_timeout.each do |urec|
+    user_urecs << urec
+    cur_urec_count += 1
+    # Always end the chunk with a record that has 'end' event
+    if (cur_urec_count >= $bulk_recs_threshold) and (urec['event'] == UsageRecord::EVENTS[:end])
+      process_user_usage_records(user_urecs)
+      user_urecs = []
+      cur_urec_count = 0
+    end
+  end
+  process_user_usage_records(user_urecs) unless user_urecs.empty?
+end
+
+# Main logic starts here
+# Acquires distributed lock to list and/or sync usage
+if $remove_sync_lock
+  OpenShift::DistributedLock.release_lock("sync_usage")
+end
+
+if $list or $sync
+  hostname = Socket.gethostname
+  if OpenShift::DistributedLock.obtain_lock("sync_usage", hostname)
+    $billing_api.log.info "\n---------- STARTED ----------\n"
+    begin
+      $session = get_mongo_session
+      process_usage_records
+    rescue Exception => e
+      $billing_api.print_error e.message
+      $billing_api.log.error e.backtrace.inspect
+    ensure
+      $billing_api.log.info "\n---------- ENDED, #Errors: #{$billing_api.error_count}, #Warnings: #{$billing_api.warning_count} ----------\n"
+      release_mongo_session($session) rescue nil
+      OpenShift::DistributedLock.release_lock("sync_usage", hostname)
+    end
+  else
+    $billing_api.log.error "Failed to obtain lock to interact with usage data"
+    exit 1
+  end
+end
+exit 0
