@@ -658,7 +658,7 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
         file.write("\n")
       end
       PathUtils.oo_chown_R('root', @uuid, authorized_keys_file)
-      OpenShift::Utils.oo_spawn("restorecon #{authorized_keys_file}")
+      shellCmd("restorecon #{authorized_keys_file}")
 
       keys
     end
