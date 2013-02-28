@@ -40,21 +40,30 @@ class HaproxyUtils
     end
 
     def self.repair_configuration(gdns, uuid, oldipaddr, newipaddr, debug=nil)
-        return false  if oldipaddr == newipaddr  # Don't do unneccessary work.
+      return false  if oldipaddr == newipaddr  # Don't do unneccessary work.
 
-        @@log.debug("GEAR_INFO - repair: Repairing gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
+      @@log.debug("GEAR_INFO - repair: Repairing gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
+      File.open(GEAR_REGISTRY_DB+".lock", "w") do |lockfile|
+        lockfile.flock(File::LOCK_EX)
         cfgdata = File.readlines(GEAR_REGISTRY_DB)
         cfgdata.map! {|line| line.gsub(/#{uuid}\@[0-9.]+:/, "#{uuid}@#{newipaddr}:") }
         File.open(GEAR_REGISTRY_DB, "w") {|file| file.puts cfgdata }
-        @@log.info("GEAR_INFO - repair: Repaired gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
+        lockfile.flock(File::LOCK_UN)
+      end
+      @@log.info("GEAR_INFO - repair: Repaired gear registry - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
 
-        gear_name = gdns.split(".")[0]
-        @@log.debug("GEAR_INFO - validate: Repairing haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
+      gear_name = gdns.split(".")[0]
+      @@log.debug("GEAR_INFO - validate: Repairing haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr}) ...") if debug
+      File.open(HAPROXY_CONFIG+".lock", 'w') do |lockfile|
+        lockfile.flock(File::LOCK_EX)
         hacfgdata = File.readlines(HAPROXY_CONFIG)
         hacfgdata.map! {|line| line.gsub(/\s*server\s*gear-#{gear_name}\s*[0-9.]+:/, "    server gear-#{gear_name} #{newipaddr}:") }
         File.open(HAPROXY_CONFIG, "w") {|file| file.puts hacfgdata }
-        @@log.info("GEAR_INFO - repair: Repaired haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
-        return true
+        lockfile.flock(File::LOCK_UN)
+      end
+      @@log.info("GEAR_INFO - repair: Repaired haproxy config - #{gdns} now resolves to #{newipaddr} (was #{oldipaddr})")
+
+      return true
     end
 
     def self.validate_configuration(debug=nil)

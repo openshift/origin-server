@@ -32,13 +32,18 @@ function register_gear_endpoint() {
 
     #  Add gear endpoint to registry if it doesn't already exist.
     if ! grep "$1" "$HAPROXY_GEAR_REGISTRY" > /dev/null 2>&1; then
+        # Lock gear-registry.db for the duration of the script
+        flock 201
         echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
+        flock -u 201
         if [ -f "$FRAMEWORK_INFO_DIR/bin/sync_gears.sh" ]; then
             run_as_user "$FRAMEWORK_INFO_DIR/bin/sync_gears.sh $2"
         fi
     else
         unregister_gear_endpoint "$1"
+        flock 201
         echo "$3" >> "$HAPROXY_GEAR_REGISTRY"
+        flock -u 201
     fi
 
     return 0
@@ -50,7 +55,9 @@ function unregister_gear_endpoint() {
 
     #  Check if the gear endpoint registry entry exists.
     if grep "$1" "$HAPROXY_GEAR_REGISTRY" > /dev/null 2>&1; then
+        flock 201
         sed -i "/$1.*/d" "$HAPROXY_GEAR_REGISTRY"
+        flock -u 201
     fi
 }
 
@@ -81,6 +88,9 @@ import_env_vars
 # Defines.
 HAPROXY_CONF_DIR=$APP_HOME/$CART_NAME-$CART_VERSION/conf
 HAPROXY_GEAR_REGISTRY=$HAPROXY_CONF_DIR/gear-registry.db
+
+# Establish locking file descriptor
+exec 201>${HAPROXY_GEAR_REGISTRY}.lock
 
 framework_carts=($(get_installed_framework_carts))
 primary_framework_cart=${framework_carts[0]}

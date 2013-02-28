@@ -38,6 +38,10 @@ exitcode=0
 declare -A curr_server_gears
 
 haproxy_cfg=$OPENSHIFT_HOMEDIR/haproxy-1.4/conf/haproxy.cfg
+
+# Establish locking file descriptor
+exec 200>${haproxy_cfg}.lock
+
 # Remove the first 3 args and process all the remaining args of the form k=v.
 # The values are the gear endpoints.
 kvargs=$(echo "${@:4}" | tr -d "\n" )
@@ -63,12 +67,14 @@ for arg in $kvargs; do
 	# If this is the local gear, we are NOT creating an entry for it
 	# The local gear entry is made separately later below
     if [ "$OPENSHIFT_GEAR_DNS" != "${zarr[0]}" ]; then 
+        flock 200
         curr_server_gears[$gear_name]="$ep"
         if grep "server gear-$gear_name" "$haproxy_cfg" > /dev/null 2>&1; then
             sed -i "/\s*server\s*gear-${gear_name}\s.*/d" $haproxy_cfg
         fi
 
         echo "    server gear-$gear_name $ep check fall 2 rise 3 inter 2000 cookie $gear_name" >> "$haproxy_cfg"
+        flock -u 200
     fi
 done
 
@@ -77,6 +83,7 @@ done
 # file to operate on and then overlay the contents of haproxy.cfg
 srvgears=$(grep -E "server\s*gear" "$haproxy_cfg" |  \
            sed "s/\s*server\s*gear-\([A-Za-z0-9\-]*\)\s.*/\\1/g" | tr "\n" " ")
+flock 200
 cp -f "$haproxy_cfg" /tmp/haproxy.cfg.$$
 for sg in $srvgears; do
     if [ -z "${curr_server_gears[$sg]}" ]; then
@@ -100,6 +107,7 @@ fi
 
 cat /tmp/haproxy.cfg.$$ > "$haproxy_cfg"
 rm -f /tmp/haproxy.cfg.$$
+flock -u 200
 
 uuid=$3
 setup_user_vars
