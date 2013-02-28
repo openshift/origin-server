@@ -1,0 +1,6 @@
+jbosseap/
+jbosseap/configuration/
+jbosseap/metadata/
+jbosseap/env/
+jbosseap/standalone/
+jbosseap/template/
