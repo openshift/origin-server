@@ -4,9 +4,7 @@ class AuthorizationsController < BaseController
   # Display only non-revoked tokens (includes expired tokens).
   #
   def index
-    authorizations = Authorization.where(
-                      :user => current_user,
-                      :revoked_at => nil).
+    authorizations = Authorization.for_owner(current_user).not_expired.
                      order_by([:created_at, :desc]).
                      map{ |auth| RestAuthorization.new(auth, get_url, nolinks) }
     render_success(:ok, "authorizations", authorizations, "LIST_AUTHORIZATIONS", 'List authorizations', false, nil, nil, 'IP' => request.remote_ip)
@@ -24,7 +22,7 @@ class AuthorizationsController < BaseController
     expires_in =
       if params[:expires_in].present?
         expires_in = params[:expires_in].to_i
-        (expires_in <= 0 || expires_in > max_expires) ? nil : expires_in
+        (expires_in < 0 || expires_in > max_expires) ? nil : expires_in
       end || scopes.default_expiration
 
     if params[:reuse]
