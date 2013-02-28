@@ -1,12 +1,10 @@
 module RestModelHelper
   def get_rest_application(application, domain, include_cartridges, applications=nil)
-    if requested_api_version == 1.0
-        app = RestApplication10.new(application, domain, get_url, nolinks, applications)
-    elsif requested_api_version <= 1.3
-        app = RestApplication13.new(application, domain, get_url, nolinks, applications)
-    else
-        app = RestApplication.new(application, domain, get_url, nolinks, applications)
-    end
+    app = if requested_api_version == 1.0
+        RestApplication10.new(application, domain, get_url, nolinks, applications)
+      else
+        RestApplication.new(application, domain, get_url, nolinks, applications)
+      end
     if include_cartridges
       app.cartridges = get_application_rest_cartridges(application, domain)
     end
@@ -20,11 +18,7 @@ module RestModelHelper
     group_instances.each do |group_instance|
       component_instances = group_instance.all_component_instances
       component_instances.each do |component_instance|
-        if requested_api_version == 1.0 
-          cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides) if component_instance.is_embeddable? and !component_instance.is_web_proxy?
-        else
-          cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides)
-        end
+        cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides)
       end
     end
     cartridges
@@ -49,9 +43,5 @@ module RestModelHelper
     else
       RestEmbeddedCartridge.new(cart, comp, application, domain, component_instance, colocated_instances, scale, get_url, messages, nolinks)
     end
-  end
-  
-  def get_rest_alias(application, domain, al1as)
-     RestAlias.new(application, domain, al1as, get_url, nolinks)
   end
 end
