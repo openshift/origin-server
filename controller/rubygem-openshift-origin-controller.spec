@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.9
+Version:       1.5.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,39 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Merge pull request #1441 from pravisankar/dev/ravi/us3409
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1487 from bdecoste/master (dmcphers@redhat.com)
+- Merge pull request #1486 from lnader/revert_pull_request_1
+  (dmcphers@redhat.com)
+- fix jenkins test to allow 302 redirect (bdecoste@gmail.com)
+- Merge pull request #1481 from abhgupta/abhgupta-ssh-keys
+  (dmcphers+openshiftbot@redhat.com)
+- reverted US2448 (lnader@redhat.com)
+- Merge pull request #1480 from
+  smarterclayton/bug_916311_expired_tokens_should_be_hidden
+  (dmcphers+openshiftbot@redhat.com)
+- Added index on 'login' for usage_record and usage mongoid models Added
+  separate usage audit log, /var/log/openshift/broker/usage.log instead of
+  syslog. Moved user action log from /var/log/openshift/user_action.log to
+  /var/log/openshift/broker/user_action.log Added Distributed lock used in oo-
+  admin-ctl-usage script Added Billing Service interface Added oo-admin-ctl-
+  usage script to list and sync usage records to billing vendor Added oo-admin-
+  ctl-usage to broker-util spec file Fixed distributed lock test Add billing
+  service to origin-controller Some more bug fixes (rpenta@redhat.com)
+- Fix for bug 916323 -  making sure that we delete all applications and re-
+  verify  before force-deleting a domain (abhgupta@redhat.com)
+- Merge pull request #1474 from bdecoste/master (dmcphers@redhat.com)
+- Merge pull request #1473 from danmcp/master (dmcphers@redhat.com)
+- Merge pull request #1478 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- Bug 916311 - Expired tokens should be hidden (ccoleman@redhat.com)
+- Use update rather than find_and_modify (dmcphers@redhat.com)
+- Fix for bug 916268 - adding properties for embedded carts in application rest
+  response Note: this was opened as a regression for bug 812046
+  (abhgupta@redhat.com)
+- Bug 913217 (bdecoste@gmail.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - Merge pull request #1477 from ironcladlou/dev/cartridge_refactor
   (dmcphers@redhat.com)
