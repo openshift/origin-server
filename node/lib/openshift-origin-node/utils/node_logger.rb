@@ -65,6 +65,8 @@ module OpenShift
                  File.open(log_file, File::WRONLY | File::APPEND| File::CREAT, 0644)
                end
 
+        file.sync = true
+        
         logger       = Logger.new(file, 5, 10 * 1024 * 1024)
         logger.level = log_level
         logger
