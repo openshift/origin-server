@@ -144,6 +144,11 @@ function mongo() {
 
 }  #  End of  mongo  function.
 
+function mco {
+    echo "mco: Permission denied" >&2
+    return 255
+}
+
 
 function help {
     cat <<EOF
