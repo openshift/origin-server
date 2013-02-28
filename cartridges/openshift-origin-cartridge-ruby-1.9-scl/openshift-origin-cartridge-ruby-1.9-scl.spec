@@ -7,8 +7,8 @@
 
 Summary:       Provides ruby rack support running on Phusion Passenger
 Name:          openshift-origin-cartridge-ruby-1.9-scl
-Version:       1.5.4
-Release:       2%{?dist}
+Version:       1.5.5
+Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
 URL:           http://openshift.redhat.com
@@ -185,6 +185,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- Merge pull request #1474 from bdecoste/master (dmcphers@redhat.com)
+- Bug 913217 (bdecoste@gmail.com)
+
 * Mon Feb 25 2013 Adam Miller <admiller@redhat.com> 1.5.4-2
 - bump Release for fixed build target rebuild (admiller@redhat.com)
 
