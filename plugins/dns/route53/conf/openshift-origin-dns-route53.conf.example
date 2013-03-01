@@ -1,0 +1,8 @@
+# Settings related to the Amazon Web Services Route53 DNS service
+
+# The AWS zone identifier
+AWS_HOSTED_ZONE_ID="/hostedzone/ZONEID"
+
+# AWS Access credentials
+AWS_ACCESS_KEY_ID="key id string"
+AWS_SECRET_KEY="key secret"
