@@ -78,6 +78,8 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/bin/
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/lib/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/connection-hooks/
+%dir %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/configuration/
+%attr(0644,-,-) %{_libexecdir}/openshift/cartridges/abstract/info/configuration/health.html
 
 %files jboss
 %doc COPYRIGHT LICENSE
