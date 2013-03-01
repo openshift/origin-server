@@ -9,7 +9,7 @@
 
 Summary:        Cloud Development Controller
 Name:           rubygem-%{gem_name}
-Version: 1.4.19
+Version: 1.4.20
 Release:        1%{?dist}
 Group:          Development/Languages
 License:        ASL 2.0
@@ -78,6 +78,12 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Feb 28 2013 Dan McPherson <dmcphers@redhat.com> 1.4.20-1
+- scale down should not get affected with consumed_gears/actual_gears mismatch
+  (rchopra@redhat.com)
+- Reloading the domain from primary to make sure pending_ops is loaded
+  (abhgupta@redhat.com)
+
 * Wed Feb 27 2013 Dan McPherson <dmcphers@redhat.com> 1.4.19-1
 - Bug 916323 (dmcphers@redhat.com)
 
