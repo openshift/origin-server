@@ -73,7 +73,6 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     end
   end
 
-
   def assert_application_repository(repo)
     assert_path_exist repo.path
     assert_path_exist File.join(repo.path, 'description')
@@ -94,7 +93,6 @@ class ApplicationRepositoryFuncTest < Test::Unit::TestCase
     stat = File.stat(File.join(repo.path, 'hooks', 'post-receive'))
     assert_equal 0, stat.uid, 'Error: Git hook post-receive not owned by root'
   end
-
 
   def test_new
     repo = OpenShift::ApplicationRepository.new(@user)

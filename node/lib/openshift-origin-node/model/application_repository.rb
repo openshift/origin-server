@@ -79,6 +79,7 @@ module OpenShift
         when File.exist?(cartridge_template_git)
           pull_bare_repository(cartridge_template_git)
       end
+
       configure_repository
     end
 
@@ -198,7 +199,11 @@ done
 
 <%= LOAD_ENV %>
 
-pre_receive_app.sh
+for cartridge in $(ls -d $OPENSHIFT_HOMEDIR/* | grep -E -v 'app-root|git')
+do
+  $cartridge/bin/control stop
+done
+
 }
 
     # FIXME: Broker host should not be defined here, rather nuture script should look it up
@@ -208,7 +213,19 @@ pre_receive_app.sh
 
 <%= LOAD_ENV %>
 
-post_receive_app.sh <%= @broker_host %>
+$OPENSHIFT_HOMEDIR/<%= @cartridge_name %>/bin/control build
+
+if [ $? -eq 0 ]; then
+  $OPENSHIFT_HOMEDIR/<%= @cartridge_name %>/bin/control deploy
+else
+  echo "Skipping deployment; build failed with exit status $?"
+fi
+
+for cartridge in $(ls -d $OPENSHIFT_HOMEDIR/* | grep -E -v 'app-root|git')
+do
+  $cartridge/bin/control start
+done
+
 }
   end
 end

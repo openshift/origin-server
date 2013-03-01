@@ -266,7 +266,13 @@ end
 # a single application/gear/cartridge, and does its work by controlling
 # the single cartridge directly. There will be no recursive actions for
 # multiple carts associated with an app/gear.
-When /^I (start|stop|status|restart) the application$/ do |action|
+When /^I (start|stop|status|restart|call tidy on) the application$/ do |action|
+  # XXX FIXME: hack necessary due to ambiguous step definition
+  # w/ application_steps.rb
+  if ('call tidy on' == action)
+    action = 'tidy'
+  end
+
   OpenShift::timeout(60) do
     record_measure("Runtime Benchmark: Hook #{action} on application #{@cart.name}") do
       @cart.send(action)
