@@ -90,19 +90,9 @@ module OpenShift
       #
       def self.find_available_impl(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil)
         district = nil
-        require_specific_district = !district_uuid.nil?
-        if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
-          district = District.find_available(node_profile)
-          if district
-            district_uuid = district.uuid
-            Rails.logger.debug "DEBUG: find_available_impl: district_uuid: #{district_uuid}"
-          elsif Rails.configuration.msg_broker[:districts][:require_for_app_create]
-            raise OpenShift::NodeException.new("No district nodes available.", 140)
-          end
-        end
-        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district, non_ha_server_identities)
+        current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities)
         if !current_server
-          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, require_specific_district, non_ha_server_identities, true)
+          current_server, current_capacity, preferred_district = rpc_find_available(node_profile, district_uuid, non_ha_server_identities, true)
         end
         district = preferred_district if preferred_district
         raise OpenShift::NodeException.new("No nodes available.", 140) unless current_server
@@ -2769,7 +2759,6 @@ module OpenShift
       # INPUTS:
       # * node_profile: ???
       # * district_uuid: String
-      # * require_specific_district: Boolean
       # * force_rediscovery: Boolean
       #
       # RETURNS:
@@ -2780,13 +2769,51 @@ module OpenShift
       #
       # 
       #
-      def self.rpc_find_available(node_profile=nil, district_uuid=nil, require_specific_district=false, non_ha_server_identities=nil, force_rediscovery=false)
+      def self.rpc_find_available(node_profile=nil, district_uuid=nil, non_ha_server_identities=nil, force_rediscovery=false)
+        
+        district_uuid = nil if district_uuid == 'NONE'
+        
+        require_specific_district = !district_uuid.nil?
+        require_district = require_specific_district
+        prefer_district = require_specific_district
+        unless require_specific_district
+          if Rails.configuration.msg_broker[:districts][:enabled] && (!district_uuid || district_uuid == 'NONE')
+            prefer_district = true
+            if Rails.configuration.msg_broker[:districts][:require_for_app_create]
+              require_district = true
+            end
+          end
+        end
+
         current_server, current_capacity = nil, nil
+        server_infos = []
+
+        # First find the most available nodes and match 
+        # to their districts.  Take out the almost full nodes if possible and return one of 
+        # the nodes within a district with a lot of space. 
         additional_filters = [{:fact => "active_capacity",
                                :value => '100',
                                :operator => "<"}]
-
-        district_uuid = nil if district_uuid == 'NONE'
+        
+        if require_specific_district || require_district
+          additional_filters.push({:fact => "district_active",
+                                   :value => true.to_s,
+                                   :operator => "=="})
+        end
+                               
+        if require_specific_district
+          additional_filters.push({:fact => "district_uuid",
+                                   :value => district_uuid,
+                                   :operator => "=="})                         
+        elsif require_district
+          additional_filters.push({:fact => "district_uuid",
+                                   :value => "NONE",
+                                   :operator => "!="})
+        elsif !prefer_district
+          additional_filters.push({:fact => "district_uuid",
+                                   :value => "NONE",
+                                   :operator => "=="})
+        end
 
         if Rails.configuration.msg_broker[:node_profile_enabled]
           if node_profile
@@ -2796,86 +2823,50 @@ module OpenShift
           end
         end
 
-        if district_uuid
-          additional_filters.push({:fact => "district_uuid",
-                                   :value => district_uuid,
-                                   :operator => "=="})
-          additional_filters.push({:fact => "district_active",
-                                   :value => true.to_s,
-                                   :operator => "=="})
-        else
-          #TODO how do you filter on a fact not being set
-          additional_filters.push({:fact => "district_uuid",
-                                   :value => "NONE",
-                                   :operator => "=="})
-
-        end
-        
+        districts = prefer_district ? District.find_all : [] # candidate for caching
         rpc_opts = nil
-        server_infos = []
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
-          #Rails.logger.debug "Next server: #{server} active capacity: #{capacity}"
-          server_infos << [server, capacity.to_f]
-        end
-
-        # Do everything possible to not pick a non ha compatible node
-        server_infos.delete_if { |server_info| (server_infos.length > 1 || (district_uuid && !require_specific_district)) && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
-        if !server_infos.empty?
-          # Pick a random node amongst the best choices available
-          # If any server is < 80 then only pick from servers with < 80
-          server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
-          server_infos = server_infos.sort_by { |server_info| server_info[1] }
-          max_index = [server_infos.length, 4].min - 1
-          server_infos = server_infos.first(max_index + 1)
-          # Weight the servers with the most active_capacity the highest 
-          (0..max_index).each do |i|
-            (max_index - i).times do
-              server_infos << server_infos[i]
-            end
-          end
-        elsif district_uuid && !require_specific_district
-          # Well that didn't go too well.  They wanted a district.  Probably the most available one.  
-          # But it has no available nodes.  Falling back to a best available algorithm.  First
-          # Find the most available nodes and match to their districts.  Take out the almost
-          # full nodes if possible and return one of the nodes within a district with a lot of space. 
-          additional_filters = [{:fact => "active_capacity",
-                                 :value => '100',
-                                 :operator => "<"},
-                                {:fact => "district_active",
-                                 :value => true.to_s,
-                                 :operator => "=="},
-                                {:fact => "district_uuid",
-                                 :value => "NONE",
-                                 :operator => "!="}]
-
-          if Rails.configuration.msg_broker[:node_profile_enabled]
-            if node_profile
-              additional_filters.push({:fact => "node_profile",
-                                       :value => node_profile,
-                                       :operator => "=="})
-            end
-          end
-          
-          rpc_opts = nil
-          districts = District.find_all # candidate for caching
-          rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
-            districts.each do |district|
-              if district.server_identities_hash.has_key?(server)
+          found_district = false
+          districts.each do |district|
+            if district.server_identities_hash.has_key?(server)
+              if district.available_capacity > 0 && district.server_identities_hash[server]["active"] 
                 server_infos << [server, capacity.to_f, district]
+              end
+              found_district = true
+              break
+            end
+          end
+          if !found_district && !require_district
+            server_infos << [server, capacity.to_f]
+          end
+        end
+        if require_district && server_infos.empty?
+          raise OpenShift::NodeException.new("No district nodes available.", 140)
+        end
+        unless server_infos.empty?
+          server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
+
+          # Remove any non districted nodes if you prefer districts
+          if prefer_district && !require_district && !districts.empty?
+            has_districted_node = false
+            server_infos.each do |server_info|
+              if server_info[2]
+                has_districted_node = true
                 break
               end
             end
+            server_infos.delete_if { |server_info| !server_info[2] } if has_districted_node
           end
-          unless server_infos.empty?
-            server_infos.delete_if { |server_info| server_info[2].available_capacity <= 1 } # leave 1 extra to somewhat avoid race condition.  Will get picked up by primary algorithm eventually.
-            unless server_infos.empty?
-              server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
-              server_infos.delete_if { |server_info| server_infos.length > 1 && server_info[1] >= 80 }
-              server_infos = server_infos.sort_by { |server_info| server_info[2].available_capacity }
-              server_infos = server_infos.last(8)
-            end
-          end
+
+          # Sort by node available capacity and take the best half
+          server_infos = server_infos.sort_by { |server_info| server_info[1] }
+          server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
+
+          # Sort by district available capacity and take the best half
+          server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
+          server_infos = server_infos.last([4, (server_infos.length / 2).to_i].max) # consider the top half and no less than min(4, the actual number of available)
         end
+
         current_district = nil
         unless server_infos.empty?
           server_info = server_infos[rand(server_infos.length)]
