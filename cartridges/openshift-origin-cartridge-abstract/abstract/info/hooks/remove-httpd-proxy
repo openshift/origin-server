@@ -32,7 +32,7 @@ namespace=`basename $2`
 application="$1"
 uuid=$3
 
-oo-frontend-connect \
+oo-frontend-disconnect \
     --with-container-uuid "$uuid" \
     --with-container-name "$application" \
     --with-namespace "$namespace" \
