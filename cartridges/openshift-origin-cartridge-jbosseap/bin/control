@@ -1,0 +1,244 @@
+#!/bin/bash -e
+
+JBOSSEAP_BIN_DIR=${OPENSHIFT_JBOSSEAP_DIR}/bin
+JBOSSEAP_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jbosseap.pid
+
+cartridge_type="jbosseap"
+
+# Check if the jbossas process is running
+function isrunning() {
+    
+    # Check for running app
+    if [ -f "$JBOSSEAP_PID_FILE" ]; then
+      jbpid=$(cat $JBOSSEAP_PID_FILE);
+      if /bin/ps --pid $jbpid 1>&2 >/dev/null;
+      then
+        return 0
+      fi
+    fi
+   
+    return 1
+}
+
+# Kill the process given by $1 and its children
+function killtree() {
+    local _pid=$1
+    for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
+        killtree ${_child}
+    done
+    echo kill -TERM ${_pid}
+    kill -TERM ${_pid}
+}
+
+# Check if the server http port is up
+function ishttpup() {
+
+    let count=0
+    while [ ${count} -lt 24 ]
+    do
+        if /usr/sbin/lsof -P -n -i "@${OPENSHIFT_JBOSSEAP_IP}:8080" | grep "(LISTEN)" > /dev/null; then
+            echo "Found ${OPENSHIFT_JBOSSEAP_IP}:8080 listening port"
+            return 0
+        fi
+        let count=${count}+1
+
+        sleep 2
+    done
+
+    return 1
+}
+
+function build() {
+	CONFIG_DIR="${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration"
+	OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.base.xml"
+	if `echo $OPENSHIFT_GEAR_DNS | egrep -qe "\.rhcloud\.com"`
+	then 
+	    OPENSHIFT_MAVEN_MIRROR="${CONFIG_DIR}/settings.rhcloud.xml"
+	fi
+
+	max_memory_bytes=`oo-cgroup-read memory.limit_in_bytes`
+	max_memory_mb=`expr $max_memory_bytes / 1048576`
+
+	# If hot deploy is enabled, we need to restrict the Maven memory size to fit
+	# alongside the running application server. For now, just hard-code it to 64
+	# and figure out how to apply a scaling factor later.
+	if hot_deploy_marker_is_present ; then
+    	echo "Scaling down Maven heap settings due to presence of hot_deploy marker"
+    
+    	if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+			MAVEN_JVM_HEAP_RATIO=0.25
+		fi
+	else
+		if [ -z $MAVEN_JVM_HEAP_RATIO ]; then
+			MAVEN_JVM_HEAP_RATIO=0.75
+		fi
+	fi
+
+	max_heap=$( echo "$max_memory_mb * $MAVEN_JVM_HEAP_RATIO" | bc | awk '{print int($1+0.5)}')
+
+	OPENSHIFT_MAVEN_XMX="-Xmx${max_heap}m"
+
+	if [ -z "$BUILD_NUMBER" ]
+	then
+    	SKIP_MAVEN_BUILD=false
+    	if git show master:.openshift/markers/skip_maven_build > /dev/null 2>&1
+    	then
+    	    SKIP_MAVEN_BUILD=true
+    	fi
+    
+    	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/force_clean_build" ]
+    	then
+        	echo ".openshift/markers/force_clean_build found!  Removing Maven dependencies." 1>&2
+        	rm -rf ${OPENSHIFT_HOMEDIR}.m2/* ${OPENSHIFT_HOMEDIR}.m2/.[^.]*
+    	fi
+
+    	if [ -f ${OPENSHIFT_REPO_DIR}pom.xml ] && ! $SKIP_MAVEN_BUILD
+    	then
+        	if [ -e ${OPENSHIFT_REPO_DIR}.openshift/markers/java7 ];
+        	then
+           		export JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+        	else
+          		export JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+        	fi
+        
+        	export M2_HOME=/etc/alternatives/maven-3.0
+        	export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+        	export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH
+        	pushd ${OPENSHIFT_REPO_DIR} > /dev/null
+        
+        	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}" ]
+        	then
+           		echo "Sourcing pre_build_jbosseap" 1>&2
+           		source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_build_${cartridge_type}
+        	fi
+        
+        	if [ -z "$MAVEN_OPTS" ]; then
+        		export MAVEN_OPTS="$OPENSHIFT_MAVEN_XMX"
+        	fi
+        	
+        	if [ -z "$MAVEN_ARGS" ]; then
+		    	export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+        	fi
+        
+        	echo "Found pom.xml... attempting to build with 'mvn -e ${MAVEN_ARGS}'"
+        
+        	if [ -n "$OPENSHIFT_MAVEN_MIRROR" ]
+        	then
+            	mvn --global-settings $OPENSHIFT_MAVEN_MIRROR --version
+            	mvn --global-settings $OPENSHIFT_MAVEN_MIRROR $MAVEN_ARGS
+        	else
+            	mvn --version
+            	mvn $MAVEN_ARGS
+        	fi
+        	popd > /dev/null
+    	fi
+	fi
+
+}
+
+function start() {
+    echo "Starting $cartridge_type cart"
+    
+	if [ -f "${OPENSHIFT_REPO_DIR}/.openshift/markers/enable_jpda" ]; then
+       ENABLE_JPDA=1
+    fi
+
+    # Check for running app
+    if isrunning; then
+        echo "Application is already running"
+    else
+        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/pre_start_${cartridge_type}
+        
+        jopts="${JAVA_OPTS}"
+        [ "${ENABLE_JPDA:-0}" -eq 1 ] && jopts="-Xdebug -Xrunjdwp:transport=dt_socket,address=${OPENSHIFT_JBOSSEAP_IP}:8787,server=y,suspend=n ${JAVA_OPTS}"
+        JAVA_OPTS="${jopts}"
+        ${JBOSSEAP_BIN_DIR}/standalone.sh > ${OPENSHIFT_TMP_DIR}/${cartridge_type}.log &
+        PROCESS_ID=$!
+        echo "$PROCESS_ID" > ${JBOSSEAP_PID_FILE}
+        if ! ishttpup; then
+            echo "Timed out waiting for http listening port"
+            exit 1
+        fi
+        
+        source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/post_start_${cartridge_type}
+    fi
+}
+
+
+function stop() {
+    echo "Stopping $cartridge_type cart"
+    
+	if [ -f "$JBOSSEAP_PID_FILE" ]; then
+        source pre_stop_${cartridge_type}
+        pid=$(cat $JBOSSEAP_PID_FILE);
+        echo "Sending SIGTERM to jboss:$pid ..." 1>&2
+        killtree $pid
+        source post_stop_${cartridge_type}
+    else 
+        echo "Failed to locate JBOSS PID File" 1>&2
+    fi
+}
+
+function restart() {
+    echo "Restarting $cartridge_type cart"
+   
+  	stop
+  	
+  	start
+}
+
+function status() {
+   if isrunning
+   then
+      echo "Application is running"
+   else
+      echo "Application is either stopped or inaccessible"
+   fi
+}
+
+function reload() {
+    echo "Reloading $cartridge_type cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying $cartridge_type cart"
+    
+    for logdir in `awk 'BEGIN {
+                           for (a in ENVIRON)
+                           if (a ~ /LOG_DIR$/)
+                           print ENVIRON[a] }'`
+	do
+    	client_message "Emptying log dir: ${logdir}"
+    	rm -rf ${logdir}* ${logdir}.[^.]*
+	done
+}
+
+function threaddump() {
+	echo "Thread dump for $cartridge_type cart"
+	
+    if ! isrunning; then
+        echo "Application is stopped"
+        exit 1
+    elif [ -f "$JBOSSEAP_PID_FILE" ]; then
+        pid=$(cat $JBOSSEAP_PID_FILE);
+        java_pid=`ps h --ppid $pid -o '%p'`
+        kill -3 $java_pid
+    else 
+        echo "Failed to locate JBOSS PID File"
+    fi
+}
+
+case "$1" in
+  build)		build ;;
+  start)     	start ;;
+  stop)      	stop ;;
+  restart)   	restart ;;
+  status)    	status ;;
+  reload)    	reload ;;
+  tidy)      	tidy ;;
+  threaddump)   threaddump ;;
+  *)         	exit 0
+esac
+
+

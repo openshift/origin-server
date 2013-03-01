@@ -1,0 +1,47 @@
+#!/bin/bash -e
+set -u
+set -x
+
+PATH=/bin:/usr/bin:$PATH
+
+cartridge_type="jbosseap"
+
+version=6.0
+OPENSHIFT_JBOSSEAP_DIR="$OPENSHIFT_HOMEDIR$cartridge_type"
+echo "export OPENSHIFT_JBOSSEAP_VERSION='$version'" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_VERSION"
+echo "export OPENSHIFT_JBOSSEAP_DIR='$OPENSHIFT_JBOSSEAP_DIR'" > "$OPENSHIFT_JBOSSEAP_DIR/env/OPENSHIFT_JBOSSEAP_DIR"
+
+# Create additional directories required by JBOSSEAP
+mkdir -p ${OPENSHIFT_HOMEDIR}/{.m2,.java}
+mkdir -p ${OPENSHIFT_JBOSSEAP_DIR}/{bin,template,standalone/tmp,standalone/deployments,standalone/configuration,standalone/log,standalone/data}
+
+# Copy the version specific files up to jbosseap directory
+cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/standalone/configuration/* ${OPENSHIFT_JBOSSEAP_DIR}/standalone/configuration
+cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/metadata/* ${OPENSHIFT_JBOSSEAP_DIR}/metadata
+cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/* ${OPENSHIFT_JBOSSEAP_DIR}/template
+cp -r ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/template/.openshift ${OPENSHIFT_JBOSSEAP_DIR}/template
+cp ${OPENSHIFT_JBOSSEAP_DIR}/versions/${version}/bin/* ${OPENSHIFT_JBOSSEAP_DIR}/bin
+
+JBOSS_HOME=/etc/alternatives/jbosseap-$version
+
+cd $OPENSHIFT_JBOSSEAP_DIR
+ln -s ${JBOSS_HOME}/jboss-modules.jar
+ln -s ${JBOSS_HOME}/modules
+
+jar cvf $OPENSHIFT_JBOSSEAP_DIR/standalone/deployments/ROOT.war $OPENSHIFT_JBOSSEAP_DIR/template/*
+
+if [ -e ${OPENSHIFT_REPO_DIR}/.openshift/markers/java7 ];
+then
+	JAVA_HOME=/etc/alternatives/java_sdk_1.7.0
+else
+	JAVA_HOME=/etc/alternatives/java_sdk_1.6.0
+fi
+M2_HOME=/etc/alternatives/maven-3.0
+echo "export JAVA_HOME=$JAVA_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/JAVA_HOME
+echo "export M2_HOME=$M2_HOME" > $OPENSHIFT_JBOSSEAP_DIR/env/M2_HOME
+echo "export PATH=$JAVA_HOME/bin:$M2_HOME/bin:$PATH" > $OPENSHIFT_JBOSSEAP_DIR/env/PATH
+
+
+
+
+
