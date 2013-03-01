@@ -262,7 +262,8 @@ class PendingAppOpGroup
         end
       end
       unless self.parent_op_id.nil?
-        self.application.domain.pending_ops.find(self.parent_op_id).child_completed(self.application)
+        reloaded_domain = Domain.with(consistency: :strong).find_by(_id: self.application.domain._id)
+        reloaded_domain.pending_ops.find(self.parent_op_id).child_completed(self.application)
       end
     rescue Exception => e_orig
       Rails.logger.error e_orig.message
