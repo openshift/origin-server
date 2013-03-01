@@ -24,6 +24,7 @@ end
 require 'test_helper'
 require 'openshift-origin-node/model/application_container'
 require 'openshift-origin-node/model/v2_cart_model'
+require 'openshift-origin-node/model/unix_user'
 require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common'
 require 'test/unit'
@@ -176,5 +177,11 @@ class ApplicationContainerTest < Test::Unit::TestCase
     @container.expects(:start_gear)
 
     @container.tidy
+  end
+
+  def test_force_stop
+    FileUtils.mkpath("/tmp/#@user_uid/app-root/runtime")
+    OpenShift::UnixUser.stubs(:kill_procs).with(@user_uid).returns(nil)
+    @container.force_stop
   end
 end
