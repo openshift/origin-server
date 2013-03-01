@@ -39,7 +39,6 @@ openshift-origin-broker
 rubygem-openshift-origin-node
 openshift-origin-broker-util
 openshift-origin-node-util
-mcollective-qpid-plugin
 rubygem-openshift-origin-auth-mongo
 rubygem-openshift-origin-dns-bind
 rubygem-openshift-origin-msg-broker-mcollective

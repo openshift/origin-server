@@ -2815,15 +2815,16 @@ module OpenShift
                                    :operator => "=="})
         end
 
-        if Rails.configuration.msg_broker[:node_profile_enabled]
-          if node_profile
-            additional_filters.push({:fact => "node_profile",
-                                     :value => node_profile,
-                                     :operator => "=="})
-          end
+        if node_profile && Rails.configuration.msg_broker[:node_profile_enabled]
+          additional_filters.push({:fact => "node_profile",
+                                   :value => node_profile,
+                                   :operator => "=="})
         end
 
+        # Get the districts
         districts = prefer_district ? District.find_all : [] # candidate for caching
+          
+        # Get the active % on the nodes
         rpc_opts = nil
         rpc_get_fact('active_capacity', nil, force_rediscovery, additional_filters, rpc_opts) do |server, capacity|
           found_district = false
@@ -2836,7 +2837,7 @@ module OpenShift
               break
             end
           end
-          if !found_district && !require_district
+          if !found_district && !require_district # Districts aren't required in this case
             server_infos << [server, capacity.to_f]
           end
         end
@@ -2844,6 +2845,7 @@ module OpenShift
           raise OpenShift::NodeException.new("No district nodes available.", 140)
         end
         unless server_infos.empty?
+          # Use an HA option if available
           server_infos.delete_if { |server_info| server_infos.length > 1 && non_ha_server_identities.include?(server_info[0]) } if non_ha_server_identities
 
           # Remove any non districted nodes if you prefer districts
@@ -2860,7 +2862,7 @@ module OpenShift
 
           # Sort by node available capacity and take the best half
           server_infos = server_infos.sort_by { |server_info| server_info[1] }
-          server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max)
+          server_infos = server_infos.first([4, (server_infos.length / 2).to_i].max) # consider the top half and no less than min(4, the actual number of available)
 
           # Sort by district available capacity and take the best half
           server_infos = server_infos.sort_by { |server_info| (server_info[2] && server_info[2].available_capacity) ? server_info[2].available_capacity : 1 }
@@ -2869,6 +2871,7 @@ module OpenShift
 
         current_district = nil
         unless server_infos.empty?
+          # Randomly pick one of the best options
           server_info = server_infos[rand(server_infos.length)]
           current_server = server_info[0]
           current_capacity = server_info[1]
