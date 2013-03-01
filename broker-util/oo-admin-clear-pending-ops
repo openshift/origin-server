@@ -65,11 +65,25 @@ def clean_app(a)
       puts
       puts "Executing op for app (#{a.uuid}) - #{op.inspect} "
       Application.run_in_application_lock(a) do
+        success = false
         begin
           op.execute 
-          op.delete
+          a.unreserve_gears(op.num_gears_removed)
+          success = true
         rescue Exception => e
+          print "Execution failed. Rolling back.."
+          begin
+            op.execute_rollback
+            num_gears_recovered = op.num_gears_added - op.num_gears_created + op.num_gears_rolled_back + op.num_gears_destroyed
+            a.unreserve_gears(num_gears_recovered)
+            success = true
+            puts " complete."
+          rescue Exception=>ex
+            success = false
+            puts " failed again!"
+          end
         end
+        op.delete if success
       end
     end
   } 
@@ -80,7 +94,6 @@ def clean_app(a)
       puts "Failed to clear op for app (#{a.uuid}) - #{op.inspect} "
     end
   } 
-  a.save
 end
 
 $domain_count = 0
@@ -88,6 +101,7 @@ def clean_domain(d)
   $domain_count += 1
   d.run_jobs rescue nil
   d.with(consistency: :strong).reload
+  d.pending_ops.delete_if { |op| op.nil? }
   d.pending_ops.each { |op|
     if op.created_at < $t 
       puts
@@ -99,6 +113,7 @@ def clean_domain(d)
       end
     end
   }
+  d.save
 end
 
 $user_count = 0
@@ -106,6 +121,7 @@ def clean_user(u)
   $user_count += 1
   u.run_jobs rescue nil
   u.with(consistency: :strong).reload
+  u.pending_ops.delete_if { |op| op.nil? }
   u.pending_ops.each { |op|
     if op.created_at < $t 
       puts
@@ -117,6 +133,7 @@ def clean_user(u)
       end
     end
   }
+  u.save
 end
 
 hours = args["--time"] || 1
@@ -125,9 +142,30 @@ $t = Time.now - hours*60*60
 uuid = args["--uuid"]
 
 if uuid.nil?
-  Application.lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
-  Domain.lt("pending_ops.created_at" => $t).each { |d| clean_domain(d) }
-  CloudUser.lt("pending_ops.created_at" => $t).each { |u| clean_user(u) }
+  Application.no_timeout.lt("pending_op_groups.created_at" => $t).each { |a| 
+    begin
+      clean_app(a) 
+    rescue Exception=>e
+      puts e.message
+      puts e.backtrace
+    end
+  }
+  Domain.no_timeout.lt("pending_ops.created_at" => $t).each { |d| 
+    begin
+      clean_domain(d) 
+    rescue Exception=>e 
+      puts e.message
+      puts e.backtrace
+    end
+  }
+  CloudUser.no_timeout.lt("pending_ops.created_at" => $t).each { |u| 
+    begin
+      clean_user(u) 
+    rescue Exception=>e
+      puts e.message
+      puts e.backtrace
+    end
+  }
 else
   Application.where(:uuid => uuid).lt("pending_op_groups.created_at" => $t).each { |a| clean_app(a) }
 end
