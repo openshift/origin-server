@@ -35,7 +35,7 @@ cartridge_type="mongodb-2.2"
 
 # Only do this for an "standalone" mongodb gear.
 if only_cart_on_gear $cartridge_type; then
-    oo-frontend-connect \
+    oo-frontend-disconnect \
         --with-container-uuid "$uuid" \
         --with-container-name "$application" \
         --with-namespace "$namespace" \
