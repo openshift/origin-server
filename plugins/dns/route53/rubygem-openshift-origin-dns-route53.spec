@@ -79,6 +79,9 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-dns
 
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 0.1.4-1
+- Fix up tag after initial github merge
+
 * Wed Feb 20 2013 Mark Lamourine <<mlamouri@redhat.com>> 0.1.4-1
 - update copyright (mlamouri@redhat.com)
 - remove references to selinux (mlamouri@redhat.com)
