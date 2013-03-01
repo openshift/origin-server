@@ -56,7 +56,7 @@ function get_state {
 
 function is_idled {
     appid=$1
-    oo-frontend-check-idle --with-container-uuid $appid
+    oo-ruby /usr/bin/oo-frontend-check-idle --with-container-uuid $appid
 }
 
 function is_stopped {
@@ -104,7 +104,7 @@ if `is_stopped "$uuid"` ; then
     exit 0 # app is already stopped, nothing to do
 fi
 
-oo-frontend-idle --with-container-uuid $uuid
+oo-ruby /usr/bin/oo-frontend-idle --with-container-uuid $uuid
 
 # timeout taken from oo-admin-ctl-gears
 /usr/bin/timeout -s USR1 30s /usr/sbin/oo-admin-ctl-gears stopgear "${uuid}"
