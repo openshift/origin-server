@@ -10,11 +10,6 @@ Feature: Postgresql extended tests
     When I select from the postgresql database using the socket file
     Then the select result from the postgresql database should be valid
     
-    @fedora-only
-    Scenarios: database cartridge scenarios - origin
-      | postgres_cart  | php_version |
-      | postgresql-9.2 | php-5.4     |
-
     @rhel-only
     Scenarios: database cartridge scenarios
       | postgres_cart  | php_version |
