@@ -95,6 +95,26 @@ mkdir -p %{buildroot}/etc/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
 ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 
+# Create empty route database files
+for map in nodes aliases idler sts
+do
+    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
+    echo '' > "${mapf}.txt"
+    %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
+    chown root:apache "${mapf}.db" "${mapf}.txt"
+    chmod 750 "${mapf}.db"
+    chmod 640 "${mapf}.txt"
+done
+
+for map in containers routes
+do
+    mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
+    echo '{}' > "${mapf}.json"
+    chown root:apache "${mapf}.json"
+    chmod 640 "${mapf}.json"
+done
+
+
 # Move the gem configs to the standard filesystem location
 mkdir -p %{buildroot}/etc/openshift
 mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
@@ -158,6 +178,16 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %attr(0755,-,-) %{appdir}
 %attr(0750,root,apache) %{appdir}/.httpd.d
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/containers.json
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.txt
+%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.txt
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/idler.db
+%attr(0750,root,apache) %config(noreplace) %{appdir}/.httpd.d/sts.db
 
 #%if 0%{?fedora}%{?rhel} <= 6
 %attr(0755,-,-)	/etc/rc.d/init.d/openshift-cgroups
@@ -191,34 +221,6 @@ if ! [ -f /etc/openshift/resource_limits.conf ]; then
   cp -f /etc/openshift/resource_limits.template /etc/openshift/resource_limits.conf
 fi
 
-# Create route database files if missing
-for map in nodes aliases idler sts
-do
-    mapf="/etc/httpd/conf.d/openshift/${map}"
-    if ! [ -e "${mapf}.txt" ]
-    then
-        touch "${mapf}.txt"
-        chown root:apache "${mapf}.txt"
-        chmod 640 "${mapf}.txt"
-    fi
-    if ! [ -e "${mapf}.db" ]
-    then
-        %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
-        chown root:apache "${mapf}.db"
-        chmod 750 "${mapf}.db"
-    fi
-done
-
-for map in containers routes
-do
-    mapf="/etc/httpd/conf.d/openshift/${map}"
-    if ! [ -e "${mapf}.json" ]
-    then
-        echo '{}' > "${mapf}.json"
-        chown root:apache "${mapf}.json"
-        chmod 640 "${mapf}.json"
-    fi
-done
 
 %preun
 # disable cgroups on sshd logins

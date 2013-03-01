@@ -899,7 +899,9 @@ module OpenShift
     def decode_contents(f)
       f.each do |l|
         path, dest = l.strip.split
-        self.store(path, dest)
+        if (not path.nil?) and (not dest.nil?)
+          self.store(path, dest)
+        end
       end
     end
 
