@@ -136,7 +136,7 @@ module OpenShift
     #
     # TODO: exception handling
     def force_stop
-      @state.value = ApplicationState::State::STOPPED
+      @state.value = OpenShift::State::STOPPED
       UnixUser.kill_procs(@user.uid)
     end
 
