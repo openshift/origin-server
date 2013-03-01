@@ -1,6 +1,7 @@
-#!/usr/bin/env oo-ruby
-
-# BZ 901449: SELinux failure prevent using "/usr/bin/env ruby".
+#!/usr/bin/ruby
+# DO NOT SET THIS TO /usr/bin/env ..anything...
+# BZ 901449: SELinux prevents using "/usr/bin/env ruby".
+# BZ 912215: SELinux prevents usint "/usr/bin/env oo-ruby".
 
 require 'optparse'
 require 'etc'
@@ -32,12 +33,42 @@ def scrub_input(instring)
   end
 end
 
+
+#
+# Alternate method which does not call cgget.  Waiting on an
+# SELinux policy update for RHEL 6.4 which allows this to work.
+# Ref: https://bugzilla.redhat.com/show_bug.cgi?id=912215
+#
+def get_cgroup_attribute_nocgget(attribute, username)
+  begin
+    value = nil
+    File.open('/proc/mounts', File::RDONLY) do |mounts|
+      mounts.each do |l|
+        if l =~ /^\S+\s+(\S+)\s+cgroup\s+/
+          begin
+            File.open(File.join($1, "openshift", username, attribute), File::RDONLY) do |cgfile|
+              value = cgfile.read.strip
+            end
+          rescue
+          end
+        end
+      end
+    end
+  rescue
+  end
+  if value.nil?
+    $stderr.puts "Could not find attribute #{attribute}"
+    exit 2
+  end
+  value
+end
+
 #
 # Call cgget to retrieve the value for the user.
 # cgget does not set a return flag on failure to find a value or error
 # You have to check the stdout
 #
-def get_cgroup_attribute(attribute, username)
+def get_cgroup_attribute_cgget(attribute, username)
   cmd = "cgget -n -v -r #{attribute} /openshift/#{username}"
   # This would be simple, but we can't catch errors
   #value = %x[%{cmd}]
@@ -54,6 +85,11 @@ def get_cgroup_attribute(attribute, username)
 
   # Get the output string. Remove trailing newlines (just one)
   value = stdout.read.strip
+end
+
+# Set to the proper implementation for this platform
+def get_cgroup_attribute(*args)
+  get_cgroup_attribute_nocgget(*args)
 end
 
 #
