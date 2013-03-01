@@ -1,0 +1,194 @@
+@font-face {
+	font-family: 'openshift-icon';
+	src:font-url('openshift-icon.eot');
+	src:font-url('openshift-icon.eot?#iefix') format('embedded-opentype'),
+		font-url('openshift-icon.woff') format('woff'),
+		font-url('openshift-icon.ttf') format('truetype'),
+		font-url('openshift-icon.svg#openshift-icon') format('svg');
+	font-weight: normal;
+	font-style: normal; 
+}
+
+/* Use the following CSS code if you want to use data attributes for inserting your icons */
+[data-icon]:before {
+	font-family: 'openshift-icon';
+	content: attr(data-icon);
+	speak: none;
+	font-weight: normal;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Use the following CSS code if you want to have a class per icon */
+/*
+Instead of a list of all class selectors,
+you can use the generic selector below, but it's slower:
+[class*="icon-"]:before {
+*/
+.icon-lock:before, .icon-unlock:before, .icon-outgoing-link:before, .icon-arrow-sm-right:before, .icon-arrow-sm-left:before, .icon-arrow-sm-down:before, .icon-arrow-sm-up:before, .icon-arrow-lg-right:before, .icon-data-store-part1:before, .icon-data-store-part2:before, .icon-non-scalable-part1:before, .icon-non-scalable-part2:before, .icon-scalable-part1:before, .icon-scalable-part2:before, .icon-gear-lg:before, .icon-gear-lg-sans-circle:before, .icon-gear-number-circle:before, .icon-gear-sm:before, .icon-gear-sm-sans-circle:before, .icon-web-stack-lg:before, .icon-restart:before, .icon-cartridge-part1:before, .icon-cartridge-part2:before, .icon-ci-arrows:before, .icon-ci-x:before, .icon-ci-check:before, .icon-ci-disabled:before, .icon-management-part2:before, .icon-management-part1:before, .icon-quickstart:before, .icon-start:before, .icon-stop:before, .icon-calendar:before, .icon-warning-sign:before, .icon-question-sign:before, .icon-search:before, .icon-twitter:before, .icon-facebook:before, .icon-google-plus:before, .icon-info-sign:before, .icon-bubbles:before, .icon-stackoverflow:before, .icon-code:before, .icon-github:before, .icon-angle-down:before, .icon-angle-up:before, .icon-angle-right:before, .icon-angle-left:before, .icon-plus:before, .icon-minus:before, .icon-system-signal-lg:before, .icon-system-lg:before {
+	font-family: 'openshift-icon';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	left: -2px;
+  margin-left: 4px;
+  position: relative;
+}
+.icon-lock:before {
+	content: "\e000";
+}
+.icon-unlock:before {
+	content: "\e001";
+}
+.icon-outgoing-link:before {
+	content: "\e002";
+}
+.icon-arrow-sm-right:before {
+	content: "\e003";
+}
+.icon-arrow-sm-left:before {
+	content: "\e004";
+}
+.icon-arrow-sm-down:before {
+	content: "\e005";
+}
+.icon-arrow-sm-up:before {
+	content: "\e006";
+}
+.icon-arrow-lg-right:before {
+	content: "\e007";
+}
+.icon-data-store-part1:before {
+	content: "\e008";
+}
+.icon-data-store-part2:before {
+	content: "\e009";
+}
+.icon-non-scalable-part1:before {
+	content: "\e010";
+}
+.icon-non-scalable-part2:before {
+	content: "\e011";
+}
+.icon-scalable-part1:before {
+	content: "\e012";
+}
+.icon-scalable-part2:before {
+	content: "\e013";
+}
+.icon-gear-lg:before {
+	content: "\e014";
+}
+.icon-gear-lg-sans-circle:before {
+	content: "\e015";
+}
+.icon-gear-number-circle:before {
+	content: "\e016";
+}
+.icon-gear-sm:before {
+	content: "\e017";
+}
+.icon-gear-sm-sans-circle:before {
+	content: "\e018";
+}
+.icon-web-stack-lg:before {
+	content: "\e019";
+}
+.icon-restart:before {
+	content: "\e020";
+}
+.icon-cartridge-part1:before {
+	content: "\e021";
+}
+.icon-cartridge-part2:before {
+	content: "\e022";
+}
+.icon-ci-arrows:before {
+	content: "\e023";
+}
+.icon-ci-x:before {
+	content: "\e024";
+}
+.icon-ci-check:before {
+	content: "\e025";
+}
+.icon-ci-disabled:before {
+	content: "\e026";
+}
+.icon-management-part2:before {
+	content: "\e027";
+}
+.icon-management-part1:before {
+	content: "\e028";
+}
+.icon-quickstart:before {
+	content: "\e029";
+}
+.icon-start:before {
+	content: "\e030";
+}
+.icon-stop:before {
+	content: "\e031";
+}
+.icon-calendar:before {
+	content: "\ee00";
+}
+.icon-warning-sign:before {
+	content: "\ee01";
+}
+.icon-question-sign:before {
+	content: "\ee02";
+}
+.icon-search:before {
+	content: "\ee03";
+}
+.icon-twitter:before {
+	content: "\ee04";
+}
+.icon-facebook:before {
+	content: "\ee05";
+}
+.icon-google-plus:before {
+	content: "\ee06";
+}
+.icon-info-sign:before {
+	content: "\ee07";
+}
+.icon-bubbles:before {
+	content: "\ee08";
+}
+.icon-stackoverflow:before {
+	content: "\ee09";
+}
+.icon-code:before {
+	content: "\ee10";
+}
+.icon-github:before {
+	content: "\ee11";
+}
+.icon-angle-down:before {
+	content: "\ee12";
+}
+.icon-angle-up:before {
+	content: "\ee13";
+}
+.icon-angle-right:before {
+	content: "\ee14";
+}
+.icon-angle-left:before {
+	content: "\ee15";
+}
+.icon-plus:before {
+	content: "\ee16";
+}
+.icon-minus:before {
+	content: "\ee17";
+}
+.icon-system-signal-lg:before {
+	content: "\e032";
+}
+.icon-system-lg:before {
+	content: "\e033";
+}

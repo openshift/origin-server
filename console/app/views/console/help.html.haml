@@ -64,7 +64,7 @@
     %p Our #{link_to 'community forum', post_to_forum_url} is watched round the clock by an army of developers, evangelists, and OpenShift devotees.
     %form.form-search{:method => 'get', :action => community_search_url}
       %input.span3.search-query{:name => 'keys', :placeholder => 'Search the forums'}
-      %button.search{:type => 'submit', :value => 'Search'}
+      %button.search.font-icon.font-icon-size-16{:type => 'submit', "aria-hidden" => "true", "data-icon" => "\uee03"}
     %p Check out the #{link_to 'Knowledge Base', knowledge_base_url} for known headaches and #{link_to 'FAQ', faq_url} for more general questions
     %p Talk directly to the team on IRC - #{link_to 'freenode.net on channel #openshift', irc_web_url}.
 
