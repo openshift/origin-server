@@ -1,0 +1,80 @@
+#!/bin/bash -e
+
+JENKINS_PID_FILE=${OPENSHIFT_HOMEDIR}/app-root/runtime/jenkins.pid
+
+cartridge_type="jenkins"
+
+function build() {
+	echo "Building $cartridge_type cart"
+}
+
+function start() {
+ 	echo "Starting $cartridge_type cart"
+}
+
+function stop() {
+ 	echo "Stopping $cartridge_type cart"
+}
+
+function restart() {
+    echo "Restarting $cartridge_type cart"
+   
+  	stop
+  	
+  	start
+}
+
+function status() {
+   if isrunning
+   then
+      echo "Application is running"
+   else
+      echo "Application is either stopped or inaccessible"
+   fi
+}
+
+function reload() {
+    echo "Reloading $cartridge_type cart"
+    restart
+}
+
+function tidy() {
+    echo "Tidying $cartridge_type cart"
+    
+    for logdir in `awk 'BEGIN {
+                           for (a in ENVIRON)
+                           if (a ~ /LOG_DIR$/)
+                           print ENVIRON[a] }'`
+	do
+    	client_message "Emptying log dir: ${logdir}"
+    	rm -rf ${logdir}* ${logdir}.[^.]*
+	done
+}
+
+function threaddump() {
+	echo "Thread dump for $cartridge_type cart"
+	
+    if ! isrunning; then
+        echo "Application is stopped"
+        exit 1
+    elif [ -f "$JENKINS_PID_FILE" ]; then
+        pid=$(cat $JENKINS_PID_FILE);
+        java_pid=`ps h --ppid $pid -o '%p'`
+        kill -3 $java_pid
+    else 
+        echo "Failed to locate JBOSS PID File"
+    fi
+}
+
+case "$1" in
+  build)		build ;;
+  start)     	start ;;
+  stop)      	stop ;;
+  restart)   	restart ;;
+  status)    	status ;;
+  reload)    	reload ;;
+  tidy)      	tidy ;;
+  threaddump)   threaddump ;;
+  *)         	exit 0
+esac
+

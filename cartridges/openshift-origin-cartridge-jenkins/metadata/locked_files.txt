@@ -1,0 +1,5 @@
+jenkins/
+jenkins/configuration/
+jenkins/metadata/
+jenkins/env/
+jenkins/template/
