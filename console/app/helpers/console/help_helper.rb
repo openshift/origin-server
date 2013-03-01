@@ -23,7 +23,7 @@ module Console::HelpHelper
   end
 
   def add_domains_user_guide_topic_url
-    user_guide_topic_url 'sect-OpenShift-User_Guide-Working_With_Domains.html'
+    user_guide_topic_url 'sect-OpenShift-User_Guide-Working_With_Namespaces.html'
   end
 
   def cartridge_list_url
