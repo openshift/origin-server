@@ -26,7 +26,8 @@ module OpenShift::UserActionLog
     auth = " USER_ID=#{Thread.current[:user_action_log_user_id].to_s} LOGIN=#{Thread.current[:user_action_log_identity_id].to_s}"
     extra = args.map{|k,v| " #{k}=#{v}"}.join
 
-    logger.info("#{message}#{auth}#{extra} #{description} #{detailed_description}")
+    # We are not logging the detailed multi-line logs in the user action logger 
+    logger.info("#{message}#{auth}#{extra} #{description}")
 
     unless Rails.env.production?
       # Using a block prevents the message in the block from being executed 
