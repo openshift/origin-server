@@ -14,7 +14,7 @@ class Gear
   field :server_identity, type: String
   field :uuid, type: String, default: ""
   field :uid, type: Integer
-  field :name, type: String
+  field :name, type: String, default: ""
   field :host_singletons, type: Boolean, default: false
   field :app_dns, type: Boolean, default: false
 
@@ -30,9 +30,9 @@ class Gear
     self.uuid = self._id.to_s if self.uuid=="" or self.uuid.nil?
     #@TODO: Remove when typeless gears is completed
     if app_dns
-      self.name = group_instance.application.name
+      self.name = group_instance.application.name if self.name=="" or self.name.nil?
     else
-      self.name = self.uuid.to_s[0..9]
+      self.name = self.uuid.to_s if self.name=="" or self.name.nil?
     end
   end
 
