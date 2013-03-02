@@ -7,7 +7,7 @@
 
 Summary:       Routing proxy for OpenShift Origin Node
 Name:          openshift-origin-node-proxy
-Version:       0.6.4
+Version:       0.6.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -125,6 +125,9 @@ fi
 %doc README
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 0.6.5-1
+- BZ914838: Fix uri parsing. (mrunalp@gmail.com)
+
 * Tue Feb 26 2013 Adam Miller <admiller@redhat.com> 0.6.4-1
 - Skip migrated directories when finding the new routes. (rmillner@redhat.com)
 
