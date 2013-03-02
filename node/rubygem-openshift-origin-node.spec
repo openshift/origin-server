@@ -103,17 +103,12 @@ do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '' > "${mapf}.txt"
     %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
-    chown root:apache "${mapf}.db" "${mapf}.txt"
-    chmod 750 "${mapf}.db"
-    chmod 640 "${mapf}.txt"
 done
 
 for map in containers routes
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '{}' > "${mapf}.json"
-    chown root:apache "${mapf}.json"
-    chmod 640 "${mapf}.json"
 done
 
 
