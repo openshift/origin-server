@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.10
+Version:       1.5.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -224,6 +224,11 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- remove chown/chmod, errors in mock with Operation Not Permitted, %%files
+  section should satisfy this (admiller@redhat.com)
+- fixing BuildRequires (admiller@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
 - Bug 912215 - Workaround broken SELinux policy. (rmillner@redhat.com)
 - Bug 916839 - The apache user cannot read through /etc/httpd/conf.d on
