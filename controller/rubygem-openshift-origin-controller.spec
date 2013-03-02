@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.10
+Version:       1.5.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- Add test for v2 tidy (pmorie@gmail.com)
+- Add simple v2 app builds (pmorie@gmail.com)
+- Updated feature test. (mrunalp@gmail.com)
+- Updated tests. (mrunalp@gmail.com)
+- Remove parsing version from cartridge-name (pmorie@gmail.com)
+- Merge pull request #1500 from rajatchopra/master (dmcphers@redhat.com)
+- Merge pull request #1495 from abhgupta/abhgupta-dev (dmcphers@redhat.com)
+- scale down should not get affected with consumed_gears/actual_gears mismatch
+  (rchopra@redhat.com)
+- gear name is the whole uuid now (rchopra@redhat.com)
+- Reloading the domain from primary to make sure pending_ops is loaded
+  (abhgupta@redhat.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
 - Merge pull request #1441 from pravisankar/dev/ravi/us3409
   (dmcphers+openshiftbot@redhat.com)
