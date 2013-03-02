@@ -220,12 +220,19 @@ class CloudUser
 
   # Delete user and all its artifacts like domains, applications associated with the user 
   def force_delete
-    self.domains.each do |domain|
-      domain.applications.each do |app|
+    # will need to read from the primary to make sure we get the latest data
+    while Domain.with(consistency: :strong).where(owner: self).count > 0
+      domain = Domain.with(consistency: :strong).where(owner: self).first
+      while Application.with(consistency: :strong).where(domain: domain).count > 0
+        app = Application.with(consistency: :strong).where(domain: domain).first
         app.destroy_app
-      end if domain.applications.count > 0
+      end
       domain.delete
-    end if self.domains.count > 0
+    end
+    
+    # will need to reload from primary to ensure that mongoid doesn't validate based on its cache
+    # and prevent us from deleting this user because of the :dependent :restrict clause
+    self.with(consistency: :strong).reload
     self.delete
   end
  
