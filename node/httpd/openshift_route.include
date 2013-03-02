@@ -17,10 +17,10 @@ RewriteLogLevel 0
 
 # Maps
 RewriteMap    lowercase int:tolower
-RewriteMap      openshift-nodes   dbm=db:/etc/httpd/conf.d/openshift/nodes.db
-RewriteMap      openshift-aliases dbm=db:/etc/httpd/conf.d/openshift/aliases.db
-RewriteMap      openshift-idler   dbm=db:/etc/httpd/conf.d/openshift/idler.db
-RewriteMap      openshift-sts     dbm=db:/etc/httpd/conf.d/openshift/sts.db
+RewriteMap      openshift-nodes   dbm=db:/var/lib/openshift/.httpd.d/nodes.db
+RewriteMap      openshift-aliases dbm=db:/var/lib/openshift/.httpd.d/aliases.db
+RewriteMap      openshift-idler   dbm=db:/var/lib/openshift/.httpd.d/idler.db
+RewriteMap      openshift-sts     dbm=db:/var/lib/openshift/.httpd.d/sts.db
 
 # Set X-Client-IP to the node which contacted the front-end
 # This being Apache, you can't just use %{REMOTE_ADDR}e.
