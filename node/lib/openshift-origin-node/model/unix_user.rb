@@ -488,6 +488,9 @@ Dir(after)    #{@uuid}/#{@uid} => #{list_home_dir(@homedir)}
 
       add_env_var("HOMEDIR", homedir, true)
 
+      # Ensure HOME exists for git support
+      add_env_var("HOME", homedir, false)
+
       add_env_var("PATH",
                   "#{cart_basedir}/abstract-httpd/info/bin/:#{cart_basedir}/abstract/info/bin/:/bin:/sbin:/usr/bin:/usr/sbin:/$PATH",
                   false)

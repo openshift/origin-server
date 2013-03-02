@@ -99,16 +99,15 @@ module OpenShift
 
           unless pid
             raise OpenShift::Utils::ShellExecutionException.new(
-                      "Shell command '#{command}' fork failed in spawn().")
+                      "Kernel.spawn failed for command '#{command}'")
           end
 
           begin
             write_stdout.close
             write_stderr.close
-            out, err = read_results(read_stdout, read_stderr, options)
 
-            _, status = Process.wait2 pid
-            NodeLogger.logger.debug { "oo_spawn ran #{command}: #{status.exitstatus}" }
+            out, err, status = read_results(pid, read_stdout, read_stderr, options)
+            NodeLogger.logger.debug { "Shell command '#{command}' ran. rc=#{status.exitstatus}" }
 
             if (!options[:expected_exitstatus].nil?) && (status.exitstatus != options[:expected_exitstatus])
               raise OpenShift::Utils::ShellExecutionException.new(
@@ -134,34 +133,44 @@ module OpenShift
     # options: hash
     #   :timeout     => seconds to wait for command to finish. Default: 3600
     #   :buffer_size => how many bytes to read from pipe per iteration. Default: 32768
-    def self.read_results(stdout, stderr, options)
+    def self.read_results(pid, stdout, stderr, options)
       # TODO: Are these variables thread safe...?
       out     = ''
       err     = ''
+      status  = nil
       readers = [stdout, stderr]
 
       begin
         Timeout::timeout(options[:timeout]) do
           while readers.any?
-            ready = IO.select(readers, nil, nil, options[:timeout])
-            raise TimeoutError if ready.nil?
+            ready = IO.select(readers, nil, nil, 10)
 
-            ready[0].each do |fd|
-              buffer = (fd == stdout) ? out : err
-              begin
-                buffer << fd.readpartial(options[:buffer_size])
-                NodeLogger.trace_logger.debug { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{buffer}" }
-              rescue Errno::EAGAIN, Errno::EINTR
-              rescue EOFError
-                readers.delete(fd)
-                fd.close
+            # If there is no IO to process check if child has exited...
+            if ready.nil?
+              _, status = Process.wait2(pid, Process::WNOHANG)
+            else
+              # Otherwise, process us some IO...
+              ready[0].each do |fd|
+                buffer = (fd == stdout) ? out : err
+                begin
+                  buffer << fd.readpartial(options[:buffer_size])
+                  NodeLogger.trace_logger.debug { "oo_spawn buffer(#{fd.fileno}/#{fd.pid}) #{buffer}" }
+                rescue Errno::EAGAIN, Errno::EINTR
+                rescue EOFError
+                  readers.delete(fd)
+                  fd.close
+                end
               end
             end
           end
-          [out, err]
+
+          _, status = Process.wait2 pid
+          [out, err, status]
         end
       rescue Timeout::Error
         raise TimeoutExceeded, options[:timeout]
+      rescue Errno::ECHILD
+        return [out, err, status]
       end
     end
   end
