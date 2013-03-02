@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,12 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Removing mcollective qpid plugin and adding some more doc
+  (dmcphers@redhat.com)
+- Use secondary algorithm for find available node as the default
+  (dmcphers@redhat.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - reverted US2448 (lnader@redhat.com)
 
