@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,25 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Fix for Bug 912194 - The "the User Guide" link on my account page is broken
+  (sgoodwin@redhat.com)
+- Merge pull request #1479 from sg00dwin/iconfont
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1433 from fotioslindiakos/plan_upgrade
+  (dmcphers+openshiftbot@redhat.com)
+- rename of file (sgoodwin@redhat.com)
+- Added opts to pricing for anchors (fotios@redhat.com)
+- Move fonts from li to openshift-server apply margin to class that controls
+  :before positioned fonts for offset (sgoodwin@redhat.com)
+- remove margin because it needs to only be for icons set using their class
+  name (sgoodwin@redhat.com)
+- Merge branch 'master' of github.com:openshift/origin-server into iconfont
+  (sgoodwin@redhat.com)
+- Replace the following sprite images with icon font - Restart - Search
+  (sgoodwin@redhat.com)
+- Include iconfont in common.css (sgoodwin@redhat.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - Merge pull request #1483 from
   smarterclayton/bug_915527_session_caps_not_cleared (dmcphers@redhat.com)
