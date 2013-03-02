@@ -93,7 +93,7 @@ class Domain
   #   The namespace update operation created in step 1.
   #
   # == Returns:
-  #   The domain operation which tracks the second step of the update.  
+  #   The domain operation which tracks the second step of the update.
   def complete_namespace_update(op)
     pending_op = PendingDomainOps.new(op_type: :complete_namespace_update, arguments: {"old_ns" => op.arguments["old_ns"], "new_ns" => op.arguments["new_ns"]}, parent_op: nil, on_apps: op.on_apps, state: "init")
     self.pending_ops.push pending_op
@@ -106,17 +106,16 @@ class Domain
   # == Parameters:
   # user::
   #  The user to add to the access list for this domain.
-  #
-  # == Returns:
-  #  The domain operation which tracks the user addition.
   def add_user(user)
-    self.user_ids.push user._id
-    pending_op = PendingDomainOps.new(op_type: :add_user, arguments: {user: user._id}, parent_op: nil, on_apps: applications)
-    self.pending_ops.push pending_op
-    pending_op.on_apps.each do |app|
-      app.add_ssh_keys(user, user.ssh_keys, pending_op)
+    unless self.user_ids.include? user._id
+      self.user_ids.push user._id
+      self.save
+      if self.applications.count > 0
+        pending_op = PendingDomainOps.new(op_type: :add_user, arguments: {user_id: user._id}, parent_op: nil, on_apps: applications)
+        self.pending_ops.push pending_op
+        self.run_jobs
+      end
     end
-    pending_op
   end
   
   # Removes a user from the access list for this domain.
@@ -124,15 +123,13 @@ class Domain
   # == Parameters:
   # user::
   #  The user to remove from the access list for this domain.
-  #
-  # == Returns:
-  #  The domain operation which tracks the user removal.
   def remove_user(user)
     if self.user_ids.delete user._id
-      pending_op = PendingDomainOps.new(op_type: :remove_user, arguments: {user: user._id}, parent_op: nil, on_apps: applications)
-      self.pending_ops.push pending_op
-      pending_op.on_apps.each do |app|
-        app.remove_ssh_keys(user, user.ssh_keys, pending_op)
+      self.save
+      if self.applications.count > 0
+        pending_op = PendingDomainOps.new(op_type: :remove_user, arguments: {user_id: user._id}, parent_op: nil, on_apps: applications)
+        self.pending_ops.push pending_op
+        self.run_jobs
       end
     end
   end
@@ -237,6 +234,22 @@ class Domain
         end
 
         case op.op_type
+        when :add_user
+          user = nil
+          begin
+            user = CloudUser.find(op.arguments["user_id"])
+          rescue Mongoid::Errors::DocumentNotFound
+            #ignore
+          end
+          op.pending_apps.each { |app| app.add_ssh_keys(user, user.ssh_keys, op) } if user
+        when :remove_user
+          user = nil
+          begin
+            user = CloudUser.find(op.arguments["user_id"])
+          rescue Mongoid::Errors::DocumentNotFound
+            #ignore
+          end
+          op.pending_apps.each { |app| app.remove_ssh_keys(user, user.ssh_keys, op) } if user
         when :add_ssh_key
           op.pending_apps.each { |app| app.add_ssh_keys(op.arguments["user_id"], op.arguments["key_attrs"], op) }
         when :delete_ssh_key
