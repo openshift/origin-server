@@ -57,12 +57,14 @@ function _get_routing_key(uri) {
     return uri;
   }
 
+  Logger.debug(uri);
+
   /*  Trim leading spaces and split uri on '/'.  */
   var zuri   = uri.replace(/^\s+/g, '');
   var zparts = zuri.split('/');
 
   /*  Check if we need to strip of the scheme http[s]://  */
-  if (0 == zuri.indexOf('http') ) {
+  if (0 == zuri.indexOf('http://')  || 0 == zuri.indexOf('https://')) {
     zparts = zuri.split('://')[1].split('/');
   }
 
@@ -163,7 +165,7 @@ ProxyRoutes.prototype.add = function(n, endpts, limits) {
   this.routes[rkey] = { 'endpoints': endpts, 'limits': limits };
 
   // Logger.debug("ProxyRoutes.add '" + n + "' => " + endpts);
-  // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits)); 
+  // Logger.debug("ProxyRoutes.add '" + n + "' limits => " + JSON.stringify(limits));
 
   return this.routes[rkey];
 
@@ -217,6 +219,7 @@ ProxyRoutes.prototype.remove = function(n) {
  *  @api    public
  */
 ProxyRoutes.prototype.load = function(f) {
+  Logger.debug("Loading routes from file '" + f + "'. ");
   var zroutes = _load_routes(f);
   for (var d in zroutes) {
     this.add(d, zroutes[d].endpoints, zroutes[d].limits);
