@@ -40,7 +40,8 @@ Requires:      libcgroup
 Requires:      libcgroup-tools
 %endif
 %if 0%{?fedora} >= 18
-Requires:       httpd-tools
+Requires:      httpd-tools
+BuildRequires: httpd-tools
 %endif
 Requires:      libcgroup-pam
 Requires:      pam_openshift
@@ -49,6 +50,7 @@ Requires:      quota
 %if 0%{?fedora}%{?rhel} <= 6
 BuildRequires: %{?scl:%scl_prefix}build
 BuildRequires: scl-utils-build
+BuildRequires: httpd
 %endif
 BuildRequires: %{?scl:%scl_prefix}ruby(abi) = %{rubyabi}
 BuildRequires: %{?scl:%scl_prefix}ruby 
