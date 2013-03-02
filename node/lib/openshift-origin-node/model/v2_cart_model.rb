@@ -429,13 +429,16 @@ module OpenShift
       env            = Utils::Environ.for_cartridge(cartridge_home)
       teardown       = File.join(cartridge_home, 'bin', 'teardown')
 
+      return "" unless File.exists? teardown
+      return "#{teardown}: is not executable\n" unless File.executable? teardown
+
       # FIXME: Will anyone retry if this reports error, or should we remove from disk no matter what?
-      out, _, _      = Utils.oo_spawn(teardown,
-                                      env:             env,
-                                      unsetenv_others: true,
-                                      chdir:           @user.homedir,
-                                      uid:             @user.uid,
-                                      expected_status: 0)
+      out, _, _ = Utils.oo_spawn(teardown,
+                                 env:             env,
+                                 unsetenv_others: true,
+                                 chdir:           @user.homedir,
+                                 uid:             @user.uid,
+                                 expected_status: 0)
       FileUtils.rm_r(cartridge_home)
       logger.info("Ran teardown for #{cartridge_name} for user #{@user.uuid} from #{cartridge_home}")
       out

@@ -49,7 +49,7 @@ using your cartridge.
      |  +- ... (directory/file tree)
      +  template.git               (discretionary)
      +  +- ... (bare git repository)
-     +- opt                        (optional)
+     +- usr                        (optional)
      |  +- ...
      +- metadata                   (required)
      |  +- manifest.yml            (required)
@@ -76,7 +76,7 @@ control file.
 
 When creating an instance of your cartridge for use by a gear, OpenShift
 will copy the files, links and directories from the cartridge library
-with the exclusion of the opt directory. The opt directory will be
+with the exclusion of the `usr` directory. The `usr` directory will be
 sym-linked into the gear's cartridge instance. This allows for sharing
 of libraries and other data across all cartridge instances.
 
@@ -648,24 +648,30 @@ OpenShift provided environment variables will be loaded and available
 to be used for all cartridge entry points.
 
 ### System Provided Variables (Read Only) ###
- * `HISTFILE` bash history file
- * `OPENSHIFT_APP_DNS` the application's fully qualified domain name that your cartridge is a part of
- * `OPENSHIFT_APP_NAME` the validated user assigned name for the application. Black list is system dependent.
- * `OPENSHIFT_APP_UUID` OpenShift assigned UUID for the application
- * `OPENSHIFT_DATA_DIR` the directory where your cartridge may store data
- * `OPENSHIFT_GEAR_DNS` the gear's fully qualified domain name that your cartridge is a part of. May or may not be equal to
-                        `OPENSHIFT_APP_DNS`
+ * `HOME`                alias for `OPENSHIFT_HOMEDIR`
+ * `HISTFILE`            bash history file
+ * `OPENSHIFT_APP_DNS`   the application's fully qualified domain name that your cartridge is a part of
+ * `OPENSHIFT_APP_NAME`  the validated user assigned name for the application. Black list is system dependent.
+ * `OPENSHIFT_APP_UUID`  OpenShift assigned UUID for the application
+ * `OPENSHIFT_DATA_DIR`  the directory where your cartridge may store data
+ * `OPENSHIFT_GEAR_DNS`  the gear's fully qualified domain name that your cartridge is a part of. May or may
+                         not be equal to `OPENSHIFT_APP_DNS`
  * `OPENSHIFT_GEAR_NAME` OpenShift assigned name for the gear. May or may not be equal to `OPENSHIFT_APP_NAME`
  * `OPENSHIFT_GEAR_UUID` OpenShift assigned UUID for the gear
- * `OPENSHIFT_HOMEDIR` OpenShift assigned directory for the gear
- * `OPENSHIFT_REPO_DIR` the directory where the developer's application is "archived" to and will be run from.
- * `OPENSHIFT_TMP_DIR` the directory where your cartridge may store temporary data
+ * `OPENSHIFT_HOMEDIR`   OpenShift assigned directory for the gear
+ * `OPENSHIFT_REPO_DIR`  the directory where the developer's application is "archived" to and will be run from.
+ * `OPENSHIFT_TMP_DIR`   the directory where your cartridge may store temporary data
+ * `TMPDIR`              alias for `OPENSHIFT_TMP_DIR`
+ * `TMP`                 alias for `OPENSHIFT_TMP_DIR`
 
-### Examples of Cartridge Provided Variables ###
+### Examples of Cartridge Variables  ###
 
-You may provide these files in your cartridge's `env` directory or choose to create them in your `setup` script.
+These are variables you either provided to you for communicating to the application developer.  You may add
+additional variables for your cartridges or the packaged software needs. You may provide these files in your
+cartridge's `env` directory or choose to create them in your `setup` script.
 
- * `OPENSHIFT_MYSQL_DB_HOST`                  Backwards capatibility (ERB populated from `OPENSHIFT_MYSQL_DB_IP`)
+ * `OPENSHIFT_MYSQL_DB_HOST`                  Backwards compatibility (ERB populate from `OPENSHIFT_MYSQL_DB_IP`)
+ * `OPENSHIFT_MYSQL_DB_IP`
  * `OPENSHIFT_MYSQL_DB_LOG_DIR`
  * `OPENSHIFT_MYSQL_DB_PASSWORD`
  * `OPENSHIFT_MYSQL_DB_PORT`
