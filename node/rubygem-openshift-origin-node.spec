@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.9
+Version:       1.5.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -227,6 +227,24 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Bug 912215 - Workaround broken SELinux policy. (rmillner@redhat.com)
+- Bug 916839 - The apache user cannot read through /etc/httpd/conf.d on
+  STG/INT/PROD for security reasons. (rmillner@redhat.com)
+- Merge pull request #1506 from pmorie/dev/cartridge_refactor
+  (dmcphers+openshiftbot@redhat.com)
+- Add simple v2 app builds (pmorie@gmail.com)
+- WIP Cartridge Refactor - Add OPENSHIFT_{CartridgeShortName}_DIR
+  (jhonce@redhat.com)
+- Remove parsing version from cartridge-name (pmorie@gmail.com)
+- Bug 916917 - uninitialized constant ApplicationState (jhonce@redhat.com)
+- Merge pull request #1497 from jwhonce/wip/master_unix_user
+  (dmcphers@redhat.com)
+- Strip out malformed entries. (rmillner@redhat.com)
+- Move the blank route files out of %%post. (rmillner@redhat.com)
+- WIP Cartridge Refactor - Remove oo_spawn use from v1 path (jhonce@redhat.com)
+- Use sync IO for the logger file (ironcladlou@gmail.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - Merge pull request #1486 from lnader/revert_pull_request_1
   (dmcphers@redhat.com)
