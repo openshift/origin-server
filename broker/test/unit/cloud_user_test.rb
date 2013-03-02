@@ -55,9 +55,38 @@ class CloudUserTest < ActiveSupport::TestCase
     CloudUser.expects(:notify_observers).with(:before_cloud_user_create, user).in_sequence(observer_seq).at_least_once
     CloudUser.expects(:notify_observers).with(:cloud_user_create_success, user).in_sequence(observer_seq).at_least_once
     CloudUser.expects(:notify_observers).with(:after_cloud_user_create, user).in_sequence(observer_seq).at_least_once
-    user.expects(:mongoid_save).returns(true)
 
     user.save!
+    
+    found_user = CloudUser.find_by(login: @login)
+    assert_equal_users(user, found_user)
+  end
+  
+  test "update cloud user" do
+    login = "user_" + gen_uuid
+    orig_cu = CloudUser.new(login: login)
+    orig_cu.save!
+
+    orig_cu.set(:consumed_gears, 2)
+  
+    updated_cu = CloudUser.find_by(login: login)
+    assert_equal(orig_cu.consumed_gears, updated_cu.consumed_gears)
+  end
+  
+  test "delete cloud user" do
+    login = "user_" + gen_uuid
+    orig_cu = CloudUser.new(login: login)
+    orig_cu.save!
+    orig_cu.delete
+  
+    cu = nil
+    begin
+      cu = CloudUser.find_by(login: login)
+    rescue Mongoid::Errors::DocumentNotFound
+      # do nothing
+    end
+
+    assert_equal(nil, cu)
   end
   
   test "create user fails if user already exists" do
@@ -151,6 +180,11 @@ class CloudUserTest < ActiveSupport::TestCase
     
     # Make sure the user is still there
     CloudUser.find_by(login: @login)
+  end
+  
+  def assert_equal_users(user1, user2)
+    assert_equal(user1.login, user2.login)
+    assert_equal(user1._id, user2._id)
   end
   
   def teardown

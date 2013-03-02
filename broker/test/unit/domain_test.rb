@@ -49,6 +49,24 @@ class DomainTest < ActiveSupport::TestCase
     assert_equal_domains(orig_d, new_d)
   end
   
+  test "add remove user" do
+    ns = "ns" + gen_uuid[0..9]
+    d = Domain.new(namespace: ns)
+    d.save!
+
+    cu = CloudUser.new(login: ns)
+    cu.save!
+
+    d.add_user(cu)
+
+    assert d.user_ids.include?(cu._id)
+    d = Domain.find_by(namespace: ns)
+    assert d.user_ids.include?(cu._id)
+
+    d.remove_user(cu)
+    assert !d.user_ids.include?(cu._id)
+  end
+  
   def assert_equal_domains(domain1, domain2)
     assert_equal(domain1.namespace, domain2.namespace)
     assert_equal(domain1.canonical_namespace, domain2.canonical_namespace)
