@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.7
+Version:       1.5.8
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,11 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
+- Removing mcollective qpid plugin and adding some more doc
+  (dmcphers@redhat.com)
+- bypass failures; handle nil ops; no_timeout (rchopra@redhat.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
 - Merge pull request #1441 from pravisankar/dev/ravi/us3409
   (dmcphers+openshiftbot@redhat.com)
