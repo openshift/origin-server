@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.11
+Version:       1.5.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,21 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
+- Bug 916941 - Keep created time in sync when creating UsageRecord and Usage
+  mongo record (rpenta@redhat.com)
+- Merge pull request #1519 from abhgupta/abhgupta-ssh-keys
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1518 from danmcp/master
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1516 from abhgupta/abhgupta-dev
+  (dmcphers+openshiftbot@redhat.com)
+- Fix for issue identified by lnader where force_delete fails for a user with
+  domains (abhgupta@redhat.com)
+- adding coverage (dmcphers@redhat.com)
+- Fix for bug 915638   We are not logging the user credentials in the log file
+  (abhgupta@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
 - Add test for v2 tidy (pmorie@gmail.com)
 - Add simple v2 app builds (pmorie@gmail.com)
