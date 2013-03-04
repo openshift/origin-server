@@ -136,7 +136,7 @@ else
     client_result "The rockmongo username and password will be the same as the MongoDB credentials above."
 fi
 
-cart_props "connection_url=mongodb://$mongodb_ip:$mongodb_port/"
+cart_props 'connection_url=mongodb://$OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT/'
 cart_props "username=admin"
 cart_props "password=$password"
 cart_props "database_name=$DB_NAME"
