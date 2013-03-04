@@ -136,7 +136,7 @@ else
 
 fi
 
-cart_props "connection_url=mysql://$mysql_ip:$mysql_port/"
+cart_props 'connection_url=mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/'
 cart_props "username=$username"
 cart_props "password=$password"
 cart_props "database_name=${dbname}"

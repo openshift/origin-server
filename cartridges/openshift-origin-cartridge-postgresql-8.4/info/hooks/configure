@@ -162,7 +162,7 @@ else
     client_result ""
 fi
 
-cart_props "connection_url=postgresql://$psql_ip:$psql_port/"
+cart_props 'connection_url=postgresql://$OPENSHIFT_POSTGRESQL_DB_HOST:$OPENSHIFT_POSTGRESQL_DB_PORT/'
 cart_props "username=admin"
 cart_props "password=$password"
 cart_props "database_name=${dbname}"
