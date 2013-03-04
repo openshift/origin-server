@@ -203,12 +203,12 @@ echo "/usr/bin/oo-trap-user" >> /etc/shells
 # Enable cgroups on ssh logins
 if [ -f /etc/pam.d/sshd ] ; then
    if ! grep pam_cgroup.so /etc/pam.d/sshd > /dev/null ; then
-     echo "session    optional     pam_cgroup.so" >> /etc/pam.d/sshd
+     echo "session    optional     pam_cgroup.so # OPENSHIFT_NODE" >> /etc/pam.d/sshd
    else
      logger -t rpm-post "pam_cgroup.so is already enabled for sshd"
    fi
 else
-   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pamd./sshd: file not found"
+   logger -t rpm-post "cannot add pam_cgroup.so to /etc/pam.d/sshd: file not found"
 fi
 
 # copying this file in the post hook so that this file can be replaced by rhc-node
@@ -220,7 +220,7 @@ fi
 
 %preun
 # disable cgroups on sshd logins
-sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
+sed -i -e '# OPENSHIFT_NODE/d' /etc/pam.d/sshd
 
 %changelog
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
