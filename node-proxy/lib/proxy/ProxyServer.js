@@ -369,8 +369,16 @@ function _websocketHandler(proxy_server, ws) {
   proxy_server.debug()  &&  Logger.debug('Sending a websocket request to %s',
                                          ws_endpoint);
 
+  proxy_server.debug()  &&  Logger.debug(JSON.stringify(upgrade_req.headers));
+
+  /* Pass down the cookie, if any */
+  var zheaders = { 'headers': {}};
+  if (upgrade_req.headers.cookie) {
+    zheaders.headers.Cookie = upgrade_req.headers.cookie;
+  }
+
   /*  Create a proxy websocket request we need to send.  */
-  var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri);
+  var proxy_ws = new WebSocket('ws://' + ws_endpoint + upg_requri, zheaders);
 
   /*  Set surrogate's backend information.  */
   surrogate.setBackendInfo(proxy_ws);
