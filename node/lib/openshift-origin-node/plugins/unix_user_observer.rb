@@ -21,7 +21,7 @@ module OpenShift
     def after_unix_user_create(user)
       out,err,rc = shellCmd("service cgconfig status > /dev/null 2>&1")
       if rc == 0
-        out,err,rc = shellCmd("/usr/bin/oo-admin-ctl-cgroups startuser #{user.name} > /dev/null")
+        out,err,rc = shellCmd("/usr/sbin/oo-admin-ctl-cgroups startuser #{user.name} > /dev/null")
         raise OpenShift::UserCreationException.new("Unable to setup cgroups for #{user.name}: stdout -- #{out} stderr --#{err}}") unless rc == 0
       end
     end
@@ -43,7 +43,7 @@ module OpenShift
 
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
       if rc == 0
-        shellCmd("/usr/bin/oo-admin-ctl-cgroups freezeuser #{user.name} > /dev/null") if rc == 0
+        shellCmd("/usr/sbin/oo-admin-ctl-cgroups freezeuser #{user.name} > /dev/null") if rc == 0
       end
 
       last_access_dir = OpenShift::Config.instance.get("LAST_ACCESS_DIR")
@@ -58,8 +58,8 @@ module OpenShift
 
     def after_unix_user_destroy(user)
       out,err,rc = shellCmd("service cgconfig status > /dev/null")
-      shellCmd("/usr/bin/oo-admin-ctl-cgroups thawuser #{user.name} > /dev/null") if rc == 0
-      shellCmd("/usr/bin/oo-admin-ctl-cgroups stopuser #{user.name} > /dev/null") if rc == 0
+      shellCmd("/usr/sbin/oo-admin-ctl-cgroups thawuser #{user.name} > /dev/null") if rc == 0
+      shellCmd("/usr/sbin/oo-admin-ctl-cgroups stopuser #{user.name} > /dev/null") if rc == 0
 
       cmd = "/bin/sh #{File.join("/usr/libexec/openshift/lib", "teardown_pam_fs_limits.sh")} #{user.name}"
       out,err,rc = shellCmd(cmd)

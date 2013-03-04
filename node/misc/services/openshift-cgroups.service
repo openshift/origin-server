@@ -4,9 +4,9 @@ After=runlevel3.target
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/oo-admin-ctl-cgroups startall
-ExecStop=/usr/bin/oo-admin-ctl-cgroups stopall
-ExecReload=/usr/bin/oo-admin-ctl-cgroups restartall
+ExecStart=/usr/sbin/oo-admin-ctl-cgroups startall
+ExecStop=/usr/sbin/oo-admin-ctl-cgroups stopall
+ExecReload=/usr/sbin/oo-admin-ctl-cgroups restartall
 Restart=no
 RemainAfterExit=yes
 
