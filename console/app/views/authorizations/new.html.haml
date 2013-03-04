@@ -4,7 +4,7 @@
 = flashes
 
 = semantic_form_for @authorization, :html => {:class => 'form'} do |f|
-  = f.semantic_errors :except => :scope
+  = f.semantic_errors :except => :note
   = f.inputs do
 
     .control-group{:class => @authorization.errors[:scope].present? ? 'error' : ''}
