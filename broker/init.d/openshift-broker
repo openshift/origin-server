@@ -43,6 +43,7 @@ start() {
         pushd $osdir > /dev/null
           rm -rf Gemfile.lock
           scl enable ruby193 "bundle install --local > /dev/null"
+          chown apache:apache Gemfile.lock
           RETVAL=$?
         popd > /dev/null
         if [ $RETVAL != 0 ]; then
