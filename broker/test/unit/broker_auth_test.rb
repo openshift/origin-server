@@ -24,7 +24,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     t = Time.new
 
     user.expects(:domains).returns(domains)
-    user.expects(:id).returns('1')
+    user.expects(:login).returns('1')
 
     domain.expects(:owner).returns(user)
 
@@ -34,7 +34,7 @@ class BrokerAuthTest < Test::Unit::TestCase
     app.expects(:domain).returns(domain)
     app.expects(:created_at).at_least_once.returns(t)
 
-    CloudUser.expects(:find).at_least_once.returns(user)
+    CloudUser.expects(:find_by_identity).at_least_once.returns(user)
     domain.expects(:applications).at_least_once.returns([app])
 
     iv,token = svc.generate_broker_key(app)
