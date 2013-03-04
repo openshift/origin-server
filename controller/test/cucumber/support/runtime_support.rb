@@ -93,9 +93,9 @@ module OpenShift
     end
 
     # Creates a new empty gear associated with this application.
-    def create_gear
+    def create_gear(cli = false)
       gear = OpenShift::TestGear.new(self)
-      gear.create
+      gear.create(cli)
       @gears << gear
       gear
     end
@@ -165,12 +165,19 @@ module OpenShift
     # Creates the physical gear on a node by delegating work to the
     # ApplicationContainer class. Be sure to call this before attempting
     # cartridge operations.
-    def create()
+    def create(cli = false)
       $logger.info("Creating new gear #{@uuid} for application #{@app.name}")
       
+      if cli
+        `oo-app-create -a #{@app.uuid} -c #{uuid} --with-namespace #{@app.account.domain} --with-app-name #{@app.name}`
+      end
+
       # Create the container object for use in the event listener later
       @container = OpenShift::ApplicationContainer.new(@app.uuid, @uuid, nil, @app.name, @app.name, @app.account.domain, nil, nil, $logger)
-      @container.create
+      
+      unless cli
+        @container.create
+      end
     end
 
     # Destroys the gear via ApplicationContainer
@@ -251,11 +258,15 @@ module OpenShift
                    ]
     end
 
-    def configure
+    def configure(cli = false)
       output = ""
 
-      with_ex_handling do
-        output = @gear.container.configure(@name)
+      if cli
+        output = `oo-cartridge -a add -c #{@gear.uuid} -n #{@name} -v`
+      else
+        with_ex_handling do
+          output = @gear.container.configure(@name)
+        end
       end
 
       # Sanitize the command output. For now, the only major problem we're aware
