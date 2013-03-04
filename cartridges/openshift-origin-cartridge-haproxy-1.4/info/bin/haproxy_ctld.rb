@@ -12,7 +12,7 @@ HAPROXY_RUN_DIR=File.join(ENV['OPENSHIFT_HOMEDIR'], "haproxy-1.4", "run")
 GEAR_REGISTRY_DB=File.join(HAPROXY_CONF_DIR, "gear-registry.db")
 HAPROXY_CONFIG=File.join(HAPROXY_CONF_DIR, "haproxy.cfg")
 
-class Haproxy_attr
+class HAProxyAttr
     attr_accessor :pxname,:svname,:qcur,:qmax,:scur,:smax,:slim,:stot,:bin,:bout,:dreq,:dresp,:ereq,:econ,:eresp,:wretr,:wredis,:status,:weight,:act,:bck,:chkfail,:chkremove,:lastchg,:removetime,:qlimit,:pid,:iid,:sid,:throttle,:lbtot,:tracked,:type,:rate,:rate_lim,:rate_max,:check_status,:check_code,:check_duration,:hrsp_1xx,:hrsp_2xx,:hrsp_3xx,:hrsp_4xx,:hrsp_5xx,:hrsp_other,:hanafail,:req_rate,:req_rate_max,:req_tot,:cli_abrt,:srv_abrt
 
     def initialize(line)
@@ -20,7 +20,7 @@ class Haproxy_attr
     end
 end
 
-class HaproxyUtils
+class HAProxyUtils
     @@log = Logger.new("#{ENV['OPENSHIFT_HAPROXY_LOG_DIR']}/validate_config.log")
     def self.parse_gear_registry_info(ginfo)
         gbits = ginfo.split(";")
@@ -72,13 +72,13 @@ class HaproxyUtils
         cfg.gsub!(/\r\n?/, "\n")
         cfg.each_line do |line|
             gentry = line.delete("\n")
-            gdns, uuid, ipaddr = HaproxyUtils.parse_gear_registry_info(gentry)
-            gearip = HaproxyUtils.get_gear_ipaddress(gdns, ipaddr)
+            gdns, uuid, ipaddr = HAProxyUtils.parse_gear_registry_info(gentry)
+            gearip = HAProxyUtils.get_gear_ipaddress(gdns, ipaddr)
 
             @@log.debug("GEAR_INFO - validate: Verifying gear #{gdns} resolves to #{ipaddr} for uuid=#{uuid} ... ") if debug
             if ipaddr != gearip
                 @@log.info("GEAR_INFO - validate: Repairing configuration to use IP address #{gearip} for gear #{gdns} ...")
-                repaired ||= HaproxyUtils.repair_configuration(gdns, uuid, ipaddr, gearip)
+                repaired ||= HAProxyUtils.repair_configuration(gdns, uuid, ipaddr, gearip)
             end
         end
 
@@ -96,7 +96,9 @@ class Haproxy
     #gear_count = ha.stats['express'].count - 3.0 # Remove backend, frontend and 'filler'
     #sessions = ha.stats['express']['BACKEND'].scur.to_f
     #sessions_per_gear = sessions / gear_count
-    #session_capacity_pct = (sessions_per_gear / @max_sessions_per_gear ) * 100
+    #session_capacity_pct = (sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
+  
+    MAX_SESSIONS_PER_GEAR = 10.0
 
     class ShouldRetry < StandardError
       attr_reader :message
@@ -120,7 +122,7 @@ class Haproxy
     end
 
     def refresh(stats_sock="#{HAPROXY_RUN_DIR}/stats")
-        @max_sessions_per_gear=10.0
+        
         @gear_remove_pct = 49.9
         @gear_up_pct = 90.0
         @gear_namespace = ENV['OPENSHIFT_GEAR_DNS'].split('.')[0].split('-')[1]
@@ -135,7 +137,7 @@ class Haproxy
             pxname=line.split(',')[0]
             svname=line.split(',')[1]
             @status[pxname] = {} unless @status[pxname]
-            @status[pxname][svname] = Haproxy_attr.new(line)
+            @status[pxname][svname] = HAProxyAttr.new(line)
           end
           @socket.close
         rescue Errno::ENOENT => e
@@ -146,12 +148,12 @@ class Haproxy
         @gear_count = self.stats['express'].count - 3
         @sessions = self.stats['express']['BACKEND'].scur.to_i
         if @gear_count == 0
-          raise ShouldRetry, "Failed to get information from haproxy"
           @log.error("Failed to get information from haproxy")
+          raise ShouldRetry, "Failed to get information from haproxy"
         end
 
         @sessions_per_gear = @sessions / @gear_count
-        @session_capacity_pct = @session_capacity_pct = (@sessions_per_gear / @max_sessions_per_gear ) * 100
+        @session_capacity_pct = @session_capacity_pct = (@sessions_per_gear / MAX_SESSIONS_PER_GEAR ) * 100
 
     end
 
@@ -378,6 +380,6 @@ while true
     sleep @check_interval
     if (Time.now - last_cfg_check_time).to_i > CONFIG_VALIDATION_CHECK_INTERVAL
         last_cfg_check_time = Time.now
-        HaproxyUtils.validate_configuration()
+        HAProxyUtils.validate_configuration()
     end
 end
