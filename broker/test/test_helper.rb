@@ -16,6 +16,7 @@ def stubber
   container.stubs(:restart).returns(ResultIO.new)
   container.stubs(:reload).returns(ResultIO.new)
   container.stubs(:stop).returns(ResultIO.new)
+  container.stubs(:force_stop).returns(ResultIO.new)
   container.stubs(:start).returns(ResultIO.new)
   container.stubs(:add_alias).returns(ResultIO.new)
   container.stubs(:remove_alias).returns(ResultIO.new)
