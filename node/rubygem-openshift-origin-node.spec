@@ -124,6 +124,9 @@ mv %{buildroot}%{gem_instdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}/usr/l
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
 
+# force binaries to use oo-ruby
+sed -i 's/\#\!.*ruby$/#!\/bin\/env oo-ruby/' %{buildroot}/usr/bin/*
+
 # Create run dir for openshift "services"
 %if 0%{?fedora} >= 15
 mkdir -p %{buildroot}/etc/tmpfiles.d
