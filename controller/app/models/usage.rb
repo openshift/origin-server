@@ -34,6 +34,8 @@ class Usage
 
   validates :login, :presence => true
   validates :app_name, :presence => true
+  validates :gear_id, :presence => true
+  validates :begin_time, :presence => true
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?

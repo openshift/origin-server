@@ -42,6 +42,8 @@ class UsageRecord
 
   validates :login, :presence => true
   validates :app_name, :presence => true
+  validates :gear_id, :presence => true
+  validates :time, :presence => true
   validates_inclusion_of :event, in: UsageRecord::EVENTS.values
   validates_inclusion_of :usage_type, in: UsageRecord::USAGE_TYPES.values
   validates :gear_size, :presence => true, :if => :validate_gear_size?
@@ -67,7 +69,8 @@ class UsageRecord
                        gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
-      usage_record = UsageRecord.new(event: event, time: now, gear_id: gear_id,
+      # Keep created time in sync for UsageRecord and Usage mongo record.
+      usage_record = UsageRecord.new(event: event, time: now, created_at: now, gear_id: gear_id,
                                      usage_type: usage_type, login: login, app_name: app_name)
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
@@ -82,7 +85,7 @@ class UsageRecord
       usage = nil
       if event == UsageRecord::EVENTS[:begin]
         usage = Usage.new(login: login, app_name: app_name, gear_id: gear_id,
-                          begin_time: now, usage_type: usage_type)
+                          begin_time: now, created_at: now, usage_type: usage_type)
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
         usage.cart_name = cart_name if cart_name
