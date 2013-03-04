@@ -192,7 +192,11 @@ class PendingAppOpGroup
           when :start_component
             result_io.append gear.start(comp_name)
           when :stop_component
-            result_io.append gear.stop(comp_name)
+            if args.has_key?("force") and args["force"]==true
+              result_io.append gear.force_stop(comp_name)
+            else
+              result_io.append gear.stop(comp_name)
+            end
           when :restart_component
             result_io.append gear.restart(comp_name)
           when :reload_component_config

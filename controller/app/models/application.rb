@@ -543,9 +543,9 @@ class Application
       result_io = ResultIO.new
       op_group = nil
       if feature.nil?
-        op_group = PendingAppOpGroup.new(op_type: :stop_app, user_agent: self.user_agent)
+        op_group = PendingAppOpGroup.new(op_type: :stop_app, args: { "force" => force }, user_agent: self.user_agent)
       else
-        op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature}, user_agent: self.user_agent)
+        op_group = PendingAppOpGroup.new(op_type: :stop_feature, args: {"feature" => feature, "force" => force }, user_agent: self.user_agent)
       end
       self.pending_op_groups.push op_group
       self.run_jobs(result_io)
