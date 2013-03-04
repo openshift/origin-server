@@ -64,7 +64,7 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 # Indicates how many records to gather for reporting usage in bulk.
-$bulk_recs_threshold = 25
+$bulk_recs_threshold = 5
 $billing_api = OpenShift::BillingService.instance
 # User -> billing account# cache
 $billing_acct_info = {}
@@ -115,7 +115,7 @@ def list_usage(user_srecs)
   return if user_srecs.empty?
   billing_provider_name = $billing_api.get_provider_name
   if billing_provider_name
-    billing_provider_str = ", #{billing_provider_name}#: #{get_billing_acct_no(srec['login'])}"
+    billing_provider_str = ", #{billing_provider_name}#: #{srec['acct_no']}"
   else
     billing_provider_str = ""
   end
@@ -133,7 +133,7 @@ def sync_usage(user_srecs)
   # Handle users with *NO* billing account
   srecs = []
   user_srecs.delete_if do |srec|
-    if get_billing_acct_no(srec['login'])
+    if srec['acct_no']
       false
     else
       srecs << srec
@@ -248,8 +248,8 @@ def populate_user_summary_records(urecs)
     end_time = urecs.last['time'] if urecs.length == 2
     end_time = $cur_time unless end_time
 
-    billing_acct_no = get_billing_acct_no(urec['login'])
-    urec['usage'] = $billing_api.get_usage_time(billing_acct_no, urec, begin_time, end_time)
+    urec['acct_no'] = get_billing_acct_no(urec['login'])
+    urec['usage'] = $billing_api.get_usage_time(urec['acct_no'], urec, begin_time, end_time)
     urec['end_time'] = end_time
     if urecs.length == 2
       urec['ended'] = true
@@ -307,17 +307,27 @@ end
 def process_usage_records
   user_urecs = []
   cur_urec_count = 0
+  prev_gear_id = nil
 
   # usage_records collection is indexed by 'login' field
   # we prefer to process records by 'login' so that we can leverage 'login'=>'billing account#' cache
   $session[:usage_records].find.sort({:login => 1, :gear_id => 1, :usage_type => 1, :time => 1}).no_timeout.each do |urec|
-    user_urecs << urec
-    cur_urec_count += 1
-    # Always end the chunk with a record that has 'end' event
-    if (cur_urec_count >= $bulk_recs_threshold) and (urec['event'] == UsageRecord::EVENTS[:end])
+    if cur_urec_count < $bulk_recs_threshold
+      user_urecs << urec
+      cur_urec_count += 1
+      prev_gear_id = urec['gear_id']
+    elsif urec['event'] == UsageRecord::EVENTS[:end] # End the chunk with a record that has 'end' event
+      user_urecs << urec
+      cur_urec_count += 1
       process_user_usage_records(user_urecs)
       user_urecs = []
       cur_urec_count = 0
+      prev_gear_id = nil
+    elsif prev_gear_id != urec['gear_id'] # End the chunk when gear_id changes
+      process_user_usage_records(user_urecs)
+      user_urecs = [urec]
+      cur_urec_count = 1
+      prev_gear_id = urec['gear_id']
     end
   end
   process_user_usage_records(user_urecs) unless user_urecs.empty?
