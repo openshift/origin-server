@@ -26,6 +26,7 @@ class Application < RestApi::Base
   has_many :cartridges
   has_many :gears
   has_many :gear_groups
+  has_one :embedded, :class_name => 'rest_api/base/attribute_hash'
 
   attr_accessible :name, :scale, :gear_profile, :cartridges, :cartridge_names, :initial_git_url, :initial_git_branch
 
