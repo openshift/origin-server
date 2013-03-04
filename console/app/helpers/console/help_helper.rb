@@ -91,7 +91,7 @@ module Console::HelpHelper
   end
 
   def events_url
-    community_base_url 'events/'
+    community_base_url 'events'
   end
 
   def jenkins_help_url

@@ -38,6 +38,7 @@ OpenshiftConsole::Application.configure do
 
   Console.configure('~/.openshift/console.conf') do |c|
     c.security_controller = 'Console::Auth::Basic' # test cases depend on basic authentication today
+    c.community_url = "https://www.openshift.com/"
   end
 end
 
