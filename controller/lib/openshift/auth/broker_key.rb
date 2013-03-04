@@ -31,7 +31,7 @@ module OpenShift
         cipher.key = cipher_key
         cipher.iv = iv = cipher.random_iv
         token = {:app_name => app.name,
-                 token_login_key => app.domain.owner.id,
+                 token_login_key => app.domain.owner.login,
                  :creation_time => app.created_at}
         encrypted_token = cipher.update(token.to_json)
         encrypted_token << cipher.final
@@ -61,14 +61,14 @@ module OpenShift
         end
 
         token = JSON.parse(json_token)
-        user_id = token[token_login_key.to_s]
+        user_login = token[token_login_key.to_s]
         app_name = token['app_name']           #FIXME should be app id
         creation_time = token['creation_time']
 
         user = begin
-                 CloudUser.find(user_id)
+                 CloudUser.find_by_identity(nil, user_login)
                rescue Mongoid::Errors::DocumentNotFound
-                 raise OpenShift::AccessDeniedException, "No such user exists #{user_id}"
+                 raise OpenShift::AccessDeniedException, "No such user exists with login #{user_login}"
                end
         app = Application.find(user, app_name) #FIXME should be app id
 
