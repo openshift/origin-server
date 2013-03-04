@@ -75,8 +75,8 @@ module OpenShift
     # Check UsageRecord and Usage collection consistency
     def check_usage_consistency(session, srec)
       usage = session[:usage].find(login: srec['login'], gear_id: srec['gear_id'],
-                                   usage_type: srec['usage_type'], begin_time: srec['time']).first
-      unless usage
+                      usage_type: srec['usage_type'], created_at: srec['created_at']).first
+      if usage.nil?
         print_warning "Record NOT found in Usage collection.", srec
         usage = Usage.new
         usage.login = srec['login']
@@ -89,7 +89,7 @@ module OpenShift
         usage.cart_name = srec['cart_name']
         usage.end_time = srec['end_time'] if srec['ended']
         usage.save!
-      else srec['ended'] && usage['end_time'].nil?
+      elsif srec['ended'] && usage['end_time'].nil?
         print_warning "End time NOT set in Usage collection.", srec
         session[:usage].find(_id: usage['_id']).update({"$set" => {end_time: srec['end_time']}})
       end
