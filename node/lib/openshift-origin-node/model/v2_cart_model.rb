@@ -40,21 +40,25 @@ module OpenShift
       @config  = config
       @user    = user
       @timeout = 30
+      @cartridges = {}
     end
 
     # Load a cartridge from manifest for the given name.
     #
     # TODO: Caching?
     def get_cartridge(cart_name)
-      begin
-        # FIXME: Cannot pull from system path need to use local copy
-        manifest_path = File.join(get_system_cartridge_path(cart_name), 'metadata', 'manifest.yml')
-        manifest      = YAML.load_file(manifest_path)
-        return OpenShift::Runtime::Cartridge.new(manifest)
-      rescue => e
-        logger.error(e.backtrace)
-        raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
+      if !@cartridges.has_key? cart_name
+        begin
+          manifest_path = File.join(@user.homedir, cart_name, 'metadata', 'manifest.yml')
+          manifest      = YAML.load_file(manifest_path)
+          @cartridges[cart_name] = OpenShift::Runtime::Cartridge.new(manifest)
+        rescue => e
+          logger.error(e.backtrace)
+          raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
+        end
       end
+
+      @cartridges[cart_name]
     end
 
     # Get the path on disk to for a cartridge from the cartridge name.

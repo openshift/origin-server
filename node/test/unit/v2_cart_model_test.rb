@@ -57,7 +57,7 @@ class V2CartModelTest < Test::Unit::TestCase
     @user = mock()
     @user.stubs(:uuid).returns(@user_uuid)
     @user.stubs(:uid).returns(@user_uid)
-
+    
     @model = OpenShift::V2CartridgeModel.new(@config, @user)
 
     @mock_manifest = %q{#
@@ -92,13 +92,37 @@ class V2CartModelTest < Test::Unit::TestCase
 
   def test_get_cartridge_valid_manifest
     local_model = OpenShift::V2CartridgeModel.new(@config, @user)
-    YAML.stubs(:load_file).with(any_parameters).returns(YAML.load(@mock_manifest))
+
+    @user.expects(:homedir).returns('/foo')
+
+    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').returns(YAML.load(@mock_manifest))
+    cart = local_model.get_cartridge("mock")
+
+    assert_equal "mock", cart.name
+    assert_equal "MOCK", cart.namespace
+    assert_equal 5, cart.endpoints.length
+
+    # Exercise caching
     cart = local_model.get_cartridge("mock")
 
     assert_equal "mock", cart.name
     assert_equal "MOCK", cart.namespace
     assert_equal 5, cart.endpoints.length
   end
+
+  def test_get_cartridge_error_loading
+    local_model = OpenShift::V2CartridgeModel.new(@config, @user)
+
+    @user.expects(:homedir).returns('/foo')
+    YAML.stubs(:load_file).with('/foo/mock/metadata/manifest.yml').raises(ArgumentError.new('bla'))
+    
+    expected_error = RuntimeError.new('Failed to load cart manifest from /foo/mock/metadata/manifest.yml for cart mock in gear : bla')
+
+    assert_raise expected_error do
+      local_model.get_cartridge("mock")
+    end
+  end
+
 
   def test_get_system_cartridge_path
     scenarios = { 
