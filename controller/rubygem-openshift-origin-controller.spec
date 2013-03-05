@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.12
+Version:       1.5.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,20 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
+- Adding input redirect for ssh-keygen so it does not prompt for a question and
+  wait indefinitely (kraman@gmail.com)
+- Merge pull request #1488 from kraman/fix_parallel_test_run
+  (dmcphers+openshiftbot@redhat.com)
+- Update setup helper to create test ssh key in exclusive lock. Othrwise was
+  facing race condition where multiple test runs were completing to create the
+  key files. (kraman@gmail.com)
+- Skip Usage capture for sub-account users (rpenta@redhat.com)
+- Merge pull request #1512 from rajatchopra/master (dmcphers@redhat.com)
+- force stop - fix bug#915587 (rchopra@redhat.com)
+- Bug 916559 - Existing broker keys broken after stage upgrade
+  (ccoleman@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
 - Bug 916941 - Keep created time in sync when creating UsageRecord and Usage
   mongo record (rpenta@redhat.com)
