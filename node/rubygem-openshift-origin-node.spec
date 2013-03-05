@@ -89,10 +89,8 @@ gem install -V \
 mkdir -p %{buildroot}%{gem_dir}
 cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 
-# Move the gem binaries to the standard filesystem location
 mkdir -p %{buildroot}/usr/bin
-cp -a ./%{_bindir}/* %{buildroot}/usr/bin
-
+mkdir -p %{buildroot}/usr/sbin
 mkdir -p %{buildroot}/etc/httpd/conf.d
 mkdir -p %{buildroot}%{appdir}/.httpd.d
 ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
@@ -118,11 +116,12 @@ mv %{buildroot}%{gem_instdir}/conf/* %{buildroot}/etc/openshift
 
 #move pam limit binaries to proper location
 mkdir -p %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/bin/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
-mv %{buildroot}%{gem_instdir}/misc/bin/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/lib/teardown_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
+mv %{buildroot}%{gem_instdir}/misc/lib/setup_pam_fs_limits.sh %{buildroot}/usr/libexec/openshift/lib
 
 #move the shell binaries into proper location
 mv %{buildroot}%{gem_instdir}/misc/bin/* %{buildroot}/usr/bin/
+mv %{buildroot}%{gem_instdir}/misc/sbin/* %{buildroot}/usr/sbin/
 
 # Create run dir for openshift "services"
 %if 0%{?fedora} >= 15
@@ -163,9 +162,9 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %{gem_instdir}
 %{gem_cache}
 %{gem_spec}
-%attr(0750,-,-) /usr/bin/oo-admin-ctl-cgroups
+%attr(0750,-,-) /usr/sbin/*
+%attr(0755,-,-) /usr/bin/*
 /etc/openshift
-/usr/bin/*
 /usr/libexec/openshift/lib/setup_pam_fs_limits.sh
 /usr/libexec/openshift/lib/teardown_pam_fs_limits.sh
 %config(noreplace) /etc/openshift/node.conf
