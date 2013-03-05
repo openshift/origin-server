@@ -133,11 +133,11 @@ function set_blkio() {
 #
 freeze_user() {
     # USERNAME=$1
-    cgset -r freezer.state=FROZEN -g ${OPENSHIFT_CGROUP_ROOT}/$1
+    cgset -r freezer.state=FROZEN ${OPENSHIFT_CGROUP_ROOT}/$1
 }
 
 thaw_user() {
-    cgset -r freezer.state=THAWED -g ${OPENSHIFT_CGROUP_ROOT}/$1
+    cgset -r freezer.state=THAWED ${OPENSHIFT_CGROUP_ROOT}/$1
 }
 
 # List the openshift guest users
@@ -471,6 +471,7 @@ case "$1" in
         RETVAL=1
         echo "cgconfig service is not running"
     fi
+    ;;
 
   stopuser)
     if is_systemd || service cgconfig status >/dev/null 2>&1
@@ -481,14 +482,15 @@ case "$1" in
         RETVAL=1
         echo "cgconfig service is not running"
     fi
+    ;;
 
   freezeuser)
-      freeze_user $2
-      ;;
+    freeze_user $2
+    ;;
 
   thawuser)
-      thaw_user $2
-      ;;
+    thaw_user $2
+    ;;
 
   *)
     echo $"Usage: $0 {startall|stopall|restartall|condrestartall|status|startuser <username>|stopuser <username>|freezeuser <username>|thawuser <username>}"
