@@ -11,6 +11,8 @@ class Quickstart < RestApi::Base
     integer :priority
   end
 
+  self.proxy = nil
+
   Disabled = Class.new(StandardError)
   SearchDisabled = Class.new(StandardError)
 
@@ -82,7 +84,7 @@ class Quickstart < RestApi::Base
     end
 
     def site
-      api_links[:site] or Console.config.community_url 
+      api_links[:site] or Console.config.community_url
     end
     def prefix_parameters
       {}

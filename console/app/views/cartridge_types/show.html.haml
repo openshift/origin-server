@@ -6,6 +6,8 @@
 
 = render :partial => @cartridge_type, :locals => {:hide_link => true, :extra_info => true, :application => @application}
 
+= render :partial => 'cartridge_types/cartridge_type_notifications', :locals => { :type => @cartridge_type }
+
 = semantic_form_for @cartridge, :url => application_cartridges_path(@application), :html => {:class => 'form'} do |f|
   = f.hidden_field :name, :value => @cartridge_type.name
   = f.semantic_errors :except => [:name, :cartridge]
