@@ -59,7 +59,6 @@ unless $list || $sync || $remove_sync_lock
   usage
 end
 
-
 require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
@@ -67,7 +66,7 @@ Rails.configuration.analytics[:enabled] = false
 $bulk_recs_threshold = 5
 $billing_api = OpenShift::BillingService.instance
 # User -> billing account# cache
-$billing_acct_info = {}
+$user_info_cache = {}
 $session = nil
 $cur_time = nil
 if $enable_logger
@@ -88,27 +87,29 @@ def release_mongo_session(session)
   session.logout
 end
 
-# Get billing account# from cloud_users collection, if it fails get it from billing vendor.
-# Cache user->billing a/c# for subsequent requests.
-def get_billing_acct_no(user)
-  acct_no = nil
-  begin
-    if $billing_acct_info.has_key?(user)
-      acct_no = $billing_acct_info[user]
-    else
-      user_obj = $session[:cloud_users].find(login: user).select(usage_account_id: 1).first
-      if user_obj
-        acct_no = user_obj['usage_account_id']
-        $billing_acct_info[user] = acct_no
-      end
-    end 
-  rescue Exception => e
-    $billing_api.print_warning "Failed to retrieve billing a/c# for User: #{user} from cloud_users collection, Error: #{e.message}"
-    acct_no = $billing_api.get_billing_acct_no(user)
-    $billing_acct_info[user] = acct_no
+# Cache user_id->login, billing a/c# info
+def populate_user_info
+  $session[:cloud_users].find.select(login: 1, usage_account_id: 1).no_timeout.each do |user|
+    $user_info_cache[user['_id'].to_s] = { 'login' => user['login'], 'acct_no' => user['usage_account_id'] }
   end
-  acct_no
 end
+
+def set_user_info(urec)
+  user_id = urec['user_id']
+  unless $user_info_cache[user_id.to_s]
+    user_obj = $session[:cloud_users].find(_id: user_id).select(login: 1, usage_account_id: 1).first
+    if user_obj
+      $user_info_cache[user_id.to_s] = { 'login' => user_obj['login'], 'acct_no' => user_obj['usage_account_id'] }
+    end
+  end
+  if $user_info_cache[user_id.to_s]
+    urec['login'] = $user_info_cache[user_id.to_s]['login']
+    urec['acct_no'] = $user_info_cache[user_id.to_s]['acct_no']
+  else
+    $billing_api.print_warning "Can NOT find user from cloud_users collection for user_id, '#{user_id}'"
+  end
+end
+
 # Print usage to terminal
 $prev_login = nil
 def list_usage(user_srecs)
@@ -144,7 +145,7 @@ def sync_usage(user_srecs)
 
   continue_user_ids = srecs.map {|rec| rec['_id'] unless rec['ended']}
   update_query = {"$set" => {event: UsageRecord::EVENTS[:continue], time: $cur_time, sync_time: nil}}
-  $session[:usage_records].find({_id: {"$in" => continue_user_ids}}).update_all(update_query) unless continue_user_ids.empty?
+  $session.with(safe:true)[:usage_records].find({_id: {"$in" => continue_user_ids}}).update_all(update_query) unless continue_user_ids.empty?
 
   # Handle users with billing account
   $billing_api.sync_usage($session, user_srecs, $cur_time)
@@ -189,7 +190,7 @@ def sanitize_usage_records(urecs)
     new_urec_ids = new_urecs.map{|rec| rec['_id']}
     delete_user_ids = urec_ids - new_urec_ids
     # Delete incorrect records that are not needed any more.
-    $session[:usage_records].find({_id: {"$in" => delete_user_ids}}).remove_all unless delete_user_ids.empty?
+    $session.with(safe:true)[:usage_records].find({_id: {"$in" => delete_user_ids}}).remove_all unless delete_user_ids.empty?
     urecs = new_urecs
     return sanitize_usage_records(urecs)
   else
@@ -201,8 +202,8 @@ def sanitize_usage_records(urecs)
         $billing_api.print_error "Found usage records with no begin/continue marker. Ivestigate these records: #{urecs.inspect}"
       end
       # Delete this set of records
-      $session[:usage_records].find(_id: urecs.first['_id']).remove
-      $session[:usage_records].find(_id: urecs.last['_id']).remove if urecs.length == 2
+      $session.with(safe:true)[:usage_records].find(_id: urecs.first['_id']).remove
+      $session.with(safe:true)[:usage_records].find(_id: urecs.last['_id']).remove if urecs.length == 2
       urecs = []
       return
     end
@@ -212,10 +213,10 @@ def sanitize_usage_records(urecs)
       $billing_api.print_error "Found 2 usage records with no end marker. Ivestigate these records: #{urecs.inspect}"
       # Keep last continue or first begin and delete the other record.
       if urecs.last['event'] == UsageRecord::EVENTS[:continue]
-        $session[:usage_records].find(_id: urecs.first['_id']).remove
+        $session.with(safe:true)[:usage_records].find(_id: urecs.first['_id']).remove
         urecs = [urecs.last]
       elsif urecs.first['event'] == UsageRecord::EVENTS[:begin]
-        $session[:usage_records].find(_id: urecs.last['_id']).remove
+        $session.with(safe:true)[:usage_records].find(_id: urecs.last['_id']).remove
         urecs = [urecs.first]
       else
         # Ignore processing these records, needs investigation.
@@ -248,7 +249,6 @@ def populate_user_summary_records(urecs)
     end_time = urecs.last['time'] if urecs.length == 2
     end_time = $cur_time unless end_time
 
-    urec['acct_no'] = get_billing_acct_no(urec['login'])
     urec['usage'] = $billing_api.get_usage_time(urec['acct_no'], urec, begin_time, end_time)
     urec['end_time'] = end_time
     if urecs.length == 2
@@ -297,9 +297,6 @@ def process_user_usage_records(user_urecs)
   rescue Exception => e
     $billing_api.print_error e.message
     $billing_api.log.error e.backtrace.inspect
-  ensure
-    # Clear billing info cache
-    $billing_acct_info = {}
   end
 end
 
@@ -309,9 +306,12 @@ def process_usage_records
   cur_urec_count = 0
   prev_gear_id = nil
 
-  # usage_records collection is indexed by 'login' field
-  # we prefer to process records by 'login' so that we can leverage 'login'=>'billing account#' cache
-  $session[:usage_records].find.sort({:login => 1, :gear_id => 1, :usage_type => 1, :time => 1}).no_timeout.each do |urec|
+  # Populate user info cache
+  populate_user_info
+
+  # usage_records collection is indexed by 'gear_id' field
+  $session[:usage_records].find.sort({:gear_id => 1, :usage_type => 1, :time => 1}).no_timeout.each do |urec|
+    set_user_info(urec)
     if cur_urec_count < $bulk_recs_threshold
       user_urecs << urec
       cur_urec_count += 1

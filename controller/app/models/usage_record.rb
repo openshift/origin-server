@@ -1,6 +1,6 @@
 # Record Usage of gear and additional storage for each user
-# @!attribute [r] login
-#   @return [String] Login name for the user.
+# @!attribute [r] user_id
+#   @return [String] User ID.
 # @!attribute [r] app_name
 #   @return [String] Application name that belongs to the user.
 # @!attribute [r] gear_id
@@ -29,7 +29,7 @@ class UsageRecord
                   :addtl_fs_gb => "ADDTL_FS_GB",
                   :premium_cart => "PREMIUM_CART" }
 
-  field :login, type: String
+  field :user_id, type: Moped::BSON::ObjectId
   field :app_name, type: String
   field :gear_id, type: Moped::BSON::ObjectId
   field :event, type: String
@@ -40,7 +40,7 @@ class UsageRecord
   field :addtl_fs_gb, type: Integer
   field :cart_name, type: String
 
-  validates :login, :presence => true
+  validates :user_id, :presence => true
   validates :app_name, :presence => true
   validates :gear_id, :presence => true
   validates :time, :presence => true
@@ -50,7 +50,7 @@ class UsageRecord
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
   validates :cart_name, :presence => true, :if => :validate_cart_name?
 
-  index({'login' => 1})
+  index({'gear_id' => 1})
   create_indexes
 
   def validate_gear_size?
@@ -65,13 +65,13 @@ class UsageRecord
     (self.usage_type == UsageRecord::USAGE_TYPES[:premium_cart]) ? true : false
   end
 
-  def self.track_usage(login, app_name, gear_id, event, usage_type,
+  def self.track_usage(user_id, app_name, gear_id, event, usage_type,
                        gear_size=nil, addtl_fs_gb=nil, cart_name=nil)
     if Rails.configuration.usage_tracking[:datastore_enabled]
       now = Time.now.utc
       # Keep created time in sync for UsageRecord and Usage mongo record.
       usage_record = UsageRecord.new(event: event, time: now, created_at: now, gear_id: gear_id,
-                                     usage_type: usage_type, login: login, app_name: app_name)
+                                     usage_type: usage_type, user_id: user_id, app_name: app_name)
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
         usage_record.gear_size = gear_size
@@ -84,24 +84,24 @@ class UsageRecord
 
       usage = nil
       if event == UsageRecord::EVENTS[:begin]
-        usage = Usage.new(login: login, app_name: app_name, gear_id: gear_id,
+        usage = Usage.new(user_id: user_id, app_name: app_name, gear_id: gear_id,
                           begin_time: now, created_at: now, usage_type: usage_type)
         usage.gear_size = gear_size if gear_size
         usage.addtl_fs_gb = addtl_fs_gb if addtl_fs_gb
         usage.cart_name = cart_name if cart_name
       elsif event == UsageRecord::EVENTS[:end]
-        usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
+        usage = Usage.find_latest_by_user_gear(user_id, gear_id, usage_type)
         if usage
           usage.end_time = now
         else
-          Rails.logger.error "Can NOT find begin/continue usage record for login:#{login}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
+          Rails.logger.error "Can NOT find begin/continue usage record for user_id:#{user_id}, gear:#{gear_id}, usage_type:#{usage_type}. This can happen if gear was created with usage_tracking disabled and gear was destroyed with usage_tracking enabled or some bug in usage workflow."
         end
       end
       usage.save! if usage
     end
 
     if OpenShift::UsageAuditLog.is_enabled?
-      usage_string = "User: #{login}  Event: #{event}"
+      usage_string = "User ID: #{user_id}  Event: #{event}"
       case usage_type
       when UsageRecord::USAGE_TYPES[:gear_usage]
         usage_string += "   Gear: #{gear_id} Gear Size: #{gear_size}"
@@ -120,12 +120,12 @@ class UsageRecord
     end
   end
 
-  def self.untrack_usage(login, gear_id, event, usage_type)
+  def self.untrack_usage(user_id, gear_id, event, usage_type)
     if Rails.configuration.usage_tracking[:datastore_enabled]
-      usage_record = where(:login => login, :gear_id => gear_id, :event => event, :usage_type => usage_type).desc(:time).first
+      usage_record = where(:user_id => user_id, :gear_id => gear_id, :event => event, :usage_type => usage_type).desc(:time).first
       usage_record.delete if usage_record
 
-      usage = Usage.find_latest_by_user_gear(login, gear_id, usage_type)
+      usage = Usage.find_latest_by_user_gear(user_id, gear_id, usage_type)
       if usage
         if event == UsageRecord::EVENTS[:begin]
           usage.delete
@@ -137,7 +137,7 @@ class UsageRecord
     end
 
     if OpenShift::UsageAuditLog.is_enabled?
-      usage_string = "Rollback User: #{login} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
+      usage_string = "Rollback User ID: #{user_id} Event: #{event} Gear: #{gear_id} UsageType: #{usage_type}"
       begin
         OpenShift::UsageAuditLog.log(usage_string)
       rescue Exception => e

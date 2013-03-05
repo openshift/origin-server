@@ -46,7 +46,7 @@ cgroup configurations are applied.
 
 The [openshift-cgroups](../node/misc/init/openshift-cgroups) service controls
 the initialization of the openshift control groups.  The openshift-cgroups
-service uses the [oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups)
+service uses the [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups)
 script to read the configured default values and start cgroups for each
 OpenShift user.
 
@@ -55,7 +55,7 @@ passwd` and finding any user that has "OpenShift guest" as the User ID Info
 field in /etc/passwd on the node.
 
 Once the service has looked up the list of OpenShift users, a call to startuser
-in [oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups) on each user
+in [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) on each user
 is made.
 
 User Creation and Deletion
@@ -65,13 +65,13 @@ When an OpenShift user is created, their cgroup configuration is applied using t
 values.  The
 [unix_user_observer](../node/lib/openshift-origin-node/plugins/unix_user_observer.rb)
 is invoked, calling after_unix_user_create, which then makes a call to the
-[oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups) to 'startuser'.
+[oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) to 'startuser'.
 When a user is deleted, their cgroup controlled resources are 'frozen' so they
 won't be able to start any new processes.  Once the user is removed from a
 node, the cgroup configuration for that user is removed.  The
 [unix_user_observer](../node/lib/openshift-origin-node/plugins/unix_user_observer.rb)
 once again makes a call to
-[oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups) to 'stopuser' is made.
+[oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) to 'stopuser' is made.
 
 Start and Stop a User Control Group
 ===================================
@@ -84,13 +84,13 @@ template.
 Post cgroup initialization, each OpenShift user has a cgroup configuration,
 which can be found in the cgroup path under /openshift/$USER.
 
-The [oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups) startuser functionality will apply the default resource limits, and will create a
+The [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) startuser functionality will apply the default resource limits, and will create a
 cgroup rule in /etc/cgrules.conf specific to the new user.
 
 Any time the control group rules are altered, the cgred process needs to be
 reloaded.  Our tools use pkill -USR2 to reload the cgred.
 
-The [oo-admin-ctl-cgroups](../node/misc/bin/oo-admin-ctl-cgroups) stopuser functionality will use cgdelete to remove the cgroup for the user and
+The [oo-admin-ctl-cgroups](../node/misc/sbin/oo-admin-ctl-cgroups) stopuser functionality will use cgdelete to remove the cgroup for the user and
 remove the user rule in /etc/cgrules.conf.
 
 

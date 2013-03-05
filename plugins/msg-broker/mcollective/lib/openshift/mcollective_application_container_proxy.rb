@@ -1319,7 +1319,7 @@ module OpenShift
       #
       #
       def frontend_restore(backup)
-        result = execute_direct(@@C_CONTROLLER, 'frontend-backup', {'--with-backup' => backup})
+        result = execute_direct(@@C_CONTROLLER, 'frontend-restore', {'--with-backup' => backup})
         parse_result(result)
       end
 
@@ -1747,14 +1747,7 @@ module OpenShift
               cart = cinst.cartridge_name
               idle, leave_stopped = state_map[cart]
 
-              if keep_uid
-                if framework_carts.include?(cart)
-                  log_debug "DEBUG: Restarting httpd proxy for '#{cart}' on #{destination_container.id}"
-                  args = build_base_gear_args(gear)
-                  args['--cart-name'] = cart
-                  reply.append destination_container.send(:run_cartridge_command, cart, gear, "restart-httpd-proxy", args, false)
-                end
-              else
+              if not keep_uid
                 if embedded_carts.include?(cart)
                   if app.scalable and CartridgeCache.find_cartridge(cart).categories.include? "web_proxy"
                     log_debug "DEBUG: Performing cartridge level move for '#{cart}' on #{destination_container.id}"

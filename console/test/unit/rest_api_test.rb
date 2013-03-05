@@ -1210,7 +1210,7 @@ class RestApiTest < ActiveSupport::TestCase
     mock_quickstart
     ActiveResource::HttpMock.respond_to(false) do |mock|
       mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
-        {:name => 'haproxy-1.4', :type => 'standalone'},
+        {:name => 'haproxy-1.4', :type => 'standalone'}, # type is blacklisted in cartridge_types.yml
         {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]},
         {:name => 'blacklist', :type => 'standalone', :tags => [:framework, :blacklist]},
       ].to_json
@@ -1231,6 +1231,20 @@ class RestApiTest < ActiveSupport::TestCase
     end
 
     assert_raise(ApplicationType::NotFound) { ApplicationType.find('blacklist') }
+  end
+
+  def test_application_types_cartridge_tag
+    mock_quickstart
+    ActiveResource::HttpMock.respond_to(false) do |mock|
+      mock.get '/broker/rest/cartridges.json', anonymous_json_header, [
+        {:name => 'haproxy-1.4', :type => 'standalone'}, # type is blacklisted in cartridge_types.yml
+        {:name => 'random_cartridge', :type => 'standalone'}, # tagless
+        {:name => 'php-5.3', :type => 'standalone', :tags => [:framework]}, # tagged
+        {:name => 'blacklist', :type => 'standalone', :tags => [:framework, :blacklist]},
+      ].to_json
+    end
+
+    assert_equal 2, ApplicationType.tagged('cartridge').length, "The special tag 'cartridge' did not return all cartridges"
   end
 
   def test_application_job_url
