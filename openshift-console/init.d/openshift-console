@@ -42,6 +42,7 @@ start() {
         pushd /var/www/openshift/console
           rm -rf Gemfile.lock
           scl enable ruby193 "bundle install --local" > /dev/null
+          chown apache:apache Gemfile.lock
         popd > /dev/null
         echo -n $"Starting $prog: "
         LANG=$HTTPD_LANG daemon --pidfile=${pidfile} $httpd $OPTIONS
