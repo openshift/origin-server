@@ -171,7 +171,7 @@ puts "Usage for #{login} (Plan: #{user.plan_id})"
 puts "------------------------------------------"
 
 filter = {"app_name" => app, "gear_id" => gear, "begin_time" => start_timeframe, "end_time" => end_timeframe}
-usage_data = Usage.find_by_filter(login, filter)
+usage_data = Usage.find_by_filter(user._id, filter)
 if usage_data.count > 0
   usage_data.each_with_index do |usage, index|
     # calculate the usage start time

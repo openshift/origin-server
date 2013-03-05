@@ -1,6 +1,6 @@
 # Usage Summary 
-# @!attribute [r] login
-#   @return [String] Login name for the user.
+# @!attribute [r] user_id
+#   @return [String] User ID
 # @!attribute [r] app_name
 #   @return [String] Application name that belongs to the user.
 # @!attribute [r] gear_id
@@ -22,7 +22,7 @@ class Usage
   include Mongoid::Timestamps
   store_in collection: "usage"
 
-  field :login, type: String
+  field :user_id, type: Moped::BSON::ObjectId
   field :app_name, type: String
   field :gear_id, type: Moped::BSON::ObjectId
   field :begin_time, type: Time
@@ -32,7 +32,7 @@ class Usage
   field :addtl_fs_gb, type: Integer
   field :cart_name, type: String
 
-  validates :login, :presence => true
+  validates :user_id, :presence => true
   validates :app_name, :presence => true
   validates :gear_id, :presence => true
   validates :begin_time, :presence => true
@@ -41,7 +41,7 @@ class Usage
   validates :addtl_fs_gb, :presence => true, :if => :validate_addtl_fs_gb?
   validates :cart_name, :presence => true, :if => :validate_cart_name?
 
-  index({'login' => 1})
+  index({'gear_id' => 1})
   create_indexes
 
   def validate_gear_size?
@@ -60,29 +60,29 @@ class Usage
     get_list(self.each)
   end
  
-  def self.find_by_user(login)
-    get_list(where(:login => login))
+  def self.find_by_user(user_id)
+    get_list(where(:user_id => user_id))
   end
 
-  def self.find_by_user_after_time(login, time)
-    get_list(where(:login => login, :begin_time.gte => time))
+  def self.find_by_user_after_time(user_id, time)
+    get_list(where(:user_id => user_id, :begin_time.gte => time))
   end
 
-  def self.find_by_user_time_range(login, begin_time, end_time)
-    get_list(where(:login => login).nor({:end_time.lt => begin_time}, {:begin_time.gt => end_time}))
+  def self.find_by_user_time_range(user_id, begin_time, end_time)
+    get_list(where(:user_id => user_id).nor({:end_time.lt => begin_time}, {:begin_time.gt => end_time}))
   end
 
-  def self.find_by_user_gear(login, gear_id, begin_time=nil)
+  def self.find_by_user_gear(user_id, gear_id, begin_time=nil)
     unless begin_time
-      return get_list(where(:login => login, :gear_id => gear_id))
+      return get_list(where(:user_id => user_id, :gear_id => gear_id))
     else
-      return get_list(where(:login => login, :gear_id => gear_id, :begin_time => begin_time))
+      return get_list(where(:user_id => user_id, :gear_id => gear_id, :begin_time => begin_time))
     end
   end
   
-  def self.find_by_filter(login, filter = {})
+  def self.find_by_filter(user_id, filter = {})
     # Construct the query criteria
-    condition = where(login: login)
+    condition = where(user_id: user_id)
     condition = condition.where(gear_id: filter["gear_id"]) unless filter["gear_id"].nil?
     condition = condition.where(app_name: filter["app_name"]) unless filter["app_name"].nil?
     condition = condition.where("$or" => [{:end_time => nil}, {:end_time.gte => filter["begin_time"]}]) unless filter["begin_time"].nil?
@@ -91,12 +91,12 @@ class Usage
     return get_list(condition)
   end
 
-  def self.find_latest_by_user_gear(login, gear_id, usage_type)
-    where(:login => login, :gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
+  def self.find_latest_by_user_gear(user_id, gear_id, usage_type)
+    where(:user_id => user_id, :gear_id => gear_id, :usage_type => usage_type).desc(:begin_time).first
   end
 
-  def self.find_user_summary(login)
-    usage_events = get_list(where(login: login))
+  def self.find_user_summary(user_id)
+    usage_events = get_list(where(user_id: user_id))
     res = {}
     usage_events.each do |e|
       res[e.gear_size] = {} unless res[e.gear_size]
@@ -112,8 +112,8 @@ class Usage
     res
   end
 
-  def self.delete_by_user(login)
-    where(login: login).delete
+  def self.delete_by_user(user_id)
+    where(user_id: user_id).delete
   end
 
   def self.delete_by_gear(gear_id)
