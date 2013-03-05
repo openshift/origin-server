@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEAP6.0 support
 Name:          openshift-origin-cartridge-jbosseap-6.0
-Version:       1.5.7
+Version:       1.5.8
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -152,6 +152,9 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
+- JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
 - Bug 916388: Fix JBoss tidy scripts (ironcladlou@gmail.com)
 
