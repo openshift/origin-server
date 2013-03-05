@@ -49,6 +49,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
+cp jbossews1.0.md %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
@@ -118,6 +119,7 @@ alternatives --set jbossews-1.0 /usr/share/tomcat6
 %{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
+%doc %{cartridgedir}/jbossews1.0.md
 %config(noreplace) %{cartridgedir}/info/configuration/
 
 

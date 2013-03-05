@@ -89,6 +89,7 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %attr(0755,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/bin/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/connection-hooks/
 %attr(0750,-,-) %{_libexecdir}/openshift/cartridges/abstract-jboss/info/data/
+%doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
