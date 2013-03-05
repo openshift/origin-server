@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.9
+Version:       1.5.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,24 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Merge branch 'master' of github.com:openshift/origin-server into icon-changes
+  (sgoodwin@redhat.com)
+- Merge pull request #1539 from jtharris/bugs/BZ902118 (dmcphers@redhat.com)
+- Merge pull request #1534 from
+  liggitt/bug_912010_cartridge_filter_empty_results (dmcphers@redhat.com)
+- Merge pull request #1533 from
+  smarterclayton/bug_916495_relative_urls_in_community_still
+  (dmcphers@redhat.com)
+- Bug 902118 - Removing generated hidden form fields (jharris@redhat.com)
+- - first glyph gets position: relative - other glyph(s) get position: absolute
+  and left:0 (sgoodwin@redhat.com)
+- Move test case into rest_api_test.rb (jliggitt@redhat.com)
+- Bug 916495 - Community still points incorrectly to some incorrect URLs
+  (ccoleman@redhat.com)
+- Bug 912010 - Make the 'cartridge' tag match all cartridges
+  (jliggitt@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - Fix for Bug 912194 - The "the User Guide" link on my account page is broken
   (sgoodwin@redhat.com)
