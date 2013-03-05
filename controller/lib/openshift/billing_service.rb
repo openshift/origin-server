@@ -37,7 +37,7 @@ module OpenShift
     # Unique usage id that can be used to narrow down to specific set of records.
     # This will be helpful in debuging.
     def get_uid(urec)
-      "User: #{urec['login']}, Gear: #{urec['gear_id']}, UsageType: #{urec['usage_type']}"
+      "User Id: #{urec['user_id']}, Gear: #{urec['gear_id']}, UsageType: #{urec['usage_type']}"
     end
 
     def print_error(msg, urec=nil)
@@ -58,9 +58,6 @@ module OpenShift
     def get_plans
     end
 
-    def get_billing_acct_no(user)
-    end
-
     def get_usage_time(billing_acct_no, urec, begin_time, end_time)
       total_time = 0
       if end_time > begin_time
@@ -74,12 +71,12 @@ module OpenShift
 
     # Check UsageRecord and Usage collection consistency
     def check_usage_consistency(session, srec)
-      usage = session[:usage].find(login: srec['login'], gear_id: srec['gear_id'],
+      usage = session[:usage].find(user_id: srec['user_id'], gear_id: srec['gear_id'],
                       usage_type: srec['usage_type'], created_at: srec['created_at']).first
       if usage.nil?
         print_warning "Record NOT found in Usage collection.", srec
         usage = Usage.new
-        usage.login = srec['login']
+        usage.user_id = srec['user_id']
         usage.gear_id = srec['gear_id']
         usage.usage_type = srec['usage_type']
         usage.app_name = srec['app_name']
@@ -91,7 +88,7 @@ module OpenShift
         usage.save!
       elsif srec['ended'] && usage['end_time'].nil?
         print_warning "End time NOT set in Usage collection.", srec
-        session[:usage].find(_id: usage['_id']).update({"$set" => {end_time: srec['end_time']}})
+        session.with(safe:true)[:usage].find(_id: usage['_id']).update({"$set" => {end_time: srec['end_time']}})
       end
     end
  
@@ -108,7 +105,7 @@ module OpenShift
       end
       # Deleting ended usage records
       user_ids.uniq!
-      session[:usage_records].find({_id: {"$in" => user_ids}}).remove_all unless user_ids.empty?
+      session.with(safe:true)[:usage_records].find({_id: {"$in" => user_ids}}).remove_all unless user_ids.empty?
     end
   end
 end
