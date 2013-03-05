@@ -544,13 +544,11 @@ module MCollective
       # the output to protect from interpretation.
       #
       def oo_frontend_backup(args)
-        Log.instance.info "COMMAND: #{cmd}"
         oo_frontend_to_hash(args)
       end
 
       # Does an implicit instantiation of the FrontendHttpServer class.
       def oo_frontend_restore(args)
-        Log.instance.info "COMMAND: #{cmd}"
         backup         = args['--with-backup']
 
         with_frontend_rescue_pattern do |o|
