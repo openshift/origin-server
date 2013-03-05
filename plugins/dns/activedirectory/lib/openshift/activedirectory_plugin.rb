@@ -9,7 +9,7 @@ module OpenShift
   class ActiveDirectoryPlugin < OpenShift::DnsService
     @provider = OpenShift::ActiveDirectoryPlugin
 
-    attr_reader :server, :port, :keyname, :keyvalue
+    attr_reader :server, :secure, :krb_keytab, :krb_principal, :dns_zone
 
     def initialize(access_info = nil)
       if access_info != nil
@@ -32,7 +32,7 @@ module OpenShift
       # create an A record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
       raise DNSException.new unless system %{
-kinit -kt #{@krb_keytab} #{@krb_principal}
+kinit -kt #{@krb_keytab} #{@krb_principal} && 
 nsupdate -g <<EOF
 server #{@server} 53
 update add #{fqdn} 60 CNAME #{public_hostname}
@@ -48,7 +48,7 @@ EOF
   
       #raise ::OpenShift::DNSNotFoundException.new unless dns_entry_exists?(fqdn, Dnsruby::Types::CNAME)
       raise DNSException.new unless system %{
-kinit -kt #{@krb_keytab} #{@krb_principal}
+kinit -kt #{@krb_keytab} #{@krb_principal} && 
 nsupdate -g <<EOF
 server #{@server} 53
 update delete #{fqdn} CNAME
