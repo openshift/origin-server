@@ -204,11 +204,17 @@
   :javascript
     $(function() {
       $('a[data-submit-form]').click(function() {
-        $('#advanced').attr('value', 'true');
-        $(this).closest('form').attr({
-          'action': this.href,
-          'method': 'get'
-        }).submit();
+        var fields = $(this).closest('form').serializeArray();
+
+        // Remove special fields
+        fields = $.grep(fields, function(field) {
+          return ['utf8', 'authenticity_token', 'advanced'].indexOf(field.name) == -1;
+        });
+
+        // Explicitly set advanced
+        fields.push({name: 'advanced', value: 'true'});
+
+        window.location.href = window.location.pathname + '?' + $.param(fields);
         return false;
       });
     });

@@ -66,7 +66,14 @@ module SetupHelper
     end
 
     # If the default ssh key is not present, create one
-    `ssh-keygen -q -f #{$test_priv_key} -P ''` if !File.exists?($test_priv_key)
+    # Wait for any other process that may already be creating the file
+    FileUtils.mkdir_p(File.dirname("/var/lock/#{$test_priv_key}.lock"))
+    File.open("/var/lock/#{$test_priv_key}.lock", File::RDWR|File::CREAT, 0644) do |f|
+      f.flock(File::LOCK_EX)
+      `ssh-keygen -q -f #{$test_priv_key} -P ''` if !File.exists?($test_priv_key)
+      f.flock(File::LOCK_UN)
+    end
+
     FileUtils.chmod 0600, $test_priv_key
 
     # create a submodule repo for the tests
