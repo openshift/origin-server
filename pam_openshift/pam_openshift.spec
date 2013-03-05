@@ -7,6 +7,7 @@ License:       GPLv2
 URL:           http://www.openshift.com/
 Source0:       http://mirror.openshift.com/pub/openshift-origin/source/%{name}/%{name}-%{version}.tar.gz
 Requires:      policycoreutils
+BuildRequires: gcc
 BuildRequires: pam-devel
 BuildRequires: libselinux-devel
 BuildRequires: libattr-devel
