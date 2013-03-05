@@ -1,0 +1,5 @@
+RewriteEngine On
+RewriteCond %{REQUEST_URI} ^/favicon\.ico$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule (.*) $1 [R=404,L]
+

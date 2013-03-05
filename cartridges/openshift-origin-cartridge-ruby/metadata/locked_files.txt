@@ -1,0 +1,4 @@
+ruby/metadata/
+ruby/env/
+ruby/etc/
+ruby/template/
