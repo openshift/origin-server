@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.12
+Version:       1.5.13
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -223,6 +223,15 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
+- Merge pull request #1545 from pmorie/dev/v2_get_cart (dmcphers@redhat.com)
+- Bug 917163 (dmcphers@redhat.com)
+- Make v2 get_cartridge use instance dir instead of system path
+  (pmorie@gmail.com)
+- Merge pull request #1531 from jwhonce/bug/916958 (dmcphers@redhat.com)
+- Bug 916958, Bug 917513 - V1 Model not honoring Broker contract
+  (jhonce@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
 - WIP Cartridge Refactor - improve robustness of oo_spawn (jhonce@redhat.com)
 
