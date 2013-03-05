@@ -116,7 +116,8 @@ module OpenShift
       
       def self.find_one_impl(node_profile=nil)
         current_server = rpc_find_one(node_profile)
-        Rails.logger.debug "CURRENT SERVER: #{current_server}"
+        current_server, capacity, district = rpc_find_available(node_profile) unless current_server 
+        
         raise OpenShift::NodeException.new("No nodes found.", 140) unless current_server
         Rails.logger.debug "DEBUG: find_one_impl: current_server: #{current_server}"
 
