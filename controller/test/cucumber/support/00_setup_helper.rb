@@ -70,7 +70,7 @@ module SetupHelper
     FileUtils.mkdir_p(File.dirname("/var/lock/#{$test_priv_key}.lock"))
     File.open("/var/lock/#{$test_priv_key}.lock", File::RDWR|File::CREAT, 0644) do |f|
       f.flock(File::LOCK_EX)
-      `ssh-keygen -q -f #{$test_priv_key} -P ''` if !File.exists?($test_priv_key)
+      `ssh-keygen -q -f #{$test_priv_key} -P '' </dev/null` if !File.exists?($test_priv_key)
       f.flock(File::LOCK_UN)
     end
 
