@@ -3,7 +3,7 @@
 
 Summary:       Embedded mongodb support for OpenShift
 Name:          openshift-origin-cartridge-mongodb-2.2
-Version:       1.5.4
+Version:       1.5.5
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -76,6 +76,10 @@ ln -s %{cartridgedir}/../../abstract/info/hooks/update-namespace %{buildroot}%{c
 
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.5-1
+- BZ912255: Change connection url string to use variable names instead of
+  absolute values. (mrunalp@gmail.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Was using the wrong call. (rmillner@redhat.com)
 
