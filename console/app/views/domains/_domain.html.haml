@@ -2,7 +2,7 @@
   = semantic_form_for :domain, :url => domain_path, :simple => true, :html => {:class => 'control-group-important'} do |f|
     .control-group.control-group-important
       .controls.first
-        .input-prepend.input-append
+        .input-prepend.input-append.wrap
           %span.add-on> http://applicationname&ndash;
           = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => "domain_name"
           %span.add-on>= ".#{RestApi.application_domain_suffix}"
