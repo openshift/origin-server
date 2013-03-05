@@ -21,7 +21,7 @@ module OpenShift
         raise Exception.new("Active Directory DNS updates are not initialized")
       end
 
-      @server = access_info[:ad_server]
+      @server = access_info[:server]
       @secure = access_info[:secure]
       @krb_keytab = access_info[:krb_keytab]
       @krb_principal = access_info[:krb_principal]
@@ -32,8 +32,7 @@ module OpenShift
       # create an A record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
       raise DNSException.new unless system %{
-kinit -kt #{@krb_keytab} #{@krb_principal} && 
-nsupdate -g <<EOF
+kinit -kt #{@krb_keytab} #{@krb_principal} && nsupdate -g <<EOF
 server #{@server} 53
 update add #{fqdn} 60 CNAME #{public_hostname}
 send
@@ -48,8 +47,7 @@ EOF
   
       #raise ::OpenShift::DNSNotFoundException.new unless dns_entry_exists?(fqdn, Dnsruby::Types::CNAME)
       raise DNSException.new unless system %{
-kinit -kt #{@krb_keytab} #{@krb_principal} && 
-nsupdate -g <<EOF
+kinit -kt #{@krb_keytab} #{@krb_principal} && nsupdate -g <<EOF
 server #{@server} 53
 update delete #{fqdn} CNAME
 send

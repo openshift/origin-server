@@ -15,7 +15,8 @@ Broker::Application.configure do
   config.dns = {
     :server => conf.get("AD_SERVER", "127.0.0.1"),
     :secure => conf.get("AD_SECURE", true),
-    :krb_principal => conf.get("KRB_PRINCIPAL", "Kerberos principal to use, injected into /etc/krb5.keytab"),
+    :krb_principal => conf.get("KRB_PRINCIPAL", "Kerberos principal to use"),
+    :krb_keytab => conf.get("KRB_PRINCIPAL", "Kerberos principal to use"),
     :dns_zone => conf.get("DNS_ZONE", "example.com")
   }
 end
