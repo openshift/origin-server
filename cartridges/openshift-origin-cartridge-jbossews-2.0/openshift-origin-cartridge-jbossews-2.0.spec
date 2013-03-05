@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossEWS2.0 support
 Name:          openshift-origin-cartridge-jbossews-2.0
-Version:       1.2.6
+Version:       1.2.7
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -123,6 +123,9 @@ alternatives --set jbossews-2.0 /usr/share/tomcat7
 
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.2.7-1
+- JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.2.6-1
 - Bug 916388: Fix JBoss tidy scripts (ironcladlou@gmail.com)
 
