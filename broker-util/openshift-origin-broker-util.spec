@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.9
+Version:       1.5.10
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,9 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Skip Usage capture for sub-account users (rpenta@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - oo-admin-ctl-usage fixes (rpenta@redhat.com)
 
