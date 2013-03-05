@@ -189,8 +189,10 @@ class ApplicationType
         when opts[:tag]
           tag = opts[:tag].to_sym rescue (return [])
           types.concat CartridgeType.cached.standalone
-          types.keep_if &TAG_FILTER.curry[[tag]]
-          types.concat Quickstart.search(tag.to_s) unless tag == :cartridge
+          if tag != :cartridge
+            types.keep_if &TAG_FILTER.curry[[tag]]
+            types.concat Quickstart.search(tag.to_s)
+          end
         else
           types.concat CartridgeType.cached.standalone
           types.concat Quickstart.cached.promoted
