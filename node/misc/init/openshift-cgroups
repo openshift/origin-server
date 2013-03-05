@@ -21,31 +21,31 @@
 
 case "$1" in
   start)
-    /usr/bin/oo-admin-ctl-cgroups startall
+    /usr/sbin/oo-admin-ctl-cgroups startall
     ;;
 
   stop) 
-    /usr/bin/oo-admin-ctl-cgroups stopall
+    /usr/sbin/oo-admin-ctl-cgroups stopall
     ;;
 
   restart|force-reload|reload)
-    /usr/bin/oo-admin-ctl-cgroups restartall
+    /usr/sbin/oo-admin-ctl-cgroups restartall
     ;;
 
   condrestart)
-    /usr/bin/oo-admin-ctl-cgroups condrestartall
+    /usr/sbin/oo-admin-ctl-cgroups condrestartall
     ;;
 
   status)
-    /usr/bin/oo-admin-ctl-cgroups status $2
+    /usr/sbin/oo-admin-ctl-cgroups status $2
     ;;
 
   startuser)
-	  /usr/bin/oo-admin-ctl-cgroups startuser $2
+	  /usr/sbin/oo-admin-ctl-cgroups startuser $2
     ;;
 
   stopuser)
-	  /usr/bin/oo-admin-ctl-cgroups stopuser $2
+	  /usr/sbin/oo-admin-ctl-cgroups stopuser $2
     ;;
 
   *)
