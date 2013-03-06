@@ -17,6 +17,7 @@
 require 'rubygems'
 require 'openshift-origin-node/utils/shell_exec'
 require 'openshift-origin-node/utils/node_logger'
+require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-common'
 require 'fileutils'
 require 'openssl'
@@ -104,7 +105,6 @@ module OpenShift
   # Note: This is the Apache VirtualHost implementation; other implementations may vary.
   #
   class FrontendHttpServer < Model
-    include OpenShift::Utils::ShellExec
     include NodeLogger
 
     attr_reader :container_uuid, :container_name
@@ -113,27 +113,39 @@ module OpenShift
     def initialize(container_uuid, container_name=nil, namespace=nil)
       @config = OpenShift::Config.new
 
-      @container_uuid = container_uuid
-      @container_name = container_name
-      @namespace = namespace
-
-      if (@container_name.to_s == "") or (@namespace.to_s == "")
-        begin
-          ContainerInfoDB.open(ContainerInfoDB::READER) do |d|
-            @container_name = d.fetch(@container_uuid)["container_name"]
-            @namespace = d.fetch(@container_uuid)["namespace"]
-          end
-        rescue
-          raise FrontendHttpServerException.new("Name not specified and could not retreive from ContainerInfoDB",
-                                                @container_uuid, @container_name, @namespace)
-        end
-      end
-
       @cloud_domain = @config.get("CLOUD_DOMAIN")
 
       @basedir = @config.get("OPENSHIFT_HTTP_CONF_DIR")
 
-      @fqdn = clean_server_name("#{@container_name}-#{@namespace}.#{@cloud_domain}")
+      @container_uuid = container_uuid
+      @container_name = container_name
+      @namespace = namespace
+
+      @fqdn = nil
+
+      # Attempt to infer from the gear itself
+      if (@container_name.to_s == "") or (@namespace.to_s == "")
+        begin
+          env = Utils::Environ.for_gear(File.join(@config.get("GEAR_BASE_DIR"), @container_uuid))
+
+          @container_name = env['OPENSHIFT_GEAR_NAME']
+          @fqdn = env['OPENSHIFT_GEAR_DNS']
+
+          @namespace = @fqdn.sub(/\.#{@cloud_domain}$/,"").sub(/^#{@container_name}\-/,"")
+        rescue
+        end
+      end
+
+      # Could not infer from any source
+      if (@container_name.to_s == "") or (@namespace.to_s == "")
+        raise FrontendHttpServerException.new("Name or namespace not specified and could not infer it",
+                                              @container_uuid)
+      end
+
+      if @fqdn.nil?
+        @fqdn = clean_server_name("#{@container_name}-#{@namespace}.#{@cloud_domain}")
+      end
+
     end
 
     # Public: Initialize a new configuration for this gear
@@ -145,11 +157,7 @@ module OpenShift
     #
     # Returns nil on Success or raises on Failure
     def create
-      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) do |d|
-        d.store(@container_uuid, 
-                { "container_name" => @container_name, 
-                  "namespace" => @namespace })
-      end
+      # Reserved for future use.
     end
 
     # Public: Remove the frontend httpd configuration for a gear.
@@ -161,7 +169,6 @@ module OpenShift
     #
     # Returns nil on Success or raises on Failure
     def destroy
-      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) { |d| d.delete(@container_uuid) }
       ApacheDBNodes.open(ApacheDBNodes::WRCREAT)     { |d| d.delete_if { |k, v| k.split('/')[0] == @fqdn } }
       ApacheDBAliases.open(ApacheDBAliases::WRCREAT) { |d| d.delete_if { |k, v| v == @fqdn } }
       ApacheDBIdler.open(ApacheDBIdler::WRCREAT)     { |d| d.delete(@fqdn) }
@@ -252,12 +259,6 @@ module OpenShift
     # Public: Update identifier to the new names
     def update(container_name, namespace)
       new_fqdn = clean_server_name("#{container_name}-#{namespace}.#{@cloud_domain}")
-
-      ContainerInfoDB.open(ContainerInfoDB::WRCREAT) do |d|
-        d.store(@container_uuid, 
-                { "container_name" => container_name, 
-                  "namespace" => namespace })
-      end
 
       ApacheDBNodes.open(ApacheDBNodes::WRCREAT) do |d|
         d.update_block do |deletions, updates, k, v|
@@ -801,8 +802,8 @@ module OpenShift
     def reload_httpd(async=false)
       async_opt="-b" if async
       begin
-        shellCmd("/usr/sbin/oo-httpd-singular #{async_opt} graceful", "/", false)
-      rescue OpenShift::Utils::ShellExecutionException => e
+        Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>1})
+      rescue Utils::ShellExecutionException => e
         logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
         raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)
       end
@@ -825,7 +826,6 @@ module OpenShift
   # Apache if data was modified.
   #
   class ApacheDB < Hash
-    include OpenShift::Utils::ShellExec
     include NodeLogger
 
     # The locks and lockfiles are based on the file name
@@ -942,7 +942,7 @@ module OpenShift
         end
 
         cmd = %{#{httxt2dbm} -f DB -i #{@filename}#{self.SUFFIX} -o #{tmpdb}}
-        out,err,rc = shellCmd(cmd)
+        out,err,rc = Utils::oo_spawn(cmd)
         if rc == 0
           logger.debug("httxt2dbm: #{@filename}: #{rc}: stdout: #{out} stderr:#{err}")
           begin
@@ -1076,8 +1076,8 @@ module OpenShift
 
     def callout
       begin
-        shellCmd("service openshift-node-web-proxy reload", "/", false)
-      rescue OpenShift::Utils::ShellExecutionException => e
+        Utils::oo_spawn("service openshift-node-web-proxy reload",{:expected_exitstatus=>1})
+      rescue Utils::ShellExecutionException => e
         logger.error("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
       end
     end
@@ -1086,12 +1086,6 @@ module OpenShift
 
   class NodeJSDBRoutes < NodeJSDB
     self.MAPNAME = "routes"
-  end
-
-  # Store container info so that we can obtain
-  # the rest of the parameters from just the UUID
-  class ContainerInfoDB < ApacheDBJSON
-    self.MAPNAME = "containers"
   end
 
   # TODO: Manage SNI Certificate and alias store

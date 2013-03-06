@@ -99,11 +99,11 @@ ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 for map in nodes aliases idler sts
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    echo '' > "${mapf}.txt"
+    touch "${mapf}.txt"
     %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
 done
 
-for map in containers routes
+for map in routes
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '{}' > "${mapf}.json"
@@ -174,7 +174,6 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %attr(0755,-,-) %{appdir}
 %attr(0750,root,apache) %{appdir}/.httpd.d
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/containers.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
