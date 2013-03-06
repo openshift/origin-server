@@ -9,7 +9,7 @@
 
 Summary:       OpenShift plugin for mcollective service
 Name:          rubygem-%{gem_name}
-Version:       1.5.10
+Version:       1.5.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,11 @@ cp %{buildroot}/%{gem_dir}/gems/%{gem_name}-%{version}/conf/openshift-origin-msg
 %attr(0644,-,-) %ghost /etc/mcollective/client.cfg
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- Merge pull request #1555 from danmcp/master (dmcphers@redhat.com)
+- Bug 917973 Addind a retry and better messaging when you dont get a response
+  from the find one (dmcphers@redhat.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
 - Bug 916918 - Couple of issues with frontend calls. (rmillner@redhat.com)
 
