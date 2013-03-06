@@ -39,7 +39,6 @@ Facter.add(:public_hostname) { setcode { public_hostname } }
 node_profile = 'small'
 max_apps = nil
 max_active_apps = nil
-max_gears = nil
 max_active_gears = nil
 if File.exists?('/etc/openshift/resource_limits.conf')
   config_file = ParseConfig.new('/etc/openshift/resource_limits.conf')
@@ -47,13 +46,11 @@ if File.exists?('/etc/openshift/resource_limits.conf')
   quota_blocks = config_file.get_value('quota_blocks') || '1048576'
   quota_files = config_file.get_value('quota_files') || '40000'
   # use max_{active_,}gears if set in resource limits, or fall back to old "apps" names
-  max_gears = config_file.get_value('max_gears') || config_file.get_value('max_apps') || '0'
   max_active_gears = config_file.get_value('max_active_gears') ||
     config_file.get_value('max_active_apps') || '0'
 end
 
 Facter.add(:node_profile) { setcode { node_profile } }
-Facter.add(:max_gears) { setcode { max_gears || '0' } }
 Facter.add(:max_active_gears) { setcode { max_active_gears || '0' } }
 Facter.add(:quota_blocks) { setcode { quota_blocks } }
 Facter.add(:quota_files) { setcode { quota_files } }
@@ -109,7 +106,7 @@ Facter.add(:gears_stopped_count) { setcode { gears_stopped_count } }
 Facter.add(:gears_started_count) { setcode { gears_started_count } }
 Facter.add(:gears_deploying_count) { setcode { gears_deploying_count } }
 Facter.add(:gears_unknown_count) { setcode { gears_unknown_count } }
-gears_usage_pct = begin gears_total_count * 100.0 / max_gears.to_f; rescue; 0.0; end
+gears_usage_pct = begin gears_total_count * 100.0 / max_active_gears.to_f; rescue; 0.0; end
 gears_active_usage_pct = begin gears_active_count * 100.0 / max_active_gears.to_f; rescue; 0.0; end
 Facter.add(:gears_usage_pct) { setcode { gears_usage_pct } }
 Facter.add(:gears_active_usage_pct) { setcode { gears_active_usage_pct } }
