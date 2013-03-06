@@ -272,7 +272,7 @@ sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 - Merge pull request #1506 from pmorie/dev/cartridge_refactor
   (dmcphers+openshiftbot@redhat.com)
 - Add simple v2 app builds (pmorie@gmail.com)
-- WIP Cartridge Refactor - Add OPENSHIFT_{CartridgeShortName}_DIR
+- WIP Cartridge Refactor - Add OPENSHIFT_{Cartridge-Short-Name}_DIR
   (jhonce@redhat.com)
 - Remove parsing version from cartridge-name (pmorie@gmail.com)
 - Bug 916917 - uninitialized constant ApplicationState (jhonce@redhat.com)

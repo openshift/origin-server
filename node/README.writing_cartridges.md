@@ -94,16 +94,17 @@ An example `manifest.yml` file:
 
 ```yaml
 Name: PHP
-CartridgeShortName: PHP
-CartridgeVersion: 1.0.1
-CartridgeVersions: [1.0.1]
+Cartridge-Short-Name: PHP
+Cartridge-Version: 1.0.1
+Cartridge-Versions: [1.0.1]
+Cartridge-Vendor: Red Hat
 Display-Name: PHP 5.3
 Description: "PHP is a general-purpose server-side scripting language...
 Version: 5.3
 Versions: [5.3]
 License: "The PHP License, version 3.0"
 License-Url: http://www.php.net/license/3_0.txt
-Vendor: php.net
+Vendor: PHP Group
 Categories:
   - service
   - php
@@ -153,7 +154,7 @@ Endpoints:
   - "IP:PORT(8080):PROXY_PORT"
 ```
 
-### CartridgeShortName Element
+### Cartridge-Short-Name Element
 
 OpenShift creates a number of environment variables for you, when installing your cartridge.
 This shorten name is used when creating those variables.
@@ -165,9 +166,9 @@ For example, using the example manifest the following environment variables woul
     OPENSHIFT_PHP_PROXY_PORT
 
 
-### CartridgeVersion Element
+### Cartridge-Version Element
 
-The `CartridgeVersion` element is a version number identifying a release of your cartridge to OpenShift.
+The `Cartridge-Version` element is a version number identifying a release of your cartridge to OpenShift.
 The value follows the format:
 
     <number>[.<number>[.<number>[...]]]
@@ -175,13 +176,13 @@ The value follows the format:
 When you publish new versions of your cartridge to OpenShift, this number will be used to determine what
 is necessary to upgrade the application developer's application.
 
-### CartridgeVersions Element
+### Cartridge-Versions Element
 
-`CartridgeVersions` is a list of past cartridge versions that are **compatible** with this version.
+`Cartridge-Versions` is a list of past cartridge versions that are **compatible** with this version.
 To be **compatible** with a previous version, the code changes you made in this version do not require
 the cartridge to be re-started or the application developer's application to be restarted.
 
-    CartridgeVersions: [1.0.1]
+    Cartridge-Versions: [1.0.1]
 
 By not requiring a restart, you improve the application user's experience since no downtime will
 be incurred from your changes. If the cartridge's current version is not in the list when upgraded,
@@ -190,6 +191,12 @@ started.
 
 Today this is a simple list and string matching is used to determine compatible versions.
 If this list proves to be unmanageable, future versions of OpenShift may implement maven dependency range style checking.
+
+### Cartridge-Vendor
+
+The `Cartridge-Vendor` element is used to differentiate cartridges when installed in the system.
+As an individual you should use the same unique value for all your cartridges to identify yourself,
+otherwise use your company name.
 
 ### Version Element
 
@@ -373,12 +380,12 @@ names of these variables are prefixed with OpenShift namespacing information in 
 follow the format:
 
 ```
-OPENSHIFT_{CartridgeShortName}_{name of IP variable} => <assigned internal IP>
-OPENSHIFT_{CartridgeShortName}_{name of port variable} => <endpoint specified port>
-OPENSHIFT_{CartridgeShortName}_{name of public port variable} => <assigned external port>
+OPENSHIFT_{Cartridge-Short-Name}_{name of IP variable} => <assigned internal IP>
+OPENSHIFT_{Cartridge-Short-Name}_{name of port variable} => <endpoint specified port>
+OPENSHIFT_{Cartridge-Short-Name}_{name of public port variable} => <assigned external port>
 ```
 
-`CartridgeShortName` is the `CartridgeShortName` element from the cartridge manifest file. See above.
+`Cartridge-Short-Name` is the `Cartridge-Short-Name` element from the cartridge manifest file. See above.
 
 ### Endpoint Example
 
@@ -386,7 +393,7 @@ Given a cartridge named `CustomCart` and the following entry in `manifest.yml`:
 
 ```
 Name: CustomCart
-CartridgeShortName: CUSTOMCART
+Cartridge-Short-Name: CUSTOMCART
 
 ...
 
