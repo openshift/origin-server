@@ -7,7 +7,7 @@
 
 Summary:       OpenShift common cartridge components
 Name:          openshift-origin-cartridge-abstract
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -92,6 +92,11 @@ rm -f %{buildroot}%{cartdir}/abstract-jboss/info/data/mysql.tar
 %doc %{_libexecdir}/openshift/cartridges/abstract-jboss/README.md
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Merge pull request #1557 from bdecoste/master
+  (dmcphers+openshiftbot@redhat.com)
+- Enable management console (bdecoste@gmail.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
 
