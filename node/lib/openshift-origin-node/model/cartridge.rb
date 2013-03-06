@@ -1,72 +1,176 @@
-module OpenShift; end
+#--
+# Copyright 2013 Red Hat, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#++
 
-module OpenShift::Runtime
-	class Cartridge
-		class Endpoint
-      @@ENDPOINT_PATTERN = /([A-Za-z_0-9]+):([A-Za-z_0-9]+)\((\d+)\):?([A-Za-z_0-9]+)?/
+require 'yaml'
 
-			attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name
+module OpenShift
 
-      def self.parse_endpoints(namespace, endpoint_strings=[])
-        raise "Namespace is required to parse endpoints" if namespace == nil
+  # Manifest element in error
+  class ElementError < KeyError
+    attr_reader :element
 
-        endpoints = []
-        errors = []
+    def initialize(message = nil, element = nil)
+      super(message)
+      @element = element
+    end
 
-        endpoint_strings.each do |entry|
-          unless entry.is_a? String
-            errors << "Non-String endpoint entry: #{entry}"
-            next
-          end
+    def to_s
+      super + ": '#{@element}'"
+    end
+  end
 
-          @@ENDPOINT_PATTERN.match(entry) do |m|
-            begin
-              private_ip_name = m[1]
-              private_port_name = m[2]
-              private_port_number = m[3].to_i
-              public_port_name = m[4]
+  # Missing required  manifest element
+  class MissingElementError < ElementError
+    def initialize(message = 'Missing required element', element = nil)
+      super(message)
+      @element = element
+    end
+  end
 
-              endpoint = Endpoint.new
-              endpoint.private_ip_name = "OPENSHIFT_#{namespace}_#{private_ip_name.upcase}"
-              endpoint.private_port_name = "OPENSHIFT_#{namespace}_#{private_port_name.upcase}"
-              endpoint.private_port = private_port_number
-              endpoint.public_port_name = public_port_name == nil ? nil : "OPENSHIFT_#{namespace}_#{public_port_name.upcase}"
+  # Invalid required  manifest element
+  class InvalidElementError < ElementError
+    def initialize(message = 'Invalid value for required element', element = nil)
+      super(message)
+      @element = element
+    end
+  end
 
-              endpoints << endpoint
-            rescue => e
-              errors << "Couldn't parse endpoint entry '#{entry}': #{e.message}"
+  # FIXME: Why is this class in it's own namespace?
+  module Runtime
+    #
+    # Cartridge is a wrapper class for cartridge manifests.
+    #
+    # Wrapper speeds up access and provides fixed API
+    class Cartridge
+
+      #
+      # Class to support Manifest +Endpoint+ elements
+      class Endpoint
+        @@ENDPOINT_PATTERN = /([A-Z_0-9]+):([A-Z_0-9]+)\((\d+)\):?([A-Z_0-9]+)?/
+
+        attr_accessor :private_ip_name, :private_port_name, :private_port, :public_port_name
+
+        # :call-seq:
+        #   Endpoint.parse(short_name, manifest) -> [Endpoint]
+        #
+        # Parse +Endpoint+ element and instantiate Endpoint objects to hold information
+        #
+        #   Endpoint.parse('PHP', manifest)  #=> [Endpoint]
+        def self.parse(short_name, manifest)
+          #FIXME: refactor for new Manifest Endpoint entries
+          return [] unless manifest['Endpoints']
+
+          tag       = short_name.upcase
+          errors    = []
+          endpoints = manifest['Endpoints'].each_with_object([]) do |entry, memo|
+            unless entry.is_a? String
+              errors << "Non-String endpoint entry: #{entry}"
+              next
+            end
+
+            @@ENDPOINT_PATTERN.match(entry) do |m|
+              begin
+                private_ip_name     = m[1]
+                private_port_name   = m[2]
+                private_port_number = m[3].to_i
+                public_port_name    = m[4]
+
+                endpoint                   = Endpoint.new
+                endpoint.private_ip_name   = "OPENSHIFT_#{tag}_#{private_ip_name}"
+                endpoint.private_port_name = "OPENSHIFT_#{tag}_#{private_port_name}"
+                endpoint.private_port      = private_port_number
+                endpoint.public_port_name  = public_port_name ? "OPENSHIFT_#{tag}_#{public_port_name}" : nil
+                endpoint.public_port_name  = public_port_name ? "OPENSHIFT_#{tag}_#{public_port_name}" : nil
+
+                memo << endpoint
+              rescue Exception => e
+                errors << "Couldn't parse endpoint entry '#{entry}': #{e.message}"
+              end
             end
           end
+          raise "Couldn't parse endpoints: #{errors.join("\n")}" if errors.length > 0
+
+          endpoints
         end
-
-        raise "Couldn't parse endpoints: #{errors}" if errors.length > 0
-
-        endpoints
       end
-		end
 
-		attr_reader :name, :namespace, :endpoints, :short_name, :vendor, :version
+      attr_reader :cartridge_vendor,
+                  :cartridge_version,
+                  :directory_name,
+                  :endpoints,
+                  :manifest,
+                  :name,
+                  :namespace,
+                  :repository_path,
+                  :short_name,
+                  :version
 
-		def initialize(manifest = {})
-			@name = manifest["Name"]
-      # FIXME: remove after element is renamed to CartridgeShortName
-			@namespace = manifest["Namespace"]
-			@short_name = manifest["CartridgeShortName"] ||= manifest["Namespace"]
+      # :call-seq:
+      #   Cartridge.new(path) -> Cartridge
+      #
+      # Cartridge is a wrapper class for cartridge manifests
+      #
+      #   Cartridge.new('/var/lib/openshift/.cartridge_repository/php/1.0/metadata/manifest.yml') -> Cartridge
+      def initialize(path)
+        manifest = YAML.load_file(path)
 
-      @namespace.upcase!
-      @short_name.upcase!
+        @cartridge_vendor  = manifest['Cartridge-Vendor']
+        @cartridge_version = manifest['Cartridge-Version'].to_s
+        @manifest          = manifest
+        @name              = manifest['Name']
+        @namespace         = manifest['Namespace'] || manifest['Cartridge-Short-Name']
+        @short_name        = manifest['Cartridge-Short-Name'] || manifest['Namespace']
+        @version           = manifest['Version'].to_s
 
-      @vendor = manifest['CartridgeVendor'] ||= "not_provided"
-      @version = manifest['CartridgeVersion']
+        raise MissingElementError.new(nil, 'Cartridge-Vendor') unless @cartridge_vendor
+        raise InvalidElementError.new(nil, 'Cartridge-Vendor') if @cartridge_vendor.include?('-')
+        raise MissingElementError.new(nil, 'Cartridge-Version') unless @cartridge_version
+        raise MissingElementError.new(nil, 'Cartridge-Short-Name') unless @short_name
+        raise InvalidElementError.new(nil, 'Cartridge-Short-Name') if @short_name.include?('-')
+        raise MissingElementError.new(nil, 'Name') unless @name
+        raise InvalidElementError.new(nil, 'Name') if @name.include?('-')
+        raise MissingElementError.new(nil, 'Version') unless @version
+        raise InvalidElementError.new(nil, 'Versions') if @manifest['Versions'] && !@manifest['Versions'].kind_of?(Array)
 
-      endpoint_strings = manifest["Endpoints"] ||= []
-      @endpoints = Endpoint.parse_endpoints(@namespace, endpoint_strings)
-		end
+        @directory_name = "#{@cartridge_vendor.gsub(/\s+/, '')}-#{@name}"
+        @endpoints      = Endpoint.parse(@short_name, manifest)
 
-		# Convenience method which returns an array containing only
-		# those Endpoints which have a public_port_name specified.
-		def public_endpoints
-			@endpoints.select {|e| e.public_port_name != nil}
-		end
-	end
+        @repository_path = PathUtils.join(
+            CartridgeRepository.instance.path, @directory_name, @cartridge_version)
+      end
+
+      ## obtain all software versions covered in this manifest
+      def versions
+        seed = (@manifest['Versions'] || []).map { |v| v.to_s }
+        seed << @version
+        seed.uniq
+      end
+
+      # Convenience method which returns an array containing only
+      # those Endpoints which have a public_port_name specified.
+      def public_endpoints
+        @endpoints.select { |e| e.public_port_name }
+      end
+
+      def to_s
+        instance_variables.each_with_object('<Cartridge: ') do |v, a|
+          a << "#{v}: #{instance_variable_get(v)} "
+        end << ' >'
+      end
+    end
+  end
 end
+

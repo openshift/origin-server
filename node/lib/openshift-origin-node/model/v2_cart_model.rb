@@ -43,13 +43,13 @@ module OpenShift
       @cartridges = {}
     end
 
+    # FIXME: replace with CartridgeRepository
     # Load a cartridge from manifest for the given name.
     def get_cartridge(cart_name)
       if !@cartridges.has_key? cart_name
         begin
           manifest_path = File.join(@user.homedir, cart_name, 'metadata', 'manifest.yml')
-          manifest      = YAML.load_file(manifest_path)
-          @cartridges[cart_name] = OpenShift::Runtime::Cartridge.new(manifest)
+          @cartridges[cart_name] = OpenShift::Runtime::Cartridge.new(manifest_path)
         rescue => e
           logger.error(e.backtrace)
           raise "Failed to load cart manifest from #{manifest_path} for cart #{cart_name} in gear #{@user.uuid}: #{e.message}"
