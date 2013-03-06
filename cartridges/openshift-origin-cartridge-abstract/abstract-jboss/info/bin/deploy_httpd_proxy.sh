@@ -28,4 +28,5 @@ oo-frontend-connect \
     --with-container-name "$application" \
     --with-namespace "$namespace" \
     --path "" --target "$IP:8080" --websocket \
+    --path "/console" --target "$IP:9990/console" \
     --path "/health" --target "${CARTRIDGE_BASE_PATH}/${cartridge_type}/info/configuration/health.html" --file
