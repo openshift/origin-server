@@ -209,8 +209,12 @@ class RestEmbeddedCartridge_V1 < BaseObj_V1
     end
   end
 
-  def valid
-    raise_ex("Invalid cartridge type '#{self.type}'") if ((self.type != 'standalone') && (self.type != 'embedded'))
+  def valid(app=nil)
+    raise_ex("Invalid cartridge type '#{self.type}'")  if ((self.type != 'standalone') && (self.type != 'embedded'))
+    if app
+      raise_ex("Invalid cartridge type '#{self.type}'")  if self.type != 'embedded'
+      raise_ex("Invalid cartridge type '#{self.name}'") if self.name.start_with? "haproxy"
+    end
   end
 end
 
