@@ -10,7 +10,9 @@ source /etc/openshift/node.conf
 cfgfile=/etc/openshift/port-proxy.cfg
 lockfile="/var/run/openshift-port-proxy.lock"
 reloadlock="/var/run/openshift-port-proxy-reload.lock"
-reqprefix="/tmp/openshift-port-proxy-reload.req"
+
+reqdir="/var/run/openshift-port-proxy"
+reqprefix="${reqdir}/reload.req"
 
 ### 
 # System service routines; systemctl may require modifications
@@ -142,6 +144,7 @@ lockwrap() {
     fi
 
     if [ $oldsum != $newsum ]; then
+        [ -e $reqdir ] || mkdir -m 750 $reqdir
         reqfile=$(mktemp ${reqprefix}.XXXXXX)
         flock 201
 
