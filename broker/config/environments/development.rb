@@ -65,7 +65,7 @@ Broker::Application.configure do
   config.openshift = {
     :domain_suffix => conf.get("CLOUD_DOMAIN", "example.com"),
     :default_max_gears => (conf.get("DEFAULT_MAX_GEARS", "100")).to_i,
-    :default_gear_size => conf.get("DEFAULT_GEAR_SIZE", "small"),
+    :default_gear_sizes => conf.get("DEFAULT_GEAR_SIZE", "small").split(","),
     :gear_sizes => conf.get("VALID_GEAR_SIZES", "small,medium").split(","),
     :default_gear_capabilities => conf.get("DEFAULT_GEAR_CAPABILITIES", "small").split(","),
     :community_quickstarts_url => conf.get('COMMUNITY_QUICKSTARTS_URL'),

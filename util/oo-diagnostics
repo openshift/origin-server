@@ -625,7 +625,7 @@ class OODiag
 
     conf = "/etc/openshift/broker.conf"
     conf_profiles = Rails.configuration.openshift[:gear_sizes]
-    default_profile = Rails.configuration.openshift[:default_gear_size]
+    default_profiles = Rails.configuration.openshift[:default_gear_sizes]
     default_allowed = Rails.configuration.openshift[:default_gear_capabilities]
     #
     # get the gear profile from every node
@@ -654,12 +654,14 @@ class OODiag
     if conf_profiles.empty?
       do_fail "No gear sizes configured; please fix VALID_GEAR_SIZES in #{conf}"
     else
-      do_fail <<-MISSING unless conf_profiles.include? default_profile
-        Default gear profile is not included in valid gear sizes
-          "#{default_profile}" is not in #{conf_profiles.join ", "}
+      unless ((conf_profiles & default_profiles) == default_profiles)
+        do_fail <<-MISSING
+        Default gear profiles are not included in valid gear sizes
+        "#{default_profiles.join(', ')}" are not in #{conf_profiles.join(', ')}
         Attempts to create apps without specifying gear size will fail.
         Please fix the settings in #{conf}
-      MISSING
+        MISSING
+      end
       if default_allowed # early versions didn't define this, skip if not defined
         missing_profiles = default_allowed - conf_profiles
         do_fail <<-MISSING unless missing_profiles.empty?
@@ -732,13 +734,15 @@ class OODiag
 
     # check that gear profiles from broker.conf are matched by district profiles
     unless conf_profiles.empty?
-      do_fail <<-MISSING unless d_profile_active[default_profile]
-        Default gear profile '#{default_profile}' has no active node hosts supplying it in any district.
-        Attempts to create apps without specifying gear size may fail.
-        Please fix the settings in #{conf}
-        or add active node hosts to a district with profile '#{default_profile}'
-        using oo-admin-ctl-district.
-      MISSING
+      default_profiles.each do |default_profile| 
+        do_fail <<-MISSING unless d_profile_active[default_profile]
+          Default gear profile '#{default_profile}' has no active node hosts supplying it in any district.
+          Attempts to create apps without specifying gear size may fail.
+          Please fix the settings in #{conf}
+          or add active node hosts to a district with profile '#{default_profile}'
+          using oo-admin-ctl-district.
+        MISSING
+      end
       missing_profiles = conf_profiles - d_profile_active.keys
       do_fail <<-MISSING unless missing_profiles.empty?
         The following gear profile(s) are configured:
