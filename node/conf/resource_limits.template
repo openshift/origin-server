@@ -14,7 +14,7 @@ quota_blocks=1048576
 
 # Gear usage limits:
 # "apps" accounting used outdated logic ("git repos" not "gears"). It is being
-# replaced with "gears" accounting. Logic for max{_active,}_gears falls back to
+# replaced with "gears" accounting. Logic for max_active_gears falls back to
 # use max{_active,}_apps if not set, and vice versa. Gears usage/capacity/limits
 # are counted according to actual gears regardless.
 #
