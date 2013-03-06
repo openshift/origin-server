@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.11
+Version:       1.5.12
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,11 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
+- Merge pull request #1569 from smarterclayton/fix_default_config_url
+  (dmcphers@redhat.com)
+- COMMUNITY_URL should end in slash by default (ccoleman@redhat.com)
+
 * Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
 - Move REST API cartridge test to misc1 group (pmorie@gmail.com)
 - Merge pull request #1554 from
