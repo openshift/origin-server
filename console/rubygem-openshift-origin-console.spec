@@ -9,7 +9,7 @@
 
 Summary:       OpenShift Origin Management Console
 Name:          rubygem-%{gem_name}
-Version:       1.5.10
+Version:       1.5.11
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -128,6 +128,19 @@ cp -a ./%{gem_dir}/* %{buildroot}%{gem_dir}/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- Move REST API cartridge test to misc1 group (pmorie@gmail.com)
+- Merge pull request #1554 from
+  smarterclayton/bug_902181_should_wrap_domain_element
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1556 from smarterclayton/bug_885954_wrap_links_on_webkit
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1558 from liggitt/alt_text (dmcphers@redhat.com)
+- Bug 885954 - Wrap links on WebKit (needs word-break) (ccoleman@redhat.com)
+- Add alt text to all images (jliggitt@redhat.com)
+- Bug 902181 - Should wrap domain input element where possible
+  (ccoleman@redhat.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
 - Merge branch 'master' of github.com:openshift/origin-server into icon-changes
   (sgoodwin@redhat.com)
