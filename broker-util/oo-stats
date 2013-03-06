@@ -87,7 +87,7 @@ class OOStats
           lowest_active_usage_pct highest_active_usage_pct avg_active_usage_pct
         }.map{|k| k.to_sym},
      :node_table =>
-        %w{name gears_total_count max_gears gears_usage_pct gears_idle_count
+        %w{name gears_total_count gears_usage_pct gears_idle_count
            gears_active_count max_active_gears gears_active_usage_pct
         }.map{|k| k.to_sym}
   end
@@ -191,9 +191,8 @@ class OOStats
     #                       # or "NONE" if not in a district
     #      :district_active => true, # node marked as active in district?
     #       # gear-based limits and usage, according to node facts
-    #      :max_gears           => 100, # unenforced limit
     #      :max_active_gears    => 50,
-    #      :gears_usage_pct     => 200.0, # percentage of max_gears consumed
+    #      :gears_usage_pct     => 200.0, # percentage of max_active_gears consumed
     #      :gears_active_usage_pct => 40.0, # percentage of max_active_gears consumed
     #        # gear-based counts by state, according to node facts
     #      :gears_started_count => 20,
@@ -215,7 +214,7 @@ class OOStats
         # convert from strings to relevant values if needed
         %w{node_profile district_uuid}.each {|fact| node[fact.to_sym] = facts[fact]}
         node[:district_active] = facts['district_active'] == 'true' ? true : false
-        %w{ max_gears max_active_gears gears_started_count
+        %w{ max_active_gears gears_started_count
             gears_idle_count gears_stopped_count gears_deploying_count
             gears_unknown_count gears_total_count gears_active_count
           }.each {|fact| node[fact.to_sym] = facts[fact].to_i}

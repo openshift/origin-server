@@ -18,8 +18,6 @@ quota_blocks=1048576
 # use max{_active,}_apps if not set, and vice versa. Gears usage/capacity/limits
 # are counted according to actual gears regardless.
 #
-# max_gears isn't enforced by current logic, only used in metrics for overcommitment.
-max_gears=100
 # max_active_gears is used for limiting/guiding gear placement.
 # For no over-commit, should be (Total System Memory - 1G) / memory_limit_in_bytes
 max_active_gears=100
