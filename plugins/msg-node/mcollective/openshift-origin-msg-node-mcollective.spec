@@ -10,7 +10,7 @@
 
 Summary:       M-Collective agent file for openshift-origin-msg-node-mcollective
 Name:          openshift-origin-msg-node-mcollective
-Version:       1.5.9
+Version:       1.5.10
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -55,6 +55,10 @@ cp -p facts/update_yaml.rb %{buildroot}/usr/libexec/mcollective/
 %attr(0700,-,-) %config(noreplace) /etc/cron.minutely/openshift-facts
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Bug 918480 (dmcphers@redhat.com)
+- Bug 917990 - Multiple fixes. (rmillner@redhat.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - Bug 916918 - Couple of issues with frontend calls. (rmillner@redhat.com)
 
