@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.10
+Version:       1.5.11
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -80,6 +80,13 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- BZ917491 - [ORIGIN]oo-register-dns on broker has duplicate options
+  (calfonso@redhat.com)
+- Merge pull request #1564 from danmcp/master (dmcphers@redhat.com)
+- Bug 918480 (dmcphers@redhat.com)
+- Sync usage fixes (rpenta@redhat.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
 - Skip Usage capture for sub-account users (rpenta@redhat.com)
 
