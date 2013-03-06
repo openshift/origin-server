@@ -2,7 +2,7 @@
   = f.semantic_errors :name
   .control-group.control-group-important{:class => domain.errors[:name].present? || domain.errors[:namespace].present? ? 'error' : '', :id => "domain_name_group", :data => domain.errors[:name].present? || domain.errors[:namespace].present? ? {:"server-error" => 'server-error'} : {}}
     .controls.first
-      .input-prepend.input-append
+      .input-prepend.input-append.wrap
         %span.add-on> http://applicationname&ndash;
         = f.text_field :name, :autofocus => true, :placeholder => 'Namespace', :class => 'domain_name'
         %span.add-on>= ".#{RestApi.application_domain_suffix}"
