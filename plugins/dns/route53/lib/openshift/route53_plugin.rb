@@ -9,8 +9,33 @@ require 'aws-sdk'
 
 module OpenShift
 
-  # Implement the OpenShift::DnsService interface using AWS Route53
-  # 
+  # OpenShift DNS plugin to interact with dynamic DNS using AWS Route53
+  # @see https://aws.amazon.com/route53/ Amazon Route53
+  #
+  # The object can be configured either by providing the access_info
+  # parameter or by pulling the settings from the Rails.application.config
+  # object (if it exists).
+  #
+  # When pulling from the Rails configuration this plugin expects to find
+  # the domain_suffix in 
+  #   Rails.application.config.openshift[:domain_suffix]
+  # and the rest of the parameters in a hash at
+  #   Rails.application.config.dns
+  #
+  # @example Route53 plugin configuration hash
+  #   {:aws_hosted_zone_id => "HOSTEDZONEIDSTRING",
+  #    :aws_access_key_id => "ACCESSKEYIDSTRING",
+  #    :aws_access_key    => "AWSSECRETKEYSTRING",
+  #    # only when configuring with explicit argument list
+  #    :domain_suffix => "suffix for application domain names"
+  #    }
+  #
+  # @!attribute [r] aws_hosted_zone_id
+  #   @return [String] the hosted zone ID of your dynamic zone
+  # @!attribute [r] aws_access_key_id
+  #   @return [String] your account ID string
+  # @!attribute [r] aws_access_key
+  #   @return [String] your secret access key string
   class Route53Plugin < OpenShift::DnsService
     @oo_dns_provider = OpenShift::Route53Plugin
 
@@ -37,18 +62,17 @@ module OpenShift
       @ttl = access_info[:ttl].to_i || 30 # default 30 sec
     end
 
+    # Publish an application - create DNS record
     #
-    # Publish the location of an application
-    #
-    # INPUTS:
-    #   app_name:        String: the name of the application
-    #   namespace:       String: avoid customer app name collisions
-    #   public_hostname: String: Fully qualified domain name of the host
-    #                            on which the app resides
-    # RETURNS:
+    # @param [String] app_name
+    #   The name of the application to publish
+    # @param [String] namespace
+    #   The namespace which contains the application
+    # @param [String] public_hostname
+    #   The name of the location where the application resides
+    # @return [Object]
     #   The result of the change request, including the request ID for
     #   polling the request status
-    #
     def register_application(app_name, namespace, public_hostname)
 
       # create an A record for the application in the domain
@@ -67,17 +91,17 @@ module OpenShift
                                             })
     end
 
+    # Publish an application - create DNS record
     #
-    # Un-publish the location of an application
-    #
-    # INPUTS:
-    #   app_name:        String: the name of the application
-    #   namespace:       String: avoid customer app name collisions
-    #
-    # RETURNS:
+    # @param [String] app_name
+    #   The name of the application to publish
+    # @param [String] namespace
+    #   The namespace which contains the application
+    # @param [String] public_hostname
+    #   The name of the location where the application resides
+    # @return [Object]
     #   The result of the change request, including the request ID for
     #   polling the request status
-    #
     def deregister_application(app_name, namespace)
       # delete the CNAME record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
@@ -101,18 +125,18 @@ module OpenShift
                                               :change_batch => delete
                                             })
     end
-  
+
+    # Publish an application - create DNS record
     #
-    # Change the published location of an application
-    #
-    # INPUTS:
-    #   app_name:        String: the name of the application
-    #   namespace:       String: avoid customer app name collisions
-    #
-    # RETURNS:
+    # @param [String] app_name
+    #   The name of the application to publish
+    # @param [String] namespace
+    #   The namespace which contains the application
+    # @param [String] public_hostname
+    #   The name of the location where the application resides
+    # @return [Object]
     #   The result of the change request, including the request ID for
     #   polling the request status
-    #
     def modify_application(app_name, namespace, new_public_hostname)
       # delete the CNAME record for the application in the domain
       fqdn = "#{app_name}-#{namespace}.#{@domain_suffix}"
@@ -139,49 +163,35 @@ module OpenShift
                                             })
     end
 
-    #
-    # execute queued changes (noop)
-    #
-    # INPUTS: None
-    #
-    # RETURNS: Nil
-    #
+
+    # send any queued requests to the update server
+    # @return [nil]
     def publish
     end
 
-
-    #
-    # end communication with the service (noop)
-    #
-    # INPUTS: None
-    #
-    # RETURNS: Nil
-    #    
+    # close any persistent connection to the update server
+    # @return [nil]
     def close
     end
     
-
     private
 
     # create a Route53 communications client.
+    #
+    # @return [AWS::Route53::Client]
     def r53()
       AWS::Route53.new(:access_key_id => @aws_access_key_id,
                        :secret_access_key => @aws_access_key).client
     end
 
-    #
     # Create an Route53 change record data structure
     #
-    # INPUTS:
-    #   action: String  - "CREATE" or "DELETE"
-    #   fqdn:   String  - the fully qualified domain name to be changed
-    #   ttl:    Integer - Time To Live (seconds)
-    #   value:  String  - The value to be assigned to the record
-    #
-    # RETURNS:
-    #   Hash: a structure suitable for use as a change record in
-    #         an AWS update request.
-    #
+    # @param [String] action "CREATE" or "DELETE"
+    # @param [String] fqdn the fully qualified domain name of the record
+    # @param [FixNum] ttl "time to live" in seconds
+    # @param [String] value the fully qualified domain name of the app host
+    # @return [Hash] a data structure suitable for use in a Route53 change
+    #   request
     def change_record(action, fqdn, ttl, value)
       # the CNAME values must be quoted
       {
@@ -195,15 +205,10 @@ module OpenShift
       }
     end
         
-    # 
     # Retrieve a record from the AWS Route53 service
     # 
-    # INPUTS:
-    #   fqdn: String - The fully qualified domain name of the record to get
-    #
-    # RETURNS:
-    #   Hash: a single AWS Route 53 resource record hash
-    #
+    # @param [String] fqdn The fully qualified domain name of an application
+    # @return [nil|Hash] Return nil or a hash containing the requested record
     def get_record(fqdn)
       # Request a single record "starting with" the desired record.
       reply = r53.list_resource_record_sets(
