@@ -44,8 +44,8 @@ create_cartridge_instance_dir "$cartridge_type"
 cart_instance_dir=$(get_cartridge_instance_dir "$cartridge_type")
 pushd "$cart_instance_dir" > /dev/null
 mkdir -p logs
-mkdir -p ${OPENSHIFT_HOMEDIR}.m2/repository
-chown -R $user_id ${OPENSHIFT_HOMEDIR}.m2/repository
+mkdir -p .m2/repository
+chown -R $user_id .m2/repository
 popd > /dev/null
 
 #  Note:  Installing a community cartridge inside this cartridge shell.
@@ -79,6 +79,9 @@ create_standard_repo_dir_env_var
 create_standard_path_env_var
 
 create_community_cart_network_env_vars "$IP"
+
+echo 'export OPENSHIFT_SYNC_GEARS_DIRS=( "repo" "node_modules" "../.m2" ".openshift" "deployments" "perl5lib" "phplib" )' \
+     >$APP_HOME/.env/OPENSHIFT_SYNC_GEARS_DIRS
 
 observe_setup_env_uservars_dir
 
