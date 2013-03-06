@@ -58,10 +58,10 @@ module OpenShift
     def get_plans
     end
 
-    def get_usage_time(billing_acct_no, urec, begin_time, end_time)
+    def get_usage_time(urec)
       total_time = 0
-      if end_time > begin_time
-        total_time = (end_time - begin_time) / 3600 #hours
+      if urec['end_time'] > urec['time']
+        total_time = (urec['end_time'] - urec['time']) / 3600 #hours
       end
       total_time
     end
@@ -104,7 +104,6 @@ module OpenShift
         end
       end
       # Deleting ended usage records
-      user_ids.uniq!
       session.with(safe:true)[:usage_records].find({_id: {"$in" => user_ids}}).remove_all unless user_ids.empty?
     end
   end
