@@ -1,4 +1,4 @@
-#Test each of the basic functions of the gss-tsig-DnsPlugin
+#Test each of the basic functions of the gsstsigDnsPlugin
 
 require 'rubygems'
 require 'dnsruby'
@@ -8,7 +8,7 @@ require 'dnsruby'
 require 'openshift/dns_service'
 
 # Now load the plugin code itself (not the wrapper!)
-require 'openshift/gss-tsig_plugin'
+require 'openshift/gsstsigPlugin'
 
 #
 # Define the Rails config structure for testing
@@ -45,7 +45,7 @@ end
 
 module OpenShift
 
-  describe gss-tsig-Plugin do
+  describe gsstsigPlugin do
 
    before do
       # create a DnsMasq service to work with
@@ -58,13 +58,12 @@ module OpenShift
       #
       @dns = {
           :server => "ad.example.com",
-          :secure => true,
           :dns_zone => "example.com",
           :krb_keytab => "/etc/krb5.keytab",
           :krb_principal => "DNS/server1.example.com",
       }
 
-      @plugin = gss-tsig-Plugin.new(@dns)
+      @plugin = gsstsigPlugin.new(@dns)
 
       @resolver = 
         Dnsruby::Resolver.new({
@@ -81,14 +80,14 @@ module OpenShift
     end
 
     it "can be configured using an input hash" do
-      uplift = OpenShift::gss-tsig-Plugin.new @dns
+      uplift = OpenShift::gsstsigPlugin.new @dns
       #uplift.config_file.should be @dns[:config_file]
     end
 
     it "can be configured using the Rails Application::Configuration object" do
       
 
-      uplift = OpenShift::gss-tsig-Plugin.new
+      uplift = OpenShift::gsstsigPlugin.new
 
     end
 
