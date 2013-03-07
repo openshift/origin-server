@@ -6,8 +6,8 @@ require 'rubygems'
 module OpenShift
 
   # 
-  class gsstsigPlugin < OpenShift::DnsService
-    @provider = OpenShift::gsstsigPlugin
+  class GSSTSIGPlugin < OpenShift::DnsService
+    @provider = OpenShift::GSSTSIGPlugin
 
     attr_reader :server, :krb_keytab, :krb_principal, :dns_zone
 
