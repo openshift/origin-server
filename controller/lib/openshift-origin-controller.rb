@@ -10,6 +10,7 @@ module OpenShift
     autoload :ApiResponses,            'openshift/controller/api_responses'
     autoload :Configuration,           'openshift/controller/configuration'
     autoload :OAuth,                   'openshift/controller/oauth'
+    autoload :Routing,                 'openshift/controller/routing'
     autoload :ScopeAuthorization,      'openshift/controller/scope_authorization'
   end
 
