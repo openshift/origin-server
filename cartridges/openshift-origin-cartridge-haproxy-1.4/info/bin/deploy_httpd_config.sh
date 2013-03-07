@@ -47,7 +47,7 @@ global
     #log         127.0.0.1 local2
 
     pidfile     $HAPROXY_DIR/run/haproxy.pid
-    maxconn     4000
+    maxconn     256
     daemon
 
     # turn on stats unix socket
@@ -73,7 +73,7 @@ defaults
     timeout server          1m
     timeout http-keep-alive 10s
     timeout check           10s
-    maxconn                 3000
+    maxconn                 128
 
 listen stats $IP2:8080
     mode http
