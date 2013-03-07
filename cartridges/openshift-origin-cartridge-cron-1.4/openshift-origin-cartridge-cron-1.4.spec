@@ -3,7 +3,7 @@
 
 Summary:       Embedded cron support for express
 Name:          openshift-origin-cartridge-cron-1.4
-Version:       1.5.3
+Version: 1.6.0
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0

@@ -2,7 +2,7 @@
 
 Summary:       Provides diy support
 Name:          openshift-origin-cartridge-diy-0.1
-Version:       1.5.3
+Version: 1.6.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0

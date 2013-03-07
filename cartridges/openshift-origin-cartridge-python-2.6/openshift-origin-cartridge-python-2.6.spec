@@ -2,7 +2,7 @@
 
 Summary:       Provides python-2.6 support
 Name:          openshift-origin-cartridge-python-2.6
-Version:       1.5.5
+Version: 1.6.0
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
