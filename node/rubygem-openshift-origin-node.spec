@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version: 1.6.0
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -222,6 +222,9 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.15-1
 - Merge pull request #1578 from ironcladlou/endpoint_ex_handling
   (dmcphers+openshiftbot@redhat.com)
