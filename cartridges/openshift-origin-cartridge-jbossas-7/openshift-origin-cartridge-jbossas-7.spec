@@ -142,8 +142,8 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 %doc %{cartridgedir}/jbossas7.md
-%config(noreplace) %{cartridgedir}/info/configuration/
-%config(noreplace) %{cartridgedir}/info/bin/standalone.conf
+%config %{cartridgedir}/info/configuration/
+%config %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
