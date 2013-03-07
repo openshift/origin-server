@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 2.7 cartridge
 Name:          openshift-origin-cartridge-community-python-2.7
-Version:       0.2.3
+Version:       0.2.4
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,10 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Bug 918383 - Python community cartridges cannot share virtualenv
+  (jhonce@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Switch from VirtualHosts to mod_rewrite based routing to support high
   density. (rmillner@redhat.com)
