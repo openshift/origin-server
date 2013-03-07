@@ -11,7 +11,7 @@
 
 Summary:       OpenShift plugin for remote-user authentication
 Name:          rubygem-%{gem_name}
-Version: 1.6.0
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -93,6 +93,9 @@ then
 fi
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.6-1
 - RemoteUserAuthService should use authenticate_request, not authenticate
   (ccoleman@redhat.com)
