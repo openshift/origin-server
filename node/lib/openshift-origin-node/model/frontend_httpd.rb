@@ -802,7 +802,7 @@ module OpenShift
     def reload_httpd(async=false)
       async_opt="-b" if async
       begin
-        Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>1})
+        Utils::oo_spawn("/usr/sbin/oo-httpd-singular #{async_opt} graceful", {:expected_exitstatus=>0})
       rescue Utils::ShellExecutionException => e
         logger.error("ERROR: failure from oo-httpd-singular(#{e.rc}): #{@uuid} stdout: #{e.stdout} stderr:#{e.stderr}")
         raise FrontendHttpServerExecException.new(e.message, @container_uuid, @container_name, @namespace, e.rc, e.stdout, e.stderr)
@@ -1076,7 +1076,7 @@ module OpenShift
 
     def callout
       begin
-        Utils::oo_spawn("service openshift-node-web-proxy reload",{:expected_exitstatus=>1})
+        Utils::oo_spawn("service openshift-node-web-proxy reload",{:expected_exitstatus=>0})
       rescue Utils::ShellExecutionException => e
         logger.error("ERROR: failure from openshift-node-web-proxy(#{e.rc}) stdout: #{e.stdout} stderr:#{e.stderr}")
       end
