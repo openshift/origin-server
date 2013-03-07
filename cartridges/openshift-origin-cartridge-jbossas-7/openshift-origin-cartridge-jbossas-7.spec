@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas-7
-Version:       1.5.8
+Version:       1.5.9
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -146,6 +146,9 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %config %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Bug 906840 (bdecoste@gmail.com)
+
 * Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
 - JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
 
