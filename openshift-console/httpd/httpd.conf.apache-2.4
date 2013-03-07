@@ -90,13 +90,13 @@ DefaultType text/plain
 HostnameLookups Off
 #EnableMMAP off
 #EnableSendfile off
-ErrorLog logs/error_log
+ErrorLog /var/log/openshift/console/httpd/error_log
 LogLevel error
 LogFormat "%{X-Forwarded-For}i %v %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" (%Dus) %X" combined
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
 LogFormat "%{Referer}i -> %U" referer
 LogFormat "%{User-agent}i" agent
-CustomLog logs/access_log combined
+CustomLog /var/log/openshift/console/httpd/access_log combined
 ServerSignature On
 # BZ840030 (addendum to BZ785050): Alias /icons/ "/var/www/icons/"
 
