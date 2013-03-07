@@ -69,6 +69,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
 %{_mandir}/man8/oo-admin-ctl-domain.8.gz
+%{_mandir}/man8/oo-admin-ctl-usage.8.gz
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz

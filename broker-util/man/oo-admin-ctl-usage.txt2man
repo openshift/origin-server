@@ -1,0 +1,49 @@
+NAME
+  oo-admin-ctl-usage
+  
+SYNOPSIS
+  oo-admin-ctl-usage [-h|--help] [-l|--list] 
+  [-s|--sync] [-r|--remove-sync-lock] [-e|--enable-logger]
+
+DESCRIPTION
+  This is a utility to list and sync usage across all users since the last sync happened 
+  on OpenShift Origin.
+
+OPTIONS
+  -h|--help  
+    Display a simple help dialog.
+
+  -l|--list  
+    Lists all unsynced usage for all users since the last sync.
+
+  -s|--sync  
+    Syncs all unsynced usage for all users since the last sync.
+
+  -r|--remove-sync-lock  
+    Forcibly removes the sync lock.
+
+  -e|--enable-logger
+    Enables logging for this script
+
+EXAMPLE
+
+  List the unsynced usage for all users:
+
+    $ oo-admin-ctl-usage --list
+
+  Sync the unsyned usage for all users since the last sync:
+  
+    $ oo-admin-ctl-usage --sync
+  
+  Clean/remoeve the sync lock:
+  
+    $ oo-admin-usage --remove-sync-lock
+  
+SEE ALSO
+  oo-admin-ctl-district(8), oo-setup-broker(8), oo-admin-move(8),
+  oo-admin-chk(8), oo-accept-broker(8), oo-admin-ctl-app(8),
+  oo-admin-ctl-domain(8), oo-setup-bind(8), oo-admin-usage(8),
+  oo-admin-ctl-user(8), oo-register-dns(8)
+ 
+AUTHOR
+  Adam Miller <admiller@redhat.com> - man page written for OpenShift Origin 
