@@ -2,6 +2,6 @@ require 'openshift-origin-controller'
 require 'rails'
 
 module OpenShift
-  class gss-tsig-DnsEngine < Rails::Engine
+  class gsstsigDnsEngine < Rails::Engine
   end
 end
