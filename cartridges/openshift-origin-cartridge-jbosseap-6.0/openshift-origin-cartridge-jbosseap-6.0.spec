@@ -147,8 +147,8 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
 %doc %{cartridgedir}/jbosseap6.0.md
-%config(noreplace) %{cartridgedir}/info/configuration/
-%config(noreplace) %{cartridgedir}/info/bin/standalone.conf
+%config %{cartridgedir}/info/configuration/
+%config %{cartridgedir}/info/bin/standalone.conf
 
 
 %changelog
