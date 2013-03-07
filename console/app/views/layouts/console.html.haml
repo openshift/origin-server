@@ -12,10 +12,12 @@
 
   %body{ :class => "console #{controller.controller_name} #{controller.action_name}" }
 
+    %a.skip-navigation{:href => '#content', :accesskey => '2'} Skip to main content
+
     %header
       = render 'layouts/console/header'
 
-    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light'}
+    .section-console#content{:class => content_for?(:dark_layout) ? '' : 'section-console-light', :role => 'main'}
       .container
         .row-console
           - if content_for? :full_layout

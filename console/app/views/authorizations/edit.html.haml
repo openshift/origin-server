@@ -12,11 +12,15 @@
 
       %p The token will allow clients to perform these operations on your behalf:
       %table.table
+        %thead
+          %tr
+            %th{:scope => 'col'} Scope
+            %th{:scope => 'col'} Description
         %tbody
           - @authorization.scopes.each do |s|
             - if scope = @scope_definitions.find{ |scope| scope[:match] ? s.match(scope[:match]) : scope[:id].to_s == s.to_s }
               %tr
-                %td= scope[:id]
+                %td{:scope => 'row'}= scope[:id]
                 %td= scope[:description]
 
       = f.input :note, :as => :text, :label => 'Change the description of this authorization token', :input_html => {:class => 'span6', :rows => 2}
