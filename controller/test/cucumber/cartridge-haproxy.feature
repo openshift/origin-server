@@ -7,7 +7,7 @@ Feature: HAProxy Application Sub-Cartridge
     Then a <proc_name> process will be running
     
     When I embed a haproxy-1.4 cartridge into the application
-    Then 1 process named haproxy will be running
+    Then 0 process named haproxy will be running
     And the embedded haproxy-1.4 cartridge directory will exist
     And the haproxy configuration file will exist
     And the haproxy PATH override will exist
