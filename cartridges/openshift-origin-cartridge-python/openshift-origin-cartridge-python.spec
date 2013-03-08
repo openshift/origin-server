@@ -2,7 +2,7 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/python
 
 Name: openshift-origin-cartridge-python
-Version: 0.1.0
+Version: 0.1.1
 Release: 1%{?dist}
 Summary: Python cartridge
 Group: Development/Languages
@@ -71,5 +71,8 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Fri Mar 08 2013 Mike McGrath <mmcgrath@redhat.com> 0.1.1-1
+- new package built with tito
+
 * Wed Feb 20 2013 Mike McGrath <mmcgrath@redhat.com> - 0.1.0-1
 - Initial SPEC created
