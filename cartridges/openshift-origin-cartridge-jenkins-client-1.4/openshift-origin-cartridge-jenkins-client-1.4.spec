@@ -8,7 +8,7 @@
 
 Summary:       Embedded jenkins client support for express 
 Name:          openshift-origin-cartridge-jenkins-client-1.4
-Version:       1.4.3
+Version: 1.5.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -66,6 +66,13 @@ ln -s %{cartridgedir} %{buildroot}/%{frameworkdir}
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.4.4-1
+- Bug 917713 (bdecoste@gmail.com)
+- Bug 917713 (bdecoste@gmail.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 1.4.3-1
 - Fixes for ruby193 (john@ibiblio.org)
 - Bug 903530 Set version to framework version (dmcphers@redhat.com)

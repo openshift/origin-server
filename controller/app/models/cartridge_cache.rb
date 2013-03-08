@@ -6,7 +6,9 @@ class CartridgeCache
   # Returns an Array of Cartridge objects
   def self.cartridges
     CacheHelper.get_cached("all_cartridges", :expires_in => 21600.seconds) do
-      OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges
+      carts = OpenShift::ApplicationContainerProxy.find_one().get_available_cartridges
+      raise OpenShift::NodeException.new if carts.empty?
+      carts
     end
   rescue OpenShift::NodeException => e
     Rails.logger.error <<-"ERROR"

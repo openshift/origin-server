@@ -21,7 +21,7 @@ BROKER_URL=https://localhost/broker/rest
 #
 # Optional
 #
-# COMMUNITY_URL=https://www.openshift.com
+# COMMUNITY_URL=https://www.openshift.com/
 
 
 #

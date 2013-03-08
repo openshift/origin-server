@@ -4,7 +4,7 @@
 
 Summary:       Provides JBossAS7 support
 Name:          openshift-origin-cartridge-jbossas-7
-Version:       1.5.7
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -51,6 +51,7 @@ mkdir -p %{buildroot}/%{_sysconfdir}/openshift/cartridges
 cp LICENSE %{buildroot}%{cartridgedir}/
 cp COPYRIGHT %{buildroot}%{cartridgedir}/
 cp README %{buildroot}%{cartridgedir}/
+cp jbossas7.md %{buildroot}%{cartridgedir}/
 cp -r info %{buildroot}%{cartridgedir}/
 cp -r template %{buildroot}%{cartridgedir}/
 ln -s %{cartridgedir}/info/configuration/ %{buildroot}/%{_sysconfdir}/openshift/cartridges/%{name}
@@ -140,10 +141,20 @@ cp -p %{cartridgedir}/info/configuration/postgresql_module.xml /etc/alternatives
 %{cartridgedir}/README
 %doc %{cartridgedir}/COPYRIGHT
 %doc %{cartridgedir}/LICENSE
-%config(noreplace) %{cartridgedir}/info/configuration/
-%config(noreplace) %{cartridgedir}/info/bin/standalone.conf
+%doc %{cartridgedir}/jbossas7.md
+%config %{cartridgedir}/info/configuration/
+%config %{cartridgedir}/info/bin/standalone.conf
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
+- Bug 906840 (bdecoste@gmail.com)
+
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.8-1
+- JBoss cartridge documentation for OSE 1.1 (calfonso@redhat.com)
+
 * Fri Mar 01 2013 Adam Miller <admiller@redhat.com> 1.5.7-1
 - Bug 916388: Fix JBoss tidy scripts (ironcladlou@gmail.com)
 

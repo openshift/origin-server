@@ -6,7 +6,7 @@
 
 Summary:       Utility scripts for the OpenShift Origin broker
 Name:          openshift-origin-broker-util
-Version:       1.5.9
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Network/Daemons
 License:       ASL 2.0
@@ -69,6 +69,7 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-admin-ctl-app.8.gz
 %{_mandir}/man8/oo-admin-ctl-district.8.gz
 %{_mandir}/man8/oo-admin-ctl-domain.8.gz
+%{_mandir}/man8/oo-admin-ctl-usage.8.gz
 %{_mandir}/man8/oo-admin-ctl-user.8.gz
 %{_mandir}/man8/oo-admin-move.8.gz
 %{_mandir}/man8/oo-admin-usage.8.gz
@@ -80,6 +81,23 @@ cp kickstart/openshift-origin-remix.ks %{buildroot}/usr/share/openshift/kickstar
 %{_mandir}/man8/oo-stats.8.gz
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
+- Fix for bug 919190 - adding a space in the info text (abhgupta@redhat.com)
+- Adding man page for oo-admin-ctl-script (abhgupta@redhat.com)
+
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.11-1
+- BZ917491 - [ORIGIN]oo-register-dns on broker has duplicate options
+  (calfonso@redhat.com)
+- Merge pull request #1564 from danmcp/master (dmcphers@redhat.com)
+- Bug 918480 (dmcphers@redhat.com)
+- Sync usage fixes (rpenta@redhat.com)
+
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.10-1
+- Skip Usage capture for sub-account users (rpenta@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.9-1
 - oo-admin-ctl-usage fixes (rpenta@redhat.com)
 

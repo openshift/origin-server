@@ -63,12 +63,13 @@ require "/var/www/openshift/broker/config/environment"
 # Disable analytics for admin scripts
 Rails.configuration.analytics[:enabled] = false
 # Indicates how many records to gather for reporting usage in bulk.
-$bulk_recs_threshold = 5
+$bulk_recs_threshold = 20
 $billing_api = OpenShift::BillingService.instance
 # User -> billing account# cache
 $user_info_cache = {}
 $session = nil
 $cur_time = nil
+$user_srecs = [] # user usage summary records
 if $enable_logger
   $billing_api.set_logger($log_file)
 else
@@ -112,15 +113,15 @@ end
 
 # Print usage to terminal
 $prev_login = nil
-def list_usage(user_srecs)
-  return if user_srecs.empty?
+def list_usage
+  return if $user_srecs.empty?
   billing_provider_name = $billing_api.get_provider_name
   if billing_provider_name
     billing_provider_str = ", #{billing_provider_name}#: #{srec['acct_no']}"
   else
     billing_provider_str = ""
   end
-  user_srecs.each do |srec|
+  $user_srecs.each do |srec|
     if $prev_login != srec['login']
       puts "User: #{srec['login']}" + billing_provider_str
       $prev_login = srec['login']
@@ -129,11 +130,11 @@ def list_usage(user_srecs)
   end 
 end
 
-def sync_usage(user_srecs)
-  return if user_srecs.empty?
+def sync_usage
+  return if $user_srecs.empty?
   # Handle users with *NO* billing account
   srecs = []
-  user_srecs.delete_if do |srec|
+  $user_srecs.delete_if do |srec|
     if srec['acct_no']
       false
     else
@@ -148,7 +149,7 @@ def sync_usage(user_srecs)
   $session.with(safe:true)[:usage_records].find({_id: {"$in" => continue_user_ids}}).update_all(update_query) unless continue_user_ids.empty?
 
   # Handle users with billing account
-  $billing_api.sync_usage($session, user_srecs, $cur_time)
+  $billing_api.sync_usage($session, $user_srecs, $cur_time)
 end
 
 # Check basic validations and try to fix/delete incorrect records
@@ -245,21 +246,20 @@ def populate_user_summary_records(urecs)
     urec = urecs.first
     return if urec['ended']
 
-    begin_time = urec['time']
     end_time = urecs.last['time'] if urecs.length == 2
     end_time = $cur_time unless end_time
 
-    urec['usage'] = $billing_api.get_usage_time(urec['acct_no'], urec, begin_time, end_time)
     urec['end_time'] = end_time
+    urec['usage'] = $billing_api.get_usage_time(urec)
     if urecs.length == 2
       urec['ended'] = true
       urec['end_id'] = urecs.last['_id']
     end
+    $user_srecs << urec
   rescue Exception => e
+    # Ignore processing these records, needs investigation.
     $billing_api.print_error(e.message, urecs.first)
     $billing_api.log.error e.backtrace.inspect
-    # Ignore processing these records, needs investigation.
-    urecs = []
   end
 end
 
@@ -269,7 +269,6 @@ def process_user_usage_records(user_urecs)
   $cur_time = Time.now.utc
 
   begin
-    user_srecs = [] # user usage summary records
     utype_recs = [] # user usage type records
     user_urecs.each do |urec|
       if utype_recs.empty? or
@@ -279,24 +278,21 @@ def process_user_usage_records(user_urecs)
         utype_recs << urec
         next if urec['event'] != UsageRecord::EVENTS[:end]
         populate_user_summary_records(utype_recs)
-        user_srecs << utype_recs.first unless utype_recs.empty?
         utype_recs = []
       else
         populate_user_summary_records(utype_recs)
-        user_srecs << utype_recs.first unless utype_recs.empty?
         utype_recs = [urec]
       end
     end
-    unless utype_recs.empty?
-      populate_user_summary_records(utype_recs)
-      user_srecs << utype_recs.first unless utype_recs.empty?
-    end
+    populate_user_summary_records(utype_recs) unless utype_recs.empty?
     # List and/or Sync usage
-    list_usage(user_srecs) if $list
-    sync_usage(user_srecs) if $sync
+    list_usage if $list
+    sync_usage if $sync
   rescue Exception => e
     $billing_api.print_error e.message
     $billing_api.log.error e.backtrace.inspect
+  ensure
+    $user_srecs = []
   end
 end
 

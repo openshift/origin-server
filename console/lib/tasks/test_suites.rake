@@ -53,6 +53,7 @@ namespace :test do
         'test/functional/application_types_controller_test.rb',
         'test/functional/domains_controller_test.rb',
         'test/functional/scaling_controller_test.rb',
+        'test/integration/rest_api/cartridge_test.rb',
       ])
     end
 
@@ -60,7 +61,7 @@ namespace :test do
       t.libs << 'test'
       covered.concat(t.test_files = FileList[
         'test/integration/rest_api/**_test.rb',
-      ])
+      ].exclude('test/integration/rest_api/cartridge_test.rb'))
     end
 
     Rake::TestTask.new :base => ['test:prepare'] do |t|

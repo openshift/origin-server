@@ -99,7 +99,7 @@ class ApplicationsController < BaseController
     end
 
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
-    return render_error(:unprocessable_entity, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}",
+    return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
@@ -114,7 +114,10 @@ class ApplicationsController < BaseController
         framework_cartridges.push(cart) unless not framework_carts.include?(cart)
         other_cartridges.push(cart) unless framework_carts.include?(cart)
       end
-      if framework_cartridges.empty?
+      if framework_carts.empty?
+        return render_error(:unprocessable_entity, "Unable to determine list of available cartridges.  If the problem persists please contact Red Hat support",
+                          109, "ADD_APPLICATION", "cartridge")
+      elsif framework_cartridges.empty?
         return render_error(:unprocessable_entity, "Each application must contain one web cartridge.  None of the specified cartridges #{features.to_sentence} is a web cartridge. Please include one of the following cartridges: #{framework_carts.to_sentence}.",
                           109, "ADD_APPLICATION", "cartridge")
       elsif framework_cartridges.length > 1

@@ -2,7 +2,7 @@
 
 Summary:       Provides support for using community Python 3.3 cartridge
 Name:          openshift-origin-cartridge-community-python-3.3
-Version:       0.2.3
+Version: 0.3.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -77,6 +77,14 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 0.3.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 0.2.4-1
+- Bug 919161: Fix Python 3.3 Endpoint entry (ironcladlou@gmail.com)
+- Bug 918383 - Python community cartridges cannot share virtualenv
+  (jhonce@redhat.com)
+
 * Tue Feb 19 2013 Adam Miller <admiller@redhat.com> 0.2.3-1
 - Audit of remaining front-end Apache touch points. (rmillner@redhat.com)
 - Bug 903530 Set version to framework version (dmcphers@redhat.com)

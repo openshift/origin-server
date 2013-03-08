@@ -18,6 +18,8 @@
 # Test the OpenShift frontend_httpd model
 #
 require 'test_helper'
+require 'openshift-origin-node/utils/shell_exec'
+require 'openshift-origin-node/utils/environ'
 require 'openshift-origin-node/model/frontend_httpd'
 require 'test/unit'
 require 'fileutils'
@@ -84,10 +86,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     @config_mock.stubs(:get).with("CLOUD_DOMAIN").returns(@cloud_domain)
     OpenShift::Config.stubs(:new).returns(@config_mock)
 
-    @container_info_db = FauxApacheDB.new
-    @container_info_db_full = { @container_uuid => { "container_name" => @container_name, "namespace" => @namespace } }
-    OpenShift::ContainerInfoDB.stubs(:open).yields(@container_info_db)
-
     @apache_db_nodes = FauxApacheDB.new
     @apache_db_nodes_full = { @fqdn => "#{@ip}:#{@port}" }
     OpenShift::ApacheDBNodes.stubs(:open).yields(@apache_db_nodes)
@@ -126,7 +124,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
   end
 
   def set_dbs_empty
-    @container_info_db.replace({})
     @apache_db_nodes.replace({})
     @apache_db_aliases.replace({})
     @apache_db_idler.replace({})
@@ -135,7 +132,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
   end
 
   def check_dbs_empty
-    assert @container_info_db.empty?, "ContainerInfoDB not empty"
     assert @apache_db_nodes.empty?, "ApacheDBNodes not empty"
     assert @apache_db_aliases.empty?, "ApacheDBAliases not empty"
     assert @apache_db_idler.empty?, "ApacheDBIdler not empty"
@@ -144,7 +140,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
   end
 
   def check_dbs_not_empty
-    assert (not @container_info_db.empty?), "ContainerInfoDB empty"
     assert (not @apache_db_nodes.empty?), "ApacheDBNodes empty"
     assert (not @apache_db_aliases.empty?), "ApacheDBAliases empty"
     assert (not @apache_db_idler.empty?), "ApacheDBIdler empty"
@@ -153,7 +148,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
   end
 
   def set_dbs_full
-    @container_info_db.replace(@container_info_db_full)
     @apache_db_nodes.replace(@apache_db_nodes_full)
     @apache_db_aliases.replace(@apache_db_aliases_full)
     @apache_db_idler.replace(@apache_db_idler_full)
@@ -162,7 +156,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
   end
 
   def check_dbs_full
-    assert_equal @container_info_db_full, @container_info_db, "ContainerInfoDB not properly set"
     assert_equal @apache_db_nodes_full, @apache_db_nodes, "ApacheDBNodes not properly set"
     assert_equal @apache_db_aliases_full, @apache_db_aliases, "ApacheDBAliases not properly set"
     assert_equal @apache_db_idler_full, @apache_db_idler, "ApacheDBIdler not properly set"
@@ -186,11 +179,14 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
 
-    assert_equal @container_info_db_full, @container_info_db, "Failed to populate ContainerInfoDB"
+    # Does nothing.
   end
 
   def test_create_initialized
     set_dbs_full
+
+    t_environ = { 'OPENSHIFT_GEAR_NAME' => @container_name, 'OPENSHIFT_GEAR_DNS' => @fqdn }
+    OpenShift::Utils::Environ.stubs(:for_gear).returns(t_environ).once
 
     frontend = nil
     assert_nothing_raised do
@@ -216,8 +212,9 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     Dir.stubs(:glob).returns(["foo.conf"]).once
     FileUtils.stubs(:rm_rf).once
 
+    OpenShift::Utils.stubs(:oo_spawn).returns(["", "", 0]).once
+
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
-    frontend.stubs(:shellCmd).returns(["", "", 0]).once
     frontend.destroy
 
     check_dbs_empty
@@ -238,9 +235,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     assert_equal new_fqdn, frontend.fqdn
 
     check_dbs_not_empty
-
-    assert_equal "newname", @container_info_db[@container_uuid]["container_name"]
-    assert_equal  "newnamespace", @container_info_db[@container_uuid]["namespace"]
 
     assert_equal @apache_db_nodes_full[@fqdn], @apache_db_nodes[new_fqdn]
 
@@ -270,7 +264,6 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     frontend.create
     frontend.connect(connections)
 
-    assert (not @container_info_db.empty?), "ContainerInfoDB empty"
     assert (not @apache_db_nodes.empty?), "ApacheDBNodes empty"
     assert (not @nodejs_db_routes.empty?), "NodeJSDBRoutes empty"
 
@@ -379,12 +372,12 @@ class FrontendHttpServerModelTest < Test::Unit::TestCase
     FileUtils.stubs(:rm_rf).with(@test_ssl_path).once
     FileUtils.stubs(:rm_rf).with("#{@test_ssl_path}.conf").once
 
+    OpenShift::Utils.stubs(:oo_spawn).returns(["", "", 0]).twice
+
     frontend = OpenShift::FrontendHttpServer.new(@container_uuid, @container_name, @namespace)
     frontend.create
     frontend.connect("", "#{@ip}:#{@port}", { "websocket" => 1})
     frontend.add_alias("#{@test_alias}")
-
-    frontend.stubs(:shellCmd).returns(["", "", 0]).twice
 
     frontend.add_ssl_cert(@test_ssl_cert, @test_ssl_key, @test_alias, @test_ssl_key_passphrase)
 
@@ -459,22 +452,18 @@ class TestApacheDB < Test::Unit::TestCase
                                 "aliases",
                                 "idler",
                                 "sts",
-                                "routes",
-                                "containers" ].map { |k|
+                                "routes" ].map { |k|
                                  [k, "/var/run/openshift/ApacheDB.#{k}.txt.lock"]}]
-    @apachedb_lockfiles.update(Hash[["routes",
-                                     "containers"].map { |k|
+    @apachedb_lockfiles.update(Hash[["routes"].map { |k|
                                       [k, "/var/run/openshift/ApacheDB.#{k}.json.lock"]}])
 
     @apachedb_files = Hash[["nodes",
                             "aliases",
                             "idler",
                             "sts",
-                            "routes",
-                            "containers" ].map { |k|
+                            "routes" ].map { |k|
                              [k, File.join(@http_conf_dir,"#{k}.txt")]}]
-    @apachedb_files.update(Hash[["routes",
-                                 "containers"].map { |k|
+    @apachedb_files.update(Hash[["routes"].map { |k|
                                   [k, File.join(@http_conf_dir,"#{k}.json")]}])
   end
 

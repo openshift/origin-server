@@ -18,7 +18,11 @@ module RestModelHelper
     group_instances.each do |group_instance|
       component_instances = group_instance.all_component_instances
       component_instances.each do |component_instance|
-        cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides)
+        if requested_api_version == 1.0
+          cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides) if component_instance.is_embeddable?
+        else
+          cartridges << get_rest_cartridge(application, domain, component_instance, group_instances, application.group_overrides)
+        end
       end
     end
     cartridges

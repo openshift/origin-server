@@ -2,7 +2,7 @@
 
 Summary:       Provides Node-0.6 support
 Name:          openshift-origin-cartridge-nodejs-0.6
-Version:       1.5.4
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,6 +99,9 @@ ln -s %{cartridgedir}/../abstract/info/bin/sync_gears.sh %{buildroot}%{cartridge
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Thu Feb 28 2013 Adam Miller <admiller@redhat.com> 1.5.4-1
 - Bug 913217 (bdecoste@gmail.com)
 

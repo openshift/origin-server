@@ -144,11 +144,39 @@ function mongo() {
 
 }  #  End of  mongo  function.
 
+# The mco command shouldn't be run by gears
+# but its really protected at the config files.
 function mco {
     echo "mco: Permission denied" >&2
     return 255
 }
 
+# Add safety checks around rm to prevent 'rm -rf'
+# from destroying the git repo.
+function rm {
+    end_args=""
+    for test_arg in "$@"
+    do
+        if [ \( -n "$end_args" \) -o \( "${test_arg:0:1}" != "-" \) ]
+        then
+            for f in $(eval echo "$test_arg")
+            do
+                if [ -e "$f" ]
+                then
+                    if ! [ -O "$f" ]
+                    then
+                        echo "ERROR: Refusing unsafe deletion: $f" >&2
+                        return 254
+                    fi
+                fi
+            done
+        elif [ "$test_arg" == "--" ]
+        then
+            end_args="1"
+        fi
+    done
+    /usr/bin/env rm "$@"
+}
 
 function help {
     cat <<EOF

@@ -87,27 +87,23 @@ module Console::ModelHelper
   end
 
   def can_scale_application_type(type, capabilities)
-    type.scalable? and capabilities.gears_free >= 2
+    type.scalable?
   end
 
   def cannot_scale_title(type, capabilities)
     unless can_scale_application_type(type, capabilities)
-      if type.scalable?
-        "You need at least two free gears to create a scaling application; you are currently using #{capabilities.consumed_gears} out of #{capabilities.max_gears}."
-      else
-        "This application shares resources and can't be scaled."
-      end
+      "This application shares resources and can't be scaled."
     end
   end
 
   def in_groups_by_tag(ary, tags)
     groups = {}
     other = ary.reject do |t|
-      tags.any? do |tag| 
+      tags.any? do |tag|
         (groups[tag] ||= []) << t if t.tags.include?(tag)
       end
     end
-    groups = tags.map do |tag| 
+    groups = tags.map do |tag|
       types = groups[tag]
       if types
         if types.length < 2

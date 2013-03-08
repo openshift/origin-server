@@ -16,7 +16,7 @@
 
 Summary:       Cloud Development Node
 Name:          rubygem-%{gem_name}
-Version:       1.5.12
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -99,11 +99,11 @@ ln -sf %{appdir}/.httpd.d %{buildroot}/etc/httpd/conf.d/openshift
 for map in nodes aliases idler sts
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
-    echo '' > "${mapf}.txt"
+    touch "${mapf}.txt"
     %{httxt2dbm} -f DB -i "${mapf}.txt" -o "${mapf}.db"
 done
 
-for map in containers routes
+for map in routes
 do
     mapf="%{buildroot}%{appdir}/.httpd.d/${map}"
     echo '{}' > "${mapf}.json"
@@ -174,7 +174,6 @@ rm -rf %{buildroot}%{gem_instdir}/misc
 %config(noreplace) /etc/httpd/conf.d/openshift_route.include
 %attr(0755,-,-) %{appdir}
 %attr(0750,root,apache) %{appdir}/.httpd.d
-%attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/containers.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/routes.json
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/nodes.txt
 %attr(0640,root,apache) %config(noreplace) %{appdir}/.httpd.d/aliases.txt
@@ -223,6 +222,41 @@ fi
 sed -i -e '/pam_cgroup/d' /etc/pam.d/sshd
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.5.15-1
+- Merge pull request #1578 from ironcladlou/endpoint_ex_handling
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 919161: Fix Python 3.3 Endpoint entry (ironcladlou@gmail.com)
+- Bug 918888 - Had the wrong exit status. (rmillner@redhat.com)
+- Merge pull request #1575 from pmorie/dev/uu
+  (dmcphers+openshiftbot@redhat.com)
+- Fix destroyed gear check in UnixUser#destroy (pmorie@gmail.com)
+- Merge pull request #1570 from rmillner/post_stage
+  (dmcphers+openshiftbot@redhat.com)
+- Bug 901866 - Put training wheels on the rm command. (rmillner@redhat.com)
+
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.14-1
+- BZ873896 - [ORIGIN] 000001_openshift_origin_node.conf not included in
+  gemspec, but is in tar.gz (calfonso@redhat.com)
+- be sure you dont cache an empty list (dmcphers@redhat.com)
+- Bug 918480 (dmcphers@redhat.com)
+- Bug 917990 - Multiple fixes. (rmillner@redhat.com)
+- Merge pull request #1548 from markllama/dev/cgroup_freezethaw
+  (dmcphers+openshiftbot@redhat.com)
+- fixed missing case end and cgset syntax (mlamouri@redhat.com)
+- added cgset freeze|thaw user (markllama@gmail.com)
+
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
+- Merge pull request #1545 from pmorie/dev/v2_get_cart (dmcphers@redhat.com)
+- Bug 917163 (dmcphers@redhat.com)
+- Make v2 get_cartridge use instance dir instead of system path
+  (pmorie@gmail.com)
+- Merge pull request #1531 from jwhonce/bug/916958 (dmcphers@redhat.com)
+- Bug 916958, Bug 917513 - V1 Model not honoring Broker contract
+  (jhonce@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
 - WIP Cartridge Refactor - improve robustness of oo_spawn (jhonce@redhat.com)
 

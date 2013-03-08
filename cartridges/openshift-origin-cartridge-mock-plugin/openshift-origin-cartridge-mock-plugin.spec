@@ -2,8 +2,8 @@
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/mock-plugin
 
 Name: openshift-origin-cartridge-mock-plugin
-Version: 0.0.7
-Release: 2%{?dist}
+Version: 0.1.1
+Release: 1%{?dist}
 Summary: Mock plugin cartridge for V2 Cartridge SDK
 Group: Development/Languages
 License: ASL 2.0
@@ -57,6 +57,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 0.1.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
 * Wed Feb 27 2013 Adam Miller <admiller@redhat.com> 0.0.7-2
 - fixing tags, will bring in lost changelog later
 

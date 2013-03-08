@@ -39,7 +39,7 @@ oo-register-dns --with-node-hostname node1 \\
   -d|--domain               domain      Domain name for this node (optional, default: example.com)  
   -s|--dns-server           server      IP address or hostname of DNS server to update (optional, default: 127.0.0.1)  
   -k|--key-file             file        Bind key (optional, default: /var/named/<domain name>.key)  
-  -h|--help                             Print this message
+  -?|--help                             Print this message
 
 USAGE
   exit 255

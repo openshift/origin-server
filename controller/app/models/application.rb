@@ -39,7 +39,6 @@ class Application
   include UtilHelper
   APP_NAME_MAX_LENGTH = 32
   MAX_SCALE = -1
-  GEAR_SIZES = ["small", "medium"]
 
   field :name, type: String
   field :canonical_name, type: String
@@ -54,7 +53,7 @@ class Application
   field :component_start_order, type: Array, default: []
   field :component_stop_order, type: Array, default: []
   field :component_configure_order, type: Array, default: []
-  field :default_gear_size, type: String, default: "small"
+  field :default_gear_size, type: String
   field :scalable, type: Boolean, default: false
   field :init_git_url, type: String, default: ""
   embeds_many :connections, class_name: ConnectionInstance.name
@@ -90,8 +89,8 @@ class Application
     notify_observers(:validate_application)
   end
 
-  def self.create_app(application_name, features, domain, default_gear_size = GEAR_SIZES[0], scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil)
-    default_gear_size = GEAR_SIZES[0] unless default_gear_size
+  def self.create_app(application_name, features, domain, default_gear_size = nil, scalable=false, result_io=ResultIO.new, group_overrides=[], init_git_url=nil, user_agent=nil)
+    default_gear_size =  Rails.application.config.openshift[:default_gear_size] if default_gear_size.nil?
     app = Application.new(domain: domain, name: application_name, default_gear_size: default_gear_size, scalable: scalable, app_ssh_keys: [], pending_op_groups: [], init_git_url: init_git_url)
     app.user_agent = user_agent
     features << "web_proxy" if scalable
@@ -1757,9 +1756,9 @@ class Application
     return_go["max_gears"] = [fmax,smax].min if first["max_gears"] or second["max_gears"]
     return_go["max_gears"] = -1 if return_go["max_gears"]==10000
 
-    fi = GEAR_SIZES.index(first["gear_size"]) || 0
-    si = GEAR_SIZES.index(second["gear_size"]) || 0
-    return_go["gear_size"] = GEAR_SIZES[[fi,si].max] if first["gear_size"] or second["gear_size"]
+    fi = Rails.application.config.openshift[:gear_sizes].index(first["gear_size"]) || 0
+    si = Rails.application.config.openshift[:gear_sizes].index(second["gear_size"]) || 0
+    return_go["gear_size"] = Rails.application.config.openshift[:gear_sizes][[fi,si].max] if first["gear_size"] or second["gear_size"]
     return_go
   end
 

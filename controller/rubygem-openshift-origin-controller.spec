@@ -9,7 +9,7 @@
 
 Summary:       Cloud Development Controller
 Name:          rubygem-%{gem_name}
-Version:       1.5.12
+Version: 1.6.1
 Release:       1%{?dist}
 Group:         Development/Languages
 License:       ASL 2.0
@@ -78,6 +78,39 @@ mkdir -p %{buildroot}/etc/openshift/
 %{gem_dir}/doc/%{gem_name}-%{version}
 
 %changelog
+* Thu Mar 07 2013 Adam Miller <admiller@redhat.com> 1.6.1-1
+- bump_minor_versions for sprint 25 (admiller@redhat.com)
+
+* Wed Mar 06 2013 Adam Miller <admiller@redhat.com> 1.5.14-1
+- Merge pull request #1566 from lnader/master (dmcphers@redhat.com)
+- be sure you dont cache an empty list (dmcphers@redhat.com)
+- Bug 918501 (lnader@redhat.com)
+- Merge pull request #1559 from pravisankar/dev/ravi/usage-fixes
+  (dmcphers+openshiftbot@redhat.com)
+- Merge pull request #1562 from kraman/default_gear_sizes_2
+  (dmcphers@redhat.com)
+- Fixed a regression where DEFAULT_GEAR_CAPABILITIES was not being used to
+  populate cloud user default capabilities. (kraman@gmail.com)
+- Bug 911322 (lnader@redhat.com)
+- Sync usage fixes (rpenta@redhat.com)
+- Merge pull request #1555 from danmcp/master (dmcphers@redhat.com)
+- Bug 917973 Addind a retry and better messaging when you dont get a response
+  from the find one (dmcphers@redhat.com)
+
+* Tue Mar 05 2013 Adam Miller <admiller@redhat.com> 1.5.13-1
+- Adding input redirect for ssh-keygen so it does not prompt for a question and
+  wait indefinitely (kraman@gmail.com)
+- Merge pull request #1488 from kraman/fix_parallel_test_run
+  (dmcphers+openshiftbot@redhat.com)
+- Update setup helper to create test ssh key in exclusive lock. Othrwise was
+  facing race condition where multiple test runs were completing to create the
+  key files. (kraman@gmail.com)
+- Skip Usage capture for sub-account users (rpenta@redhat.com)
+- Merge pull request #1512 from rajatchopra/master (dmcphers@redhat.com)
+- force stop - fix bug#915587 (rchopra@redhat.com)
+- Bug 916559 - Existing broker keys broken after stage upgrade
+  (ccoleman@redhat.com)
+
 * Mon Mar 04 2013 Adam Miller <admiller@redhat.com> 1.5.12-1
 - Bug 916941 - Keep created time in sync when creating UsageRecord and Usage
   mongo record (rpenta@redhat.com)

@@ -552,7 +552,7 @@ module MCollective
         backup         = args['--with-backup']
 
         with_frontend_rescue_pattern do |o|
-          JSON.parse(backup)
+          OpenShift::FrontendHttpServer.json_create({ 'data' => JSON.parse(backup) })
         end
       end
 

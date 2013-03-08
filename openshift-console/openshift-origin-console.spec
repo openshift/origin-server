@@ -93,7 +93,7 @@ rm %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf
 %endif
 %if 0%{?rhel}
 rm %{buildroot}%{consoledir}/httpd/console.conf
-mv %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf %{buildroot}%{consoledir}/httpd/conf/console.conf
+mv %{buildroot}%{consoledir}/httpd/console-scl-ruby193.conf %{buildroot}%{consoledir}/httpd/console.conf
 %endif
 
 %if 0%{?fedora} >= 18
