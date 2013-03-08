@@ -1,7 +1,7 @@
 %global cartridgedir %{_libexecdir}/openshift/cartridges/v2/ruby18
 %global frameworkdir %{_libexecdir}/openshift/cartridges/v2/ruby18
 
-Name: openshift-origin-cartridge-ruby
+Name: openshift-origin-cartridge-ruby18
 Version: 0.1.19
 Release: 1%{?dist}
 Summary: Ruby cartridge
