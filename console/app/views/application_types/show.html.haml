@@ -26,6 +26,7 @@
   }
 
 - advanced_path = application_type_path(@application_type.id, @application_type.to_params.merge(:advanced => true))
+- focus = params[:focus]
 
 = semantic_form_for @application, :url => applications_path, :html => {:class => "form-horizontal #{@compact ? 'collapse-help' : ''}"} do |f|
   = hidden_field_tag :advanced, @advanced
@@ -85,7 +86,7 @@
       %h3.control-label Source Code
       .controls.first
         - if @advanced
-          = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository'
+          = f.text_field :initial_git_url, :class => 'expand', :placeholder => 'URL to a Git repository', :autofocus => focus == 'initial_git_url'
           -#= f.text_field :initial_git_branch, :class => 'narrow', :placeholder => 'Git branch (optional)'
           %span branch 'master'
         - else
@@ -96,7 +97,7 @@
                 (branch '#{@application_type.initial_git_branch}')
             - else
               Default 
-            %small= link_to "Change", advanced_path, :data => {:submit_form => true}
+            %small= link_to "Change", advanced_path, :data => {:submit_form => true, :focus => 'initial_git_url'}
         = f.inline_errors_for :initial_git_url
         = f.inline_errors_for :initial_git_branch
 
@@ -116,11 +117,11 @@
         - gear_sizes = @capabilities.gear_sizes
         - if gear_sizes.length > 1
           - if @advanced
-            = f.select :gear_profile, gear_sizes.map{ |size| [size.to_s.titleize, size]}
+            = f.select :gear_profile, gear_sizes.map{ |size| [size.to_s.titleize, size]}, {}, {:autofocus => focus == 'gear_profile'}
           - else
             %h3
               = gear_sizes.first.to_s.titleize
-              %small= link_to 'Change', advanced_path, :data => {:submit_form => true}
+              %small= link_to 'Change', advanced_path, :data => {:submit_form => true, :focus => 'gear_profile'}
             = f.hidden_field :gear_profile
 
         - else
@@ -166,11 +167,11 @@
         - scale_reason = cannot_scale_title(@application_type, @capabilities)
         - if can_scale
           - if @advanced
-            = f.select :scale, scale_options
+            = f.select :scale, scale_options, {}, {:autofocus => focus == 'scale'}
           - else
             %h3{:title => "Scaling your web cartridge will allocate an extra gear for the load balancer"}
               = scale_options[@application.scale? ? 1 : 0][0]
-              %small= link_to 'Change', advanced_path, :data => {:submit_form => true}
+              %small= link_to 'Change', advanced_path, :data => {:submit_form => true, :focus => 'scale'}
         - else
           %h3
             %span.text-warning{:title => scale_reason}= scale_options[0][0]
@@ -213,6 +214,9 @@
 
         // Explicitly set advanced
         fields.push({name: 'advanced', value: 'true'});
+
+        // Set focus target
+        fields.push({name: 'focus', value: $(this).data('focus')});
 
         window.location.href = "#{application_type_path(@application_type.id)}" + '?' + $.param(fields);
         return false;
