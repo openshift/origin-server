@@ -99,7 +99,7 @@ class ApplicationsController < BaseController
     end
 
     Rails.logger.debug "Checking to see if user limit for number of apps has been reached"
-    return render_error(:unprocessable_entity, "#{@login} has already reached the gear limit of #{@cloud_user.max_gears}",
+    return render_error(:unprocessable_entity, "#{@cloud_user.login} has already reached the gear limit of #{@cloud_user.max_gears}",
                         104, "ADD_APPLICATION") if (@cloud_user.consumed_gears >= @cloud_user.max_gears)
 
     return render_error(:unprocessable_entity, "You must specify a cartridge. Valid values are (#{carts.join(', ')})",
